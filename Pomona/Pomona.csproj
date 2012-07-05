@@ -70,7 +70,6 @@
     <Compile Include="ClassMapping.cs" />
     <Compile Include="ClientLibGenerator.cs" />
     <Compile Include="CritterMapping.cs" />
-    <Compile Include="ExpandingJsonSerializer.cs" />
     <Compile Include="ExpandPathsUtils.cs" />
     <Compile Include="LowercaseContractResolver.cs" />
     <Compile Include="MappingBase.cs" />
@@ -83,7 +82,7 @@
     <Compile Include="TestModel\Critter.cs" />
     <Compile Include="TestModel\EntityBase.cs" />
     <Compile Include="Words.cs" />
-    <Compile Include="Repository.cs" />
+    <Compile Include="CritterRepository.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestModel\Subscription.cs" />

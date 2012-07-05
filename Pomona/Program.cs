@@ -14,7 +14,7 @@ namespace Pomona
     {
         static void Main2(string[] args)
         {
-            var repository = new Repository();
+            var repository = new CritterRepository();
             var expandedPaths = ExpandPathsUtils.GetExpandedPaths("");
             var critters =
                 repository.GetAll<Critter>().Select(x => new PathTrackingProxy(x, "Critter", expandedPaths)).ToList();

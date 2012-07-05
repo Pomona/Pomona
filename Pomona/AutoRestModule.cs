@@ -17,7 +17,7 @@ namespace Pomona
     {
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
-        private Repository repository;
+        private CritterRepository critterRepository;
 
         private string GetExpandedPaths()
         {
@@ -44,13 +44,13 @@ namespace Pomona
             this.Get[path + "/{id}"] = x =>
             {
                 var expandedPaths = GetExpandedPaths();
-                return ToJson(this.repository.GetAll<T>().Where(y => y.Id == x.id).First(), type.Name.ToLower());
+                return ToJson(this.critterRepository.GetAll<T>().Where(y => y.Id == x.id).First(), type.Name.ToLower());
             };
 
             this.Get[path] = x =>
             {
                 var expandedPaths = GetExpandedPaths();
-                return ToJson(this.repository.GetAll<T>().ToList(), type.Name.ToLower());
+                return ToJson(this.critterRepository.GetAll<T>().ToList(), type.Name.ToLower());
                 //return ToJson(this.repository.GetAll<T>().Select(y => new PathTrackingProxy(y, typeof(T).Name, expandedPaths)).ToList());
             };
         }
@@ -60,7 +60,7 @@ namespace Pomona
             this.jsonSerializerSettings.ContractResolver = new LowercaseContractResolver();
             jsonSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
 
-            this.repository = new Repository();
+            this.critterRepository = new CritterRepository();
 
             var registerRouteForT = typeof(AutoRestModule).GetMethod("RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
