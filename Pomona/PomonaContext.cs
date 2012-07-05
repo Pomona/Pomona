@@ -6,7 +6,9 @@ namespace Pomona
 {
     public class ClassMappingFactory
     {
-        public ClassMapping GetClassMapping<T>()
+        private Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
+
+        public IMappedType GetClassMapping<T>()
         {
             var type = typeof(T);
 
@@ -14,12 +16,54 @@ namespace Pomona
         }
 
 
-        public ClassMapping GetClassMapping(Type type)
+        public IMappedType GetClassMapping(Type type)
         {
-            var classDefinition = new ClassMapping(type);
-            classDefinition.FillWithType(type);
+            IMappedType mappedType;
+            if (!mappings.TryGetValue(type, out mappedType))
+            {
+                mappedType = CreateClassMapping(type);
+            }
 
-            return classDefinition;
+            return mappedType;
+        }
+
+        private IMappedType CreateClassMapping(Type type)
+        {
+            if (type.Assembly == typeof(System.String).Assembly)
+            {
+                if (type.IsGenericType)
+                {
+                    var newSharedType = new SharedType(type.GetGenericTypeDefinition(), this);
+                    foreach (var genericTypeArg in type.GetGenericArguments())
+                    {
+                        if (genericTypeArg == type)
+                        {
+                            // Special case, self referencing generics
+                            newSharedType.GenericArguments.Add(newSharedType);
+                        }
+                        else
+                        {
+                            newSharedType.GenericArguments.Add(GetClassMapping(genericTypeArg));
+                        }
+                    }
+                    return newSharedType;
+                }
+                return new SharedType(type, this);
+            }
+
+            if (type.Namespace == "Pomona.TestModel")
+            {
+                var classDefinition = new TransformedType(type, type.Name, this);
+
+                // Add to cache before filling out, in case of self-references
+                mappings[type] = classDefinition;
+
+                classDefinition.FillWithType(type);
+
+                return classDefinition;
+            }
+
+            throw new InvalidOperationException("Don't know how to map " + type.FullName);
         }
 
 
@@ -33,13 +77,13 @@ namespace Pomona
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
 
-        public PomonaContext(Type baseType, Func<object, string> uriResolver, string expandedPaths, bool debugMode)
+        public PomonaContext(Type baseType, Func<object, string> uriResolver, string expandedPaths, bool debugMode, ClassMappingFactory classMappingFactory)
         {
             this.baseType = baseType;
             this.uriResolver = uriResolver;
             this.debugMode = debugMode;
+            this.classMappingFactory = classMappingFactory;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
-            this.classMappingFactory = new ClassMappingFactory();
         }
 
 
@@ -53,7 +97,7 @@ namespace Pomona
 
         internal bool PathToBeExpanded(string path)
         {
-            return this.expandedPaths.Contains(path);
+            return this.expandedPaths.Contains(path.ToLower());
         }
 
 
@@ -64,40 +108,14 @@ namespace Pomona
         }
 
 
-        public ObjectWrapper CreateWrapperFor(object target, string path, Type expectedBaseType)
+        public ObjectWrapper CreateWrapperFor(object target, string path, IMappedType expectedBaseType)
         {
-            Func<object, string, PomonaContext, Type, ObjectWrapper> creator = GetObjectWrapperConstructor(target.GetType());
-            return creator(target, path, this, expectedBaseType);
+            return new ObjectWrapper(target, path, this, expectedBaseType);
         }
 
-        private readonly Dictionary<Type, Func<object, string, PomonaContext, Type, ObjectWrapper>> objectWrapperConstructorCache = new Dictionary<Type, Func<object, string, PomonaContext, Type, ObjectWrapper>>();
         private ClassMappingFactory classMappingFactory;
 
-
-        private Func<object, string, PomonaContext, Type, ObjectWrapper> GetObjectWrapperConstructor(Type targetType)
-        {
-            Func<object, string, PomonaContext, Type, ObjectWrapper> creator;
-
-            if (!objectWrapperConstructorCache.TryGetValue(targetType, out creator))
-            {
-                var ctor = typeof(ObjectWrapper<>).MakeGenericType(targetType).GetConstructor(
-                    new Type[] { targetType, typeof(string), typeof(PomonaContext), typeof(Type) });
-
-                var targetParam = Expression.Parameter(typeof(object), "target");
-                var pathParam = Expression.Parameter(typeof(string), "path");
-                var contextParam = Expression.Parameter(typeof(PomonaContext), "context");
-                var expectedBaseTypeParam = Expression.Parameter(typeof(Type), "expectedBaseType");
-
-                var expression = Expression.Lambda<Func<object, string, PomonaContext, Type, ObjectWrapper>>(
-                    Expression.New(ctor, Expression.Convert(targetParam, targetType), pathParam, contextParam, expectedBaseTypeParam), targetParam, pathParam, contextParam, expectedBaseTypeParam);
-
-                creator = expression.Compile();
-
-                objectWrapperConstructorCache[targetType] = creator;
-            }
-
-            return creator;
-        }
+        public ClassMappingFactory ClassMappingFactory { get { return classMappingFactory; } }
 
 
         public string GetUri(object value)
@@ -106,7 +124,7 @@ namespace Pomona
         }
 
 
-        public ClassMapping GetClassMapping<T>()
+        public IMappedType GetClassMapping<T>()
         {
             return classMappingFactory.GetClassMapping<T>();
         }

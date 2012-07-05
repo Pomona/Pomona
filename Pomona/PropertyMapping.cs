@@ -5,14 +5,28 @@ namespace Pomona
 {
     public class PropertyMapping
     {
-        public PropertyMapping(string name, PropertyInfo propertyInfo)
+        public PropertyMapping(string name, IMappedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
         {
+            if (name == null) throw new ArgumentNullException("name");
+            if (declaringType == null) throw new ArgumentNullException("declaringType");
+            if (propertyType == null) throw new ArgumentNullException("propertyType");
             this.name = name;
+            this.declaringType = declaringType;
+            this.propertyType = propertyType;
             this.propertyInfo = propertyInfo;
         }
 
+        public IMappedType DeclaringType
+        {
+            get { return declaringType; }
+        }
 
-        public PropertyInfo PropertyInfo
+        public IMappedType PropertyType
+        {
+            get { return propertyType; }
+        }
+
+        protected PropertyInfo PropertyInfo
         {
             get { return this.propertyInfo; }
         }
@@ -33,6 +47,8 @@ namespace Pomona
         private bool updateAllowed;
 
         private string name;
+        private readonly IMappedType declaringType;
+        private readonly IMappedType propertyType;
         private readonly PropertyInfo propertyInfo;
 
         public enum PropertyCreateMode

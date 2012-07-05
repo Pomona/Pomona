@@ -8,22 +8,16 @@ using Newtonsoft.Json;
 
 namespace Pomona
 {
-    public abstract class ObjectWrapper
+    public class ObjectWrapper
     {
-        public abstract void ToJson(TextWriter textWriter);
-        public abstract void ToJson(JsonWriter writer);
-    }
-
-
-    public class ObjectWrapper<T> : ObjectWrapper
-    {
-        private readonly T target;
+        private readonly object target;
         private readonly string path;
         private readonly PomonaContext context;
-        private readonly Type expectedBaseType;
+        private readonly IMappedType expectedBaseType;
+        private readonly IMappedType targetType;
 
 
-        public ObjectWrapper(T target, string path, PomonaContext context, Type expectedBaseType)
+        public ObjectWrapper(object target, string path, PomonaContext context, IMappedType expectedBaseType)
         {
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -37,9 +31,10 @@ namespace Pomona
             this.path = path;
             this.context = context;
             this.expectedBaseType = expectedBaseType;
+            this.targetType = context.ClassMappingFactory.GetClassMapping(target.GetType());
         }
 
-        public override void ToJson(TextWriter textWriter)
+        public virtual void ToJson(TextWriter textWriter)
         {
             var jsonWriter = new JsonTextWriter(textWriter);
             jsonWriter.Formatting = Formatting.Indented;
@@ -53,22 +48,22 @@ namespace Pomona
                 IsIList(obj.GetType());
         }
 
-        private static Type[] knownGenericCollectionTypes = { typeof(List<>), typeof(IList<>), typeof(ICollection<>) };
+        private static Type[] knownGenericCollectionTypes = new[] {typeof(IList<>), typeof(ICollection<>), typeof(List<>)};
 
-        static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
+        static bool TryGetCollectionElementType(IMappedType type, out IMappedType elementType, bool searchInterfaces = true)
         {
             elementType = null;
 
-            // First look if we're dealing directly with a known collection type
-            if (type.IsGenericType)
-            {
-                var genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (knownGenericCollectionTypes.Contains(genericTypeDefinition))
-                {
-                    elementType = type.GetGenericArguments()[0];
-                }
-            }
+            var sharedType = type as SharedType;
+            if (sharedType == null)
+                return false;
 
+            // First look if we're dealing directly with a known collection type
+            if (sharedType.IsGenericType && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
+            {
+                elementType = sharedType.GenericArguments[0];
+            }
+            /*
             if (elementType == null && searchInterfaces)
             {
                 foreach (var interfaceType in type.GetInterfaces())
@@ -76,7 +71,7 @@ namespace Pomona
                     if (TryGetCollectionElementType(interfaceType, out elementType, false))
                         break;
                 }
-            }
+            }*/
 
             return elementType != null;
         }
@@ -91,25 +86,21 @@ namespace Pomona
                          x.GetGenericTypeDefinition() == typeof(IList<>)
                     /* && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0])*/);
         }
-        public override void ToJson(JsonWriter writer)
+        public virtual void ToJson(JsonWriter writer)
         {
-            var classDef = this.context.GetClassMapping<T>();
-
-            var targetType = typeof(T);
-
-            Type collectionElementType;
+            IMappedType collectionElementType;
             if (TryGetCollectionElementType(targetType, out collectionElementType))
             {
                 writer.WriteStartArray();
                 foreach (var child in ((IEnumerable)this.target))
                 {
-                    WriteJsonExpandedOrReference(writer, child, path, child.GetType(), collectionElementType);
+                    WriteJsonExpandedOrReference(writer, child, path, context.ClassMappingFactory.GetClassMapping(child.GetType()), collectionElementType);
                 }
                 writer.WriteEndArray();
             }
             else
             {
-
+                var transformedType = (TransformedType) this.targetType;
                 writer.WriteStartObject();
 
                 if (expectedBaseType != targetType)
@@ -118,7 +109,7 @@ namespace Pomona
                     writer.WriteValue(targetType.Name);
                 }
 
-                foreach (var propDef in classDef.Properties)
+                foreach (var propDef in transformedType.Properties)
                 {
                     var subPath = this.path + "." + propDef.JsonName;
                     var value = propDef.Getter(this.target);
@@ -131,6 +122,7 @@ namespace Pomona
                     }
 
                     var valueType = value.GetType();
+                    var valueTypeMapping = context.ClassMappingFactory.GetClassMapping(valueType);
 
                     var serializeAsArray = IsIList(valueType);
 
@@ -142,7 +134,7 @@ namespace Pomona
                             writer.WriteNull();
                         else
                         {
-                            WriteJsonExpandedOrReference(writer, propertyValue, subPath, valueType, propDef.PropertyInfo.PropertyType);
+                            WriteJsonExpandedOrReference(writer, propertyValue, subPath, valueTypeMapping, propDef.PropertyType);
                         }
                     }
                     else
@@ -163,7 +155,7 @@ namespace Pomona
         }
 
 
-        private void WriteJsonExpandedOrReference(JsonWriter writer, object propertyValue, string subPath, Type valueType, Type expectedBaseType)
+        private void WriteJsonExpandedOrReference(JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
         {
             if (this.context.PathToBeExpanded(subPath) || IsIList(valueType))
             {

@@ -11,7 +11,7 @@ namespace Pomona
     public class ClientLibGenerator
     {
         private ClassMappingFactory classMappingFactory;
-        private Dictionary<Type, TypeReference> toClientTypeDict;
+        private Dictionary<IMappedType, TypeReference> toClientTypeDict;
         private ModuleDefinition module;
 
 
@@ -20,33 +20,45 @@ namespace Pomona
             classMappingFactory = new ClassMappingFactory();
         }
 
-        TypeReference MapType(Type type)
+        private TypeReference GetTypeReference(IMappedType type)
         {
-            TypeReference typeReference;
+            // TODO: Cache typeRef
 
-            if (this.toClientTypeDict.TryGetValue(type, out typeReference))
+            TypeReference typeRef = null;
+
+            var sharedType = type as SharedType;
+            if (sharedType != null)
             {
-                return typeReference;
+                typeRef = module.Import(sharedType.TargetType);
+
+                if (sharedType.IsGenericType)
+                {
+                    if (sharedType.GenericArguments.Count != typeRef.GenericParameters.Count)
+                        throw new InvalidOperationException("Generic argument count not matching target type");
+
+                    var typeRefInstance = new GenericInstanceType(typeRef);
+                    foreach (var genericArgument in sharedType.GenericArguments)
+                    {
+                        typeRefInstance.GenericArguments.Add(GetTypeReference(genericArgument));
+                    }
+
+                    typeRef = typeRefInstance;
+                }
             }
 
-            if (!type.IsGenericType)
-                return this.module.Import(type);
-
-            if (type.IsGenericTypeDefinition)
-                throw new InvalidOperationException("Not supporting wrapping of generic types yet.");
-
-            var genericTypeDefinitionReference = this.module.Import(type.GetGenericTypeDefinition());
-            var genericTypeInstance = new GenericInstanceType(genericTypeDefinitionReference);
-            
-            foreach (var genericArgumentType in type.GetGenericArguments())
+            var transformedType = type as TransformedType;
+            if (transformedType != null)
             {
-                genericTypeInstance.GenericArguments.Add(MapType(genericArgumentType));
+                typeRef = toClientTypeDict[transformedType];
             }
 
-            return genericTypeInstance;
+            if (typeRef == null)
+                throw new InvalidOperationException("Unable to get TypeReference for IMappedType");
+
+            return typeRef;
         }
 
-        public void CreateClientDll(IEnumerable<Type> typesToBeIncluded, Stream stream)
+        public void CreateClientDll(IEnumerable<TransformedType> typesToBeIncluded, Stream stream)
         {
 
             var types = typesToBeIncluded.ToList();
@@ -58,7 +70,7 @@ namespace Pomona
 
             module = assembly.MainModule;
 
-            toClientTypeDict = new Dictionary<Type, TypeReference>();
+            toClientTypeDict = new Dictionary<IMappedType, TypeReference>();
 
             foreach (var t in types)
             {
@@ -87,9 +99,9 @@ namespace Pomona
 
             foreach (var kvp in toClientTypeDict)
             {
-                var type = kvp.Key;
+                var type = (TransformedType)kvp.Key;
                 var typeDef = (TypeDefinition)kvp.Value;
-                var classMapping = classMappingFactory.GetClassMapping(type);
+                var classMapping = type;
 
                 if (type.BaseType != null && toClientTypeDict.ContainsKey(type.BaseType))
                 {
@@ -100,9 +112,9 @@ namespace Pomona
                     typeDef.BaseType = msObjectTypeRef;
                 }
 
-                foreach (var prop in classMapping.Properties.Where(x => x.PropertyInfo.DeclaringType == type))
+                foreach (var prop in classMapping.Properties.Where(x => x.DeclaringType == classMapping))
                 {
-                    TypeReference propTypeRef = MapType(prop.PropertyInfo.PropertyType);
+                    TypeReference propTypeRef = GetTypeReference(prop.PropertyType);
 
                     var propDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
 

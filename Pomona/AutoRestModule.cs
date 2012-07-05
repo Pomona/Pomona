@@ -18,6 +18,7 @@ namespace Pomona
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
         private CritterRepository critterRepository;
+        private ClassMappingFactory classMappingFactory;
 
         private string GetExpandedPaths()
         {
@@ -57,6 +58,19 @@ namespace Pomona
 
         public AutoRestModule()
         {
+            this.classMappingFactory = new ClassMappingFactory();
+
+            // Just eagerly load the type mappings so we can manipulate it
+            GetEntityTypes().Select(x => classMappingFactory.GetClassMapping(x)).ToList();
+
+            // Test manipulating type mapping
+            var critterMapping = (TransformedType)classMappingFactory.GetClassMapping(typeof (Critter));
+            critterMapping.Properties.Add(new PropertyMapping("FirstWeapon", critterMapping, classMappingFactory.GetClassMapping(typeof(Weapon)), null)
+                                              {
+                                                  Getter = x => ((Critter)x).Weapons.FirstOrDefault()
+                                              });
+
+
             this.jsonSerializerSettings.ContractResolver = new LowercaseContractResolver();
             jsonSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
 
@@ -77,7 +91,7 @@ namespace Pomona
                     Contents = stream =>
                     {
                         var clientLibGenerator = new ClientLibGenerator();
-                        clientLibGenerator.CreateClientDll(GetEntityTypes(), stream);
+                        clientLibGenerator.CreateClientDll(GetEntityTypes().Select(y => classMappingFactory.GetClassMapping(y)).Cast<TransformedType>(), stream);
                     }
                 };
 
@@ -115,8 +129,8 @@ namespace Pomona
 
             res.Contents = stream =>
             {
-                var context = new PomonaContext(typeof(TestModel.EntityBase), UriResolver, path + "," + expand, debug);
-                var wrapper = context.CreateWrapperFor(o, path, o.GetType());
+                var context = new PomonaContext(typeof(TestModel.EntityBase), UriResolver, path + "," + expand, debug, classMappingFactory);
+                var wrapper = context.CreateWrapperFor(o, path, classMappingFactory.GetClassMapping(o.GetType()));
                 wrapper.ToJson(new StreamWriter(stream));
             };
 

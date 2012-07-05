@@ -10,14 +10,21 @@ using Pomona.TestModel;
 
 namespace Pomona
 {
-    public class ClassMapping
+    /// <summary>
+    /// Represents a type that is transformed
+    /// </summary>
+    public class TransformedType : IMappedType
     {
         private Type type;
 
 
-        internal ClassMapping(Type type)
+
+        internal TransformedType(Type type, string name, ClassMappingFactory classMappingFactory)
         {
+            if (classMappingFactory == null) throw new ArgumentNullException("classMappingFactory");
             this.type = type;
+            this.name = name;
+            this.classMappingFactory = classMappingFactory;
         }
 
 
@@ -26,7 +33,10 @@ namespace Pomona
             foreach (var propInfo in type.GetProperties()
                 .Where(x => x.GetGetMethod().IsPublic && x.GetIndexParameters().Count() == 0))
             {
-                var propDef = new PropertyMapping(propInfo.Name, propInfo);
+                var propDef = new PropertyMapping(propInfo.Name,
+                    classMappingFactory.GetClassMapping(propInfo.DeclaringType),
+                    classMappingFactory.GetClassMapping(propInfo.PropertyType),
+                    propInfo);
 
                 var propInfoLocal = propInfo;
 
@@ -36,6 +46,8 @@ namespace Pomona
 
                 properties.Add(propDef);
             }
+
+            BaseType = classMappingFactory.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
@@ -65,7 +77,30 @@ namespace Pomona
 
         private bool createAllowed;
         private bool updateAllowed;
+        private string name;
+        private readonly ClassMappingFactory classMappingFactory;
 
-        
+
+        public string Name
+        {
+            get { return name; }
+        }
+
+        public bool IsGenericType
+        {
+            get { return false; }
+        }
+
+        public bool IsGenericTypeDefinition
+        {
+            get { return false; }
+        }
+
+        public IList<IMappedType> GenericArguments
+        {
+            get { return new IMappedType[] {}; }
+        }
+
+        public IMappedType BaseType { get; set; }
     }
 }
