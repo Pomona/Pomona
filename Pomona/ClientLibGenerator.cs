@@ -100,7 +100,7 @@ namespace Pomona
                     typeDef.BaseType = msObjectTypeRef;
                 }
 
-                foreach (var prop in classMapping.Properties)
+                foreach (var prop in classMapping.Properties.Where(x => x.PropertyInfo.DeclaringType == type))
                 {
                     TypeReference propTypeRef = MapType(prop.PropertyInfo.PropertyType);
 

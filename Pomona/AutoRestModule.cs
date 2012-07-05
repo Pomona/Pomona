@@ -64,7 +64,7 @@ namespace Pomona
 
             var registerRouteForT = typeof(AutoRestModule).GetMethod("RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            foreach (var type in GetEntityTypes())
+            foreach (var type in GetEntityTypes().Where(x => !x.IsAbstract))
             {
                 var genericMethod = registerRouteForT.MakeGenericMethod(type);
                 genericMethod.Invoke(this, null);
@@ -95,7 +95,7 @@ namespace Pomona
 
         private static IEnumerable<Type> GetEntityTypes()
         {
-            return typeof(Critter).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.TestModel" && x.BaseType == typeof(EntityBase));
+            return typeof(Critter).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.TestModel" && typeof(EntityBase).IsAssignableFrom(x));
         }
 
 
@@ -116,7 +116,7 @@ namespace Pomona
             res.Contents = stream =>
             {
                 var context = new PomonaContext(typeof(TestModel.EntityBase), UriResolver, path + "," + expand, debug);
-                var wrapper = context.CreateWrapperFor(o, path);
+                var wrapper = context.CreateWrapperFor(o, path, o.GetType());
                 wrapper.ToJson(new StreamWriter(stream));
             };
 

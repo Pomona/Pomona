@@ -6,7 +6,7 @@ namespace Pomona.TestModel
 {
     public class Subscription : EntityBase
     {
-        public Subscription(Critter critter, BazookaModel model)
+        public Subscription(Critter critter, WeaponModel model)
         {
             if (critter == null)
                 throw new ArgumentNullException("critter");
@@ -19,7 +19,7 @@ namespace Pomona.TestModel
 
         public Critter Critter { get; set; }
 
-        public BazookaModel Model { get; set; }
+        public WeaponModel Model { get; set; }
         public string Sku { get; set; }
         public DateTime StartsOn { get; set; }
     }

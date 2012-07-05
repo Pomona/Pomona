@@ -77,10 +77,13 @@
     <Compile Include="PathTrackingProxy.cs" />
     <Compile Include="PomonaContext.cs" />
     <Compile Include="PropertyMapping.cs" />
-    <Compile Include="TestModel\Bazooka.cs" />
-    <Compile Include="TestModel\BazookaModel.cs" />
+    <Compile Include="TestModel\Gun.cs" />
+    <Compile Include="TestModel\Knife.cs" />
+    <Compile Include="TestModel\Weapon.cs" />
+    <Compile Include="TestModel\WeaponModel.cs" />
     <Compile Include="TestModel\Critter.cs" />
     <Compile Include="TestModel\EntityBase.cs" />
+    <Compile Include="TestModel\Hat.cs" />
     <Compile Include="Words.cs" />
     <Compile Include="CritterRepository.cs" />
     <Compile Include="Program.cs" />

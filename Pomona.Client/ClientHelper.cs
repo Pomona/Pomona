@@ -51,7 +51,7 @@ namespace Pomona.Client
         }
 
 
-        private static Type[] knownGenericTypes = { typeof(List<>), typeof(IList<>), typeof(ICollection<>) };
+        private static Type[] knownGenericCollectionTypes = { typeof(List<>), typeof(IList<>), typeof(ICollection<>) };
 
         static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
         {
@@ -61,7 +61,7 @@ namespace Pomona.Client
             if (type.IsGenericType)
             {
                 var genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (knownGenericTypes.Contains(genericTypeDefinition))
+                if (knownGenericCollectionTypes.Contains(genericTypeDefinition))
                 {
                     elementType = type.GetGenericArguments()[0];
                 }
@@ -106,11 +106,22 @@ namespace Pomona.Client
             if (jObject.Properties().Any(x => x.Name == "_uri"))
                 return null;
 
+            var createdType = expectedType;
+
+            var typeProperty = jObject.Properties().FirstOrDefault(x => x.Name == "_type");
+            JToken typePropertyToken;
+            if (jObject.TryGetValue("_type", out typePropertyToken))
+            {
+                var typeString = (string)((JValue)typePropertyToken).Value;
+                createdType =
+                    expectedType.Assembly.GetTypes().Where(x => x.Name == typeString).First(x => expectedType.IsAssignableFrom(x));
+            }
+
             // TODO: Support subclassing, maybe in special "_type" property in json
-            var target = Activator.CreateInstance(expectedType);
+            var target = Activator.CreateInstance(createdType);
 
             // TODO: Cache this dictionary
-            var propertiesForType = expectedType.GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
+            var propertiesForType = createdType.GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
 
             foreach (var jprop in jObject.Properties())
             {

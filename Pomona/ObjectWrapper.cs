@@ -20,9 +20,10 @@ namespace Pomona
         private readonly T target;
         private readonly string path;
         private readonly PomonaContext context;
+        private readonly Type expectedBaseType;
 
 
-        public ObjectWrapper(T target, string path, PomonaContext context)
+        public ObjectWrapper(T target, string path, PomonaContext context, Type expectedBaseType)
         {
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -30,9 +31,12 @@ namespace Pomona
                 throw new ArgumentNullException("path");
             if (context == null)
                 throw new ArgumentNullException("context");
+            if (expectedBaseType == null)
+                throw new ArgumentNullException("expectedBaseType");
             this.target = target;
             this.path = path;
             this.context = context;
+            this.expectedBaseType = expectedBaseType;
         }
 
         public override void ToJson(TextWriter textWriter)
@@ -49,6 +53,35 @@ namespace Pomona
                 IsIList(obj.GetType());
         }
 
+        private static Type[] knownGenericCollectionTypes = { typeof(List<>), typeof(IList<>), typeof(ICollection<>) };
+
+        static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
+        {
+            elementType = null;
+
+            // First look if we're dealing directly with a known collection type
+            if (type.IsGenericType)
+            {
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+                if (knownGenericCollectionTypes.Contains(genericTypeDefinition))
+                {
+                    elementType = type.GetGenericArguments()[0];
+                }
+            }
+
+            if (elementType == null && searchInterfaces)
+            {
+                foreach (var interfaceType in type.GetInterfaces())
+                {
+                    if (TryGetCollectionElementType(interfaceType, out elementType, false))
+                        break;
+                }
+            }
+
+            return elementType != null;
+        }
+
+
 
         private bool IsIList(Type t)
         {
@@ -62,12 +95,15 @@ namespace Pomona
         {
             var classDef = this.context.GetClassMapping<T>();
 
-            if (IsIList(this.target))
+            var targetType = typeof(T);
+
+            Type collectionElementType;
+            if (TryGetCollectionElementType(targetType, out collectionElementType))
             {
                 writer.WriteStartArray();
                 foreach (var child in ((IEnumerable)this.target))
                 {
-                    WriteJsonExpandedOrReference(writer, child, path, child.GetType());
+                    WriteJsonExpandedOrReference(writer, child, path, child.GetType(), collectionElementType);
                 }
                 writer.WriteEndArray();
             }
@@ -75,6 +111,13 @@ namespace Pomona
             {
 
                 writer.WriteStartObject();
+
+                if (expectedBaseType != targetType)
+                {
+                    writer.WritePropertyName("_type");
+                    writer.WriteValue(targetType.Name);
+                }
+
                 foreach (var propDef in classDef.Properties)
                 {
                     var subPath = this.path + "." + propDef.JsonName;
@@ -99,7 +142,7 @@ namespace Pomona
                             writer.WriteNull();
                         else
                         {
-                            WriteJsonExpandedOrReference(writer, propertyValue, subPath, valueType);
+                            WriteJsonExpandedOrReference(writer, propertyValue, subPath, valueType, propDef.PropertyInfo.PropertyType);
                         }
                     }
                     else
@@ -120,11 +163,11 @@ namespace Pomona
         }
 
 
-        private void WriteJsonExpandedOrReference(JsonWriter writer, object propertyValue, string subPath, Type valueType)
+        private void WriteJsonExpandedOrReference(JsonWriter writer, object propertyValue, string subPath, Type valueType, Type expectedBaseType)
         {
             if (this.context.PathToBeExpanded(subPath) || IsIList(valueType))
             {
-                var wrapper = this.context.CreateWrapperFor(propertyValue, subPath);
+                var wrapper = this.context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
                 wrapper.ToJson(writer);
             }
             else

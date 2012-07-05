@@ -35,7 +35,7 @@ namespace Pomona
 
             for (int i = 0; i < 12; i++)
             {
-                Save(new BazookaModel() { Name = Words.GetSpecialWeapon(rng) });
+                Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
             }
 
             const int critterCount = 20;
@@ -73,7 +73,7 @@ namespace Pomona
 
             for (int i = 0; i < count; i++)
             {
-                var weaponType = GetRandomEntity<BazookaModel>(rng);
+                var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var subscription =
                     Save(
                         new Subscription(critter, weaponType)
@@ -89,10 +89,11 @@ namespace Pomona
 
             for (int i = 0; i < weaponCount; i++)
             {
-                var weaponType = GetRandomEntity<BazookaModel>(rng);
+                var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var weapon =
-                    Save(
-                        new Bazooka(weaponType) { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
+                    Save(rng.NextDouble() > 0.5 ?
+                        new Weapon(weaponType) { Dependability = rng.NextDouble()} :
+                        new Gun(weaponType) { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
                 critter.Weapons.Add(weapon);
             }
         }

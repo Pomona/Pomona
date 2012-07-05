@@ -64,31 +64,32 @@ namespace Pomona
         }
 
 
-        public ObjectWrapper CreateWrapperFor(object target, string path)
+        public ObjectWrapper CreateWrapperFor(object target, string path, Type expectedBaseType)
         {
-            Func<object, string, PomonaContext, ObjectWrapper> creator = GetObjectWrapperConstructor(target.GetType());
-            return creator(target, path, this);
+            Func<object, string, PomonaContext, Type, ObjectWrapper> creator = GetObjectWrapperConstructor(target.GetType());
+            return creator(target, path, this, expectedBaseType);
         }
 
-        private readonly Dictionary<Type, Func<object, string, PomonaContext, ObjectWrapper>> objectWrapperConstructorCache = new Dictionary<Type, Func<object, string, PomonaContext, ObjectWrapper>>();
+        private readonly Dictionary<Type, Func<object, string, PomonaContext, Type, ObjectWrapper>> objectWrapperConstructorCache = new Dictionary<Type, Func<object, string, PomonaContext, Type, ObjectWrapper>>();
         private ClassMappingFactory classMappingFactory;
 
 
-        private Func<object, string, PomonaContext, ObjectWrapper> GetObjectWrapperConstructor(Type targetType)
+        private Func<object, string, PomonaContext, Type, ObjectWrapper> GetObjectWrapperConstructor(Type targetType)
         {
-            Func<object, string, PomonaContext, ObjectWrapper> creator;
+            Func<object, string, PomonaContext, Type, ObjectWrapper> creator;
 
             if (!objectWrapperConstructorCache.TryGetValue(targetType, out creator))
             {
                 var ctor = typeof(ObjectWrapper<>).MakeGenericType(targetType).GetConstructor(
-                    new Type[] { targetType, typeof(string), typeof(PomonaContext) });
+                    new Type[] { targetType, typeof(string), typeof(PomonaContext), typeof(Type) });
 
                 var targetParam = Expression.Parameter(typeof(object), "target");
                 var pathParam = Expression.Parameter(typeof(string), "path");
                 var contextParam = Expression.Parameter(typeof(PomonaContext), "context");
+                var expectedBaseTypeParam = Expression.Parameter(typeof(Type), "expectedBaseType");
 
-                var expression = Expression.Lambda<Func<object, string, PomonaContext, ObjectWrapper>>(
-                    Expression.New(ctor, Expression.Convert(targetParam, targetType), pathParam, contextParam), targetParam, pathParam, contextParam);
+                var expression = Expression.Lambda<Func<object, string, PomonaContext, Type, ObjectWrapper>>(
+                    Expression.New(ctor, Expression.Convert(targetParam, targetType), pathParam, contextParam, expectedBaseTypeParam), targetParam, pathParam, contextParam, expectedBaseTypeParam);
 
                 creator = expression.Compile();
 
