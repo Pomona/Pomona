@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoRestModule.cs" />
+    <Compile Include="ClassMappingFactory.cs" />
     <Compile Include="IMappedType.cs" />
     <Compile Include="SharedType.cs" />
     <Compile Include="TransformedType.cs" />
