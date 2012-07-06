@@ -1,11 +1,28 @@
 ﻿#region License
 
-// --------------------------------------------------
-// Copyright © OKB. All Rights Reserved.
+// ----------------------------------------------------------------------------
+// Pomona source code
 // 
-// This software is proprietary information of OKB.
-// USE IS SUBJECT TO LICENSE TERMS.
-// --------------------------------------------------
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
 
 #endregion
 
@@ -29,27 +46,24 @@ namespace Pomona
         }
 
 
-        private void CreateObjectModel()
-        {
-            var rng = new Random(463345562);
-
-            for (int i = 0; i < 12; i++)
-            {
-                Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
-            }
-
-            const int critterCount = 20;
-            
-            for (int i = 0; i < critterCount; i++)
-                CreateRandomCritter(rng);
-
-
-        }
-
         public IList<T> GetAll<T>()
             where T : EntityBase
         {
             return GetEntityList<T>();
+        }
+
+
+        private void CreateObjectModel()
+        {
+            var rng = new Random(463345562);
+
+            for (var i = 0; i < 12; i++)
+                Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
+
+            const int critterCount = 20;
+
+            for (var i = 0; i < critterCount; i++)
+                CreateRandomCritter(rng);
         }
 
 
@@ -71,7 +85,7 @@ namespace Pomona
         {
             var count = rng.Next(0, maxSubscriptions + 1);
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var subscription =
@@ -87,13 +101,15 @@ namespace Pomona
         {
             var weaponCount = rng.Next(0, maxWeapons + 1);
 
-            for (int i = 0; i < weaponCount; i++)
+            for (var i = 0; i < weaponCount; i++)
             {
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var weapon =
-                    Save(rng.NextDouble() > 0.5 ?
-                        new Weapon(weaponType) { Dependability = rng.NextDouble()} :
-                        new Gun(weaponType) { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
+                    Save(
+                        rng.NextDouble() > 0.5
+                            ? new Weapon(weaponType) { Dependability = rng.NextDouble() }
+                            : new Gun(weaponType)
+                            { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
                 critter.Weapons.Add(weapon);
             }
         }

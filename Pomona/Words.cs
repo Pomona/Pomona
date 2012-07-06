@@ -1,130 +1,41 @@
-﻿using System;
+﻿#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Pomona
 {
-    static public class Words
+    public static class Words
     {
-        private static readonly List<string> animals;
-        private static readonly List<string> adjectives;
-        private static readonly List<string> weapons;
-
-
-        static Words()
-        {
-            weapons = ParseToList(weaponsRawText);
-            animals = ParseToList(animalsRawText);
-            adjectives = ParseToList(adjectivesRawText);
-        }
-
-
-        public static List<string> Weapons
-        {
-            get { return weapons; }
-        }
-
-
-        public static string GetSpecialWeapon(Random rng)
-        {
-            var weapon = weapons[rng.Next(0, weapons.Count)];
-            var adjective = adjectives[rng.Next(0, adjectives.Count)];
-
-            return FirstToUpper(adjective) + " " + FirstToUpper(weapon);            
-        }
-
-        public static string GetAnimalWithPersonality(Random rng)
-        {
-            var animal = animals[rng.Next(0, animals.Count)];
-            //var potentialAdjectives = adjectives.Where(x => x[0] == animal[0]).ToList();
-            //if (potentialAdjectives.Count == 0)
-            //    potentialAdjectives = adjectives;
-
-            var adjective = adjectives[rng.Next(0, adjectives.Count)];
-
-            return FirstToUpper(adjective) + " " + FirstToUpper(animal);
-        }
-
-
-        private static string FirstToUpper(string text)
-        {
-            return text.Substring(0, 1).ToUpper() + text.Substring(1);
-        }
-
-
-        public static List<string> Adjectives
-        {
-            get { return adjectives; }
-        }
-
-        public static List<string> Animals
-        {
-            get { return animals; }
-        }
-
-
-        private static List<string> ParseToList(string rawText)
-        {
-            return rawText
-                .Split("\r\n\t ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.ToLower())
-                .Where(x => x.Length > 1)
-                .ToList();
-        }
-
-
-        private const string weaponsRawText = @"gun bazooka rocket-launcher knife spear axe dagger sickle 
-sword switchblade barong bat baton boomerang dart dirk bombs rifle";
-
-
-        private const string animalsRawText = @"aardvark 	addax 	alligator 	alpaca
-anteater 	antelope 	aoudad 	ape
-argali 	armadillo 	ass 	baboon
-badger 	basilisk 	bat 	bear
-beaver 	bighorn 	bison 	boar
-budgerigar 	buffalo 	bull 	bunny
-burro 	camel 	canary 	capybara
-cat 	chameleon 	chamois 	cheetah
-chimpanzee 	chinchilla 	chipmunk 	civet
-coati 	colt 	cony 	cougar
-cow 	coyote 	crocodile 	crow
-deer 	dingo 	doe 	dog
-donkey 	dormouse 	dromedary 	duckbill
-dugong 	eland 	elephant 	elk
-ermine 	ewe 	fawn 	ferret
-finch 	fish 	fox 	frog
-gazelle 	gemsbok 	gila monster 	giraffe
-gnu 	goat 	gopher 	gorilla
-grizzly bear 	ground hog 	guanaco 	guinea pig
-hamster 	hare 	hartebeest 	hedgehog
-hippopotamus 	hog 	horse 	hyena
-ibex 	iguana 	impala 	jackal
-jaguar 	jerboa 	kangaroo 	kid
-kinkajou 	kitten 	koala 	koodoo
-lamb 	lemur 	leopard 	lion
-lizard 	llama 	lovebird 	lynx
-mandrill 	mare 	marmoset 	marten
-mink 	mole 	mongoose 	monkey
-moose 	mountain goat 	mouse 	mule
-musk deer 	musk-ox 	muskrat 	mustang
-mynah bird 	newt 	ocelot 	okapi
-opossum 	orangutan 	oryx 	otter
-ox 	panda 	panther 	parakeet
-parrot 	peccary 	pig 	platypus
-polar bear 	pony 	porcupine 	porpoise
-prairie dog 	pronghorn 	puma 	puppy
-quagga 	rabbit 	raccoon 	ram
-rat 	reindeer 	reptile 	rhinoceros
-roebuck 	salamander 	seal 	sheep
-shrew 	silver fox 	skunk 	sloth
-snake 	springbok 	squirrel 	stallion
-steer 	tapir 	tiger 	toad
-turtle 	vicuna 	walrus 	warthog
-waterbuck 	weasel 	whale 	wildcat
-wolf 	wolverine 	wombat 	woodchuck
-yak 	zebra 	zebu";
-        private const string adjectivesRawText = @"abandoned
+        private const string adjectivesRawText =
+            @"abandoned
 able
 absolute
 adorable
@@ -1484,5 +1395,123 @@ zany
 	zealous
 	zesty
 	zigzag";
+
+        private const string animalsRawText =
+            @"aardvark 	addax 	alligator 	alpaca
+anteater 	antelope 	aoudad 	ape
+argali 	armadillo 	ass 	baboon
+badger 	basilisk 	bat 	bear
+beaver 	bighorn 	bison 	boar
+budgerigar 	buffalo 	bull 	bunny
+burro 	camel 	canary 	capybara
+cat 	chameleon 	chamois 	cheetah
+chimpanzee 	chinchilla 	chipmunk 	civet
+coati 	colt 	cony 	cougar
+cow 	coyote 	crocodile 	crow
+deer 	dingo 	doe 	dog
+donkey 	dormouse 	dromedary 	duckbill
+dugong 	eland 	elephant 	elk
+ermine 	ewe 	fawn 	ferret
+finch 	fish 	fox 	frog
+gazelle 	gemsbok 	gila monster 	giraffe
+gnu 	goat 	gopher 	gorilla
+grizzly bear 	ground hog 	guanaco 	guinea pig
+hamster 	hare 	hartebeest 	hedgehog
+hippopotamus 	hog 	horse 	hyena
+ibex 	iguana 	impala 	jackal
+jaguar 	jerboa 	kangaroo 	kid
+kinkajou 	kitten 	koala 	koodoo
+lamb 	lemur 	leopard 	lion
+lizard 	llama 	lovebird 	lynx
+mandrill 	mare 	marmoset 	marten
+mink 	mole 	mongoose 	monkey
+moose 	mountain goat 	mouse 	mule
+musk deer 	musk-ox 	muskrat 	mustang
+mynah bird 	newt 	ocelot 	okapi
+opossum 	orangutan 	oryx 	otter
+ox 	panda 	panther 	parakeet
+parrot 	peccary 	pig 	platypus
+polar bear 	pony 	porcupine 	porpoise
+prairie dog 	pronghorn 	puma 	puppy
+quagga 	rabbit 	raccoon 	ram
+rat 	reindeer 	reptile 	rhinoceros
+roebuck 	salamander 	seal 	sheep
+shrew 	silver fox 	skunk 	sloth
+snake 	springbok 	squirrel 	stallion
+steer 	tapir 	tiger 	toad
+turtle 	vicuna 	walrus 	warthog
+waterbuck 	weasel 	whale 	wildcat
+wolf 	wolverine 	wombat 	woodchuck
+yak 	zebra 	zebu";
+
+        private const string weaponsRawText =
+            @"gun bazooka rocket-launcher knife spear axe dagger sickle 
+sword switchblade barong bat baton boomerang dart dirk bombs rifle";
+
+        private static readonly List<string> adjectives;
+        private static readonly List<string> animals;
+        private static readonly List<string> weapons;
+
+
+        static Words()
+        {
+            weapons = ParseToList(weaponsRawText);
+            animals = ParseToList(animalsRawText);
+            adjectives = ParseToList(adjectivesRawText);
+        }
+
+
+        public static List<string> Adjectives
+        {
+            get { return adjectives; }
+        }
+
+        public static List<string> Animals
+        {
+            get { return animals; }
+        }
+
+        public static List<string> Weapons
+        {
+            get { return weapons; }
+        }
+
+
+        public static string GetAnimalWithPersonality(Random rng)
+        {
+            var animal = animals[rng.Next(0, animals.Count)];
+            //var potentialAdjectives = adjectives.Where(x => x[0] == animal[0]).ToList();
+            //if (potentialAdjectives.Count == 0)
+            //    potentialAdjectives = adjectives;
+
+            var adjective = adjectives[rng.Next(0, adjectives.Count)];
+
+            return FirstToUpper(adjective) + " " + FirstToUpper(animal);
+        }
+
+
+        public static string GetSpecialWeapon(Random rng)
+        {
+            var weapon = weapons[rng.Next(0, weapons.Count)];
+            var adjective = adjectives[rng.Next(0, adjectives.Count)];
+
+            return FirstToUpper(adjective) + " " + FirstToUpper(weapon);
+        }
+
+
+        private static string FirstToUpper(string text)
+        {
+            return text.Substring(0, 1).ToUpper() + text.Substring(1);
+        }
+
+
+        private static List<string> ParseToList(string rawText)
+        {
+            return rawText
+                .Split("\r\n\t ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.ToLower())
+                .Where(x => x.Length > 1)
+                .ToList();
+        }
     }
 }

@@ -1,11 +1,28 @@
 ﻿#region License
 
-// --------------------------------------------------
-// Copyright © OKB. All Rights Reserved.
+// ----------------------------------------------------------------------------
+// Pomona source code
 // 
-// This software is proprietary information of OKB.
-// USE IS SUBJECT TO LICENSE TERMS.
-// --------------------------------------------------
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
 
 #endregion
 
@@ -126,10 +143,11 @@ namespace Pomona
     public class PathTrackingProxy : DynamicObject
     {
         private static readonly string[] extraProperties = new string[] { "_path" };
-        private readonly string path;
         private readonly HashSet<string> expandedPaths;
+        private readonly string path;
         private readonly EntityBase wrappedObject;
         private readonly Type wrappedType;
+
 
         public PathTrackingProxy(EntityBase wrappedObject, string path)
         {
@@ -151,11 +169,6 @@ namespace Pomona
             return this.wrappedObject.GetType().GetProperties().Select(x => x.Name).Concat(extraProperties);
         }
 
-        private static string GetUriForEntity(EntityBase entity)
-        {
-            return string.Format(
-                    "http://localhost:2222/{0}/{1}", entity.GetType().Name.ToLower(), entity.Id);
-        }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
@@ -177,16 +190,14 @@ namespace Pomona
             var subPath = this.path + "." + binder.Name;
 
             if ((entityResult = result as EntityBase) != null)
-            {
-
                 result = GetExpandedOrReference(entityResult, subPath);
-            }
 
             if (IsIList(result))
             {
                 result =
                     new List<object>(
-                        ((IEnumerable<EntityBase>)result).Select(x => GetExpandedOrReference(x, subPath)).Cast<object>().
+                        ((IEnumerable<EntityBase>)result).Select(x => GetExpandedOrReference(x, subPath)).Cast<object>()
+                            .
                             ToList());
                 //result = new PathTrackingListProxy((IEnumerable<EntityBase>)result, subPath);
             }
@@ -196,13 +207,20 @@ namespace Pomona
         }
 
 
+        private static string GetUriForEntity(EntityBase entity)
+        {
+            return string.Format(
+                "http://localhost:2222/{0}/{1}", entity.GetType().Name.ToLower(), entity.Id);
+        }
+
+
         private object GetExpandedOrReference(EntityBase entityResult, string subPath)
         {
             object result;
             if (!this.expandedPaths.Contains(subPath))
                 result = new { _uri = GetUriForEntity(entityResult) };
             else
-                result = new PathTrackingProxy(entityResult, subPath, expandedPaths);
+                result = new PathTrackingProxy(entityResult, subPath, this.expandedPaths);
             return result;
         }
 
@@ -212,8 +230,8 @@ namespace Pomona
             return
                 obj.GetType().GetInterfaces().Any(
                     x => x.IsGenericType &&
-                    x.GetGenericTypeDefinition() == typeof(IList<>)
-                    && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0]));
+                         x.GetGenericTypeDefinition() == typeof(IList<>)
+                         && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0]));
         }
     }
 }

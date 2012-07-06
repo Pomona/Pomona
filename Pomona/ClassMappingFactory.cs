@@ -1,3 +1,31 @@
+#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
 using System;
 using System.Collections.Generic;
 
@@ -5,7 +33,8 @@ namespace Pomona
 {
     public class ClassMappingFactory
     {
-        private Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
+        private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
+
 
         public IMappedType GetClassMapping<T>()
         {
@@ -18,17 +47,16 @@ namespace Pomona
         public IMappedType GetClassMapping(Type type)
         {
             IMappedType mappedType;
-            if (!mappings.TryGetValue(type, out mappedType))
-            {
+            if (!this.mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
-            }
 
             return mappedType;
         }
 
+
         private IMappedType CreateClassMapping(Type type)
         {
-            if (type.Assembly == typeof(System.String).Assembly)
+            if (type.Assembly == typeof(String).Assembly)
             {
                 if (type.IsGenericType)
                 {
@@ -41,9 +69,7 @@ namespace Pomona
                             newSharedType.GenericArguments.Add(newSharedType);
                         }
                         else
-                        {
                             newSharedType.GenericArguments.Add(GetClassMapping(genericTypeArg));
-                        }
                     }
                     return newSharedType;
                 }
@@ -55,7 +81,7 @@ namespace Pomona
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                mappings[type] = classDefinition;
+                this.mappings[type] = classDefinition;
 
                 classDefinition.FillWithType(type);
 
@@ -64,8 +90,5 @@ namespace Pomona
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
         }
-
-
-
     }
 }

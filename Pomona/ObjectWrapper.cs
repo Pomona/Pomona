@@ -1,3 +1,31 @@
+#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,10 +38,13 @@ namespace Pomona
 {
     public class ObjectWrapper
     {
-        private readonly object target;
-        private readonly string path;
+        private static readonly Type[] knownGenericCollectionTypes = new[]
+        { typeof(IList<>), typeof(ICollection<>), typeof(List<>) };
+
         private readonly PomonaContext context;
         private readonly IMappedType expectedBaseType;
+        private readonly string path;
+        private readonly object target;
         private readonly IMappedType targetType;
 
 
@@ -34,6 +65,13 @@ namespace Pomona
             this.targetType = context.ClassMappingFactory.GetClassMapping(target.GetType());
         }
 
+
+        public string Path
+        {
+            get { return this.path; }
+        }
+
+
         public virtual void ToJson(TextWriter textWriter)
         {
             var jsonWriter = new JsonTextWriter(textWriter);
@@ -42,15 +80,82 @@ namespace Pomona
             jsonWriter.Flush();
         }
 
-        private bool IsIList(object obj)
+
+        public virtual void ToJson(JsonWriter writer)
         {
-            return
-                IsIList(obj.GetType());
+            IMappedType collectionElementType;
+            if (TryGetCollectionElementType(this.targetType, out collectionElementType))
+            {
+                writer.WriteStartArray();
+                foreach (var child in ((IEnumerable)this.target))
+                {
+                    WriteJsonExpandedOrReference(
+                        writer,
+                        child,
+                        this.path,
+                        this.context.ClassMappingFactory.GetClassMapping(child.GetType()),
+                        collectionElementType);
+                }
+                writer.WriteEndArray();
+            }
+            else
+            {
+                var transformedType = (TransformedType)this.targetType;
+                writer.WriteStartObject();
+
+                if (this.expectedBaseType != this.targetType)
+                {
+                    writer.WritePropertyName("_type");
+                    writer.WriteValue(this.targetType.Name);
+                }
+
+                foreach (var propDef in transformedType.Properties)
+                {
+                    var subPath = this.path + "." + propDef.JsonName;
+                    var value = propDef.Getter(this.target);
+
+                    writer.WritePropertyName(propDef.JsonName);
+                    if (value == null)
+                    {
+                        writer.WriteNull();
+                        continue;
+                    }
+
+                    var valueType = value.GetType();
+                    var valueTypeMapping = this.context.ClassMappingFactory.GetClassMapping(valueType);
+
+                    var serializeAsArray = IsIList(valueType);
+
+                    if (this.context.IsWrittenAsObject(valueType) || serializeAsArray)
+                    {
+                        var propertyValue = propDef.Getter(this.target);
+
+                        if (propertyValue == null)
+                            writer.WriteNull();
+                        else
+                        {
+                            WriteJsonExpandedOrReference(
+                                writer, propertyValue, subPath, valueTypeMapping, propDef.PropertyType);
+                        }
+                    }
+                    else
+                        writer.WriteValue(propDef.Getter(this.target));
+                }
+
+                // Write path for debug purposes
+                if (this.context.DebugMode)
+                {
+                    writer.WritePropertyName("_path");
+                    writer.WriteValue(this.path);
+                }
+
+                writer.WriteEndObject();
+            }
         }
 
-        private static Type[] knownGenericCollectionTypes = new[] {typeof(IList<>), typeof(ICollection<>), typeof(List<>)};
 
-        static bool TryGetCollectionElementType(IMappedType type, out IMappedType elementType, bool searchInterfaces = true)
+        private static bool TryGetCollectionElementType(
+            IMappedType type, out IMappedType elementType, bool searchInterfaces = true)
         {
             elementType = null;
 
@@ -59,10 +164,9 @@ namespace Pomona
                 return false;
 
             // First look if we're dealing directly with a known collection type
-            if (sharedType.IsGenericType && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
-            {
+            if (sharedType.IsGenericType
+                && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
                 elementType = sharedType.GenericArguments[0];
-            }
             /*
             if (elementType == null && searchInterfaces)
             {
@@ -77,6 +181,12 @@ namespace Pomona
         }
 
 
+        private bool IsIList(object obj)
+        {
+            return
+                IsIList(obj.GetType());
+        }
+
 
         private bool IsIList(Type t)
         {
@@ -86,76 +196,10 @@ namespace Pomona
                          x.GetGenericTypeDefinition() == typeof(IList<>)
                     /* && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0])*/);
         }
-        public virtual void ToJson(JsonWriter writer)
-        {
-            IMappedType collectionElementType;
-            if (TryGetCollectionElementType(targetType, out collectionElementType))
-            {
-                writer.WriteStartArray();
-                foreach (var child in ((IEnumerable)this.target))
-                {
-                    WriteJsonExpandedOrReference(writer, child, path, context.ClassMappingFactory.GetClassMapping(child.GetType()), collectionElementType);
-                }
-                writer.WriteEndArray();
-            }
-            else
-            {
-                var transformedType = (TransformedType) this.targetType;
-                writer.WriteStartObject();
-
-                if (expectedBaseType != targetType)
-                {
-                    writer.WritePropertyName("_type");
-                    writer.WriteValue(targetType.Name);
-                }
-
-                foreach (var propDef in transformedType.Properties)
-                {
-                    var subPath = this.path + "." + propDef.JsonName;
-                    var value = propDef.Getter(this.target);
-                    
-                    writer.WritePropertyName(propDef.JsonName);
-                    if (value == null)
-                    {
-                        writer.WriteNull();
-                        continue;
-                    }
-
-                    var valueType = value.GetType();
-                    var valueTypeMapping = context.ClassMappingFactory.GetClassMapping(valueType);
-
-                    var serializeAsArray = IsIList(valueType);
-
-                    if (this.context.IsWrittenAsObject(valueType) || serializeAsArray)
-                    {
-                        var propertyValue = propDef.Getter(this.target);
-
-                        if (propertyValue == null)
-                            writer.WriteNull();
-                        else
-                        {
-                            WriteJsonExpandedOrReference(writer, propertyValue, subPath, valueTypeMapping, propDef.PropertyType);
-                        }
-                    }
-                    else
-                    {
-                        writer.WriteValue(propDef.Getter(this.target));
-                    }
-                }
-                
-                // Write path for debug purposes
-                if (context.DebugMode)
-                {
-                    writer.WritePropertyName("_path");
-                    writer.WriteValue(path);
-                }
-
-                writer.WriteEndObject();
-            }
-        }
 
 
-        private void WriteJsonExpandedOrReference(JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
+        private void WriteJsonExpandedOrReference(
+            JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
         {
             if (this.context.PathToBeExpanded(subPath) || IsIList(valueType))
             {
@@ -167,8 +211,8 @@ namespace Pomona
                 writer.WriteStartObject();
                 writer.WritePropertyName("_uri");
                 writer.WriteValue(this.context.GetUri(propertyValue));
-                
-                if (context.DebugMode)
+
+                if (this.context.DebugMode)
                 {
                     writer.WritePropertyName("_path");
                     writer.WriteValue(subPath);
@@ -176,12 +220,6 @@ namespace Pomona
 
                 writer.WriteEndObject();
             }
-        }
-
-
-        public string Path
-        {
-            get { return this.path; }
         }
     }
 }

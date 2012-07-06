@@ -1,7 +1,34 @@
+#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -14,7 +41,19 @@ namespace Pomona.Client
 {
     public class ClientHelper
     {
-        WebClient webClient = new WebClient();
+        private static readonly Type[] knownGenericCollectionTypes = {
+            typeof(List<>), typeof(IList<>),
+            typeof(ICollection<>)
+        };
+
+        private readonly WebClient webClient = new WebClient();
+
+
+        public T FetchUri<T>(string uri)
+        {
+            return (T)Deserialize(typeof(T), FetchUri(uri));
+        }
+
 
         public IList<T> List<T>(string expand = null)
         {
@@ -27,23 +66,16 @@ namespace Pomona.Client
             return FetchUri<IList<T>>(uri);
         }
 
-        public T FetchUri<T>(string uri)
-        {
-            return (T)Deserialize(typeof(T), FetchUri(uri));
-        }
-
-        private JToken FetchUri(string uri)
-        {
-            return JToken.Parse(Encoding.UTF8.GetString(webClient.DownloadData(uri)));
-        }
 
         private static object CreateListOfType(Type elementType, IEnumerable elements)
         {
             var createListOfTypeGeneric =
-                typeof(ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(elementType);
+                typeof(ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static).
+                    MakeGenericMethod(elementType);
 
             return createListOfTypeGeneric.Invoke(null, new object[] { elements });
         }
+
 
         private static object CreateListOfTypeGeneric<TElementType>(IEnumerable elements)
         {
@@ -51,41 +83,11 @@ namespace Pomona.Client
         }
 
 
-        private static Type[] knownGenericCollectionTypes = { typeof(List<>), typeof(IList<>), typeof(ICollection<>) };
-
-        static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
-        {
-            elementType = null;
-
-            // First look if we're dealing directly with a known collection type
-            if (type.IsGenericType)
-            {
-                var genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (knownGenericCollectionTypes.Contains(genericTypeDefinition))
-                {
-                    elementType = type.GetGenericArguments()[0];
-                }
-            }
-
-            if (elementType == null && searchInterfaces)
-            {
-                foreach (var interfaceType in type.GetInterfaces())
-                {
-                    if (TryGetCollectionElementType(interfaceType, out elementType, false))
-                        break;
-                }
-            }
-
-            return elementType != null;
-        }
-
-        static object Deserialize(Type expectedType, JToken jToken)
+        private static object Deserialize(Type expectedType, JToken jToken)
         {
             var jObject = jToken as JObject;
             if (jObject != null)
-            {
                 return DeserializeObject(expectedType, jObject);
-            }
 
             var jArray = jToken as JArray;
             if (jArray != null)
@@ -97,10 +99,11 @@ namespace Pomona.Client
                 return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
             }
 
-            return Convert.ChangeType(((JValue) jToken).Value, expectedType);
+            return Convert.ChangeType(((JValue)jToken).Value, expectedType);
         }
 
-        static object DeserializeObject(Type expectedType, JObject jObject)
+
+        private static object DeserializeObject(Type expectedType, JObject jObject)
         {
             // TODO: Support fetching proxy objects.
             if (jObject.Properties().Any(x => x.Name == "_uri"))
@@ -114,7 +117,8 @@ namespace Pomona.Client
             {
                 var typeString = (string)((JValue)typePropertyToken).Value;
                 createdType =
-                    expectedType.Assembly.GetTypes().Where(x => x.Name == typeString).First(x => expectedType.IsAssignableFrom(x));
+                    expectedType.Assembly.GetTypes().Where(x => x.Name == typeString).First(
+                        x => expectedType.IsAssignableFrom(x));
             }
 
             // TODO: Support subclassing, maybe in special "_type" property in json
@@ -130,12 +134,41 @@ namespace Pomona.Client
 
                 PropertyInfo propInfo;
                 if (propertiesForType.TryGetValue(nameLowerCase, out propInfo))
-                {
                     propInfo.SetValue(target, Deserialize(propInfo.PropertyType, jprop.Value), null);
-                }
             }
 
             return target;
+        }
+
+
+        private static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
+        {
+            elementType = null;
+
+            // First look if we're dealing directly with a known collection type
+            if (type.IsGenericType)
+            {
+                var genericTypeDefinition = type.GetGenericTypeDefinition();
+                if (knownGenericCollectionTypes.Contains(genericTypeDefinition))
+                    elementType = type.GetGenericArguments()[0];
+            }
+
+            if (elementType == null && searchInterfaces)
+            {
+                foreach (var interfaceType in type.GetInterfaces())
+                {
+                    if (TryGetCollectionElementType(interfaceType, out elementType, false))
+                        break;
+                }
+            }
+
+            return elementType != null;
+        }
+
+
+        private JToken FetchUri(string uri)
+        {
+            return JToken.Parse(Encoding.UTF8.GetString(this.webClient.DownloadData(uri)));
         }
     }
 }
