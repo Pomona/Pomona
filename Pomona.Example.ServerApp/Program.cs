@@ -42,8 +42,6 @@ namespace Pomona
     {
         private static void Main(string[] args)
         {
-            //Console.ReadKey();
-
             var host = new NancyHost(new Uri("http://localhost:2211"));
             host.Start();
             Console.ReadKey();

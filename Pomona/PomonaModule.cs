@@ -156,7 +156,12 @@ namespace Pomona
             if (!GetEntityBaseType().IsAssignableFrom(o.GetType()))
                 return null;
 
-            return string.Format("http://localhost:2211/{0}/{1}", o.GetType().Name.ToLower(), GetIdFor(o));
+            return string.Format(
+                "http://{0}:{1}/{2}/{3}",
+                Request.Url.HostName,
+                Request.Url.Port,
+                o.GetType().Name.ToLower(),
+                GetIdFor(o));
         }
     }
 }

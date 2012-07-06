@@ -30,6 +30,12 @@ using System.Collections.Generic;
 
 namespace Pomona
 {
+    /// <summary>
+    /// This is the pomona way of representing a type.
+    /// 
+    /// Can't use Type directly, since the transformed types might not exist
+    /// as Type in server context.
+    /// </summary>
     public interface IMappedType
     {
         IMappedType BaseType { get; }
