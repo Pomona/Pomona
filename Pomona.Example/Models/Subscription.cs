@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,27 @@
 
 #endregion
 
-namespace Pomona.TestModel
+using System;
+
+namespace Pomona.Example.Models
 {
-    public class Knife : Weapon
+    public class Subscription : EntityBase
     {
-        public Knife(WeaponModel model) : base(model)
+        public Subscription(Critter critter, WeaponModel model)
         {
+            if (critter == null)
+                throw new ArgumentNullException("critter");
+            if (model == null)
+                throw new ArgumentNullException("model");
+            Critter = critter;
+            Model = model;
         }
 
 
-        public double Sharpness { get; set; }
+        public Critter Critter { get; set; }
+
+        public WeaponModel Model { get; set; }
+        public string Sku { get; set; }
+        public DateTime StartsOn { get; set; }
     }
 }

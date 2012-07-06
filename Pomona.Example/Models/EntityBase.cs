@@ -26,17 +26,10 @@
 
 #endregion
 
-namespace Pomona.TestModel
+namespace Pomona.Example.Models
 {
-    public class Weapon : EntityBase
+    public class EntityBase
     {
-        public Weapon(WeaponModel model)
-        {
-            Model = model;
-        }
-
-
-        public double Dependability { get; set; }
-        public WeaponModel Model { get; set; }
+        public int Id { get; set; }
     }
 }

@@ -26,9 +26,12 @@
 
 #endregion
 
+
+#if false
+
 using Pomona.TestModel;
 
-namespace Pomona
+namespace Pomona.Example
 {
     public class CritterMapping : MappingBase<Critter>
     {
@@ -39,3 +42,5 @@ namespace Pomona
         }
     }
 }
+
+#endif

@@ -28,25 +28,16 @@
 
 using System;
 
-namespace Pomona.TestModel
+namespace Pomona.Example.Models
 {
-    public class Subscription : EntityBase
+    public class Hat : EntityBase
     {
-        public Subscription(Critter critter, WeaponModel model)
+        public Hat()
         {
-            if (critter == null)
-                throw new ArgumentNullException("critter");
-            if (model == null)
-                throw new ArgumentNullException("model");
-            Critter = critter;
-            Model = model;
+            HatType = "Hat#" + new Random().Next();
         }
 
 
-        public Critter Critter { get; set; }
-
-        public WeaponModel Model { get; set; }
-        public string Sku { get; set; }
-        public DateTime StartsOn { get; set; }
+        public string HatType { get; set; }
     }
 }

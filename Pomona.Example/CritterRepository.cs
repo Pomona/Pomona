@@ -29,9 +29,9 @@
 using System;
 using System.Collections.Generic;
 
-using Pomona.TestModel;
+using Pomona.Example.Models;
 
-namespace Pomona
+namespace Pomona.Example
 {
     public class CritterRepository
     {
@@ -47,7 +47,6 @@ namespace Pomona
 
 
         public IList<T> GetAll<T>()
-            where T : EntityBase
         {
             return GetEntityList<T>();
         }

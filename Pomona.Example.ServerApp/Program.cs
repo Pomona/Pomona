@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,28 @@
 
 #endregion
 
-namespace Pomona.TestModel
+using System;
+
+using Nancy.Hosting.Self;
+
+using Pomona.Example;
+
+namespace Pomona
 {
-    public class Gun : Weapon
+    public class CritterModuleInternal : CritterModule
     {
-        public Gun(WeaponModel model) : base(model)
+    }
+
+    internal class Program
+    {
+        private static void Main(string[] args)
         {
+            //Console.ReadKey();
+
+            var host = new NancyHost(new Uri("http://localhost:2211"));
+            host.Start();
+            Console.ReadKey();
+            host.Stop();
         }
-
-
-        public double ExplosionFactor { get; set; }
     }
 }

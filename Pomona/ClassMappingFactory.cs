@@ -34,6 +34,13 @@ namespace Pomona
     public class ClassMappingFactory
     {
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
+        private HashSet<Type> transformedTypes;
+
+
+        public ClassMappingFactory(IEnumerable<Type> transformedTypes)
+        {
+            this.transformedTypes = new HashSet<Type>(transformedTypes);
+        }
 
 
         public IMappedType GetClassMapping<T>()
@@ -76,7 +83,7 @@ namespace Pomona
                 return new SharedType(type, this);
             }
 
-            if (type.Namespace == "Pomona.TestModel")
+            if (this.transformedTypes.Contains(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 

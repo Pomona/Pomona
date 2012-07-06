@@ -36,37 +36,20 @@ using Nancy;
 
 using Newtonsoft.Json;
 
-using Pomona.TestModel;
-
 namespace Pomona
 {
-    public class PomonaModule : NancyModule
+    public abstract class PomonaModule : NancyModule
     {
         private readonly ClassMappingFactory classMappingFactory;
-        private readonly CritterRepository critterRepository;
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
 
         public PomonaModule()
         {
-            this.classMappingFactory = new ClassMappingFactory();
+            this.classMappingFactory = new ClassMappingFactory(GetEntityTypes());
 
             // Just eagerly load the type mappings so we can manipulate it
             GetEntityTypes().Select(x => this.classMappingFactory.GetClassMapping(x)).ToList();
-
-            // Test manipulating type mapping
-            var critterMapping = (TransformedType)this.classMappingFactory.GetClassMapping(typeof(Critter));
-            critterMapping.Properties.Add(
-                new PropertyMapping(
-                    "FirstWeapon", critterMapping, this.classMappingFactory.GetClassMapping(typeof(Weapon)), null)
-                {
-                    Getter = x => ((Critter)x).Weapons.FirstOrDefault()
-                });
-
-            this.jsonSerializerSettings.ContractResolver = new LowercaseContractResolver();
-            this.jsonSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-
-            this.critterRepository = new CritterRepository();
 
             var registerRouteForT = typeof(PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -83,7 +66,7 @@ namespace Pomona
                 {
                     Contents = stream =>
                     {
-                        var clientLibGenerator = new ClientLibGenerator();
+                        var clientLibGenerator = new ClientLibGenerator(GetEntityTypes());
                         clientLibGenerator.CreateClientDll(
                             GetEntityTypes().Select(y => this.classMappingFactory.GetClassMapping(y)).Cast
                                 <TransformedType>(),
@@ -100,12 +83,14 @@ namespace Pomona
         }
 
 
-        private static IEnumerable<Type> GetEntityTypes()
-        {
-            return
-                typeof(Critter).Assembly.GetTypes().Where(
-                    x => x.Namespace == "Pomona.TestModel" && typeof(EntityBase).IsAssignableFrom(x));
-        }
+        protected abstract T GetById<T>(int id);
+        protected abstract Type GetEntityBaseType();
+
+        protected abstract IEnumerable<Type> GetEntityTypes();
+
+        protected abstract int GetIdFor(object entity);
+
+        protected abstract IList<T> ListAll<T>();
 
 
         private string GetExpandedPaths()
@@ -125,7 +110,6 @@ namespace Pomona
 
 
         private void RegisterRouteFor<T>()
-            where T : EntityBase
         {
             var type = typeof(T);
             var path = "/" + type.Name.ToLower();
@@ -134,13 +118,13 @@ namespace Pomona
             Get[path + "/{id}"] = x =>
             {
                 var expandedPaths = GetExpandedPaths();
-                return ToJson(this.critterRepository.GetAll<T>().Where(y => y.Id == x.id).First(), type.Name.ToLower());
+                return ToJson(GetById<T>(x.id), type.Name.ToLower());
             };
 
             Get[path] = x =>
             {
                 var expandedPaths = GetExpandedPaths();
-                return ToJson(this.critterRepository.GetAll<T>().ToList(), type.Name.ToLower());
+                return ToJson(ListAll<T>(), type.Name.ToLower());
                 //return ToJson(this.repository.GetAll<T>().Select(y => new PathTrackingProxy(y, typeof(T).Name, expandedPaths)).ToList());
             };
         }
@@ -156,7 +140,7 @@ namespace Pomona
             res.Contents = stream =>
             {
                 var context = new PomonaContext(
-                    typeof(EntityBase), UriResolver, path + "," + expand, debug, this.classMappingFactory);
+                    GetEntityBaseType(), UriResolver, path + "," + expand, debug, this.classMappingFactory);
                 var wrapper = context.CreateWrapperFor(o, path, this.classMappingFactory.GetClassMapping(o.GetType()));
                 wrapper.ToJson(new StreamWriter(stream));
             };
@@ -167,31 +151,12 @@ namespace Pomona
         }
 
 
-        private Response ToJson2(object o)
-        {
-            var res = new Response();
-
-            res.Contents = stream =>
-            {
-                var writer = new StreamWriter(stream);
-                writer.Write(JsonConvert.SerializeObject(o, Formatting.Indented, this.jsonSerializerSettings));
-                writer.Flush();
-            };
-
-            // res.ContentType = "application/json";
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
-        }
-
-
         private string UriResolver(object o)
         {
-            var entity = o as EntityBase;
+            if (!GetEntityBaseType().IsAssignableFrom(o.GetType()))
+                return null;
 
-            return entity != null
-                       ? string.Format("http://localhost:2211/{0}/{1}", entity.GetType().Name.ToLower(), entity.Id)
-                       : null;
+            return string.Format("http://localhost:2211/{0}/{1}", o.GetType().Name.ToLower(), GetIdFor(o));
         }
     }
 }

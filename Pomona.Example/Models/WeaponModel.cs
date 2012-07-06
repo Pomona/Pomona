@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,18 +26,10 @@
 
 #endregion
 
-using System;
-
-namespace Pomona.TestModel
+namespace Pomona.Example.Models
 {
-    public class Hat : EntityBase
+    public class WeaponModel : EntityBase
     {
-        public Hat()
-        {
-            HatType = "Hat#" + new Random().Next();
-        }
-
-
-        public string HatType { get; set; }
+        public string Name { get; set; }
     }
 }

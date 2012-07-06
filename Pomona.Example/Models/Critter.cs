@@ -26,10 +26,35 @@
 
 #endregion
 
-namespace Pomona.TestModel
+using System;
+using System.Collections.Generic;
+
+namespace Pomona.Example.Models
 {
-    public class EntityBase
+    public class Critter : EntityBase
     {
-        public int Id { get; set; }
+        public Critter()
+        {
+            Enemies = new List<Critter>();
+            Weapons = new List<Weapon>();
+            Subscriptions = new List<Subscription>();
+
+            OkdayIsFun = "jada";
+
+            Hat = new Hat();
+        }
+
+
+        public DateTime CreatedOn { get; set; }
+        public List<Critter> Enemies { get; set; }
+
+        public Hat Hat { get; set; }
+
+        public string Name { get; set; }
+
+        public string OkdayIsFun { get; set; }
+
+        public List<Subscription> Subscriptions { get; set; }
+        public List<Weapon> Weapons { get; set; }
     }
 }

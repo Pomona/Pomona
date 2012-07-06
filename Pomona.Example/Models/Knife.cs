@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,38 +26,15 @@
 
 #endregion
 
-using System;
-using System.Linq;
-
-using Nancy.Hosting.Self;
-
-using Newtonsoft.Json;
-
-using Pomona.TestModel;
-
-namespace Pomona
+namespace Pomona.Example.Models
 {
-    internal class Program
+    public class Knife : Weapon
     {
-        private static void Main(string[] args)
+        public Knife(WeaponModel model) : base(model)
         {
-            //Console.ReadKey();
-
-            var host = new NancyHost(new Uri("http://localhost:2211"));
-            host.Start();
-            Console.ReadKey();
-            host.Stop();
         }
 
 
-        private static void Main2(string[] args)
-        {
-            var repository = new CritterRepository();
-            var expandedPaths = ExpandPathsUtils.GetExpandedPaths("");
-            var critters =
-                repository.GetAll<Critter>().Select(x => new PathTrackingProxy(x, "Critter", expandedPaths)).ToList();
-
-            Console.WriteLine(JsonConvert.SerializeObject(critters, Formatting.Indented));
-        }
+        public double Sharpness { get; set; }
     }
 }

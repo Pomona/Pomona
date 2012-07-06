@@ -45,9 +45,9 @@ namespace Pomona
         private Dictionary<IMappedType, TypeReference> toClientTypeDict;
 
 
-        public ClientLibGenerator()
+        public ClientLibGenerator(IEnumerable<Type> transformedTypes)
         {
-            this.classMappingFactory = new ClassMappingFactory();
+            this.classMappingFactory = new ClassMappingFactory(transformedTypes);
         }
 
 

@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{EE396A59-956E-4DEE-B222-991F2274ED67}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{2A4FB8E3-4537-4B40-9DED-34B892C0BCAB}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Pomona</RootNamespace>
-    <AssemblyName>Pomona</AssemblyName>
+    <RootNamespace>Pomona.Example.ServerApp</RootNamespace>
+    <AssemblyName>Pomona.Example.ServerApp</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -35,24 +35,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
-    </Reference>
     <Reference Include="Nancy">
       <HintPath>..\packages\Nancy.0.11.0\lib\net40\Nancy.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy.Hosting.Self">
+      <HintPath>..\packages\Nancy.Hosting.Self.0.11.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
@@ -66,19 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PomonaModule.cs" />
-    <Compile Include="ClassMappingFactory.cs" />
-    <Compile Include="IMappedType.cs" />
-    <Compile Include="SharedType.cs" />
-    <Compile Include="TransformedType.cs" />
-    <Compile Include="ClientLibGenerator.cs" />
-    <Compile Include="CritterMapping.cs" />
-    <Compile Include="ExpandPathsUtils.cs" />
-    <Compile Include="MappingBase.cs" />
-    <Compile Include="ObjectWrapper.cs" />
-    <Compile Include="PomonaContext.cs" />
-    <Compile Include="PropertyMapping.cs" />
-    <Compile Include="Words.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +64,14 @@
     <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
+      <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
+      <Name>Pomona.Example</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pomona\Pomona.csproj">
+      <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
+      <Name>Pomona</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
