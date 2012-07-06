@@ -40,14 +40,14 @@ using Pomona.TestModel;
 
 namespace Pomona
 {
-    public class AutoRestModule : NancyModule
+    public class PomonaModule : NancyModule
     {
         private readonly ClassMappingFactory classMappingFactory;
         private readonly CritterRepository critterRepository;
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
 
-        public AutoRestModule()
+        public PomonaModule()
         {
             this.classMappingFactory = new ClassMappingFactory();
 
@@ -68,7 +68,7 @@ namespace Pomona
 
             this.critterRepository = new CritterRepository();
 
-            var registerRouteForT = typeof(AutoRestModule).GetMethod(
+            var registerRouteForT = typeof(PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
             foreach (var type in GetEntityTypes().Where(x => !x.IsAbstract))

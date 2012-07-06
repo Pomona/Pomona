@@ -33,11 +33,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("AutoRest")]
+[assembly : AssemblyTitle("Pomona")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("")]
-[assembly : AssemblyProduct("AutoRest")]
+[assembly : AssemblyProduct("Pomona")]
 [assembly : AssemblyCopyright("Copyright ©  2012")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
