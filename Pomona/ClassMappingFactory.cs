@@ -29,6 +29,8 @@
 using System;
 using System.Collections.Generic;
 
+using System.Linq;
+
 namespace Pomona
 {
     public class ClassMappingFactory
@@ -36,6 +38,7 @@ namespace Pomona
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private HashSet<Type> transformedTypes;
 
+        public IEnumerable<IMappedType> TransformedTypes { get { return mappings.Values.OfType<TransformedType>(); } }
 
         public ClassMappingFactory(IEnumerable<Type> transformedTypes)
         {

@@ -66,11 +66,8 @@ namespace Pomona
                 {
                     Contents = stream =>
                     {
-                        var clientLibGenerator = new ClientLibGenerator(GetEntityTypes());
-                        clientLibGenerator.CreateClientDll(
-                            GetEntityTypes().Select(y => this.classMappingFactory.GetClassMapping(y)).Cast
-                                <TransformedType>(),
-                            stream);
+                        var clientLibGenerator = new ClientLibGenerator(classMappingFactory);
+                        clientLibGenerator.CreateClientDll(stream);
                     }
                 };
 

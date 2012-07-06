@@ -45,15 +45,17 @@ namespace Pomona
         private Dictionary<IMappedType, TypeReference> toClientTypeDict;
 
 
-        public ClientLibGenerator(IEnumerable<Type> transformedTypes)
+        public ClientLibGenerator(ClassMappingFactory classMappingFactory)
         {
-            this.classMappingFactory = new ClassMappingFactory(transformedTypes);
+            if (classMappingFactory == null)
+                throw new ArgumentNullException("classMappingFactory");
+            this.classMappingFactory = classMappingFactory;
         }
 
 
-        public void CreateClientDll(IEnumerable<TransformedType> typesToBeIncluded, Stream stream)
+        public void CreateClientDll(Stream stream)
         {
-            var types = typesToBeIncluded.ToList();
+            var types = classMappingFactory.TransformedTypes.ToList();
 
             var assembly = AssemblyDefinition.ReadAssembly(typeof(ResourceBase).Assembly.Location);
             //var assembly =
