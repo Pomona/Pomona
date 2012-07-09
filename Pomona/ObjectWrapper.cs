@@ -33,6 +33,7 @@ using System.IO;
 using System.Linq;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Pomona
 {
@@ -71,11 +72,41 @@ namespace Pomona
             get { return this.path; }
         }
 
+        protected virtual void UpdateFromJson(JObject jsonObject)
+        {
+            if (!(targetType is TransformedType))
+            {
+                throw new InvalidOperationException("Update object not supported on type " + targetType.Name);
+            }
+
+            var transformedType = targetType as TransformedType;
+
+            foreach (var jsonProperty in jsonObject.Properties())
+            {
+                var targetProperty = transformedType.GetPropertyByJsonName(jsonProperty.Name);
+
+                // TODO: Check whether update is allowed here!
+
+                // Only supports value type properties for now, ie. shared types!
+                // Should support "new" types in the future?
+                var propertyType = targetProperty.PropertyType as SharedType;
+                if (propertyType == null)
+                    throw new InvalidOperationException("Unable to set property of type " + targetProperty.PropertyType.GetType().Name);
+
+                targetProperty.Setter(target, Convert.ChangeType(((JValue) jsonProperty.Value).Value,
+                                      propertyType.TargetType));
+            }
+        }
+
+        public virtual void UpdateFromJson(TextReader textReader)
+        {
+            var jsonObject = JObject.Load(new JsonTextReader(textReader));
+            UpdateFromJson(jsonObject);
+        }
 
         public virtual void ToJson(TextWriter textWriter)
         {
-            var jsonWriter = new JsonTextWriter(textWriter);
-            jsonWriter.Formatting = Formatting.Indented;
+            var jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
             ToJson(jsonWriter);
             jsonWriter.Flush();
         }

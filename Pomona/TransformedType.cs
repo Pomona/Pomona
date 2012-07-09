@@ -83,8 +83,13 @@ namespace Pomona
             get { return this.properties; }
         }
 
+        public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
+        {
+            // TODO: Create a dictionary for this if suboptimal.
+            return Properties.First(x => x.JsonName == jsonPropertyName);
+        }
 
-        public void FillWithType(Type type)
+        public void ScanProperties(Type type)
         {
             foreach (var propInfo in type.GetProperties()
                 .Where(x => x.GetGetMethod().IsPublic && x.GetIndexParameters().Count() == 0))

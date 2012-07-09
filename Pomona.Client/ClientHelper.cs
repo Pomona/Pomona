@@ -49,9 +49,9 @@ namespace Pomona.Client
         private readonly WebClient webClient = new WebClient();
 
 
-        public T FetchUri<T>(string uri)
+        public T GetUri<T>(string uri)
         {
-            return (T)Deserialize(typeof(T), FetchUri(uri));
+            return (T)Deserialize(typeof(T), GetUri(uri));
         }
 
 
@@ -63,7 +63,7 @@ namespace Pomona.Client
             if (expand != null)
                 uri = uri + "?expand=" + expand;
 
-            return FetchUri<IList<T>>(uri);
+            return GetUri<IList<T>>(uri);
         }
 
 
@@ -165,8 +165,14 @@ namespace Pomona.Client
             return elementType != null;
         }
 
+        private JToken PutUri(string uri, JToken jsonData)
+        {
+            var requestBytes = Encoding.UTF8.GetBytes(jsonData.ToString());
+            var responseBytes = webClient.UploadData(uri, "PUT", requestBytes);
+            return JToken.Parse(Encoding.UTF8.GetString(responseBytes));
+        }
 
-        private JToken FetchUri(string uri)
+        private JToken GetUri(string uri)
         {
             return JToken.Parse(Encoding.UTF8.GetString(this.webClient.DownloadData(uri)));
         }

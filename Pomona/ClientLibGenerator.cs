@@ -42,7 +42,7 @@ namespace Pomona
     {
         private ClassMappingFactory classMappingFactory;
         private ModuleDefinition module;
-        private Dictionary<IMappedType, TypeReference> toClientTypeDict;
+        private Dictionary<IMappedType, TypeCodeGenInfo> toClientTypeDict;
 
 
         public ClientLibGenerator(ClassMappingFactory classMappingFactory)
@@ -52,6 +52,12 @@ namespace Pomona
             this.classMappingFactory = classMappingFactory;
         }
 
+        private class TypeCodeGenInfo
+        {
+            public TypeDefinition InterfaceType { get; set; }
+            public TypeDefinition PocoType { get; set; }
+            public TypeDefinition ProxyType { get; set; }
+        }
 
         public void CreateClientDll(Stream stream)
         {
@@ -64,15 +70,24 @@ namespace Pomona
 
             this.module = assembly.MainModule;
 
-            this.toClientTypeDict = new Dictionary<IMappedType, TypeReference>();
+            this.toClientTypeDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
 
             foreach (var t in types)
             {
+                var typeInfo = new TypeCodeGenInfo();
+                this.toClientTypeDict[t] = typeInfo;
+
+                var interfaceDef = new TypeDefinition("CritterClient", "I" + t.Name,
+                                                      TypeAttributes.Interface | TypeAttributes.Public);
+
+                typeInfo.InterfaceType = interfaceDef;
+
                 //var typeDef = new TypeDefinition(
                 //    "CritterClient", "I" + t.Name, TypeAttributes.Interface | TypeAttributes.Public);
-                var typeDef = new TypeDefinition(
+                var pocoDef = new TypeDefinition(
                     "CritterClient", t.Name, TypeAttributes.Public);
-                this.toClientTypeDict[t] = typeDef;
+
+                typeInfo.PocoType = pocoDef;
 
                 // Empty public constructor
                 var ctor = new MethodDefinition(
@@ -84,9 +99,11 @@ namespace Pomona
                 ctor.Body.MaxStackSize = 8;
                 ctor.Body.GetILProcessor().Append(Instruction.Create(OpCodes.Ret));
 
-                typeDef.Methods.Add(ctor);
+                pocoDef.Methods.Add(ctor);
 
-                this.module.Types.Add(typeDef);
+
+                this.module.Types.Add(interfaceDef);
+                this.module.Types.Add(pocoDef);
             }
 
             var msObjectTypeRef = this.module.Import(typeof(object));
@@ -94,13 +111,21 @@ namespace Pomona
             foreach (var kvp in this.toClientTypeDict)
             {
                 var type = (TransformedType)kvp.Key;
-                var typeDef = (TypeDefinition)kvp.Value;
+                var typeInfo = kvp.Value;
+                var pocoDef = typeInfo.PocoType;
+                var interfaceDef = typeInfo.InterfaceType;
                 var classMapping = type;
 
+                // Implement interfaces
+
+                pocoDef.Interfaces.Add(interfaceDef);
+
+                // Inherit correct base class
+
                 if (type.BaseType != null && this.toClientTypeDict.ContainsKey(type.BaseType))
-                    typeDef.BaseType = this.toClientTypeDict[type.BaseType];
+                    pocoDef.BaseType = this.toClientTypeDict[type.BaseType].PocoType;
                 else
-                    typeDef.BaseType = msObjectTypeRef;
+                    pocoDef.BaseType = msObjectTypeRef;
 
                 foreach (var prop in classMapping.Properties.Where(x => x.DeclaringType == classMapping))
                 {
@@ -118,7 +143,7 @@ namespace Pomona
                             FieldAttributes.Private,
                             propTypeRef);
 
-                    typeDef.Fields.Add(propField);
+                    pocoDef.Fields.Add(propField);
 
                     var getMethod = new MethodDefinition(
                         "get_" + prop.Name,
@@ -134,7 +159,7 @@ namespace Pomona
                     getIlProcessor.Append(Instruction.Create(OpCodes.Ldfld, propField));
                     getIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
-                    typeDef.Methods.Add(getMethod);
+                    pocoDef.Methods.Add(getMethod);
 
                     // Create set property
 
@@ -156,12 +181,12 @@ namespace Pomona
                     setIlProcessor.Append(Instruction.Create(OpCodes.Stfld, propField));
                     setIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
-                    typeDef.Methods.Add(setMethod);
+                    pocoDef.Methods.Add(setMethod);
 
                     propDef.GetMethod = getMethod;
                     propDef.SetMethod = setMethod;
 
-                    typeDef.Properties.Add(propDef);
+                    pocoDef.Properties.Add(propDef);
                 }
             }
 
@@ -204,7 +229,7 @@ namespace Pomona
 
             var transformedType = type as TransformedType;
             if (transformedType != null)
-                typeRef = this.toClientTypeDict[transformedType];
+                typeRef = this.toClientTypeDict[transformedType].PocoType;
 
             if (typeRef == null)
                 throw new InvalidOperationException("Unable to get TypeReference for IMappedType");

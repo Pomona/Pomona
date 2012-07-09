@@ -93,7 +93,7 @@ namespace Pomona
                 // Add to cache before filling out, in case of self-references
                 this.mappings[type] = classDefinition;
 
-                classDefinition.FillWithType(type);
+                classDefinition.ScanProperties(type);
 
                 return classDefinition;
             }
