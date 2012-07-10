@@ -100,11 +100,10 @@ namespace Pomona.Example
             {
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var weapon =
-                    Save(
-                        rng.NextDouble() > 0.5
-                            ? new Weapon(weaponType) {Dependability = rng.NextDouble()}
-                            : new Gun(weaponType)
-                                  {Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble()});
+                    rng.NextDouble() > 0.5
+                        ? Save(new Weapon(weaponType) {Dependability = rng.NextDouble()})
+                        : Save(new Gun(weaponType)
+                                   {Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble()});
                 critter.Weapons.Add(weapon);
             }
         }

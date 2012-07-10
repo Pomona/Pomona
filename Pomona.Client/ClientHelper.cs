@@ -108,33 +108,33 @@ namespace Pomona.Client
 
         private object DeserializeObject(Type expectedType, JObject jObject)
         {
-            // TODO: Support fetching proxy objects.
+            Type receivedSubclassInterface = expectedType;
+
+            JToken typePropertyToken;
+            if (jObject.TryGetValue("_type", out typePropertyToken))
+            {
+                var typeString = (string)((JValue)typePropertyToken).Value;
+                receivedSubclassInterface =
+                    expectedType.Assembly.GetTypes().Where(x => x.Name == "I" + typeString).First(
+                        x => expectedType.IsAssignableFrom(x));
+            }
+
             JToken uriToken;
             if (jObject.TryGetValue("_uri", out uriToken))
             {
                 var uriValue = (JValue) uriToken;
-                return CreateProxyFor((string) uriValue.Value, expectedType);
+                return CreateProxyFor((string) uriValue.Value, receivedSubclassInterface);
             }
 
-            var createdType = expectedType;
+            var createdType = receivedSubclassInterface;
 
             // Find matching type for interface, we simply do this by removing the "I" from the beginning
-            if (expectedType.Name.StartsWith("I") && expectedType.IsInterface)
+            if (receivedSubclassInterface.Name.StartsWith("I") && expectedType.IsInterface)
             {
                 // TODO: Cache this mapping in static dictionary
-                createdType = GetPocoForInterface(expectedType);
+                createdType = GetPocoForInterface(receivedSubclassInterface);
             }
 
-
-            var typeProperty = jObject.Properties().FirstOrDefault(x => x.Name == "_type");
-            JToken typePropertyToken;
-            if (jObject.TryGetValue("_type", out typePropertyToken))
-            {
-                var typeString = (string) ((JValue) typePropertyToken).Value;
-                createdType =
-                    expectedType.Assembly.GetTypes().Where(x => x.Name == typeString).First(
-                        x => expectedType.IsAssignableFrom(x));
-            }
 
             // TODO: Support subclassing, maybe in special "_type" property in json
             var target = Activator.CreateInstance(createdType);

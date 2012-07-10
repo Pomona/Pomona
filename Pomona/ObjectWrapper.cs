@@ -252,6 +252,13 @@ namespace Pomona
                 writer.WritePropertyName("_uri");
                 writer.WriteValue(context.GetUri(propertyValue));
 
+                if (expectedBaseType != valueType)
+                {
+                    writer.WritePropertyName("_type");
+                    // TODO: This only works as long as mapped name equals source name
+                    writer.WriteValue(propertyValue.GetType().Name);
+                }
+
                 if (context.DebugMode)
                 {
                     writer.WritePropertyName("_path");
