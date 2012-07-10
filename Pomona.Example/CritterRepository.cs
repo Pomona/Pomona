@@ -71,6 +71,7 @@ namespace Pomona.Example
             CreateWeapons(rng, critter, 3);
             CreateSubscriptions(rng, critter, 2);
 
+            Save(critter.Hat); // Random hat
             Save(critter);
         }
 
