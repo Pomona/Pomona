@@ -78,7 +78,7 @@ namespace Pomona
             var msObjectCtor =
                 module.Import(msObjectTypeRef.Resolve().Methods.First(
                     x => x.Name == ".ctor" && x.IsConstructor && x.Parameters.Count == 0));
-            var voidTypeRef = this.module.Import(typeof(void));
+            var voidTypeRef = VoidTypeRef;
 
             foreach (var t in types)
             {
@@ -155,7 +155,7 @@ namespace Pomona
                 {
                     var propTypeRef = GetTypeReference(prop.PropertyType);
 
-                    var propDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
+                    var pocoPropDef = CreatePropertyDefinition(pocoDef, prop);
 
                     // For interface getters and setters
                     var interfacePropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
@@ -180,48 +180,23 @@ namespace Pomona
 
                     pocoDef.Fields.Add(propField);
 
-                    var pocoGetMethod = new MethodDefinition(
-                        "get_" + prop.Name,
-                        MethodAttributes.NewSlot | MethodAttributes.SpecialName | MethodAttributes.HideBySig
-                        | MethodAttributes.Virtual | MethodAttributes.Public,
-                        propTypeRef);
 
                     // Create get method
 
-                    pocoGetMethod.Body.MaxStackSize = 1;
-                    var pocoGetIlProcessor = pocoGetMethod.Body.GetILProcessor();
+                    pocoPropDef.GetMethod.Body.MaxStackSize = 1;
+                    var pocoGetIlProcessor = pocoPropDef.GetMethod.Body.GetILProcessor();
                     pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
                     pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ldfld, propField));
                     pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ret));
-
-                    pocoDef.Methods.Add(pocoGetMethod);
-
-                    // Create set property
-
-                    var setMethod = new MethodDefinition(
-                        "set_" + prop.Name,
-                        MethodAttributes.NewSlot | MethodAttributes.Public | MethodAttributes.HideBySig |
-                        MethodAttributes.Virtual | MethodAttributes.SpecialName,
-                        voidTypeRef);
-
                     // Create set method body
 
-                    setMethod.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propTypeRef));
+                    pocoPropDef.SetMethod.Body.MaxStackSize = 8;
 
-                    setMethod.Body.MaxStackSize = 8;
-
-                    var setIlProcessor = setMethod.Body.GetILProcessor();
+                    var setIlProcessor = pocoPropDef.SetMethod.Body.GetILProcessor();
                     setIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
                     setIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
                     setIlProcessor.Append(Instruction.Create(OpCodes.Stfld, propField));
                     setIlProcessor.Append(Instruction.Create(OpCodes.Ret));
-
-                    pocoDef.Methods.Add(setMethod);
-
-                    propDef.GetMethod = pocoGetMethod;
-                    propDef.SetMethod = setMethod;
-
-                    pocoDef.Properties.Add(propDef);
                 }
             }
 
@@ -255,52 +230,33 @@ namespace Pomona
 
                 foreach (var prop in targetType.Properties)
                 {
-                    var propTypeRef = GetTypeReference(prop.PropertyType);
-                    var proxyPropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None,
-                                                         GetTypeReference(prop.PropertyType));
-                    var proxyPropGetter = new MethodDefinition("get_" + prop.Name,
-                                                               MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                                                               MethodAttributes.HideBySig
-                                                               | MethodAttributes.Virtual | MethodAttributes.Public,
-                                                               propTypeRef);
-                    proxyPropDef.GetMethod = proxyPropGetter;
+                    var proxyPropDef = CreatePropertyDefinition(proxyType, prop);
 
-                    var getterOpcodes = proxyPropGetter.Body.GetILProcessor();
+                    var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
                     getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
                     getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
                     getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
                     if (prop.PropertyType.IsValueType)
                     {
-                        getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, propTypeRef));
+                        getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
                     }
                     else
                     {
-                        getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, propTypeRef));
+                        getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
                     }
                     getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
 
-                    var proxyPropSetter = new MethodDefinition("set_" + prop.Name,
-                                                               MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                                                               MethodAttributes.HideBySig
-                                                               | MethodAttributes.Virtual | MethodAttributes.Public,
-                                                               voidTypeRef);
-                    proxyPropSetter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propTypeRef));
-                    proxyPropDef.SetMethod = proxyPropSetter;
-
-                    var setterOpcodes = proxyPropSetter.Body.GetILProcessor();
+                    var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
                     setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
                     setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
                     setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
                     if (prop.PropertyType.IsValueType)
                     {
-                        setterOpcodes.Append(Instruction.Create(OpCodes.Box, propTypeRef));
+                        setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
                     }
                     setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
                     setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
 
-                    proxyType.Methods.Add(proxyPropGetter);
-                    proxyType.Methods.Add(proxyPropSetter);
-                    proxyType.Properties.Add(proxyPropDef);
                 }
 
                 module.Types.Add(proxyType);
@@ -316,6 +272,36 @@ namespace Pomona
             stream.Write(array, 0, array.Length);
 
             //assembly.Write(stream);
+        }
+
+        private PropertyDefinition CreatePropertyDefinition(TypeDefinition proxyType, PropertyMapping prop)
+        {
+            var propTypeRef = GetTypeReference(prop.PropertyType);
+            var proxyPropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
+            var proxyPropGetter = new MethodDefinition("get_" + prop.Name,
+                                                       MethodAttributes.NewSlot | MethodAttributes.SpecialName |
+                                                       MethodAttributes.HideBySig
+                                                       | MethodAttributes.Virtual | MethodAttributes.Public,
+                                                       propTypeRef);
+            proxyPropDef.GetMethod = proxyPropGetter;
+
+            var proxyPropSetter = new MethodDefinition("set_" + prop.Name,
+                                                       MethodAttributes.NewSlot | MethodAttributes.SpecialName |
+                                                       MethodAttributes.HideBySig
+                                                       | MethodAttributes.Virtual | MethodAttributes.Public,
+                                                       VoidTypeRef);
+            proxyPropSetter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propTypeRef));
+            proxyPropDef.SetMethod = proxyPropSetter;
+
+            proxyType.Methods.Add(proxyPropGetter);
+            proxyType.Methods.Add(proxyPropSetter);
+            proxyType.Properties.Add(proxyPropDef);
+            return proxyPropDef;
+        }
+
+        private TypeReference VoidTypeRef
+        {
+            get { return this.module.Import(typeof(void)); }
         }
 
 
