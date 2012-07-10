@@ -78,7 +78,6 @@
     <Compile Include="ObjectWrapper.cs" />
     <Compile Include="PomonaContext.cs" />
     <Compile Include="PropertyMapping.cs" />
-    <Compile Include="Words.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
