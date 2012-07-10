@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,11 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
-
 using System.Linq;
 
 namespace Pomona
@@ -38,17 +33,20 @@ namespace Pomona
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private HashSet<Type> transformedTypes;
 
-        public IEnumerable<IMappedType> TransformedTypes { get { return mappings.Values.OfType<TransformedType>(); } }
-
         public ClassMappingFactory(IEnumerable<Type> transformedTypes)
         {
             this.transformedTypes = new HashSet<Type>(transformedTypes);
         }
 
+        public IEnumerable<IMappedType> TransformedTypes
+        {
+            get { return mappings.Values.OfType<TransformedType>(); }
+        }
+
 
         public IMappedType GetClassMapping<T>()
         {
-            var type = typeof(T);
+            var type = typeof (T);
 
             return GetClassMapping(type);
         }
@@ -57,7 +55,7 @@ namespace Pomona
         public IMappedType GetClassMapping(Type type)
         {
             IMappedType mappedType;
-            if (!this.mappings.TryGetValue(type, out mappedType))
+            if (!mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
 
             return mappedType;
@@ -66,7 +64,7 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (type.Assembly == typeof(String).Assembly)
+            if (type.Assembly == typeof (String).Assembly)
             {
                 if (type.IsGenericType)
                 {
@@ -86,12 +84,12 @@ namespace Pomona
                 return new SharedType(type, this);
             }
 
-            if (this.transformedTypes.Contains(type))
+            if (transformedTypes.Contains(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                this.mappings[type] = classDefinition;
+                mappings[type] = classDefinition;
 
                 classDefinition.ScanProperties(type);
 

@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -57,17 +53,17 @@ namespace Pomona
 
         public ClassMappingFactory ClassMappingFactory
         {
-            get { return this.classMappingFactory; }
+            get { return classMappingFactory; }
         }
 
         public bool DebugMode
         {
-            get { return this.debugMode; }
+            get { return debugMode; }
         }
 
         internal HashSet<string> ExpandedPaths
         {
-            get { return this.expandedPaths; }
+            get { return expandedPaths; }
         }
 
 
@@ -79,25 +75,25 @@ namespace Pomona
 
         public IMappedType GetClassMapping<T>()
         {
-            return this.classMappingFactory.GetClassMapping<T>();
+            return classMappingFactory.GetClassMapping<T>();
         }
 
 
         public string GetUri(object value)
         {
-            return this.uriResolver(value);
+            return uriResolver(value);
         }
 
 
         public bool IsWrittenAsObject(Type type)
         {
-            return this.baseType.IsAssignableFrom(type);
+            return baseType.IsAssignableFrom(type);
         }
 
 
         internal bool PathToBeExpanded(string path)
         {
-            return this.expandedPaths.Contains(path.ToLower());
+            return expandedPaths.Contains(path.ToLower());
         }
     }
 }

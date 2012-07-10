@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,12 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -47,34 +42,34 @@ namespace Pomona.Example
 
         public CritterRepository CritterRepository
         {
-            get { return this.critterRepository ?? (this.critterRepository = new CritterRepository()); }
+            get { return critterRepository ?? (critterRepository = new CritterRepository()); }
         }
 
 
         protected override T GetById<T>(int id)
         {
-            return (T)((object)CritterRepository.GetAll<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == id));
+            return (T) ((object) CritterRepository.GetAll<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == id));
         }
 
 
         protected override Type GetEntityBaseType()
         {
-            return typeof(EntityBase);
+            return typeof (EntityBase);
         }
 
 
         protected override IEnumerable<Type> GetEntityTypes()
         {
-            if (this.entityTypes == null)
-                this.entityTypes =
-                    typeof(CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
-            return this.entityTypes;
+            if (entityTypes == null)
+                entityTypes =
+                    typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
+            return entityTypes;
         }
 
 
         protected override int GetIdFor(object entity)
         {
-            return ((EntityBase)entity).Id;
+            return ((EntityBase) entity).Id;
         }
 
 

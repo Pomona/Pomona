@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -52,17 +48,23 @@ namespace Pomona
             GenericArguments = new List<IMappedType>();
         }
 
+        public Type TargetType
+        {
+            get { return targetType; }
+        }
+
+        #region IMappedType Members
 
         public IMappedType BaseType
         {
-            get { return (SharedType)this.classMappingFactory.GetClassMapping(this.targetType.BaseType); }
+            get { return (SharedType) classMappingFactory.GetClassMapping(targetType.BaseType); }
         }
 
         public IList<IMappedType> GenericArguments { get; private set; }
 
         public bool IsGenericType
         {
-            get { return this.targetType.IsGenericType; }
+            get { return targetType.IsGenericType; }
         }
 
         public bool IsGenericTypeDefinition
@@ -72,7 +74,7 @@ namespace Pomona
 
         public string Name
         {
-            get { return this.targetType.Name; }
+            get { return targetType.Name; }
         }
 
         public bool IsValueType
@@ -80,9 +82,6 @@ namespace Pomona
             get { return targetType.IsValueType; }
         }
 
-        public Type TargetType
-        {
-            get { return this.targetType; }
-        }
+        #endregion
     }
 }

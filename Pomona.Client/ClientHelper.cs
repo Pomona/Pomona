@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,7 +30,6 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Client
@@ -42,9 +37,12 @@ namespace Pomona.Client
     public class ClientHelper
     {
         private static readonly Type[] knownGenericCollectionTypes = {
-            typeof(List<>), typeof(IList<>),
-            typeof(ICollection<>)
-        };
+                                                                         typeof (List<>), typeof (IList<>),
+                                                                         typeof (ICollection<>)
+                                                                     };
+
+        private static Dictionary<Type, Type> interfaceToProxyDictionary = new Dictionary<Type, Type>();
+        private static Dictionary<Type, Type> interfaceToPocoDictionary = new Dictionary<Type, Type>();
 
         private readonly WebClient webClient = new WebClient();
 
@@ -55,14 +53,14 @@ namespace Pomona.Client
 
         public T GetUri<T>(string uri)
         {
-            return (T)Deserialize(typeof(T), GetUri(uri));
+            return (T) Deserialize(typeof (T), GetUri(uri));
         }
 
 
         public IList<T> List<T>(string expand = null)
         {
             // TODO: Implement baseuri property or something.
-            var uri = "http://localhost:2211/" + typeof(T).Name.ToLower();
+            var uri = "http://localhost:2211/" + typeof (T).Name.ToLower();
 
             if (expand != null)
                 uri = uri + "?expand=" + expand;
@@ -74,10 +72,11 @@ namespace Pomona.Client
         private static object CreateListOfType(Type elementType, IEnumerable elements)
         {
             var createListOfTypeGeneric =
-                typeof(ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static).
+                typeof (ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static)
+                    .
                     MakeGenericMethod(elementType);
 
-            return createListOfTypeGeneric.Invoke(null, new object[] { elements });
+            return createListOfTypeGeneric.Invoke(null, new object[] {elements});
         }
 
 
@@ -103,7 +102,7 @@ namespace Pomona.Client
                 return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
             }
 
-            return Convert.ChangeType(((JValue)jToken).Value, expectedType);
+            return Convert.ChangeType(((JValue) jToken).Value, expectedType);
         }
 
 
@@ -114,7 +113,7 @@ namespace Pomona.Client
             if (jObject.TryGetValue("_uri", out uriToken))
             {
                 var uriValue = (JValue) uriToken;
-                return CreateProxyFor((string)uriValue.Value, expectedType);
+                return CreateProxyFor((string) uriValue.Value, expectedType);
             }
 
             var createdType = expectedType;
@@ -131,7 +130,7 @@ namespace Pomona.Client
             JToken typePropertyToken;
             if (jObject.TryGetValue("_type", out typePropertyToken))
             {
-                var typeString = (string)((JValue)typePropertyToken).Value;
+                var typeString = (string) ((JValue) typePropertyToken).Value;
                 createdType =
                     expectedType.Assembly.GetTypes().Where(x => x.Name == typeString).First(
                         x => expectedType.IsAssignableFrom(x));
@@ -158,8 +157,8 @@ namespace Pomona.Client
 
         private object CreateProxyFor(string uri, Type expectedType)
         {
-            Type proxyType = GetProxyForInterface(expectedType);
-            var proxy = (ProxyBase)Activator.CreateInstance(proxyType);
+            var proxyType = GetProxyForInterface(expectedType);
+            var proxy = (ProxyBase) Activator.CreateInstance(proxyType);
             proxy.ProxyInterceptor = new LazyProxyInterceptor(uri, GetPocoForInterface(expectedType), this);
             return proxy;
         }
@@ -184,9 +183,6 @@ namespace Pomona.Client
                 return createdType;
             }
         }
-
-        static Dictionary<Type, Type> interfaceToProxyDictionary = new Dictionary<Type, Type>();
-        static Dictionary<Type, Type> interfaceToPocoDictionary = new Dictionary<Type, Type>(); 
 
         private static Type GetPocoForInterface(Type expectedType)
         {
@@ -243,7 +239,7 @@ namespace Pomona.Client
 
         private JToken GetUri(string uri)
         {
-            var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
+            var jsonString = Encoding.UTF8.GetString(webClient.DownloadData(uri));
             Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
             return JToken.Parse(jsonString);
         }

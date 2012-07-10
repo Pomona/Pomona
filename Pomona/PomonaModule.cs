@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,16 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using Nancy;
-
 using Newtonsoft.Json;
 
 namespace Pomona
@@ -46,12 +40,12 @@ namespace Pomona
 
         public PomonaModule()
         {
-            this.classMappingFactory = new ClassMappingFactory(GetEntityTypes());
+            classMappingFactory = new ClassMappingFactory(GetEntityTypes());
 
             // Just eagerly load the type mappings so we can manipulate it
-            GetEntityTypes().Select(x => this.classMappingFactory.GetClassMapping(x)).ToList();
+            GetEntityTypes().Select(x => classMappingFactory.GetClassMapping(x)).ToList();
 
-            var registerRouteForT = typeof(PomonaModule).GetMethod(
+            var registerRouteForT = typeof (PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
             foreach (var type in GetEntityTypes().Where(x => !x.IsAbstract))
@@ -61,20 +55,23 @@ namespace Pomona
             }
 
             Get["Pomona.Client.dll"] = x =>
-            {
-                var response = new Response()
-                {
-                    Contents = stream =>
-                    {
-                        var clientLibGenerator = new ClientLibGenerator(classMappingFactory);
-                        clientLibGenerator.CreateClientDll(stream);
-                    }
-                };
+                                           {
+                                               var response = new Response()
+                                                                  {
+                                                                      Contents = stream =>
+                                                                                     {
+                                                                                         var clientLibGenerator =
+                                                                                             new ClientLibGenerator(
+                                                                                                 classMappingFactory);
+                                                                                         clientLibGenerator.
+                                                                                             CreateClientDll(stream);
+                                                                                     }
+                                                                  };
 
-                response.ContentType = "binary/octet-stream";
+                                               response.ContentType = "binary/octet-stream";
 
-                return response;
-            };
+                                               return response;
+                                           };
 
             Get["/greet/{name}"] = x => { return string.Concat("Hello ", x.name); };
         }
@@ -108,22 +105,22 @@ namespace Pomona
 
         private void RegisterRouteFor<T>()
         {
-            var type = typeof(T);
+            var type = typeof (T);
             var path = "/" + type.Name.ToLower();
             Console.WriteLine("Registering path " + path);
 
             Get[path + "/{id}"] = x =>
-            {
-                var expandedPaths = GetExpandedPaths();
-                return ToJson(GetById<T>(x.id), type.Name.ToLower());
-            };
+                                      {
+                                          var expandedPaths = GetExpandedPaths();
+                                          return ToJson(GetById<T>(x.id), type.Name.ToLower());
+                                      };
 
             Get[path] = x =>
-            {
-                var expandedPaths = GetExpandedPaths();
-                return ToJson(ListAll<T>(), type.Name.ToLower());
-                //return ToJson(this.repository.GetAll<T>().Select(y => new PathTrackingProxy(y, typeof(T).Name, expandedPaths)).ToList());
-            };
+                            {
+                                var expandedPaths = GetExpandedPaths();
+                                return ToJson(ListAll<T>(), type.Name.ToLower());
+                                //return ToJson(this.repository.GetAll<T>().Select(y => new PathTrackingProxy(y, typeof(T).Name, expandedPaths)).ToList());
+                            };
         }
 
 
@@ -135,12 +132,14 @@ namespace Pomona
             bool debug = Request.Query.debug == "true";
 
             res.Contents = stream =>
-            {
-                var context = new PomonaContext(
-                    GetEntityBaseType(), UriResolver, path + "," + expand, debug, this.classMappingFactory);
-                var wrapper = context.CreateWrapperFor(o, path, this.classMappingFactory.GetClassMapping(o.GetType()));
-                wrapper.ToJson(new StreamWriter(stream));
-            };
+                               {
+                                   var context = new PomonaContext(
+                                       GetEntityBaseType(), UriResolver, path + "," + expand, debug, classMappingFactory);
+                                   var wrapper = context.CreateWrapperFor(o, path,
+                                                                          classMappingFactory.GetClassMapping(
+                                                                              o.GetType()));
+                                   wrapper.ToJson(new StreamWriter(stream));
+                               };
 
             res.ContentType = "text/plain; charset=utf-8";
 

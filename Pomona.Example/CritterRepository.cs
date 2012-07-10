@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,11 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
-
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -57,7 +52,7 @@ namespace Pomona.Example
             var rng = new Random(463345562);
 
             for (var i = 0; i < 12; i++)
-                Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
+                Save(new WeaponModel() {Name = Words.GetSpecialWeapon(rng)});
 
             const int critterCount = 20;
 
@@ -69,9 +64,9 @@ namespace Pomona.Example
         private void CreateRandomCritter(Random rng)
         {
             var critter = new Critter()
-            {
-                Name = Words.GetAnimalWithPersonality(rng)
-            };
+                              {
+                                  Name = Words.GetAnimalWithPersonality(rng)
+                              };
 
             CreateWeapons(rng, critter, 3);
             CreateSubscriptions(rng, critter, 2);
@@ -90,7 +85,7 @@ namespace Pomona.Example
                 var subscription =
                     Save(
                         new Subscription(critter, weaponType)
-                        { Sku = rng.Next(0, 9999).ToString(), StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120)) });
+                            {Sku = rng.Next(0, 9999).ToString(), StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))});
                 critter.Subscriptions.Add(subscription);
             }
         }
@@ -106,9 +101,9 @@ namespace Pomona.Example
                 var weapon =
                     Save(
                         rng.NextDouble() > 0.5
-                            ? new Weapon(weaponType) { Dependability = rng.NextDouble() }
+                            ? new Weapon(weaponType) {Dependability = rng.NextDouble()}
                             : new Gun(weaponType)
-                            { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
+                                  {Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble()});
                 critter.Weapons.Add(weapon);
             }
         }
@@ -116,14 +111,14 @@ namespace Pomona.Example
 
         private IList<T> GetEntityList<T>()
         {
-            var type = typeof(T);
+            var type = typeof (T);
             object list;
-            if (!this.entityLists.TryGetValue(type, out list))
+            if (!entityLists.TryGetValue(type, out list))
             {
                 list = new List<T>();
-                this.entityLists[type] = list;
+                entityLists[type] = list;
             }
-            return (IList<T>)list;
+            return (IList<T>) list;
         }
 
 
@@ -143,7 +138,7 @@ namespace Pomona.Example
         {
             if (entity.Id != 0)
                 throw new InvalidOperationException("Trying to save entity with id 0");
-            entity.Id = this.idCounter++;
+            entity.Id = idCounter++;
             GetEntityList<T>().Add(entity);
             return entity;
         }

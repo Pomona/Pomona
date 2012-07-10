@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -55,12 +51,18 @@ namespace Pomona
             this.classMappingFactory = classMappingFactory;
         }
 
+        public IList<PropertyMapping> Properties
+        {
+            get { return properties; }
+        }
+
+        #region IMappedType Members
 
         public IMappedType BaseType { get; set; }
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] { }; }
+            get { return new IMappedType[] {}; }
         }
 
         public bool IsGenericType
@@ -75,7 +77,7 @@ namespace Pomona
 
         public string Name
         {
-            get { return this.name; }
+            get { return name; }
         }
 
         public bool IsValueType
@@ -83,10 +85,7 @@ namespace Pomona
             get { return false; }
         }
 
-        public IList<PropertyMapping> Properties
-        {
-            get { return this.properties; }
-        }
+        #endregion
 
         public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
         {
@@ -101,8 +100,8 @@ namespace Pomona
             {
                 var propDef = new PropertyMapping(
                     propInfo.Name,
-                    this.classMappingFactory.GetClassMapping(propInfo.DeclaringType),
-                    this.classMappingFactory.GetClassMapping(propInfo.PropertyType),
+                    classMappingFactory.GetClassMapping(propInfo.DeclaringType),
+                    classMappingFactory.GetClassMapping(propInfo.PropertyType),
                     propInfo);
 
                 var propInfoLocal = propInfo;
@@ -111,10 +110,10 @@ namespace Pomona
                 propDef.Getter = x => propInfoLocal.GetValue(x, null);
                 propDef.Setter = (x, value) => propInfoLocal.SetValue(x, value, null);
 
-                this.properties.Add(propDef);
+                properties.Add(propDef);
             }
 
-            BaseType = this.classMappingFactory.GetClassMapping(type.BaseType);
+            BaseType = classMappingFactory.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
@@ -123,7 +122,7 @@ namespace Pomona
                 // TODO: match constructor arguments
                 foreach (var ctorParam in longestCtor.GetParameters())
                 {
-                    var matchingProperty = this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
+                    var matchingProperty = properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
                     if (matchingProperty != null)
                     {
                         matchingProperty.CreateMode = PropertyMapping.PropertyCreateMode.Required;

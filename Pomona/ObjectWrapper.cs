@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,14 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -40,7 +35,10 @@ namespace Pomona
     public class ObjectWrapper
     {
         private static readonly Type[] knownGenericCollectionTypes = new[]
-        { typeof(IList<>), typeof(ICollection<>), typeof(List<>) };
+                                                                         {
+                                                                             typeof (IList<>), typeof (ICollection<>),
+                                                                             typeof (List<>)
+                                                                         };
 
         private readonly PomonaContext context;
         private readonly IMappedType expectedBaseType;
@@ -63,13 +61,13 @@ namespace Pomona
             this.path = path;
             this.context = context;
             this.expectedBaseType = expectedBaseType;
-            this.targetType = context.ClassMappingFactory.GetClassMapping(target.GetType());
+            targetType = context.ClassMappingFactory.GetClassMapping(target.GetType());
         }
 
 
         public string Path
         {
-            get { return this.path; }
+            get { return path; }
         }
 
         protected virtual void UpdateFromJson(JObject jsonObject)
@@ -91,10 +89,11 @@ namespace Pomona
                 // Should support "new" types in the future?
                 var propertyType = targetProperty.PropertyType as SharedType;
                 if (propertyType == null)
-                    throw new InvalidOperationException("Unable to set property of type " + targetProperty.PropertyType.GetType().Name);
+                    throw new InvalidOperationException("Unable to set property of type " +
+                                                        targetProperty.PropertyType.GetType().Name);
 
                 targetProperty.Setter(target, Convert.ChangeType(((JValue) jsonProperty.Value).Value,
-                                      propertyType.TargetType));
+                                                                 propertyType.TargetType));
             }
         }
 
@@ -115,35 +114,35 @@ namespace Pomona
         public virtual void ToJson(JsonWriter writer)
         {
             IMappedType collectionElementType;
-            if (TryGetCollectionElementType(this.targetType, out collectionElementType))
+            if (TryGetCollectionElementType(targetType, out collectionElementType))
             {
                 writer.WriteStartArray();
-                foreach (var child in ((IEnumerable)this.target))
+                foreach (var child in ((IEnumerable) target))
                 {
                     WriteJsonExpandedOrReference(
                         writer,
                         child,
-                        this.path,
-                        this.context.ClassMappingFactory.GetClassMapping(child.GetType()),
+                        path,
+                        context.ClassMappingFactory.GetClassMapping(child.GetType()),
                         collectionElementType);
                 }
                 writer.WriteEndArray();
             }
             else
             {
-                var transformedType = (TransformedType)this.targetType;
+                var transformedType = (TransformedType) targetType;
                 writer.WriteStartObject();
 
-                if (this.expectedBaseType != this.targetType)
+                if (expectedBaseType != targetType)
                 {
                     writer.WritePropertyName("_type");
-                    writer.WriteValue(this.targetType.Name);
+                    writer.WriteValue(targetType.Name);
                 }
 
                 foreach (var propDef in transformedType.Properties)
                 {
-                    var subPath = this.path + "." + propDef.JsonName;
-                    var value = propDef.Getter(this.target);
+                    var subPath = path + "." + propDef.JsonName;
+                    var value = propDef.Getter(target);
 
                     writer.WritePropertyName(propDef.JsonName);
                     if (value == null)
@@ -153,13 +152,13 @@ namespace Pomona
                     }
 
                     var valueType = value.GetType();
-                    var valueTypeMapping = this.context.ClassMappingFactory.GetClassMapping(valueType);
+                    var valueTypeMapping = context.ClassMappingFactory.GetClassMapping(valueType);
 
                     var serializeAsArray = IsIList(valueType);
 
-                    if (this.context.IsWrittenAsObject(valueType) || serializeAsArray)
+                    if (context.IsWrittenAsObject(valueType) || serializeAsArray)
                     {
-                        var propertyValue = propDef.Getter(this.target);
+                        var propertyValue = propDef.Getter(target);
 
                         if (propertyValue == null)
                             writer.WriteNull();
@@ -170,14 +169,14 @@ namespace Pomona
                         }
                     }
                     else
-                        writer.WriteValue(propDef.Getter(this.target));
+                        writer.WriteValue(propDef.Getter(target));
                 }
 
                 // Write path for debug purposes
-                if (this.context.DebugMode)
+                if (context.DebugMode)
                 {
                     writer.WritePropertyName("_path");
-                    writer.WriteValue(this.path);
+                    writer.WriteValue(path);
                 }
 
                 writer.WriteEndObject();
@@ -234,7 +233,7 @@ namespace Pomona
             return
                 t.GetInterfaces().Any(
                     x => x.IsGenericType &&
-                         x.GetGenericTypeDefinition() == typeof(IList<>)
+                         x.GetGenericTypeDefinition() == typeof (IList<>)
                     /* && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0])*/);
         }
 
@@ -242,18 +241,18 @@ namespace Pomona
         private void WriteJsonExpandedOrReference(
             JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
         {
-            if (this.context.PathToBeExpanded(subPath) || IsIList(valueType))
+            if (context.PathToBeExpanded(subPath) || IsIList(valueType))
             {
-                var wrapper = this.context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
+                var wrapper = context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
                 wrapper.ToJson(writer);
             }
             else
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName("_uri");
-                writer.WriteValue(this.context.GetUri(propertyValue));
+                writer.WriteValue(context.GetUri(propertyValue));
 
-                if (this.context.DebugMode)
+                if (context.DebugMode)
                 {
                     writer.WritePropertyName("_path");
                     writer.WriteValue(subPath);
