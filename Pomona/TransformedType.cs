@@ -78,6 +78,11 @@ namespace Pomona
             get { return this.name; }
         }
 
+        public bool IsValueType
+        {
+            get { return false; }
+        }
+
         public IList<PropertyMapping> Properties
         {
             get { return this.properties; }

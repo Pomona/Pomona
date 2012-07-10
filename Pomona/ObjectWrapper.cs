@@ -197,7 +197,9 @@ namespace Pomona
             // First look if we're dealing directly with a known collection type
             if (sharedType.IsGenericType
                 && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
+            {
                 elementType = sharedType.GenericArguments[0];
+            }
             /*
             if (elementType == null && searchInterfaces)
             {
@@ -211,6 +213,14 @@ namespace Pomona
             return elementType != null;
         }
 
+        private bool IsIList(IMappedType mappedType)
+        {
+            var sharedType = mappedType as SharedType;
+            if (sharedType == null)
+                return false;
+
+            return IsIList(sharedType.TargetType);
+        }
 
         private bool IsIList(object obj)
         {

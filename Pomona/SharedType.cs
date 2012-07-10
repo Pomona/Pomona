@@ -75,6 +75,11 @@ namespace Pomona
             get { return this.targetType.Name; }
         }
 
+        public bool IsValueType
+        {
+            get { return targetType.IsValueType; }
+        }
+
         public Type TargetType
         {
             get { return this.targetType; }

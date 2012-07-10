@@ -43,5 +43,6 @@ namespace Pomona
         bool IsGenericType { get; }
         bool IsGenericTypeDefinition { get; }
         string Name { get; }
+        bool IsValueType { get; }
     }
 }

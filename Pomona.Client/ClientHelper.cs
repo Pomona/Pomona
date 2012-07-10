@@ -48,6 +48,10 @@ namespace Pomona.Client
 
         private readonly WebClient webClient = new WebClient();
 
+        public object GetUri(string uri, Type type)
+        {
+            return Deserialize(type, GetUri(uri));
+        }
 
         public T GetUri<T>(string uri)
         {
@@ -83,7 +87,7 @@ namespace Pomona.Client
         }
 
 
-        private static object Deserialize(Type expectedType, JToken jToken)
+        private object Deserialize(Type expectedType, JToken jToken)
         {
             var jObject = jToken as JObject;
             if (jObject != null)
@@ -103,13 +107,25 @@ namespace Pomona.Client
         }
 
 
-        private static object DeserializeObject(Type expectedType, JObject jObject)
+        private object DeserializeObject(Type expectedType, JObject jObject)
         {
             // TODO: Support fetching proxy objects.
-            if (jObject.Properties().Any(x => x.Name == "_uri"))
-                return null;
+            JToken uriToken;
+            if (jObject.TryGetValue("_uri", out uriToken))
+            {
+                var uriValue = (JValue) uriToken;
+                return CreateProxyFor((string)uriValue.Value, expectedType);
+            }
 
             var createdType = expectedType;
+
+            // Find matching type for interface, we simply do this by removing the "I" from the beginning
+            if (expectedType.Name.StartsWith("I") && expectedType.IsInterface)
+            {
+                // TODO: Cache this mapping in static dictionary
+                createdType = GetPocoForInterface(expectedType);
+            }
+
 
             var typeProperty = jObject.Properties().FirstOrDefault(x => x.Name == "_type");
             JToken typePropertyToken;
@@ -138,6 +154,59 @@ namespace Pomona.Client
             }
 
             return target;
+        }
+
+        private object CreateProxyFor(string uri, Type expectedType)
+        {
+            Type proxyType = GetProxyForInterface(expectedType);
+            var proxy = (ProxyBase)Activator.CreateInstance(proxyType);
+            proxy.ProxyInterceptor = new LazyProxyInterceptor(uri, GetPocoForInterface(expectedType), this);
+            return proxy;
+        }
+
+        private static Type GetProxyForInterface(Type expectedType)
+        {
+            lock (interfaceToProxyDictionary)
+            {
+                Type createdType;
+                if (!interfaceToProxyDictionary.TryGetValue(expectedType, out createdType))
+                {
+                    if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
+                    {
+                        throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
+                    }
+                    var proxyName = expectedType.Name.Substring(1) + "Proxy";
+                    createdType =
+                        expectedType.Assembly.GetTypes().First(
+                            x => x.FullName == expectedType.Namespace + "." + proxyName);
+                    interfaceToProxyDictionary[expectedType] = createdType;
+                }
+                return createdType;
+            }
+        }
+
+        static Dictionary<Type, Type> interfaceToProxyDictionary = new Dictionary<Type, Type>();
+        static Dictionary<Type, Type> interfaceToPocoDictionary = new Dictionary<Type, Type>(); 
+
+        private static Type GetPocoForInterface(Type expectedType)
+        {
+            lock (interfaceToPocoDictionary)
+            {
+                Type createdType;
+                if (!interfaceToPocoDictionary.TryGetValue(expectedType, out createdType))
+                {
+                    if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
+                    {
+                        throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
+                    }
+                    var pocoName = expectedType.Name.Substring(1);
+                    createdType =
+                        expectedType.Assembly.GetTypes().First(
+                            x => x.FullName == expectedType.Namespace + "." + pocoName);
+                    interfaceToPocoDictionary[expectedType] = createdType;
+                }
+                return createdType;
+            }
         }
 
 
@@ -174,7 +243,9 @@ namespace Pomona.Client
 
         private JToken GetUri(string uri)
         {
-            return JToken.Parse(Encoding.UTF8.GetString(this.webClient.DownloadData(uri)));
+            var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
+            Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
+            return JToken.Parse(jsonString);
         }
     }
 }
