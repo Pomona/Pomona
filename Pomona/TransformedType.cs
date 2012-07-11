@@ -33,9 +33,9 @@ namespace Pomona
     /// </summary>
     public class TransformedType : IMappedType
     {
-        private readonly TypeMapper typeMapper;
         private readonly string name;
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
+        private readonly TypeMapper typeMapper;
 
         private bool createAllowed;
         private Type type;
@@ -81,6 +81,11 @@ namespace Pomona
         }
 
         public bool IsValueType
+        {
+            get { return false; }
+        }
+
+        public bool IsCollection
         {
             get { return false; }
         }

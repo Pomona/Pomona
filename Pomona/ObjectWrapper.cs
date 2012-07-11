@@ -40,14 +40,14 @@ namespace Pomona
                                                                              typeof (List<>)
                                                                          };
 
-        private readonly PomonaContext context;
+        private readonly FetchContext context;
         private readonly IMappedType expectedBaseType;
         private readonly string path;
         private readonly object target;
         private readonly IMappedType targetType;
 
 
-        public ObjectWrapper(object target, string path, PomonaContext context, IMappedType expectedBaseType)
+        public ObjectWrapper(object target, string path, FetchContext context, IMappedType expectedBaseType)
         {
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -154,12 +154,10 @@ namespace Pomona
                         continue;
                     }
 
-                    var valueType = value.GetType();
-                    var valueTypeMapping = context.TypeMapper.GetClassMapping(valueType);
+                    var valueTypeMapping = context.TypeMapper.GetClassMapping(value.GetType());
 
-                    var serializeAsArray = IsIList(valueType);
-
-                    if (context.IsWrittenAsObject(valueType) || serializeAsArray)
+                    if (context.TypeMapper.IsSerializedAsObject(valueTypeMapping) ||
+                        context.TypeMapper.IsSerializedAsArray(valueTypeMapping))
                     {
                         var propertyValue = propDef.Getter(target);
 

@@ -47,17 +47,21 @@ namespace Pomona.Client
             internal set { target = value; }
         }
 
+        public Type TargetType
+        {
+            get { return targetType; }
+            internal set { targetType = value; }
+        }
+
+        #region IHasResourceUri Members
+
         public string Uri
         {
             get { return uri; }
             internal set { uri = value; }
         }
 
-        public Type TargetType
-        {
-            get { return targetType; }
-            internal set { targetType = value; }
-        }
+        #endregion
 
         protected object OnPropertyGet(string propertyName)
         {

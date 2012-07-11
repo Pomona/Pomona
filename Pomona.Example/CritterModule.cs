@@ -31,24 +31,23 @@ namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        private CritterRepository critterRepository;
         private IEnumerable<Type> entityTypes;
 
 
-        public CritterModule()
+        public CritterModule() : base(new CritterDataSource())
         {
         }
 
 
-        public CritterRepository CritterRepository
+        public CritterDataSource CritterDataSource
         {
-            get { return critterRepository ?? (critterRepository = new CritterRepository()); }
+            get { return (CritterDataSource) DataSource; }
         }
 
 
         protected override T GetById<T>(int id)
         {
-            return (T) ((object) CritterRepository.GetAll<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == id));
+            return (T) ((object) CritterDataSource.GetAll<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == id));
         }
 
 
@@ -75,7 +74,7 @@ namespace Pomona.Example
 
         protected override IList<T> ListAll<T>()
         {
-            return CritterRepository.GetAll<T>();
+            return CritterDataSource.GetAll<T>();
         }
     }
 }

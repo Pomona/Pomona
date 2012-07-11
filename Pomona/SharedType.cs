@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pomona
 {
@@ -33,8 +34,9 @@ namespace Pomona
     /// </summary>
     public class SharedType : IMappedType
     {
-        private readonly TypeMapper typeMapper;
         private readonly Type targetType;
+        private readonly TypeMapper typeMapper;
+        private bool isCollection;
 
 
         public SharedType(Type targetType, TypeMapper typeMapper)
@@ -45,6 +47,10 @@ namespace Pomona
                 throw new ArgumentNullException("typeMapper");
             this.targetType = targetType;
             this.typeMapper = typeMapper;
+            isCollection =
+                targetType.GetInterfaces().Where(x => x.IsGenericType)
+                    .Select(x => x.IsGenericTypeDefinition ? x : x.GetGenericTypeDefinition()).Any
+                    (x => x == typeof (ICollection<>));
             GenericArguments = new List<IMappedType>();
         }
 
@@ -80,6 +86,11 @@ namespace Pomona
         public bool IsValueType
         {
             get { return targetType.IsValueType; }
+        }
+
+        public bool IsCollection
+        {
+            get { return isCollection; }
         }
 
         #endregion

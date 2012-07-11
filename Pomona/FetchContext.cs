@@ -27,26 +27,28 @@ using System.Collections.Generic;
 
 namespace Pomona
 {
-    public class PomonaContext
+    public class FetchContext
     {
         private readonly Type baseType;
-        private readonly TypeMapper typeMapper;
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
+        private readonly PomonaSession session;
+        private readonly TypeMapper typeMapper;
         private readonly Func<object, string> uriResolver;
 
 
-        public PomonaContext(
+        public FetchContext(
             Type baseType,
             Func<object, string> uriResolver,
             string expandedPaths,
             bool debugMode,
-            TypeMapper typeMapper)
+            PomonaSession session)
         {
             this.baseType = baseType;
             this.uriResolver = uriResolver;
             this.debugMode = debugMode;
-            this.typeMapper = typeMapper;
+            this.session = session;
+            typeMapper = session.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
@@ -73,21 +75,9 @@ namespace Pomona
         }
 
 
-        public IMappedType GetClassMapping<T>()
-        {
-            return typeMapper.GetClassMapping<T>();
-        }
-
-
         public string GetUri(object value)
         {
             return uriResolver(value);
-        }
-
-
-        public bool IsWrittenAsObject(Type type)
-        {
-            return baseType.IsAssignableFrom(type);
         }
 
 

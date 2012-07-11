@@ -73,7 +73,8 @@ namespace Pomona.Client
         private static object CreateListOfType(Type elementType, IEnumerable elements)
         {
             var createListOfTypeGeneric =
-                typeof (ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static).
+                typeof (ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static)
+                    .
                     MakeGenericMethod(elementType);
 
             return createListOfTypeGeneric.Invoke(null, new object[] {elements});
@@ -108,12 +109,12 @@ namespace Pomona.Client
 
         private object DeserializeObject(Type expectedType, JObject jObject)
         {
-            Type receivedSubclassInterface = expectedType;
+            var receivedSubclassInterface = expectedType;
 
             JToken typePropertyToken;
             if (jObject.TryGetValue("_type", out typePropertyToken))
             {
-                var typeString = (string)((JValue)typePropertyToken).Value;
+                var typeString = (string) ((JValue) typePropertyToken).Value;
                 receivedSubclassInterface =
                     expectedType.Assembly.GetTypes().Where(x => x.Name == "I" + typeString).First(
                         x => expectedType.IsAssignableFrom(x));
@@ -136,13 +137,13 @@ namespace Pomona.Client
             }
 
 
-            var target = (ResourceBase)Activator.CreateInstance(createdType);
+            var target = (ResourceBase) Activator.CreateInstance(createdType);
 
             // Set uri, if available in json (for updates etc)
             JToken uriToken;
             if (jObject.TryGetValue("_uri", out uriToken))
             {
-                target.Uri = (string)(((JValue) uriToken).Value);
+                target.Uri = (string) (((JValue) uriToken).Value);
             }
 
 
@@ -273,10 +274,11 @@ namespace Pomona.Client
             var updateProxy = Activator.CreateInstance(updateType);
 
             // Run user supplied actions on updateProxy
-            updateAction((T)updateProxy);
+            updateAction((T) updateProxy);
 
             // Put the json!
-            return (T)Deserialize(type, PutUri(((IHasResourceUri) target).Uri, ((UpdateProxyBase)updateProxy).ToJson()));
+            return
+                (T) Deserialize(type, PutUri(((IHasResourceUri) target).Uri, ((UpdateProxyBase) updateProxy).ToJson()));
         }
 
         private JToken PutUri(string uri, JToken jsonData)

@@ -66,9 +66,10 @@ namespace Pomona
         {
             if (type.Assembly == typeof (String).Assembly)
             {
+                SharedType newSharedType;
                 if (type.IsGenericType)
                 {
-                    var newSharedType = new SharedType(type.GetGenericTypeDefinition(), this);
+                    newSharedType = new SharedType(type.GetGenericTypeDefinition(), this);
                     foreach (var genericTypeArg in type.GetGenericArguments())
                     {
                         if (genericTypeArg == type)
@@ -79,9 +80,14 @@ namespace Pomona
                         else
                             newSharedType.GenericArguments.Add(GetClassMapping(genericTypeArg));
                     }
-                    return newSharedType;
                 }
-                return new SharedType(type, this);
+                else
+                {
+                    newSharedType = new SharedType(type, this);
+                }
+
+                mappings[type] = newSharedType;
+                return newSharedType;
             }
 
             if (transformedTypes.Contains(type))
@@ -97,6 +103,30 @@ namespace Pomona
             }
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
+        }
+
+        public bool IsSerializedAsArray(IMappedType mappedType)
+        {
+            if (mappedType == null) throw new ArgumentNullException("mappedType");
+            return mappedType.IsCollection;
+        }
+
+        public bool IsSerializedAsArray(Type type)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+            return IsSerializedAsArray(GetClassMapping(type));
+        }
+
+        public bool IsSerializedAsObject(IMappedType mappedType)
+        {
+            if (mappedType == null) throw new ArgumentNullException("mappedType");
+            return mappedType is TransformedType;
+        }
+
+        public bool IsSerializedAsObject(Type type)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+            return IsSerializedAsObject(GetClassMapping(type));
         }
     }
 }

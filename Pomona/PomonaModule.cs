@@ -32,31 +32,18 @@ using Newtonsoft.Json;
 
 namespace Pomona
 {
-    public interface IPomonaDataSource
-    {
-        T GetById<T>(object id);
-        ICollection<T> List<T>();
-    }
-
-    public class PomonaSession
-    {
-        private readonly IPomonaDataSource dataSource;
-
-        public PomonaSession(IPomonaDataSource dataSource)
-        {
-            this.dataSource = dataSource;
-        }
-    }
-
     public abstract class PomonaModule : NancyModule
     {
-        private readonly TypeMapper typeMapper;
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
+        private readonly PomonaSession session;
+        private readonly TypeMapper typeMapper;
+        private IPomonaDataSource dataSource;
 
-
-        public PomonaModule()
+        public PomonaModule(IPomonaDataSource dataSource)
         {
+            this.dataSource = dataSource;
             typeMapper = new TypeMapper(GetEntityTypes());
+            session = new PomonaSession(dataSource, typeMapper);
 
             // Just eagerly load the type mappings so we can manipulate it
             GetEntityTypes().Select(x => typeMapper.GetClassMapping(x)).ToList();
@@ -92,6 +79,11 @@ namespace Pomona
             Get["/greet/{name}"] = x => { return string.Concat("Hello ", x.name); };
         }
 
+
+        public IPomonaDataSource DataSource
+        {
+            get { return dataSource; }
+        }
 
         protected abstract T GetById<T>(int id);
         protected abstract Type GetEntityBaseType();
@@ -132,10 +124,7 @@ namespace Pomona
                                           return ToJson(GetById<T>(x.id), lowerTypeName);
                                       };
 
-            Put[path + "/{id}"] = x =>
-                                      {
-                                          return UpdateFromJson(GetById<T>(x.id), lowerTypeName);
-                                      };
+            Put[path + "/{id}"] = x => { return UpdateFromJson(GetById<T>(x.id), lowerTypeName); };
 
             Get[path] = x =>
                             {
@@ -152,21 +141,20 @@ namespace Pomona
             var res = new Response();
 
             res.Contents = stream =>
-            {
-                var context = new PomonaContext(
-                    GetEntityBaseType(), UriResolver, path, false, typeMapper);
-                var wrapper = context.CreateWrapperFor(o, path,
-                                                       typeMapper.GetClassMapping(
-                                                           o.GetType()));
-                wrapper.UpdateFromJson(new StreamReader(req.Body));
+                               {
+                                   var context = new FetchContext(
+                                       GetEntityBaseType(), UriResolver, path, false, session);
+                                   var wrapper = context.CreateWrapperFor(o, path,
+                                                                          typeMapper.GetClassMapping(
+                                                                              o.GetType()));
+                                   wrapper.UpdateFromJson(new StreamReader(req.Body));
 
-                wrapper.ToJson(new StreamWriter(stream));
-            };
+                                   wrapper.ToJson(new StreamWriter(stream));
+                               };
 
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
-
         }
 
 
@@ -179,8 +167,8 @@ namespace Pomona
 
             res.Contents = stream =>
                                {
-                                   var context = new PomonaContext(
-                                       GetEntityBaseType(), UriResolver, path + "," + expand, debug, typeMapper);
+                                   var context = new FetchContext(
+                                       GetEntityBaseType(), UriResolver, path + "," + expand, debug, session);
                                    var wrapper = context.CreateWrapperFor(o, path,
                                                                           typeMapper.GetClassMapping(
                                                                               o.GetType()));

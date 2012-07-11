@@ -35,9 +35,9 @@ namespace Pomona
 {
     public class ClientLibGenerator
     {
-        private TypeMapper typeMapper;
         private ModuleDefinition module;
         private Dictionary<IMappedType, TypeCodeGenInfo> toClientTypeDict;
+        private TypeMapper typeMapper;
 
 
         public ClientLibGenerator(TypeMapper typeMapper)
@@ -71,7 +71,7 @@ namespace Pomona
             var msObjectCtor =
                 module.Import(msObjectTypeRef.Resolve().Methods.First(
                     x => x.Name == ".ctor" && x.IsConstructor && x.Parameters.Count == 0));
-            
+
             var voidTypeRef = VoidTypeRef;
 
             foreach (var t in types)

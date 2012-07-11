@@ -26,6 +26,10 @@ namespace Pomona.Client
 {
     public class ResourceBase : IHasResourceUri
     {
+        #region IHasResourceUri Members
+
         public string Uri { get; set; }
+
+        #endregion
     }
 }

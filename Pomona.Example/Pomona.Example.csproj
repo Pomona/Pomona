@@ -49,7 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CritterModule.cs" />
-    <Compile Include="CritterRepository.cs" />
+    <Compile Include="CritterDataSource.cs" />
     <Compile Include="Models\Critter.cs" />
     <Compile Include="Models\EntityBase.cs" />
     <Compile Include="Models\Gun.cs" />

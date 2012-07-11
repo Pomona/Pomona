@@ -24,22 +24,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
-    public class CritterRepository
+    public class CritterDataSource : IPomonaDataSource
     {
         private readonly Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
 
 
-        public CritterRepository()
+        public CritterDataSource()
         {
             CreateObjectModel();
         }
 
+        #region IPomonaDataSource Members
+
+        public T GetById<T>(object id)
+        {
+            var idInt = Convert.ToInt32(id);
+            return (T) ((object) GetEntityList<T>().Cast<EntityBase>().First(x => x.Id == idInt));
+        }
+
+        public ICollection<T> List<T>()
+        {
+            return GetEntityList<T>();
+        }
+
+        #endregion
 
         public IList<T> GetAll<T>()
         {
