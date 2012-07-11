@@ -68,5 +68,16 @@ namespace Pomona
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
         }
+
+        public void UpdateFromJson<T>(object id, TextReader textReader, TextWriter textWriter)
+        {
+            var o = dataSource.GetById<T>(id);
+            var mappedType = typeMapper.GetClassMapping(o.GetType());
+            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
+            var context = new FetchContext(uriResolver, rootPath, false, this);
+            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            wrapper.UpdateFromJson(textReader);
+            wrapper.ToJson(textWriter);
+        }
     }
 }

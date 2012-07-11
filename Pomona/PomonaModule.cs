@@ -119,28 +119,17 @@ namespace Pomona
 
             Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
 
-            Put[path + "/{id}"] = x => { return UpdateFromJson(GetById<T>(x.id), lowerTypeName); };
+            Put[path + "/{id}"] = x => UpdateFromJson<T>(x.id);
 
             Get[path] = x => ListAsJson<T>();
         }
 
-        private Response UpdateFromJson(object o, string path)
+        private Response UpdateFromJson<T>(object id)
         {
             var req = Request;
 
             var res = new Response();
-
-            res.Contents = stream =>
-                               {
-                                   var context = new FetchContext(UriResolver, path, false, session);
-                                   var wrapper = context.CreateWrapperFor(o, path,
-                                                                          typeMapper.GetClassMapping(
-                                                                              o.GetType()));
-                                   wrapper.UpdateFromJson(new StreamReader(req.Body));
-
-                                   wrapper.ToJson(new StreamWriter(stream));
-                               };
-
+            res.Contents = stream => session.UpdateFromJson<T>(id, new StreamReader(req.Body), new StreamWriter(stream));
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
@@ -152,7 +141,6 @@ namespace Pomona
             var expand = GetExpandedPaths().ToLower();
 
             res.Contents = stream => session.ListAsJson<T>(expand, new StreamWriter(stream));
-
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
