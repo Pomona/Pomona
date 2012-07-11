@@ -84,15 +84,12 @@ namespace Pomona
             get { return dataSource; }
         }
 
-        protected abstract T GetById<T>(int id);
         protected abstract Type GetEntityBaseType();
 
         protected abstract IEnumerable<Type> GetEntityTypes();
 
+        // TODO: Move this into TypeMapper or PomonaSession?
         protected abstract int GetIdFor(object entity);
-
-        protected abstract IList<T> ListAll<T>();
-
 
         private string GetExpandedPaths()
         {

@@ -44,13 +44,6 @@ namespace Pomona.Example
             get { return (CritterDataSource) DataSource; }
         }
 
-
-        protected override T GetById<T>(int id)
-        {
-            return (T) ((object) CritterDataSource.GetAll<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == id));
-        }
-
-
         protected override Type GetEntityBaseType()
         {
             return typeof (EntityBase);
@@ -69,12 +62,6 @@ namespace Pomona.Example
         protected override int GetIdFor(object entity)
         {
             return ((EntityBase) entity).Id;
-        }
-
-
-        protected override IList<T> ListAll<T>()
-        {
-            return CritterDataSource.GetAll<T>();
         }
     }
 }
