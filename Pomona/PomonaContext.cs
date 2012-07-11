@@ -30,7 +30,7 @@ namespace Pomona
     public class PomonaContext
     {
         private readonly Type baseType;
-        private readonly ClassMappingFactory classMappingFactory;
+        private readonly TypeMapper typeMapper;
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
         private readonly Func<object, string> uriResolver;
@@ -41,19 +41,19 @@ namespace Pomona
             Func<object, string> uriResolver,
             string expandedPaths,
             bool debugMode,
-            ClassMappingFactory classMappingFactory)
+            TypeMapper typeMapper)
         {
             this.baseType = baseType;
             this.uriResolver = uriResolver;
             this.debugMode = debugMode;
-            this.classMappingFactory = classMappingFactory;
+            this.typeMapper = typeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
 
-        public ClassMappingFactory ClassMappingFactory
+        public TypeMapper TypeMapper
         {
-            get { return classMappingFactory; }
+            get { return typeMapper; }
         }
 
         public bool DebugMode
@@ -75,7 +75,7 @@ namespace Pomona
 
         public IMappedType GetClassMapping<T>()
         {
-            return classMappingFactory.GetClassMapping<T>();
+            return typeMapper.GetClassMapping<T>();
         }
 
 

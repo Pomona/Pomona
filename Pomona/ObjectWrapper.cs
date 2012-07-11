@@ -61,7 +61,7 @@ namespace Pomona
             this.path = path;
             this.context = context;
             this.expectedBaseType = expectedBaseType;
-            targetType = context.ClassMappingFactory.GetClassMapping(target.GetType());
+            targetType = context.TypeMapper.GetClassMapping(target.GetType());
         }
 
 
@@ -123,7 +123,7 @@ namespace Pomona
                         writer,
                         child,
                         path,
-                        context.ClassMappingFactory.GetClassMapping(child.GetType()),
+                        context.TypeMapper.GetClassMapping(child.GetType()),
                         collectionElementType);
                 }
                 writer.WriteEndArray();
@@ -155,7 +155,7 @@ namespace Pomona
                     }
 
                     var valueType = value.GetType();
-                    var valueTypeMapping = context.ClassMappingFactory.GetClassMapping(valueType);
+                    var valueTypeMapping = context.TypeMapper.GetClassMapping(valueType);
 
                     var serializeAsArray = IsIList(valueType);
 

@@ -35,16 +35,16 @@ namespace Pomona
 {
     public class ClientLibGenerator
     {
-        private ClassMappingFactory classMappingFactory;
+        private TypeMapper typeMapper;
         private ModuleDefinition module;
         private Dictionary<IMappedType, TypeCodeGenInfo> toClientTypeDict;
 
 
-        public ClientLibGenerator(ClassMappingFactory classMappingFactory)
+        public ClientLibGenerator(TypeMapper typeMapper)
         {
-            if (classMappingFactory == null)
-                throw new ArgumentNullException("classMappingFactory");
-            this.classMappingFactory = classMappingFactory;
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
+            this.typeMapper = typeMapper;
         }
 
         private TypeReference VoidTypeRef
@@ -54,7 +54,7 @@ namespace Pomona
 
         public void CreateClientDll(Stream stream)
         {
-            var types = classMappingFactory.TransformedTypes.ToList();
+            var types = typeMapper.TransformedTypes.ToList();
 
             var assembly = AssemblyDefinition.ReadAssembly(typeof (ResourceBase).Assembly.Location);
             //var assembly =

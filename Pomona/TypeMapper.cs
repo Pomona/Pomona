@@ -28,12 +28,12 @@ using System.Linq;
 
 namespace Pomona
 {
-    public class ClassMappingFactory
+    public class TypeMapper
     {
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private HashSet<Type> transformedTypes;
 
-        public ClassMappingFactory(IEnumerable<Type> transformedTypes)
+        public TypeMapper(IEnumerable<Type> transformedTypes)
         {
             this.transformedTypes = new HashSet<Type>(transformedTypes);
         }

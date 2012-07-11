@@ -33,18 +33,18 @@ namespace Pomona
     /// </summary>
     public class SharedType : IMappedType
     {
-        private readonly ClassMappingFactory classMappingFactory;
+        private readonly TypeMapper typeMapper;
         private readonly Type targetType;
 
 
-        public SharedType(Type targetType, ClassMappingFactory classMappingFactory)
+        public SharedType(Type targetType, TypeMapper typeMapper)
         {
             if (targetType == null)
                 throw new ArgumentNullException("targetType");
-            if (classMappingFactory == null)
-                throw new ArgumentNullException("classMappingFactory");
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             this.targetType = targetType;
-            this.classMappingFactory = classMappingFactory;
+            this.typeMapper = typeMapper;
             GenericArguments = new List<IMappedType>();
         }
 
@@ -57,7 +57,7 @@ namespace Pomona
 
         public IMappedType BaseType
         {
-            get { return (SharedType) classMappingFactory.GetClassMapping(targetType.BaseType); }
+            get { return (SharedType) typeMapper.GetClassMapping(targetType.BaseType); }
         }
 
         public IList<IMappedType> GenericArguments { get; private set; }

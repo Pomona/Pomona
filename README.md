@@ -4,6 +4,7 @@ This is a few days' work, in other words a hard-coded thing for testing concepts
 
 Roadmap for first release
 =========================
+* Add tests for serialization and deserialization on client
 * Create IPomonaDataSource, for retrieval of data
 * Create PomonaController(?Hub??) that will bind everything together
 

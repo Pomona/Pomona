@@ -33,7 +33,7 @@ namespace Pomona
     /// </summary>
     public class TransformedType : IMappedType
     {
-        private readonly ClassMappingFactory classMappingFactory;
+        private readonly TypeMapper typeMapper;
         private readonly string name;
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
 
@@ -42,13 +42,13 @@ namespace Pomona
         private bool updateAllowed;
 
 
-        internal TransformedType(Type type, string name, ClassMappingFactory classMappingFactory)
+        internal TransformedType(Type type, string name, TypeMapper typeMapper)
         {
-            if (classMappingFactory == null)
-                throw new ArgumentNullException("classMappingFactory");
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             this.type = type;
             this.name = name;
-            this.classMappingFactory = classMappingFactory;
+            this.typeMapper = typeMapper;
         }
 
         public IList<PropertyMapping> Properties
@@ -100,8 +100,8 @@ namespace Pomona
             {
                 var propDef = new PropertyMapping(
                     propInfo.Name,
-                    classMappingFactory.GetClassMapping(propInfo.DeclaringType),
-                    classMappingFactory.GetClassMapping(propInfo.PropertyType),
+                    typeMapper.GetClassMapping(propInfo.DeclaringType),
+                    typeMapper.GetClassMapping(propInfo.PropertyType),
                     propInfo);
 
                 var propInfoLocal = propInfo;
@@ -113,7 +113,7 @@ namespace Pomona
                 properties.Add(propDef);
             }
 
-            BaseType = classMappingFactory.GetClassMapping(type.BaseType);
+            BaseType = typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();

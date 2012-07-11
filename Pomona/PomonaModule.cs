@@ -32,18 +32,34 @@ using Newtonsoft.Json;
 
 namespace Pomona
 {
+    public interface IPomonaDataSource
+    {
+        T GetById<T>(object id);
+        ICollection<T> List<T>();
+    }
+
+    public class PomonaSession
+    {
+        private readonly IPomonaDataSource dataSource;
+
+        public PomonaSession(IPomonaDataSource dataSource)
+        {
+            this.dataSource = dataSource;
+        }
+    }
+
     public abstract class PomonaModule : NancyModule
     {
-        private readonly ClassMappingFactory classMappingFactory;
+        private readonly TypeMapper typeMapper;
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
 
         public PomonaModule()
         {
-            classMappingFactory = new ClassMappingFactory(GetEntityTypes());
+            typeMapper = new TypeMapper(GetEntityTypes());
 
             // Just eagerly load the type mappings so we can manipulate it
-            GetEntityTypes().Select(x => classMappingFactory.GetClassMapping(x)).ToList();
+            GetEntityTypes().Select(x => typeMapper.GetClassMapping(x)).ToList();
 
             var registerRouteForT = typeof (PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -62,7 +78,7 @@ namespace Pomona
                                                                                      {
                                                                                          var clientLibGenerator =
                                                                                              new ClientLibGenerator(
-                                                                                                 classMappingFactory);
+                                                                                                 typeMapper);
                                                                                          clientLibGenerator.
                                                                                              CreateClientDll(stream);
                                                                                      }
@@ -138,9 +154,9 @@ namespace Pomona
             res.Contents = stream =>
             {
                 var context = new PomonaContext(
-                    GetEntityBaseType(), UriResolver, path, false, classMappingFactory);
+                    GetEntityBaseType(), UriResolver, path, false, typeMapper);
                 var wrapper = context.CreateWrapperFor(o, path,
-                                                       classMappingFactory.GetClassMapping(
+                                                       typeMapper.GetClassMapping(
                                                            o.GetType()));
                 wrapper.UpdateFromJson(new StreamReader(req.Body));
 
@@ -164,9 +180,9 @@ namespace Pomona
             res.Contents = stream =>
                                {
                                    var context = new PomonaContext(
-                                       GetEntityBaseType(), UriResolver, path + "," + expand, debug, classMappingFactory);
+                                       GetEntityBaseType(), UriResolver, path + "," + expand, debug, typeMapper);
                                    var wrapper = context.CreateWrapperFor(o, path,
-                                                                          classMappingFactory.GetClassMapping(
+                                                                          typeMapper.GetClassMapping(
                                                                               o.GetType()));
                                    wrapper.ToJson(new StreamWriter(stream));
                                };

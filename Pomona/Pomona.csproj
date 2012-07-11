@@ -67,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PomonaModule.cs" />
-    <Compile Include="ClassMappingFactory.cs" />
+    <Compile Include="TypeMapper.cs" />
     <Compile Include="IMappedType.cs" />
     <Compile Include="SharedType.cs" />
     <Compile Include="TransformedType.cs" />
