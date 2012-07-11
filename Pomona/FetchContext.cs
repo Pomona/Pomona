@@ -29,7 +29,6 @@ namespace Pomona
 {
     public class FetchContext
     {
-        private readonly Type baseType;
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
         private readonly PomonaSession session;
@@ -38,13 +37,11 @@ namespace Pomona
 
 
         public FetchContext(
-            Type baseType,
             Func<object, string> uriResolver,
             string expandedPaths,
             bool debugMode,
             PomonaSession session)
         {
-            this.baseType = baseType;
             this.uriResolver = uriResolver;
             this.debugMode = debugMode;
             this.session = session;

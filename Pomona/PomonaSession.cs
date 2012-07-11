@@ -23,6 +23,8 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.IO;
+using System.Linq;
 
 namespace Pomona
 {
@@ -30,18 +32,41 @@ namespace Pomona
     {
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
+        private readonly Func<object, string> uriResolver;
 
-        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper)
+        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<object, string> uriResolver)
         {
             if (dataSource == null) throw new ArgumentNullException("dataSource");
             if (typeMapper == null) throw new ArgumentNullException("typeMapper");
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
+            this.uriResolver = uriResolver;
         }
 
         public TypeMapper TypeMapper
         {
             get { return typeMapper; }
+        }
+
+        public void GetAsJson<T>(object id, string expand, TextWriter textWriter)
+        {
+            var o = dataSource.GetById<T>(id);
+            var mappedType = typeMapper.GetClassMapping(o.GetType());
+            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
+            var context = new FetchContext(uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            wrapper.ToJson(textWriter);
+        }
+
+        public void ListAsJson<T>(string expand, TextWriter textWriter)
+        {
+            var o = dataSource.List<T>();
+            var mappedType = typeMapper.GetClassMapping(o.GetType());
+            var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
+            var context = new FetchContext(uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            wrapper.ToJson(textWriter);
         }
     }
 }

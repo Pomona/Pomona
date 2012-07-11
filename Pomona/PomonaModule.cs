@@ -43,9 +43,10 @@ namespace Pomona
         {
             this.dataSource = dataSource;
             typeMapper = new TypeMapper(GetEntityTypes());
-            session = new PomonaSession(dataSource, typeMapper);
+            session = new PomonaSession(dataSource, typeMapper, UriResolver);
 
             // Just eagerly load the type mappings so we can manipulate it
+            // TODO: This should be done in TypeMapper constructor?
             GetEntityTypes().Select(x => typeMapper.GetClassMapping(x)).ToList();
 
             var registerRouteForT = typeof (PomonaModule).GetMethod(
@@ -75,8 +76,6 @@ namespace Pomona
 
                                                return response;
                                            };
-
-            Get["/greet/{name}"] = x => { return string.Concat("Hello ", x.name); };
         }
 
 
@@ -118,20 +117,11 @@ namespace Pomona
             var path = "/" + lowerTypeName;
             Console.WriteLine("Registering path " + path);
 
-            Get[path + "/{id}"] = x =>
-                                      {
-                                          var expandedPaths = GetExpandedPaths();
-                                          return ToJson(GetById<T>(x.id), lowerTypeName);
-                                      };
+            Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
 
             Put[path + "/{id}"] = x => { return UpdateFromJson(GetById<T>(x.id), lowerTypeName); };
 
-            Get[path] = x =>
-                            {
-                                var expandedPaths = GetExpandedPaths();
-                                return ToJson(ListAll<T>(), lowerTypeName);
-                                //return ToJson(this.repository.GetAll<T>().Select(y => new PathTrackingProxy(y, typeof(T).Name, expandedPaths)).ToList());
-                            };
+            Get[path] = x => ListAsJson<T>();
         }
 
         private Response UpdateFromJson(object o, string path)
@@ -142,8 +132,7 @@ namespace Pomona
 
             res.Contents = stream =>
                                {
-                                   var context = new FetchContext(
-                                       GetEntityBaseType(), UriResolver, path, false, session);
+                                   var context = new FetchContext(UriResolver, path, false, session);
                                    var wrapper = context.CreateWrapperFor(o, path,
                                                                           typeMapper.GetClassMapping(
                                                                               o.GetType()));
@@ -157,23 +146,24 @@ namespace Pomona
             return res;
         }
 
-
-        private Response ToJson(object o, string path)
+        private Response ListAsJson<T>()
         {
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            bool debug = Request.Query.debug == "true";
+            res.Contents = stream => session.ListAsJson<T>(expand, new StreamWriter(stream));
 
-            res.Contents = stream =>
-                               {
-                                   var context = new FetchContext(
-                                       GetEntityBaseType(), UriResolver, path + "," + expand, debug, session);
-                                   var wrapper = context.CreateWrapperFor(o, path,
-                                                                          typeMapper.GetClassMapping(
-                                                                              o.GetType()));
-                                   wrapper.ToJson(new StreamWriter(stream));
-                               };
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+        }
+
+        private Response GetAsJson<T>(object id)
+        {
+            var res = new Response();
+            var expand = GetExpandedPaths().ToLower();
+
+            res.Contents = stream => session.GetAsJson<T>(id, expand, new StreamWriter(stream));
 
             res.ContentType = "text/plain; charset=utf-8";
 
