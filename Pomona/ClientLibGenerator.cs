@@ -65,10 +65,13 @@ namespace Pomona
 
             toClientTypeDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
 
+            var resourceBaseRef = module.GetType("Pomona.Client.ResourceBase");
+            var resourceBaseCtor = resourceBaseRef.GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0);
             var msObjectTypeRef = module.Import(typeof (object));
             var msObjectCtor =
                 module.Import(msObjectTypeRef.Resolve().Methods.First(
                     x => x.Name == ".ctor" && x.IsConstructor && x.Parameters.Count == 0));
+            
             var voidTypeRef = VoidTypeRef;
 
             foreach (var t in types)
@@ -123,8 +126,8 @@ namespace Pomona
                 }
                 else
                 {
-                    pocoDef.BaseType = msObjectTypeRef;
-                    baseCtorReference = msObjectCtor;
+                    pocoDef.BaseType = resourceBaseRef;
+                    baseCtorReference = resourceBaseCtor;
                 }
 
                 // Empty public constructor
@@ -197,7 +200,9 @@ namespace Pomona
                 }
             }
 
-            CreateProxyType("Proxy", module.Types.First(x => x.Name == "ProxyBase"));
+            CreateProxyType("Proxy", module.Types.First(x => x.Name == "LazyProxyBase"));
+
+            CreateProxyType("Update", module.Types.First(x => x.Name == "UpdateProxyBase"));
 
             // Copy types from running assembly
 

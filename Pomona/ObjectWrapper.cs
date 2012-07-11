@@ -133,6 +133,9 @@ namespace Pomona
                 var transformedType = (TransformedType) targetType;
                 writer.WriteStartObject();
 
+                writer.WritePropertyName("_uri");
+                writer.WriteValue(context.GetUri(target));
+
                 if (expectedBaseType != targetType)
                 {
                     writer.WritePropertyName("_type");
@@ -249,7 +252,7 @@ namespace Pomona
             else
             {
                 writer.WriteStartObject();
-                writer.WritePropertyName("_uri");
+                writer.WritePropertyName("_ref");
                 writer.WriteValue(context.GetUri(propertyValue));
 
                 if (expectedBaseType != valueType)

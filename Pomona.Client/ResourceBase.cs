@@ -24,7 +24,8 @@
 
 namespace Pomona.Client
 {
-    public class ResourceBase
+    public class ResourceBase : IHasResourceUri
     {
+        public string Uri { get; set; }
     }
 }

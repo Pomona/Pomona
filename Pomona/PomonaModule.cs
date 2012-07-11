@@ -106,21 +106,51 @@ namespace Pomona
         private void RegisterRouteFor<T>()
         {
             var type = typeof (T);
-            var path = "/" + type.Name.ToLower();
+            var lowerTypeName = type.Name.ToLower();
+            var path = "/" + lowerTypeName;
             Console.WriteLine("Registering path " + path);
 
             Get[path + "/{id}"] = x =>
                                       {
                                           var expandedPaths = GetExpandedPaths();
-                                          return ToJson(GetById<T>(x.id), type.Name.ToLower());
+                                          return ToJson(GetById<T>(x.id), lowerTypeName);
+                                      };
+
+            Put[path + "/{id}"] = x =>
+                                      {
+                                          return UpdateFromJson(GetById<T>(x.id), lowerTypeName);
                                       };
 
             Get[path] = x =>
                             {
                                 var expandedPaths = GetExpandedPaths();
-                                return ToJson(ListAll<T>(), type.Name.ToLower());
+                                return ToJson(ListAll<T>(), lowerTypeName);
                                 //return ToJson(this.repository.GetAll<T>().Select(y => new PathTrackingProxy(y, typeof(T).Name, expandedPaths)).ToList());
                             };
+        }
+
+        private Response UpdateFromJson(object o, string path)
+        {
+            var req = Request;
+
+            var res = new Response();
+
+            res.Contents = stream =>
+            {
+                var context = new PomonaContext(
+                    GetEntityBaseType(), UriResolver, path, false, classMappingFactory);
+                var wrapper = context.CreateWrapperFor(o, path,
+                                                       classMappingFactory.GetClassMapping(
+                                                           o.GetType()));
+                wrapper.UpdateFromJson(new StreamReader(req.Body));
+
+                wrapper.ToJson(new StreamWriter(stream));
+            };
+
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+
         }
 
 
