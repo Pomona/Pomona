@@ -7,6 +7,7 @@ Roadmap for first release
 * Add tests for serialization and deserialization on client
 * Create IPomonaDataSource, for retrieval of data
 * Create PomonaController(?Hub??) that will bind everything together
+* Implement simple query mechanism (Linq? relinq? something simpler?)
 
 Future tasks
 ============
