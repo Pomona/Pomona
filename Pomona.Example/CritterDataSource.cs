@@ -87,8 +87,8 @@ namespace Pomona.Example
                                   Name = Words.GetAnimalWithPersonality(rng)
                               };
 
-            CreateWeapons(rng, critter, 3);
-            CreateSubscriptions(rng, critter, 2);
+            CreateWeapons(rng, critter, 4);
+            CreateSubscriptions(rng, critter, 3);
 
             Save(critter.Hat); // Random hat
             Save(critter);
@@ -113,7 +113,7 @@ namespace Pomona.Example
 
         private void CreateWeapons(Random rng, Critter critter, int maxWeapons)
         {
-            var weaponCount = rng.Next(0, maxWeapons + 1);
+            var weaponCount = rng.Next(1, maxWeapons + 1);
 
             for (var i = 0; i < weaponCount; i++)
             {

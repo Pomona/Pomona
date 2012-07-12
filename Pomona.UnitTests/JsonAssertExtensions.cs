@@ -39,16 +39,26 @@ namespace Pomona.UnitTests
             return propValueObject;
         }
 
-        public static JToken AssertHasProperty(this JObject jobject, string propertyName)
+        public static JToken AssertHasProperty(this JToken jtoken, string propertyName)
         {
+            var jobject = jtoken as JObject;
+            Assert.IsNotNull(jobject,
+                             "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                             jtoken.GetType().Name + ")");
+
             JToken propValue;
             Assert.IsTrue(jobject.TryGetValue(propertyName, out propValue),
                           string.Format("Object has no property named {0}. Contents:\r\n{1}", propertyName, jobject));
             return propValue;
         }
 
-        public static string AssertHasPropertyWithString(this JObject jobject, string propertyName)
+        public static string AssertHasPropertyWithString(this JToken jtoken, string propertyName)
         {
+            var jobject = jtoken as JObject;
+            Assert.IsNotNull(jobject,
+                             "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                             jtoken.GetType().Name + ")");
+
             var propToken = jobject.AssertHasProperty(propertyName);
             var jsonValue = propToken as JValue;
             Assert.IsNotNull(jsonValue,
@@ -57,9 +67,24 @@ namespace Pomona.UnitTests
             return (string) jsonValue.Value;
         }
 
-        public static void AssertIsReference(this JObject jobject)
+        public static JArray AssertHasPropertyWithArray(this JToken jtoken, string propertyName)
         {
-            Assert.IsNotNullOrEmpty(jobject.AssertHasPropertyWithString("_ref"));
+            var jobject = jtoken as JObject;
+            Assert.IsNotNull(jobject,
+                             "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                             jtoken.GetType().Name + ")");
+
+            var propToken = jobject.AssertHasProperty(propertyName);
+            var jArray = propToken as JArray;
+            Assert.IsNotNull(jArray,
+                             string.Format("JSON property {0} is not of type JArray. Contents:\r\n{1}", propertyName,
+                                           jobject));
+            return jArray;
+        }
+
+        public static void AssertIsReference(this JToken jobject)
+        {
+            Assert.IsNotNullOrEmpty(jobject.AssertHasPropertyWithString("_ref"), "Uri reference null or empty");
         }
     }
 }

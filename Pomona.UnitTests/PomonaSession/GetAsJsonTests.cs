@@ -41,6 +41,21 @@ namespace Pomona.UnitTests.PomonaSession
         }
 
         [Test]
+        public void WithExpandSetToNull_ReturnsArrayOfRefs()
+        {
+            // NOTE: I'm not sure whether this is the best behaviour. Maybe have some way to indicate fetching of just refs, and nothing fetched is default behaviour?
+            // Act
+            var jobject = GetCritterAsJson(null);
+
+            // Assert
+            var weapons = jobject.AssertHasPropertyWithArray("weapons");
+            foreach (var jtoken in weapons.Children())
+            {
+                jtoken.AssertIsReference();
+            }
+        }
+
+        [Test]
         public void WithExpandSetToNull_ReturnsOneLevelByDefault()
         {
             // Act
