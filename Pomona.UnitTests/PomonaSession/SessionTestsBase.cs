@@ -34,11 +34,16 @@ namespace Pomona.UnitTests.PomonaSession
         private CritterDataSource dataSource;
         private Pomona.PomonaSession session;
         private TypeMapper typeMapper;
-        private int critterId;
+        private Critter firstCritter;
 
-        public int CritterId
+        public Critter FirstCritter
         {
-            get { return critterId; }
+            get { return firstCritter; }
+        }
+
+        public int FirstCritterId
+        {
+            get { return firstCritter.Id; }
         }
 
         protected IPomonaDataSource DataSource
@@ -62,7 +67,7 @@ namespace Pomona.UnitTests.PomonaSession
             dataSource = new CritterDataSource();
             typeMapper = new TypeMapper(CritterDataSource.GetEntityTypes());
             session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver);
-            critterId = dataSource.List<Critter>().First().Id;
+            firstCritter = dataSource.List<Critter>().First();
         }
 
         private string UriResolver(object x)

@@ -13,13 +13,31 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithExpandSetToNull_ReturnsOneLevelByDefault()
         {
             // Act
-            var stringWriter = new StringWriter();
-            Session.GetAsJson<Critter>(CritterId, null, stringWriter);
-            var jobject = JObject.Parse(stringWriter.ToString());
+            var jobject = GetCritterAsJson(null);
 
             // Assert
             JObject hat = jobject.AssertHasPropertyWithObject("hat");
             hat.AssertIsReference();
+        }
+
+        [Test]
+        public void WithExpandedHat_HatIsIncluded()
+        {
+            // Act
+            var jobject = GetCritterAsJson("critter.hat");
+
+            // Assert
+            JObject hat = jobject.AssertHasPropertyWithObject("hat");
+            var hatType = hat.AssertHasPropertyWithString("hatType");
+            Assert.AreEqual(FirstCritter.Hat.HatType, hatType);
+        }
+
+        private JObject GetCritterAsJson(string expand)
+        {
+            var stringWriter = new StringWriter();
+            Session.GetAsJson<Critter>(FirstCritterId, expand, stringWriter);
+            var jobject = JObject.Parse(stringWriter.ToString());
+            return jobject;
         }
     }
 }
