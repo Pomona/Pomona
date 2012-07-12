@@ -35,11 +35,6 @@ namespace Pomona.Example
 
         private int idCounter;
 
-        public static IEnumerable<Type> GetEntityTypes()
-        {
-            return typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
-        }
-
         public CritterDataSource()
         {
             CreateObjectModel();
@@ -59,6 +54,11 @@ namespace Pomona.Example
         }
 
         #endregion
+
+        public static IEnumerable<Type> GetEntityTypes()
+        {
+            return typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
+        }
 
         public IList<T> GetAll<T>()
         {

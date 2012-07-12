@@ -49,12 +49,12 @@ namespace Pomona.UnitTests
 
         public static string AssertHasPropertyWithString(this JObject jobject, string propertyName)
         {
-            JToken propToken = jobject.AssertHasProperty(propertyName);
+            var propToken = jobject.AssertHasProperty(propertyName);
             var jsonValue = propToken as JValue;
             Assert.IsNotNull(jsonValue,
                              string.Format("JSON property {0} is not of type JValue. Contents:\r\n{1}", propertyName,
                                            jobject));
-            return (string)jsonValue.Value;
+            return (string) jsonValue.Value;
         }
 
         public static void AssertIsReference(this JObject jobject)

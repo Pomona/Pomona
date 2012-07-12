@@ -22,19 +22,19 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System.Linq;
 using NUnit.Framework;
 using Pomona.Example;
 using Pomona.Example.Models;
-using System.Linq;
 
 namespace Pomona.UnitTests.PomonaSession
 {
     public abstract class SessionTestsBase
     {
         private CritterDataSource dataSource;
+        private Critter firstCritter;
         private Pomona.PomonaSession session;
         private TypeMapper typeMapper;
-        private Critter firstCritter;
 
         public Critter FirstCritter
         {
