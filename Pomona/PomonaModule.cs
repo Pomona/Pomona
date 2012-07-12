@@ -46,8 +46,6 @@ namespace Pomona
             session = new PomonaSession(dataSource, typeMapper, UriResolver);
 
             // Just eagerly load the type mappings so we can manipulate it
-            // TODO: This should be done in TypeMapper constructor?
-            GetEntityTypes().Select(x => typeMapper.GetClassMapping(x)).ToList();
 
             var registerRouteForT = typeof (PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -58,30 +56,23 @@ namespace Pomona
                 genericMethod.Invoke(this, null);
             }
 
-            Get["Pomona.Client.dll"] = x =>
-                                           {
-                                               var response = new Response()
-                                                                  {
-                                                                      Contents = stream =>
-                                                                                     {
-                                                                                         var clientLibGenerator =
-                                                                                             new ClientLibGenerator(
-                                                                                                 typeMapper);
-                                                                                         clientLibGenerator.
-                                                                                             CreateClientDll(stream);
-                                                                                     }
-                                                                  };
-
-                                               response.ContentType = "binary/octet-stream";
-
-                                               return response;
-                                           };
+            Get["Pomona.Client.dll"] = x => GetClientLibrary();
         }
 
 
         public IPomonaDataSource DataSource
         {
             get { return dataSource; }
+        }
+
+        private Response GetClientLibrary()
+        {
+            var response = new Response();
+
+            response.Contents = stream => session.WriteClientLibrary(stream);
+            response.ContentType = "binary/octet-stream";
+
+            return response;
         }
 
         protected abstract Type GetEntityBaseType();

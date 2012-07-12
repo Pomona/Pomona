@@ -53,8 +53,7 @@ namespace Pomona.Example
         protected override IEnumerable<Type> GetEntityTypes()
         {
             if (entityTypes == null)
-                entityTypes =
-                    typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
+                entityTypes = CritterDataSource.GetEntityTypes();
             return entityTypes;
         }
 

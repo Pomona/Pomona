@@ -31,11 +31,16 @@ namespace Pomona
     public class TypeMapper
     {
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
-        private HashSet<Type> transformedTypes;
+        private HashSet<Type> sourceTypes;
 
-        public TypeMapper(IEnumerable<Type> transformedTypes)
+        public TypeMapper(IEnumerable<Type> sourceTypes)
         {
-            this.transformedTypes = new HashSet<Type>(transformedTypes);
+            this.sourceTypes = new HashSet<Type>(sourceTypes);
+        }
+
+        public ICollection<Type> SourceTypes
+        {
+            get { return sourceTypes; }
         }
 
         public IEnumerable<IMappedType> TransformedTypes
@@ -90,7 +95,7 @@ namespace Pomona
                 return newSharedType;
             }
 
-            if (transformedTypes.Contains(type))
+            if (sourceTypes.Contains(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 

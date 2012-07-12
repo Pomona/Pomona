@@ -12,3 +12,5 @@ Roadmap for first release
 Future tasks
 ============
 * Implement another layer of abstraction for serializing and deserializing, to support more types than Json. Will look at ServiceStack for this.
+* Implement JS client lib. Maybe two types, one based on KnockoutJs? That would be cool.
+* Implement html media type for friendly browseing.

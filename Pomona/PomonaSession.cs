@@ -28,12 +28,22 @@ using System.Linq;
 
 namespace Pomona
 {
+    /// <summary>
+    /// A PomonaSession can be queried for data, and performs the necesarry serialization
+    /// to and from JSON (for now).
+    /// </summary>
     public class PomonaSession
     {
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
         private readonly Func<object, string> uriResolver;
 
+        /// <summary>
+        /// Constructor for PomonaSession.
+        /// </summary>
+        /// <param name="dataSource">Data source used for this session.</param>
+        /// <param name="typeMapper">Typemapper for session.</param>
+        /// <param name="uriResolver">Lambda for uri resolver. TODO: Make this an interface.</param>
         public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<object, string> uriResolver)
         {
             if (dataSource == null) throw new ArgumentNullException("dataSource");
@@ -78,6 +88,12 @@ namespace Pomona
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.UpdateFromJson(textReader);
             wrapper.ToJson(textWriter);
+        }
+
+        public void WriteClientLibrary(Stream stream)
+        {
+            var clientLibGenerator = new ClientLibGenerator(typeMapper);
+            clientLibGenerator.CreateClientDll(stream);
         }
     }
 }
