@@ -18,8 +18,8 @@ namespace Pomona.UnitTests.PomonaSession
             var jobject = JObject.Parse(stringWriter.ToString());
 
             // Assert
-            JObject hat = jobject.AssertHasPropertyWithObject("Hat");
-            jobject.AssertIsReference();
+            JObject hat = jobject.AssertHasPropertyWithObject("hat");
+            hat.AssertIsReference();
         }
     }
 }

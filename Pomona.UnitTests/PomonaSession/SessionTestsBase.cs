@@ -59,10 +59,10 @@ namespace Pomona.UnitTests.PomonaSession
         [SetUp]
         public void SetUp()
         {
-            critterId = dataSource.List<Critter>().First().Id;
             dataSource = new CritterDataSource();
             typeMapper = new TypeMapper(CritterDataSource.GetEntityTypes());
             session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver);
+            critterId = dataSource.List<Critter>().First().Id;
         }
 
         private string UriResolver(object x)
