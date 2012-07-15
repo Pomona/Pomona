@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Pomona
 {
@@ -37,10 +38,7 @@ namespace Pomona
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
         private readonly TypeMapper typeMapper;
 
-        private bool createAllowed;
         private Type type;
-        private bool updateAllowed;
-
 
         internal TransformedType(Type type, string name, TypeMapper typeMapper)
         {
@@ -51,10 +49,13 @@ namespace Pomona
             this.typeMapper = typeMapper;
         }
 
+
         public IList<PropertyMapping> Properties
         {
             get { return properties; }
         }
+
+        public ConstructorInfo ConstructorInfo { get; set; }
 
         #region IMappedType Members
 
@@ -92,6 +93,45 @@ namespace Pomona
 
         #endregion
 
+        /// <summary>
+        /// Creates an newinstance of type that TransformedType targets
+        /// </summary>
+        /// <param name="transformedType">The type transformation spec.</param>
+        /// <param name="initValues">Dictionary of initial values, prop names must be lowercased!</param>
+        /// <returns></returns>
+        public object NewInstance(IDictionary<string, object> initValues)
+        {
+            // Initvalues must be lowercased!
+            // HACK attack! This must probably be rethought..
+
+            var requiredCtorArgCount = ConstructorInfo.GetParameters().Count();
+            var ctorArgs = new object[requiredCtorArgCount];
+
+            foreach (
+                var ctorProp in
+                    Properties.Where(
+                        x => x.CreateMode == PropertyMapping.PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
+            {
+                // TODO: Proper validation here!
+                ctorArgs[ctorProp.ConstructorArgIndex] = Convert.ChangeType(initValues[ctorProp.Name.ToLower()],
+                                                                            ((SharedType) ctorProp.PropertyType).
+                                                                                TargetType);
+            }
+
+            var newInstance = Activator.CreateInstance(type, ctorArgs);
+
+            foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
+            {
+                object propSetValue;
+                if (initValues.TryGetValue(optProp.Name.ToLower(), out propSetValue))
+                {
+                    optProp.Setter(newInstance, propSetValue);
+                }
+            }
+
+            return newInstance;
+        }
+
         public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
         {
             // TODO: Create a dictionary for this if suboptimal.
@@ -115,6 +155,17 @@ namespace Pomona
                 propDef.Getter = x => propInfoLocal.GetValue(x, null);
                 propDef.Setter = (x, value) => propInfoLocal.SetValue(x, value, null);
 
+                if (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null)
+                {
+                    propDef.CreateMode = PropertyMapping.PropertyCreateMode.Optional;
+                    propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadWrite;
+                }
+                else
+                {
+                    propDef.CreateMode = PropertyMapping.PropertyCreateMode.Excluded;
+                    propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
+                }
+
                 properties.Add(propDef);
             }
 
@@ -122,6 +173,8 @@ namespace Pomona
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
+            ConstructorInfo = longestCtor;
+
             if (longestCtor != null)
             {
                 // TODO: match constructor arguments
@@ -134,10 +187,6 @@ namespace Pomona
                         matchingProperty.ConstructorArgIndex = ctorParam.Position;
                     }
                 }
-            }
-            else
-            {
-                // No public constructor? Default this to 
             }
         }
     }

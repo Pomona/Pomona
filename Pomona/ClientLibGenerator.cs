@@ -200,9 +200,13 @@ namespace Pomona
                 }
             }
 
-            CreateProxyType("Proxy", module.Types.First(x => x.Name == "LazyProxyBase"));
+            CreateProxyType("{0}Proxy", module.Types.First(x => x.Name == "LazyProxyBase"));
 
-            CreateProxyType("Update", module.Types.First(x => x.Name == "UpdateProxyBase"));
+            CreateProxyType("{0}Update", module.Types.First(x => x.Name == "PutResourceBase"),
+                            GeneratePropertyMethodsForUpdateProxy);
+
+            CreateProxyType("New{0}", module.Types.First(x => x.Name == "PutResourceBase"),
+                            GeneratePropertyMethodsForNewResource);
 
             // Copy types from running assembly
 
@@ -216,19 +220,68 @@ namespace Pomona
             //assembly.Write(stream);
         }
 
-        private void CreateProxyType(string proxyTypeSuffix, TypeDefinition proxyBaseTypeDef)
+        private void GeneratePropertyMethodsForNewResource(PropertyMapping prop, PropertyDefinition proxyPropDef,
+                                                           TypeDefinition proxyBaseDefinition)
         {
+            if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Required ||
+                prop.CreateMode == PropertyMapping.PropertyCreateMode.Optional)
+            {
+                GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition);
+            }
+            else
+            {
+                var invalidOperationStrCtor = typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                var invalidOperationStrCtorRef = module.Import(invalidOperationStrCtor);
+
+                foreach (var method in new[] {proxyPropDef.GetMethod, proxyPropDef.SetMethod})
+                {
+                    var ilproc = method.Body.GetILProcessor();
+                    ilproc.Append(Instruction.Create(OpCodes.Ldstr, prop.Name + " can't be set during initialization."));
+                    ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
+                    ilproc.Append(Instruction.Create(OpCodes.Throw));
+                }
+            }
+        }
+
+        private void GeneratePropertyMethodsForUpdateProxy(PropertyMapping prop, PropertyDefinition proxyPropDef,
+                                                           TypeDefinition proxyBaseDefinition)
+        {
+            if (prop.IsWriteable)
+            {
+                GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition);
+            }
+            else
+            {
+                var invalidOperationStrCtor = typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                var invalidOperationStrCtorRef = module.Import(invalidOperationStrCtor);
+
+                foreach (var method in new[] {proxyPropDef.GetMethod, proxyPropDef.SetMethod})
+                {
+                    var ilproc = method.Body.GetILProcessor();
+                    ilproc.Append(Instruction.Create(OpCodes.Ldstr, "Illegal to update remote property " + prop.Name));
+                    ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
+                    ilproc.Append(Instruction.Create(OpCodes.Throw));
+                }
+            }
+        }
+
+        private void CreateProxyType(string proxyTypeFormat, TypeDefinition proxyBaseTypeDef,
+                                     Action<PropertyMapping, PropertyDefinition, TypeDefinition> propertyMethodGenerator
+                                         = null)
+        {
+            if (propertyMethodGenerator == null)
+                propertyMethodGenerator = GeneratePropertyProxyMethods;
+
             var proxyBaseCtor = proxyBaseTypeDef.GetConstructors().First(x => x.Parameters.Count == 0);
-            var proxyOnPropertyGetMethod = proxyBaseTypeDef.Methods.First(x => x.Name == "OnPropertyGet");
-            var proxyOnPropertySetMethod = proxyBaseTypeDef.Methods.First(x => x.Name == "OnPropertySet");
 
             foreach (var typeInfo in toClientTypeDict.Values)
             {
                 var targetType = typeInfo.TargetType;
                 var name = targetType.Name;
+                var proxyTypeName = string.Format(proxyTypeFormat, name);
                 var proxyType =
                     typeInfo.ProxyType =
-                    new TypeDefinition("CritterClient", targetType.Name + proxyTypeSuffix, TypeAttributes.Public,
+                    new TypeDefinition("CritterClient", proxyTypeName, TypeAttributes.Public,
                                        proxyBaseTypeDef);
                 proxyType.Interfaces.Add(typeInfo.InterfaceType);
 
@@ -251,34 +304,43 @@ namespace Pomona
                 {
                     var proxyPropDef = CreatePropertyDefinition(proxyType, prop);
 
-                    var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
-                    getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-                    getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
-                    getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
-                    if (prop.PropertyType.IsValueType)
-                    {
-                        getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
-                    }
-                    else
-                    {
-                        getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
-                    }
-                    getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-
-                    var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
-                    setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-                    setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
-                    setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    if (prop.PropertyType.IsValueType)
-                    {
-                        setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
-                    }
-                    setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
-                    setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
+                    propertyMethodGenerator(prop, proxyPropDef, proxyBaseTypeDef);
                 }
 
                 module.Types.Add(proxyType);
             }
+        }
+
+        private static void GeneratePropertyProxyMethods(PropertyMapping prop, PropertyDefinition proxyPropDef,
+                                                         TypeDefinition proxyBaseDefinition)
+        {
+            var proxyOnPropertyGetMethod = proxyBaseDefinition.Methods.First(x => x.Name == "OnPropertyGet");
+            var proxyOnPropertySetMethod = proxyBaseDefinition.Methods.First(x => x.Name == "OnPropertySet");
+
+            var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
+            getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
+            getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
+            getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
+            if (prop.PropertyType.IsValueType)
+            {
+                getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
+            }
+            else
+            {
+                getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
+            }
+            getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
+
+            var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
+            if (prop.PropertyType.IsValueType)
+            {
+                setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
+            }
+            setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
         }
 
         private PropertyDefinition CreatePropertyDefinition(TypeDefinition proxyType, PropertyMapping prop)

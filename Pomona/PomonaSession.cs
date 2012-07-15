@@ -25,6 +25,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Pomona
 {
@@ -75,6 +77,20 @@ namespace Pomona
             var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
             var context = new FetchContext(uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            wrapper.ToJson(textWriter);
+        }
+
+        public void PostJson<T>(TextReader textReader, TextWriter textWriter)
+        {
+            var mappedType = (TransformedType) typeMapper.GetClassMapping<T>();
+            var newInstance =
+                mappedType.NewInstance(
+                    JObject.Load(new JsonTextReader(textReader)).Children().OfType<JProperty>().ToDictionary(
+                        x => x.Name.ToLower(), x => ((JValue) x.Value).Value));
+            var o = dataSource.Post(newInstance);
+            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
+            var context = new FetchContext(uriResolver, rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
         }

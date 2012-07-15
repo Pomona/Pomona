@@ -53,6 +53,11 @@ namespace Pomona.Example
             return GetEntityList<T>();
         }
 
+        public T Post<T>(T newObject)
+        {
+            return (T) ((object) Save((EntityBase) ((object) newObject)));
+        }
+
         #endregion
 
         public static IEnumerable<Type> GetEntityTypes()

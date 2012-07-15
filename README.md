@@ -16,3 +16,23 @@ Future tasks
 * Implement another layer of abstraction for serializing and deserializing, to support more types than Json. Will look at ServiceStack for this.
 * Implement JS client lib. Maybe two types, one based on KnockoutJs? That would be cool.
 * Implement html media type for friendly browseing.
+* Implement batch fetching on client side
+* Batch query support, for example by encapsulating an array of http operations in a JSON array
+
+
+Bugs
+====
+* Uri's is now generated from native type names in nancy module, should rather get name from TransformedType
+
+Cryptic notes about compressed JSON-like binary format
+======================================================
+
+CODE
+
+STRING : LENGTH ARRAY[LENGTH]
+
+NEW_STRING STRING
+NEW_DOUBLE ARRAY[8]
+NEW_VARINT VARINT
+
+* Use indexed skiplist for compression?

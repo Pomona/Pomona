@@ -29,6 +29,17 @@ namespace Pomona
 {
     public class PropertyMapping
     {
+        #region PropertyAccessMode enum
+
+        public enum PropertyAccessMode
+        {
+            ReadWrite,
+            ReadOnly,
+            WriteOnly
+        }
+
+        #endregion
+
         #region PropertyCreateMode enum
 
         public enum PropertyCreateMode
@@ -44,8 +55,6 @@ namespace Pomona
         private readonly string name;
         private readonly PropertyInfo propertyInfo;
         private readonly IMappedType propertyType;
-        private bool updateAllowed;
-
 
         public PropertyMapping(
             string name, IMappedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
@@ -60,7 +69,15 @@ namespace Pomona
             this.declaringType = declaringType;
             this.propertyType = propertyType;
             this.propertyInfo = propertyInfo;
+            ConstructorArgIndex = -1;
         }
+
+        public bool IsWriteable
+        {
+            get { return AccessMode == PropertyAccessMode.WriteOnly || AccessMode == PropertyAccessMode.ReadWrite; }
+        }
+
+        public PropertyAccessMode AccessMode { get; set; }
 
 
         public int ConstructorArgIndex { get; set; }

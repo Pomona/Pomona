@@ -55,6 +55,7 @@
     <Compile Include="Models\Gun.cs" />
     <Compile Include="Models\Hat.cs" />
     <Compile Include="Models\Knife.cs" />
+    <Compile Include="Models\Loner.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\Weapon.cs" />
     <Compile Include="Models\WeaponModel.cs" />

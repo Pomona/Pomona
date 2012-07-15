@@ -22,14 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
-namespace Pomona
+namespace Pomona.Client
 {
-    public interface IPomonaDataSource
+    public abstract class NewResourceBase : PutResourceBase
     {
-        T GetById<T>(object id);
-        ICollection<T> List<T>();
-        T Post<T>(T newObject);
     }
 }

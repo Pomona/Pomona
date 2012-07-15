@@ -42,6 +42,7 @@ namespace Pomona.Client
                                                                      };
 
         private static Dictionary<Type, Type> interfaceToUpdateProxyDictionary = new Dictionary<Type, Type>();
+        private static Dictionary<Type, Type> interfaceToNewProxyDictionary = new Dictionary<Type, Type>();
         private static Dictionary<Type, Type> interfaceToProxyDictionary = new Dictionary<Type, Type>();
         private static Dictionary<Type, Type> interfaceToPocoDictionary = new Dictionary<Type, Type>();
 
@@ -237,6 +238,27 @@ namespace Pomona.Client
             }
         }
 
+        private static Type GetNewProxyForInterface(Type expectedType)
+        {
+            lock (interfaceToNewProxyDictionary)
+            {
+                Type createdType;
+                if (!interfaceToNewProxyDictionary.TryGetValue(expectedType, out createdType))
+                {
+                    if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
+                    {
+                        throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
+                    }
+                    var pocoName = expectedType.Name.Substring(1);
+                    createdType =
+                        expectedType.Assembly.GetTypes().First(
+                            x => x.FullName == expectedType.Namespace + ".New" + pocoName);
+                    interfaceToNewProxyDictionary[expectedType] = createdType;
+                }
+                return createdType;
+            }
+        }
+
 
         private static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
         {
@@ -262,7 +284,28 @@ namespace Pomona.Client
             return elementType != null;
         }
 
-        public T Update<T>(T target, Action<T> updateAction)
+        public T Post<T>(Action<T> postAction)
+        {
+            var type = typeof (T);
+            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
+            if (!type.IsInterface)
+                throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
+
+            var pocoType = GetPocoForInterface(type);
+            var newType = GetNewProxyForInterface(type);
+            var newProxy = Activator.CreateInstance(newType);
+
+            postAction((T) newProxy);
+
+            // TODO: Implement baseuri property or something.
+            var uri = "http://localhost:2211/" + pocoType.Name.ToLower();
+
+            // Post the json!
+            return
+                (T) Deserialize(type, UploadToUri(uri, ((PutResourceBase) newProxy).ToJson(), "POST"));
+        }
+
+        public T Put<T>(T target, Action<T> updateAction)
         {
             var type = typeof (T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
@@ -278,17 +321,24 @@ namespace Pomona.Client
 
             // Put the json!
             return
-                (T) Deserialize(type, PutUri(((IHasResourceUri) target).Uri, ((UpdateProxyBase) updateProxy).ToJson()));
+                (T)
+                Deserialize(type,
+                            UploadToUri(((IHasResourceUri) target).Uri, ((PutResourceBase) updateProxy).ToJson(), "PUT"));
         }
 
         private JToken PutUri(string uri, JToken jsonData)
+        {
+            return UploadToUri(uri, jsonData, "PUT");
+        }
+
+        private JToken UploadToUri(string uri, JToken jsonData, string httpMethod)
         {
             var requestString = jsonData.ToString();
 
             Console.WriteLine("PUTting data to " + uri + ":\r\n" + requestString);
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
-            var responseBytes = webClient.UploadData(uri, "PUT", requestBytes);
+            var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
             var responseString = Encoding.UTF8.GetString(responseBytes);
 
             Console.WriteLine("Received response from PUT:\t\n" + responseString);

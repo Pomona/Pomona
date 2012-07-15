@@ -36,6 +36,10 @@ namespace Pomona
         public TypeMapper(IEnumerable<Type> sourceTypes)
         {
             this.sourceTypes = new HashSet<Type>(sourceTypes);
+            foreach (var sourceType in this.sourceTypes)
+            {
+                GetClassMapping(sourceType);
+            }
         }
 
         public ICollection<Type> SourceTypes

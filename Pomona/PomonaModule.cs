@@ -108,8 +108,20 @@ namespace Pomona
             Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
 
             Put[path + "/{id}"] = x => UpdateFromJson<T>(x.id);
+            Post[path] = x => PostFromJson<T>();
 
             Get[path] = x => ListAsJson<T>();
+        }
+
+        private Response PostFromJson<T>()
+        {
+            var req = Request;
+
+            var res = new Response();
+            res.Contents = stream => session.PostJson<T>(new StreamReader(req.Body), new StreamWriter(stream));
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
         }
 
         private Response UpdateFromJson<T>(object id)
