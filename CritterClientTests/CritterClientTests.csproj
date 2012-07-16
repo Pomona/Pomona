@@ -33,8 +33,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Critter">
-      <HintPath>..\Critter.dll</HintPath>
+    <Reference Include="Critter.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Critter.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy">
+      <HintPath>..\packages\Nancy.0.11.0\lib\net40\Nancy.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy.Hosting.Self">
+      <HintPath>..\packages\Nancy.Hosting.Self.0.11.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -59,6 +69,14 @@
     <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
+      <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
+      <Name>Pomona.Example</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pomona\Pomona.csproj">
+      <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
+      <Name>Pomona</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

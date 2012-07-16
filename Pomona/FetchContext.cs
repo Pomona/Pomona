@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 
@@ -45,24 +49,24 @@ namespace Pomona
             this.uriResolver = uriResolver;
             this.debugMode = debugMode;
             this.session = session;
-            typeMapper = session.TypeMapper;
+            this.typeMapper = session.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
 
-        public TypeMapper TypeMapper
-        {
-            get { return typeMapper; }
-        }
-
         public bool DebugMode
         {
-            get { return debugMode; }
+            get { return this.debugMode; }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
         }
 
         internal HashSet<string> ExpandedPaths
         {
-            get { return expandedPaths; }
+            get { return this.expandedPaths; }
         }
 
 
@@ -74,13 +78,13 @@ namespace Pomona
 
         public string GetUri(object value)
         {
-            return uriResolver(value);
+            return this.uriResolver(value);
         }
 
 
         internal bool PathToBeExpanded(string path)
         {
-            return expandedPaths.Contains(path.ToLower());
+            return this.expandedPaths.Contains(path.ToLower());
         }
     }
 }

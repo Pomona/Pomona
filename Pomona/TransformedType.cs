@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +44,7 @@ namespace Pomona
 
         private Type type;
 
+
         internal TransformedType(Type type, string name, TypeMapper typeMapper)
         {
             if (typeMapper == null)
@@ -50,12 +55,12 @@ namespace Pomona
         }
 
 
+        public ConstructorInfo ConstructorInfo { get; set; }
+
         public IList<PropertyMapping> Properties
         {
-            get { return properties; }
+            get { return this.properties; }
         }
-
-        public ConstructorInfo ConstructorInfo { get; set; }
 
         #region IMappedType Members
 
@@ -63,7 +68,12 @@ namespace Pomona
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] {}; }
+            get { return new IMappedType[] { }; }
+        }
+
+        public bool IsCollection
+        {
+            get { return false; }
         }
 
         public bool IsGenericType
@@ -76,22 +86,24 @@ namespace Pomona
             get { return false; }
         }
 
-        public string Name
-        {
-            get { return name; }
-        }
-
         public bool IsValueType
         {
             get { return false; }
         }
 
-        public bool IsCollection
+        public string Name
         {
-            get { return false; }
+            get { return this.name; }
         }
 
         #endregion
+
+        public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
+        {
+            // TODO: Create a dictionary for this if suboptimal.
+            return Properties.First(x => x.JsonName == jsonPropertyName);
+        }
+
 
         /// <summary>
         /// Creates an newinstance of type that TransformedType targets
@@ -113,30 +125,24 @@ namespace Pomona
                         x => x.CreateMode == PropertyMapping.PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
             {
                 // TODO: Proper validation here!
-                ctorArgs[ctorProp.ConstructorArgIndex] = Convert.ChangeType(initValues[ctorProp.Name.ToLower()],
-                                                                            ((SharedType) ctorProp.PropertyType).
-                                                                                TargetType);
+                ctorArgs[ctorProp.ConstructorArgIndex] = Convert.ChangeType(
+                    initValues[ctorProp.Name.ToLower()],
+                    ((SharedType)ctorProp.PropertyType).
+                        TargetType);
             }
 
-            var newInstance = Activator.CreateInstance(type, ctorArgs);
+            var newInstance = Activator.CreateInstance(this.type, ctorArgs);
 
             foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
             {
                 object propSetValue;
                 if (initValues.TryGetValue(optProp.Name.ToLower(), out propSetValue))
-                {
                     optProp.Setter(newInstance, propSetValue);
-                }
             }
 
             return newInstance;
         }
 
-        public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
-        {
-            // TODO: Create a dictionary for this if suboptimal.
-            return Properties.First(x => x.JsonName == jsonPropertyName);
-        }
 
         public void ScanProperties(Type type)
         {
@@ -145,8 +151,8 @@ namespace Pomona
             {
                 var propDef = new PropertyMapping(
                     propInfo.Name,
-                    typeMapper.GetClassMapping(propInfo.DeclaringType),
-                    typeMapper.GetClassMapping(propInfo.PropertyType),
+                    this.typeMapper.GetClassMapping(propInfo.DeclaringType),
+                    this.typeMapper.GetClassMapping(propInfo.PropertyType),
                     propInfo);
 
                 var propInfoLocal = propInfo;
@@ -166,10 +172,10 @@ namespace Pomona
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
 
-                properties.Add(propDef);
+                this.properties.Add(propDef);
             }
 
-            BaseType = typeMapper.GetClassMapping(type.BaseType);
+            BaseType = this.typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
@@ -180,7 +186,7 @@ namespace Pomona
                 // TODO: match constructor arguments
                 foreach (var ctorParam in longestCtor.GetParameters())
                 {
-                    var matchingProperty = properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
+                    var matchingProperty = this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
                     if (matchingProperty != null)
                     {
                         matchingProperty.CreateMode = PropertyMapping.PropertyCreateMode.Required;

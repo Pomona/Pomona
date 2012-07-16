@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +34,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Client
@@ -37,32 +42,43 @@ namespace Pomona.Client
     public class ClientHelper
     {
         private static readonly Type[] knownGenericCollectionTypes = {
-                                                                         typeof (List<>), typeof (IList<>),
-                                                                         typeof (ICollection<>)
-                                                                     };
+            typeof(List<>), typeof(IList<>),
+            typeof(ICollection<>)
+        };
 
-        private static Dictionary<Type, Type> interfaceToUpdateProxyDictionary = new Dictionary<Type, Type>();
         private static Dictionary<Type, Type> interfaceToNewProxyDictionary = new Dictionary<Type, Type>();
-        private static Dictionary<Type, Type> interfaceToProxyDictionary = new Dictionary<Type, Type>();
         private static Dictionary<Type, Type> interfaceToPocoDictionary = new Dictionary<Type, Type>();
+        private static Dictionary<Type, Type> interfaceToProxyDictionary = new Dictionary<Type, Type>();
+        private static Dictionary<Type, Type> interfaceToUpdateProxyDictionary = new Dictionary<Type, Type>();
 
         private readonly WebClient webClient = new WebClient();
+
+
+        public ClientHelper()
+        {
+            BaseUri = "http://localhost:2211/";
+        }
+
+
+        public string BaseUri { get; set; }
+
 
         public object GetUri(string uri, Type type)
         {
             return Deserialize(type, GetUri(uri));
         }
 
+
         public T GetUri<T>(string uri)
         {
-            return (T) Deserialize(typeof (T), GetUri(uri));
+            return (T)Deserialize(typeof(T), GetUri(uri));
         }
 
 
         public IList<T> List<T>(string expand = null)
         {
             // TODO: Implement baseuri property or something.
-            var uri = "http://localhost:2211/" + typeof (T).Name.ToLower();
+            var uri = BaseUri + typeof(T).Name.ToLower();
 
             if (expand != null)
                 uri = uri + "?expand=" + expand;
@@ -71,14 +87,59 @@ namespace Pomona.Client
         }
 
 
+        public T Post<T>(Action<T> postAction)
+        {
+            var type = typeof(T);
+            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
+            if (!type.IsInterface)
+                throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
+
+            var pocoType = GetPocoForInterface(type);
+            var newType = GetNewProxyForInterface(type);
+            var newProxy = Activator.CreateInstance(newType);
+
+            postAction((T)newProxy);
+
+            // TODO: Implement baseuri property or something.
+            var uri = BaseUri + pocoType.Name.ToLower();
+
+            // Post the json!
+            return
+                (T)Deserialize(type, UploadToUri(uri, ((PutResourceBase)newProxy).ToJson(), "POST"));
+        }
+
+
+        public T Put<T>(T target, Action<T> updateAction)
+        {
+            var type = typeof(T);
+            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
+            if (!type.IsInterface)
+                throw new InvalidOperationException("updateAction needs to operate on the interface of the entity");
+
+            var updateType = GetUpdateProxyForInterface(type);
+
+            var updateProxy = Activator.CreateInstance(updateType);
+
+            // Run user supplied actions on updateProxy
+            updateAction((T)updateProxy);
+
+            // Put the json!
+            return
+                (T)
+                Deserialize(
+                    type,
+                    UploadToUri(((IHasResourceUri)target).Uri, ((PutResourceBase)updateProxy).ToJson(), "PUT"));
+        }
+
+
         private static object CreateListOfType(Type elementType, IEnumerable elements)
         {
             var createListOfTypeGeneric =
-                typeof (ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static)
+                typeof(ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static)
                     .
                     MakeGenericMethod(elementType);
 
-            return createListOfTypeGeneric.Invoke(null, new object[] {elements});
+            return createListOfTypeGeneric.Invoke(null, new object[] { elements });
         }
 
 
@@ -88,113 +149,25 @@ namespace Pomona.Client
         }
 
 
-        private object Deserialize(Type expectedType, JToken jToken)
+        private static Type GetNewProxyForInterface(Type expectedType)
         {
-            var jObject = jToken as JObject;
-            if (jObject != null)
-                return DeserializeObject(expectedType, jObject);
-
-            var jArray = jToken as JArray;
-            if (jArray != null)
-            {
-                Type listElementType;
-                if (!TryGetCollectionElementType(expectedType, out listElementType))
-                    throw new SerializationException("Don't know how to serialize JArray to " + expectedType.FullName);
-
-                return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
-            }
-
-            return Convert.ChangeType(((JValue) jToken).Value, expectedType);
-        }
-
-
-        private object DeserializeObject(Type expectedType, JObject jObject)
-        {
-            var receivedSubclassInterface = expectedType;
-
-            JToken typePropertyToken;
-            if (jObject.TryGetValue("_type", out typePropertyToken))
-            {
-                var typeString = (string) ((JValue) typePropertyToken).Value;
-                receivedSubclassInterface =
-                    expectedType.Assembly.GetTypes().Where(x => x.Name == "I" + typeString).First(
-                        x => expectedType.IsAssignableFrom(x));
-            }
-
-            JToken refUriToken;
-            if (jObject.TryGetValue("_ref", out refUriToken))
-            {
-                var uriValue = (JValue) refUriToken;
-                return CreateProxyFor((string) uriValue.Value, receivedSubclassInterface);
-            }
-
-            var createdType = receivedSubclassInterface;
-
-            // Find matching type for interface, we simply do this by removing the "I" from the beginning
-            if (receivedSubclassInterface.Name.StartsWith("I") && expectedType.IsInterface)
-            {
-                // TODO: Cache this mapping in static dictionary
-                createdType = GetPocoForInterface(receivedSubclassInterface);
-            }
-
-
-            var target = (ResourceBase) Activator.CreateInstance(createdType);
-
-            // Set uri, if available in json (for updates etc)
-            JToken uriToken;
-            if (jObject.TryGetValue("_uri", out uriToken))
-            {
-                target.Uri = (string) (((JValue) uriToken).Value);
-            }
-
-
-            // TODO: Cache this dictionary
-            var propertiesForType = createdType.GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
-
-            foreach (var jprop in jObject.Properties())
-            {
-                var name = jprop.Name;
-                var nameLowerCase = name.ToLower();
-
-                PropertyInfo propInfo;
-                if (propertiesForType.TryGetValue(nameLowerCase, out propInfo))
-                    propInfo.SetValue(target, Deserialize(propInfo.PropertyType, jprop.Value), null);
-            }
-
-            return target;
-        }
-
-        private object CreateProxyFor(string uri, Type expectedType)
-        {
-            var proxyType = GetProxyForInterface(expectedType);
-            var proxy = (LazyProxyBase) Activator.CreateInstance(proxyType);
-            proxy.Uri = uri;
-            proxy.TargetType = GetPocoForInterface(expectedType);
-            proxy.Client = this;
-
-            return proxy;
-        }
-
-        private static Type GetProxyForInterface(Type expectedType)
-        {
-            lock (interfaceToProxyDictionary)
+            lock (interfaceToNewProxyDictionary)
             {
                 Type createdType;
-                if (!interfaceToProxyDictionary.TryGetValue(expectedType, out createdType))
+                if (!interfaceToNewProxyDictionary.TryGetValue(expectedType, out createdType))
                 {
                     if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
-                    {
                         throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
-                    }
-                    var proxyName = expectedType.Name.Substring(1) + "Proxy";
+                    var pocoName = expectedType.Name.Substring(1);
                     createdType =
                         expectedType.Assembly.GetTypes().First(
-                            x => x.FullName == expectedType.Namespace + "." + proxyName);
-                    interfaceToProxyDictionary[expectedType] = createdType;
+                            x => x.FullName == expectedType.Namespace + ".New" + pocoName);
+                    interfaceToNewProxyDictionary[expectedType] = createdType;
                 }
                 return createdType;
             }
         }
+
 
         private static Type GetPocoForInterface(Type expectedType)
         {
@@ -204,9 +177,7 @@ namespace Pomona.Client
                 if (!interfaceToPocoDictionary.TryGetValue(expectedType, out createdType))
                 {
                     if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
-                    {
                         throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
-                    }
                     var pocoName = expectedType.Name.Substring(1);
                     createdType =
                         expectedType.Assembly.GetTypes().First(
@@ -217,6 +188,27 @@ namespace Pomona.Client
             }
         }
 
+
+        private static Type GetProxyForInterface(Type expectedType)
+        {
+            lock (interfaceToProxyDictionary)
+            {
+                Type createdType;
+                if (!interfaceToProxyDictionary.TryGetValue(expectedType, out createdType))
+                {
+                    if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
+                        throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
+                    var proxyName = expectedType.Name.Substring(1) + "Proxy";
+                    createdType =
+                        expectedType.Assembly.GetTypes().First(
+                            x => x.FullName == expectedType.Namespace + "." + proxyName);
+                    interfaceToProxyDictionary[expectedType] = createdType;
+                }
+                return createdType;
+            }
+        }
+
+
         private static Type GetUpdateProxyForInterface(Type expectedType)
         {
             lock (interfaceToUpdateProxyDictionary)
@@ -225,35 +217,12 @@ namespace Pomona.Client
                 if (!interfaceToUpdateProxyDictionary.TryGetValue(expectedType, out createdType))
                 {
                     if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
-                    {
                         throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
-                    }
                     var pocoName = expectedType.Name.Substring(1);
                     createdType =
                         expectedType.Assembly.GetTypes().First(
                             x => x.FullName == expectedType.Namespace + "." + pocoName + "Update");
                     interfaceToUpdateProxyDictionary[expectedType] = createdType;
-                }
-                return createdType;
-            }
-        }
-
-        private static Type GetNewProxyForInterface(Type expectedType)
-        {
-            lock (interfaceToNewProxyDictionary)
-            {
-                Type createdType;
-                if (!interfaceToNewProxyDictionary.TryGetValue(expectedType, out createdType))
-                {
-                    if (!expectedType.Name.StartsWith("I") || expectedType.Name.Length < 2 || !expectedType.IsInterface)
-                    {
-                        throw new InvalidOperationException(expectedType.FullName + " not recognized as interface.");
-                    }
-                    var pocoName = expectedType.Name.Substring(1);
-                    createdType =
-                        expectedType.Assembly.GetTypes().First(
-                            x => x.FullName == expectedType.Namespace + ".New" + pocoName);
-                    interfaceToNewProxyDictionary[expectedType] = createdType;
                 }
                 return createdType;
             }
@@ -284,52 +253,105 @@ namespace Pomona.Client
             return elementType != null;
         }
 
-        public T Post<T>(Action<T> postAction)
+
+        private object CreateProxyFor(string uri, Type expectedType)
         {
-            var type = typeof (T);
-            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
-            if (!type.IsInterface)
-                throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
+            var proxyType = GetProxyForInterface(expectedType);
+            var proxy = (LazyProxyBase)Activator.CreateInstance(proxyType);
+            proxy.Uri = uri;
+            proxy.TargetType = GetPocoForInterface(expectedType);
+            proxy.Client = this;
 
-            var pocoType = GetPocoForInterface(type);
-            var newType = GetNewProxyForInterface(type);
-            var newProxy = Activator.CreateInstance(newType);
-
-            postAction((T) newProxy);
-
-            // TODO: Implement baseuri property or something.
-            var uri = "http://localhost:2211/" + pocoType.Name.ToLower();
-
-            // Post the json!
-            return
-                (T) Deserialize(type, UploadToUri(uri, ((PutResourceBase) newProxy).ToJson(), "POST"));
+            return proxy;
         }
 
-        public T Put<T>(T target, Action<T> updateAction)
+
+        private object Deserialize(Type expectedType, JToken jToken)
         {
-            var type = typeof (T);
-            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
-            if (!type.IsInterface)
-                throw new InvalidOperationException("updateAction needs to operate on the interface of the entity");
+            var jObject = jToken as JObject;
+            if (jObject != null)
+                return DeserializeObject(expectedType, jObject);
 
-            var updateType = GetUpdateProxyForInterface(type);
+            var jArray = jToken as JArray;
+            if (jArray != null)
+            {
+                Type listElementType;
+                if (!TryGetCollectionElementType(expectedType, out listElementType))
+                    throw new SerializationException("Don't know how to serialize JArray to " + expectedType.FullName);
 
-            var updateProxy = Activator.CreateInstance(updateType);
+                return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
+            }
 
-            // Run user supplied actions on updateProxy
-            updateAction((T) updateProxy);
-
-            // Put the json!
-            return
-                (T)
-                Deserialize(type,
-                            UploadToUri(((IHasResourceUri) target).Uri, ((PutResourceBase) updateProxy).ToJson(), "PUT"));
+            return Convert.ChangeType(((JValue)jToken).Value, expectedType);
         }
+
+
+        private object DeserializeObject(Type expectedType, JObject jObject)
+        {
+            var receivedSubclassInterface = expectedType;
+
+            JToken typePropertyToken;
+            if (jObject.TryGetValue("_type", out typePropertyToken))
+            {
+                var typeString = (string)((JValue)typePropertyToken).Value;
+                receivedSubclassInterface =
+                    expectedType.Assembly.GetTypes().Where(x => x.Name == "I" + typeString).First(
+                        x => expectedType.IsAssignableFrom(x));
+            }
+
+            JToken refUriToken;
+            if (jObject.TryGetValue("_ref", out refUriToken))
+            {
+                var uriValue = (JValue)refUriToken;
+                return CreateProxyFor((string)uriValue.Value, receivedSubclassInterface);
+            }
+
+            var createdType = receivedSubclassInterface;
+
+            // Find matching type for interface, we simply do this by removing the "I" from the beginning
+            if (receivedSubclassInterface.Name.StartsWith("I") && expectedType.IsInterface)
+            {
+                // TODO: Cache this mapping in static dictionary
+                createdType = GetPocoForInterface(receivedSubclassInterface);
+            }
+
+            var target = (ResourceBase)Activator.CreateInstance(createdType);
+
+            // Set uri, if available in json (for updates etc)
+            JToken uriToken;
+            if (jObject.TryGetValue("_uri", out uriToken))
+                target.Uri = (string)(((JValue)uriToken).Value);
+
+            // TODO: Cache this dictionary
+            var propertiesForType = createdType.GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
+
+            foreach (var jprop in jObject.Properties())
+            {
+                var name = jprop.Name;
+                var nameLowerCase = name.ToLower();
+
+                PropertyInfo propInfo;
+                if (propertiesForType.TryGetValue(nameLowerCase, out propInfo))
+                    propInfo.SetValue(target, Deserialize(propInfo.PropertyType, jprop.Value), null);
+            }
+
+            return target;
+        }
+
+
+        private JToken GetUri(string uri)
+        {
+            var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
+            Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
+            return JToken.Parse(jsonString);
+        }
+
 
         private JToken PutUri(string uri, JToken jsonData)
         {
             return UploadToUri(uri, jsonData, "PUT");
         }
+
 
         private JToken UploadToUri(string uri, JToken jsonData, string httpMethod)
         {
@@ -338,19 +360,12 @@ namespace Pomona.Client
             Console.WriteLine("PUTting data to " + uri + ":\r\n" + requestString);
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
-            var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
+            var responseBytes = this.webClient.UploadData(uri, httpMethod, requestBytes);
             var responseString = Encoding.UTF8.GetString(responseBytes);
 
             Console.WriteLine("Received response from PUT:\t\n" + responseString);
 
             return JToken.Parse(responseString);
-        }
-
-        private JToken GetUri(string uri)
-        {
-            var jsonString = Encoding.UTF8.GetString(webClient.DownloadData(uri));
-            Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
-            return JToken.Parse(jsonString);
         }
     }
 }

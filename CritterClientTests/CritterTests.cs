@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,20 +24,58 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
+
 using CritterClient;
+
 using NUnit.Framework;
-using Pomona.Client;
+
+using Nancy.Hosting.Self;
+
+using Pomona.Example;
 
 namespace CritterClientTests
 {
+    public class CritterModuleInternal : CritterModule
+    {
+    }
+
+    /// <summary>
+    /// Tests for generated assembly
+    /// </summary>
     [TestFixture]
     public class CritterTests
     {
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.baseUri = "http://localhost:4186/";
+            this.host = new NancyHost(new Uri("http://localhost:4186"));
+            this.host.Start();
+        }
+
+
+        [TearDown]
+        public void TearDown()
+        {
+            this.host.Stop();
+        }
+
+        #endregion
+
+        private NancyHost host;
+        private string baseUri;
+
+
         [Test]
         public void DeserializeCritters()
         {
             var client = new ClientHelper();
-
+            client.BaseUri = this.baseUri;
             var critters = client.List<Critter>("critter.weapons.model,critter.subscriptions");
         }
     }

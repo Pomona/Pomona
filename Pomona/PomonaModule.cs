@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,12 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Nancy;
+
 using Newtonsoft.Json;
 
 namespace Pomona
@@ -39,15 +45,16 @@ namespace Pomona
         private readonly TypeMapper typeMapper;
         private IPomonaDataSource dataSource;
 
+
         public PomonaModule(IPomonaDataSource dataSource)
         {
             this.dataSource = dataSource;
-            typeMapper = new TypeMapper(GetEntityTypes());
-            session = new PomonaSession(dataSource, typeMapper, UriResolver);
+            this.typeMapper = new TypeMapper(GetEntityTypes());
+            this.session = new PomonaSession(dataSource, this.typeMapper, UriResolver);
 
             // Just eagerly load the type mappings so we can manipulate it
 
-            var registerRouteForT = typeof (PomonaModule).GetMethod(
+            var registerRouteForT = typeof(PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
             foreach (var type in GetEntityTypes().Where(x => !x.IsAbstract))
@@ -62,17 +69,7 @@ namespace Pomona
 
         public IPomonaDataSource DataSource
         {
-            get { return dataSource; }
-        }
-
-        private Response GetClientLibrary()
-        {
-            var response = new Response();
-
-            response.Contents = stream => session.WriteClientLibrary(stream);
-            response.ContentType = "binary/octet-stream";
-
-            return response;
+            get { return this.dataSource; }
         }
 
         protected abstract Type GetEntityBaseType();
@@ -81,6 +78,31 @@ namespace Pomona
 
         // TODO: Move this into TypeMapper or PomonaSession?
         protected abstract int GetIdFor(object entity);
+
+
+        private Response GetAsJson<T>(object id)
+        {
+            var res = new Response();
+            var expand = GetExpandedPaths().ToLower();
+
+            res.Contents = stream => this.session.GetAsJson<T>(id, expand, new StreamWriter(stream));
+
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+        }
+
+
+        private Response GetClientLibrary()
+        {
+            var response = new Response();
+
+            response.Contents = stream => this.session.WriteClientLibrary(stream);
+            response.ContentType = "binary/octet-stream";
+
+            return response;
+        }
+
 
         private string GetExpandedPaths()
         {
@@ -98,9 +120,33 @@ namespace Pomona
         }
 
 
+        private Response ListAsJson<T>()
+        {
+            var res = new Response();
+            var expand = GetExpandedPaths().ToLower();
+
+            res.Contents = stream => this.session.ListAsJson<T>(expand, new StreamWriter(stream));
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+        }
+
+
+        private Response PostFromJson<T>()
+        {
+            var req = Request;
+
+            var res = new Response();
+            res.Contents = stream => this.session.PostJson<T>(new StreamReader(req.Body), new StreamWriter(stream));
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+        }
+
+
         private void RegisterRouteFor<T>()
         {
-            var type = typeof (T);
+            var type = typeof(T);
             var lowerTypeName = type.Name.ToLower();
             var path = "/" + lowerTypeName;
             Console.WriteLine("Registering path " + path);
@@ -113,46 +159,14 @@ namespace Pomona
             Get[path] = x => ListAsJson<T>();
         }
 
-        private Response PostFromJson<T>()
-        {
-            var req = Request;
-
-            var res = new Response();
-            res.Contents = stream => session.PostJson<T>(new StreamReader(req.Body), new StreamWriter(stream));
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
-        }
 
         private Response UpdateFromJson<T>(object id)
         {
             var req = Request;
 
             var res = new Response();
-            res.Contents = stream => session.UpdateFromJson<T>(id, new StreamReader(req.Body), new StreamWriter(stream));
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
-        }
-
-        private Response ListAsJson<T>()
-        {
-            var res = new Response();
-            var expand = GetExpandedPaths().ToLower();
-
-            res.Contents = stream => session.ListAsJson<T>(expand, new StreamWriter(stream));
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
-        }
-
-        private Response GetAsJson<T>(object id)
-        {
-            var res = new Response();
-            var expand = GetExpandedPaths().ToLower();
-
-            res.Contents = stream => session.GetAsJson<T>(id, expand, new StreamWriter(stream));
-
+            res.Contents =
+                stream => this.session.UpdateFromJson<T>(id, new StreamReader(req.Body), new StreamWriter(stream));
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;

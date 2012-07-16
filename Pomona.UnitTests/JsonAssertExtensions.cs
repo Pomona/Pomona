@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,65 +24,85 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using NUnit.Framework;
+
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.UnitTests
 {
     public static class JsonAssertExtensions
     {
-        public static JObject AssertHasPropertyWithObject(this JObject jobject, string propertyName)
-        {
-            var propValue = AssertHasProperty(jobject, propertyName);
-            var propValueObject = propValue as JObject;
-            Assert.IsNotNull(propValueObject,
-                             string.Format("JSON property {0} is not of type JObject. Contents:\r\n{1}", propertyName,
-                                           jobject));
-            return propValueObject;
-        }
-
         public static JToken AssertHasProperty(this JToken jtoken, string propertyName)
         {
             var jobject = jtoken as JObject;
-            Assert.IsNotNull(jobject,
-                             "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
-                             jtoken.GetType().Name + ")");
+            Assert.IsNotNull(
+                jobject,
+                "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                jtoken.GetType().Name + ")");
 
             JToken propValue;
-            Assert.IsTrue(jobject.TryGetValue(propertyName, out propValue),
-                          string.Format("Object has no property named {0}. Contents:\r\n{1}", propertyName, jobject));
+            Assert.IsTrue(
+                jobject.TryGetValue(propertyName, out propValue),
+                string.Format("Object has no property named {0}. Contents:\r\n{1}", propertyName, jobject));
             return propValue;
         }
 
-        public static string AssertHasPropertyWithString(this JToken jtoken, string propertyName)
-        {
-            var jobject = jtoken as JObject;
-            Assert.IsNotNull(jobject,
-                             "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
-                             jtoken.GetType().Name + ")");
-
-            var propToken = jobject.AssertHasProperty(propertyName);
-            var jsonValue = propToken as JValue;
-            Assert.IsNotNull(jsonValue,
-                             string.Format("JSON property {0} is not of type JValue. Contents:\r\n{1}", propertyName,
-                                           jobject));
-            return (string) jsonValue.Value;
-        }
 
         public static JArray AssertHasPropertyWithArray(this JToken jtoken, string propertyName)
         {
             var jobject = jtoken as JObject;
-            Assert.IsNotNull(jobject,
-                             "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
-                             jtoken.GetType().Name + ")");
+            Assert.IsNotNull(
+                jobject,
+                "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                jtoken.GetType().Name + ")");
 
             var propToken = jobject.AssertHasProperty(propertyName);
             var jArray = propToken as JArray;
-            Assert.IsNotNull(jArray,
-                             string.Format("JSON property {0} is not of type JArray. Contents:\r\n{1}", propertyName,
-                                           jobject));
+            Assert.IsNotNull(
+                jArray,
+                string.Format(
+                    "JSON property {0} is not of type JArray. Contents:\r\n{1}",
+                    propertyName,
+                    jobject));
             return jArray;
         }
+
+
+        public static JObject AssertHasPropertyWithObject(this JObject jobject, string propertyName)
+        {
+            var propValue = AssertHasProperty(jobject, propertyName);
+            var propValueObject = propValue as JObject;
+            Assert.IsNotNull(
+                propValueObject,
+                string.Format(
+                    "JSON property {0} is not of type JObject. Contents:\r\n{1}",
+                    propertyName,
+                    jobject));
+            return propValueObject;
+        }
+
+
+        public static string AssertHasPropertyWithString(this JToken jtoken, string propertyName)
+        {
+            var jobject = jtoken as JObject;
+            Assert.IsNotNull(
+                jobject,
+                "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                jtoken.GetType().Name + ")");
+
+            var propToken = jobject.AssertHasProperty(propertyName);
+            var jsonValue = propToken as JValue;
+            Assert.IsNotNull(
+                jsonValue,
+                string.Format(
+                    "JSON property {0} is not of type JValue. Contents:\r\n{1}",
+                    propertyName,
+                    jobject));
+            return (string)jsonValue.Value;
+        }
+
 
         public static void AssertIsReference(this JToken jobject)
         {

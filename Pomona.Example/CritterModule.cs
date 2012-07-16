@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -40,26 +45,27 @@ namespace Pomona.Example
 
         public CritterDataSource CritterDataSource
         {
-            get { return (CritterDataSource) DataSource; }
+            get { return (CritterDataSource)DataSource; }
         }
+
 
         protected override Type GetEntityBaseType()
         {
-            return typeof (EntityBase);
+            return typeof(EntityBase);
         }
 
 
         protected override IEnumerable<Type> GetEntityTypes()
         {
-            if (entityTypes == null)
-                entityTypes = CritterDataSource.GetEntityTypes();
-            return entityTypes;
+            if (this.entityTypes == null)
+                this.entityTypes = CritterDataSource.GetEntityTypes();
+            return this.entityTypes;
         }
 
 
         protected override int GetIdFor(object entity)
         {
-            return ((EntityBase) entity).Id;
+            return ((EntityBase)entity).Id;
         }
     }
 }

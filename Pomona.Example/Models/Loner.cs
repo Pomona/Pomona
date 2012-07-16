@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,12 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 namespace Pomona.Example.Models
 {
     public class Loner : EntityBase
     {
         private readonly string name;
         private readonly int strength;
+
 
         public Loner(string name, int strength)
         {
@@ -36,16 +41,17 @@ namespace Pomona.Example.Models
             Occupation = "default boring";
         }
 
-        public int Strength
+
+        public string Name
         {
-            get { return strength; }
+            get { return this.name; }
         }
 
         public string Occupation { get; set; }
 
-        public string Name
+        public int Strength
         {
-            get { return name; }
+            get { return this.strength; }
         }
     }
 }

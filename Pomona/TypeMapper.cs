@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,29 +37,29 @@ namespace Pomona
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private HashSet<Type> sourceTypes;
 
+
         public TypeMapper(IEnumerable<Type> sourceTypes)
         {
             this.sourceTypes = new HashSet<Type>(sourceTypes);
             foreach (var sourceType in this.sourceTypes)
-            {
                 GetClassMapping(sourceType);
-            }
         }
+
 
         public ICollection<Type> SourceTypes
         {
-            get { return sourceTypes; }
+            get { return this.sourceTypes; }
         }
 
         public IEnumerable<IMappedType> TransformedTypes
         {
-            get { return mappings.Values.OfType<TransformedType>(); }
+            get { return this.mappings.Values.OfType<TransformedType>(); }
         }
 
 
         public IMappedType GetClassMapping<T>()
         {
-            var type = typeof (T);
+            var type = typeof(T);
 
             return GetClassMapping(type);
         }
@@ -64,16 +68,48 @@ namespace Pomona
         public IMappedType GetClassMapping(Type type)
         {
             IMappedType mappedType;
-            if (!mappings.TryGetValue(type, out mappedType))
+            if (!this.mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
 
             return mappedType;
         }
 
 
+        public bool IsSerializedAsArray(IMappedType mappedType)
+        {
+            if (mappedType == null)
+                throw new ArgumentNullException("mappedType");
+            return mappedType.IsCollection;
+        }
+
+
+        public bool IsSerializedAsArray(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return IsSerializedAsArray(GetClassMapping(type));
+        }
+
+
+        public bool IsSerializedAsObject(IMappedType mappedType)
+        {
+            if (mappedType == null)
+                throw new ArgumentNullException("mappedType");
+            return mappedType is TransformedType;
+        }
+
+
+        public bool IsSerializedAsObject(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return IsSerializedAsObject(GetClassMapping(type));
+        }
+
+
         private IMappedType CreateClassMapping(Type type)
         {
-            if (type.Assembly == typeof (String).Assembly)
+            if (type.Assembly == typeof(String).Assembly)
             {
                 SharedType newSharedType;
                 if (type.IsGenericType)
@@ -91,20 +127,18 @@ namespace Pomona
                     }
                 }
                 else
-                {
                     newSharedType = new SharedType(type, this);
-                }
 
-                mappings[type] = newSharedType;
+                this.mappings[type] = newSharedType;
                 return newSharedType;
             }
 
-            if (sourceTypes.Contains(type))
+            if (this.sourceTypes.Contains(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                mappings[type] = classDefinition;
+                this.mappings[type] = classDefinition;
 
                 classDefinition.ScanProperties(type);
 
@@ -112,30 +146,6 @@ namespace Pomona
             }
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
-        }
-
-        public bool IsSerializedAsArray(IMappedType mappedType)
-        {
-            if (mappedType == null) throw new ArgumentNullException("mappedType");
-            return mappedType.IsCollection;
-        }
-
-        public bool IsSerializedAsArray(Type type)
-        {
-            if (type == null) throw new ArgumentNullException("type");
-            return IsSerializedAsArray(GetClassMapping(type));
-        }
-
-        public bool IsSerializedAsObject(IMappedType mappedType)
-        {
-            if (mappedType == null) throw new ArgumentNullException("mappedType");
-            return mappedType is TransformedType;
-        }
-
-        public bool IsSerializedAsObject(Type type)
-        {
-            if (type == null) throw new ArgumentNullException("type");
-            return IsSerializedAsObject(GetClassMapping(type));
         }
     }
 }

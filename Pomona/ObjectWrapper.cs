@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -35,10 +40,10 @@ namespace Pomona
     public class ObjectWrapper
     {
         private static readonly Type[] knownGenericCollectionTypes = new[]
-                                                                         {
-                                                                             typeof (IList<>), typeof (ICollection<>),
-                                                                             typeof (List<>)
-                                                                         };
+        {
+            typeof(IList<>), typeof(ICollection<>),
+            typeof(List<>)
+        };
 
         private readonly FetchContext context;
         private readonly IMappedType expectedBaseType;
@@ -61,23 +66,111 @@ namespace Pomona
             this.path = path;
             this.context = context;
             this.expectedBaseType = expectedBaseType;
-            targetType = context.TypeMapper.GetClassMapping(target.GetType());
+            this.targetType = context.TypeMapper.GetClassMapping(target.GetType());
         }
 
 
         public string Path
         {
-            get { return path; }
+            get { return this.path; }
         }
+
+
+        public virtual void ToJson(TextWriter textWriter)
+        {
+            var jsonWriter = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
+            ToJson(jsonWriter);
+            jsonWriter.Flush();
+        }
+
+
+        public virtual void ToJson(JsonWriter writer)
+        {
+            IMappedType collectionElementType;
+            if (TryGetCollectionElementType(this.targetType, out collectionElementType))
+            {
+                writer.WriteStartArray();
+                foreach (var child in ((IEnumerable)this.target))
+                {
+                    WriteJsonExpandedOrReference(
+                        writer,
+                        child,
+                        this.path,
+                        this.context.TypeMapper.GetClassMapping(child.GetType()),
+                        collectionElementType);
+                }
+                writer.WriteEndArray();
+            }
+            else
+            {
+                var transformedType = (TransformedType)this.targetType;
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("_uri");
+                writer.WriteValue(this.context.GetUri(this.target));
+
+                if (this.expectedBaseType != this.targetType)
+                {
+                    writer.WritePropertyName("_type");
+                    writer.WriteValue(this.targetType.Name);
+                }
+
+                foreach (var propDef in transformedType.Properties)
+                {
+                    var subPath = this.path + "." + propDef.JsonName;
+                    var value = propDef.Getter(this.target);
+
+                    writer.WritePropertyName(propDef.JsonName);
+                    if (value == null)
+                    {
+                        writer.WriteNull();
+                        continue;
+                    }
+
+                    var valueTypeMapping = this.context.TypeMapper.GetClassMapping(value.GetType());
+
+                    if (this.context.TypeMapper.IsSerializedAsObject(valueTypeMapping) ||
+                        this.context.TypeMapper.IsSerializedAsArray(valueTypeMapping))
+                    {
+                        var propertyValue = propDef.Getter(this.target);
+
+                        if (propertyValue == null)
+                            writer.WriteNull();
+                        else
+                        {
+                            WriteJsonExpandedOrReference(
+                                writer, propertyValue, subPath, valueTypeMapping, propDef.PropertyType);
+                        }
+                    }
+                    else
+                        writer.WriteValue(propDef.Getter(this.target));
+                }
+
+                // Write path for debug purposes
+                if (this.context.DebugMode)
+                {
+                    writer.WritePropertyName("_path");
+                    writer.WriteValue(this.path);
+                }
+
+                writer.WriteEndObject();
+            }
+        }
+
+
+        public virtual void UpdateFromJson(TextReader textReader)
+        {
+            var jsonObject = JObject.Load(new JsonTextReader(textReader));
+            UpdateFromJson(jsonObject);
+        }
+
 
         protected virtual void UpdateFromJson(JObject jsonObject)
         {
-            if (!(targetType is TransformedType))
-            {
-                throw new InvalidOperationException("Update object not supported on type " + targetType.Name);
-            }
+            if (!(this.targetType is TransformedType))
+                throw new InvalidOperationException("Update object not supported on type " + this.targetType.Name);
 
-            var transformedType = targetType as TransformedType;
+            var transformedType = this.targetType as TransformedType;
 
             foreach (var jsonProperty in jsonObject.Properties())
             {
@@ -89,98 +182,17 @@ namespace Pomona
                 // Should support "new" types in the future?
                 var propertyType = targetProperty.PropertyType as SharedType;
                 if (propertyType == null)
-                    throw new InvalidOperationException("Unable to set property of type " +
-                                                        targetProperty.PropertyType.GetType().Name);
-
-                targetProperty.Setter(target, Convert.ChangeType(((JValue) jsonProperty.Value).Value,
-                                                                 propertyType.TargetType));
-            }
-        }
-
-        public virtual void UpdateFromJson(TextReader textReader)
-        {
-            var jsonObject = JObject.Load(new JsonTextReader(textReader));
-            UpdateFromJson(jsonObject);
-        }
-
-        public virtual void ToJson(TextWriter textWriter)
-        {
-            var jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
-            ToJson(jsonWriter);
-            jsonWriter.Flush();
-        }
-
-
-        public virtual void ToJson(JsonWriter writer)
-        {
-            IMappedType collectionElementType;
-            if (TryGetCollectionElementType(targetType, out collectionElementType))
-            {
-                writer.WriteStartArray();
-                foreach (var child in ((IEnumerable) target))
                 {
-                    WriteJsonExpandedOrReference(
-                        writer,
-                        child,
-                        path,
-                        context.TypeMapper.GetClassMapping(child.GetType()),
-                        collectionElementType);
-                }
-                writer.WriteEndArray();
-            }
-            else
-            {
-                var transformedType = (TransformedType) targetType;
-                writer.WriteStartObject();
-
-                writer.WritePropertyName("_uri");
-                writer.WriteValue(context.GetUri(target));
-
-                if (expectedBaseType != targetType)
-                {
-                    writer.WritePropertyName("_type");
-                    writer.WriteValue(targetType.Name);
+                    throw new InvalidOperationException(
+                        "Unable to set property of type " +
+                        targetProperty.PropertyType.GetType().Name);
                 }
 
-                foreach (var propDef in transformedType.Properties)
-                {
-                    var subPath = path + "." + propDef.JsonName;
-                    var value = propDef.Getter(target);
-
-                    writer.WritePropertyName(propDef.JsonName);
-                    if (value == null)
-                    {
-                        writer.WriteNull();
-                        continue;
-                    }
-
-                    var valueTypeMapping = context.TypeMapper.GetClassMapping(value.GetType());
-
-                    if (context.TypeMapper.IsSerializedAsObject(valueTypeMapping) ||
-                        context.TypeMapper.IsSerializedAsArray(valueTypeMapping))
-                    {
-                        var propertyValue = propDef.Getter(target);
-
-                        if (propertyValue == null)
-                            writer.WriteNull();
-                        else
-                        {
-                            WriteJsonExpandedOrReference(
-                                writer, propertyValue, subPath, valueTypeMapping, propDef.PropertyType);
-                        }
-                    }
-                    else
-                        writer.WriteValue(propDef.Getter(target));
-                }
-
-                // Write path for debug purposes
-                if (context.DebugMode)
-                {
-                    writer.WritePropertyName("_path");
-                    writer.WriteValue(path);
-                }
-
-                writer.WriteEndObject();
+                targetProperty.Setter(
+                    this.target,
+                    Convert.ChangeType(
+                        ((JValue)jsonProperty.Value).Value,
+                        propertyType.TargetType));
             }
         }
 
@@ -197,9 +209,7 @@ namespace Pomona
             // First look if we're dealing directly with a known collection type
             if (sharedType.IsGenericType
                 && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
-            {
                 elementType = sharedType.GenericArguments[0];
-            }
             /*
             if (elementType == null && searchInterfaces)
             {
@@ -213,6 +223,7 @@ namespace Pomona
             return elementType != null;
         }
 
+
         private bool IsIList(IMappedType mappedType)
         {
             var sharedType = mappedType as SharedType;
@@ -221,6 +232,7 @@ namespace Pomona
 
             return IsIList(sharedType.TargetType);
         }
+
 
         private bool IsIList(object obj)
         {
@@ -234,7 +246,7 @@ namespace Pomona
             return
                 t.GetInterfaces().Any(
                     x => x.IsGenericType &&
-                         x.GetGenericTypeDefinition() == typeof (IList<>)
+                         x.GetGenericTypeDefinition() == typeof(IList<>)
                     /* && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0])*/);
         }
 
@@ -242,16 +254,16 @@ namespace Pomona
         private void WriteJsonExpandedOrReference(
             JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
         {
-            if (context.PathToBeExpanded(subPath) || IsIList(valueType))
+            if (this.context.PathToBeExpanded(subPath) || IsIList(valueType))
             {
-                var wrapper = context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
+                var wrapper = this.context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
                 wrapper.ToJson(writer);
             }
             else
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName("_ref");
-                writer.WriteValue(context.GetUri(propertyValue));
+                writer.WriteValue(this.context.GetUri(propertyValue));
 
                 if (expectedBaseType != valueType)
                 {
@@ -260,7 +272,7 @@ namespace Pomona
                     writer.WriteValue(propertyValue.GetType().Name);
                 }
 
-                if (context.DebugMode)
+                if (this.context.DebugMode)
                 {
                     writer.WritePropertyName("_path");
                     writer.WriteValue(subPath);

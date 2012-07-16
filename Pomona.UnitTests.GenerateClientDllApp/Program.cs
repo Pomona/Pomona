@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,48 +27,36 @@
 #endregion
 
 using System;
+using System.IO;
 
-namespace Pomona.Client
+using Pomona.Example;
+using Pomona.Example.Models;
+
+namespace Pomona.UnitTests.GenerateClientDllApp
 {
-    public class LazyProxyInterceptor : IProxyInterceptor
+    internal class Program
     {
-        private readonly ClientHelper client;
-        private readonly Type pocoType;
-        private readonly string uri;
-        private object target;
-
-
-        public LazyProxyInterceptor(string uri, Type pocoType, ClientHelper client)
+        private static void Main(string[] args)
         {
-            if (uri == null)
-                throw new ArgumentNullException("uri");
-            if (pocoType == null)
-                throw new ArgumentNullException("pocoType");
-            if (client == null)
-                throw new ArgumentNullException("client");
+            var session = new PomonaSession(
+                new CritterDataSource(), new TypeMapper(CritterDataSource.GetEntityTypes()), UriResolver);
 
-            this.uri = uri;
-            this.pocoType = pocoType;
-            this.client = client;
-        }
+            using (var file = new FileStream(@"..\..\..\lib\Critter.Client.dll", FileMode.OpenOrCreate))
+            {
+                session.WriteClientLibrary(file);
+            }
 
-        #region IProxyInterceptor Members
-
-        public object OnPropertyGet(string propertyName)
-        {
-            if (this.target == null)
-                this.target = this.client.GetUri(this.uri, this.pocoType);
-
-            // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return this.pocoType.GetProperty(propertyName).GetValue(this.target, null);
+            Console.WriteLine("Wrote client dll.");
         }
 
 
-        public void OnPropertySet(string propertyName, object value)
+        private static string UriResolver(object x)
         {
-            throw new NotImplementedException();
-        }
+            var entity = x as EntityBase;
+            if (entity == null)
+                return null;
 
-        #endregion
+            return string.Format("http://localhost:2211/{0}/{1}", x.GetType().Name.ToLower(), entity.Id);
+        }
     }
 }

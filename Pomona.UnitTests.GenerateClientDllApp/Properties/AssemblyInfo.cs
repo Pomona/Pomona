@@ -33,11 +33,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("Pomona.Example")]
+[assembly : AssemblyTitle("Pomona.UnitTests.GenerateClientDllApp")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("")]
-[assembly : AssemblyProduct("Pomona.Example")]
+[assembly : AssemblyProduct("Pomona.UnitTests.GenerateClientDllApp")]
 [assembly : AssemblyCopyright("Copyright ©  2012")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]
@@ -50,7 +50,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly : Guid("1de3ab02-b45f-4c41-bd41-c79744a9c608")]
+[assembly : Guid("b9fed4d6-2682-4fee-89ee-8d235bcb36ec")]
 
 // Version information for an assembly consists of the following four values:
 //

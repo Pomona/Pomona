@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 
 namespace Pomona
@@ -36,10 +40,10 @@ namespace Pomona
     {
         IMappedType BaseType { get; }
         IList<IMappedType> GenericArguments { get; }
+        bool IsCollection { get; }
         bool IsGenericType { get; }
         bool IsGenericTypeDefinition { get; }
-        string Name { get; }
         bool IsValueType { get; }
-        bool IsCollection { get; }
+        string Name { get; }
     }
 }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,9 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.IO;
+
 using NUnit.Framework;
+
 using Newtonsoft.Json.Linq;
+
 using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.PomonaSession
@@ -40,6 +47,7 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+
         [Test]
         public void WithExpandSetToNull_ReturnsArrayOfRefs()
         {
@@ -50,10 +58,9 @@ namespace Pomona.UnitTests.PomonaSession
             // Assert
             var weapons = jobject.AssertHasPropertyWithArray("weapons");
             foreach (var jtoken in weapons.Children())
-            {
                 jtoken.AssertIsReference();
-            }
         }
+
 
         [Test]
         public void WithExpandSetToNull_ReturnsOneLevelByDefault()
@@ -65,6 +72,7 @@ namespace Pomona.UnitTests.PomonaSession
             var hat = jobject.AssertHasPropertyWithObject("hat");
             hat.AssertIsReference();
         }
+
 
         [Test]
         public void WithExpandedHat_HatIsIncluded()
