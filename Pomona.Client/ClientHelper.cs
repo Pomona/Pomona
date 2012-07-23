@@ -256,13 +256,23 @@ namespace Pomona.Client
 
         private object CreateProxyFor(string uri, Type expectedType)
         {
-            var proxyType = GetProxyForInterface(expectedType);
-            var proxy = (LazyProxyBase)Activator.CreateInstance(proxyType);
-            proxy.Uri = uri;
-            proxy.TargetType = GetPocoForInterface(expectedType);
-            proxy.Client = this;
+            // Check if this is a proxy for a collection or not
+            Type elementType;
+            if (TryGetCollectionElementType(expectedType, out elementType))
+            {
+                var proxy = LazyListProxy.CreateForType(elementType, uri, this);
+                return proxy;
+            }
+            else
+            {
+                var proxyType = GetProxyForInterface(expectedType);
+                var proxy = (LazyProxyBase)Activator.CreateInstance(proxyType);
+                proxy.Uri = uri;
+                proxy.TargetType = GetPocoForInterface(expectedType);
+                proxy.Client = this;
+                return proxy;
+            }
 
-            return proxy;
         }
 
 

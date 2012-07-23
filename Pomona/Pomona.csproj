@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IPomonaDataSource.cs" />
+    <Compile Include="ITypeMapperFilter.cs" />
     <Compile Include="PomonaModule.cs" />
     <Compile Include="PomonaSession.cs" />
     <Compile Include="TypeMapper.cs" />

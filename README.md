@@ -8,6 +8,7 @@ Roadmap for first release
 * Create IPomonaDataSource, for retrieval of data
 * Create PomonaSession and PomonaSessionFactory that will bind everything together
 * Write correct metadata for generated client dll (AssemblyInfo etc..)
+* Implement support for value types (which is always expanded, and don't have URI)
 * Implement simple query mechanism (Linq? relinq? something simpler?)
   * Property equals something, look at how this is done
   * Make it possible for data source to implement its own query syntax
@@ -19,6 +20,7 @@ Future tasks
 * Implement html media type for friendly browseing.
 * Implement batch fetching on client side
 * Batch query support, for example by encapsulating an array of http operations in a JSON array
+
 
 
 Bugs

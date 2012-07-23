@@ -197,7 +197,7 @@ namespace Pomona
         }
 
 
-        private static bool TryGetCollectionElementType(
+        private bool TryGetCollectionElementType(
             IMappedType type, out IMappedType elementType, bool searchInterfaces = true)
         {
             elementType = null;
@@ -207,9 +207,33 @@ namespace Pomona
                 return false;
 
             // First look if we're dealing directly with a known collection type
-            if (sharedType.IsGenericType
-                && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
-                elementType = sharedType.GenericArguments[0];
+
+            var collectionInterface =
+                sharedType.TargetType.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+
+            if (collectionInterface == null)
+                return false;
+
+            var genargs = collectionInterface.GetGenericArguments().First();
+
+            if (genargs.IsGenericParameter)
+            {
+                // This means that we have to get the element type from one of the type arguments in TargetType
+                IList<Type> targetTypeGenericArgs = sharedType.TargetType.GetGenericArguments();
+                var indexOfElementType = targetTypeGenericArgs.IndexOf(genargs);
+                elementType = sharedType.GenericArguments[indexOfElementType];
+            }
+            else
+            {
+                elementType = this.context.TypeMapper.GetClassMapping(genargs);
+                //throw new NotImplementedException("Don't recognize collection type where element type is not specified in a generic parameter yet, like in SomeClass : ICollection<Blah>");
+            }
+
+            //if (sharedType.IsGenericType
+            //    && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
+            //{
+            //    elementType = sharedType.GenericArguments[0];
+            //}
             /*
             if (elementType == null && searchInterfaces)
             {
@@ -254,7 +278,9 @@ namespace Pomona
         private void WriteJsonExpandedOrReference(
             JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
         {
-            if (this.context.PathToBeExpanded(subPath) || IsIList(valueType))
+            var isCollection = IsIList(valueType);
+
+            if (this.context.PathToBeExpanded(subPath) || (isCollection && this.context.PathToBeExpanded(subPath + "!")))
             {
                 var wrapper = this.context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
                 wrapper.ToJson(writer);
@@ -263,14 +289,26 @@ namespace Pomona
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName("_ref");
-                writer.WriteValue(this.context.GetUri(propertyValue));
 
-                if (expectedBaseType != valueType)
+                if (isCollection)
                 {
-                    writer.WritePropertyName("_type");
-                    // TODO: This only works as long as mapped name equals source name
-                    writer.WriteValue(propertyValue.GetType().Name);
+                    // HACK: Resolving URL like this is not the correct way
+                    // Collections are exposed on uri http://host/entity/{id}/collection-name
+                    var propertyName = subPath.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last();
+                    writer.WriteValue(this.context.GetUri(target) + "/" + propertyName);
                 }
+                else
+                {
+                    writer.WriteValue(this.context.GetUri(propertyValue));
+
+                    if (expectedBaseType != valueType)
+                    {
+                        writer.WritePropertyName("_type");
+                        // TODO: This only works as long as mapped name equals source name
+                        writer.WriteValue(propertyValue.GetType().Name);
+                    }
+                }
+
 
                 if (this.context.DebugMode)
                 {

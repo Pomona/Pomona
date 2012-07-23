@@ -46,7 +46,7 @@ namespace Pomona.Example.Models
 
 
         public DateTime CreatedOn { get; set; }
-        public List<Critter> Enemies { get; set; }
+        public IList<Critter> Enemies { get; set; }
 
         public Hat Hat { get; set; }
 
@@ -54,7 +54,7 @@ namespace Pomona.Example.Models
 
         public string OkdayIsFun { get; set; }
 
-        public List<Subscription> Subscriptions { get; set; }
-        public List<Weapon> Weapons { get; set; }
+        public IList<Subscription> Subscriptions { get; set; }
+        public IList<Weapon> Weapons { get; set; }
     }
 }

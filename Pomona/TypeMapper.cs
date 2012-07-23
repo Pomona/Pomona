@@ -29,22 +29,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Pomona
 {
     public class TypeMapper
     {
+        private readonly ITypeMapperFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private HashSet<Type> sourceTypes;
 
 
-        public TypeMapper(IEnumerable<Type> sourceTypes)
+        public TypeMapper(IEnumerable<Type> sourceTypes, ITypeMapperFilter filter = null)
         {
+            this.filter = filter;
             this.sourceTypes = new HashSet<Type>(sourceTypes);
             foreach (var sourceType in this.sourceTypes)
                 GetClassMapping(sourceType);
         }
 
+
+        public ITypeMapperFilter Filter
+        {
+            get { return this.filter; }
+        }
 
         public ICollection<Type> SourceTypes
         {
@@ -109,7 +117,8 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (type.Assembly == typeof(String).Assembly)
+            if (type.Assembly == typeof(String).Assembly || type.IsEnum ||
+                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IList<>)))
             {
                 SharedType newSharedType;
                 if (type.IsGenericType)
@@ -141,6 +150,16 @@ namespace Pomona
                 this.mappings[type] = classDefinition;
 
                 classDefinition.ScanProperties(type);
+
+                return classDefinition;
+            }
+
+            // This is for proxyed types:
+            if (type.BaseType != null && type.BaseType != typeof(object) && this.sourceTypes.Contains(type.BaseType))
+            {
+                // TODO: Improve heuristics for detecting proxy types
+                var classDefinition = GetClassMapping(type.BaseType);
+                this.mappings[type] = classDefinition;
 
                 return classDefinition;
             }

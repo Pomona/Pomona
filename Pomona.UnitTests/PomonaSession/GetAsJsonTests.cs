@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.IO;
 
 using NUnit.Framework;
@@ -33,6 +34,8 @@ using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 
 using Pomona.Example.Models;
+
+using System.Linq;
 
 namespace Pomona.UnitTests.PomonaSession
 {
@@ -43,17 +46,36 @@ namespace Pomona.UnitTests.PomonaSession
         {
             var stringWriter = new StringWriter();
             Session.GetAsJson<Critter>(FirstCritterId, expand, stringWriter);
+            Console.WriteLine("Getting data:\r\n" + stringWriter.ToString());
             var jobject = JObject.Parse(stringWriter.ToString());
             return jobject;
         }
 
+        private JObject GetThingWithCustomListAsJson(string expand)
+        {
+            var stringWriter = new StringWriter();
+            var thing = DataSource.List<ThingWithCustomIList>().First();
+            Session.GetAsJson<ThingWithCustomIList>(thing.Id, expand, stringWriter);
+            Console.WriteLine("Getting data:\r\n" + stringWriter.ToString());
+            var jobject = JObject.Parse(stringWriter.ToString());
+            return jobject;
+        }
 
         [Test]
-        public void WithExpandSetToNull_ReturnsArrayOfRefs()
+        public void WithCustomList_SerializesOk()
         {
-            // NOTE: I'm not sure whether this is the best behaviour. Maybe have some way to indicate fetching of just refs, and nothing fetched is default behaviour?
             // Act
-            var jobject = GetCritterAsJson(null);
+            var jobject = GetThingWithCustomListAsJson("thingwithcustomilist.loners!");
+
+            // Assert
+            var loners = jobject.AssertHasPropertyWithArray("loners");
+        }
+
+        [Test]
+        public void WithWeaponsRefExpand_ReturnsArrayOfRefs()
+        {
+            // Act
+            var jobject = GetCritterAsJson("critter.weapons!");
 
             // Assert
             var weapons = jobject.AssertHasPropertyWithArray("weapons");

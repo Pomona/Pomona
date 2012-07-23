@@ -82,6 +82,26 @@ namespace Pomona
             wrapper.ToJson(textWriter);
         }
 
+        public void GetPropertyAsJson<T>(object id, string propertyName, string expand, TextWriter textWriter)
+        {
+            // Note this is NOT optimized, as we should make the API in a way where it's possible to select by parent id.
+            propertyName = propertyName.ToLower();
+
+            var o = this.dataSource.GetById<T>(id);
+            var mappedType = (TransformedType)this.typeMapper.GetClassMapping(o.GetType());
+
+            var property = mappedType.Properties.First(x => x.Name.ToLower() == propertyName);
+
+            var propertyValue = property.Getter(o);
+            var propertyType = property.PropertyType;
+
+            var rootPath = propertyName.ToLower(); // We want paths to be case insensitive
+            var context = new FetchContext(this.uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+
+            var wrapper = context.CreateWrapperFor(propertyValue, rootPath, propertyType);
+            wrapper.ToJson(textWriter);
+        }
+
 
         public void ListAsJson<T>(string expand, TextWriter textWriter)
         {

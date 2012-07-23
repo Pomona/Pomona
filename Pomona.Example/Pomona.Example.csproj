@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="CritterModule.cs" />
     <Compile Include="CritterDataSource.cs" />
+    <Compile Include="CustomListWrapper.cs" />
     <Compile Include="Models\Critter.cs" />
     <Compile Include="Models\EntityBase.cs" />
     <Compile Include="Models\Gun.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Models\Knife.cs" />
     <Compile Include="Models\Loner.cs" />
     <Compile Include="Models\Subscription.cs" />
+    <Compile Include="Models\ThingWithCustomIList.cs" />
     <Compile Include="Models\Weapon.cs" />
     <Compile Include="Models\WeaponModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

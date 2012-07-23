@@ -149,9 +149,24 @@ namespace Pomona
             foreach (var propInfo in type.GetProperties()
                 .Where(x => x.GetGetMethod().IsPublic && x.GetIndexParameters().Count() == 0))
             {
+                if (typeMapper.Filter != null && !typeMapper.Filter.PropertyIsIncluded(propInfo))
+                    continue;
+
+                IMappedType declaringType;
+
+                if (typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
+                {
+                    declaringType = typeMapper.GetClassMapping(propInfo.DeclaringType);
+                }
+                else
+                {
+                    // TODO: Find lowest base type with this property
+                    declaringType = this;
+                }
+
                 var propDef = new PropertyMapping(
                     propInfo.Name,
-                    this.typeMapper.GetClassMapping(propInfo.DeclaringType),
+                    declaringType,
                     this.typeMapper.GetClassMapping(propInfo.PropertyType),
                     propInfo);
 
@@ -175,6 +190,7 @@ namespace Pomona
                 this.properties.Add(propDef);
             }
 
+            // TODO: Support not including the whole type hierarchy. Remember that base type might be allowed to be a shared type.
             BaseType = this.typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor

@@ -46,10 +46,10 @@ namespace Pomona
         private IPomonaDataSource dataSource;
 
 
-        public PomonaModule(IPomonaDataSource dataSource)
+        public PomonaModule(IPomonaDataSource dataSource, ITypeMapperFilter typeMapperFilter = null)
         {
             this.dataSource = dataSource;
-            this.typeMapper = new TypeMapper(GetEntityTypes());
+            this.typeMapper = new TypeMapper(GetEntityTypes(), typeMapperFilter);
             this.session = new PomonaSession(dataSource, this.typeMapper, UriResolver);
 
             // Just eagerly load the type mappings so we can manipulate it
@@ -153,10 +153,25 @@ namespace Pomona
 
             Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
 
+            Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson<T>(x.id, x.propname);
+
             Put[path + "/{id}"] = x => UpdateFromJson<T>(x.id);
             Post[path] = x => PostFromJson<T>();
 
             Get[path] = x => ListAsJson<T>();
+        }
+
+
+        private Response GetPropertyFromEntityAsJson<T>(object id, string propname)
+        {
+            var res = new Response();
+            var expand = GetExpandedPaths().ToLower();
+
+            res.Contents = stream => this.session.GetPropertyAsJson<T>(id, propname, expand, new StreamWriter(stream));
+
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
         }
 
 

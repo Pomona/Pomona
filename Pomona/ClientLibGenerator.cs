@@ -112,6 +112,16 @@ namespace Pomona
 
                 typeInfo.PocoType = pocoDef;
 
+                // Empty public constructor
+                var ctor = new MethodDefinition(
+                    ".ctor",
+                    MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
+                    | MethodAttributes.Public,
+                    voidTypeRef);
+
+                typeInfo.EmptyPocoCtor = ctor;
+                pocoDef.Methods.Add(ctor);
+
                 this.module.Types.Add(interfaceDef);
                 this.module.Types.Add(pocoDef);
             }
@@ -147,20 +157,12 @@ namespace Pomona
                     baseCtorReference = resourceBaseCtor;
                 }
 
-                // Empty public constructor
-                var ctor = new MethodDefinition(
-                    ".ctor",
-                    MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
-                    | MethodAttributes.Public,
-                    voidTypeRef);
-
+                var ctor = typeInfo.EmptyPocoCtor;
                 ctor.Body.MaxStackSize = 8;
                 var ctorIlProcessor = ctor.Body.GetILProcessor();
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
-
-                pocoDef.Methods.Add(ctor);
 
                 foreach (var prop in classMapping.Properties.Where(x => x.DeclaringType == classMapping))
                 {
@@ -443,6 +445,7 @@ namespace Pomona
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition ProxyType { get; set; }
             public TransformedType TargetType { get; set; }
+            public MethodDefinition EmptyPocoCtor { get; set; }
         }
 
         #endregion

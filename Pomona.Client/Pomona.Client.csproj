@@ -48,6 +48,7 @@
     <Compile Include="ClientHelper.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="IProxyInterceptor.cs" />
+    <Compile Include="LazyListProxy.cs" />
     <Compile Include="LazyProxyBase.cs" />
     <Compile Include="LazyProxyInterceptor.cs" />
     <Compile Include="NewResourceBase.cs" />

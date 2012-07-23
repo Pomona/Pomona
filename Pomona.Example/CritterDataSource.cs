@@ -91,6 +91,12 @@ namespace Pomona.Example
 
             for (var i = 0; i < critterCount; i++)
                 CreateRandomCritter(rng);
+
+            var thingWithCustomIList = Save(new ThingWithCustomIList());
+            foreach (var loner in thingWithCustomIList.Loners)
+            {
+                Save(loner);
+            }
         }
 
 

@@ -26,60 +26,24 @@
 
 #endregion
 
-using System;
+using System.Collections.Generic;
 
-using CritterClient;
-
-using NUnit.Framework;
-
-using Nancy.Hosting.Self;
-
-using Pomona.Example;
-
-using System.Linq;
-
-namespace CritterClientTests
+namespace Pomona.Example.Models
 {
-    public class CritterModuleInternal : CritterModule
+    public class ThingWithCustomIList : EntityBase
     {
-    }
+        private IList<Loner> loners;
 
-    /// <summary>
-    /// Tests for generated assembly
-    /// </summary>
-    [TestFixture]
-    public class CritterTests
-    {
-        #region Setup/Teardown
 
-        [SetUp]
-        public void SetUp()
+        public ThingWithCustomIList()
         {
-            this.baseUri = "http://localhost:4186/";
-            this.host = new NancyHost(new Uri("http://localhost:4186"));
-            this.host.Start();
+            this.loners = new CustomListWrapper<Loner> { new Loner("Hooha", 387) };
         }
 
 
-        [TearDown]
-        public void TearDown()
+        public IList<Loner> Loners
         {
-            this.host.Stop();
-        }
-
-        #endregion
-
-        private NancyHost host;
-        private string baseUri;
-
-
-        [Test]
-        public void DeserializeCritters()
-        {
-            var client = new ClientHelper();
-            client.BaseUri = this.baseUri;
-            var critters = client.List<Critter>("critter.weapons.model");
-            var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
+            get { return this.loners; }
         }
     }
 }
