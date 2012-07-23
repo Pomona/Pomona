@@ -42,14 +42,20 @@ namespace Pomona
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
         private readonly TypeMapper typeMapper;
 
-        private Type type;
+        private readonly Type sourceType;
 
+        public Type SourceType
+        {
+            get { return this.sourceType; }
+        }
 
-        internal TransformedType(Type type, string name, TypeMapper typeMapper)
+        public bool PostAllowed { get { return true; } }
+
+        internal TransformedType(Type sourceType, string name, TypeMapper typeMapper)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            this.type = type;
+            this.sourceType = sourceType;
             this.name = name;
             this.typeMapper = typeMapper;
         }
@@ -91,6 +97,20 @@ namespace Pomona
             get { return false; }
         }
 
+        public bool IsBasicWireType
+        {
+            get { return false; }
+        }
+
+        public PropertyMapping GetPropertyByName(string propertyName, bool ignoreCase)
+        {
+            if (ignoreCase)
+                propertyName = propertyName.ToLower();
+
+            // TODO: Possible to optimize here by putting property names in a dictionary
+            return Properties.First(x => x.Name == propertyName);
+        }
+
         public string Name
         {
             get { return this.name; }
@@ -125,13 +145,17 @@ namespace Pomona
                         x => x.CreateMode == PropertyMapping.PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
             {
                 // TODO: Proper validation here!
-                ctorArgs[ctorProp.ConstructorArgIndex] = Convert.ChangeType(
-                    initValues[ctorProp.Name.ToLower()],
-                    ((SharedType)ctorProp.PropertyType).
-                        TargetType);
+                var value = initValues[ctorProp.Name.ToLower()];
+
+                if (ctorProp.PropertyType.IsBasicWireType)
+                {
+                    value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).TargetType);
+                }
+
+                ctorArgs[ctorProp.ConstructorArgIndex] = value;
             }
 
-            var newInstance = Activator.CreateInstance(this.type, ctorArgs);
+            var newInstance = Activator.CreateInstance(this.sourceType, ctorArgs);
 
             foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
             {

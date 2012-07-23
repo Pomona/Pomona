@@ -36,34 +36,47 @@ namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
     {
+        private object syncLock = new object();
         private readonly Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
+
+        private bool notificationsEnabled = false;
 
 
         public CritterDataSource()
         {
             CreateObjectModel();
+            notificationsEnabled = true;
         }
 
         #region IPomonaDataSource Members
 
         public T GetById<T>(object id)
         {
-            var idInt = Convert.ToInt32(id);
-            return (T)((object)GetEntityList<T>().Cast<EntityBase>().First(x => x.Id == idInt));
+            lock (syncLock)
+            {
+                var idInt = Convert.ToInt32(id);
+                return (T)((object)GetEntityList<T>().Cast<EntityBase>().First(x => x.Id == idInt));
+            }
         }
 
 
         public ICollection<T> List<T>()
         {
-            return GetEntityList<T>();
+            lock (syncLock)
+            {
+                return GetEntityList<T>();
+            }
         }
 
 
         public T Post<T>(T newObject)
         {
-            return (T)((object)Save((EntityBase)((object)newObject)));
+            lock (syncLock)
+            {
+                return Save(newObject);
+            }
         }
 
         #endregion
@@ -71,12 +84,6 @@ namespace Pomona.Example
         public static IEnumerable<Type> GetEntityTypes()
         {
             return typeof(CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
-        }
-
-
-        public IList<T> GetAll<T>()
-        {
-            return GetEntityList<T>();
         }
 
 
@@ -172,11 +179,15 @@ namespace Pomona.Example
 
 
         private T Save<T>(T entity)
-            where T : EntityBase
         {
-            if (entity.Id != 0)
+            var entityCast = (EntityBase)((object)entity);
+
+            if (entityCast.Id != 0)
                 throw new InvalidOperationException("Trying to save entity with id 0");
-            entity.Id = this.idCounter++;
+            entityCast.Id = this.idCounter++;
+            if (notificationsEnabled)
+                Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
+
             GetEntityList<T>().Add(entity);
             return entity;
         }

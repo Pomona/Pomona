@@ -44,7 +44,27 @@ namespace Pomona.Client
             foreach (var kvp in this.putMap)
             {
                 var jsonName = kvp.Key.Substring(0, 1).ToLower() + kvp.Key.Substring(1);
-                jObject.Add(jsonName, new JValue(kvp.Value));
+                var value = kvp.Value;
+
+                var putValue = value as PutResourceBase;
+                var hasResourceUri = value as IHasResourceUri;
+
+                if (putValue != null)
+                {
+                    // Recursive put
+                    jObject.Add(jsonName, putValue.ToJson());
+                }
+                else if (hasResourceUri != null)
+                {
+                    // Adding this as a reference
+                    var propRefJObject = new JObject();
+                    propRefJObject.Add("_ref", hasResourceUri.Uri);
+                    jObject.Add(jsonName, propRefJObject);
+                }
+                else
+                {
+                    jObject.Add(jsonName, new JValue(value));
+                }
             }
 
             return jObject;

@@ -27,8 +27,12 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -44,7 +48,15 @@ namespace Pomona
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
         private readonly Func<object, string> uriResolver;
+        private readonly static MethodInfo postGenericMethod;
 
+
+        static PomonaSession()
+        {
+            postGenericMethod =
+                typeof(PomonaSession).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(
+                    x => x.Name == "PostGeneric");
+        }
 
         /// <summary>
         /// Constructor for PomonaSession.
@@ -71,6 +83,15 @@ namespace Pomona
             get { return this.typeMapper; }
         }
 
+        public string GetAsJson<T>(object id, string expand)
+        {
+            using (var textWriter = new StringWriter())
+            {
+                GetAsJson<T>(id, expand, textWriter);
+                textWriter.Flush();
+                return textWriter.ToString();
+            }
+        }
 
         public void GetAsJson<T>(object id, string expand, TextWriter textWriter)
         {
@@ -115,18 +136,112 @@ namespace Pomona
         }
 
 
+        public string PostJson<T>(TextReader textReader)
+        {
+            using (var textWriter = new StringWriter())
+            {
+                PostJson<T>(textReader, textWriter);
+                return textWriter.ToString();
+            }
+        }
+
         public void PostJson<T>(TextReader textReader, TextWriter textWriter)
         {
             var mappedType = (TransformedType)this.typeMapper.GetClassMapping<T>();
-            var newInstance =
-                mappedType.NewInstance(
-                    JObject.Load(new JsonTextReader(textReader)).Children().OfType<JProperty>().ToDictionary(
-                        x => x.Name.ToLower(), x => ((JValue)x.Value).Value));
-            var o = this.dataSource.Post(newInstance);
+            var jObject = JObject.Load(new JsonTextReader(textReader));
+
+            // A posted JSON object can either contain references to existing objects or
+            // new objects that will be posted first.
+
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
+            var o = PostJsonInternal(mappedType, jObject);
+
             var context = new FetchContext(this.uriResolver, rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
+        }
+
+
+        private object PostJsonInternal(TransformedType mappedType, JObject jObject)
+        {
+            if (!mappedType.PostAllowed)
+                throw new UnauthorizedAccessException("Not allowed to post type " + mappedType.Name);
+
+            // TODO: Support subtypes
+            IDictionary<string, object> initValues = new Dictionary<string, object>();
+
+            foreach (var jProp in jObject.Properties())
+            {
+                var mappedProperty = mappedType.GetPropertyByJsonName(jProp.Name);
+                var propTransformedType = mappedProperty.PropertyType as TransformedType;
+                object propValueToSet;
+                if (propTransformedType != null)
+                {
+                    // We expect jProp to be an object
+                    var jPropObject = jProp.Value as JObject;
+
+                    if (jPropObject == null)
+                        throw new PomonaSerializationException("The property " + jProp.Name + " is of wrong type, expected to be a JSON object (dictionary).");
+
+                    JToken refUriToken;
+                    if (jPropObject.TryGetValue("_ref", out refUriToken))
+                    {
+                        if (!(refUriToken is JValue))
+                            throw new PomonaSerializationException("Refuri must be a string with valid URI");
+
+                        var refUri = (string)((JValue)refUriToken).Value;
+
+                        // HMMM How are we supposed to resolve the URI here?? It seems the URI routing stuff needs to go a bit deeper in the architecture..
+                        // HACK HACK HACK For now assume that the URL ends with {entityname}/{id}
+                        propValueToSet = GetObjectFromUri(refUri);
+                    }
+                    else
+                    {
+                        // Create a new one!
+                        propValueToSet = PostJsonInternal(propTransformedType, jPropObject);
+                    }
+                }
+                else if (mappedProperty.PropertyType.IsBasicWireType)
+                {
+                    propValueToSet = ((JValue)jProp.Value).Value;
+                }
+                else
+                {
+                    throw new PomonaSerializationException("Don't know how to deserialize JSON property " + jProp.Name);
+                }
+
+                initValues.Add(jProp.Name.ToLower(), propValueToSet);
+            }
+
+            var newInstance = mappedType.NewInstance(initValues);
+
+            return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] { newInstance });
+        }
+
+        private object PostGeneric<T>(T objectToPost)
+        {
+            return dataSource.Post(objectToPost);
+        }
+
+
+        private object GetObjectFromUri(string refUri)
+        {
+            // HACK! This is not good enough for final solution of how we map urls..
+            Uri uri = new Uri(refUri);
+
+            var parts = uri.LocalPath.Split("/".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            var entityName = parts[0];
+            var id = Convert.ToInt32(parts[1]); // HACK! Id hardcoded to be int.. ooops..
+
+            // Now we need to find matching mapped type
+            // Hmm.. Here the _type part could be used.
+            var transformedType = TypeMapper.TransformedTypes.First(x => x.Name.ToLower() == entityName.ToLower());
+            var sourceType = transformedType.SourceType;
+
+            if (sourceType == null)
+                throw new InvalidOperationException("Don't know how to fetch TrasnformedType that has no SourceType set");
+
+            return dataSource.GetById(sourceType, id);
         }
 
 

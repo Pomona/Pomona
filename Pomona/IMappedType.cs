@@ -44,6 +44,7 @@ namespace Pomona
         bool IsGenericType { get; }
         bool IsGenericTypeDefinition { get; }
         bool IsValueType { get; }
+        bool IsBasicWireType { get; }
         string Name { get; }
     }
 }

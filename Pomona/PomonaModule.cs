@@ -38,6 +38,20 @@ using Newtonsoft.Json;
 
 namespace Pomona
 {
+    internal static class NancyExtensions
+    {
+        internal static void ContentsFromString(this Response resp, string text)
+        {
+            resp.Contents = stream =>
+            {
+                using (var writer = new StreamWriter(stream))
+                {
+                    writer.Write(text);
+                }
+            };
+        }
+    }
+
     public abstract class PomonaModule : NancyModule
     {
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
@@ -85,7 +99,8 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            res.Contents = stream => this.session.GetAsJson<T>(id, expand, new StreamWriter(stream));
+            var json = session.GetAsJson<T>(id, expand);
+            res.ContentsFromString(json);
 
             res.ContentType = "text/plain; charset=utf-8";
 
@@ -150,7 +165,9 @@ namespace Pomona
             var req = Request;
 
             var res = new Response();
-            res.Contents = stream => this.session.PostJson<T>(new StreamReader(req.Body), new StreamWriter(stream));
+
+            var responseBodyText = session.PostJson<T>(new StreamReader(req.Body));
+            res.ContentsFromString(responseBodyText);
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;

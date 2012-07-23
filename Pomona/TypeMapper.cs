@@ -58,7 +58,7 @@ namespace Pomona
             get { return this.sourceTypes; }
         }
 
-        public IEnumerable<IMappedType> TransformedTypes
+        public IEnumerable<TransformedType> TransformedTypes
         {
             get { return this.mappings.Values.OfType<TransformedType>(); }
         }

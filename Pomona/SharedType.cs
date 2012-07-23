@@ -38,6 +38,10 @@ namespace Pomona
     /// </summary>
     public class SharedType : IMappedType
     {
+        private static Type[] basicWireTypes = {
+            typeof(int), typeof(double), typeof(float), typeof(string), typeof(bool), typeof(decimal), typeof(DateTime)
+        };
+
         private readonly Type targetType;
         private readonly TypeMapper typeMapper;
         private bool isCollection;
@@ -72,6 +76,11 @@ namespace Pomona
         }
 
         public IList<IMappedType> GenericArguments { get; private set; }
+
+        public bool IsBasicWireType
+        {
+            get { return basicWireTypes.Contains(this.targetType); }
+        }
 
         public bool IsCollection
         {

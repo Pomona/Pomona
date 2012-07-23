@@ -36,6 +36,9 @@
     <Reference Include="Nancy, Version=0.11.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Nancy.0.11.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
+    <Reference Include="Nancy.Hosting.Self">
+      <HintPath>..\packages\Nancy.Hosting.Self.0.11.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -48,6 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CritterBootstrapper.cs" />
+    <Compile Include="CritterErrorHandler.cs" />
+    <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />
     <Compile Include="CritterDataSource.cs" />
     <Compile Include="CustomListWrapper.cs" />

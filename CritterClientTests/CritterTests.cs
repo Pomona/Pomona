@@ -41,6 +41,9 @@ namespace CritterClientTests
 {
     public class CritterModuleInternal : CritterModule
     {
+        public CritterModuleInternal(CritterDataSource dataSource) : base(dataSource)
+        {
+        }
     }
 
     /// <summary>
@@ -55,30 +58,76 @@ namespace CritterClientTests
         public void SetUp()
         {
             this.baseUri = "http://localhost:4186/";
-            this.host = new NancyHost(new Uri("http://localhost:4186"));
-            this.host.Start();
+            this.critterHost = new CritterHost(new Uri(baseUri));
+            this.critterHost.Start();
+            client = new ClientHelper();
+            client.BaseUri = this.baseUri;
         }
 
 
         [TearDown]
         public void TearDown()
         {
-            this.host.Stop();
+            this.critterHost.Stop();
         }
 
         #endregion
 
-        private NancyHost host;
+        private CritterHost critterHost;
         private string baseUri;
+        private ClientHelper client;
 
 
         [Test]
         public void DeserializeCritters()
         {
-            var client = new ClientHelper();
-            client.BaseUri = this.baseUri;
             var critters = client.List<Critter>("critter.weapons.model");
             var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
+        }
+
+        [Test]
+        public void PostCritterWithNewHat()
+        {
+            const string critterName = "Nooob critter";
+            const string hatType = "Bolalalala";
+
+            var critter = client.Post<ICritter>(
+                x =>
+                {
+                    x.Hat = new NewHat() { HatType = hatType };
+                    x.Name = critterName;
+                });
+
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
+        }
+
+        [Test]
+        public void PostCritterWithExistingHat()
+        {
+            const string hatType = "Old";
+
+            var hat = PostAHat(hatType);
+
+            const string critterName = "Super critter";
+
+            var critter = client.Post<ICritter>(
+                x =>
+                {
+                    x.Hat = hat;
+                    x.Name = critterName;
+                });
+
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
+        }
+
+
+        private IHat PostAHat(string hatType)
+        {
+            var hat = this.client.Post<IHat>(
+                x => { x.HatType = hatType; });
+            return hat;
         }
     }
 }
