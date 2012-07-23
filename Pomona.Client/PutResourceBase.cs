@@ -62,9 +62,7 @@ namespace Pomona.Client
                     jObject.Add(jsonName, propRefJObject);
                 }
                 else
-                {
                     jObject.Add(jsonName, new JValue(value));
-                }
             }
 
             return jObject;

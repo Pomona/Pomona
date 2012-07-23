@@ -1,4 +1,5 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,30 +23,19 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
 using System;
 
-using Nancy.Bootstrapper;
 using Nancy.Hosting.Self;
 
 namespace Pomona.Example
 {
     public class CritterHost
     {
-
-        private NancyHost host;
         private Uri baseUri;
-
-        public NancyHost Host
-        {
-            get { return this.host; }
-        }
-
-        public Uri BaseUri
-        {
-            get { return this.baseUri; }
-        }
+        private NancyHost host;
 
 
         public CritterHost(Uri baseUri)
@@ -54,16 +44,28 @@ namespace Pomona.Example
         }
 
 
+        public Uri BaseUri
+        {
+            get { return this.baseUri; }
+        }
+
+        public NancyHost Host
+        {
+            get { return this.host; }
+        }
+
+
         public void Start()
         {
-            host = new NancyHost(this.baseUri, new CritterBootstrapper());
-            host.Start();
+            this.host = new NancyHost(this.baseUri, new CritterBootstrapper());
+            this.host.Start();
         }
+
 
         public void Stop()
         {
-            host.Stop();
-            host = null;
+            this.host.Stop();
+            this.host = null;
         }
     }
 }

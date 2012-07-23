@@ -40,16 +40,10 @@ namespace Pomona
     {
         private readonly string name;
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
-        private readonly TypeMapper typeMapper;
 
         private readonly Type sourceType;
+        private readonly TypeMapper typeMapper;
 
-        public Type SourceType
-        {
-            get { return this.sourceType; }
-        }
-
-        public bool PostAllowed { get { return true; } }
 
         internal TransformedType(Type sourceType, string name, TypeMapper typeMapper)
         {
@@ -63,9 +57,19 @@ namespace Pomona
 
         public ConstructorInfo ConstructorInfo { get; set; }
 
+        public bool PostAllowed
+        {
+            get { return true; }
+        }
+
         public IList<PropertyMapping> Properties
         {
             get { return this.properties; }
+        }
+
+        public Type SourceType
+        {
+            get { return this.sourceType; }
         }
 
         #region IMappedType Members
@@ -75,6 +79,11 @@ namespace Pomona
         public IList<IMappedType> GenericArguments
         {
             get { return new IMappedType[] { }; }
+        }
+
+        public bool IsBasicWireType
+        {
+            get { return false; }
         }
 
         public bool IsCollection
@@ -97,10 +106,11 @@ namespace Pomona
             get { return false; }
         }
 
-        public bool IsBasicWireType
+        public string Name
         {
-            get { return false; }
+            get { return this.name; }
         }
+
 
         public PropertyMapping GetPropertyByName(string propertyName, bool ignoreCase)
         {
@@ -109,11 +119,6 @@ namespace Pomona
 
             // TODO: Possible to optimize here by putting property names in a dictionary
             return Properties.First(x => x.Name == propertyName);
-        }
-
-        public string Name
-        {
-            get { return this.name; }
         }
 
         #endregion
@@ -148,9 +153,7 @@ namespace Pomona
                 var value = initValues[ctorProp.Name.ToLower()];
 
                 if (ctorProp.PropertyType.IsBasicWireType)
-                {
                     value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).TargetType);
-                }
 
                 ctorArgs[ctorProp.ConstructorArgIndex] = value;
             }

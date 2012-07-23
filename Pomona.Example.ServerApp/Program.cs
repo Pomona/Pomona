@@ -28,8 +28,6 @@
 
 using System;
 
-using Nancy.Hosting.Self;
-
 using Pomona.Example;
 
 namespace Pomona

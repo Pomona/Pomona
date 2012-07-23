@@ -27,12 +27,10 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -45,10 +43,10 @@ namespace Pomona
     /// </summary>
     public class PomonaSession
     {
+        private static readonly MethodInfo postGenericMethod;
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
         private readonly Func<object, string> uriResolver;
-        private readonly static MethodInfo postGenericMethod;
 
 
         static PomonaSession()
@@ -57,6 +55,7 @@ namespace Pomona
                 typeof(PomonaSession).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(
                     x => x.Name == "PostGeneric");
         }
+
 
         /// <summary>
         /// Constructor for PomonaSession.
@@ -83,6 +82,7 @@ namespace Pomona
             get { return this.typeMapper; }
         }
 
+
         public string GetAsJson<T>(object id, string expand)
         {
             using (var textWriter = new StringWriter())
@@ -92,6 +92,7 @@ namespace Pomona
                 return textWriter.ToString();
             }
         }
+
 
         public void GetAsJson<T>(object id, string expand, TextWriter textWriter)
         {
@@ -145,6 +146,7 @@ namespace Pomona
             }
         }
 
+
         public void PostJson<T>(TextReader textReader, TextWriter textWriter)
         {
             var mappedType = (TransformedType)this.typeMapper.GetClassMapping<T>();
@@ -159,6 +161,53 @@ namespace Pomona
             var context = new FetchContext(this.uriResolver, rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
+        }
+
+
+        public void UpdateFromJson<T>(object id, TextReader textReader, TextWriter textWriter)
+        {
+            var o = this.dataSource.GetById<T>(id);
+            var mappedType = this.typeMapper.GetClassMapping(o.GetType());
+            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
+            var context = new FetchContext(this.uriResolver, rootPath, false, this);
+            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            wrapper.UpdateFromJson(textReader);
+            wrapper.ToJson(textWriter);
+        }
+
+
+        public void WriteClientLibrary(Stream stream)
+        {
+            var clientLibGenerator = new ClientLibGenerator(this.typeMapper);
+            clientLibGenerator.CreateClientDll(stream);
+        }
+
+
+        private object GetObjectFromUri(string refUri)
+        {
+            // HACK! This is not good enough for final solution of how we map urls..
+            var uri = new Uri(refUri);
+
+            var parts = uri.LocalPath.Split("/".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            var entityName = parts[0];
+            var id = Convert.ToInt32(parts[1]); // HACK! Id hardcoded to be int.. ooops..
+
+            // Now we need to find matching mapped type
+            // Hmm.. Here the _type part could be used.
+            var transformedType = TypeMapper.TransformedTypes.First(x => x.Name.ToLower() == entityName.ToLower());
+            var sourceType = transformedType.SourceType;
+
+            if (sourceType == null)
+                throw new InvalidOperationException(
+                    "Don't know how to fetch TrasnformedType that has no SourceType set");
+
+            return this.dataSource.GetById(sourceType, id);
+        }
+
+
+        private object PostGeneric<T>(T objectToPost)
+        {
+            return this.dataSource.Post(objectToPost);
         }
 
 
@@ -181,7 +230,11 @@ namespace Pomona
                     var jPropObject = jProp.Value as JObject;
 
                     if (jPropObject == null)
-                        throw new PomonaSerializationException("The property " + jProp.Name + " is of wrong type, expected to be a JSON object (dictionary).");
+                    {
+                        throw new PomonaSerializationException(
+                            "The property " + jProp.Name
+                            + " is of wrong type, expected to be a JSON object (dictionary).");
+                    }
 
                     JToken refUriToken;
                     if (jPropObject.TryGetValue("_ref", out refUriToken))
@@ -202,13 +255,9 @@ namespace Pomona
                     }
                 }
                 else if (mappedProperty.PropertyType.IsBasicWireType)
-                {
                     propValueToSet = ((JValue)jProp.Value).Value;
-                }
                 else
-                {
                     throw new PomonaSerializationException("Don't know how to deserialize JSON property " + jProp.Name);
-                }
 
                 initValues.Add(jProp.Name.ToLower(), propValueToSet);
             }
@@ -216,51 +265,6 @@ namespace Pomona
             var newInstance = mappedType.NewInstance(initValues);
 
             return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] { newInstance });
-        }
-
-        private object PostGeneric<T>(T objectToPost)
-        {
-            return dataSource.Post(objectToPost);
-        }
-
-
-        private object GetObjectFromUri(string refUri)
-        {
-            // HACK! This is not good enough for final solution of how we map urls..
-            Uri uri = new Uri(refUri);
-
-            var parts = uri.LocalPath.Split("/".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            var entityName = parts[0];
-            var id = Convert.ToInt32(parts[1]); // HACK! Id hardcoded to be int.. ooops..
-
-            // Now we need to find matching mapped type
-            // Hmm.. Here the _type part could be used.
-            var transformedType = TypeMapper.TransformedTypes.First(x => x.Name.ToLower() == entityName.ToLower());
-            var sourceType = transformedType.SourceType;
-
-            if (sourceType == null)
-                throw new InvalidOperationException("Don't know how to fetch TrasnformedType that has no SourceType set");
-
-            return dataSource.GetById(sourceType, id);
-        }
-
-
-        public void UpdateFromJson<T>(object id, TextReader textReader, TextWriter textWriter)
-        {
-            var o = this.dataSource.GetById<T>(id);
-            var mappedType = this.typeMapper.GetClassMapping(o.GetType());
-            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(this.uriResolver, rootPath, false, this);
-            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
-            wrapper.UpdateFromJson(textReader);
-            wrapper.ToJson(textWriter);
-        }
-
-
-        public void WriteClientLibrary(Stream stream)
-        {
-            var clientLibGenerator = new ClientLibGenerator(this.typeMapper);
-            clientLibGenerator.CreateClientDll(stream);
         }
     }
 }

@@ -99,7 +99,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            var json = session.GetAsJson<T>(id, expand);
+            var json = this.session.GetAsJson<T>(id, expand);
             res.ContentsFromString(json);
 
             res.ContentType = "text/plain; charset=utf-8";
@@ -166,7 +166,7 @@ namespace Pomona
 
             var res = new Response();
 
-            var responseBodyText = session.PostJson<T>(new StreamReader(req.Body));
+            var responseBodyText = this.session.PostJson<T>(new StreamReader(req.Body));
             res.ContentsFromString(responseBodyText);
             res.ContentType = "text/plain; charset=utf-8";
 

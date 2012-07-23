@@ -36,25 +36,25 @@ namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
     {
-        private object syncLock = new object();
         private readonly Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
 
         private bool notificationsEnabled = false;
+        private object syncLock = new object();
 
 
         public CritterDataSource()
         {
             CreateObjectModel();
-            notificationsEnabled = true;
+            this.notificationsEnabled = true;
         }
 
         #region IPomonaDataSource Members
 
         public T GetById<T>(object id)
         {
-            lock (syncLock)
+            lock (this.syncLock)
             {
                 var idInt = Convert.ToInt32(id);
                 return (T)((object)GetEntityList<T>().Cast<EntityBase>().First(x => x.Id == idInt));
@@ -64,7 +64,7 @@ namespace Pomona.Example
 
         public ICollection<T> List<T>()
         {
-            lock (syncLock)
+            lock (this.syncLock)
             {
                 return GetEntityList<T>();
             }
@@ -73,7 +73,7 @@ namespace Pomona.Example
 
         public T Post<T>(T newObject)
         {
-            lock (syncLock)
+            lock (this.syncLock)
             {
                 return Save(newObject);
             }
@@ -185,7 +185,7 @@ namespace Pomona.Example
             if (entityCast.Id != 0)
                 throw new InvalidOperationException("Trying to save entity with id 0");
             entityCast.Id = this.idCounter++;
-            if (notificationsEnabled)
+            if (this.notificationsEnabled)
                 Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
 
             GetEntityList<T>().Add(entity);
