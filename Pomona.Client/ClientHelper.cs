@@ -272,7 +272,6 @@ namespace Pomona.Client
                 proxy.Client = this;
                 return proxy;
             }
-
         }
 
 

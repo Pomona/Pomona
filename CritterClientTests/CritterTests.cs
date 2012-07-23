@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Linq;
 
 using CritterClient;
 
@@ -35,8 +36,6 @@ using NUnit.Framework;
 using Nancy.Hosting.Self;
 
 using Pomona.Example;
-
-using System.Linq;
 
 namespace CritterClientTests
 {

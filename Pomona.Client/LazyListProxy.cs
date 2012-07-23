@@ -46,6 +46,7 @@ namespace Pomona.Client
             this.clientHelper = clientHelper;
         }
 
+
         internal static object CreateForType(Type elementType, string uri, ClientHelper clientHelper)
         {
             return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(elementType), uri, clientHelper);

@@ -28,14 +28,13 @@
 
 using System;
 using System.IO;
+using System.Linq;
 
 using NUnit.Framework;
 
 using Newtonsoft.Json.Linq;
 
 using Pomona.Example.Models;
-
-using System.Linq;
 
 namespace Pomona.UnitTests.PomonaSession
 {
@@ -51,6 +50,7 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+
         private JObject GetThingWithCustomListAsJson(string expand)
         {
             var stringWriter = new StringWriter();
@@ -61,6 +61,7 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+
         [Test]
         public void WithCustomList_SerializesOk()
         {
@@ -69,18 +70,6 @@ namespace Pomona.UnitTests.PomonaSession
 
             // Assert
             var loners = jobject.AssertHasPropertyWithArray("loners");
-        }
-
-        [Test]
-        public void WithWeaponsRefExpand_ReturnsArrayOfRefs()
-        {
-            // Act
-            var jobject = GetCritterAsJson("critter.weapons!");
-
-            // Assert
-            var weapons = jobject.AssertHasPropertyWithArray("weapons");
-            foreach (var jtoken in weapons.Children())
-                jtoken.AssertIsReference();
         }
 
 
@@ -106,6 +95,19 @@ namespace Pomona.UnitTests.PomonaSession
             var hat = jobject.AssertHasPropertyWithObject("hat");
             var hatType = hat.AssertHasPropertyWithString("hatType");
             Assert.AreEqual(FirstCritter.Hat.HatType, hatType);
+        }
+
+
+        [Test]
+        public void WithWeaponsRefExpand_ReturnsArrayOfRefs()
+        {
+            // Act
+            var jobject = GetCritterAsJson("critter.weapons!");
+
+            // Assert
+            var weapons = jobject.AssertHasPropertyWithArray("weapons");
+            foreach (var jtoken in weapons.Children())
+                jtoken.AssertIsReference();
         }
     }
 }

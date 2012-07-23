@@ -197,6 +197,33 @@ namespace Pomona
         }
 
 
+        private bool IsIList(IMappedType mappedType)
+        {
+            var sharedType = mappedType as SharedType;
+            if (sharedType == null)
+                return false;
+
+            return IsIList(sharedType.TargetType);
+        }
+
+
+        private bool IsIList(object obj)
+        {
+            return
+                IsIList(obj.GetType());
+        }
+
+
+        private bool IsIList(Type t)
+        {
+            return
+                t.GetInterfaces().Any(
+                    x => x.IsGenericType &&
+                         x.GetGenericTypeDefinition() == typeof(IList<>)
+                    /* && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0])*/);
+        }
+
+
         private bool TryGetCollectionElementType(
             IMappedType type, out IMappedType elementType, bool searchInterfaces = true)
         {
@@ -209,7 +236,8 @@ namespace Pomona
             // First look if we're dealing directly with a known collection type
 
             var collectionInterface =
-                sharedType.TargetType.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+                sharedType.TargetType.GetInterfaces().FirstOrDefault(
+                    x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
 
             if (collectionInterface == null)
                 return false;
@@ -248,33 +276,6 @@ namespace Pomona
         }
 
 
-        private bool IsIList(IMappedType mappedType)
-        {
-            var sharedType = mappedType as SharedType;
-            if (sharedType == null)
-                return false;
-
-            return IsIList(sharedType.TargetType);
-        }
-
-
-        private bool IsIList(object obj)
-        {
-            return
-                IsIList(obj.GetType());
-        }
-
-
-        private bool IsIList(Type t)
-        {
-            return
-                t.GetInterfaces().Any(
-                    x => x.IsGenericType &&
-                         x.GetGenericTypeDefinition() == typeof(IList<>)
-                    /* && typeof(EntityBase).IsAssignableFrom(x.GetGenericArguments()[0])*/);
-        }
-
-
         private void WriteJsonExpandedOrReference(
             JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
         {
@@ -295,7 +296,7 @@ namespace Pomona
                     // HACK: Resolving URL like this is not the correct way
                     // Collections are exposed on uri http://host/entity/{id}/collection-name
                     var propertyName = subPath.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last();
-                    writer.WriteValue(this.context.GetUri(target) + "/" + propertyName);
+                    writer.WriteValue(this.context.GetUri(this.target) + "/" + propertyName);
                 }
                 else
                 {
@@ -308,7 +309,6 @@ namespace Pomona
                         writer.WriteValue(propertyValue.GetType().Name);
                     }
                 }
-
 
                 if (this.context.DebugMode)
                 {

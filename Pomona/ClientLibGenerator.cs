@@ -441,11 +441,11 @@ namespace Pomona
 
         private class TypeCodeGenInfo
         {
+            public MethodDefinition EmptyPocoCtor { get; set; }
             public TypeDefinition InterfaceType { get; set; }
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition ProxyType { get; set; }
             public TransformedType TargetType { get; set; }
-            public MethodDefinition EmptyPocoCtor { get; set; }
         }
 
         #endregion

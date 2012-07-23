@@ -149,15 +149,13 @@ namespace Pomona
             foreach (var propInfo in type.GetProperties()
                 .Where(x => x.GetGetMethod().IsPublic && x.GetIndexParameters().Count() == 0))
             {
-                if (typeMapper.Filter != null && !typeMapper.Filter.PropertyIsIncluded(propInfo))
+                if (this.typeMapper.Filter != null && !this.typeMapper.Filter.PropertyIsIncluded(propInfo))
                     continue;
 
                 IMappedType declaringType;
 
-                if (typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
-                {
-                    declaringType = typeMapper.GetClassMapping(propInfo.DeclaringType);
-                }
+                if (this.typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
+                    declaringType = this.typeMapper.GetClassMapping(propInfo.DeclaringType);
                 else
                 {
                     // TODO: Find lowest base type with this property

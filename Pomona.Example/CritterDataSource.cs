@@ -94,9 +94,7 @@ namespace Pomona.Example
 
             var thingWithCustomIList = Save(new ThingWithCustomIList());
             foreach (var loner in thingWithCustomIList.Loners)
-            {
                 Save(loner);
-            }
         }
 
 

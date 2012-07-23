@@ -120,6 +120,19 @@ namespace Pomona
         }
 
 
+        private Response GetPropertyFromEntityAsJson<T>(object id, string propname)
+        {
+            var res = new Response();
+            var expand = GetExpandedPaths().ToLower();
+
+            res.Contents = stream => this.session.GetPropertyAsJson<T>(id, propname, expand, new StreamWriter(stream));
+
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+        }
+
+
         private Response ListAsJson<T>()
         {
             var res = new Response();
@@ -159,19 +172,6 @@ namespace Pomona
             Post[path] = x => PostFromJson<T>();
 
             Get[path] = x => ListAsJson<T>();
-        }
-
-
-        private Response GetPropertyFromEntityAsJson<T>(object id, string propname)
-        {
-            var res = new Response();
-            var expand = GetExpandedPaths().ToLower();
-
-            res.Contents = stream => this.session.GetPropertyAsJson<T>(id, propname, expand, new StreamWriter(stream));
-
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
         }
 
 
