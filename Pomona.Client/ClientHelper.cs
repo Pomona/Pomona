@@ -78,12 +78,19 @@ namespace Pomona.Client
         public IList<T> List<T>(string expand = null)
         {
             // TODO: Implement baseuri property or something.
-            var uri = BaseUri + typeof(T).Name.ToLower();
+            var type = typeof(T);
 
-            if (expand != null)
-                uri = uri + "?expand=" + expand;
+            if (type.IsInterface && type.Name.StartsWith("I"))
+            {
+                var uri = BaseUri + type.Name.Substring(1).ToLower();
 
-            return GetUri<IList<T>>(uri);
+                if (expand != null)
+                    uri = uri + "?expand=" + expand;
+
+                return GetUri<IList<T>>(uri);
+            }
+            else
+                throw new NotImplementedException("We expect an interface as Type parameter!");
         }
 
 

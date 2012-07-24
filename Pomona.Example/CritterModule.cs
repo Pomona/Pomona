@@ -38,7 +38,7 @@ namespace Pomona.Example
         private IEnumerable<Type> entityTypes;
 
 
-        public CritterModule(CritterDataSource dataSource) : base(dataSource)
+        public CritterModule(CritterDataSource dataSource) : base(dataSource, new CritterTypeMappingFilter())
         {
         }
 

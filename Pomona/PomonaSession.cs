@@ -44,9 +44,9 @@ namespace Pomona
     public class PomonaSession
     {
         private static readonly MethodInfo postGenericMethod;
+        private readonly Func<Uri> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
-        private readonly Func<object, string> uriResolver;
 
 
         static PomonaSession()
@@ -62,18 +62,18 @@ namespace Pomona
         /// </summary>
         /// <param name="dataSource">Data source used for this session.</param>
         /// <param name="typeMapper">Typemapper for session.</param>
-        /// <param name="uriResolver">Lambda for uri resolver. TODO: Make this an interface.</param>
-        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<object, string> uriResolver)
+        /// <param name="baseUriGetter"> </param>
+        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<Uri> baseUriGetter)
         {
             if (dataSource == null)
                 throw new ArgumentNullException("dataSource");
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            if (uriResolver == null)
-                throw new ArgumentNullException("uriResolver");
+            if (baseUriGetter == null)
+                throw new ArgumentNullException("baseUriGetter");
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
-            this.uriResolver = uriResolver;
+            this.baseUriGetter = baseUriGetter;
         }
 
 
@@ -99,7 +99,7 @@ namespace Pomona
             var o = this.dataSource.GetById<T>(id);
             var mappedType = this.typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(this.uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
         }
@@ -119,10 +119,23 @@ namespace Pomona
             var propertyType = property.PropertyType;
 
             var rootPath = propertyName.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(this.uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
 
             var wrapper = context.CreateWrapperFor(propertyValue, rootPath, propertyType);
             wrapper.ToJson(textWriter);
+        }
+
+
+        public string GetUri(object entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException("entity");
+            var transformedType = (TransformedType)TypeMapper.GetClassMapping(entity.GetType());
+
+            return
+                new Uri(
+                    this.baseUriGetter(), "/" + transformedType.UriRelativePath + "/" + transformedType.GetId(entity)).
+                    ToString();
         }
 
 
@@ -131,7 +144,7 @@ namespace Pomona
             var o = this.dataSource.List<T>();
             var mappedType = this.typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(this.uriResolver, string.Format("{0},{1}", rootPath, expand), false, this);
+            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
         }
@@ -158,7 +171,7 @@ namespace Pomona
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var o = PostJsonInternal(mappedType, jObject);
 
-            var context = new FetchContext(this.uriResolver, rootPath, false, this);
+            var context = new FetchContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(textWriter);
         }
@@ -169,7 +182,7 @@ namespace Pomona
             var o = this.dataSource.GetById<T>(id);
             var mappedType = this.typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(this.uriResolver, rootPath, false, this);
+            var context = new FetchContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.UpdateFromJson(textReader);
             wrapper.ToJson(textWriter);
@@ -198,8 +211,10 @@ namespace Pomona
             var sourceType = transformedType.SourceType;
 
             if (sourceType == null)
+            {
                 throw new InvalidOperationException(
                     "Don't know how to fetch TrasnformedType that has no SourceType set");
+            }
 
             return this.dataSource.GetById(sourceType, id);
         }

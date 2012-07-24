@@ -31,6 +31,11 @@ using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
+    public class MusicalCritter : Critter
+    {
+        public string Instrument { get; set; }
+    }
+
     public class Critter : EntityBase
     {
         public Critter()
@@ -44,6 +49,8 @@ namespace Pomona.Example.Models
             Hat = new Hat();
         }
 
+
+        public CrazyValueObject CrazyValue { get; set; }
 
         public DateTime CreatedOn { get; set; }
         public IList<Critter> Enemies { get; set; }

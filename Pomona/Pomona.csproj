@@ -67,11 +67,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IPomonaDataSource.cs" />
-    <Compile Include="ITypeMapperFilter.cs" />
+    <Compile Include="ITypeMappingFilter.cs" />
+    <Compile Include="JsonSchemaGenerator.cs" />
+    <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaModule.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="PomonaSession.cs" />
+    <Compile Include="Sandbox\CJson\CJsonCodes.cs" />
     <Compile Include="TypeMapper.cs" />
     <Compile Include="IMappedType.cs" />
     <Compile Include="SharedType.cs" />
@@ -84,6 +87,7 @@
     <Compile Include="FetchContext.cs" />
     <Compile Include="PropertyMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypeMappingFilterBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

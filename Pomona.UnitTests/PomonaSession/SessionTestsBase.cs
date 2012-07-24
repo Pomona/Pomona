@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using NUnit.Framework;
@@ -52,6 +53,16 @@ namespace Pomona.UnitTests.PomonaSession
             get { return this.firstCritter.Id; }
         }
 
+        public MusicalCritter MusicalCritter
+        {
+            get { return this.dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
+        }
+
+        public int MusicalCritterId
+        {
+            get { return MusicalCritter.Id; }
+        }
+
         protected IPomonaDataSource DataSource
         {
             get { return this.dataSource; }
@@ -72,19 +83,15 @@ namespace Pomona.UnitTests.PomonaSession
         public void SetUp()
         {
             this.dataSource = new CritterDataSource();
-            this.typeMapper = new TypeMapper(CritterDataSource.GetEntityTypes());
+            this.typeMapper = new TypeMapper(new CritterTypeMappingFilter());
             this.session = new Pomona.PomonaSession(this.dataSource, this.typeMapper, UriResolver);
             this.firstCritter = this.dataSource.List<Critter>().First();
         }
 
 
-        private string UriResolver(object x)
+        private Uri UriResolver()
         {
-            var entity = x as EntityBase;
-            if (entity == null)
-                return null;
-
-            return string.Format("http://localhost/{0}/{1}", x.GetType().Name.ToLower(), entity.Id);
+            return new Uri("http://localhost/");
         }
     }
 }

@@ -26,32 +26,31 @@
 
 #endregion
 
-using System;
-using System.IO;
+using System.Linq;
+
+using NUnit.Framework;
 
 using Pomona.Example;
 
-namespace Pomona.UnitTests.GenerateClientDllApp
+namespace Pomona.UnitTests
 {
-    internal class Program
+    [TestFixture]
+    public class TypeMapperTests
     {
-        private static void Main(string[] args)
+        private TypeMapper GetTypeMapper()
         {
-            var session = new PomonaSession(
-                new CritterDataSource(), new TypeMapper(new CritterTypeMappingFilter()), UriResolver);
-
-            using (var file = new FileStream(@"..\..\..\lib\Critter.Client.dll", FileMode.OpenOrCreate))
-            {
-                session.WriteClientLibrary(file);
-            }
-
-            Console.WriteLine("Wrote client dll.");
+            return new TypeMapper(new CritterTypeMappingFilter());
         }
 
 
-        private static Uri UriResolver()
+        [Test]
+        public void DoesNotCreateTransformedTypeForExcludedClass()
         {
-            return new Uri("http://localhost:2211/");
+            var typeMapper = GetTypeMapper();
+            Assert.That(
+                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
+                Is.False,
+                "Excluded thing should not have been part of transformed types");
         }
     }
 }

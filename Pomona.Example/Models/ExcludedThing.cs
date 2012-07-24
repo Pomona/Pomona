@@ -26,32 +26,10 @@
 
 #endregion
 
-using System;
-using System.IO;
-
-using Pomona.Example;
-
-namespace Pomona.UnitTests.GenerateClientDllApp
+namespace Pomona.Example.Models
 {
-    internal class Program
+    public class ExcludedThing : EntityBase
     {
-        private static void Main(string[] args)
-        {
-            var session = new PomonaSession(
-                new CritterDataSource(), new TypeMapper(new CritterTypeMappingFilter()), UriResolver);
-
-            using (var file = new FileStream(@"..\..\..\lib\Critter.Client.dll", FileMode.OpenOrCreate))
-            {
-                session.WriteClientLibrary(file);
-            }
-
-            Console.WriteLine("Wrote client dll.");
-        }
-
-
-        private static Uri UriResolver()
-        {
-            return new Uri("http://localhost:2211/");
-        }
+        public string SoLonelyAndSad { get; set; }
     }
 }

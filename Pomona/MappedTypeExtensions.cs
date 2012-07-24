@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,31 +27,49 @@
 #endregion
 
 using System;
-using System.IO;
+using System.Linq;
 
-using Pomona.Example;
-
-namespace Pomona.UnitTests.GenerateClientDllApp
+namespace Pomona
 {
-    internal class Program
+    public static class MappedTypeExtensions
     {
-        private static void Main(string[] args)
+        private static Type[] numberTypes;
+
+
+        static MappedTypeExtensions()
         {
-            var session = new PomonaSession(
-                new CritterDataSource(), new TypeMapper(new CritterTypeMappingFilter()), UriResolver);
-
-            using (var file = new FileStream(@"..\..\..\lib\Critter.Client.dll", FileMode.OpenOrCreate))
-            {
-                session.WriteClientLibrary(file);
-            }
-
-            Console.WriteLine("Wrote client dll.");
+            numberTypes = new Type[]
+            { typeof(int), typeof(double), typeof(float), typeof(long), typeof(byte), typeof(short) };
         }
 
 
-        private static Uri UriResolver()
+        public static string GetSchemaTypeName(this IMappedType mappedType)
         {
-            return new Uri("http://localhost:2211/");
+            if (mappedType.IsCollection)
+                return "array";
+
+            var sharedType = mappedType as SharedType;
+            if (sharedType != null && sharedType.IsBasicWireType)
+            {
+                var targetType = sharedType.TargetType;
+                if (numberTypes.Contains(targetType))
+                {
+                    if (targetType == typeof(double) || targetType == typeof(float))
+                        return "number";
+                    return "integer";
+                }
+
+                if (targetType == typeof(string))
+                    return "string";
+
+                if (targetType == typeof(bool))
+                    return "boolean";
+
+                if (targetType == typeof(object))
+                    return "any";
+            }
+
+            return mappedType.Name;
         }
     }
 }

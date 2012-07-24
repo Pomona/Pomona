@@ -34,21 +34,23 @@ namespace Pomona
 {
     public class TypeMapper
     {
-        private readonly ITypeMapperFilter filter;
+        private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private HashSet<Type> sourceTypes;
 
 
-        public TypeMapper(IEnumerable<Type> sourceTypes, ITypeMapperFilter filter = null)
+        public TypeMapper(ITypeMappingFilter filter)
         {
+            if (filter == null)
+                throw new ArgumentNullException("filter");
             this.filter = filter;
-            this.sourceTypes = new HashSet<Type>(sourceTypes);
+            this.sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
             foreach (var sourceType in this.sourceTypes)
                 GetClassMapping(sourceType);
         }
 
 
-        public ITypeMapperFilter Filter
+        public ITypeMappingFilter Filter
         {
             get { return this.filter; }
         }
@@ -116,8 +118,10 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (type.Assembly == typeof(String).Assembly || type.IsEnum ||
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IList<>)))
+            if (!this.filter.TypeIsMapped(type))
+                throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
+
+            if (this.filter.TypeIsMappedAsSharedType(type))
             {
                 SharedType newSharedType;
                 if (type.IsGenericType)
@@ -141,12 +145,21 @@ namespace Pomona
                 return newSharedType;
             }
 
-            if (this.sourceTypes.Contains(type))
+            if (this.filter.TypeIsMappedAsTransformedType(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
                 this.mappings[type] = classDefinition;
+
+                if (this.filter.TypeIsMappedAsValueObject(type))
+                    classDefinition.MappedAsValueObject = true;
+
+                var uriBaseType = this.filter.GetUriBaseType(type);
+                if (uriBaseType != type)
+                    classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
+                else
+                    classDefinition.UriBaseType = classDefinition;
 
                 classDefinition.ScanProperties(type);
 

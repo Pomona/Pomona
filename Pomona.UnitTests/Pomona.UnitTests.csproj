@@ -52,10 +52,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CJson\CJsonEncoderTests.cs" />
     <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypeMapperTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

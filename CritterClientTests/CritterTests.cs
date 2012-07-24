@@ -87,7 +87,7 @@ namespace CritterClientTests
         [Test]
         public void DeserializeCritters()
         {
-            var critters = this.client.List<Critter>("critter.weapons.model");
+            var critters = this.client.List<ICritter>("critter.weapons.model");
             var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
         }
 

@@ -52,6 +52,8 @@ namespace Pomona
             this.sourceType = sourceType;
             this.name = name;
             this.typeMapper = typeMapper;
+
+            UriBaseType = this;
         }
 
 
@@ -81,6 +83,11 @@ namespace Pomona
             get { return new IMappedType[] { }; }
         }
 
+        public bool IsAlwaysExpanded
+        {
+            get { return MappedAsValueObject; }
+        }
+
         public bool IsBasicWireType
         {
             get { return false; }
@@ -106,9 +113,22 @@ namespace Pomona
             get { return false; }
         }
 
+        public bool MappedAsValueObject { get; set; }
+
         public string Name
         {
             get { return this.name; }
+        }
+
+        public TransformedType UriBaseType { get; set; }
+
+        public string UriRelativePath
+        {
+            get
+            {
+                // TODO: Make it possible to modify path
+                return UriBaseType.Name.ToLower();
+            }
         }
 
 
@@ -122,6 +142,12 @@ namespace Pomona
         }
 
         #endregion
+
+        public object GetId(object entity)
+        {
+            return this.typeMapper.Filter.GetIdFor(entity);
+        }
+
 
         public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
         {
@@ -173,10 +199,10 @@ namespace Pomona
 
         public void ScanProperties(Type type)
         {
-            foreach (var propInfo in type.GetProperties()
+            foreach (var propInfo in type.GetProperties().OrderBy(x => x.Name)
                 .Where(x => x.GetGetMethod().IsPublic && x.GetIndexParameters().Count() == 0))
             {
-                if (this.typeMapper.Filter != null && !this.typeMapper.Filter.PropertyIsIncluded(propInfo))
+                if (!this.typeMapper.Filter.PropertyIsIncluded(propInfo))
                     continue;
 
                 IMappedType declaringType;

@@ -5,10 +5,10 @@ This is a few days' work, in other words a hard-coded thing for testing concepts
 Roadmap for first release
 =========================
 * Add tests for serialization and deserialization on client
-* Create IPomonaDataSource, for retrieval of data
+* Create IPomonaDataSource, for retrieval of data. DONE
 * Create PomonaSession and PomonaSessionFactory that will bind everything together
 * Write correct metadata for generated client dll (AssemblyInfo etc..)
-* Implement support for value types (which is always expanded, and don't have URI)
+* Implement support for value types (which is always expanded, and don't have URI). 70% DONE.
 * Implement simple query mechanism (Linq? relinq? something simpler?)
   * Property equals something, look at how this is done
   * Make it possible for data source to implement its own query syntax

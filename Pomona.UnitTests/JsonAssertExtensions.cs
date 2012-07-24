@@ -104,6 +104,16 @@ namespace Pomona.UnitTests
         }
 
 
+        public static void AssertIsExpanded(this JToken jtoken)
+        {
+            var jobject = jtoken as JObject;
+            Assert.IsNotNull(jobject, "object is not expanded (JObject).");
+
+            JToken tmp;
+            Assert.IsFalse(jobject.TryGetValue("_ref", out tmp), "Expanded object should not have _ref property!");
+        }
+
+
         public static void AssertIsReference(this JToken jobject)
         {
             Assert.IsNotNullOrEmpty(jobject.AssertHasPropertyWithString("_ref"), "Uri reference null or empty");

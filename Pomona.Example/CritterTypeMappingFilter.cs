@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,12 +26,50 @@
 
 #endregion
 
-using System.Reflection;
+using System;
+using System.Collections.Generic;
 
-namespace Pomona
+using Pomona.Example.Models;
+
+namespace Pomona.Example
 {
-    public interface ITypeMapperFilter
+    public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
-        bool PropertyIsIncluded(PropertyInfo propertyInfo);
+        public override object GetIdFor(object entity)
+        {
+            return ((EntityBase)entity).Id;
+        }
+
+
+        public override IEnumerable<Type> GetSourceTypes()
+        {
+            return CritterDataSource.GetEntityTypes();
+        }
+
+
+        public override Type GetUriBaseType(Type type)
+        {
+            if (type == typeof(MusicalCritter))
+                return typeof(Critter);
+
+            return base.GetUriBaseType(type);
+        }
+
+
+        public override bool TypeIsMapped(Type type)
+        {
+            if (type == typeof(ExcludedThing))
+                return false;
+
+            return base.TypeIsMapped(type);
+        }
+
+
+        public override bool TypeIsMappedAsValueObject(Type type)
+        {
+            if (type == typeof(CrazyValueObject))
+                return true;
+            return base.TypeIsMappedAsValueObject(type);
+        }
     }
 }

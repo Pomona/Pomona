@@ -77,6 +77,11 @@ namespace Pomona
 
         public IList<IMappedType> GenericArguments { get; private set; }
 
+        public bool IsAlwaysExpanded
+        {
+            get { return !this.isCollection; }
+        }
+
         public bool IsBasicWireType
         {
             get { return basicWireTypes.Contains(this.targetType); }

@@ -1444,12 +1444,98 @@ waterbuck 	weasel 	whale 	wildcat
 wolf 	wolverine 	wombat 	woodchuck
 yak 	zebra 	zebu";
 
+        private const string instrumentsRawText =
+            @"Bagpipes
+Banjo
+Bass drum
+Bassoon
+Bell
+Bongo
+Castanets
+Cello
+Clarinet
+Clavichord
+Conga drum
+Contrabassoon
+Cornet
+Cymbals
+Double bass
+Dulcian
+Dynamophone
+Flute
+Flutophone
+Glockenspiel
+Gongs
+Guitar
+Harmonica
+Harp
+Harpsichord
+Lute
+Mandolin
+Maracas
+Metallophone
+Musical box
+Oboe
+Ondes-Martenot
+Piano
+Recorder
+Saxophone
+Shawm
+Snare drum
+Steel drum
+Tambourine
+Theremin
+Triangle
+Trombone
+Trumpet
+Tuba
+Ukulele
+Viola
+Violin
+Xylophone
+Zither";
+
+        private const string sicknessRawText =
+            @"shingles
+cancer
+Tuberculosis
+Acidosis
+Deafness
+bronchitis
+gastroentroitus
+Acne
+Imperteigo
+Bronchitis
+Fever.
+Abscess
+Thrush
+Cellulitis
+Tonsilitus
+Asthma
+Epilepsy
+Blindness
+Cholera
+Abscess
+Adenoma
+Chancroid
+Insomnia
+Exhaustion
+Amnesia
+Burn
+Candidiasis
+Dehydration
+Tumour
+Cataract
+";
+
         private const string weaponsRawText =
             @"gun bazooka rocket-launcher knife spear axe dagger sickle 
 sword switchblade barong bat baton boomerang dart dirk bombs rifle";
 
         private static readonly List<string> adjectives;
         private static readonly List<string> animals;
+        private static readonly List<string> instruments;
+        private static readonly List<string> sicknesses;
         private static readonly List<string> weapons;
 
 
@@ -1458,6 +1544,8 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
             weapons = ParseToList(weaponsRawText);
             animals = ParseToList(animalsRawText);
             adjectives = ParseToList(adjectivesRawText);
+            sicknesses = ParseToList(sicknessRawText);
+            instruments = ParseToList(instrumentsRawText);
         }
 
 
@@ -1484,16 +1572,28 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
             //if (potentialAdjectives.Count == 0)
             //    potentialAdjectives = adjectives;
 
-            var adjective = adjectives[rng.Next(0, adjectives.Count)];
+            var adjective = GetAdjective(rng);
 
             return FirstToUpper(adjective) + " " + FirstToUpper(animal);
+        }
+
+
+        public static string GetCoolInstrument(Random rng)
+        {
+            return FirstToUpper(GetAdjective(rng)) + " " + FirstToUpper(instruments[rng.Next(0, instruments.Count)]);
+        }
+
+
+        public static string GetCritterHealthDiagnosis(Random rng, string critterName)
+        {
+            return critterName + " has " + sicknesses[rng.Next(0, sicknesses.Count)];
         }
 
 
         public static string GetSpecialWeapon(Random rng)
         {
             var weapon = weapons[rng.Next(0, weapons.Count)];
-            var adjective = adjectives[rng.Next(0, adjectives.Count)];
+            var adjective = GetAdjective(rng);
 
             return FirstToUpper(adjective) + " " + FirstToUpper(weapon);
         }
@@ -1502,6 +1602,12 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
         private static string FirstToUpper(string text)
         {
             return text.Substring(0, 1).ToUpper() + text.Substring(1);
+        }
+
+
+        private static string GetAdjective(Random rng)
+        {
+            return adjectives[rng.Next(0, adjectives.Count)];
         }
 
 

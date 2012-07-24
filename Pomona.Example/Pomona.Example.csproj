@@ -56,9 +56,12 @@
     <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />
     <Compile Include="CritterDataSource.cs" />
+    <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
+    <Compile Include="Models\CrazyValueObject.cs" />
     <Compile Include="Models\Critter.cs" />
     <Compile Include="Models\EntityBase.cs" />
+    <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Gun.cs" />
     <Compile Include="Models\Hat.cs" />
     <Compile Include="Models\Knife.cs" />

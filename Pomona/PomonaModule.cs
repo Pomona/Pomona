@@ -60,11 +60,11 @@ namespace Pomona
         private IPomonaDataSource dataSource;
 
 
-        public PomonaModule(IPomonaDataSource dataSource, ITypeMapperFilter typeMapperFilter = null)
+        public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter = null)
         {
             this.dataSource = dataSource;
-            this.typeMapper = new TypeMapper(GetEntityTypes(), typeMapperFilter);
-            this.session = new PomonaSession(dataSource, this.typeMapper, UriResolver);
+            this.typeMapper = new TypeMapper(typeMappingFilter);
+            this.session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri);
 
             // Just eagerly load the type mappings so we can manipulate it
 
@@ -77,7 +77,9 @@ namespace Pomona
                 genericMethod.Invoke(this, null);
             }
 
-            Get["Pomona.Client.dll"] = x => GetClientLibrary();
+            Get["/schemas"] = x => GetSchemas();
+
+            Get["/Pomona.Client.dll"] = x => GetClientLibrary();
         }
 
 
@@ -105,6 +107,16 @@ namespace Pomona
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
+        }
+
+
+        private Uri GetBaseUri()
+        {
+            return new Uri(
+                string.Format(
+                    "http://{0}:{1}/",
+                    Request.Url.HostName,
+                    Request.Url.Port));
         }
 
 
@@ -142,6 +154,18 @@ namespace Pomona
 
             res.Contents = stream => this.session.GetPropertyAsJson<T>(id, propname, expand, new StreamWriter(stream));
 
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
+        }
+
+
+        private Response GetSchemas()
+        {
+            var res = new Response();
+
+            var schemas = new JsonSchemaGenerator(this.session).GenerateAllSchemas().ToString();
+            res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
@@ -202,20 +226,6 @@ namespace Pomona
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
-        }
-
-
-        private string UriResolver(object o)
-        {
-            if (!GetEntityBaseType().IsAssignableFrom(o.GetType()))
-                return null;
-
-            return string.Format(
-                "http://{0}:{1}/{2}/{3}",
-                Request.Url.HostName,
-                Request.Url.Port,
-                o.GetType().Name.ToLower(),
-                GetIdFor(o));
         }
     }
 }

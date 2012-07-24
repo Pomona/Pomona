@@ -89,7 +89,7 @@ namespace Pomona.Example
 
         private void CreateObjectModel()
         {
-            var rng = new Random(463345562);
+            var rng = new Random(678343);
 
             for (var i = 0; i < 12; i++)
                 Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
@@ -107,10 +107,19 @@ namespace Pomona.Example
 
         private void CreateRandomCritter(Random rng)
         {
-            var critter = new Critter()
+            Critter critter;
+            if (rng.NextDouble() > 0.8)
             {
-                Name = Words.GetAnimalWithPersonality(rng)
-            };
+                critter = new MusicalCritter();
+                ((MusicalCritter)critter).Instrument = Words.GetCoolInstrument(rng);
+            }
+            else
+                critter = new Critter();
+
+            critter.Name = Words.GetAnimalWithPersonality(rng);
+
+            critter.CrazyValue = new CrazyValueObject()
+            { Sickness = Words.GetCritterHealthDiagnosis(rng, critter.Name) };
 
             CreateWeapons(rng, critter, 4);
             CreateSubscriptions(rng, critter, 3);

@@ -40,6 +40,7 @@ namespace Pomona
     {
         IMappedType BaseType { get; }
         IList<IMappedType> GenericArguments { get; }
+        bool IsAlwaysExpanded { get; }
         bool IsBasicWireType { get; }
         bool IsCollection { get; }
         bool IsGenericType { get; }

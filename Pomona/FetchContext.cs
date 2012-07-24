@@ -26,7 +26,6 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 
 namespace Pomona
@@ -37,16 +36,13 @@ namespace Pomona
         private readonly HashSet<string> expandedPaths;
         private readonly PomonaSession session;
         private readonly TypeMapper typeMapper;
-        private readonly Func<object, string> uriResolver;
 
 
         public FetchContext(
-            Func<object, string> uriResolver,
             string expandedPaths,
             bool debugMode,
             PomonaSession session)
         {
-            this.uriResolver = uriResolver;
             this.debugMode = debugMode;
             this.session = session;
             this.typeMapper = session.TypeMapper;
@@ -78,7 +74,7 @@ namespace Pomona
 
         public string GetUri(object value)
         {
-            return this.uriResolver(value);
+            return this.session.GetUri(value);
         }
 
 

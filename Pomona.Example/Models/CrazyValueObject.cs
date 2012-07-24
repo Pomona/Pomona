@@ -26,32 +26,21 @@
 
 #endregion
 
-using System;
-using System.IO;
-
-using Pomona.Example;
-
-namespace Pomona.UnitTests.GenerateClientDllApp
+namespace Pomona.Example.Models
 {
-    internal class Program
+    /// <summary>
+    /// This is a value object, an object with no identity.
+    /// It should probably be immutable.
+    /// </summary>
+    public class CrazyValueObject
     {
-        private static void Main(string[] args)
+        public CrazyValueObject()
         {
-            var session = new PomonaSession(
-                new CritterDataSource(), new TypeMapper(new CritterTypeMappingFilter()), UriResolver);
-
-            using (var file = new FileStream(@"..\..\..\lib\Critter.Client.dll", FileMode.OpenOrCreate))
-            {
-                session.WriteClientLibrary(file);
-            }
-
-            Console.WriteLine("Wrote client dll.");
+            Info = "Yup, this is a value object. Look.. no _ref URI.";
         }
 
 
-        private static Uri UriResolver()
-        {
-            return new Uri("http://localhost:2211/");
-        }
+        public string Info { get; set; }
+        public string Sickness { get; set; }
     }
 }

@@ -106,8 +106,11 @@ namespace Pomona
                 var transformedType = (TransformedType)this.targetType;
                 writer.WriteStartObject();
 
-                writer.WritePropertyName("_uri");
-                writer.WriteValue(this.context.GetUri(this.target));
+                if (!transformedType.MappedAsValueObject)
+                {
+                    writer.WritePropertyName("_uri");
+                    writer.WriteValue(this.context.GetUri(this.target));
+                }
 
                 if (this.expectedBaseType != this.targetType)
                 {
@@ -281,7 +284,8 @@ namespace Pomona
         {
             var isCollection = IsIList(valueType);
 
-            if (this.context.PathToBeExpanded(subPath) || (isCollection && this.context.PathToBeExpanded(subPath + "!")))
+            if (this.context.PathToBeExpanded(subPath) || valueType.IsAlwaysExpanded
+                || (isCollection && this.context.PathToBeExpanded(subPath + "!")))
             {
                 var wrapper = this.context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);
                 wrapper.ToJson(writer);

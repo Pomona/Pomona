@@ -51,6 +51,16 @@ namespace Pomona.UnitTests.PomonaSession
         }
 
 
+        private JObject GetMusicalCritterAsJson(string expand = null)
+        {
+            var stringWriter = new StringWriter();
+            Session.GetAsJson<Critter>(MusicalCritterId, expand, stringWriter);
+            Console.WriteLine("Getting data:\r\n" + stringWriter.ToString());
+            var jobject = JObject.Parse(stringWriter.ToString());
+            return jobject;
+        }
+
+
         private JObject GetThingWithCustomListAsJson(string expand)
         {
             var stringWriter = new StringWriter();
@@ -86,6 +96,19 @@ namespace Pomona.UnitTests.PomonaSession
 
 
         [Test]
+        public void WithExpandSetToNull_ValueObjectIsExpandedByDefault()
+        {
+            // Act
+            var jobject = GetCritterAsJson(null);
+
+            // Assert
+            var crazyValue = jobject.AssertHasPropertyWithObject("crazyValue");
+            crazyValue.AssertIsExpanded();
+            crazyValue.AssertHasProperty("sickness");
+        }
+
+
+        [Test]
         public void WithExpandedHat_HatIsIncluded()
         {
             // Act
@@ -95,6 +118,16 @@ namespace Pomona.UnitTests.PomonaSession
             var hat = jobject.AssertHasPropertyWithObject("hat");
             var hatType = hat.AssertHasPropertyWithString("hatType");
             Assert.AreEqual(FirstCritter.Hat.HatType, hatType);
+        }
+
+
+        [Test]
+        public void WithMusicalCritter_HasSameBaseUriAsCritter()
+        {
+            var musicalJobject = GetMusicalCritterAsJson();
+
+            var musicalCritterUri = musicalJobject.AssertHasPropertyWithString("_uri");
+            Assert.That(musicalCritterUri, Is.EqualTo("http://localhost/critter/" + MusicalCritterId));
         }
 
 
