@@ -26,16 +26,23 @@
 
 #endregion
 
-using TinyIoC;
+using System.IO;
 
-namespace Pomona.Example
+using Nancy;
+
+namespace Pomona
 {
-    public class CritterBootstrapper : PomonaBootstrapper
+    internal static class NancyExtensions
     {
-        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        internal static void ContentsFromString(this Response resp, string text)
         {
-            base.ConfigureApplicationContainer(container);
-            container.Register<CritterDataSource>().AsSingleton();
+            resp.Contents = stream =>
+            {
+                using (var writer = new StreamWriter(stream))
+                {
+                    writer.Write(text);
+                }
+            };
         }
     }
 }

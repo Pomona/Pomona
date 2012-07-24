@@ -56,12 +56,12 @@ namespace Pomona
         }
 
 
+        public bool PomonaClientEmbeddingEnabled { get; set; }
+
         private TypeReference VoidTypeRef
         {
             get { return this.module.Import(typeof(void)); }
         }
-
-        public bool PomonaClientEmbeddingEnabled { get; set; }
 
 
         public void CreateClientDll(Stream stream)
@@ -99,15 +99,13 @@ namespace Pomona
 
             TypeReference resourceBaseRef;
             if (PomonaClientEmbeddingEnabled)
-            {
                 resourceBaseRef = this.module.GetType("Pomona.Client.ResourceBase");
-            }
             else
-            {
-                resourceBaseRef = module.Import(typeof(ResourceBase));
-            }
+                resourceBaseRef = this.module.Import(typeof(ResourceBase));
 
-            var resourceBaseCtor = module.Import(resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
+            var resourceBaseCtor =
+                this.module.Import(
+                    resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
             var msObjectTypeRef = this.module.Import(typeof(object));
             var msObjectCtor =
                 this.module.Import(
@@ -273,46 +271,6 @@ namespace Pomona
         }
 
 
-        private TypeReference GetProxyType(string proxyTypeName)
-        {
-            if (PomonaClientEmbeddingEnabled)
-                return this.module.Types.First(x => x.Name == proxyTypeName);
-            else
-            {
-                return module.Import(typeof(ProxyBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
-            }
-        }
-
-
-        private void GeneratePropertyProxyMethods(
-            PropertyMapping prop,
-            PropertyDefinition proxyPropDef,
-            TypeReference proxyBaseDefinition)
-        {
-            var proxyOnPropertyGetMethod = module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
-            var proxyOnPropertySetMethod = module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
-
-            var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
-            if (prop.PropertyType.IsValueType)
-                getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
-            else
-                getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-
-            var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
-            if (prop.PropertyType.IsValueType)
-                setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-        }
-
-
         private PropertyDefinition CreatePropertyDefinition(TypeDefinition proxyType, PropertyMapping prop)
         {
             var propTypeRef = GetTypeReference(prop.PropertyType);
@@ -350,8 +308,9 @@ namespace Pomona
             if (propertyMethodGenerator == null)
                 propertyMethodGenerator = GeneratePropertyProxyMethods;
 
-            MethodReference proxyBaseCtor = proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
-            proxyBaseCtor = module.Import(proxyBaseCtor);
+            MethodReference proxyBaseCtor =
+                proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+            proxyBaseCtor = this.module.Import(proxyBaseCtor);
 
             foreach (var typeInfo in this.toClientTypeDict.Values)
             {
@@ -438,6 +397,46 @@ namespace Pomona
                     ilproc.Append(Instruction.Create(OpCodes.Throw));
                 }
             }
+        }
+
+
+        private void GeneratePropertyProxyMethods(
+            PropertyMapping prop,
+            PropertyDefinition proxyPropDef,
+            TypeReference proxyBaseDefinition)
+        {
+            var proxyOnPropertyGetMethod =
+                this.module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
+            var proxyOnPropertySetMethod =
+                this.module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
+
+            var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
+            getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
+            getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
+            getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
+            if (prop.PropertyType.IsValueType)
+                getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
+            else
+                getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
+            getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
+
+            var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, prop.Name));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
+            if (prop.PropertyType.IsValueType)
+                setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
+            setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
+        }
+
+
+        private TypeReference GetProxyType(string proxyTypeName)
+        {
+            if (PomonaClientEmbeddingEnabled)
+                return this.module.Types.First(x => x.Name == proxyTypeName);
+            else
+                return this.module.Import(typeof(ProxyBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
         }
 
 

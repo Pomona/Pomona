@@ -105,6 +105,17 @@ namespace Pomona
         }
 
 
+        public string GetPropertyAsJson<T>(object id, string propertyName, string expand)
+        {
+            using (var textWriter = new StringWriter())
+            {
+                GetPropertyAsJson<T>(id, propertyName, expand, textWriter);
+                textWriter.Flush();
+                return textWriter.ToString();
+            }
+        }
+
+
         public void GetPropertyAsJson<T>(object id, string propertyName, string expand, TextWriter textWriter)
         {
             // Note this is NOT optimized, as we should make the API in a way where it's possible to select by parent id.
@@ -136,6 +147,17 @@ namespace Pomona
                 new Uri(
                     this.baseUriGetter(), "/" + transformedType.UriRelativePath + "/" + transformedType.GetId(entity)).
                     ToString();
+        }
+
+
+        public string ListAsJson<T>(string expand)
+        {
+            using (var textWriter = new StringWriter())
+            {
+                ListAsJson<T>(expand, textWriter);
+                textWriter.Flush();
+                return textWriter.ToString();
+            }
         }
 
 

@@ -26,16 +26,26 @@
 
 #endregion
 
-using TinyIoC;
+using System;
 
-namespace Pomona.Example
+using Nancy;
+using Nancy.Conventions;
+
+namespace Pomona
 {
-    public class CritterBootstrapper : PomonaBootstrapper
+    public class PomonaBootstrapper : DefaultNancyBootstrapper
     {
-        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        protected override void ConfigureConventions(NancyConventions nancyConventions)
         {
-            base.ConfigureApplicationContainer(container);
-            container.Register<CritterDataSource>().AsSingleton();
+            base.ConfigureConventions(nancyConventions);
+
+            Console.WriteLine(Environment.CurrentDirectory);
+            nancyConventions.StaticContentsConventions.Add(
+                StaticContentConventionBuilder.AddDirectory("/scripts/prettify", "Scripts/Prettify"));
+            nancyConventions.StaticContentsConventions.Add(
+                StaticContentConventionBuilder.AddDirectory("/content/prettify", "Content/Prettify"));
+            nancyConventions.StaticContentsConventions.Add(
+                StaticContentConventionBuilder.AddDirectory("/content/prettify/themes", "Content/Prettify/Themes"));
         }
     }
 }

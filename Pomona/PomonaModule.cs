@@ -38,26 +38,14 @@ using Newtonsoft.Json;
 
 namespace Pomona
 {
-    internal static class NancyExtensions
-    {
-        internal static void ContentsFromString(this Response resp, string text)
-        {
-            resp.Contents = stream =>
-            {
-                using (var writer = new StreamWriter(stream))
-                {
-                    writer.Write(text);
-                }
-            };
-        }
-    }
-
     public abstract class PomonaModule : NancyModule
     {
         private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
         private readonly PomonaSession session;
         private readonly TypeMapper typeMapper;
         private IPomonaDataSource dataSource;
+
+        private string htmlLinks = string.Empty;
 
 
         public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter = null)
@@ -96,15 +84,28 @@ namespace Pomona
         protected abstract int GetIdFor(object entity);
 
 
+        private void FillJsonResponse(Response res, string json)
+        {
+            // Very simple content negotiation. Ainnt need noo fancy thing here.
+
+            if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
+                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(res, this.htmlLinks, json);
+            else
+            {
+                res.ContentsFromString(json);
+                res.ContentType = "text/plain; charset=utf-8";
+            }
+        }
+
+
         private Response GetAsJson<T>(object id)
         {
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
             var json = this.session.GetAsJson<T>(id, expand);
-            res.ContentsFromString(json);
 
-            res.ContentType = "text/plain; charset=utf-8";
+            FillJsonResponse(res, json);
 
             return res;
         }
@@ -152,9 +153,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            res.Contents = stream => this.session.GetPropertyAsJson<T>(id, propname, expand, new StreamWriter(stream));
-
-            res.ContentType = "text/plain; charset=utf-8";
+            FillJsonResponse(res, this.session.GetPropertyAsJson<T>(id, propname, expand));
 
             return res;
         }
@@ -177,8 +176,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            res.Contents = stream => this.session.ListAsJson<T>(expand, new StreamWriter(stream));
-            res.ContentType = "text/plain; charset=utf-8";
+            FillJsonResponse(res, this.session.ListAsJson<T>(expand));
 
             return res;
         }
@@ -204,6 +202,9 @@ namespace Pomona
             var lowerTypeName = type.Name.ToLower();
             var path = "/" + lowerTypeName;
             Console.WriteLine("Registering path " + path);
+
+            this.htmlLinks = this.htmlLinks
+                             + string.Format("<li><a href=\"/{0}\">{1}</a></li>", lowerTypeName, type.Name);
 
             Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
 
