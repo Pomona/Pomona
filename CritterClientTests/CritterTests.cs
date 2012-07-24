@@ -33,6 +33,7 @@ using CritterClient;
 
 using NUnit.Framework;
 
+using Pomona.Client;
 using Pomona.Example;
 
 namespace CritterClientTests

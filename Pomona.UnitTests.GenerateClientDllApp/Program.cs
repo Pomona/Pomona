@@ -42,7 +42,12 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             using (var file = new FileStream(@"..\..\..\lib\Critter.Client.dll", FileMode.OpenOrCreate))
             {
-                session.WriteClientLibrary(file);
+                session.WriteClientLibrary(file, embedPomonaClient : false);
+            }
+
+            using (var file = new FileStream(@"..\..\..\lib\Critter.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
+            {
+                session.WriteClientLibrary(file, embedPomonaClient: true);
             }
 
             Console.WriteLine("Wrote client dll.");

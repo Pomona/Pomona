@@ -51,6 +51,8 @@ namespace Pomona
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
             this.typeMapper = typeMapper;
+
+            PomonaClientEmbeddingEnabled = true;
         }
 
 
@@ -59,13 +61,25 @@ namespace Pomona
             get { return this.module.Import(typeof(void)); }
         }
 
+        public bool PomonaClientEmbeddingEnabled { get; set; }
+
 
         public void CreateClientDll(Stream stream)
         {
             var types = this.typeMapper.TransformedTypes.ToList();
 
             // Use Pomona.Client lib as starting point!
-            var assembly = AssemblyDefinition.ReadAssembly(typeof(ResourceBase).Assembly.Location);
+            AssemblyDefinition assembly;
+
+            if (PomonaClientEmbeddingEnabled)
+                assembly = AssemblyDefinition.ReadAssembly(typeof(ResourceBase).Assembly.Location);
+            else
+            {
+                assembly =
+                    AssemblyDefinition.CreateAssembly(
+                        new AssemblyNameDefinition("Critter", new Version(1, 0, 0, 134)), "Critter", ModuleKind.Dll);
+            }
+
             assembly.Name = new AssemblyNameDefinition("Critter.Client", new Version(1, 0, 0, 0));
 
             //var assembly =
@@ -75,13 +89,25 @@ namespace Pomona
             this.module = assembly.MainModule;
             this.module.Name = "Critter.Client.dll";
 
-            foreach (var clientHelperType in this.module.Types.Where(x => x.Namespace == "Pomona.Client"))
-                clientHelperType.Namespace = "CritterClient";
+            if (PomonaClientEmbeddingEnabled)
+            {
+                foreach (var clientHelperType in this.module.Types.Where(x => x.Namespace == "Pomona.Client"))
+                    clientHelperType.Namespace = "CritterClient";
+            }
 
             this.toClientTypeDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
 
-            var resourceBaseRef = this.module.GetType("Pomona.Client.ResourceBase");
-            var resourceBaseCtor = resourceBaseRef.GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0);
+            TypeReference resourceBaseRef;
+            if (PomonaClientEmbeddingEnabled)
+            {
+                resourceBaseRef = this.module.GetType("Pomona.Client.ResourceBase");
+            }
+            else
+            {
+                resourceBaseRef = module.Import(typeof(ResourceBase));
+            }
+
+            var resourceBaseCtor = module.Import(resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
             var msObjectTypeRef = this.module.Import(typeof(object));
             var msObjectCtor =
                 this.module.Import(
@@ -222,16 +248,16 @@ namespace Pomona
                 }
             }
 
-            CreateProxyType("{0}Proxy", this.module.Types.First(x => x.Name == "LazyProxyBase"));
+            CreateProxyType("{0}Proxy", GetProxyType("LazyProxyBase"));
 
             CreateProxyType(
                 "{0}Update",
-                this.module.Types.First(x => x.Name == "PutResourceBase"),
+                GetProxyType("PutResourceBase"),
                 GeneratePropertyMethodsForUpdateProxy);
 
             CreateProxyType(
                 "New{0}",
-                this.module.Types.First(x => x.Name == "PutResourceBase"),
+                GetProxyType("PutResourceBase"),
                 GeneratePropertyMethodsForNewResource);
 
             // Copy types from running assembly
@@ -247,13 +273,24 @@ namespace Pomona
         }
 
 
-        private static void GeneratePropertyProxyMethods(
+        private TypeReference GetProxyType(string proxyTypeName)
+        {
+            if (PomonaClientEmbeddingEnabled)
+                return this.module.Types.First(x => x.Name == proxyTypeName);
+            else
+            {
+                return module.Import(typeof(ProxyBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
+            }
+        }
+
+
+        private void GeneratePropertyProxyMethods(
             PropertyMapping prop,
             PropertyDefinition proxyPropDef,
-            TypeDefinition proxyBaseDefinition)
+            TypeReference proxyBaseDefinition)
         {
-            var proxyOnPropertyGetMethod = proxyBaseDefinition.Methods.First(x => x.Name == "OnPropertyGet");
-            var proxyOnPropertySetMethod = proxyBaseDefinition.Methods.First(x => x.Name == "OnPropertySet");
+            var proxyOnPropertyGetMethod = module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
+            var proxyOnPropertySetMethod = module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
 
             var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
             getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
@@ -306,14 +343,15 @@ namespace Pomona
 
         private void CreateProxyType(
             string proxyTypeFormat,
-            TypeDefinition proxyBaseTypeDef,
-            Action<PropertyMapping, PropertyDefinition, TypeDefinition> propertyMethodGenerator
+            TypeReference proxyBaseTypeDef,
+            Action<PropertyMapping, PropertyDefinition, TypeReference> propertyMethodGenerator
                 = null)
         {
             if (propertyMethodGenerator == null)
                 propertyMethodGenerator = GeneratePropertyProxyMethods;
 
-            var proxyBaseCtor = proxyBaseTypeDef.GetConstructors().First(x => x.Parameters.Count == 0);
+            MethodReference proxyBaseCtor = proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+            proxyBaseCtor = module.Import(proxyBaseCtor);
 
             foreach (var typeInfo in this.toClientTypeDict.Values)
             {
@@ -359,7 +397,7 @@ namespace Pomona
         private void GeneratePropertyMethodsForNewResource(
             PropertyMapping prop,
             PropertyDefinition proxyPropDef,
-            TypeDefinition proxyBaseDefinition)
+            TypeReference proxyBaseDefinition)
         {
             if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Required ||
                 prop.CreateMode == PropertyMapping.PropertyCreateMode.Optional)
@@ -383,7 +421,7 @@ namespace Pomona
         private void GeneratePropertyMethodsForUpdateProxy(
             PropertyMapping prop,
             PropertyDefinition proxyPropDef,
-            TypeDefinition proxyBaseDefinition)
+            TypeReference proxyBaseDefinition)
         {
             if (prop.IsWriteable)
                 GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition);

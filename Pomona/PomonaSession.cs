@@ -189,9 +189,10 @@ namespace Pomona
         }
 
 
-        public void WriteClientLibrary(Stream stream)
+        public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
             var clientLibGenerator = new ClientLibGenerator(this.typeMapper);
+            clientLibGenerator.PomonaClientEmbeddingEnabled = embedPomonaClient;
             clientLibGenerator.CreateClientDll(stream);
         }
 
