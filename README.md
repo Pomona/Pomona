@@ -1,6 +1,66 @@
-﻿Goal: To create an easier way to map stuff to a REST API.
+Introduction
+============
 
-This is a few days' work, in other words a hard-coded thing for testing concepts.
+Pomona is all about exposing your domain model as a REST API as painless as possible.
+
+It was born out of my personal experience with being bored from manually implementing
+a whole new layer of DTO and mapping. With the feeling that I was repeating myself over
+and over.
+
+So the goal is that Pomona will offer a way to do this mapping and (de)serialization
+by convention, and remove the need for DTO's all together. This shall be achieved by:
+
+* Supporting custom conventions, with a good set of default ways to do things.
+
+* Expose an API to override these conventions for special cases. (TODO)
+  Yeah sure it should be Fluent, for the cool kids! ;)
+
+* Making it possible to generate an easy-to-use .NET client dll on-the-fly.
+
+* Make it possible to specify what references to expand and not.
+
+Additionally I also want it to be able to:
+
+* Semi-automatic management of REST API versioning by inspection of changes in JSON schema. (TODO)
+
+Oh, by the way, for all nitpickers out there. I use the REST definition freely. I believe
+it will be possible to expose a somewhat RESTful API through Pomona someday, but oh course
+it all depends on the domain model mapped.
+
+State of the project
+====================
+
+Although usable for simple scenarios, Pomona should be considered early work-in-progress stuff.
+It doesn't even have query and ordering support. It will change. A lot.
+It's for the adventurous and the rebels! ;)
+
+My personal goal is to release a version 1.0 before christmas. But no promises, yet.
+
+On the shoulders of really cool people:
+=======================================
+
+* JSON.NET for serialization stuff. http://james.newtonking.com/projects/json-net.aspx
+* Nancy for hosting the web service. http://nancyfx.org/
+  I really love Nancy! I can't overstate how good I think it is! <3 <3 <3
+  One day I hope Pomona will offer a Super-Duper-Happy path just like it.
+* NUnit for testing. http://www.nunit.org/
+* Cecil for generation of Client dll. http://www.mono-project.com/Cecil
+
+A huge "thank you" to all the authors of these projects.
+
+Getting started
+===============
+
+So if you really want to check this stuff out, here's how you get started.
+
+1: Implement your own IPomonaDataSource
+2: Inherit from TypeMappingFilterBase, and at a minimum implement GetSourceTypes() and GetIdFor().
+   They're abstract, so you can't miss them.
+   GetSourceTypes() must return the list of what Types to expose to web service.
+3: Inherit PomonaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
+   Which could mean zero configuration. Just because Nancy is THAT awesome!
+
+Look at the Critter example in the source code for details.
 
 Roadmap for first release
 =========================
@@ -37,6 +97,8 @@ Bugs and necesarry improvements
 * IPomonaDataSource needs to be improved. Must be passed some sort of query..
   Maybe also remove generics stuff here? Don't know if there's really any advantage to having generics..
   Maybe there should be multiple IPomonaDataSource (like repositories).
+
+
 
 Brainstorm area
 ===============
