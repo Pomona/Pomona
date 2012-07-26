@@ -33,9 +33,21 @@ Bugs and necesarry improvements
   It doesn't, instead this is needed: http://localhost:2211/critter/125?expand=musicalcritter.weapons,
   which is not the way we want it to work!
 
+* Special handling for nullable types in JSON schema generation needs to be added.
+
 * IPomonaDataSource needs to be improved. Must be passed some sort of query..
   Maybe also remove generics stuff here? Don't know if there's really any advantage to having generics..
   Maybe there should be multiple IPomonaDataSource (like repositories).
+
+Brainstorm area
+===============
+
+* Could make query mechanism pluggable, through some sort of IHttpQueryTranslator.
+  Then we could provide a simple default implementation.
+
+* An exotic side-project could be to implement an IHttpQueryTranslator that uses relinq
+  to serialize and convert LINQ expressions, which then can be executed on Nhibernate or other ORM.
+  This does however seem a bit dangerous with regards to security.
 
 Cryptic notes about compressed JSON-like binary format
 ======================================================
