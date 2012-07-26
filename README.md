@@ -53,11 +53,11 @@ Getting started
 
 So if you really want to check this stuff out, here's how you get started.
 
-1: Implement your own IPomonaDataSource
-2: Inherit from TypeMappingFilterBase, and at a minimum implement GetSourceTypes() and GetIdFor().
+1. Implement your own IPomonaDataSource
+2. Inherit from TypeMappingFilterBase, and at a minimum implement GetSourceTypes() and GetIdFor().
    They're abstract, so you can't miss them.
    GetSourceTypes() must return the list of what Types to expose to web service.
-3: Inherit PomonaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
+3. Inherit PomonaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
    Which could mean zero configuration. Just because Nancy is THAT awesome!
 
 Look at the Critter example in the source code for details.
