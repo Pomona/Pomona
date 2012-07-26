@@ -64,8 +64,10 @@
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Gun.cs" />
     <Compile Include="Models\Hat.cs" />
+    <Compile Include="Models\JunkWithNullableInt.cs" />
     <Compile Include="Models\Knife.cs" />
     <Compile Include="Models\Loner.cs" />
+    <Compile Include="Models\MusicalCritter.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\ThingWithCustomIList.cs" />
     <Compile Include="Models\Weapon.cs" />

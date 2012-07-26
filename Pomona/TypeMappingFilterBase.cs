@@ -35,13 +35,13 @@ namespace Pomona
 {
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
-        private static readonly HashSet<Type> defaultAllowedNativeTypes;
+        private static readonly HashSet<Type> jsonSupportedNativeTypes;
         private HashSet<Type> sourceTypesCached;
 
 
         static TypeMappingFilterBase()
         {
-            defaultAllowedNativeTypes = new HashSet<Type>()
+            jsonSupportedNativeTypes = new HashSet<Type>()
             {
                 typeof(string),
                 typeof(int),
@@ -50,7 +50,9 @@ namespace Pomona
                 typeof(float),
                 typeof(decimal),
                 typeof(DateTime),
-                typeof(object)
+                typeof(object),
+                typeof(bool),
+                typeof(Guid)
             };
         }
 
@@ -76,6 +78,30 @@ namespace Pomona
         }
 
 
+        public virtual Type ResolveRealTypeForProxy(Type type)
+        {
+            // TODO: Implement some crude heuristics to check whether a type is a proxy type,
+            //       that should be treated as its base type.
+            //
+            //       Maybe look for whether type is public (will proxys normally be internal?), or
+            //       that it resides in different assembly than base type.
+            //
+            //       Or maybe just see whether type is mapped.
+            //
+            
+            // Lets just try this for now:
+            if (sourceTypesCached.Contains(type))
+                return type;
+
+            if (type.BaseType != null && sourceTypesCached.Contains(type.BaseType))
+            {
+                return type.BaseType;
+            }
+
+            return type;
+        }
+
+
         public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
         {
             return true;
@@ -84,8 +110,14 @@ namespace Pomona
 
         public virtual bool TypeIsMapped(Type type)
         {
-            return TypeIsMappedAsTransformedType(type) || defaultAllowedNativeTypes.Contains(type)
+            return TypeIsMappedAsTransformedType(type) || IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type);
+        }
+
+
+        private static bool IsNativelySupportedType(Type type)
+        {
+            return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
         }
 
 
@@ -98,7 +130,7 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsSharedType(Type type)
         {
-            return defaultAllowedNativeTypes.Contains(type) || TypeIsMappedAsCollection(type);
+            return IsNativelySupportedType(type) || TypeIsMappedAsCollection(type);
         }
 
 
@@ -111,6 +143,14 @@ namespace Pomona
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
             return false;
+        }
+
+
+        private static bool IsNullableAllowedNativeType(Type type)
+        {
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)) &&
+                   jsonSupportedNativeTypes.Contains(type.GetGenericArguments()[0]);
         }
 
 

@@ -59,9 +59,12 @@ namespace Pomona
             var registerRouteForT = typeof(PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            foreach (var type in GetEntityTypes().Where(x => !x.IsAbstract))
+            foreach (
+                var type in
+                    this.typeMapper.TransformedTypes.Where(x => x.SourceType != null && !x.SourceType.IsAbstract).Select(x => x.UriBaseType ?? x).Distinct().Where(
+                        x => !x.MappedAsValueObject))
             {
-                var genericMethod = registerRouteForT.MakeGenericMethod(type);
+                var genericMethod = registerRouteForT.MakeGenericMethod(type.SourceType);
                 genericMethod.Invoke(this, null);
             }
 
@@ -75,14 +78,6 @@ namespace Pomona
         {
             get { return this.dataSource; }
         }
-
-        protected abstract Type GetEntityBaseType();
-
-        protected abstract IEnumerable<Type> GetEntityTypes();
-
-        // TODO: Move this into TypeMapper or PomonaSession?
-        protected abstract int GetIdFor(object entity);
-
 
         private void FillJsonResponse(Response res, string json)
         {

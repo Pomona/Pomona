@@ -29,15 +29,10 @@
 using System;
 using System.Collections.Generic;
 
-using Pomona.Example.Models;
-
 namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        private IEnumerable<Type> entityTypes;
-
-
         public CritterModule(CritterDataSource dataSource) : base(dataSource, new CritterTypeMappingFilter())
         {
         }
@@ -46,26 +41,6 @@ namespace Pomona.Example
         public CritterDataSource CritterDataSource
         {
             get { return (CritterDataSource)DataSource; }
-        }
-
-
-        protected override Type GetEntityBaseType()
-        {
-            return typeof(EntityBase);
-        }
-
-
-        protected override IEnumerable<Type> GetEntityTypes()
-        {
-            if (this.entityTypes == null)
-                this.entityTypes = CritterDataSource.GetEntityTypes();
-            return this.entityTypes;
-        }
-
-
-        protected override int GetIdFor(object entity)
-        {
-            return ((EntityBase)entity).Id;
         }
     }
 }

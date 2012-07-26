@@ -99,9 +99,18 @@ namespace Pomona.Example
             for (var i = 0; i < critterCount; i++)
                 CreateRandomCritter(rng);
 
+            CreateJunkWithNullables();
+
             var thingWithCustomIList = Save(new ThingWithCustomIList());
             foreach (var loner in thingWithCustomIList.Loners)
                 Save(loner);
+        }
+
+
+        private void CreateJunkWithNullables()
+        {
+            Save(new JunkWithNullableInt() { Maybe = 1337, MentalState = "I'm happy, I have value!"});
+            Save(new JunkWithNullableInt() { Maybe = null, MentalState = "I got nothing in life. So sad.."});
         }
 
 

@@ -76,6 +76,8 @@ namespace Pomona
 
         public IMappedType GetClassMapping(Type type)
         {
+            type = filter.ResolveRealTypeForProxy(type);
+
             IMappedType mappedType;
             if (!this.mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
@@ -162,16 +164,6 @@ namespace Pomona
                     classDefinition.UriBaseType = classDefinition;
 
                 classDefinition.ScanProperties(type);
-
-                return classDefinition;
-            }
-
-            // This is for proxyed types:
-            if (type.BaseType != null && type.BaseType != typeof(object) && this.sourceTypes.Contains(type.BaseType))
-            {
-                // TODO: Improve heuristics for detecting proxy types
-                var classDefinition = GetClassMapping(type.BaseType);
-                this.mappings[type] = classDefinition;
 
                 return classDefinition;
             }

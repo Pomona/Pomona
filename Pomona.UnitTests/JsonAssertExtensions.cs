@@ -36,51 +36,40 @@ namespace Pomona.UnitTests
     {
         public static JToken AssertHasProperty(this JToken jtoken, string propertyName)
         {
-            var jobject = jtoken as JObject;
-            Assert.IsNotNull(
-                jobject,
-                "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
-                jtoken.GetType().Name + ")");
-
-            JToken propValue;
-            Assert.IsTrue(
-                jobject.TryGetValue(propertyName, out propValue),
-                string.Format("Object has no property named {0}. Contents:\r\n{1}", propertyName, jobject));
-            return propValue;
+            return TryConvertToObjectAndGetProperty<JToken>(jtoken, propertyName);
         }
 
 
         public static JArray AssertHasPropertyWithArray(this JToken jtoken, string propertyName)
         {
-            var jobject = jtoken as JObject;
-            Assert.IsNotNull(
-                jobject,
-                "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
-                jtoken.GetType().Name + ")");
-
-            var propToken = jobject.AssertHasProperty(propertyName);
-            var jArray = propToken as JArray;
-            Assert.IsNotNull(
-                jArray,
-                string.Format(
-                    "JSON property {0} is not of type JArray. Contents:\r\n{1}",
-                    propertyName,
-                    jobject));
-            return jArray;
+            return TryConvertToObjectAndGetProperty<JArray>(jtoken, propertyName);
         }
 
 
-        public static JObject AssertHasPropertyWithObject(this JObject jobject, string propertyName)
+        public static double AssertHasPropertyWithDouble(this JToken jtoken, string propertyName)
         {
-            var propValue = AssertHasProperty(jobject, propertyName);
-            var propValueObject = propValue as JObject;
-            Assert.IsNotNull(
-                propValueObject,
-                string.Format(
-                    "JSON property {0} is not of type JObject. Contents:\r\n{1}",
-                    propertyName,
-                    jobject));
-            return propValueObject;
+            var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
+            return (double)jsonValue.Value;
+        }
+
+
+        public static long AssertHasPropertyWithInteger(this JToken jtoken, string propertyName)
+        {
+            var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
+            return (long)jsonValue.Value;
+        }
+
+
+        public static void AssertHasPropertyWithNull(this JToken jtoken, string propertyName)
+        {
+            var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
+            Assert.IsNull(jsonValue.Value);
+        }
+
+
+        public static JObject AssertHasPropertyWithObject(this JObject jtoken, string propertyName)
+        {
+            return TryConvertToObjectAndGetProperty<JObject>(jtoken, propertyName);
         }
 
 
@@ -117,6 +106,33 @@ namespace Pomona.UnitTests
         public static void AssertIsReference(this JToken jobject)
         {
             Assert.IsNotNullOrEmpty(jobject.AssertHasPropertyWithString("_ref"), "Uri reference null or empty");
+        }
+
+
+        private static T TryConvertToObjectAndGetProperty<T>(JToken jtoken, string propertyName, out JObject jobject)
+            where T : JToken
+        {
+            jobject = jtoken as JObject;
+            Assert.IsNotNull(
+                jobject,
+                "jtoken can't contain property " + propertyName + " because it's not an object (type is " +
+                jtoken.GetType().Name + ")");
+
+            JToken propToken;
+            Assert.IsTrue(jobject.TryGetValue(propertyName, out propToken), "Object does not contain property with name \"" + propertyName + "\":\r\n" + jobject);
+
+            if (!(propToken is T))
+                Assert.Fail("Expected that property " + propertyName + " had a value of JSON type " + typeof(T).Name);
+
+            return (T)propToken;
+        }
+
+
+        private static T TryConvertToObjectAndGetProperty<T>(JToken jtoken, string propertyName)
+            where T : JToken
+        {
+            JObject jobject;
+            return TryConvertToObjectAndGetProperty<T>(jtoken, propertyName, out jobject);
         }
     }
 }

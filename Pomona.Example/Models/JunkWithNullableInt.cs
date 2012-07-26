@@ -26,41 +26,12 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-
-namespace Pomona
+namespace Pomona.Example.Models
 {
-    public interface ITypeMappingFilter
+    public class JunkWithNullableInt : EntityBase
     {
-        object GetIdFor(object entity);
+        public int? Maybe { get; set; }
 
-
-        /// <summary>
-        /// Gets a list of all types to CONSIDER for inclusion.
-        /// (they will be filtered first)
-        /// </summary>
-        /// <returns>List of types considered for mapping.</returns>
-        IEnumerable<Type> GetSourceTypes();
-
-
-        /// <summary>
-        /// This returns what URI this type will be mapped to.
-        /// For example if this method returns the type Animal when passed Dog
-        /// it means that dogs will be available on same url as Animal.
-        /// (ie. http://somehost/animal/{id}, not http://somehost/dog/{id})
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        Type GetUriBaseType(Type type);
-
-        Type ResolveRealTypeForProxy(Type type);
-        bool PropertyIsIncluded(PropertyInfo propertyInfo);
-        bool TypeIsMapped(Type type);
-        bool TypeIsMappedAsCollection(Type type);
-        bool TypeIsMappedAsSharedType(Type type);
-        bool TypeIsMappedAsTransformedType(Type type);
-        bool TypeIsMappedAsValueObject(Type type);
+        public string MentalState { get; set; }
     }
 }

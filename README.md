@@ -23,9 +23,19 @@ Future tasks
 
 
 
-Bugs
-====
+Bugs and necesarry improvements
+===============================
+
 * Uri's is now generated from native type names in nancy module, should rather get name from TransformedType
+
+* Expand path doesnt work properly on types with merged URIs. For example if Critter #125 is a MusicalCritter,
+  http://localhost:2211/critter/125?expand=critter.weapons is expected to expand weapons.
+  It doesn't, instead this is needed: http://localhost:2211/critter/125?expand=musicalcritter.weapons,
+  which is not the way we want it to work!
+
+* IPomonaDataSource needs to be improved. Must be passed some sort of query..
+  Maybe also remove generics stuff here? Don't know if there's really any advantage to having generics..
+  Maybe there should be multiple IPomonaDataSource (like repositories).
 
 Cryptic notes about compressed JSON-like binary format
 ======================================================

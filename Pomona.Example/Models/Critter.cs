@@ -31,11 +31,6 @@ using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
-    public class MusicalCritter : Critter
-    {
-        public string Instrument { get; set; }
-    }
-
     public class Critter : EntityBase
     {
         public Critter()

@@ -41,6 +41,29 @@ namespace Pomona.UnitTests.PomonaSession
     [TestFixture]
     public class GetAsJsonTests : SessionTestsBase
     {
+        [Test]
+        public void GetNullableJunkWithNull_HasNullValue()
+        {
+            var jobject = GetNullableJunk(x => !x.Maybe.HasValue);
+            jobject.AssertHasPropertyWithNull("maybe");
+        }
+
+        [Test]
+        public void GetNullableJunkWithValue_HasValue()
+        {
+            var jobject = GetNullableJunk(x => x.Maybe.HasValue);
+            jobject.AssertHasPropertyWithInteger("maybe");
+        }
+
+
+        private JObject GetNullableJunk(Func<JunkWithNullableInt, bool> predicate)
+        {
+            var junkWithValueId = this.DataSource.List<JunkWithNullableInt>().First(predicate).Id;
+            var jobject = JObject.Parse(this.Session.GetAsJson<JunkWithNullableInt>(junkWithValueId, null));
+            return jobject;
+        }
+
+
         private JObject GetCritterAsJson(string expand)
         {
             var stringWriter = new StringWriter();
