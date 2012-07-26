@@ -1,5 +1,4 @@
-Introduction
-============
+# Pomona. The DTO-free way to REST for lazy people!
 
 Pomona is all about exposing your domain model as a REST API. With less pain.
 
@@ -27,8 +26,7 @@ Oh, by the way, for all nitpickers out there. I use the REST definition freely. 
 it will be possible to expose a somewhat RESTful API through Pomona someday, but oh course
 it all depends on the domain model mapped.
 
-State of the project
-====================
+## State of the project
 
 Although usable for simple scenarios, Pomona should be considered early work-in-progress stuff.
 It doesn't even have query and ordering support. It will change. A lot.
@@ -36,8 +34,7 @@ It's for the adventurous and the rebels! ;)
 
 My personal goal is to release a version 1.0 before christmas. But no promises, yet.
 
-On the shoulders of really cool people:
-=======================================
+## On the shoulders of really cool people:
 
 * JSON.NET for serialization stuff. http://james.newtonking.com/projects/json-net.aspx
 * Nancy for hosting the web service. http://nancyfx.org/
@@ -49,8 +46,7 @@ On the shoulders of really cool people:
 
 A huge "thank you" to all the authors of these projects.
 
-Getting started
-===============
+## Getting started
 
 So if you really want to check this stuff out, here's how you get started.
 
@@ -75,8 +71,8 @@ You can also POST to http://localhost:2211/critter create a new critter entity.
 
 Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
 
-Roadmap for first release
-=========================
+## Roadmap for first release
+
 * Add tests for serialization and deserialization on client
 * Create IPomonaDataSource, for retrieval of data. DONE
 * Create PomonaSession and PomonaSessionFactory that will bind everything together
@@ -86,8 +82,8 @@ Roadmap for first release
   * Property equals something, look at how this is done
   * Make it possible for data source to implement its own query syntax
 
-Future tasks
-============
+## Future tasks
+
 * Implement another layer of abstraction for serializing and deserializing, to support more types than Json. Will look at ServiceStack for this.
 * Implement JS client lib. Maybe two types, one based on KnockoutJs? That would be cool.
 * Implement html media type for friendly browseing.
@@ -95,8 +91,7 @@ Future tasks
 * Batch query support, for example by encapsulating an array of http operations in a JSON array
 
 
-Bugs and necesarry improvements
-===============================
+## Bugs and necesarry improvements
 
 * Uri's is now generated from native type names in nancy module, should rather get name from TransformedType
 
@@ -113,8 +108,9 @@ Bugs and necesarry improvements
 
 
 
-Brainstorm area
-===============
+# Brainstorm area
+
+## Random ideas
 
 * Could make query mechanism pluggable, through some sort of IHttpQueryTranslator.
   Then we could provide a simple default implementation.
@@ -123,8 +119,7 @@ Brainstorm area
   to serialize and convert LINQ expressions, which then can be executed on Nhibernate or other ORM.
   This does however seem a bit dangerous with regards to security.
 
-Idea: Automated batching of queries to decrease N+1 performance problems
-========================================================================
+## Automated batching of queries to decrease N+1 performance problems
 
 The classic N+1 problem will appear when looping through a list, where we at each step
 access a reference to another object, which will then be loaded.
@@ -137,6 +132,7 @@ This is one way to do it (by example):
 We got two simple entity types:
 
 Customer example:
+
     {
        name: "The first name",
        order: {
@@ -145,6 +141,7 @@ Customer example:
     }
 
 Order example:
+
     {
         _uri: "http://blah/order/1",
         description: "This is a order",
@@ -182,8 +179,7 @@ Query 6: Order #15, #16, #17, #18, #19, #20, #21, #22, #23, #24 loaded
 
 This gives a total of 6 http requests instead of 26, which means instead of N+1 we have Log2(N)+1 operations.
 
-Cryptic notes about compressed JSON-like binary format
-======================================================
+## Cryptic notes about compressed JSON-like binary format
 
 CODE
 
