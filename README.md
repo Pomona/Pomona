@@ -1,7 +1,7 @@
 Introduction
 ============
 
-Pomona is all about exposing your domain model as a REST API as painless as possible.
+Pomona is all about exposing your domain model as a REST API. With less pain.
 
 It was born out of my personal experience with being bored from manually implementing
 a whole new layer of DTO and mapping. With the feeling that I was repeating myself over
