@@ -63,6 +63,18 @@ So if you really want to check this stuff out, here's how you get started.
 
 Look at the Critter example in the source code for details.
 
+If you fire up the Pomona.Example.ServerApp exe, it expose the critters on port 2211.
+When ServerApp is running go here with a web browser to see what Pomona is all about:
+
+http://localhost:2211/critter
+http://localhost:2211/critter?expand=critter.hat
+http://localhost:2211/Pomona.Client.dll <-- this generates a client dll on-the-fly
+http://localhost:2211/schemas <-- this returns the JSON schema for the transformed data model
+
+You can also POST to http://localhost:2211/critter create a new critter entity.
+
+Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
+
 Roadmap for first release
 =========================
 * Add tests for serialization and deserialization on client
