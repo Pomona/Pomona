@@ -1,9 +1,8 @@
-#region License
-
+﻿#region License
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,30 +22,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
 #endregion
-
-using System.Collections.Generic;
-
-namespace Pomona
+namespace Pomona.Example.Models
 {
-    /// <summary>
-    /// This is the pomona way of representing a type.
-    /// 
-    /// Can't use Type directly, since the transformed types might not exist
-    /// as Type in server context.
-    /// </summary>
-    public interface IMappedType
+    public class JunkWithRenamedProperty : EntityBase
     {
-        IMappedType BaseType { get; }
-        IList<IMappedType> GenericArguments { get; }
-        bool IsAlwaysExpanded { get; }
-        bool IsBasicWireType { get; }
-        bool IsCollection { get; }
-        bool IsGenericType { get; }
-        bool IsGenericTypeDefinition { get; }
-        IMappedType CollectionElementType { get; }
-        bool IsValueType { get; }
-        string Name { get; }
+        public string ReallyUglyPropertyName { get; set; }
     }
 }

@@ -34,6 +34,15 @@ namespace Pomona.UnitTests
 {
     public static class JsonAssertExtensions
     {
+        public static void AssertDoesNotHaveProperty(this JObject jobject, string propertyName)
+        {
+            JToken ignoredValue;
+            Assert.IsFalse(
+                jobject.TryGetValue(propertyName, out ignoredValue),
+                "JSON object has property with name " + propertyName + ", which was not expected.");
+        }
+
+
         public static JToken AssertHasProperty(this JToken jtoken, string propertyName)
         {
             return TryConvertToObjectAndGetProperty<JToken>(jtoken, propertyName);
@@ -119,7 +128,9 @@ namespace Pomona.UnitTests
                 jtoken.GetType().Name + ")");
 
             JToken propToken;
-            Assert.IsTrue(jobject.TryGetValue(propertyName, out propToken), "Object does not contain property with name \"" + propertyName + "\":\r\n" + jobject);
+            Assert.IsTrue(
+                jobject.TryGetValue(propertyName, out propToken),
+                "Object does not contain property with name \"" + propertyName + "\":\r\n" + jobject);
 
             if (!(propToken is T))
                 Assert.Fail("Expected that property " + propertyName + " had a value of JSON type " + typeof(T).Name);

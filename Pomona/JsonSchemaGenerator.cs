@@ -85,9 +85,12 @@ namespace Pomona
 
             if (jsonSchemaTypeName == "array")
             {
+                if (!propType.IsCollection)
+                    throw new InvalidOperationException("Property presented itself as JSON type array, but type is not a collection. WTF?");
+
                 // hackity hack hack attack. silly code but should work for now.
                 propDef.Add(
-                    "items", new JObject(new JProperty("type", propType.GenericArguments[0].GetSchemaTypeName())));
+                    "items", new JObject(new JProperty("type", propType.CollectionElementType.GetSchemaTypeName())));
             }
 
             return propDef;

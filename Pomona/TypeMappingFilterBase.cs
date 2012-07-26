@@ -77,6 +77,21 @@ namespace Pomona
             return type;
         }
 
+        public virtual Type GetPropertyType(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.PropertyType;
+        }
+
+        public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        {
+            return x => propertyInfo.GetValue(x, null);
+        }
+
+        public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        {
+            return (x, value) => propertyInfo.SetValue(x, value, null);
+        }
+
 
         public virtual Type ResolveRealTypeForProxy(Type type)
         {
@@ -104,13 +119,19 @@ namespace Pomona
 
         public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
         {
-            return true;
+            return propertyInfo.GetGetMethod(true).IsPublic;
+        }
+
+
+        public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.Name;
         }
 
 
         public virtual bool TypeIsMapped(Type type)
         {
-            return TypeIsMappedAsTransformedType(type) || IsNativelySupportedType(type)
+            return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) || IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type);
         }
 

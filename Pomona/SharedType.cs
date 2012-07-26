@@ -75,6 +75,26 @@ namespace Pomona
             get { return (SharedType)this.typeMapper.GetClassMapping(this.targetType.BaseType); }
         }
 
+        public IMappedType CollectionElementType
+        {
+            get
+            {
+                if (!this.isCollection)
+                    throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
+
+                if (TargetType.IsArray)
+                    return this.typeMapper.GetClassMapping(TargetType.GetElementType());
+
+                if (GenericArguments.Count == 0)
+                {
+                    throw new InvalidOperationException(
+                        "Does not know how to find out what element type this collection is of, it has no generic arguement!");
+                }
+
+                return GenericArguments[0];
+            }
+        }
+
         public IList<IMappedType> GenericArguments { get; private set; }
 
         public bool IsAlwaysExpanded

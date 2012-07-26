@@ -63,7 +63,7 @@ namespace Pomona.UnitTests.PomonaSession
             get { return MusicalCritter.Id; }
         }
 
-        protected IPomonaDataSource DataSource
+        protected CritterDataSource DataSource
         {
             get { return this.dataSource; }
         }

@@ -113,6 +113,17 @@ namespace CritterClientTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
+        [Test]
+        public void PostJunkWithRenamedProperty()
+        {
+            var propval = "Jalla jalla";
+            var junk = this.client.Post<IJunkWithRenamedProperty>(x =>
+            {
+                x.BeautifulAndExposed = propval;
+            });
+
+            Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
+        }
 
         [Test]
         public void PostCritterWithNewHat()

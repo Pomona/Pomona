@@ -196,7 +196,7 @@ namespace Pomona.Example
         }
 
 
-        private T Save<T>(T entity)
+        public T Save<T>(T entity)
         {
             var entityCast = (EntityBase)((object)entity);
 

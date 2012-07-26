@@ -63,6 +63,14 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+        private JObject SaveAndGetBackAsJson<T>(T entity)
+            where T : EntityBase
+        {
+            DataSource.Save(entity);
+            var jsonString = Session.GetAsJson<T>(entity.Id, null);
+            return JObject.Parse(jsonString);
+        }
+
 
         private JObject GetCritterAsJson(string expand)
         {
@@ -94,6 +102,17 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+
+        [Test]
+        public void WithEntityThatGotRenamedProperty_HasCorrectPropertyName()
+        {
+            var propval = "Funky junk";
+            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() { ReallyUglyPropertyName = propval });
+
+            // Assert
+            jobject.AssertHasPropertyWithString("beautifulAndExposed");
+            jobject.AssertDoesNotHaveProperty("reallyUglyPropertyName");
+        }
 
         [Test]
         public void WithCustomList_SerializesOk()

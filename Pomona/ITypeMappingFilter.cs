@@ -57,10 +57,14 @@ namespace Pomona
 
         Type ResolveRealTypeForProxy(Type type);
         bool PropertyIsIncluded(PropertyInfo propertyInfo);
+        string GetPropertyMappedName(PropertyInfo propertyInfo);
         bool TypeIsMapped(Type type);
         bool TypeIsMappedAsCollection(Type type);
         bool TypeIsMappedAsSharedType(Type type);
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
+        Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
+        Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
+        Type GetPropertyType(PropertyInfo propertyInfo);
     }
 }

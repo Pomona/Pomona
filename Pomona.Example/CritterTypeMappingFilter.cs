@@ -46,6 +46,17 @@ namespace Pomona.Example
             return CritterDataSource.GetEntityTypes();
         }
 
+        public override string GetPropertyMappedName(System.Reflection.PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.DeclaringType == typeof(JunkWithRenamedProperty)
+                && propertyInfo.Name == "ReallyUglyPropertyName")
+            {
+                return "BeautifulAndExposed";
+            }
+
+            return base.GetPropertyMappedName(propertyInfo);
+        }
+
 
         public override Type GetUriBaseType(Type type)
         {

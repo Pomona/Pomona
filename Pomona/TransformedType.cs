@@ -108,6 +108,11 @@ namespace Pomona
             get { return false; }
         }
 
+        public IMappedType CollectionElementType
+        {
+            get { throw new InvalidOperationException("TransformedType is never a collection, so it won't have a element type."); }
+        }
+
         public bool IsValueType
         {
             get { return false; }
@@ -199,10 +204,12 @@ namespace Pomona
 
         public void ScanProperties(Type type)
         {
-            foreach (var propInfo in type.GetProperties().OrderBy(x => x.Name)
-                .Where(x => x.GetGetMethod().IsPublic && x.GetIndexParameters().Count() == 0))
+            var filter = typeMapper.Filter;
+
+            foreach (var propInfo in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(x => x.Name)
+                .Where(x => x.GetIndexParameters().Count() == 0))
             {
-                if (!this.typeMapper.Filter.PropertyIsIncluded(propInfo))
+                if (!filter.PropertyIsIncluded(propInfo))
                     continue;
 
                 IMappedType declaringType;
@@ -215,18 +222,24 @@ namespace Pomona
                     declaringType = this;
                 }
 
+                var propInfoLocal = propInfo;
+                Func<object, object> getter = filter.GetPropertyGetter(propInfo);
+                Action<object, object> setter = filter.GetPropertySetter(propInfo);
+                var propertyType = filter.GetPropertyType(propInfo);
+
                 var propDef = new PropertyMapping(
-                    propInfo.Name,
+                    typeMapper.Filter.GetPropertyMappedName(propInfo),
                     declaringType,
-                    this.typeMapper.GetClassMapping(propInfo.PropertyType),
+                    this.typeMapper.GetClassMapping(propertyType),
                     propInfo);
 
-                var propInfoLocal = propInfo;
 
                 // TODO: This is not the most optimized way to set property, small code gen needed.
-                propDef.Getter = x => propInfoLocal.GetValue(x, null);
-                propDef.Setter = (x, value) => propInfoLocal.SetValue(x, value, null);
+                propDef.Getter = getter;
+                propDef.Setter = setter;
 
+                // TODO: Fix this for transformed properties with custom get/set methods.
+                // TODO: This should rather be configured by filter.
                 if (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null)
                 {
                     propDef.CreateMode = PropertyMapping.PropertyCreateMode.Optional;
