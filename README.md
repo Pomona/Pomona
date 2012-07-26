@@ -45,6 +45,7 @@ On the shoulders of really cool people:
   One day I hope Pomona will offer a Super-Duper-Happy path just like it.
 * NUnit for testing. http://www.nunit.org/
 * Cecil for generation of Client dll. http://www.mono-project.com/Cecil
+* google-code-prettify for presenting JSON as HTML. http://code.google.com/p/google-code-prettify/ 
 
 A huge "thank you" to all the authors of these projects.
 
