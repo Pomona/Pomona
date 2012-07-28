@@ -91,10 +91,10 @@ namespace Pomona.Example
         {
             var rng = new Random(678343);
 
-            for (var i = 0; i < 12; i++)
+            for (var i = 0; i < 70; i++)
                 Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
 
-            const int critterCount = 20;
+            const int critterCount = 180;
 
             for (var i = 0; i < critterCount; i++)
                 CreateRandomCritter(rng);
