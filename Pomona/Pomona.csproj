@@ -67,14 +67,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HtmlJsonPrettifier.cs" />
+    <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
+    <Compile Include="IPomonaQuery.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="JsonSchemaGenerator.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="PomonaBootstrapper.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
+    <Compile Include="PomonaMappingException.cs" />
     <Compile Include="PomonaModule.cs" />
+    <Compile Include="PomonaQuery.cs" />
+    <Compile Include="PomonaQueryFilterParser.cs" />
+    <Compile Include="PomonaQueryTransformer.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="PomonaSession.cs" />
     <Compile Include="Sandbox\CJson\CJsonCodes.cs" />

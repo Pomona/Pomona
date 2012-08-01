@@ -113,7 +113,7 @@ namespace Pomona
 
         public Action<object, object> Setter { get; set; }
 
-        protected PropertyInfo PropertyInfo
+        public PropertyInfo PropertyInfo
         {
             get { return this.propertyInfo; }
         }

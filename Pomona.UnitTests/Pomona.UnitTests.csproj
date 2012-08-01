@@ -58,6 +58,7 @@
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Queries\PomonaQueryFilterParserTests.cs" />
     <Compile Include="TypeMapperTests.cs" />
   </ItemGroup>
   <ItemGroup>

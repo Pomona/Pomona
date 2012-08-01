@@ -1,9 +1,7 @@
-﻿#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,43 +22,35 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System;
 
-using System.Linq;
-
-using NUnit.Framework;
-
-using Pomona.Example;
-using Pomona.Example.Models;
-
-namespace Pomona.UnitTests
+namespace Pomona
 {
-    [TestFixture]
-    public class TypeMapperTests
+    public class PomonaMappingException : Exception
     {
-        private TypeMapper typeMapper;
-
-        [SetUp]
-        public void SetUp()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Pomona.PomonaMappingException"/> class.
+        /// </summary>
+        public PomonaMappingException()
         {
-            typeMapper = new TypeMapper(new CritterTypeMappingFilter());
         }
 
-        [Test]
-        public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Pomona.PomonaMappingException"/> class with a specified error message.
+        /// </summary>
+        /// <param name="message">The message that describes the error. </param>
+        public PomonaMappingException(string message) : base(message)
         {
-            var transformedType = (TransformedType)typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(transformedType, "DiscoFunky.BeautifulAndExposed");
-            Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
         }
 
-        [Test]
-        public void DoesNotCreateTransformedTypeForExcludedClass()
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Pomona.PomonaMappingException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
+        /// </summary>
+        /// <param name="message">The error message that explains the reason for the exception. </param><param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified. </param>
+        public PomonaMappingException(string message, Exception innerException) : base(message, innerException)
         {
-            Assert.That(
-                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
-                Is.False,
-                "Excluded thing should not have been part of transformed types");
         }
     }
 }

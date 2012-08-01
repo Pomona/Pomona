@@ -275,5 +275,39 @@ namespace Pomona
                 }
             }
         }
+
+        public string ConvertToInternalPropertyPath(string externalPath)
+        {
+            // TODO: Fix for inherited types..
+            // TODO: Fix for lists, but first gotta find out how that would work..
+
+            var firstPathSeparatorIndex = externalPath.IndexOf('.');
+
+            string externalPropertyName;
+            if (firstPathSeparatorIndex == -1)
+            {
+                externalPropertyName = externalPath;
+            }
+            else
+            {
+                externalPropertyName = externalPath.Substring(0, firstPathSeparatorIndex);
+            }
+
+            var prop = Properties.FirstOrDefault(x => x.Name.ToLowerInvariant() == externalPropertyName.ToLowerInvariant());
+            if (prop == null)
+                throw new PomonaMappingException(
+                    string.Format("Could not find property with name {0} on type {1} while resolving path {2}",
+                                  externalPropertyName, Name, externalPath));
+
+            var internalPropertyName = prop.PropertyInfo.Name;
+
+            if (firstPathSeparatorIndex != -1)
+            {
+                var remainingExternalPath = externalPath.Substring(firstPathSeparatorIndex + 1);
+                var nextType = (TransformedType) prop.PropertyType;
+                return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
+            }
+            return internalPropertyName;
+        }
     }
 }

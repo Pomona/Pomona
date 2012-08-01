@@ -54,6 +54,12 @@ namespace Pomona.Example
                 return "BeautifulAndExposed";
             }
 
+            if (propertyInfo.DeclaringType == typeof(ThingWithRenamedReferenceProperty)
+                && propertyInfo.Name == "Junky")
+            {
+                return "DiscoFunky";
+            }
+
             return base.GetPropertyMappedName(propertyInfo);
         }
 

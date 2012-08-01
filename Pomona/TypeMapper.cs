@@ -170,5 +170,11 @@ namespace Pomona
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
         }
+
+        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
+        {
+            if (rootType == null) throw new ArgumentNullException("rootType");
+            return rootType.ConvertToInternalPropertyPath(externalPath);
+        }
     }
 }

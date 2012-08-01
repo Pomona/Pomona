@@ -1,5 +1,4 @@
-﻿using System;
-using Nancy;
+﻿using Nancy;
 
 namespace Pomona
 {
@@ -9,6 +8,6 @@ namespace Pomona
     /// </summary>
     public interface IHttpQueryTransformer
     {
-        IPomonaQuery TransformRequest(Request request, NancyContext nancyContext);
+        IPomonaQuery TransformRequest(Request request, NancyContext nancyContext, TransformedType rootType);
     }
 }

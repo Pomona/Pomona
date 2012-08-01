@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -23,44 +21,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
-
-using System.Linq;
-
-using NUnit.Framework;
-
-using Pomona.Example;
-using Pomona.Example.Models;
-
-namespace Pomona.UnitTests
+namespace Pomona.Example.Models
 {
-    [TestFixture]
-    public class TypeMapperTests
+    public class ThingWithRenamedReferenceProperty : EntityBase
     {
-        private TypeMapper typeMapper;
-
-        [SetUp]
-        public void SetUp()
-        {
-            typeMapper = new TypeMapper(new CritterTypeMappingFilter());
-        }
-
-        [Test]
-        public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
-        {
-            var transformedType = (TransformedType)typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(transformedType, "DiscoFunky.BeautifulAndExposed");
-            Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
-        }
-
-        [Test]
-        public void DoesNotCreateTransformedTypeForExcludedClass()
-        {
-            Assert.That(
-                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
-                Is.False,
-                "Excluded thing should not have been part of transformed types");
-        }
+        /// <summary>
+        /// This property will be called DiscoFunky when mapped.
+        /// </summary>
+        public virtual JunkWithRenamedProperty Junky { get; set; }
     }
 }

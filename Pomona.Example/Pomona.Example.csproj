@@ -71,6 +71,7 @@
     <Compile Include="Models\MusicalCritter.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\ThingWithCustomIList.cs" />
+    <Compile Include="Models\ThingWithRenamedReferenceProperty.cs" />
     <Compile Include="Models\Weapon.cs" />
     <Compile Include="Models\WeaponModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
