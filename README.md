@@ -200,38 +200,38 @@ It uses character '$' as separation char, although this might change.
 
 Take a class defined like this:
 
-  public class Foo
-  {
-      public int Id { get; set; }
-      public string Name { get; set; }
-      public int Age { get; set; }
-      public Bar Bar { get; set; }
-  }
+    public class Foo
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public Bar Bar { get; set; }
+    }
   
-  public class Bar
-  {
-      public int Id { get; set; }
-      public string Description { get; set; }
-      public IList<Foo> Foos { get; set; }
-  }
+    public class Bar
+    {
+        public int Id { get; set; }
+        public string Description { get; set; }
+        public IList<Foo> Foos { get; set; }
+    }
 
 The query string:
 
-  http://whatever/foo/?q=((name$eq$bob)and(age$gt$50))or(name$eq$alex)
+    http://whatever/foo/?q=((name$eq$bob)and(age$gt$50))or(name$eq$alex)
 
 Could be translated to a LINQ expression that looks something like this:
 
-  fooList.Where(x => (x.Name == "bob" && x.Age > 50) || x.Name == "alex")
+    fooList.Where(x => (x.Name == "bob" && x.Age > 50) || x.Name == "alex")
 
 Specifying a property that is a reference to another entity, will be the same as specifying the Id under this property.
 Which means Foo.Bar will be translated to Foo.Bar.Id.
 
-  http://whatever/foo/?q=bar$eq$2
-  http://whatever/foo/?q=bar.id$eq$2
+    http://whatever/foo/?q=bar$eq$2
+    http://whatever/foo/?q=bar.id$eq$2
 
 Could be translated to the LINQ expression:
 
-  fooList.Where(x => x.Bar != null && x.Bar.Id == 2)
+    fooList.Where(x => x.Bar != null && x.Bar.Id == 2)
 
 Which would give us all Foo entitys which is part of bar.
 
