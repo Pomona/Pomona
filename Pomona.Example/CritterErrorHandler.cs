@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,12 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.IO;
 using System.Linq;
-
 using Nancy;
 using Nancy.ErrorHandling;
 
@@ -38,12 +33,13 @@ namespace Pomona.Example
     public class CritterErrorHandler : IErrorHandler
     {
         private readonly HttpStatusCode[] _supportedStatusCodes = new[]
-        {
-            HttpStatusCode.BadRequest,
-            HttpStatusCode.NotFound,
-            HttpStatusCode.InternalServerError
-        };
+                                                                      {
+                                                                          HttpStatusCode.BadRequest,
+                                                                          HttpStatusCode.NotFound,
+                                                                          HttpStatusCode.InternalServerError
+                                                                      };
 
+        #region IErrorHandler Members
 
         public void Handle(HttpStatusCode statusCode, NancyContext context)
         {
@@ -63,22 +59,22 @@ namespace Pomona.Example
             context.Items.TryGetValue("ERROR_TRACE", out errorTrace);
 
             resp.Contents = stream =>
-            {
-                using (var streamWriter = new StreamWriter(stream))
-                {
-                    if (exception != null)
-                    {
-                        streamWriter.WriteLine("Exception:");
-                        streamWriter.WriteLine(exception);
-                    }
-                    if (errorTrace != null)
-                    {
-                        streamWriter.WriteLine("Trace:");
-                        streamWriter.WriteLine(errorTrace);
-                    }
-                    streamWriter.WriteLine("Ey.. Got an exception there matey!!");
-                }
-            };
+                                {
+                                    using (var streamWriter = new StreamWriter(stream))
+                                    {
+                                        if (exception != null)
+                                        {
+                                            streamWriter.WriteLine("Exception:");
+                                            streamWriter.WriteLine(exception);
+                                        }
+                                        if (errorTrace != null)
+                                        {
+                                            streamWriter.WriteLine("Trace:");
+                                            streamWriter.WriteLine(errorTrace);
+                                        }
+                                        streamWriter.WriteLine("Ey.. Got an exception there matey!!");
+                                    }
+                                };
             resp.ContentType = "text/plain";
             resp.StatusCode = HttpStatusCode.OK;
             context.Response = resp;
@@ -87,7 +83,9 @@ namespace Pomona.Example
 
         public bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
         {
-            return this._supportedStatusCodes.Any(s => s == statusCode);
+            return _supportedStatusCodes.Any(s => s == statusCode);
         }
+
+        #endregion
     }
 }

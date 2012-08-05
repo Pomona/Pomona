@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,7 +30,6 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Client
@@ -42,9 +37,9 @@ namespace Pomona.Client
     public class ClientHelper
     {
         private static readonly Type[] knownGenericCollectionTypes = {
-            typeof(List<>), typeof(IList<>),
-            typeof(ICollection<>)
-        };
+                                                                         typeof (List<>), typeof (IList<>),
+                                                                         typeof (ICollection<>)
+                                                                     };
 
         private static Dictionary<Type, Type> interfaceToNewProxyDictionary = new Dictionary<Type, Type>();
         private static Dictionary<Type, Type> interfaceToPocoDictionary = new Dictionary<Type, Type>();
@@ -71,14 +66,14 @@ namespace Pomona.Client
 
         public T GetUri<T>(string uri)
         {
-            return (T)Deserialize(typeof(T), GetUri(uri));
+            return (T) Deserialize(typeof (T), GetUri(uri));
         }
 
 
         public IList<T> List<T>(string expand = null)
         {
             // TODO: Implement baseuri property or something.
-            var type = typeof(T);
+            var type = typeof (T);
 
             if (type.IsInterface && type.Name.StartsWith("I"))
             {
@@ -96,7 +91,7 @@ namespace Pomona.Client
 
         public T Post<T>(Action<T> postAction)
         {
-            var type = typeof(T);
+            var type = typeof (T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
             if (!type.IsInterface)
                 throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
@@ -105,20 +100,20 @@ namespace Pomona.Client
             var newType = GetNewProxyForInterface(type);
             var newProxy = Activator.CreateInstance(newType);
 
-            postAction((T)newProxy);
+            postAction((T) newProxy);
 
             // TODO: Implement baseuri property or something.
             var uri = BaseUri + pocoType.Name.ToLower();
 
             // Post the json!
             return
-                (T)Deserialize(type, UploadToUri(uri, ((PutResourceBase)newProxy).ToJson(), "POST"));
+                (T) Deserialize(type, UploadToUri(uri, ((PutResourceBase) newProxy).ToJson(), "POST"));
         }
 
 
         public T Put<T>(T target, Action<T> updateAction)
         {
-            var type = typeof(T);
+            var type = typeof (T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
             if (!type.IsInterface)
                 throw new InvalidOperationException("updateAction needs to operate on the interface of the entity");
@@ -128,25 +123,25 @@ namespace Pomona.Client
             var updateProxy = Activator.CreateInstance(updateType);
 
             // Run user supplied actions on updateProxy
-            updateAction((T)updateProxy);
+            updateAction((T) updateProxy);
 
             // Put the json!
             return
                 (T)
                 Deserialize(
                     type,
-                    UploadToUri(((IHasResourceUri)target).Uri, ((PutResourceBase)updateProxy).ToJson(), "PUT"));
+                    UploadToUri(((IHasResourceUri) target).Uri, ((PutResourceBase) updateProxy).ToJson(), "PUT"));
         }
 
 
         private static object CreateListOfType(Type elementType, IEnumerable elements)
         {
             var createListOfTypeGeneric =
-                typeof(ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static)
+                typeof (ClientHelper).GetMethod("CreateListOfTypeGeneric", BindingFlags.NonPublic | BindingFlags.Static)
                     .
                     MakeGenericMethod(elementType);
 
-            return createListOfTypeGeneric.Invoke(null, new object[] { elements });
+            return createListOfTypeGeneric.Invoke(null, new object[] {elements});
         }
 
 
@@ -273,7 +268,7 @@ namespace Pomona.Client
             else
             {
                 var proxyType = GetProxyForInterface(expectedType);
-                var proxy = (LazyProxyBase)Activator.CreateInstance(proxyType);
+                var proxy = (LazyProxyBase) Activator.CreateInstance(proxyType);
                 proxy.Uri = uri;
                 proxy.TargetType = GetPocoForInterface(expectedType);
                 proxy.Client = this;
@@ -298,7 +293,7 @@ namespace Pomona.Client
                 return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
             }
 
-            return Convert.ChangeType(((JValue)jToken).Value, expectedType);
+            return Convert.ChangeType(((JValue) jToken).Value, expectedType);
         }
 
 
@@ -309,7 +304,7 @@ namespace Pomona.Client
             JToken typePropertyToken;
             if (jObject.TryGetValue("_type", out typePropertyToken))
             {
-                var typeString = (string)((JValue)typePropertyToken).Value;
+                var typeString = (string) ((JValue) typePropertyToken).Value;
                 receivedSubclassInterface =
                     expectedType.Assembly.GetTypes().Where(x => x.Name == "I" + typeString).First(
                         x => expectedType.IsAssignableFrom(x));
@@ -318,8 +313,8 @@ namespace Pomona.Client
             JToken refUriToken;
             if (jObject.TryGetValue("_ref", out refUriToken))
             {
-                var uriValue = (JValue)refUriToken;
-                return CreateProxyFor((string)uriValue.Value, receivedSubclassInterface);
+                var uriValue = (JValue) refUriToken;
+                return CreateProxyFor((string) uriValue.Value, receivedSubclassInterface);
             }
 
             var createdType = receivedSubclassInterface;
@@ -331,12 +326,12 @@ namespace Pomona.Client
                 createdType = GetPocoForInterface(receivedSubclassInterface);
             }
 
-            var target = (ResourceBase)Activator.CreateInstance(createdType);
+            var target = (ResourceBase) Activator.CreateInstance(createdType);
 
             // Set uri, if available in json (for updates etc)
             JToken uriToken;
             if (jObject.TryGetValue("_uri", out uriToken))
-                target.Uri = (string)(((JValue)uriToken).Value);
+                target.Uri = (string) (((JValue) uriToken).Value);
 
             // TODO: Cache this dictionary
             var propertiesForType = createdType.GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
@@ -357,7 +352,7 @@ namespace Pomona.Client
 
         private JToken GetUri(string uri)
         {
-            var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
+            var jsonString = Encoding.UTF8.GetString(webClient.DownloadData(uri));
             Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
             return JToken.Parse(jsonString);
         }
@@ -376,7 +371,7 @@ namespace Pomona.Client
             Console.WriteLine("PUTting data to " + uri + ":\r\n" + requestString);
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
-            var responseBytes = this.webClient.UploadData(uri, httpMethod, requestBytes);
+            var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
             var responseString = Encoding.UTF8.GetString(responseBytes);
 
             Console.WriteLine("Received response from PUT:\t\n" + responseString);

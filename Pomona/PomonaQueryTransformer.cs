@@ -30,8 +30,8 @@ namespace Pomona
 {
     public class PomonaQueryTransformer : IHttpQueryTransformer
     {
-        private readonly TypeMapper typeMapper;
         private readonly PomonaQueryFilterParser filterParser;
+        private readonly TypeMapper typeMapper;
 
         public PomonaQueryTransformer(TypeMapper typeMapper, PomonaQueryFilterParser filterParser)
         {
@@ -49,7 +49,7 @@ namespace Pomona
             if (nancyContext == null) throw new ArgumentNullException("nancyContext");
             if (rootType == null) throw new ArgumentNullException("rootType");
 
-            var query = new PomonaQuery();
+            var query = new PomonaQuery(rootType);
 
             var filter = (string) request.Query.filter;
 

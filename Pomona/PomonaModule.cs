@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,23 +22,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using Nancy;
-
-using Newtonsoft.Json;
 
 namespace Pomona
 {
     public abstract class PomonaModule : NancyModule
     {
-        private readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
+        private readonly IHttpQueryTransformer queryTransformer;
         private readonly PomonaSession session;
         private readonly TypeMapper typeMapper;
         private IPomonaDataSource dataSource;
@@ -48,21 +40,35 @@ namespace Pomona
         private string htmlLinks = string.Empty;
 
 
-        public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter = null)
+        public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter)
+            : this(dataSource, typeMappingFilter, null)
+        {
+        }
+
+        public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter,
+                            IHttpQueryTransformer queryTransformer)
         {
             this.dataSource = dataSource;
-            this.typeMapper = new TypeMapper(typeMappingFilter);
-            this.session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri);
+            typeMapper = new TypeMapper(typeMappingFilter);
+
+            if (queryTransformer == null)
+            {
+                queryTransformer = new PomonaQueryTransformer(typeMapper, new PomonaQueryFilterParser(typeMapper));
+            }
+            this.queryTransformer = queryTransformer;
+
+            session = new PomonaSession(dataSource, typeMapper, GetBaseUri);
 
             // Just eagerly load the type mappings so we can manipulate it
 
-            var registerRouteForT = typeof(PomonaModule).GetMethod(
+            var registerRouteForT = typeof (PomonaModule).GetMethod(
                 "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
 
             foreach (
                 var type in
-                    this.typeMapper.TransformedTypes.Where(x => x.SourceType != null && !x.SourceType.IsAbstract).Select(x => x.UriBaseType ?? x).Distinct().Where(
-                        x => !x.MappedAsValueObject))
+                    typeMapper.TransformedTypes.Where(x => x.SourceType != null && !x.SourceType.IsAbstract).Select(
+                        x => x.UriBaseType ?? x).Distinct().Where(
+                            x => !x.MappedAsValueObject))
             {
                 var genericMethod = registerRouteForT.MakeGenericMethod(type.SourceType);
                 genericMethod.Invoke(this, null);
@@ -76,7 +82,7 @@ namespace Pomona
 
         public IPomonaDataSource DataSource
         {
-            get { return this.dataSource; }
+            get { return dataSource; }
         }
 
         private void FillJsonResponse(Response res, string json)
@@ -84,7 +90,7 @@ namespace Pomona
             // Very simple content negotiation. Ainnt need noo fancy thing here.
 
             if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
-                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(res, this.htmlLinks, json);
+                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(res, htmlLinks, json);
             else
             {
                 res.ContentsFromString(json);
@@ -98,7 +104,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            var json = this.session.GetAsJson<T>(id, expand);
+            var json = session.GetAsJson<T>(id, expand);
 
             FillJsonResponse(res, json);
 
@@ -120,7 +126,7 @@ namespace Pomona
         {
             var response = new Response();
 
-            response.Contents = stream => this.session.WriteClientLibrary(stream);
+            response.Contents = stream => session.WriteClientLibrary(stream);
             response.ContentType = "binary/octet-stream";
 
             return response;
@@ -148,7 +154,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            FillJsonResponse(res, this.session.GetPropertyAsJson<T>(id, propname, expand));
+            FillJsonResponse(res, session.GetPropertyAsJson<T>(id, propname, expand));
 
             return res;
         }
@@ -158,7 +164,7 @@ namespace Pomona
         {
             var res = new Response();
 
-            var schemas = new JsonSchemaGenerator(this.session).GenerateAllSchemas().ToString();
+            var schemas = new JsonSchemaGenerator(session).GenerateAllSchemas().ToString();
             res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 
@@ -171,7 +177,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            FillJsonResponse(res, this.session.ListAsJson<T>(expand));
+            FillJsonResponse(res, session.ListAsJson<T>(expand));
 
             return res;
         }
@@ -183,7 +189,7 @@ namespace Pomona
 
             var res = new Response();
 
-            var responseBodyText = this.session.PostJson<T>(new StreamReader(req.Body));
+            var responseBodyText = session.PostJson<T>(new StreamReader(req.Body));
             res.ContentsFromString(responseBodyText);
             res.ContentType = "text/plain; charset=utf-8";
 
@@ -193,13 +199,13 @@ namespace Pomona
 
         private void RegisterRouteFor<T>()
         {
-            var type = typeof(T);
+            var type = typeof (T);
             var lowerTypeName = type.Name.ToLower();
             var path = "/" + lowerTypeName;
             Console.WriteLine("Registering path " + path);
 
-            this.htmlLinks = this.htmlLinks
-                             + string.Format("<li><a href=\"/{0}\">{1}</a></li>", lowerTypeName, type.Name);
+            htmlLinks = htmlLinks
+                        + string.Format("<li><a href=\"/{0}\">{1}</a></li>", lowerTypeName, type.Name);
 
             Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
 
@@ -208,7 +214,26 @@ namespace Pomona
             Put[path + "/{id}"] = x => UpdateFromJson<T>(x.id);
             Post[path] = x => PostFromJson<T>();
 
-            Get[path] = x => ListAsJson<T>();
+            //Get[path] = x => ListAsJson<T>();
+            Get[path] = x => QueryAsJson<T>();
+        }
+
+        private Response QueryAsJson<T>()
+        {
+            var mappedType = (TransformedType) typeMapper.GetClassMapping<T>();
+            var query = queryTransformer.TransformRequest(Request, Context, mappedType);
+
+            string jsonStr;
+            using (var strWriter = new StringWriter())
+            {
+                session.Query(query, strWriter);
+                jsonStr = strWriter.ToString();
+            }
+
+            var response = new Response();
+            FillJsonResponse(response, jsonStr);
+
+            return response;
         }
 
 
@@ -218,7 +243,7 @@ namespace Pomona
 
             var res = new Response();
             res.Contents =
-                stream => this.session.UpdateFromJson<T>(id, new StreamReader(req.Body), new StreamWriter(stream));
+                stream => session.UpdateFromJson<T>(id, new StreamReader(req.Body), new StreamWriter(stream));
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;

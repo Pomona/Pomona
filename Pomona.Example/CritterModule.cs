@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,11 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
-using System;
-using System.Collections.Generic;
-
 namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
@@ -40,7 +33,7 @@ namespace Pomona.Example
 
         public CritterDataSource CritterDataSource
         {
-            get { return (CritterDataSource)DataSource; }
+            get { return (CritterDataSource) DataSource; }
         }
     }
 }

@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,16 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.IO;
 using System.Linq;
-
 using NUnit.Framework;
-
 using Newtonsoft.Json.Linq;
-
 using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.PomonaSession
@@ -41,25 +34,10 @@ namespace Pomona.UnitTests.PomonaSession
     [TestFixture]
     public class GetAsJsonTests : SessionTestsBase
     {
-        [Test]
-        public void GetNullableJunkWithNull_HasNullValue()
-        {
-            var jobject = GetNullableJunk(x => !x.Maybe.HasValue);
-            jobject.AssertHasPropertyWithNull("maybe");
-        }
-
-        [Test]
-        public void GetNullableJunkWithValue_HasValue()
-        {
-            var jobject = GetNullableJunk(x => x.Maybe.HasValue);
-            jobject.AssertHasPropertyWithInteger("maybe");
-        }
-
-
         private JObject GetNullableJunk(Func<JunkWithNullableInt, bool> predicate)
         {
-            var junkWithValueId = this.DataSource.List<JunkWithNullableInt>().First(predicate).Id;
-            var jobject = JObject.Parse(this.Session.GetAsJson<JunkWithNullableInt>(junkWithValueId, null));
+            var junkWithValueId = DataSource.List<JunkWithNullableInt>().First(predicate).Id;
+            var jobject = JObject.Parse(Session.GetAsJson<JunkWithNullableInt>(junkWithValueId, null));
             return jobject;
         }
 
@@ -102,17 +80,20 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+        [Test]
+        public void GetNullableJunkWithNull_HasNullValue()
+        {
+            var jobject = GetNullableJunk(x => !x.Maybe.HasValue);
+            jobject.AssertHasPropertyWithNull("maybe");
+        }
 
         [Test]
-        public void WithEntityThatGotRenamedProperty_HasCorrectPropertyName()
+        public void GetNullableJunkWithValue_HasValue()
         {
-            var propval = "Funky junk";
-            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() { ReallyUglyPropertyName = propval });
-
-            // Assert
-            jobject.AssertHasPropertyWithString("beautifulAndExposed");
-            jobject.AssertDoesNotHaveProperty("reallyUglyPropertyName");
+            var jobject = GetNullableJunk(x => x.Maybe.HasValue);
+            jobject.AssertHasPropertyWithInteger("maybe");
         }
+
 
         [Test]
         public void WithCustomList_SerializesOk()
@@ -122,6 +103,17 @@ namespace Pomona.UnitTests.PomonaSession
 
             // Assert
             var loners = jobject.AssertHasPropertyWithArray("loners");
+        }
+
+        [Test]
+        public void WithEntityThatGotRenamedProperty_HasCorrectPropertyName()
+        {
+            var propval = "Funky junk";
+            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() {ReallyUglyPropertyName = propval});
+
+            // Assert
+            jobject.AssertHasPropertyWithString("beautifulAndExposed");
+            jobject.AssertDoesNotHaveProperty("reallyUglyPropertyName");
         }
 
 

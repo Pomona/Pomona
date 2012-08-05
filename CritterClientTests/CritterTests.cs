@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,15 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
-
 using CritterClient;
-
 using NUnit.Framework;
-
 using Pomona.Client;
 using Pomona.Example;
 
@@ -56,18 +49,18 @@ namespace CritterClientTests
         [SetUp]
         public void SetUp()
         {
-            this.baseUri = "http://localhost:4186/";
-            this.critterHost = new CritterHost(new Uri(this.baseUri));
-            this.critterHost.Start();
-            this.client = new ClientHelper();
-            this.client.BaseUri = this.baseUri;
+            baseUri = "http://localhost:4186/";
+            critterHost = new CritterHost(new Uri(baseUri));
+            critterHost.Start();
+            client = new ClientHelper();
+            client.BaseUri = baseUri;
         }
 
 
         [TearDown]
         public void TearDown()
         {
-            this.critterHost.Stop();
+            critterHost.Stop();
         }
 
         #endregion
@@ -79,7 +72,7 @@ namespace CritterClientTests
 
         private IHat PostAHat(string hatType)
         {
-            var hat = this.client.Post<IHat>(
+            var hat = client.Post<IHat>(
                 x => { x.HatType = hatType; });
             return hat;
         }
@@ -88,7 +81,7 @@ namespace CritterClientTests
         [Test]
         public void DeserializeCritters()
         {
-            var critters = this.client.List<ICritter>("critter.weapons.model");
+            var critters = client.List<ICritter>("critter.weapons.model");
             var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
         }
 
@@ -102,12 +95,29 @@ namespace CritterClientTests
 
             const string critterName = "Super critter";
 
-            var critter = this.client.Post<ICritter>(
+            var critter = client.Post<ICritter>(
                 x =>
-                {
-                    x.Hat = hat;
-                    x.Name = critterName;
-                });
+                    {
+                        x.Hat = hat;
+                        x.Name = critterName;
+                    });
+
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
+        }
+
+        [Test]
+        public void PostCritterWithNewHat()
+        {
+            const string critterName = "Nooob critter";
+            const string hatType = "Bolalalala";
+
+            var critter = client.Post<ICritter>(
+                x =>
+                    {
+                        x.Hat = new NewHat() {HatType = hatType};
+                        x.Name = critterName;
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -117,29 +127,9 @@ namespace CritterClientTests
         public void PostJunkWithRenamedProperty()
         {
             var propval = "Jalla jalla";
-            var junk = this.client.Post<IJunkWithRenamedProperty>(x =>
-            {
-                x.BeautifulAndExposed = propval;
-            });
+            var junk = client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
-        }
-
-        [Test]
-        public void PostCritterWithNewHat()
-        {
-            const string critterName = "Nooob critter";
-            const string hatType = "Bolalalala";
-
-            var critter = this.client.Post<ICritter>(
-                x =>
-                {
-                    x.Hat = new NewHat() { HatType = hatType };
-                    x.Name = critterName;
-                });
-
-            Assert.That(critter.Name, Is.EqualTo(critterName));
-            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
     }
 }

@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,8 +35,9 @@ namespace Pomona
     public class SharedType : IMappedType
     {
         private static Type[] basicWireTypes = {
-            typeof(int), typeof(double), typeof(float), typeof(string), typeof(bool), typeof(decimal), typeof(DateTime)
-        };
+                                                   typeof (int), typeof (double), typeof (float), typeof (string),
+                                                   typeof (bool), typeof (decimal), typeof (DateTime)
+                                               };
 
         private readonly Type targetType;
         private readonly TypeMapper typeMapper;
@@ -55,35 +52,35 @@ namespace Pomona
                 throw new ArgumentNullException("typeMapper");
             this.targetType = targetType;
             this.typeMapper = typeMapper;
-            this.isCollection =
+            isCollection =
                 targetType.GetInterfaces().Where(x => x.IsGenericType)
                     .Select(x => x.IsGenericTypeDefinition ? x : x.GetGenericTypeDefinition()).Any
-                    (x => x == typeof(ICollection<>));
+                    (x => x == typeof (ICollection<>));
             GenericArguments = new List<IMappedType>();
         }
 
 
         public Type TargetType
         {
-            get { return this.targetType; }
+            get { return targetType; }
         }
 
         #region IMappedType Members
 
         public IMappedType BaseType
         {
-            get { return (SharedType)this.typeMapper.GetClassMapping(this.targetType.BaseType); }
+            get { return (SharedType) typeMapper.GetClassMapping(targetType.BaseType); }
         }
 
         public IMappedType CollectionElementType
         {
             get
             {
-                if (!this.isCollection)
+                if (!isCollection)
                     throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
 
                 if (TargetType.IsArray)
-                    return this.typeMapper.GetClassMapping(TargetType.GetElementType());
+                    return typeMapper.GetClassMapping(TargetType.GetElementType());
 
                 if (GenericArguments.Count == 0)
                 {
@@ -99,22 +96,22 @@ namespace Pomona
 
         public bool IsAlwaysExpanded
         {
-            get { return !this.isCollection; }
+            get { return !isCollection; }
         }
 
         public bool IsBasicWireType
         {
-            get { return basicWireTypes.Contains(this.targetType); }
+            get { return basicWireTypes.Contains(targetType); }
         }
 
         public bool IsCollection
         {
-            get { return this.isCollection; }
+            get { return isCollection; }
         }
 
         public bool IsGenericType
         {
-            get { return this.targetType.IsGenericType; }
+            get { return targetType.IsGenericType; }
         }
 
         public bool IsGenericTypeDefinition
@@ -124,12 +121,12 @@ namespace Pomona
 
         public bool IsValueType
         {
-            get { return this.targetType.IsValueType; }
+            get { return targetType.IsValueType; }
         }
 
         public string Name
         {
-            get { return this.targetType.Name; }
+            get { return targetType.Name; }
         }
 
         #endregion

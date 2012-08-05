@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,11 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
-
 using Newtonsoft.Json.Linq;
 
 namespace Pomona
@@ -48,7 +43,7 @@ namespace Pomona
 
         public JArray GenerateAllSchemas()
         {
-            return new JArray(this.session.TypeMapper.TransformedTypes.Select(GenerateSchemaFor));
+            return new JArray(session.TypeMapper.TransformedTypes.Select(GenerateSchemaFor));
         }
 
 
@@ -86,7 +81,8 @@ namespace Pomona
             if (jsonSchemaTypeName == "array")
             {
                 if (!propType.IsCollection)
-                    throw new InvalidOperationException("Property presented itself as JSON type array, but type is not a collection. WTF?");
+                    throw new InvalidOperationException(
+                        "Property presented itself as JSON type array, but type is not a collection. WTF?");
 
                 // hackity hack hack attack. silly code but should work for now.
                 propDef.Add(

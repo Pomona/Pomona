@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.Collections.Generic;
 
 namespace Pomona
@@ -34,6 +30,7 @@ namespace Pomona
     {
         T GetById<T>(object id);
         ICollection<T> List<T>();
+        IEnumerable<T> List<T>(IPomonaQuery query);
         T Post<T>(T newObject);
     }
 }

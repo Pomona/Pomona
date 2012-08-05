@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 
@@ -56,11 +52,11 @@ namespace Pomona.Client
 
         public object OnPropertyGet(string propertyName)
         {
-            if (this.target == null)
-                this.target = this.client.GetUri(this.uri, this.pocoType);
+            if (target == null)
+                target = client.GetUri(uri, pocoType);
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return this.pocoType.GetProperty(propertyName).GetValue(this.target, null);
+            return pocoType.GetProperty(propertyName).GetValue(target, null);
         }
 
 

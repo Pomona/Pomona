@@ -39,7 +39,8 @@ namespace Pomona
         }
 
 
-        public IEnumerable<PomonaQuery.Condition> Parse(TransformedType rootType, string filter, out bool errorWhileParsing)
+        public IEnumerable<PomonaQuery.Condition> Parse(TransformedType rootType, string filter,
+                                                        out bool errorWhileParsing)
         {
             if (rootType == null) throw new ArgumentNullException("rootType");
             var parts = filter.Split(',').Select(x => ParseFilterPart(rootType, x)).ToArray();

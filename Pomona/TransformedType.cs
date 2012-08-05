@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,11 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Pomona
@@ -66,21 +63,42 @@ namespace Pomona
 
         public IList<PropertyMapping> Properties
         {
-            get { return this.properties; }
+            get { return properties; }
         }
 
         public Type SourceType
         {
-            get { return this.sourceType; }
+            get { return sourceType; }
+        }
+
+        public bool MappedAsValueObject { get; set; }
+        public TransformedType UriBaseType { get; set; }
+
+        public string UriRelativePath
+        {
+            get
+            {
+                // TODO: Make it possible to modify path
+                return UriBaseType.Name.ToLower();
+            }
         }
 
         #region IMappedType Members
 
         public IMappedType BaseType { get; set; }
 
+        public IMappedType CollectionElementType
+        {
+            get
+            {
+                throw new InvalidOperationException(
+                    "TransformedType is never a collection, so it won't have a element type.");
+            }
+        }
+
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] { }; }
+            get { return new IMappedType[] {}; }
         }
 
         public bool IsAlwaysExpanded
@@ -108,34 +126,17 @@ namespace Pomona
             get { return false; }
         }
 
-        public IMappedType CollectionElementType
-        {
-            get { throw new InvalidOperationException("TransformedType is never a collection, so it won't have a element type."); }
-        }
-
         public bool IsValueType
         {
             get { return false; }
         }
 
-        public bool MappedAsValueObject { get; set; }
-
         public string Name
         {
-            get { return this.name; }
+            get { return name; }
         }
 
-        public TransformedType UriBaseType { get; set; }
-
-        public string UriRelativePath
-        {
-            get
-            {
-                // TODO: Make it possible to modify path
-                return UriBaseType.Name.ToLower();
-            }
-        }
-
+        #endregion
 
         public PropertyMapping GetPropertyByName(string propertyName, bool ignoreCase)
         {
@@ -146,11 +147,57 @@ namespace Pomona
             return Properties.First(x => x.Name == propertyName);
         }
 
-        #endregion
+        public string ConvertToInternalPropertyPath(string externalPath)
+        {
+            // TODO: Fix for inherited types..
+            // TODO: Fix for lists, but first gotta find out how that would work..
+
+            string externalPropertyName, remainingExternalPath;
+            TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
+
+            var prop =
+                Properties.FirstOrDefault(x => x.Name.ToLowerInvariant() == externalPropertyName.ToLowerInvariant());
+            if (prop == null)
+            {
+                throw new PomonaMappingException(
+                    string.Format(
+                        "Could not find property with name {0} on type {1} while resolving path {2}",
+                        externalPropertyName,
+                        Name,
+                        externalPath));
+            }
+
+            var internalPropertyName = prop.PropertyInfo.Name;
+
+            if (remainingExternalPath != null)
+            {
+                var nextType = (TransformedType) prop.PropertyType;
+                return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
+            }
+            return internalPropertyName;
+        }
+
+
+        public Expression CreateExpressionForExternalPropertyPath(string externalPath)
+        {
+            if (SourceType == null)
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        "Can't convert an external property path to expression with source-less type {0} as root!",
+                        Name));
+            }
+
+            var parameter = Expression.Parameter(SourceType, "x");
+            var propertyAccessExpression = CreateExpressionForExternalPropertyPath(parameter, externalPath);
+
+            return Expression.Lambda(propertyAccessExpression, parameter);
+        }
+
 
         public object GetId(object entity)
         {
-            return this.typeMapper.Filter.GetIdFor(entity);
+            return typeMapper.Filter.GetIdFor(entity);
         }
 
 
@@ -184,12 +231,12 @@ namespace Pomona
                 var value = initValues[ctorProp.Name.ToLower()];
 
                 if (ctorProp.PropertyType.IsBasicWireType)
-                    value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).TargetType);
+                    value = Convert.ChangeType(value, ((SharedType) ctorProp.PropertyType).TargetType);
 
                 ctorArgs[ctorProp.ConstructorArgIndex] = value;
             }
 
-            var newInstance = Activator.CreateInstance(this.sourceType, ctorArgs);
+            var newInstance = Activator.CreateInstance(sourceType, ctorArgs);
 
             foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
             {
@@ -206,16 +253,19 @@ namespace Pomona
         {
             var filter = typeMapper.Filter;
 
-            foreach (var propInfo in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(x => x.Name)
-                .Where(x => x.GetIndexParameters().Count() == 0))
+            foreach (
+                var propInfo in
+                    type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(
+                        x => x.Name)
+                        .Where(x => x.GetIndexParameters().Count() == 0))
             {
                 if (!filter.PropertyIsIncluded(propInfo))
                     continue;
 
                 IMappedType declaringType;
 
-                if (this.typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
-                    declaringType = this.typeMapper.GetClassMapping(propInfo.DeclaringType);
+                if (typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
+                    declaringType = typeMapper.GetClassMapping(propInfo.DeclaringType);
                 else
                 {
                     // TODO: Find lowest base type with this property
@@ -223,16 +273,15 @@ namespace Pomona
                 }
 
                 var propInfoLocal = propInfo;
-                Func<object, object> getter = filter.GetPropertyGetter(propInfo);
-                Action<object, object> setter = filter.GetPropertySetter(propInfo);
+                var getter = filter.GetPropertyGetter(propInfo);
+                var setter = filter.GetPropertySetter(propInfo);
                 var propertyType = filter.GetPropertyType(propInfo);
 
                 var propDef = new PropertyMapping(
                     typeMapper.Filter.GetPropertyMappedName(propInfo),
                     declaringType,
-                    this.typeMapper.GetClassMapping(propertyType),
+                    typeMapper.GetClassMapping(propertyType),
                     propInfo);
-
 
                 // TODO: This is not the most optimized way to set property, small code gen needed.
                 propDef.Getter = getter;
@@ -251,11 +300,11 @@ namespace Pomona
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
 
-                this.properties.Add(propDef);
+                properties.Add(propDef);
             }
 
             // TODO: Support not including the whole type hierarchy. Remember that base type might be allowed to be a shared type.
-            BaseType = this.typeMapper.GetClassMapping(type.BaseType);
+            BaseType = typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
@@ -266,7 +315,7 @@ namespace Pomona
                 // TODO: match constructor arguments
                 foreach (var ctorParam in longestCtor.GetParameters())
                 {
-                    var matchingProperty = this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
+                    var matchingProperty = properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
                     if (matchingProperty != null)
                     {
                         matchingProperty.CreateMode = PropertyMapping.PropertyCreateMode.Required;
@@ -276,38 +325,41 @@ namespace Pomona
             }
         }
 
-        public string ConvertToInternalPropertyPath(string externalPath)
+
+        public void TakeLeftmostPathPart(string path, out string leftName, out string remainingPropPath)
         {
-            // TODO: Fix for inherited types..
-            // TODO: Fix for lists, but first gotta find out how that would work..
-
-            var firstPathSeparatorIndex = externalPath.IndexOf('.');
-
-            string externalPropertyName;
-            if (firstPathSeparatorIndex == -1)
+            var leftPathSeparatorIndex = path.IndexOf('.');
+            if (leftPathSeparatorIndex == -1)
             {
-                externalPropertyName = externalPath;
+                leftName = path;
+                remainingPropPath = null;
             }
             else
             {
-                externalPropertyName = externalPath.Substring(0, firstPathSeparatorIndex);
+                leftName = path.Substring(0, leftPathSeparatorIndex);
+                remainingPropPath = path.Substring(leftPathSeparatorIndex + 1);
             }
+        }
 
-            var prop = Properties.FirstOrDefault(x => x.Name.ToLowerInvariant() == externalPropertyName.ToLowerInvariant());
-            if (prop == null)
-                throw new PomonaMappingException(
-                    string.Format("Could not find property with name {0} on type {1} while resolving path {2}",
-                                  externalPropertyName, Name, externalPath));
 
-            var internalPropertyName = prop.PropertyInfo.Name;
+        public Expression CreateExpressionForExternalPropertyPath(Expression instance, string externalPath)
+        {
+            string externalPropertyName, remainingExternalPath;
+            TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
 
-            if (firstPathSeparatorIndex != -1)
+            var prop = Properties.First(x => x.Name.ToLower() == externalPropertyName.ToLower());
+
+            if (prop.PropertyInfo == null)
             {
-                var remainingExternalPath = externalPath.Substring(firstPathSeparatorIndex + 1);
-                var nextType = (TransformedType) prop.PropertyType;
-                return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
+                throw new NotImplementedException(
+                    "Can only make expression paths for PropertyMappings to a specific internal property (with PropertyInfo)");
             }
-            return internalPropertyName;
+
+            var propertyAccessExpression = Expression.Property(instance, prop.PropertyInfo);
+
+            if (remainingExternalPath != null)
+                return CreateExpressionForExternalPropertyPath(propertyAccessExpression, remainingExternalPath);
+            return propertyAccessExpression;
         }
     }
 }

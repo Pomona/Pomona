@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,18 +38,18 @@ namespace Pomona
         static TypeMappingFilterBase()
         {
             jsonSupportedNativeTypes = new HashSet<Type>()
-            {
-                typeof(string),
-                typeof(int),
-                typeof(long),
-                typeof(double),
-                typeof(float),
-                typeof(decimal),
-                typeof(DateTime),
-                typeof(object),
-                typeof(bool),
-                typeof(Guid)
-            };
+                                           {
+                                               typeof (string),
+                                               typeof (int),
+                                               typeof (long),
+                                               typeof (double),
+                                               typeof (float),
+                                               typeof (decimal),
+                                               typeof (DateTime),
+                                               typeof (object),
+                                               typeof (bool),
+                                               typeof (Guid)
+                                           };
         }
 
 
@@ -61,11 +57,13 @@ namespace Pomona
         {
             get
             {
-                if (this.sourceTypesCached == null)
-                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
-                return this.sourceTypesCached;
+                if (sourceTypesCached == null)
+                    sourceTypesCached = new HashSet<Type>(GetSourceTypes());
+                return sourceTypesCached;
             }
         }
+
+        #region ITypeMappingFilter Members
 
         public abstract object GetIdFor(object entity);
 
@@ -103,7 +101,7 @@ namespace Pomona
             //
             //       Or maybe just see whether type is mapped.
             //
-            
+
             // Lets just try this for now:
             if (sourceTypesCached.Contains(type))
                 return type;
@@ -131,21 +129,16 @@ namespace Pomona
 
         public virtual bool TypeIsMapped(Type type)
         {
-            return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) || IsNativelySupportedType(type)
+            return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
+                   IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type);
-        }
-
-
-        private static bool IsNativelySupportedType(Type type)
-        {
-            return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
         }
 
 
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
         }
 
 
@@ -166,11 +159,18 @@ namespace Pomona
             return false;
         }
 
+        #endregion
+
+        private static bool IsNativelySupportedType(Type type)
+        {
+            return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
+        }
+
 
         private static bool IsNullableAllowedNativeType(Type type)
         {
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)) &&
+                   type.GetGenericTypeDefinition().Equals(typeof (Nullable<>)) &&
                    jsonSupportedNativeTypes.Contains(type.GetGenericArguments()[0]);
         }
 

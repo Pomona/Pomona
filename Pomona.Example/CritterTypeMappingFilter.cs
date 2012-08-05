@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,11 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
-
+using System.Reflection;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -37,7 +33,7 @@ namespace Pomona.Example
     {
         public override object GetIdFor(object entity)
         {
-            return ((EntityBase)entity).Id;
+            return ((EntityBase) entity).Id;
         }
 
 
@@ -46,15 +42,15 @@ namespace Pomona.Example
             return CritterDataSource.GetEntityTypes();
         }
 
-        public override string GetPropertyMappedName(System.Reflection.PropertyInfo propertyInfo)
+        public override string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
-            if (propertyInfo.DeclaringType == typeof(JunkWithRenamedProperty)
+            if (propertyInfo.DeclaringType == typeof (JunkWithRenamedProperty)
                 && propertyInfo.Name == "ReallyUglyPropertyName")
             {
                 return "BeautifulAndExposed";
             }
 
-            if (propertyInfo.DeclaringType == typeof(ThingWithRenamedReferenceProperty)
+            if (propertyInfo.DeclaringType == typeof (ThingWithRenamedReferenceProperty)
                 && propertyInfo.Name == "Junky")
             {
                 return "DiscoFunky";
@@ -66,8 +62,8 @@ namespace Pomona.Example
 
         public override Type GetUriBaseType(Type type)
         {
-            if (type == typeof(MusicalCritter))
-                return typeof(Critter);
+            if (type == typeof (MusicalCritter))
+                return typeof (Critter);
 
             return base.GetUriBaseType(type);
         }
@@ -75,7 +71,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMapped(Type type)
         {
-            if (type == typeof(ExcludedThing))
+            if (type == typeof (ExcludedThing))
                 return false;
 
             return base.TypeIsMapped(type);
@@ -84,7 +80,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMappedAsValueObject(Type type)
         {
-            if (type == typeof(CrazyValueObject))
+            if (type == typeof (CrazyValueObject))
                 return true;
             return base.TypeIsMappedAsValueObject(type);
         }

@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,12 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.Linq;
-
 using NUnit.Framework;
-
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -38,7 +32,7 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class TypeMapperTests
     {
-        private TypeMapper typeMapper;
+        #region Setup/Teardown
 
         [SetUp]
         public void SetUp()
@@ -46,11 +40,16 @@ namespace Pomona.UnitTests
             typeMapper = new TypeMapper(new CritterTypeMappingFilter());
         }
 
+        #endregion
+
+        private TypeMapper typeMapper;
+
         [Test]
         public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
         {
-            var transformedType = (TransformedType)typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(transformedType, "DiscoFunky.BeautifulAndExposed");
+            var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
+            var internalPath = typeMapper.ConvertToInternalPropertyPath(transformedType,
+                                                                        "DiscoFunky.BeautifulAndExposed");
             Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
         }
 

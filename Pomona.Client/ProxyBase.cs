@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 namespace Pomona.Client
 {
     public class ProxyBase
@@ -34,8 +30,8 @@ namespace Pomona.Client
 
         public IProxyInterceptor ProxyInterceptor
         {
-            get { return this.proxyInterceptor; }
-            set { this.proxyInterceptor = value; }
+            get { return proxyInterceptor; }
+            set { proxyInterceptor = value; }
         }
 
 

@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 
 namespace Pomona.Client
@@ -41,39 +37,39 @@ namespace Pomona.Client
 
         public ClientHelper Client
         {
-            get { return this.client; }
-            internal set { this.client = value; }
+            get { return client; }
+            internal set { client = value; }
         }
 
         public object Target
         {
-            get { return this.target; }
-            internal set { this.target = value; }
+            get { return target; }
+            internal set { target = value; }
         }
 
         public Type TargetType
         {
-            get { return this.targetType; }
-            internal set { this.targetType = value; }
+            get { return targetType; }
+            internal set { targetType = value; }
         }
 
         #region IHasResourceUri Members
 
         public string Uri
         {
-            get { return this.uri; }
-            internal set { this.uri = value; }
+            get { return uri; }
+            internal set { uri = value; }
         }
 
         #endregion
 
         protected object OnPropertyGet(string propertyName)
         {
-            if (this.target == null)
-                this.target = this.client.GetUri(this.uri, this.targetType);
+            if (target == null)
+                target = client.GetUri(uri, targetType);
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return this.targetType.GetProperty(propertyName).GetValue(this.target, null);
+            return targetType.GetProperty(propertyName).GetValue(target, null);
         }
 
 

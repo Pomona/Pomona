@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,31 +40,31 @@ namespace Pomona
             if (filter == null)
                 throw new ArgumentNullException("filter");
             this.filter = filter;
-            this.sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
-            foreach (var sourceType in this.sourceTypes)
+            sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
+            foreach (var sourceType in sourceTypes)
                 GetClassMapping(sourceType);
         }
 
 
         public ITypeMappingFilter Filter
         {
-            get { return this.filter; }
+            get { return filter; }
         }
 
         public ICollection<Type> SourceTypes
         {
-            get { return this.sourceTypes; }
+            get { return sourceTypes; }
         }
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return this.mappings.Values.OfType<TransformedType>(); }
+            get { return mappings.Values.OfType<TransformedType>(); }
         }
 
 
         public IMappedType GetClassMapping<T>()
         {
-            var type = typeof(T);
+            var type = typeof (T);
 
             return GetClassMapping(type);
         }
@@ -79,7 +75,7 @@ namespace Pomona
             type = filter.ResolveRealTypeForProxy(type);
 
             IMappedType mappedType;
-            if (!this.mappings.TryGetValue(type, out mappedType))
+            if (!mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
 
             return mappedType;
@@ -120,10 +116,10 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (!this.filter.TypeIsMapped(type))
+            if (!filter.TypeIsMapped(type))
                 throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
 
-            if (this.filter.TypeIsMappedAsSharedType(type))
+            if (filter.TypeIsMappedAsSharedType(type))
             {
                 SharedType newSharedType;
                 if (type.IsGenericType)
@@ -143,23 +139,23 @@ namespace Pomona
                 else
                     newSharedType = new SharedType(type, this);
 
-                this.mappings[type] = newSharedType;
+                mappings[type] = newSharedType;
                 return newSharedType;
             }
 
-            if (this.filter.TypeIsMappedAsTransformedType(type))
+            if (filter.TypeIsMappedAsTransformedType(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                this.mappings[type] = classDefinition;
+                mappings[type] = classDefinition;
 
-                if (this.filter.TypeIsMappedAsValueObject(type))
+                if (filter.TypeIsMappedAsValueObject(type))
                     classDefinition.MappedAsValueObject = true;
 
-                var uriBaseType = this.filter.GetUriBaseType(type);
+                var uriBaseType = filter.GetUriBaseType(type);
                 if (uriBaseType != type)
-                    classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
+                    classDefinition.UriBaseType = (TransformedType) GetClassMapping(uriBaseType);
                 else
                     classDefinition.UriBaseType = classDefinition;
 

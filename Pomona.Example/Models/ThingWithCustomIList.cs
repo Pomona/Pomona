@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.Collections.Generic;
 
 namespace Pomona.Example.Models
@@ -37,13 +33,13 @@ namespace Pomona.Example.Models
 
         public ThingWithCustomIList()
         {
-            this.loners = new CustomListWrapper<Loner> { new Loner("Hooha", 387) };
+            loners = new CustomListWrapper<Loner> {new Loner("Hooha", 387)};
         }
 
 
         public IList<Loner> Loners
         {
-            get { return this.loners; }
+            get { return loners; }
         }
     }
 }

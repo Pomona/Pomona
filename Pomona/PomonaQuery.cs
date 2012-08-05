@@ -22,7 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Pomona
 {
@@ -42,15 +44,67 @@ namespace Pomona
 
         #endregion
 
-        public PomonaQuery()
+        private readonly TransformedType targetType;
+
+        public PomonaQuery(TransformedType targetType)
         {
+            if (targetType == null) throw new ArgumentNullException("targetType");
+            this.targetType = targetType;
         }
 
         public int Skip { get; set; }
         public int Take { get; set; }
         public string OrderBy { get; set; }
-        public IEnumerable<string> ExpandedPaths { get; set; }
         public IList<Condition> Conditions { get; set; }
+
+        #region IPomonaQuery Members
+
+        public IEnumerable<string> ExpandedPaths { get; set; }
+
+        public TransformedType TargetType
+        {
+            get { return targetType; }
+        }
+
+        #endregion
+
+        public Expression<Func<T, bool>> CreateExpression<T>()
+        {
+            var parameter = Expression.Parameter(TargetType.SourceType, "x");
+            Expression finalExpr = Expression.Constant(true);
+
+            foreach (var condition in Conditions)
+            {
+                var op = condition.Operator;
+
+                var propExpr = targetType.CreateExpressionForExternalPropertyPath(parameter, condition.PropertyName);
+
+                var propType = propExpr.Type;
+
+                if (propType != typeof (string))
+                {
+                    throw new NotImplementedException();
+                }
+
+                if (op != Operator.Eq)
+                    throw new NotImplementedException();
+
+                var equalToExpr = Expression.Equal(propExpr, Expression.Constant(condition.Value));
+
+                if (finalExpr == null)
+                {
+                    finalExpr = equalToExpr;
+                }
+                else
+                {
+                    finalExpr = Expression.AndAlso(finalExpr, equalToExpr);
+                }
+            }
+
+            var lambdaExpr = Expression.Lambda<Func<T, bool>>(finalExpr, parameter);
+
+            return lambdaExpr;
+        }
 
         #region Nested type: Condition
 

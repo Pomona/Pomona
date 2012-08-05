@@ -23,10 +23,10 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Pomona.Example;
 using Pomona.Example.Models;
-using System.Linq;
 
 namespace Pomona.UnitTests.Queries
 {
@@ -47,19 +47,16 @@ namespace Pomona.UnitTests.Queries
         private TypeMapper typeMapper;
         private PomonaQueryFilterParser filterParser;
 
-        [Test]
-        public void Parse_WithSingleExpression_ReturnsCorrectConditions()
+        private List<PomonaQuery.Condition> DoParse<T>(string filterString)
         {
-            var conditions = DoParse<Critter>("hat$eq$curry");
-            Assert.That(conditions, Has.Count.EqualTo(1));
-            var condition = conditions.First();
-            Assert.That(condition.Operator, Is.EqualTo(PomonaQuery.Operator.Eq));
-            Assert.That(condition.PropertyName, Is.EqualTo("Hat"));
-            Assert.That(condition.Value, Is.EqualTo("curry"));
+            bool parsingError;
+            return
+                filterParser.Parse((TransformedType) typeMapper.GetClassMapping<T>(), filterString, out parsingError).
+                    ToList();
         }
 
         [Test]
-        public void Parse_WithMultiLevelExpression_ReturnsCorrectConditions()
+        public void Parse_WithMultiLevelPropertyExpression_ReturnsCorrectConditions()
         {
             var conditions = DoParse<Critter>("hat.hattype$eq$whatever");
             Assert.That(conditions, Has.Count.EqualTo(1));
@@ -69,10 +66,32 @@ namespace Pomona.UnitTests.Queries
             Assert.That(condition.Value, Is.EqualTo("whatever"));
         }
 
-        private List<PomonaQuery.Condition> DoParse<T>(string filterString)
+        [Test]
+        public void Parse_WithMultipleExpressions_ReturnsCorrectConditions()
         {
-            bool parsingError;
-            return filterParser.Parse((TransformedType) typeMapper.GetClassMapping<T>(), filterString, out parsingError).ToList();
+            var conditions = DoParse<Critter>("name$eq$curry,okdayIsFun$like$bananas");
+            Assert.That(conditions, Has.Count.EqualTo(2));
+
+            var nameCondition = conditions[0];
+            Assert.That(nameCondition.PropertyName, Is.EqualTo("Name"));
+            Assert.That(nameCondition.Value, Is.EqualTo("curry"));
+            Assert.That(nameCondition.Operator, Is.EqualTo(PomonaQuery.Operator.Eq));
+
+            var okdayCondition = conditions[1];
+            Assert.That(okdayCondition.PropertyName, Is.EqualTo("OkdayIsFun"));
+            Assert.That(okdayCondition.Value, Is.EqualTo("bananas"));
+            Assert.That(okdayCondition.Operator, Is.EqualTo(PomonaQuery.Operator.Like));
+        }
+
+        [Test]
+        public void Parse_WithSingleExpression_ReturnsCorrectConditions()
+        {
+            var conditions = DoParse<Critter>("name$eq$curry");
+            Assert.That(conditions, Has.Count.EqualTo(1));
+            var condition = conditions.First();
+            Assert.That(condition.Operator, Is.EqualTo(PomonaQuery.Operator.Eq));
+            Assert.That(condition.PropertyName, Is.EqualTo("Name"));
+            Assert.That(condition.Value, Is.EqualTo("curry"));
         }
     }
 }

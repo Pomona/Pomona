@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections;
@@ -49,7 +45,7 @@ namespace Pomona.Client
 
         internal static object CreateForType(Type elementType, string uri, ClientHelper clientHelper)
         {
-            return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(elementType), uri, clientHelper);
+            return Activator.CreateInstance(typeof (LazyListProxy<>).MakeGenericType(elementType), uri, clientHelper);
         }
     }
 
@@ -62,6 +58,17 @@ namespace Pomona.Client
         {
         }
 
+        public IList<T> WrappedList
+        {
+            get
+            {
+                if (dontTouchwrappedList == null)
+                    dontTouchwrappedList = clientHelper.GetUri<IList<T>>(uri);
+                return dontTouchwrappedList;
+            }
+        }
+
+        #region IList<T> Members
 
         public T this[int index]
         {
@@ -78,16 +85,6 @@ namespace Pomona.Client
         public bool IsReadOnly
         {
             get { return true; }
-        }
-
-        public IList<T> WrappedList
-        {
-            get
-            {
-                if (this.dontTouchwrappedList == null)
-                    this.dontTouchwrappedList = this.clientHelper.GetUri<IList<T>>(this.uri);
-                return this.dontTouchwrappedList;
-            }
         }
 
 
@@ -149,5 +146,7 @@ namespace Pomona.Client
         {
             return GetEnumerator();
         }
+
+        #endregion
     }
 }
