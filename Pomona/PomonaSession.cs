@@ -204,7 +204,7 @@ namespace Pomona
             var o = queryGenericMethod.MakeGenericMethod(query.TargetType.SourceType).Invoke(this, new[] {query});
             var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
-            var expand = query.ExpandedPaths.Aggregate((a, b) => a + "," + b);
+            var expand = query.ExpandedPaths.Aggregate(string.Empty, (a, b) => a + "," + b);
             var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.ToJson(writer);

@@ -47,18 +47,28 @@ list-style-type: none;
 padding: 0px;
 margin: 0px;
 }}
+.search
+{{
+width: 450px;
+}}
 ul li
 {{
 padding-left: 14px; 
 display: inline;
 }}  </style>
-  <link href=""/content/prettify/prettify.css"" type=""text/css"" rel=""stylesheet"" />
+  <!-- <link href=""/content/prettify/prettify.css"" type=""text/css"" rel=""stylesheet"" /> -->
   <script type=""text/javascript"" src=""/scripts/prettify/prettify.js""></script>
 </head>
 <html>
-<body onload=""prettyPrint()"">
+<!-- <body onload=""prettyPrint()""> -->
 <div><ul>{1}</ul></div>
-<div><form action=""{2}"" method=""get"">Query <input type=""text"" name=""filter"" /><input type=""submit"" value=""Submit"" /></form></div>
+<div>
+  <form action=""{2}"" method=""get"">
+    <div>Query <input type=""text"" class=""search"" name=""filter"" /></div>
+    <div>Expand <input type=""text"" class=""search"" name=""expand"" /></div>
+    <input type=""submit"" value=""Submit"" />
+  </form>
+</div>
 <div>
 <pre class=""prettyprint"">
 {0}

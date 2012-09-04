@@ -147,6 +147,8 @@ namespace Pomona.Example
             else
                 critter = new Critter();
 
+            critter.CreatedOn = DateTime.UtcNow.AddDays(-rng.NextDouble()*50.0);
+
             critter.Name = Words.GetAnimalWithPersonality(rng);
 
             critter.CrazyValue = new CrazyValueObject()
