@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -95,10 +96,19 @@ namespace Pomona.Queries
                 return false;
             }
 
-            var parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
-            parameters["skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
+            NameValueCollection parameters;
+            if (!string.IsNullOrEmpty(uriBuilder.Query))
+            {
+                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
+                parameters["skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
+                uriBuilder.Query = parameters.ToString();
+            }
+            else
+            {
+                uriBuilder.Query = "skip=" + newSkip;
+            }
 
-            uriBuilder.Query = parameters.ToString();
+
 
             pageUri = uriBuilder.Uri;
 
