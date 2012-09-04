@@ -31,7 +31,7 @@ namespace Pomona
     /// </summary>
     public interface IPomonaQuery
     {
-        TransformedType TargetType { get; }
         IEnumerable<string> ExpandedPaths { get; }
+        TransformedType TargetType { get; }
     }
 }

@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Pomona
 {
@@ -36,7 +37,7 @@ namespace Pomona
     {
         private static Type[] basicWireTypes = {
                                                    typeof (int), typeof (double), typeof (float), typeof (string),
-                                                   typeof (bool), typeof (decimal), typeof (DateTime)
+                                                   typeof (bool), typeof (decimal), typeof (DateTime), typeof (Uri)
                                                };
 
         private readonly Type targetType;
@@ -92,6 +93,8 @@ namespace Pomona
             }
         }
 
+        public Type CustomClientType { get; set; }
+
         public IList<IMappedType> GenericArguments { get; private set; }
 
         public bool IsAlwaysExpanded
@@ -123,6 +126,8 @@ namespace Pomona
         {
             get { return targetType.IsValueType; }
         }
+
+        public JsonConverter JsonConverter { get; set; }
 
         public string Name
         {

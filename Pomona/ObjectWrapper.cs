@@ -141,7 +141,12 @@ namespace Pomona
                         }
                     }
                     else
-                        writer.WriteValue(propDef.Getter(target));
+                    {
+                        if (valueTypeMapping.JsonConverter != null)
+                            valueTypeMapping.JsonConverter.WriteJson(writer, value, null);
+                        else
+                            writer.WriteValue(propDef.Getter(target));
+                    }
                 }
 
                 // Write path for debug purposes
@@ -254,21 +259,6 @@ namespace Pomona
                 elementType = context.TypeMapper.GetClassMapping(genargs);
                 //throw new NotImplementedException("Don't recognize collection type where element type is not specified in a generic parameter yet, like in SomeClass : ICollection<Blah>");
             }
-
-            //if (sharedType.IsGenericType
-            //    && knownGenericCollectionTypes.Any(x => x.IsAssignableFrom(sharedType.TargetType)))
-            //{
-            //    elementType = sharedType.GenericArguments[0];
-            //}
-            /*
-            if (elementType == null && searchInterfaces)
-            {
-                foreach (var interfaceType in type.GetInterfaces())
-                {
-                    if (TryGetCollectionElementType(interfaceType, out elementType, false))
-                        break;
-                }
-            }*/
 
             return elementType != null;
         }

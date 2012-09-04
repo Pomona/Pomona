@@ -35,5 +35,6 @@ namespace Pomona.Example.Models
 
 
         public string HatType { get; set; }
+        public string Style { get; set; }
     }
 }

@@ -22,7 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Pomona
 {
@@ -35,14 +37,16 @@ namespace Pomona
     public interface IMappedType
     {
         IMappedType BaseType { get; }
+        IMappedType CollectionElementType { get; }
+        Type CustomClientType { get; }
         IList<IMappedType> GenericArguments { get; }
         bool IsAlwaysExpanded { get; }
         bool IsBasicWireType { get; }
         bool IsCollection { get; }
         bool IsGenericType { get; }
         bool IsGenericTypeDefinition { get; }
-        IMappedType CollectionElementType { get; }
         bool IsValueType { get; }
+        JsonConverter JsonConverter { get; }
         string Name { get; }
     }
 }

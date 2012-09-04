@@ -86,11 +86,10 @@ namespace Pomona.Sandbox.CJson
     /// </summary>
     public class CJson2Encoder
     {
-        public const int SignatureCacheSize = 64;
-
-        public const int PropertyNameCacheSize = 112;
-        public const int ValueCacheSize = 112;
         public const int EqualStartingCharOptimizeLimit = 6;
+        public const int PropertyNameCacheSize = 112;
+        public const int SignatureCacheSize = 64;
+        public const int ValueCacheSize = 112;
         private string[] propertyNameCache = new string[PropertyNameCacheSize];
         private int propertyNameCacheIndex = 0;
         private Dictionary<string, int> propertyNameCacheToIndexDict = new Dictionary<string, int>();
@@ -111,37 +110,35 @@ namespace Pomona.Sandbox.CJson
         public int TotalCachedPropertyNames { get; private set; }
         public int TotalCachedSignatures { get; private set; }
 
-        private void AddPropertyNameToCache(string propname)
+
+        public void PackIt(JToken jtoken)
         {
-            var pos = propertyNameCacheIndex;
-            propertyNameCacheIndex = (propertyNameCacheIndex + 1)%PropertyNameCacheSize;
-
-            var replacedEntry = propertyNameCache[pos];
-            if (replacedEntry != null)
-            {
-                propertyNameCacheToIndexDict.Remove(replacedEntry);
-            }
-
-            propertyNameCache[pos] = propname;
-            propertyNameCacheToIndexDict[propname] = pos;
-
-            TotalCachedPropertyNames++;
+            PackIt(jtoken, false);
+            if (separateStringStreamEnabled)
+                OutputBytes(stringStream.ToArray());
         }
 
-        private void AddValueToCache(object value)
+
+        private static IEnumerable<int> PackChangedBitmask(IEnumerable<bool> source)
         {
-            var pos = valueCacheIndex;
-            valueCacheIndex = (valueCacheIndex + 1)%ValueCacheSize;
+            var enumerator = source.GetEnumerator();
 
-            var replacedEntry = valueCache[pos];
-            if (replacedEntry != null)
+            var hasElements = true;
+
+            while (hasElements)
             {
-                valueCacheToIndexDict.Remove(replacedEntry);
+                var bitMask = 0;
+                var bitIndex = 0;
+                while (bitIndex < 7 && (hasElements = enumerator.MoveNext()))
+                {
+                    bitMask |= 1 << bitIndex;
+                    bitIndex++;
+                }
+                if (bitIndex > 0)
+                    yield return bitMask;
             }
-
-            valueCache[pos] = value;
-            valueCacheToIndexDict[value] = pos;
         }
+
 
         private void AddObjectToSignatureCache(CachedSignature newCacheEntry)
         {
@@ -150,9 +147,7 @@ namespace Pomona.Sandbox.CJson
 
             var oldCacheEntry = signatureCache[pos];
             if (oldCacheEntry != null)
-            {
                 signatureKeyDict.Remove(oldCacheEntry.Key);
-            }
 
             newCacheEntry.Index = pos;
             signatureCache[pos] = newCacheEntry;
@@ -161,27 +156,224 @@ namespace Pomona.Sandbox.CJson
             TotalCachedSignatures++;
         }
 
+
+        private void AddPropertyNameToCache(string propname)
+        {
+            var pos = propertyNameCacheIndex;
+            propertyNameCacheIndex = (propertyNameCacheIndex + 1)%PropertyNameCacheSize;
+
+            var replacedEntry = propertyNameCache[pos];
+            if (replacedEntry != null)
+                propertyNameCacheToIndexDict.Remove(replacedEntry);
+
+            propertyNameCache[pos] = propname;
+            propertyNameCacheToIndexDict[propname] = pos;
+
+            TotalCachedPropertyNames++;
+        }
+
+
+        private void AddValueToCache(object value)
+        {
+            var pos = valueCacheIndex;
+            valueCacheIndex = (valueCacheIndex + 1)%ValueCacheSize;
+
+            var replacedEntry = valueCache[pos];
+            if (replacedEntry != null)
+                valueCacheToIndexDict.Remove(replacedEntry);
+
+            valueCache[pos] = value;
+            valueCacheToIndexDict[value] = pos;
+        }
+
+
         private int CountEqualStartingBytes(string a, string b)
         {
             var count = 0;
             var minlength = Math.Min(a.Length, b.Length);
 
             while (count < minlength && a[count] == b[count])
-            {
                 count++;
-            }
 
             return count;
         }
 
-        public void PackIt(JToken jtoken)
+
+        private bool IsEqualJValue(JToken a, JToken b)
         {
-            PackIt(jtoken, false);
-            if (separateStringStreamEnabled)
+            var aval = a as JValue;
+            if (aval == null)
+                return false;
+            var bval = b as JValue;
+            if (bval == null)
+                return false;
+
+            return aval.Value.Equals(bval.Value);
+        }
+
+
+        private bool IsValidImplicitType(JTokenType type)
+        {
+            return type == JTokenType.String || type == JTokenType.Integer || type == JTokenType.Float;
+        }
+
+
+        private void OutputByte(byte b)
+        {
+            Stream.WriteByte(b);
+        }
+
+
+        private void OutputBytes(byte[] bytes)
+        {
+            Stream.Write(bytes, 0, bytes.Length);
+        }
+
+
+        private IEnumerable<JPropChange> OutputChangeBitmapCode(JObject previous, JObject current)
+        {
+            var changedProperties = new List<JPropChange>();
+            var changedMap = new List<bool>();
+
+            foreach (
+                var pair in
+                    previous.Properties().Zip(
+                        current.Properties(),
+                        (prevProp, curProp) => new {PrevProp = prevProp, CurProp = curProp}))
             {
-                OutputBytes(stringStream.ToArray());
+                if (IsEqualJValue(pair.CurProp.Value, pair.PrevProp.Value))
+                {
+                    changedMap.Add(false);
+                    changedMap.Add(false);
+                }
+                else
+                {
+                    var typeIsImplicit = IsValidImplicitType(pair.CurProp.Value.Type) &&
+                                         pair.CurProp.Value.Type == pair.PrevProp.Value.Type;
+                    var startEqualCount = 0;
+
+                    // Do not set type to implicit if string and we got 6 equal starting chars or more
+                    if (typeIsImplicit && pair.CurProp.Value.Type == JTokenType.String)
+                    {
+                        var curStr = (string) (((JValue) pair.CurProp.Value).Value);
+                        var oldStr = (string) (((JValue) pair.PrevProp.Value).Value);
+
+                        startEqualCount = CountEqualStartingBytes(curStr, oldStr);
+
+                        if (startEqualCount >= EqualStartingCharOptimizeLimit)
+                        {
+                            Console.WriteLine(
+                                "\"{0}\" and \"{1}\" has {2} equal starting chars!",
+                                oldStr,
+                                curStr,
+                                startEqualCount);
+                            typeIsImplicit = false;
+                        }
+                    }
+
+                    changedProperties.Add(
+                        new JPropChange()
+                            {
+                                NewProp = pair.CurProp,
+                                OldProp = pair.PrevProp,
+                                TypeIsImplicit = typeIsImplicit,
+                                EqualStartingCharCount = startEqualCount
+                            });
+
+                    changedMap.Add(true);
+                    changedMap.Add(typeIsImplicit);
+                }
+            }
+
+            Console.WriteLine(
+                "{0} out of {1} properties has changed",
+                changedMap.Where(x => x).Count(),
+                changedMap.Count);
+
+            foreach (var bitmaskPart in PackChangedBitmask(changedMap))
+                OutputVarint(bitmaskPart);
+
+            return changedProperties;
+        }
+
+
+        private void OutputCode(CJsonCodes code)
+        {
+            OutputVarint((int) code);
+        }
+
+
+        private void OutputDoubleValue(double value, bool typeIsImplicit)
+        {
+            Debug.Assert(BitConverter.IsLittleEndian);
+            var bytes = BitConverter.GetBytes(value);
+            if (!typeIsImplicit)
+                OutputCode(CJsonCodes.DoubleValue);
+            OutputBytes(bytes);
+        }
+
+
+        private void OutputIntegerValue(long value, bool typeIsImplicit)
+        {
+            if (!typeIsImplicit)
+                OutputCode(CJsonCodes.IntValue);
+            // ZigZag encoded
+            OutputVarint((value << 1) ^ (value >> 63));
+        }
+
+
+        private void OutputPropertyName(string name)
+        {
+            int index;
+            if (propertyNameCacheToIndexDict.TryGetValue(name, out index))
+                OutputVarint((int) CJsonCodes.ReferenceStartOffset + index);
+            else
+            {
+                OutputString(name, false);
+                AddPropertyNameToCache(name);
             }
         }
+
+
+        private void OutputString(string text, bool typeIsImplicit)
+        {
+            if (!typeIsImplicit)
+                OutputCode(CJsonCodes.StringValue);
+
+            OutputVarint(text.Length);
+
+            var textBytes = Encoding.UTF8.GetBytes(text);
+            if (separateStringStreamEnabled)
+                stringStream.AddRange(textBytes);
+            else
+                OutputBytes(textBytes);
+        }
+
+
+        private void OutputStringValue(string text, bool typeIsImplicit)
+        {
+            int index;
+            if ((!typeIsImplicit) && valueCacheToIndexDict.TryGetValue(text, out index))
+                OutputVarint((int) CJsonCodes.ReferenceStartOffset + (index*2));
+            else
+            {
+                OutputString(text, typeIsImplicit);
+                AddValueToCache(text);
+            }
+        }
+
+
+        private void OutputVarint(long value)
+        {
+            var uval = (ulong) value;
+            while (uval > 0x80)
+            {
+                OutputByte((byte) ((uval & 0x7f) | 0x80));
+                uval = uval >> 7;
+            }
+            OutputByte((byte) (uval & 0x7f));
+        }
+
 
         private void PackIt(JToken jtoken, bool jsonTypeIsImplicit)
         {
@@ -211,9 +403,7 @@ namespace Pomona.Sandbox.CJson
                             OutputString(stringEnd, true);
                         }
                         else
-                        {
                             PackIt(jpropchange.NewProp.Value, jpropchange.TypeIsImplicit);
-                        }
                     }
 
                     cachedSignature.Template = jobject;
@@ -236,25 +426,17 @@ namespace Pomona.Sandbox.CJson
             {
                 OutputCode(CJsonCodes.StartArray);
                 foreach (var child in jarray.Children())
-                {
                     PackIt(child, false);
-                }
                 OutputCode(CJsonCodes.Stop);
             }
             else if (jvalue != null)
             {
                 if (jvalue.Type == JTokenType.String)
-                {
                     OutputStringValue((string) jvalue.Value, jsonTypeIsImplicit);
-                }
                 else if (jvalue.Type == JTokenType.Integer)
-                {
                     OutputIntegerValue((long) jvalue.Value, jsonTypeIsImplicit);
-                }
                 else if (jvalue.Type == JTokenType.Float)
-                {
                     OutputDoubleValue((double) jvalue.Value, jsonTypeIsImplicit);
-                }
                 else if (jvalue.Type == JTokenType.Null)
                 {
                     Debug.Assert(jsonTypeIsImplicit == false);
@@ -274,189 +456,6 @@ namespace Pomona.Sandbox.CJson
             }
         }
 
-        private void OutputDoubleValue(double value, bool typeIsImplicit)
-        {
-            Debug.Assert(BitConverter.IsLittleEndian);
-            var bytes = BitConverter.GetBytes(value);
-            if (!typeIsImplicit)
-                OutputCode(CJsonCodes.DoubleValue);
-            OutputBytes(bytes);
-        }
-
-        private void OutputIntegerValue(long value, bool typeIsImplicit)
-        {
-            if (!typeIsImplicit)
-                OutputCode(CJsonCodes.IntValue);
-            // ZigZag encoded
-            OutputVarint((value << 1) ^ (value >> 63));
-        }
-
-        private void OutputStringValue(string text, bool typeIsImplicit)
-        {
-            int index;
-            if ((!typeIsImplicit) && valueCacheToIndexDict.TryGetValue(text, out index))
-            {
-                OutputVarint((int) CJsonCodes.ReferenceStartOffset + (index*2));
-            }
-            else
-            {
-                OutputString(text, typeIsImplicit);
-                AddValueToCache(text);
-            }
-        }
-
-        private void OutputString(string text, bool typeIsImplicit)
-        {
-            if (!typeIsImplicit)
-                OutputCode(CJsonCodes.StringValue);
-
-            OutputVarint(text.Length);
-
-            var textBytes = Encoding.UTF8.GetBytes(text);
-            if (separateStringStreamEnabled)
-                stringStream.AddRange(textBytes);
-            else
-                OutputBytes(textBytes);
-        }
-
-        private void OutputByte(byte b)
-        {
-            Stream.WriteByte(b);
-        }
-
-        private void OutputBytes(byte[] bytes)
-        {
-            Stream.Write(bytes, 0, bytes.Length);
-        }
-
-        private void OutputVarint(long value)
-        {
-            var uval = (ulong) value;
-            while (uval > 0x80)
-            {
-                OutputByte((byte) ((uval & 0x7f) | 0x80));
-                uval = uval >> 7;
-            }
-            OutputByte((byte) (uval & 0x7f));
-        }
-
-        private void OutputCode(CJsonCodes code)
-        {
-            OutputVarint((int) code);
-        }
-
-        private IEnumerable<JPropChange> OutputChangeBitmapCode(JObject previous, JObject current)
-        {
-            var changedProperties = new List<JPropChange>();
-            var changedMap = new List<bool>();
-
-            foreach (
-                var pair in
-                    previous.Properties().Zip(current.Properties(),
-                                              (prevProp, curProp) => new {PrevProp = prevProp, CurProp = curProp}))
-            {
-                if (IsEqualJValue(pair.CurProp.Value, pair.PrevProp.Value))
-                {
-                    changedMap.Add(false);
-                    changedMap.Add(false);
-                }
-                else
-                {
-                    var typeIsImplicit = IsValidImplicitType(pair.CurProp.Value.Type) &&
-                                         pair.CurProp.Value.Type == pair.PrevProp.Value.Type;
-                    var startEqualCount = 0;
-
-                    // Do not set type to implicit if string and we got 6 equal starting chars or more
-                    if (typeIsImplicit && pair.CurProp.Value.Type == JTokenType.String)
-                    {
-                        var curStr = (string) (((JValue) pair.CurProp.Value).Value);
-                        var oldStr = (string) (((JValue) pair.PrevProp.Value).Value);
-
-                        startEqualCount = CountEqualStartingBytes(curStr, oldStr);
-
-                        if (startEqualCount >= EqualStartingCharOptimizeLimit)
-                        {
-                            Console.WriteLine("\"{0}\" and \"{1}\" has {2} equal starting chars!", oldStr, curStr,
-                                              startEqualCount);
-                            typeIsImplicit = false;
-                        }
-                    }
-
-                    changedProperties.Add(new JPropChange()
-                                              {
-                                                  NewProp = pair.CurProp,
-                                                  OldProp = pair.PrevProp,
-                                                  TypeIsImplicit = typeIsImplicit,
-                                                  EqualStartingCharCount = startEqualCount
-                                              });
-
-                    changedMap.Add(true);
-                    changedMap.Add(typeIsImplicit);
-                }
-            }
-
-            Console.WriteLine("{0} out of {1} properties has changed", changedMap.Where(x => x).Count(),
-                              changedMap.Count);
-
-            foreach (var bitmaskPart in PackChangedBitmask(changedMap))
-            {
-                OutputVarint(bitmaskPart);
-            }
-
-            return changedProperties;
-        }
-
-        private bool IsValidImplicitType(JTokenType type)
-        {
-            return type == JTokenType.String || type == JTokenType.Integer || type == JTokenType.Float;
-        }
-
-        private bool IsEqualJValue(JToken a, JToken b)
-        {
-            var aval = a as JValue;
-            if (aval == null)
-                return false;
-            var bval = b as JValue;
-            if (bval == null)
-                return false;
-
-            return aval.Value.Equals(bval.Value);
-        }
-
-        private static IEnumerable<int> PackChangedBitmask(IEnumerable<bool> source)
-        {
-            var enumerator = source.GetEnumerator();
-
-            var hasElements = true;
-
-            while (hasElements)
-            {
-                var bitMask = 0;
-                var bitIndex = 0;
-                while (bitIndex < 7 && (hasElements = enumerator.MoveNext()))
-                {
-                    bitMask |= 1 << bitIndex;
-                    bitIndex++;
-                }
-                if (bitIndex > 0)
-                    yield return bitMask;
-            }
-        }
-
-        private void OutputPropertyName(string name)
-        {
-            int index;
-            if (propertyNameCacheToIndexDict.TryGetValue(name, out index))
-            {
-                OutputVarint((int) CJsonCodes.ReferenceStartOffset + index);
-            }
-            else
-            {
-                OutputString(name, false);
-                AddPropertyNameToCache(name);
-            }
-        }
-
         #region Nested type: CachedSignature
 
         private class CachedSignature
@@ -471,17 +470,17 @@ namespace Pomona.Sandbox.CJson
                 GenerateKey();
             }
 
-            public string Key { get; private set; }
+
             public int Index { get; set; }
+            public string Key { get; private set; }
             public JObject Template { get; set; }
+
 
             private void GenerateKey()
             {
                 var sb = new StringBuilder();
                 foreach (var property in Template.Properties())
-                {
                     sb.AppendFormat("\"{0}\",", property.Name);
-                }
 
                 Key = sb.ToString();
             }
@@ -493,16 +492,15 @@ namespace Pomona.Sandbox.CJson
 
         private class JPropChange
         {
-            public JProperty OldProp { get; set; }
-            public JProperty NewProp { get; set; }
-            public bool TypeIsImplicit { get; set; }
-
             public bool EncodeAsModifiedString
             {
                 get { return EqualStartingCharCount >= EqualStartingCharOptimizeLimit; }
             }
 
             public int EqualStartingCharCount { get; set; }
+            public JProperty NewProp { get; set; }
+            public JProperty OldProp { get; set; }
+            public bool TypeIsImplicit { get; set; }
         }
 
         #endregion

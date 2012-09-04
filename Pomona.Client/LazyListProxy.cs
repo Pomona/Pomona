@@ -58,6 +58,7 @@ namespace Pomona.Client
         {
         }
 
+
         public IList<T> WrappedList
         {
             get

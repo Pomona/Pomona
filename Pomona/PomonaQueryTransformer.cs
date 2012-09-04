@@ -23,20 +23,31 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using Nancy;
+using Pomona.Queries;
 
 namespace Pomona
 {
     public class PomonaQueryTransformer : IHttpQueryTransformer
     {
-        private readonly PomonaQueryFilterParser filterParser;
+        private static MethodInfo toExpressionGenericMethod;
+        private readonly QueryFilterExpressionParser filterParser;
         private readonly TypeMapper typeMapper;
 
-        public PomonaQueryTransformer(TypeMapper typeMapper, PomonaQueryFilterParser filterParser)
+        static PomonaQueryTransformer()
         {
-            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
-            if (filterParser == null) throw new ArgumentNullException("filterParser");
+            toExpressionGenericMethod = typeof (PomonaQueryTransformer).GetMethod(
+                "ToExpressionGeneric", BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        public PomonaQueryTransformer(TypeMapper typeMapper, QueryFilterExpressionParser filterParser)
+        {
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
+            if (filterParser == null)
+                throw new ArgumentNullException("filterParser");
             this.typeMapper = typeMapper;
             this.filterParser = filterParser;
         }
@@ -45,25 +56,44 @@ namespace Pomona
 
         public IPomonaQuery TransformRequest(Request request, NancyContext nancyContext, TransformedType rootType)
         {
-            if (request == null) throw new ArgumentNullException("request");
-            if (nancyContext == null) throw new ArgumentNullException("nancyContext");
-            if (rootType == null) throw new ArgumentNullException("rootType");
+            if (request == null)
+                throw new ArgumentNullException("request");
+            if (nancyContext == null)
+                throw new ArgumentNullException("nancyContext");
+            if (rootType == null)
+                throw new ArgumentNullException("rootType");
 
             var query = new PomonaQuery(rootType);
 
-            var filter = (string) request.Query.filter;
+            string filter = null;
 
-            bool errorWhileParsing;
+            if (request.Query.filter.HasValue)
+            {
+                filter = (string) request.Query.filter;
+            }
 
-            query.Conditions = filterParser.Parse(rootType, filter, out errorWhileParsing).ToList();
+            var sourceType = rootType.SourceType;
+            var parseMethod = toExpressionGenericMethod.MakeGenericMethod(sourceType);
+            query.Expression = (Expression) parseMethod.Invoke(this, new[] {filter});
 
             // TODO: Translate expanded paths using TypeMapper
-            query.ExpandedPaths = ((string) request.Query.expand).Split(new[] {','},
-                                                                        StringSplitOptions.RemoveEmptyEntries);
+            query.ExpandedPaths = ((string) request.Query.expand).Split(
+                new[] {','},
+                StringSplitOptions.RemoveEmptyEntries);
 
             return query;
         }
 
         #endregion
+
+        private Expression ToExpressionGeneric<T>(string filter)
+        {
+            if (filter == null)
+            {
+                Expression<Func<T, bool>> trueExpr = x => true;
+                return trueExpr;
+            }
+            return filterParser.Parse<T>(filter);
+        }
     }
 }

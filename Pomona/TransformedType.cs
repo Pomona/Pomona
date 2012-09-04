@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Newtonsoft.Json;
 
 namespace Pomona
 {
@@ -55,6 +56,7 @@ namespace Pomona
 
 
         public ConstructorInfo ConstructorInfo { get; set; }
+        public bool MappedAsValueObject { get; set; }
 
         public bool PostAllowed
         {
@@ -71,7 +73,6 @@ namespace Pomona
             get { return sourceType; }
         }
 
-        public bool MappedAsValueObject { get; set; }
         public TransformedType UriBaseType { get; set; }
 
         public string UriRelativePath
@@ -94,6 +95,11 @@ namespace Pomona
                 throw new InvalidOperationException(
                     "TransformedType is never a collection, so it won't have a element type.");
             }
+        }
+
+        public Type CustomClientType
+        {
+            get { return null; }
         }
 
         public IList<IMappedType> GenericArguments
@@ -131,21 +137,17 @@ namespace Pomona
             get { return false; }
         }
 
+        public JsonConverter JsonConverter
+        {
+            get { return null; }
+        }
+
         public string Name
         {
             get { return name; }
         }
 
         #endregion
-
-        public PropertyMapping GetPropertyByName(string propertyName, bool ignoreCase)
-        {
-            if (ignoreCase)
-                propertyName = propertyName.ToLower();
-
-            // TODO: Possible to optimize here by putting property names in a dictionary
-            return Properties.First(x => x.Name == propertyName);
-        }
 
         public string ConvertToInternalPropertyPath(string externalPath)
         {
@@ -195,6 +197,35 @@ namespace Pomona
         }
 
 
+        public Expression CreateExpressionForExternalPropertyPath(Expression instance, string externalPath)
+        {
+            string externalPropertyName, remainingExternalPath;
+            TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
+
+            var prop = Properties.First(x => x.Name.ToLower() == externalPropertyName.ToLower());
+
+            if (prop.PropertyInfo == null)
+            {
+                throw new NotImplementedException(
+                    "Can only make expression paths for PropertyMappings to a specific internal property (with PropertyInfo)");
+            }
+
+            var propertyAccessExpression = Expression.Property(instance, prop.PropertyInfo);
+
+            if (remainingExternalPath != null)
+            {
+                // TODO Error handling here when remaningpath does not represents a TransformedType
+                var transformedPropType = prop.PropertyType as TransformedType;
+                if (transformedPropType == null)
+                    throw new InvalidOperationException(
+                        "Can not filter by subproperty when property is not TransformedType");
+                return transformedPropType.CreateExpressionForExternalPropertyPath(
+                    propertyAccessExpression, remainingExternalPath);
+            }
+            return propertyAccessExpression;
+        }
+
+
         public object GetId(object entity)
         {
             return typeMapper.Filter.GetIdFor(entity);
@@ -208,10 +239,19 @@ namespace Pomona
         }
 
 
+        public PropertyMapping GetPropertyByName(string propertyName, bool ignoreCase)
+        {
+            if (ignoreCase)
+                propertyName = propertyName.ToLower();
+
+            // TODO: Possible to optimize here by putting property names in a dictionary
+            return Properties.First(x => x.Name == propertyName);
+        }
+
+
         /// <summary>
         /// Creates an newinstance of type that TransformedType targets
         /// </summary>
-        /// <param name="transformedType">The type transformation spec.</param>
         /// <param name="initValues">Dictionary of initial values, prop names must be lowercased!</param>
         /// <returns></returns>
         public object NewInstance(IDictionary<string, object> initValues)
@@ -339,27 +379,6 @@ namespace Pomona
                 leftName = path.Substring(0, leftPathSeparatorIndex);
                 remainingPropPath = path.Substring(leftPathSeparatorIndex + 1);
             }
-        }
-
-
-        public Expression CreateExpressionForExternalPropertyPath(Expression instance, string externalPath)
-        {
-            string externalPropertyName, remainingExternalPath;
-            TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
-
-            var prop = Properties.First(x => x.Name.ToLower() == externalPropertyName.ToLower());
-
-            if (prop.PropertyInfo == null)
-            {
-                throw new NotImplementedException(
-                    "Can only make expression paths for PropertyMappings to a specific internal property (with PropertyInfo)");
-            }
-
-            var propertyAccessExpression = Expression.Property(instance, prop.PropertyInfo);
-
-            if (remainingExternalPath != null)
-                return CreateExpressionForExternalPropertyPath(propertyAccessExpression, remainingExternalPath);
-            return propertyAccessExpression;
         }
     }
 }

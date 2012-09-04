@@ -25,12 +25,19 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Newtonsoft.Json;
 
 namespace Pomona
 {
     public interface ITypeMappingFilter
     {
+        Type GetClientType(Type type);
         object GetIdFor(object entity);
+        JsonConverter GetJsonConverterForType(Type type);
+        Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
+        string GetPropertyMappedName(PropertyInfo propertyInfo);
+        Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
+        Type GetPropertyType(PropertyInfo propertyInfo);
 
 
         /// <summary>
@@ -51,16 +58,13 @@ namespace Pomona
         /// <returns></returns>
         Type GetUriBaseType(Type type);
 
-        Type ResolveRealTypeForProxy(Type type);
+
         bool PropertyIsIncluded(PropertyInfo propertyInfo);
-        string GetPropertyMappedName(PropertyInfo propertyInfo);
+        Type ResolveRealTypeForProxy(Type type);
         bool TypeIsMapped(Type type);
         bool TypeIsMappedAsCollection(Type type);
         bool TypeIsMappedAsSharedType(Type type);
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
-        Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
-        Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
-        Type GetPropertyType(PropertyInfo propertyInfo);
     }
 }

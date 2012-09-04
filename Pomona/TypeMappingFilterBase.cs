@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json;
 
 namespace Pomona
 {
@@ -48,7 +49,8 @@ namespace Pomona
                                                typeof (DateTime),
                                                typeof (object),
                                                typeof (bool),
-                                               typeof (Guid)
+                                               typeof (Guid),
+                                               typeof (Uri)
                                            };
         }
 
@@ -70,24 +72,51 @@ namespace Pomona
         public abstract IEnumerable<Type> GetSourceTypes();
 
 
-        public virtual Type GetUriBaseType(Type type)
+        public virtual Type GetClientType(Type type)
         {
-            return type;
+            return null;
         }
 
-        public virtual Type GetPropertyType(PropertyInfo propertyInfo)
+
+        public virtual JsonConverter GetJsonConverterForType(Type type)
         {
-            return propertyInfo.PropertyType;
+            return null;
         }
+
 
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
             return x => propertyInfo.GetValue(x, null);
         }
 
+
+        public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.Name;
+        }
+
+
         public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
         {
             return (x, value) => propertyInfo.SetValue(x, value, null);
+        }
+
+
+        public virtual Type GetPropertyType(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.PropertyType;
+        }
+
+
+        public virtual Type GetUriBaseType(Type type)
+        {
+            return type;
+        }
+
+
+        public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.GetGetMethod(true).IsPublic;
         }
 
 
@@ -107,23 +136,9 @@ namespace Pomona
                 return type;
 
             if (type.BaseType != null && sourceTypesCached.Contains(type.BaseType))
-            {
                 return type.BaseType;
-            }
 
             return type;
-        }
-
-
-        public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
-        {
-            return propertyInfo.GetGetMethod(true).IsPublic;
-        }
-
-
-        public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
-        {
-            return propertyInfo.Name;
         }
 
 
@@ -144,7 +159,7 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsSharedType(Type type)
         {
-            return IsNativelySupportedType(type) || TypeIsMappedAsCollection(type);
+            return type.IsEnum || IsNativelySupportedType(type) || TypeIsMappedAsCollection(type);
         }
 
 

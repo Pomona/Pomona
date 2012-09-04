@@ -35,7 +35,7 @@ namespace Pomona
     /// </summary>
     internal class HtmlJsonPrettifier
     {
-        public static void CreatePrettifiedHtmlJsonResponse(Response res, string htmlLinks, string json)
+        public static void CreatePrettifiedHtmlJsonResponse(Response res, string htmlLinks, string json, string baseUri)
         {
             var htmlPageTemplate =
                 @"<!DOCTYPE HTML>
@@ -58,6 +58,7 @@ display: inline;
 <html>
 <body onload=""prettyPrint()"">
 <div><ul>{1}</ul></div>
+<div><form action=""{2}"" method=""get"">Query <input type=""text"" name=""filter"" /><input type=""submit"" value=""Submit"" /></form></div>
 <div>
 <pre class=""prettyprint"">
 {0}
@@ -94,7 +95,7 @@ display: inline;
                 }
             }
 
-            var prettifiedJsonHtml = string.Format(htmlPageTemplate, sb.ToString(), htmlLinks);
+            var prettifiedJsonHtml = string.Format(htmlPageTemplate, sb.ToString(), htmlLinks, baseUri);
             res.ContentsFromString(prettifiedJsonHtml);
             res.ContentType = "text/html; charset=utf-8";
         }

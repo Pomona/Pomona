@@ -438,10 +438,13 @@ namespace Pomona
         {
             // TODO: Cache typeRef
 
+            var sharedType = type as SharedType;
+            var transformedType = type as TransformedType;
             TypeReference typeRef = null;
 
-            var sharedType = type as SharedType;
-            if (sharedType != null)
+            if (type.CustomClientType != null)
+                typeRef = module.Import(type.CustomClientType);
+            else if (sharedType != null)
             {
                 typeRef = module.Import(sharedType.TargetType);
 
@@ -457,9 +460,7 @@ namespace Pomona
                     typeRef = typeRefInstance;
                 }
             }
-
-            var transformedType = type as TransformedType;
-            if (transformedType != null)
+            else if (transformedType != null)
                 typeRef = toClientTypeDict[transformedType].InterfaceType;
 
             if (typeRef == null)

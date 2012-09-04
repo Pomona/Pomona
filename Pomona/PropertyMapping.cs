@@ -102,16 +102,16 @@ namespace Pomona
             get { return name; }
         }
 
+        public PropertyInfo PropertyInfo
+        {
+            get { return propertyInfo; }
+        }
+
         public IMappedType PropertyType
         {
             get { return propertyType; }
         }
 
         public Action<object, object> Setter { get; set; }
-
-        public PropertyInfo PropertyInfo
-        {
-            get { return propertyInfo; }
-        }
     }
 }

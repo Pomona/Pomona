@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -65,12 +66,13 @@ namespace Pomona.Example
             }
         }
 
+
         public IEnumerable<T> List<T>(IPomonaQuery query)
         {
             lock (syncLock)
             {
                 var pq = (PomonaQuery) query;
-                var expr = pq.CreateExpression<T>();
+                var expr = (Expression<Func<T, bool>>) pq.Expression;
                 return GetEntityList<T>().Where(expr.Compile());
             }
         }
@@ -92,6 +94,28 @@ namespace Pomona.Example
         }
 
 
+        public T Save<T>(T entity)
+        {
+            var entityCast = (EntityBase) ((object) entity);
+
+            if (entityCast.Id != 0)
+                throw new InvalidOperationException("Trying to save entity with id 0");
+            entityCast.Id = idCounter++;
+            if (notificationsEnabled)
+                Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
+
+            GetEntityList<T>().Add(entity);
+            return entity;
+        }
+
+
+        private void CreateJunkWithNullables()
+        {
+            Save(new JunkWithNullableInt() {Maybe = 1337, MentalState = "I'm happy, I have value!"});
+            Save(new JunkWithNullableInt() {Maybe = null, MentalState = "I got nothing in life. So sad.."});
+        }
+
+
         private void CreateObjectModel()
         {
             var rng = new Random(678343);
@@ -109,13 +133,6 @@ namespace Pomona.Example
             var thingWithCustomIList = Save(new ThingWithCustomIList());
             foreach (var loner in thingWithCustomIList.Loners)
                 Save(loner);
-        }
-
-
-        private void CreateJunkWithNullables()
-        {
-            Save(new JunkWithNullableInt() {Maybe = 1337, MentalState = "I'm happy, I have value!"});
-            Save(new JunkWithNullableInt() {Maybe = null, MentalState = "I got nothing in life. So sad.."});
         }
 
 
@@ -198,21 +215,6 @@ namespace Pomona.Example
                 throw new InvalidOperationException("No random entity to get. Count 0.");
 
             return entityList[rng.Next(0, entityList.Count)];
-        }
-
-
-        public T Save<T>(T entity)
-        {
-            var entityCast = (EntityBase) ((object) entity);
-
-            if (entityCast.Id != 0)
-                throw new InvalidOperationException("Trying to save entity with id 0");
-            entityCast.Id = idCounter++;
-            if (notificationsEnabled)
-                Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
-
-            GetEntityList<T>().Add(entity);
-            return entity;
         }
     }
 }

@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Nancy;
+using Pomona.Queries;
 
 namespace Pomona
 {
@@ -45,16 +46,18 @@ namespace Pomona
         {
         }
 
-        public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter,
-                            IHttpQueryTransformer queryTransformer)
+
+        public PomonaModule(
+            IPomonaDataSource dataSource,
+            ITypeMappingFilter typeMappingFilter,
+            IHttpQueryTransformer queryTransformer)
         {
             this.dataSource = dataSource;
             typeMapper = new TypeMapper(typeMappingFilter);
 
             if (queryTransformer == null)
-            {
-                queryTransformer = new PomonaQueryTransformer(typeMapper, new PomonaQueryFilterParser(typeMapper));
-            }
+                queryTransformer = new PomonaQueryTransformer(
+                    typeMapper, new QueryFilterExpressionParser(new QueryPropertyResolver(typeMapper)));
             this.queryTransformer = queryTransformer;
 
             session = new PomonaSession(dataSource, typeMapper, GetBaseUri);
@@ -66,9 +69,10 @@ namespace Pomona
 
             foreach (
                 var type in
-                    typeMapper.TransformedTypes.Where(x => x.SourceType != null && !x.SourceType.IsAbstract).Select(
-                        x => x.UriBaseType ?? x).Distinct().Where(
-                            x => !x.MappedAsValueObject))
+                    typeMapper.TransformedTypes.Where(x => x.SourceType != null && !x.SourceType.IsAbstract).Select
+                        (
+                            x => x.UriBaseType ?? x).Distinct().Where(
+                                x => !x.MappedAsValueObject))
             {
                 var genericMethod = registerRouteForT.MakeGenericMethod(type.SourceType);
                 genericMethod.Invoke(this, null);
@@ -85,12 +89,13 @@ namespace Pomona
             get { return dataSource; }
         }
 
+
         private void FillJsonResponse(Response res, string json)
         {
             // Very simple content negotiation. Ainnt need noo fancy thing here.
 
             if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
-                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(res, htmlLinks, json);
+                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(res, htmlLinks, json, Context.Request.Url.BasePath);
             else
             {
                 res.ContentsFromString(json);
@@ -197,6 +202,25 @@ namespace Pomona
         }
 
 
+        private Response QueryAsJson<T>()
+        {
+            var mappedType = (TransformedType) typeMapper.GetClassMapping<T>();
+            var query = queryTransformer.TransformRequest(Request, Context, mappedType);
+
+            string jsonStr;
+            using (var strWriter = new StringWriter())
+            {
+                session.Query(query, strWriter);
+                jsonStr = strWriter.ToString();
+            }
+
+            var response = new Response();
+            FillJsonResponse(response, jsonStr);
+
+            return response;
+        }
+
+
         private void RegisterRouteFor<T>()
         {
             var type = typeof (T);
@@ -216,24 +240,6 @@ namespace Pomona
 
             //Get[path] = x => ListAsJson<T>();
             Get[path] = x => QueryAsJson<T>();
-        }
-
-        private Response QueryAsJson<T>()
-        {
-            var mappedType = (TransformedType) typeMapper.GetClassMapping<T>();
-            var query = queryTransformer.TransformRequest(Request, Context, mappedType);
-
-            string jsonStr;
-            using (var strWriter = new StringWriter())
-            {
-                session.Query(query, strWriter);
-                jsonStr = strWriter.ToString();
-            }
-
-            var response = new Response();
-            FillJsonResponse(response, jsonStr);
-
-            return response;
         }
 
 

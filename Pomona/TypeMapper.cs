@@ -62,6 +62,14 @@ namespace Pomona
         }
 
 
+        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
+        {
+            if (rootType == null)
+                throw new ArgumentNullException("rootType");
+            return rootType.ConvertToInternalPropertyPath(externalPath);
+        }
+
+
         public IMappedType GetClassMapping<T>()
         {
             var type = typeof (T);
@@ -119,6 +127,9 @@ namespace Pomona
             if (!filter.TypeIsMapped(type))
                 throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
 
+            if (type.IsEnum)
+                return new EnumType(type, this);
+
             if (filter.TypeIsMappedAsSharedType(type))
             {
                 SharedType newSharedType;
@@ -138,6 +149,9 @@ namespace Pomona
                 }
                 else
                     newSharedType = new SharedType(type, this);
+
+                newSharedType.JsonConverter = filter.GetJsonConverterForType(type);
+                newSharedType.CustomClientType = filter.GetClientType(type);
 
                 mappings[type] = newSharedType;
                 return newSharedType;
@@ -165,12 +179,6 @@ namespace Pomona
             }
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
-        }
-
-        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
-        {
-            if (rootType == null) throw new ArgumentNullException("rootType");
-            return rootType.ConvertToInternalPropertyPath(externalPath);
         }
     }
 }

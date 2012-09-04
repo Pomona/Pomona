@@ -41,11 +41,13 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+
         private JObject SaveAndGetBackAsJson<T>(T entity)
             where T : EntityBase
         {
             DataSource.Save(entity);
             var jsonString = Session.GetAsJson<T>(entity.Id, null);
+            Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
             return JObject.Parse(jsonString);
         }
 
@@ -80,6 +82,7 @@ namespace Pomona.UnitTests.PomonaSession
             return jobject;
         }
 
+
         [Test]
         public void GetNullableJunkWithNull_HasNullValue()
         {
@@ -87,11 +90,32 @@ namespace Pomona.UnitTests.PomonaSession
             jobject.AssertHasPropertyWithNull("maybe");
         }
 
+
         [Test]
         public void GetNullableJunkWithValue_HasValue()
         {
             var jobject = GetNullableJunk(x => x.Maybe.HasValue);
             jobject.AssertHasPropertyWithInteger("maybe");
+        }
+
+
+        [Test]
+        public void WithColorfulThing_SerializesWebColorAsString()
+        {
+            var colorfulThing = new ColorfulThing();
+            var jobject = SaveAndGetBackAsJson(colorfulThing);
+            var value = jobject.AssertHasPropertyWithString("color");
+            Assert.That(value, Is.EqualTo(colorfulThing.Color.ToStringConverted()));
+        }
+
+
+        [Test]
+        public void WithCustomEnum_SerializesAsEnumValueString()
+        {
+            var theEnumValue = CustomEnum.Tock;
+            var jobject = SaveAndGetBackAsJson(new HasCustomEnum() {TheEnumValue = theEnumValue});
+            var jsonEnumValue = jobject.AssertHasPropertyWithString("theEnumValue");
+            Assert.That(jsonEnumValue, Is.EqualTo(theEnumValue.ToString()));
         }
 
 
@@ -104,6 +128,7 @@ namespace Pomona.UnitTests.PomonaSession
             // Assert
             var loners = jobject.AssertHasPropertyWithArray("loners");
         }
+
 
         [Test]
         public void WithEntityThatGotRenamedProperty_HasCorrectPropertyName()
@@ -162,6 +187,16 @@ namespace Pomona.UnitTests.PomonaSession
 
             var musicalCritterUri = musicalJobject.AssertHasPropertyWithString("_uri");
             Assert.That(musicalCritterUri, Is.EqualTo("http://localhost/critter/" + MusicalCritterId));
+        }
+
+
+        [Test]
+        public void WithThingWithUri_ReturnsUrlAsString()
+        {
+            var theUrlString = "http://bahahaha/";
+            var jobject = SaveAndGetBackAsJson(new ThingWithUri() {TheUrl = new Uri(theUrlString)});
+
+            Assert.That(jobject.AssertHasPropertyWithString("theUrl"), Is.EqualTo(theUrlString));
         }
 
 

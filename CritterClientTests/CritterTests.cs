@@ -23,7 +23,9 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using CritterClient;
 using NUnit.Framework;
 using Pomona.Client;
@@ -78,6 +80,72 @@ namespace CritterClientTests
         }
 
 
+        private IEnumerable<Type> FlattenGenericTypeHierarchy(Type t)
+        {
+            if (t.IsGenericType)
+            {
+                yield return t.GetGenericTypeDefinition();
+                foreach (var genarg in t.GetGenericArguments())
+                {
+                    foreach (var gent in FlattenGenericTypeHierarchy(genarg))
+                        yield return gent;
+                }
+            }
+            else
+                yield return t;
+        }
+
+
+        private bool IsAllowedType(Type t)
+        {
+            return FlattenGenericTypeHierarchy(t).All(x => IsAllowedClientReferencedAssembly(x.Assembly));
+        }
+
+
+        private bool IsAllowedClientReferencedAssembly(Assembly assembly)
+        {
+            return assembly == typeof (object).Assembly ||
+                   assembly == typeof (Critter).Assembly ||
+                   assembly == typeof (ClientHelper).Assembly ||
+                   assembly == typeof (Uri).Assembly;
+        }
+
+
+        [Test]
+        public void AllPropertyTypesOfClientTypesAreAllowed()
+        {
+            var clientAssembly = typeof (ICritter).Assembly;
+            var allPropTypes =
+                clientAssembly.GetExportedTypes().SelectMany(
+                    x => x.GetProperties().Select(y => y.PropertyType)).Distinct();
+
+            var allTypesOk = true;
+            foreach (var type in allPropTypes)
+            {
+                if (!IsAllowedType(type))
+                {
+                    allTypesOk = false;
+                    var typeLocal = type;
+                    var propsWithType = clientAssembly
+                        .GetExportedTypes()
+                        .SelectMany(x => x.GetProperties())
+                        .Where(x => x.PropertyType == typeLocal).ToList();
+                    foreach (var propertyInfo in propsWithType)
+                    {
+                        Console.WriteLine(
+                            "Property {0} of {1} has type {2} of assembly {3}, which should not be referenced by client!",
+                            propertyInfo.Name,
+                            propertyInfo.DeclaringType.FullName,
+                            propertyInfo.PropertyType.FullName,
+                            propertyInfo.PropertyType.Assembly.FullName);
+                    }
+                }
+            }
+
+            Assert.IsTrue(allTypesOk, "There was properties in CritterClient with references to disallowed assemblies.");
+        }
+
+
         [Test]
         public void DeserializeCritters()
         {
@@ -106,6 +174,7 @@ namespace CritterClientTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
+
         [Test]
         public void PostCritterWithNewHat()
         {
@@ -122,6 +191,7 @@ namespace CritterClientTests
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
+
 
         [Test]
         public void PostJunkWithRenamedProperty()

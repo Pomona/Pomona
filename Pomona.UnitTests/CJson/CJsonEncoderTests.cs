@@ -45,6 +45,7 @@ namespace Pomona.UnitTests.CJson
             Console.WriteLine("Uncompressed size: " + cjsonEncoder.SizeNotCompressed);
         }
 
+
         private int GetZippedLength(byte[] array)
         {
             var zmemStream = new MemoryStream();
@@ -59,6 +60,7 @@ namespace Pomona.UnitTests.CJson
 
             return (int) zmemStream.ToArray().Length;
         }
+
 
         private string bigJsonFileWithCritters =
             @"[
@@ -11653,6 +11655,7 @@ namespace Pomona.UnitTests.CJson
   }
 ]";
 
+
         [Test]
         public void CJson2_Test()
         {
@@ -11665,14 +11668,18 @@ namespace Pomona.UnitTests.CJson
             memstream.Flush();
             memstream.Seek(0, SeekOrigin.Begin);
 
-            var originalBytes = Encoding.UTF8.GetBytes(JToken.Parse(bigJsonFileWithCritters).ToString(Formatting.None));
+            var originalBytes =
+                Encoding.UTF8.GetBytes(JToken.Parse(bigJsonFileWithCritters).ToString(Formatting.None));
             var packedBytes = memstream.ToArray();
             var originalBytesZippedLength = GetZippedLength(originalBytes);
             var packedBytesZippedLength = GetZippedLength(packedBytes);
             Console.WriteLine("Size uncompressed: {0} ({1} gz'ed)", originalBytes.Length, originalBytesZippedLength);
-            Console.WriteLine("Size compressed: {0} ({1}%) ({2} ({3}%) gz'ed)", packedBytes.Length,
-                              100.0*(double) packedBytes.Length/originalBytes.Length, packedBytesZippedLength,
-                              100.0*(double) packedBytesZippedLength/originalBytesZippedLength);
+            Console.WriteLine(
+                "Size compressed: {0} ({1}%) ({2} ({3}%) gz'ed)",
+                packedBytes.Length,
+                100.0*(double) packedBytes.Length/originalBytes.Length,
+                packedBytesZippedLength,
+                100.0*(double) packedBytesZippedLength/originalBytesZippedLength);
             Console.WriteLine("Total cached property names: " + encoder.TotalCachedPropertyNames);
             Console.WriteLine("Total signatures: " + encoder.TotalCachedSignatures);
         }

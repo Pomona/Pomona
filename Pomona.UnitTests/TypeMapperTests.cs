@@ -44,14 +44,17 @@ namespace Pomona.UnitTests
 
         private TypeMapper typeMapper;
 
+
         [Test]
         public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
         {
             var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(transformedType,
-                                                                        "DiscoFunky.BeautifulAndExposed");
+            var internalPath = typeMapper.ConvertToInternalPropertyPath(
+                transformedType,
+                "DiscoFunky.BeautifulAndExposed");
             Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
         }
+
 
         [Test]
         public void DoesNotCreateTransformedTypeForExcludedClass()

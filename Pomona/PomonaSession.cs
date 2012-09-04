@@ -81,22 +81,6 @@ namespace Pomona
             get { return typeMapper; }
         }
 
-        public void Query(IPomonaQuery query, TextWriter writer)
-        {
-            //var elementType = query.TargetType;
-            var o = queryGenericMethod.MakeGenericMethod(query.TargetType.SourceType).Invoke(this, new[] {query});
-            var mappedType = typeMapper.GetClassMapping(o.GetType());
-            var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
-            var expand = query.ExpandedPaths.Aggregate((a, b) => a + "," + b);
-            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
-            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
-            wrapper.ToJson(writer);
-        }
-
-        private object QueryGeneric<T>(IPomonaQuery query)
-        {
-            return dataSource.List<T>(query).ToList();
-        }
 
         public string GetAsJson<T>(object id, string expand)
         {
@@ -214,6 +198,19 @@ namespace Pomona
         }
 
 
+        public void Query(IPomonaQuery query, TextWriter writer)
+        {
+            //var elementType = query.TargetType;
+            var o = queryGenericMethod.MakeGenericMethod(query.TargetType.SourceType).Invoke(this, new[] {query});
+            var mappedType = typeMapper.GetClassMapping(o.GetType());
+            var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
+            var expand = query.ExpandedPaths.Aggregate((a, b) => a + "," + b);
+            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
+            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            wrapper.ToJson(writer);
+        }
+
+
         public void UpdateFromJson<T>(object id, TextReader textReader, TextWriter textWriter)
         {
             var o = dataSource.GetById<T>(id);
@@ -318,6 +315,12 @@ namespace Pomona
             var newInstance = mappedType.NewInstance(initValues);
 
             return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] {newInstance});
+        }
+
+
+        private object QueryGeneric<T>(IPomonaQuery query)
+        {
+            return dataSource.List<T>(query).ToList();
         }
     }
 }

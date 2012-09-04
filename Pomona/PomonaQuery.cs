@@ -46,16 +46,21 @@ namespace Pomona
 
         private readonly TransformedType targetType;
 
+
         public PomonaQuery(TransformedType targetType)
         {
-            if (targetType == null) throw new ArgumentNullException("targetType");
+            if (targetType == null)
+                throw new ArgumentNullException("targetType");
             this.targetType = targetType;
         }
 
+
+        public string OrderBy { get; set; }
+
         public int Skip { get; set; }
         public int Take { get; set; }
-        public string OrderBy { get; set; }
-        public IList<Condition> Conditions { get; set; }
+
+        public Expression Expression { get; set; }
 
         #region IPomonaQuery Members
 
@@ -64,55 +69,6 @@ namespace Pomona
         public TransformedType TargetType
         {
             get { return targetType; }
-        }
-
-        #endregion
-
-        public Expression<Func<T, bool>> CreateExpression<T>()
-        {
-            var parameter = Expression.Parameter(TargetType.SourceType, "x");
-            Expression finalExpr = Expression.Constant(true);
-
-            foreach (var condition in Conditions)
-            {
-                var op = condition.Operator;
-
-                var propExpr = targetType.CreateExpressionForExternalPropertyPath(parameter, condition.PropertyName);
-
-                var propType = propExpr.Type;
-
-                if (propType != typeof (string))
-                {
-                    throw new NotImplementedException();
-                }
-
-                if (op != Operator.Eq)
-                    throw new NotImplementedException();
-
-                var equalToExpr = Expression.Equal(propExpr, Expression.Constant(condition.Value));
-
-                if (finalExpr == null)
-                {
-                    finalExpr = equalToExpr;
-                }
-                else
-                {
-                    finalExpr = Expression.AndAlso(finalExpr, equalToExpr);
-                }
-            }
-
-            var lambdaExpr = Expression.Lambda<Func<T, bool>>(finalExpr, parameter);
-
-            return lambdaExpr;
-        }
-
-        #region Nested type: Condition
-
-        public class Condition
-        {
-            public string PropertyName { get; set; }
-            public Operator Operator { get; set; }
-            public string Value { get; set; }
         }
 
         #endregion

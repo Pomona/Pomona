@@ -39,6 +39,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Antlr3.Runtime">
+      <HintPath>..\lib\Antlr3\Antlr3.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
@@ -66,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumType.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
@@ -79,17 +83,30 @@
     <Compile Include="PomonaMappingException.cs" />
     <Compile Include="PomonaModule.cs" />
     <Compile Include="PomonaQuery.cs" />
-    <Compile Include="PomonaQueryFilterParser.cs" />
     <Compile Include="PomonaQueryTransformer.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="PomonaSession.cs" />
+    <Compile Include="Queries\BinaryOperator.cs" />
+    <Compile Include="Queries\DateTimeNode.cs" />
+    <Compile Include="Queries\GuidNode.cs" />
+    <Compile Include="Queries\IntNode.cs" />
+    <Compile Include="Queries\IQueryPropertyResolver.cs" />
+    <Compile Include="Queries\LiteralNode.cs" />
+    <Compile Include="Queries\NodeBase.cs" />
+    <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
+    <Compile Include="Queries\NodeType.cs" />
+    <Compile Include="Queries\QueryPropertyResolver.cs" />
+    <Compile Include="Queries\QueryFilterExpressionParser.cs" />
+    <Compile Include="Queries\PomonaQueryTreeParser.cs" />
+    <Compile Include="Queries\StringNode.cs" />
+    <Compile Include="Queries\SymbolNode.cs" />
+    <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="Sandbox\CJson\CJsonCodes.cs" />
     <Compile Include="TypeMapper.cs" />
     <Compile Include="IMappedType.cs" />
     <Compile Include="SharedType.cs" />
     <Compile Include="TransformedType.cs" />
     <Compile Include="ClientLibGenerator.cs" />
-    <Compile Include="CritterMapping.cs" />
     <Compile Include="ExpandPathsUtils.cs" />
     <Compile Include="MappingBase.cs" />
     <Compile Include="ObjectWrapper.cs" />
@@ -100,6 +117,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <Antlr3 Include="Queries\PomonaQuery.g" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">
@@ -180,8 +198,16 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <PropertyGroup>
+    <!-- Folder containing AntlrBuildTask.dll -->
+    <AntlrBuildTaskPath>$(SolutionDir)\tools\AntlrDotnet</AntlrBuildTaskPath>
+    <!-- Path to the ANTLR Tool itself. -->
+    <AntlrToolPath>$(SolutionDir)\tools\AntlrDotnet\Antlr3.exe</AntlrToolPath>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\tools\AntlrDotnet\Antlr3.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
+
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">

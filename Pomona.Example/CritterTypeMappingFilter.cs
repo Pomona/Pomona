@@ -25,38 +25,54 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Newtonsoft.Json;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
+        public override Type GetClientType(Type type)
+        {
+            if (type == typeof (WebColor))
+                return typeof (string);
+
+            return base.GetClientType(type);
+        }
+
+
         public override object GetIdFor(object entity)
         {
             return ((EntityBase) entity).Id;
         }
 
 
-        public override IEnumerable<Type> GetSourceTypes()
+        public override JsonConverter GetJsonConverterForType(Type type)
         {
-            return CritterDataSource.GetEntityTypes();
+            if (type == typeof (WebColor))
+                return new WebColorConverter();
+
+            return base.GetJsonConverterForType(type);
         }
+
 
         public override string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof (JunkWithRenamedProperty)
                 && propertyInfo.Name == "ReallyUglyPropertyName")
-            {
                 return "BeautifulAndExposed";
-            }
 
             if (propertyInfo.DeclaringType == typeof (ThingWithRenamedReferenceProperty)
                 && propertyInfo.Name == "Junky")
-            {
                 return "DiscoFunky";
-            }
 
             return base.GetPropertyMappedName(propertyInfo);
+        }
+
+
+        public override IEnumerable<Type> GetSourceTypes()
+        {
+            return CritterDataSource.GetEntityTypes();
         }
 
 
@@ -75,6 +91,15 @@ namespace Pomona.Example
                 return false;
 
             return base.TypeIsMapped(type);
+        }
+
+
+        public override bool TypeIsMappedAsSharedType(Type type)
+        {
+            if (type == typeof (WebColor))
+                return true;
+
+            return base.TypeIsMappedAsSharedType(type);
         }
 
 
