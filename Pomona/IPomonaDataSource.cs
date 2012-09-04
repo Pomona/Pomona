@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Pomona.Queries;
 
 namespace Pomona
 {
@@ -30,7 +31,7 @@ namespace Pomona
     {
         T GetById<T>(object id);
         ICollection<T> List<T>();
-        IEnumerable<T> List<T>(IPomonaQuery query);
+        QueryResult<T> List<T>(IPomonaQuery query);
         T Post<T>(T newObject);
     }
 }

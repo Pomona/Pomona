@@ -82,6 +82,62 @@ namespace Pomona.UnitTests.Queries
             return objAsT;
         }
 
+        private void AssertExpressionEquals(Expression expected, Expression actual)
+        {
+            try
+            {
+                if (actual.NodeType != expected.NodeType)
+                    Assert.Fail("Expected nodetype " + expected.NodeType + " got nodetype " + actual.NodeType);
+
+                var actualLambdaExpr = actual as LambdaExpression;
+                if (actualLambdaExpr != null)
+                {
+                    var expectedLambdaExpr = (LambdaExpression) expected;
+                    AssertExpressionEquals(expectedLambdaExpr.Body, actualLambdaExpr.Body);
+                    return;
+                }
+
+                var actualBinExpr = actual as BinaryExpression;
+                if (actualBinExpr != null)
+                {
+                    var expectedBinExpr = (BinaryExpression) expected;
+
+                    AssertExpressionEquals(expectedBinExpr.Left, actualBinExpr.Left);
+                    AssertExpressionEquals(expectedBinExpr.Right, actualBinExpr.Right);
+                    return;
+                }
+
+                var actualConstExpr = actual as ConstantExpression;
+                if (actualConstExpr != null)
+                {
+                    var expectedConstExpr = (ConstantExpression) expected;
+                    if (actualConstExpr.Type != expectedConstExpr.Type)
+                        Assert.Fail("Got wrong type for constant expression, expected " + expectedConstExpr.Type +
+                                    ", but got " + actualConstExpr.Type);
+
+                    if (!actualConstExpr.Value.Equals(expectedConstExpr.Value))
+                        Assert.Fail("Constant expression was not of expected value " + expectedConstExpr.Value);
+                    return;
+                }
+
+                var actualMemberExpr = actual as MemberExpression;
+                if (actualMemberExpr != null)
+                {
+                    var expectedMemberExpr = (MemberExpression) expected;
+                    if (actualMemberExpr.Member != expectedMemberExpr.Member)
+                    {
+                        Assert.Fail("Wrong method on memberexpression when comparing expressions..");
+                    }
+                    return;
+                }
+
+                throw new NotImplementedException("Don't know how to compare expression node" + actual);
+            }
+            catch
+            {
+                Console.WriteLine("Expected expression: " + expected + "\r\nActual expression:" + actual);
+            }
+        }
 
         [Test]
         public void Parse_DateTimeConstant_CreatesCorrectExpression()
@@ -157,6 +213,15 @@ namespace Pomona.UnitTests.Queries
         public void Parse_StringConstantAlone_ThrowsArgumentException()
         {
             Assert.That(() => parser.Parse<Dummy>("'blah'"), Throws.ArgumentException);
+        }
+
+        [Test]
+        public void Parse_ThreeTimesOr_CreatesCorrectExpression()
+        {
+            Expression<Func<Dummy, bool>> expected = x => x.Number == 4 || x.Number == 66 || x.Number == 2;
+            var expr = parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
+
+            AssertExpressionEquals(expected, expr);
         }
 
 

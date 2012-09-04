@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace Pomona
@@ -31,6 +32,7 @@ namespace Pomona
     /// </summary>
     public interface IPomonaQuery
     {
+        Uri Url { get; set; }
         IEnumerable<string> ExpandedPaths { get; }
         TransformedType TargetType { get; }
     }

@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Pomona.Example.Models;
+using Pomona.Queries;
 
 namespace Pomona.Example
 {
@@ -67,13 +68,19 @@ namespace Pomona.Example
         }
 
 
-        public IEnumerable<T> List<T>(IPomonaQuery query)
+        public QueryResult<T> List<T>(IPomonaQuery query)
         {
             lock (syncLock)
             {
                 var pq = (PomonaQuery) query;
-                var expr = (Expression<Func<T, bool>>) pq.Expression;
-                return GetEntityList<T>().Where(expr.Compile());
+                var expr = (Expression<Func<T, bool>>) pq.FilterExpression;
+                var compiledExpr = expr.Compile();
+                var count = GetEntityList<T>().Count(compiledExpr);
+                return new QueryResult<T>(GetEntityList<T>()
+                                              .Where(compiledExpr)
+                                              .Skip(pq.Skip)
+                                              .Take(pq.Top),
+                                          pq.Skip, count);
             }
         }
 

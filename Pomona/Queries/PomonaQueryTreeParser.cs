@@ -110,7 +110,16 @@ namespace Pomona.Queries
 
             NodeType nodeType;
             if (IsBinaryOperator(tree.Type, out nodeType))
-                return new BinaryOperator(nodeType, ParseChildren(tree, depth));
+            {
+                var childNodes = new Queue<NodeBase>(ParseChildren(tree, depth));
+
+                var expr = childNodes.Dequeue();
+                while (childNodes.Count > 0)
+                {
+                    expr = new BinaryOperator(nodeType, new[] {expr, childNodes.Dequeue()});
+                }
+                return expr;
+            }
 
             return new UnhandledNode(tree);
         }

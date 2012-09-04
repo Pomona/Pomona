@@ -54,15 +54,18 @@ namespace Pomona
             this.targetType = targetType;
         }
 
+        public int Top { get; set; }
+
 
         public string OrderBy { get; set; }
 
         public int Skip { get; set; }
-        public int Take { get; set; }
 
-        public Expression Expression { get; set; }
+        public Expression FilterExpression { get; set; }
 
         #region IPomonaQuery Members
+
+        public Uri Url { get; set; }
 
         public IEnumerable<string> ExpandedPaths { get; set; }
 

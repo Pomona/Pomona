@@ -279,9 +279,23 @@ namespace Pomona.Client
 
         private object Deserialize(Type expectedType, JToken jToken)
         {
+            // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jObject = jToken as JObject;
             if (jObject != null)
+            {
+                JToken typeValue;
+                if (jObject.TryGetValue("_type", out typeValue))
+                {
+                    if (typeValue.Type == JTokenType.String && (string) ((JValue) typeValue).Value == "__result__")
+                    {
+                        JToken itemsToken;
+                        if (!jObject.TryGetValue("items", out itemsToken))
+                            throw new InvalidOperationException("Got result object, but lacking items");
+                        return Deserialize(expectedType, itemsToken);
+                    }
+                }
                 return DeserializeObject(expectedType, jObject);
+            }
 
             var jArray = jToken as JArray;
             if (jArray != null)

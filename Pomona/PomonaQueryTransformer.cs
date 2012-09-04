@@ -66,6 +66,18 @@ namespace Pomona
             var query = new PomonaQuery(rootType);
 
             string filter = null;
+            var top = 10;
+            var skip = 0;
+
+            if (request.Query.top.HasValue)
+            {
+                top = int.Parse(request.Query.top);
+            }
+
+            if (request.Query.skip.HasValue)
+            {
+                skip = int.Parse(request.Query.skip);
+            }
 
             if (request.Query.filter.HasValue)
             {
@@ -74,12 +86,17 @@ namespace Pomona
 
             var sourceType = rootType.SourceType;
             var parseMethod = toExpressionGenericMethod.MakeGenericMethod(sourceType);
-            query.Expression = (Expression) parseMethod.Invoke(this, new[] {filter});
+            query.FilterExpression = (Expression) parseMethod.Invoke(this, new[] {filter});
+
+            query.Top = top;
+            query.Skip = skip;
 
             // TODO: Translate expanded paths using TypeMapper
             query.ExpandedPaths = ((string) request.Query.expand).Split(
                 new[] {','},
                 StringSplitOptions.RemoveEmptyEntries);
+
+            query.Url = request.Url;
 
             return query;
         }
@@ -88,7 +105,7 @@ namespace Pomona
 
         private Expression ToExpressionGeneric<T>(string filter)
         {
-            if (filter == null)
+            if (string.IsNullOrWhiteSpace(filter))
             {
                 Expression<Func<T, bool>> trueExpr = x => true;
                 return trueExpr;
