@@ -31,7 +31,7 @@ namespace Pomona
     {
         public static HashSet<string> GetExpandedPaths(string expandedPaths)
         {
-            return new HashSet<string>(expandedPaths.Split(',').SelectMany(GetAllSubPaths).Distinct());
+            return new HashSet<string>(expandedPaths.ToLower().Split(',').SelectMany(GetAllSubPaths).Distinct());
         }
 
 

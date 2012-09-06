@@ -123,7 +123,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithCustomList_SerializesOk()
         {
             // Act
-            var jobject = GetThingWithCustomListAsJson("thingwithcustomilist.loners!");
+            var jobject = GetThingWithCustomListAsJson("loners!");
 
             // Assert
             var loners = jobject.AssertHasPropertyWithArray("loners");
@@ -171,7 +171,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithExpandedHat_HatIsIncluded()
         {
             // Act
-            var jobject = GetCritterAsJson("critter.hat");
+            var jobject = GetCritterAsJson("hat");
 
             // Assert
             var hat = jobject.AssertHasPropertyWithObject("hat");
@@ -204,7 +204,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithWeaponsRefExpand_ReturnsArrayOfRefs()
         {
             // Act
-            var jobject = GetCritterAsJson("critter.weapons!");
+            var jobject = GetCritterAsJson("weapons!");
 
             // Assert
             var weapons = jobject.AssertHasPropertyWithArray("weapons");

@@ -50,7 +50,7 @@ namespace Pomona.Queries
             var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
             var expand = query.ExpandedPaths.Aggregate(string.Empty, (a, b) => a + "," + b);
             var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, session);
-            var wrapper = new ObjectWrapper(queryResult, rootPath, context, mappedType);
+            var wrapper = new ObjectWrapper(queryResult, string.Empty, context, mappedType);
 
             var jsonWriter = new JsonTextWriter(writer) {Formatting = Formatting.Indented};
             jsonWriter.WriteStartObject();

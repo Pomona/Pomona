@@ -173,7 +173,13 @@ namespace Pomona
 
             if (remainingExternalPath != null)
             {
-                var nextType = (TransformedType) prop.PropertyType;
+                var pathType = prop.PropertyType;
+                if (pathType.IsCollection)
+                {
+                    pathType = pathType.CollectionElementType;
+                }
+
+                var nextType = (TransformedType) pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;

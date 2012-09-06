@@ -28,6 +28,8 @@ using System.Reflection;
 using Nancy;
 using Pomona.Queries;
 
+using System.Linq;
+
 namespace Pomona
 {
     public class PomonaQueryTransformer : IHttpQueryTransformer
@@ -91,10 +93,20 @@ namespace Pomona
             query.Top = top;
             query.Skip = skip;
 
-            // TODO: Translate expanded paths using TypeMapper
-            query.ExpandedPaths = ((string) request.Query.expand).Split(
-                new[] {','},
-                StringSplitOptions.RemoveEmptyEntries);
+            if (request.Query.expand.HasValue)
+            {
+                // TODO: Translate expanded paths using TypeMapper
+                query.ExpandedPaths = ((string)request.Query.expand)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Distinct()
+                    .Select(x => typeMapper.ConvertToInternalPropertyPath(rootType, x))
+                    .ToList();
+                
+            }
+            else
+            {
+                query.ExpandedPaths = Enumerable.Empty<string>();
+            }
 
             query.Url = request.Url;
 

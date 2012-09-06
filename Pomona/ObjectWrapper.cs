@@ -115,7 +115,7 @@ namespace Pomona
 
                 foreach (var propDef in transformedType.Properties)
                 {
-                    var subPath = path + "." + propDef.JsonName;
+                    var subPath = path == string.Empty ? propDef.JsonName :  path + "." + propDef.JsonName;
                     var value = propDef.Getter(target);
 
                     writer.WritePropertyName(propDef.JsonName);

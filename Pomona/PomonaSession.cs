@@ -100,7 +100,7 @@ namespace Pomona
             var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
-            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
+            var wrapper = new ObjectWrapper(o, string.Empty, context, mappedType);
             wrapper.ToJson(textWriter);
         }
 
