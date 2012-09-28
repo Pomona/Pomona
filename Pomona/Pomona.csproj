@@ -104,6 +104,7 @@
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="Sandbox\CJson\CJsonCodes.cs" />
+    <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TypeMapper.cs" />
     <Compile Include="IMappedType.cs" />
     <Compile Include="SharedType.cs" />

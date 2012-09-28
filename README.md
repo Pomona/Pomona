@@ -78,9 +78,11 @@ Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
 * Create PomonaSession and PomonaSessionFactory that will bind everything together
 * Write correct metadata for generated client dll (AssemblyInfo etc..)
 * Implement support for value types (which is always expanded, and don't have URI). 70% DONE.
-* Implement simple query mechanism (Linq? relinq? something simpler?)
-  * Property equals something, look at how this is done
-  * Make it possible for data source to implement its own query syntax
+* Implement simple query mechanism (Linq? relinq? something simpler?) 75% DONE.
+  * Syntax inspired by OData, with some differences.
+  * Most OData operators are supported, but functions are missing.
+* Create a test helper that will compare an existing JSON schema with new one,
+  then detect any breaking changes in API.
 
 ## Future tasks
 
@@ -102,7 +104,7 @@ Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
 
 * Special handling for nullable types in JSON schema generation needs to be added.
 
-* IPomonaDataSource needs to be improved. Must be passed some sort of query..
+* IPomonaDataSource needs to be improved.
   Maybe also remove generics stuff here? Don't know if there's really any advantage to having generics..
   Maybe there should be multiple IPomonaDataSource (like repositories).
 

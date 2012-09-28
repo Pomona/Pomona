@@ -22,6 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
+
 using NUnit.Framework;
 using Pomona.UnitTests.PomonaSession;
 
@@ -35,7 +37,7 @@ namespace Pomona.UnitTests
         {
             // Smoketest, just check that GenerateAllSchemas does not throw any exceptions
             var schemaGenerator = new JsonSchemaGenerator(Session);
-            schemaGenerator.GenerateAllSchemas();
+            Console.WriteLine(schemaGenerator.GenerateAllSchemas());
         }
     }
 }
