@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
+
 using Newtonsoft.Json.Linq;
 
 namespace Pomona
@@ -43,7 +48,7 @@ namespace Pomona
 
         public JArray GenerateAllSchemas()
         {
-            return new JArray(session.TypeMapper.TransformedTypes.Select(GenerateSchemaFor));
+            return new JArray(this.session.TypeMapper.TransformedTypes.Select(GenerateSchemaFor));
         }
 
 

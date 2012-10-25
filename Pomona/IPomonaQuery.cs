@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 
@@ -32,8 +36,8 @@ namespace Pomona
     /// </summary>
     public interface IPomonaQuery
     {
-        Uri Url { get; set; }
         IEnumerable<string> ExpandedPaths { get; }
         TransformedType TargetType { get; }
+        Uri Url { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq.Expressions;
 
@@ -44,7 +48,7 @@ namespace Pomona.Queries
         public Expression Resolve<T>(Expression rootInstance, string propertyPath)
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
-            var type = (TransformedType) typeMapper.GetClassMapping<T>();
+            var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
             return type.CreateExpressionForExternalPropertyPath(rootInstance, propertyPath);
         }
 

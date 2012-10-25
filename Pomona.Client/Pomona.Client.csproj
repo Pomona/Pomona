@@ -33,8 +33,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.10\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,9 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientHelper.cs" />
+    <Compile Include="ClientBase.cs" />
+    <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="IProxyInterceptor.cs" />
+    <Compile Include="IClientResource.cs" />
     <Compile Include="LazyListProxy.cs" />
     <Compile Include="LazyProxyBase.cs" />
     <Compile Include="LazyProxyInterceptor.cs" />
@@ -55,8 +57,12 @@
     <Compile Include="PomonaResourceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyBase.cs" />
+    <Compile Include="QueryPredicateBuilder.cs" />
+    <Compile Include="ReadOnlyDictionary.cs" />
+    <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ResourceBase.cs" />
     <Compile Include="PutResourceBase.cs" />
+    <Compile Include="ResourceInfoAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

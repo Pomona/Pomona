@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Linq;
 
 using NUnit.Framework;
 
@@ -40,8 +39,8 @@ namespace Pomona.UnitTests
         public void ToPlural_CheckRules()
         {
             var translator = new SingularToPluralTranslator();
-            int failedTranslationCount = 0;
-            int redundantInIrregularDictCount = 0;
+            var failedTranslationCount = 0;
+            var redundantInIrregularDictCount = 0;
 
             Console.WriteLine("Number of words to translate " + SingularToPluralTranslator.SingularToPluralDict.Count);
 
@@ -52,19 +51,25 @@ namespace Pomona.UnitTests
                 var computedPlural = translator.ToPlural(singular);
                 if (computedPlural != expectedPlural)
                 {
-                    Console.WriteLine("computed \"" + computedPlural + "\"  but expected was \"" + expectedPlural + "\"");
+                    Console.WriteLine(
+                        "computed \"" + computedPlural + "\"  but expected was \"" + expectedPlural + "\"");
                     failedTranslationCount++;
                 }
 
                 var computedPluralIgnoreIrregulars = translator.ToPluralNoIrregular(singular);
-                if (SingularToPluralTranslator.IrregularNouns.ContainsKey(singular) && computedPluralIgnoreIrregulars == computedPlural)
+                if (SingularToPluralTranslator.IrregularNouns.ContainsKey(singular)
+                    && computedPluralIgnoreIrregulars == computedPlural)
                 {
-                    Console.WriteLine(singular + " to " + computedPlural + " was in irregular dict, but is covered by regular rules.. No worry!");
+                    Console.WriteLine(
+                        singular + " to " + computedPlural
+                        + " was in irregular dict, but is covered by regular rules.. No worry!");
                     redundantInIrregularDictCount++;
                 }
             }
 
-            Console.WriteLine("Number of irregular nouns in dict: " + SingularToPluralTranslator.IrregularNouns.Count + ", redundant count: " + redundantInIrregularDictCount);
+            Console.WriteLine(
+                "Number of irregular nouns in dict: " + SingularToPluralTranslator.IrregularNouns.Count
+                + ", redundant count: " + redundantInIrregularDictCount);
 
             Assert.That(failedTranslationCount, Is.EqualTo(0));
         }

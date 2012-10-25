@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 
 namespace Pomona
@@ -38,7 +43,7 @@ namespace Pomona
     {
         IMappedType BaseType { get; }
         IMappedType CollectionElementType { get; }
-        Type CustomClientType { get; }
+        Type CustomClientLibraryType { get; }
         IList<IMappedType> GenericArguments { get; }
         bool IsAlwaysExpanded { get; }
         bool IsBasicWireType { get; }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,9 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
+
 using NUnit.Framework;
+
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -39,17 +45,17 @@ namespace Pomona.UnitTests.PomonaSession
 
         public Critter FirstCritter
         {
-            get { return firstCritter; }
+            get { return this.firstCritter; }
         }
 
         public int FirstCritterId
         {
-            get { return firstCritter.Id; }
+            get { return this.firstCritter.Id; }
         }
 
         public MusicalCritter MusicalCritter
         {
-            get { return dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
+            get { return this.dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
         }
 
         public int MusicalCritterId
@@ -59,27 +65,27 @@ namespace Pomona.UnitTests.PomonaSession
 
         protected CritterDataSource DataSource
         {
-            get { return dataSource; }
+            get { return this.dataSource; }
         }
 
         protected Pomona.PomonaSession Session
         {
-            get { return session; }
+            get { return this.session; }
         }
 
         protected TypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
 
 
         [SetUp]
         public void SetUp()
         {
-            dataSource = new CritterDataSource();
-            typeMapper = new TypeMapper(new CritterTypeMappingFilter());
-            session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver);
-            firstCritter = dataSource.List<Critter>().First();
+            this.dataSource = new CritterDataSource();
+            this.typeMapper = new TypeMapper(new CritterTypeMappingFilter());
+            this.session = new Pomona.PomonaSession(this.dataSource, this.typeMapper, UriResolver);
+            this.firstCritter = this.dataSource.List<Critter>().First();
         }
 
 

@@ -17,11 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5EFFC3
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{105FAF9F-207E-4F58-88E2-71FCC99EBDBE}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Example", "Pomona.Example\Pomona.Example.csproj", "{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Example.ServerApp", "Pomona.Example.ServerApp\Pomona.Example.ServerApp.csproj", "{2A4FB8E3-4537-4B40-9DED-34B892C0BCAB}"
@@ -29,6 +24,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.UnitTests", "Pomona.UnitTests\Pomona.UnitTests.csproj", "{093DC2AB-B78C-481F-970E-2857338541B1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.UnitTests.GenerateClientDllApp", "Pomona.UnitTests.GenerateClientDllApp\Pomona.UnitTests.GenerateClientDllApp.csproj", "{9D098F08-B3CA-4122-A7F6-3090F8A17CA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CritterClientTests.ConsoleAppRunner", "CritterClientTests.ConsoleAppRunner\CritterClientTests.ConsoleAppRunner.csproj", "{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,6 +107,16 @@ Global
 		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1}.Release|Mixed Platforms.Build.0 = Release|x86
 		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1}.Release|x86.ActiveCfg = Release|x86
 		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1}.Release|x86.Build.0 = Release|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Debug|x86.ActiveCfg = Debug|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Debug|x86.Build.0 = Debug|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Release|Any CPU.ActiveCfg = Release|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Release|Mixed Platforms.Build.0 = Release|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Release|x86.ActiveCfg = Release|x86
+		{4FDB6B24-BCD1-4CA7-A6DF-E6AD3146F7E8}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

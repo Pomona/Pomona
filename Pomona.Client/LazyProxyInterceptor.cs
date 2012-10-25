@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,19 +24,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 
 namespace Pomona.Client
 {
     public class LazyProxyInterceptor : IProxyInterceptor
     {
-        private readonly ClientHelper client;
+        private readonly ClientBase client;
         private readonly Type pocoType;
         private readonly string uri;
         private object target;
 
 
-        public LazyProxyInterceptor(string uri, Type pocoType, ClientHelper client)
+        public LazyProxyInterceptor(string uri, Type pocoType, ClientBase client)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
@@ -52,11 +56,11 @@ namespace Pomona.Client
 
         public object OnPropertyGet(string propertyName)
         {
-            if (target == null)
-                target = client.GetUri(uri, pocoType);
+            if (this.target == null)
+                this.target = this.client.GetUri(this.uri, this.pocoType);
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return pocoType.GetProperty(propertyName).GetValue(target, null);
+            return this.pocoType.GetProperty(propertyName).GetValue(this.target, null);
         }
 
 

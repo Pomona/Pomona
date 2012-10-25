@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 
@@ -34,13 +38,13 @@ namespace Pomona.Queries
 
         public StringNode(string unescapedString) : base(NodeType.StringLiteral, Enumerable.Empty<NodeBase>())
         {
-            value = UnescapeText(unescapedString);
+            this.value = UnescapeText(unescapedString);
         }
 
 
         public string Value
         {
-            get { return value; }
+            get { return this.value; }
         }
 
 

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.IO;
 using System.Linq;
+
 using NUnit.Framework;
+
 using Newtonsoft.Json.Linq;
+
 using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.PomonaSession
@@ -34,11 +40,13 @@ namespace Pomona.UnitTests.PomonaSession
     [TestFixture]
     public class GetAsJsonTests : SessionTestsBase
     {
-        private JObject GetNullableJunk(Func<JunkWithNullableInt, bool> predicate)
+        private JObject GetAsJson<T>(int id, string expand = null)
+            where T : EntityBase
         {
-            var junkWithValueId = DataSource.List<JunkWithNullableInt>().First(predicate).Id;
-            var jobject = JObject.Parse(Session.GetAsJson<JunkWithNullableInt>(junkWithValueId, null));
-            return jobject;
+            var transformedType = (TransformedType)Session.TypeMapper.GetClassMapping<T>();
+            var jsonString = Session.GetAsJson(transformedType, id, expand);
+            Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
+            return JObject.Parse(jsonString);
         }
 
 
@@ -46,47 +54,21 @@ namespace Pomona.UnitTests.PomonaSession
             where T : EntityBase
         {
             DataSource.Save(entity);
-            var jsonString = Session.GetAsJson<T>(entity.Id, null);
-            Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
-            return JObject.Parse(jsonString);
-        }
-
-
-        private JObject GetCritterAsJson(string expand)
-        {
-            var stringWriter = new StringWriter();
-            Session.GetAsJson<Critter>(FirstCritterId, expand, stringWriter);
-            Console.WriteLine("Getting data:\r\n" + stringWriter.ToString());
-            var jobject = JObject.Parse(stringWriter.ToString());
-            return jobject;
-        }
-
-
-        private JObject GetMusicalCritterAsJson(string expand = null)
-        {
-            var stringWriter = new StringWriter();
-            Session.GetAsJson<Critter>(MusicalCritterId, expand, stringWriter);
-            Console.WriteLine("Getting data:\r\n" + stringWriter.ToString());
-            var jobject = JObject.Parse(stringWriter.ToString());
-            return jobject;
+            return GetAsJson<T>(entity.Id);
         }
 
 
         private JObject GetThingWithCustomListAsJson(string expand)
         {
-            var stringWriter = new StringWriter();
             var thing = DataSource.List<ThingWithCustomIList>().First();
-            Session.GetAsJson<ThingWithCustomIList>(thing.Id, expand, stringWriter);
-            Console.WriteLine("Getting data:\r\n" + stringWriter.ToString());
-            var jobject = JObject.Parse(stringWriter.ToString());
-            return jobject;
+            return GetAsJson<ThingWithCustomIList>(thing.Id, expand);
         }
 
 
         [Test]
         public void GetNullableJunkWithNull_HasNullValue()
         {
-            var jobject = GetNullableJunk(x => !x.Maybe.HasValue);
+            var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() { Maybe = null });
             jobject.AssertHasPropertyWithNull("maybe");
         }
 
@@ -94,7 +76,7 @@ namespace Pomona.UnitTests.PomonaSession
         [Test]
         public void GetNullableJunkWithValue_HasValue()
         {
-            var jobject = GetNullableJunk(x => x.Maybe.HasValue);
+            var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() { Maybe = 123 });
             jobject.AssertHasPropertyWithInteger("maybe");
         }
 
@@ -113,7 +95,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithCustomEnum_SerializesAsEnumValueString()
         {
             var theEnumValue = CustomEnum.Tock;
-            var jobject = SaveAndGetBackAsJson(new HasCustomEnum() {TheEnumValue = theEnumValue});
+            var jobject = SaveAndGetBackAsJson(new HasCustomEnum() { TheEnumValue = theEnumValue });
             var jsonEnumValue = jobject.AssertHasPropertyWithString("theEnumValue");
             Assert.That(jsonEnumValue, Is.EqualTo(theEnumValue.ToString()));
         }
@@ -134,7 +116,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithEntityThatGotRenamedProperty_HasCorrectPropertyName()
         {
             var propval = "Funky junk";
-            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() {ReallyUglyPropertyName = propval});
+            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() { ReallyUglyPropertyName = propval });
 
             // Assert
             jobject.AssertHasPropertyWithString("beautifulAndExposed");
@@ -146,7 +128,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithExpandSetToNull_ReturnsOneLevelByDefault()
         {
             // Act
-            var jobject = GetCritterAsJson(null);
+            var jobject = GetAsJson<Critter>(FirstCritterId);
 
             // Assert
             var hat = jobject.AssertHasPropertyWithObject("hat");
@@ -158,7 +140,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithExpandSetToNull_ValueObjectIsExpandedByDefault()
         {
             // Act
-            var jobject = GetCritterAsJson(null);
+            var jobject = GetAsJson<Critter>(FirstCritterId);
 
             // Assert
             var crazyValue = jobject.AssertHasPropertyWithObject("crazyValue");
@@ -171,7 +153,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithExpandedHat_HatIsIncluded()
         {
             // Act
-            var jobject = GetCritterAsJson("hat");
+            var jobject = GetAsJson<Critter>(FirstCritterId, "hat");
 
             // Assert
             var hat = jobject.AssertHasPropertyWithObject("hat");
@@ -183,7 +165,7 @@ namespace Pomona.UnitTests.PomonaSession
         [Test]
         public void WithMusicalCritter_HasSameBaseUriAsCritter()
         {
-            var musicalJobject = GetMusicalCritterAsJson();
+            var musicalJobject = GetAsJson<Critter>(MusicalCritterId);
 
             var musicalCritterUri = musicalJobject.AssertHasPropertyWithString("_uri");
             Assert.That(musicalCritterUri, Is.EqualTo("http://localhost/critter/" + MusicalCritterId));
@@ -194,7 +176,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithThingWithUri_ReturnsUrlAsString()
         {
             var theUrlString = "http://bahahaha/";
-            var jobject = SaveAndGetBackAsJson(new ThingWithUri() {TheUrl = new Uri(theUrlString)});
+            var jobject = SaveAndGetBackAsJson(new ThingWithUri() { TheUrl = new Uri(theUrlString) });
 
             Assert.That(jobject.AssertHasPropertyWithString("theUrl"), Is.EqualTo(theUrlString));
         }
@@ -204,7 +186,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithWeaponsRefExpand_ReturnsArrayOfRefs()
         {
             // Act
-            var jobject = GetCritterAsJson("weapons!");
+            var jobject = GetAsJson<Critter>(FirstCritterId, "weapons!");
 
             // Assert
             var weapons = jobject.AssertHasPropertyWithArray("weapons");

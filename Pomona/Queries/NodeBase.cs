@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 
 namespace Pomona.Queries
@@ -41,18 +45,18 @@ namespace Pomona.Queries
 
         public List<NodeBase> Children
         {
-            get { return children; }
+            get { return this.children; }
         }
 
         public NodeType NodeType
         {
-            get { return nodeType; }
+            get { return this.nodeType; }
         }
 
 
         public override string ToString()
         {
-            return nodeType.ToString();
+            return this.nodeType.ToString();
         }
     }
 }

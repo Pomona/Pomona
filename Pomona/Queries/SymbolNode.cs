@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -47,20 +51,20 @@ namespace Pomona.Queries
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
         }
 
 
         public override string ToString()
         {
             if (Children.Count == 0)
-                return String.Format("{0} {1}", base.ToString(), name);
+                return String.Format("{0} {1}", base.ToString(), this.name);
             else
             {
                 return String.Format(
                     "{0} {1}({2})",
                     base.ToString(),
-                    name,
+                    this.name,
                     Children.Select(x => x.ToString()).Aggregate((a, b) => a + ", " + b));
             }
         }

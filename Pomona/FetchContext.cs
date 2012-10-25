@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 
 namespace Pomona
@@ -41,24 +45,24 @@ namespace Pomona
         {
             this.debugMode = debugMode;
             this.session = session;
-            typeMapper = session.TypeMapper;
+            this.typeMapper = session.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
 
         public bool DebugMode
         {
-            get { return debugMode; }
+            get { return this.debugMode; }
         }
 
         public TypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
 
         internal HashSet<string> ExpandedPaths
         {
-            get { return expandedPaths; }
+            get { return this.expandedPaths; }
         }
 
 
@@ -70,13 +74,13 @@ namespace Pomona
 
         public string GetUri(object value)
         {
-            return session.GetUri(value);
+            return this.session.GetUri(value);
         }
 
 
         internal bool PathToBeExpanded(string path)
         {
-            return expandedPaths.Contains(path.ToLower());
+            return this.expandedPaths.Contains(path.ToLower());
         }
     }
 }

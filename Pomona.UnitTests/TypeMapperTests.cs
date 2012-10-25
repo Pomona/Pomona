@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,8 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
+
 using NUnit.Framework;
+
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -37,7 +43,7 @@ namespace Pomona.UnitTests
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new TypeMapper(new CritterTypeMappingFilter());
+            this.typeMapper = new TypeMapper(new CritterTypeMappingFilter());
         }
 
         #endregion
@@ -48,8 +54,8 @@ namespace Pomona.UnitTests
         [Test]
         public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
         {
-            var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(
+            var transformedType = (TransformedType)this.typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
+            var internalPath = this.typeMapper.ConvertToInternalPropertyPath(
                 transformedType,
                 "DiscoFunky.BeautifulAndExposed");
             Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
@@ -60,7 +66,7 @@ namespace Pomona.UnitTests
         public void DoesNotCreateTransformedTypeForExcludedClass()
         {
             Assert.That(
-                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
+                this.typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
                 Is.False,
                 "Excluded thing should not have been part of transformed types");
         }

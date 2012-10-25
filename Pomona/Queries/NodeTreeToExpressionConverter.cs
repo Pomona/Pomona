@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +51,7 @@ namespace Pomona.Queries
         public Expression ParseExpression(NodeBase node)
         {
             if (node.NodeType == NodeType.Symbol)
-                return ResolveSymbolNode((SymbolNode) node);
+                return ResolveSymbolNode((SymbolNode)node);
 
             var binaryOperatorNode = node as BinaryOperator;
 
@@ -58,9 +62,9 @@ namespace Pomona.Queries
 
                 switch (binaryOperatorNode.NodeType)
                 {
-                    case NodeType.And:
+                    case NodeType.AndAlso:
                         return Expression.AndAlso(leftChild, rightChild);
-                    case NodeType.Or:
+                    case NodeType.OrElse:
                         return Expression.OrElse(leftChild, rightChild);
                     case NodeType.Add:
                         return Expression.Add(leftChild, rightChild);
@@ -85,25 +89,25 @@ namespace Pomona.Queries
 
             if (node.NodeType == NodeType.GuidLiteral)
             {
-                var guidNode = (GuidNode) node;
+                var guidNode = (GuidNode)node;
                 return Expression.Constant(guidNode.Value);
             }
 
             if (node.NodeType == NodeType.DateTimeLiteral)
             {
-                var dateTimeNode = (DateTimeNode) node;
+                var dateTimeNode = (DateTimeNode)node;
                 return Expression.Constant(dateTimeNode.Value);
             }
 
             if (node.NodeType == NodeType.StringLiteral)
             {
-                var stringNode = (StringNode) node;
+                var stringNode = (StringNode)node;
                 return Expression.Constant(stringNode.Value);
             }
 
             if (node.NodeType == NodeType.IntLiteral)
             {
-                var intNode = (IntNode) node;
+                var intNode = (IntNode)node;
                 return Expression.Constant(intNode.Value);
             }
 
@@ -115,12 +119,12 @@ namespace Pomona.Queries
         {
             try
             {
-                thisParam = Expression.Parameter(typeof (T), "x");
-                return Expression.Lambda<Func<T, bool>>(ParseExpression(node), thisParam);
+                this.thisParam = Expression.Parameter(typeof(T), "x");
+                return Expression.Lambda<Func<T, bool>>(ParseExpression(node), this.thisParam);
             }
             finally
             {
-                thisParam = null;
+                this.thisParam = null;
             }
         }
 
@@ -135,7 +139,7 @@ namespace Pomona.Queries
                 throw new InvalidOperationException("Unable to resolve property");
             }
             else
-                return propertyResolver.Resolve<T>(thisParam, node.Name);
+                return this.propertyResolver.Resolve<T>(this.thisParam, node.Name);
         }
 
 
@@ -147,13 +151,13 @@ namespace Pomona.Queries
             switch (node.Name)
             {
                 case "substringof":
-                    var stringContainsMethod = typeof (string).GetMethod("Contains");
+                    var stringContainsMethod = typeof(string).GetMethod("Contains");
                     argsExpressions = node.Children.Select(ParseExpression).ToList();
                     expression = Expression.Call(argsExpressions[1], stringContainsMethod, argsExpressions[0]);
                     return true;
 
                 case "startswith":
-                    var stringStartsWithMethod = typeof (string).GetMethod("StartsWith", new Type[] {typeof (string)});
+                    var stringStartsWithMethod = typeof(string).GetMethod("StartsWith", new Type[] { typeof(string) });
                     argsExpressions = node.Children.Select(ParseExpression).ToList();
                     expression = Expression.Call(argsExpressions[0], stringStartsWithMethod, argsExpressions[1]);
                     return true;

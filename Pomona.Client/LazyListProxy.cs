@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,22 +34,22 @@ namespace Pomona.Client
 {
     public abstract class LazyListProxy
     {
-        protected readonly ClientHelper clientHelper;
+        protected readonly ClientBase clientBase;
         protected readonly string uri;
 
 
-        protected LazyListProxy(string uri, ClientHelper clientHelper)
+        protected LazyListProxy(string uri, ClientBase clientBase)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
             this.uri = uri;
-            this.clientHelper = clientHelper;
+            this.clientBase = clientBase;
         }
 
 
-        internal static object CreateForType(Type elementType, string uri, ClientHelper clientHelper)
+        internal static object CreateForType(Type elementType, string uri, ClientBase clientBase)
         {
-            return Activator.CreateInstance(typeof (LazyListProxy<>).MakeGenericType(elementType), uri, clientHelper);
+            return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
         }
     }
 
@@ -54,7 +58,7 @@ namespace Pomona.Client
         private IList<T> dontTouchwrappedList;
 
 
-        public LazyListProxy(string uri, ClientHelper clientHelper) : base(uri, clientHelper)
+        public LazyListProxy(string uri, ClientBase clientBase) : base(uri, clientBase)
         {
         }
 
@@ -63,9 +67,9 @@ namespace Pomona.Client
         {
             get
             {
-                if (dontTouchwrappedList == null)
-                    dontTouchwrappedList = clientHelper.GetUri<IList<T>>(uri);
-                return dontTouchwrappedList;
+                if (this.dontTouchwrappedList == null)
+                    this.dontTouchwrappedList = this.clientBase.GetUri<IList<T>>(this.uri);
+                return this.dontTouchwrappedList;
             }
         }
 

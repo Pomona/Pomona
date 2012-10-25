@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,7 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+
 using Nancy.Hosting.Self;
 
 namespace Pomona.Example
@@ -35,32 +40,35 @@ namespace Pomona.Example
 
         public CritterHost(Uri baseUri)
         {
+            DataSource = new CritterDataSource();
             this.baseUri = baseUri;
         }
 
 
         public Uri BaseUri
         {
-            get { return baseUri; }
+            get { return this.baseUri; }
         }
+
+        public CritterDataSource DataSource { get; private set; }
 
         public NancyHost Host
         {
-            get { return host; }
+            get { return this.host; }
         }
 
 
         public void Start()
         {
-            host = new NancyHost(baseUri, new CritterBootstrapper());
-            host.Start();
+            this.host = new NancyHost(this.baseUri, new CritterBootstrapper(DataSource));
+            this.host.Start();
         }
 
 
         public void Stop()
         {
-            host.Stop();
-            host = null;
+            this.host.Stop();
+            this.host = null;
         }
     }
 }

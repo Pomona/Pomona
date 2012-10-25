@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,13 +24,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+
 using Nancy.Helpers;
+
 using Newtonsoft.Json;
 
 namespace Pomona.Queries
@@ -37,22 +43,25 @@ namespace Pomona.Queries
     {
         private readonly PomonaSession session;
 
+
         public QueryResultJsonConverter(PomonaSession session)
         {
-            if (session == null) throw new ArgumentNullException("session");
+            if (session == null)
+                throw new ArgumentNullException("session");
             this.session = session;
         }
+
 
         public void ToJson(PomonaQuery query, QueryResult<T> queryResult, TextWriter writer)
         {
             //var elementType = query.TargetType;
-            var mappedType = session.TypeMapper.GetClassMapping(typeof (IList<T>));
+            var mappedType = this.session.TypeMapper.GetClassMapping(typeof(IList<T>));
             var rootPath = mappedType.GenericArguments.First().Name.ToLower(); // We want paths to be case insensitive
             var expand = query.ExpandedPaths.Aggregate(string.Empty, (a, b) => a + "," + b);
-            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, session);
+            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this.session);
             var wrapper = new ObjectWrapper(queryResult, string.Empty, context, mappedType);
 
-            var jsonWriter = new JsonTextWriter(writer) {Formatting = Formatting.Indented};
+            var jsonWriter = new JsonTextWriter(writer) { Formatting = Formatting.Indented };
             jsonWriter.WriteStartObject();
 
             jsonWriter.WritePropertyName("_type");
@@ -85,9 +94,10 @@ namespace Pomona.Queries
             jsonWriter.Flush();
         }
 
+
         private bool TryGetPage(PomonaQuery query, QueryResult<T> queryResult, int offset, out Uri pageUri)
         {
-            var newSkip = Math.Max(query.Skip + (query.Top*offset), 0);
+            var newSkip = Math.Max(query.Skip + (query.Top * offset), 0);
             var uriBuilder = new UriBuilder(query.Url);
 
             if (query.Skip == newSkip || newSkip >= queryResult.TotalCount)
@@ -104,11 +114,7 @@ namespace Pomona.Queries
                 uriBuilder.Query = parameters.ToString();
             }
             else
-            {
                 uriBuilder.Query = "skip=" + newSkip;
-            }
-
-
 
             pageUri = uriBuilder.Uri;
 

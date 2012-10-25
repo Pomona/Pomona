@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,34 +24,44 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using Newtonsoft.Json;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
-        public override Type GetClientType(Type type)
+        public override string GetClientLibraryFilename()
         {
-            if (type == typeof (WebColor))
-                return typeof (string);
+            return "Critter.Client";
+        }
 
-            return base.GetClientType(type);
+
+        public override Type GetClientLibraryType(Type type)
+        {
+            if (type == typeof(WebColor))
+                return typeof(string);
+
+            return base.GetClientLibraryType(type);
         }
 
 
         public override object GetIdFor(object entity)
         {
-            return ((EntityBase) entity).Id;
+            return ((EntityBase)entity).Id;
         }
 
 
         public override JsonConverter GetJsonConverterForType(Type type)
         {
-            if (type == typeof (WebColor))
+            if (type == typeof(WebColor))
                 return new WebColorConverter();
 
             return base.GetJsonConverterForType(type);
@@ -58,11 +70,11 @@ namespace Pomona.Example
 
         public override string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
-            if (propertyInfo.DeclaringType == typeof (JunkWithRenamedProperty)
+            if (propertyInfo.DeclaringType == typeof(JunkWithRenamedProperty)
                 && propertyInfo.Name == "ReallyUglyPropertyName")
                 return "BeautifulAndExposed";
 
-            if (propertyInfo.DeclaringType == typeof (ThingWithRenamedReferenceProperty)
+            if (propertyInfo.DeclaringType == typeof(ThingWithRenamedReferenceProperty)
                 && propertyInfo.Name == "Junky")
                 return "DiscoFunky";
 
@@ -78,8 +90,8 @@ namespace Pomona.Example
 
         public override Type GetUriBaseType(Type type)
         {
-            if (type == typeof (MusicalCritter))
-                return typeof (Critter);
+            if (type == typeof(MusicalCritter))
+                return typeof(Critter);
 
             return base.GetUriBaseType(type);
         }
@@ -87,7 +99,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMapped(Type type)
         {
-            if (type == typeof (ExcludedThing))
+            if (type == typeof(ExcludedThing))
                 return false;
 
             return base.TypeIsMapped(type);
@@ -96,7 +108,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMappedAsSharedType(Type type)
         {
-            if (type == typeof (WebColor))
+            if (type == typeof(WebColor))
                 return true;
 
             return base.TypeIsMappedAsSharedType(type);
@@ -105,7 +117,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMappedAsValueObject(Type type)
         {
-            if (type == typeof (CrazyValueObject))
+            if (type == typeof(CrazyValueObject))
                 return true;
             return base.TypeIsMappedAsValueObject(type);
         }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,12 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Sandbox.CJson
@@ -114,8 +119,8 @@ namespace Pomona.Sandbox.CJson
         public void PackIt(JToken jtoken)
         {
             PackIt(jtoken, false);
-            if (separateStringStreamEnabled)
-                OutputBytes(stringStream.ToArray());
+            if (this.separateStringStreamEnabled)
+                OutputBytes(this.stringStream.ToArray());
         }
 
 
@@ -142,16 +147,16 @@ namespace Pomona.Sandbox.CJson
 
         private void AddObjectToSignatureCache(CachedSignature newCacheEntry)
         {
-            var pos = signatureCacheIndex;
-            signatureCacheIndex = (signatureCacheIndex + 1)%SignatureCacheSize;
+            var pos = this.signatureCacheIndex;
+            this.signatureCacheIndex = (this.signatureCacheIndex + 1) % SignatureCacheSize;
 
-            var oldCacheEntry = signatureCache[pos];
+            var oldCacheEntry = this.signatureCache[pos];
             if (oldCacheEntry != null)
-                signatureKeyDict.Remove(oldCacheEntry.Key);
+                this.signatureKeyDict.Remove(oldCacheEntry.Key);
 
             newCacheEntry.Index = pos;
-            signatureCache[pos] = newCacheEntry;
-            signatureKeyDict[newCacheEntry.Key] = newCacheEntry;
+            this.signatureCache[pos] = newCacheEntry;
+            this.signatureKeyDict[newCacheEntry.Key] = newCacheEntry;
 
             TotalCachedSignatures++;
         }
@@ -159,15 +164,15 @@ namespace Pomona.Sandbox.CJson
 
         private void AddPropertyNameToCache(string propname)
         {
-            var pos = propertyNameCacheIndex;
-            propertyNameCacheIndex = (propertyNameCacheIndex + 1)%PropertyNameCacheSize;
+            var pos = this.propertyNameCacheIndex;
+            this.propertyNameCacheIndex = (this.propertyNameCacheIndex + 1) % PropertyNameCacheSize;
 
-            var replacedEntry = propertyNameCache[pos];
+            var replacedEntry = this.propertyNameCache[pos];
             if (replacedEntry != null)
-                propertyNameCacheToIndexDict.Remove(replacedEntry);
+                this.propertyNameCacheToIndexDict.Remove(replacedEntry);
 
-            propertyNameCache[pos] = propname;
-            propertyNameCacheToIndexDict[propname] = pos;
+            this.propertyNameCache[pos] = propname;
+            this.propertyNameCacheToIndexDict[propname] = pos;
 
             TotalCachedPropertyNames++;
         }
@@ -175,15 +180,15 @@ namespace Pomona.Sandbox.CJson
 
         private void AddValueToCache(object value)
         {
-            var pos = valueCacheIndex;
-            valueCacheIndex = (valueCacheIndex + 1)%ValueCacheSize;
+            var pos = this.valueCacheIndex;
+            this.valueCacheIndex = (this.valueCacheIndex + 1) % ValueCacheSize;
 
-            var replacedEntry = valueCache[pos];
+            var replacedEntry = this.valueCache[pos];
             if (replacedEntry != null)
-                valueCacheToIndexDict.Remove(replacedEntry);
+                this.valueCacheToIndexDict.Remove(replacedEntry);
 
-            valueCache[pos] = value;
-            valueCacheToIndexDict[value] = pos;
+            this.valueCache[pos] = value;
+            this.valueCacheToIndexDict[value] = pos;
         }
 
 
@@ -239,7 +244,7 @@ namespace Pomona.Sandbox.CJson
                 var pair in
                     previous.Properties().Zip(
                         current.Properties(),
-                        (prevProp, curProp) => new {PrevProp = prevProp, CurProp = curProp}))
+                        (prevProp, curProp) => new { PrevProp = prevProp, CurProp = curProp }))
             {
                 if (IsEqualJValue(pair.CurProp.Value, pair.PrevProp.Value))
                 {
@@ -255,8 +260,8 @@ namespace Pomona.Sandbox.CJson
                     // Do not set type to implicit if string and we got 6 equal starting chars or more
                     if (typeIsImplicit && pair.CurProp.Value.Type == JTokenType.String)
                     {
-                        var curStr = (string) (((JValue) pair.CurProp.Value).Value);
-                        var oldStr = (string) (((JValue) pair.PrevProp.Value).Value);
+                        var curStr = (string)(((JValue)pair.CurProp.Value).Value);
+                        var oldStr = (string)(((JValue)pair.PrevProp.Value).Value);
 
                         startEqualCount = CountEqualStartingBytes(curStr, oldStr);
 
@@ -273,12 +278,12 @@ namespace Pomona.Sandbox.CJson
 
                     changedProperties.Add(
                         new JPropChange()
-                            {
-                                NewProp = pair.CurProp,
-                                OldProp = pair.PrevProp,
-                                TypeIsImplicit = typeIsImplicit,
-                                EqualStartingCharCount = startEqualCount
-                            });
+                        {
+                            NewProp = pair.CurProp,
+                            OldProp = pair.PrevProp,
+                            TypeIsImplicit = typeIsImplicit,
+                            EqualStartingCharCount = startEqualCount
+                        });
 
                     changedMap.Add(true);
                     changedMap.Add(typeIsImplicit);
@@ -299,7 +304,7 @@ namespace Pomona.Sandbox.CJson
 
         private void OutputCode(CJsonCodes code)
         {
-            OutputVarint((int) code);
+            OutputVarint((int)code);
         }
 
 
@@ -325,8 +330,8 @@ namespace Pomona.Sandbox.CJson
         private void OutputPropertyName(string name)
         {
             int index;
-            if (propertyNameCacheToIndexDict.TryGetValue(name, out index))
-                OutputVarint((int) CJsonCodes.ReferenceStartOffset + index);
+            if (this.propertyNameCacheToIndexDict.TryGetValue(name, out index))
+                OutputVarint((int)CJsonCodes.ReferenceStartOffset + index);
             else
             {
                 OutputString(name, false);
@@ -343,8 +348,8 @@ namespace Pomona.Sandbox.CJson
             OutputVarint(text.Length);
 
             var textBytes = Encoding.UTF8.GetBytes(text);
-            if (separateStringStreamEnabled)
-                stringStream.AddRange(textBytes);
+            if (this.separateStringStreamEnabled)
+                this.stringStream.AddRange(textBytes);
             else
                 OutputBytes(textBytes);
         }
@@ -353,8 +358,8 @@ namespace Pomona.Sandbox.CJson
         private void OutputStringValue(string text, bool typeIsImplicit)
         {
             int index;
-            if ((!typeIsImplicit) && valueCacheToIndexDict.TryGetValue(text, out index))
-                OutputVarint((int) CJsonCodes.ReferenceStartOffset + (index*2));
+            if ((!typeIsImplicit) && this.valueCacheToIndexDict.TryGetValue(text, out index))
+                OutputVarint((int)CJsonCodes.ReferenceStartOffset + (index * 2));
             else
             {
                 OutputString(text, typeIsImplicit);
@@ -365,13 +370,13 @@ namespace Pomona.Sandbox.CJson
 
         private void OutputVarint(long value)
         {
-            var uval = (ulong) value;
+            var uval = (ulong)value;
             while (uval > 0x80)
             {
-                OutputByte((byte) ((uval & 0x7f) | 0x80));
+                OutputByte((byte)((uval & 0x7f) | 0x80));
                 uval = uval >> 7;
             }
-            OutputByte((byte) (uval & 0x7f));
+            OutputByte((byte)(uval & 0x7f));
         }
 
 
@@ -385,19 +390,19 @@ namespace Pomona.Sandbox.CJson
             {
                 var newSignature = new CachedSignature(jobject);
                 CachedSignature cachedSignature;
-                if (signatureKeyDict.TryGetValue(newSignature.Key, out cachedSignature))
+                if (this.signatureKeyDict.TryGetValue(newSignature.Key, out cachedSignature))
                 {
                     Console.WriteLine("Reusing signature " + newSignature.Key);
                     // OutputCode(CJsonCodes.ReuseObject);
-                    OutputVarint((int) CJsonCodes.ReferenceStartOffset + (cachedSignature.Index*2) + 1);
+                    OutputVarint((int)CJsonCodes.ReferenceStartOffset + (cachedSignature.Index * 2) + 1);
                     var changedProperties = OutputChangeBitmapCode(cachedSignature.Template, jobject);
                     foreach (var jpropchange in changedProperties)
                     {
                         if (jpropchange.EncodeAsModifiedString)
                         {
-                            var curStr = (string) jpropchange.NewProp.Value;
+                            var curStr = (string)jpropchange.NewProp.Value;
                             OutputCode(CJsonCodes.ModifyString);
-                            Debug.Assert(curStr == (string) ((JValue) jpropchange.NewProp.Value).Value);
+                            Debug.Assert(curStr == (string)((JValue)jpropchange.NewProp.Value).Value);
                             var stringEnd = curStr.Substring(jpropchange.EqualStartingCharCount);
                             OutputVarint(jpropchange.EqualStartingCharCount);
                             OutputString(stringEnd, true);
@@ -432,11 +437,11 @@ namespace Pomona.Sandbox.CJson
             else if (jvalue != null)
             {
                 if (jvalue.Type == JTokenType.String)
-                    OutputStringValue((string) jvalue.Value, jsonTypeIsImplicit);
+                    OutputStringValue((string)jvalue.Value, jsonTypeIsImplicit);
                 else if (jvalue.Type == JTokenType.Integer)
-                    OutputIntegerValue((long) jvalue.Value, jsonTypeIsImplicit);
+                    OutputIntegerValue((long)jvalue.Value, jsonTypeIsImplicit);
                 else if (jvalue.Type == JTokenType.Float)
-                    OutputDoubleValue((double) jvalue.Value, jsonTypeIsImplicit);
+                    OutputDoubleValue((double)jvalue.Value, jsonTypeIsImplicit);
                 else if (jvalue.Type == JTokenType.Null)
                 {
                     Debug.Assert(jsonTypeIsImplicit == false);
@@ -445,7 +450,7 @@ namespace Pomona.Sandbox.CJson
                 else if (jvalue.Type == JTokenType.Boolean)
                 {
                     Debug.Assert(jsonTypeIsImplicit == false);
-                    OutputCode((bool) jvalue.Value ? CJsonCodes.TrueValue : CJsonCodes.FalseValue);
+                    OutputCode((bool)jvalue.Value ? CJsonCodes.TrueValue : CJsonCodes.FalseValue);
                 }
                 else
                 {
@@ -519,10 +524,10 @@ namespace Pomona.Sandbox.CJson
 
         public bool WriteSymbol(object symbol, out int dictIndex)
         {
-            if (!symbolLookupTable.TryGetValue(symbol, out dictIndex))
+            if (!this.symbolLookupTable.TryGetValue(symbol, out dictIndex))
             {
                 dictIndex = -1;
-                symbolLookupTable[symbol] = symbolCounter++;
+                this.symbolLookupTable[symbol] = this.symbolCounter++;
 
                 return false;
             }
@@ -551,12 +556,12 @@ namespace Pomona.Sandbox.CJson
 
         public int SizeCompressed
         {
-            get { return sizeCompressed; }
+            get { return this.sizeCompressed; }
         }
 
         public int SizeNotCompressed
         {
-            get { return sizeNotCompressed; }
+            get { return this.sizeNotCompressed; }
         }
 
 
@@ -593,9 +598,9 @@ namespace Pomona.Sandbox.CJson
 
         private void Output(CJsonCodes code)
         {
-            sizeNotCompressed++;
-            sizeCompressed++;
-            Console.WriteLine("TODO: OUTPUT CODE " + code + " in state " + currentState);
+            this.sizeNotCompressed++;
+            this.sizeCompressed++;
+            Console.WriteLine("TODO: OUTPUT CODE " + code + " in state " + this.currentState);
         }
 
 
@@ -603,19 +608,19 @@ namespace Pomona.Sandbox.CJson
         {
             int dictIndex;
 
-            sizeNotCompressed += Encoding.UTF8.GetByteCount(propName) + 1;
+            this.sizeNotCompressed += Encoding.UTF8.GetByteCount(propName) + 1;
 
-            if (propertyNameSymbols.WriteSymbol(propName, out dictIndex))
+            if (this.propertyNameSymbols.WriteSymbol(propName, out dictIndex))
             {
-                sizeCompressed++;
+                this.sizeCompressed++;
                 if (dictIndex > 120)
-                    sizeCompressed++;
+                    this.sizeCompressed++;
                 Console.WriteLine("OUTPUT PROPNAME {0} LOOKUP INDEX {1}", propName, dictIndex);
             }
             else
             {
-                sizeNotCompressed += Encoding.UTF8.GetByteCount(propName) + 1;
-                sizeCompressed += Encoding.UTF8.GetByteCount(propName) + 2;
+                this.sizeNotCompressed += Encoding.UTF8.GetByteCount(propName) + 1;
+                this.sizeCompressed += Encoding.UTF8.GetByteCount(propName) + 2;
                 Console.WriteLine("OUTPUT PROPNAME {0} (NEW IN TABLE)", propName);
             }
         }
@@ -625,19 +630,19 @@ namespace Pomona.Sandbox.CJson
         {
             int dictIndex;
 
-            sizeNotCompressed += Encoding.UTF8.GetByteCount(toString) + 1;
+            this.sizeNotCompressed += Encoding.UTF8.GetByteCount(toString) + 1;
 
-            if (valueSymbols.WriteSymbol(toString, out dictIndex))
+            if (this.valueSymbols.WriteSymbol(toString, out dictIndex))
             {
-                sizeCompressed++;
+                this.sizeCompressed++;
                 if (dictIndex > 120)
-                    sizeCompressed++;
+                    this.sizeCompressed++;
                 Console.WriteLine("OUTPUT VALUE {0} LOOKUP INDEX {1}", toString, dictIndex);
             }
             else
             {
-                sizeNotCompressed += Encoding.UTF8.GetByteCount(toString) + 1;
-                sizeCompressed += Encoding.UTF8.GetByteCount(toString) + 2;
+                this.sizeNotCompressed += Encoding.UTF8.GetByteCount(toString) + 1;
+                this.sizeCompressed += Encoding.UTF8.GetByteCount(toString) + 2;
                 Console.WriteLine("OUTPUT VALUE {0} (NEW IN TABLE)", toString);
             }
         }
@@ -654,14 +659,14 @@ namespace Pomona.Sandbox.CJson
 
         private void Parse(char c)
         {
-            switch (currentState)
+            switch (this.currentState)
             {
                 case EncoderState.WaitingPropertyColon:
                     if (IsWhiteSpace(c))
                         return;
 
                     if (c == ':')
-                        currentState = EncoderState.WaitingPropertyValue;
+                        this.currentState = EncoderState.WaitingPropertyValue;
                     else
                         ThrowUnexpectedCharacterException(c);
                     break;
@@ -672,20 +677,20 @@ namespace Pomona.Sandbox.CJson
                     if (c == '}')
                     {
                         Output(CJsonCodes.Stop);
-                        currentState = stateStack.Pop();
+                        this.currentState = this.stateStack.Pop();
                         SetupWaitForNextValue();
                     }
                     else if (c == '"')
                     {
-                        stateStack.Push(currentState);
-                        incomingString.Clear();
-                        currentState = EncoderState.InsideString;
+                        this.stateStack.Push(this.currentState);
+                        this.incomingString.Clear();
+                        this.currentState = EncoderState.InsideString;
                     }
                     else if (IsAllowedFirstLetterOfUnescapedPropertyName(c))
                     {
-                        stateStack.Push(currentState);
-                        incomingString.Clear();
-                        currentState = EncoderState.InsideUnescapedPropName;
+                        this.stateStack.Push(this.currentState);
+                        this.incomingString.Clear();
+                        this.currentState = EncoderState.InsideUnescapedPropName;
 
                         Parse(c);
                     }
@@ -698,12 +703,12 @@ namespace Pomona.Sandbox.CJson
 
                     if (c == ',')
                     {
-                        sizeNotCompressed++;
-                        currentState = stateStack.Pop();
+                        this.sizeNotCompressed++;
+                        this.currentState = this.stateStack.Pop();
                     }
                     else if (c == '}' || c == ']')
                     {
-                        currentState = stateStack.Pop();
+                        this.currentState = this.stateStack.Pop();
 
                         Parse(c);
                     }
@@ -721,32 +726,32 @@ namespace Pomona.Sandbox.CJson
                     if (c == '{')
                     {
                         Output(CJsonCodes.StartObject);
-                        stateStack.Push(currentState);
-                        currentState = EncoderState.InsideObject;
+                        this.stateStack.Push(this.currentState);
+                        this.currentState = EncoderState.InsideObject;
                     }
                     else if (c == '[')
                     {
                         Output(CJsonCodes.StartArray);
-                        stateStack.Push(currentState);
-                        currentState = EncoderState.InsideArray;
+                        this.stateStack.Push(this.currentState);
+                        this.currentState = EncoderState.InsideArray;
                     }
-                    else if (c == ']' && currentState == EncoderState.InsideArray)
+                    else if (c == ']' && this.currentState == EncoderState.InsideArray)
                     {
                         Output(CJsonCodes.Stop);
-                        currentState = stateStack.Pop();
+                        this.currentState = this.stateStack.Pop();
                         SetupWaitForNextValue();
                     }
                     else if (c == '"')
                     {
-                        stateStack.Push(currentState);
-                        incomingString.Clear();
-                        currentState = EncoderState.InsideString;
+                        this.stateStack.Push(this.currentState);
+                        this.incomingString.Clear();
+                        this.currentState = EncoderState.InsideString;
                     }
                     else if (IsAllowedUnescapedValueCharacter(c))
                     {
-                        stateStack.Push(currentState);
-                        incomingString.Clear();
-                        currentState = EncoderState.InsideUnescapedValue;
+                        this.stateStack.Push(this.currentState);
+                        this.incomingString.Clear();
+                        this.currentState = EncoderState.InsideUnescapedValue;
 
                         Parse(c);
                     }
@@ -757,12 +762,12 @@ namespace Pomona.Sandbox.CJson
 
                 case EncoderState.InsideUnescapedPropName:
                     if (IsAllowedUnescapedValueCharacter(c))
-                        incomingString.Append(c);
+                        this.incomingString.Append(c);
                     else if (IsWhiteSpace(c) || c == ':')
                     {
-                        currentState = EncoderState.WaitingPropertyColon;
+                        this.currentState = EncoderState.WaitingPropertyColon;
 
-                        OutputPropertyName(incomingString.ToString());
+                        OutputPropertyName(this.incomingString.ToString());
 
                         if (c == ':')
                             Parse(c);
@@ -773,12 +778,12 @@ namespace Pomona.Sandbox.CJson
 
                 case EncoderState.InsideUnescapedValue:
                     if (IsAllowedUnescapedValueCharacter(c))
-                        incomingString.Append(c);
+                        this.incomingString.Append(c);
                     else if (IsWhiteSpace(c) || c == '}' || c == ']' || c == ',')
                     {
-                        currentState = stateStack.Pop();
+                        this.currentState = this.stateStack.Pop();
 
-                        OutputUnescapedValue(incomingString.ToString());
+                        OutputUnescapedValue(this.incomingString.ToString());
 
                         SetupWaitForNextValue();
 
@@ -790,56 +795,56 @@ namespace Pomona.Sandbox.CJson
 
                 case EncoderState.InsideString:
                     if (c == '\\')
-                        currentState = EncoderState.InsideStringEscapeStart;
+                        this.currentState = EncoderState.InsideStringEscapeStart;
                     else if (c == '"')
                     {
-                        currentState = stateStack.Pop();
+                        this.currentState = this.stateStack.Pop();
 
-                        if (currentState == EncoderState.InsideObject)
+                        if (this.currentState == EncoderState.InsideObject)
                         {
-                            OutputPropertyName(incomingString.ToString());
-                            stateStack.Push(currentState);
-                            currentState = EncoderState.WaitingPropertyColon;
+                            OutputPropertyName(this.incomingString.ToString());
+                            this.stateStack.Push(this.currentState);
+                            this.currentState = EncoderState.WaitingPropertyColon;
                         }
-                        else if (currentState == EncoderState.InsideArray || currentState == EncoderState.Start
-                                 || currentState == EncoderState.WaitingPropertyValue)
+                        else if (this.currentState == EncoderState.InsideArray || this.currentState == EncoderState.Start
+                                 || this.currentState == EncoderState.WaitingPropertyValue)
                         {
-                            OutputStringValue(incomingString.ToString());
+                            OutputStringValue(this.incomingString.ToString());
 
                             SetupWaitForNextValue();
                         }
                         else
-                            throw new InvalidOperationException("Invalid encoding state here " + currentState);
+                            throw new InvalidOperationException("Invalid encoding state here " + this.currentState);
                     }
                     else
                     {
                         if (char.IsControl(c))
                             ThrowUnexpectedCharacterException(c);
 
-                        incomingString.Append(c);
+                        this.incomingString.Append(c);
                     }
                     break;
 
                 default:
-                    throw new InvalidOperationException("State " + currentState + " not handled.");
+                    throw new InvalidOperationException("State " + this.currentState + " not handled.");
             }
         }
 
 
         private void SetupWaitForNextValue()
         {
-            if (currentState == EncoderState.WaitingPropertyValue)
+            if (this.currentState == EncoderState.WaitingPropertyValue)
             {
-                currentState = stateStack.Pop();
-                if (currentState != EncoderState.InsideObject)
+                this.currentState = this.stateStack.Pop();
+                if (this.currentState != EncoderState.InsideObject)
                 {
                     throw new InvalidOperationException(
-                        "Poped state " + currentState + ", expected state " + EncoderState.InsideObject);
+                        "Poped state " + this.currentState + ", expected state " + EncoderState.InsideObject);
                 }
             }
 
-            stateStack.Push(currentState);
-            currentState = EncoderState.WaitingComma;
+            this.stateStack.Push(this.currentState);
+            this.currentState = EncoderState.WaitingComma;
         }
 
 

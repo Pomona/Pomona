@@ -54,11 +54,12 @@
     <Reference Include="Mono.Cecil.Rocks">
       <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy">
-      <HintPath>..\packages\Nancy.0.11.0\lib\net40\Nancy.dll</HintPath>
+    <Reference Include="Nancy, Version=0.12.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nancy.0.12.1\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.4.5.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.10\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -95,6 +96,8 @@
     <Compile Include="Queries\NodeBase.cs" />
     <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
     <Compile Include="Queries\NodeType.cs" />
+    <Compile Include="Queries\PomonaQueryLexer.cs" />
+    <Compile Include="Queries\PomonaQueryParser.cs" />
     <Compile Include="Queries\QueryPropertyResolver.cs" />
     <Compile Include="Queries\QueryFilterExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />
@@ -120,7 +123,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <Antlr3 Include="Queries\PomonaQuery.g" />
+    <Antlr3 Include="Queries\PomonaQuery.g">
+      <Generator>MSBuild:Compile</Generator>
+    </Antlr3>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">

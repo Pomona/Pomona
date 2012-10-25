@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Client
@@ -36,7 +41,7 @@ namespace Pomona.Client
         public JObject ToJson()
         {
             var jObject = new JObject();
-            foreach (var kvp in putMap)
+            foreach (var kvp in this.putMap)
             {
                 var jsonName = kvp.Key.Substring(0, 1).ToLower() + kvp.Key.Substring(1);
                 var value = kvp.Value;
@@ -67,7 +72,7 @@ namespace Pomona.Client
         protected object OnPropertyGet(string propertyName)
         {
             object value;
-            if (!putMap.TryGetValue(propertyName, out value))
+            if (!this.putMap.TryGetValue(propertyName, out value))
                 throw new InvalidOperationException("Update value for " + propertyName + " has not been set");
 
             return value;
@@ -76,7 +81,7 @@ namespace Pomona.Client
 
         protected void OnPropertySet(string propertyName, object value)
         {
-            putMap[propertyName] = value;
+            this.putMap[propertyName] = value;
         }
     }
 }

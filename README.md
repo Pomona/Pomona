@@ -188,7 +188,7 @@ The goal here is to have a good default query implementation, and make it possib
 * IQuery will be a minimal interface for queries, for now it is empty.
 * PomonaQuery will be the default IQuery implementation.
 
-### PomonaQuery implementation of IQuery
+### PomonaQuery implementation of IQuery (OLD STUFF, now uses syntax similar to Odata query)
 
 It will support:
   - A limited query language by default.

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,10 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using NUnit.Framework;
+
 using Pomona.Queries;
 
 namespace Pomona.UnitTests.Queries
@@ -38,7 +44,7 @@ namespace Pomona.UnitTests.Queries
         [SetUp]
         public void SetUp()
         {
-            parser = new QueryFilterExpressionParser(new SimpleQueryPropertyResolver());
+            this.parser = new QueryFilterExpressionParser(new SimpleQueryPropertyResolver());
         }
 
         #endregion
@@ -51,7 +57,7 @@ namespace Pomona.UnitTests.Queries
 
             public Expression Resolve<T>(Expression rootInstance, string propertyPath)
             {
-                return Expression.Property(rootInstance, typeof (T).GetProperty(propertyPath));
+                return Expression.Property(rootInstance, typeof(T).GetProperty(propertyPath));
             }
 
             #endregion
@@ -59,9 +65,9 @@ namespace Pomona.UnitTests.Queries
 
         public class Dummy
         {
+            public Guid Guid { get; set; }
             public int Number { get; set; }
             public string Text { get; set; }
-            public Guid Guid { get; set; }
             public DateTime Time { get; set; }
         }
 
@@ -69,18 +75,20 @@ namespace Pomona.UnitTests.Queries
         private T AssertIsConstant<T>(Expression expr)
         {
             var constExpr = AssertCast<ConstantExpression>(expr);
-            Assert.That(constExpr.Type, Is.EqualTo(typeof (T)));
-            return (T) constExpr.Value;
+            Assert.That(constExpr.Type, Is.EqualTo(typeof(T)));
+            return (T)constExpr.Value;
         }
+
 
         private T AssertCast<T>(object obj)
             where T : class
         {
             var objAsT = obj as T;
             if (objAsT == null)
-                Assert.Fail("Failed to cast object to " + typeof (T).Name + ", was of type" + obj.GetType().Name);
+                Assert.Fail("Failed to cast object to " + typeof(T).Name + ", was of type" + obj.GetType().Name);
             return objAsT;
         }
+
 
         private void AssertExpressionEquals(Expression expected, Expression actual)
         {
@@ -92,7 +100,7 @@ namespace Pomona.UnitTests.Queries
                 var actualLambdaExpr = actual as LambdaExpression;
                 if (actualLambdaExpr != null)
                 {
-                    var expectedLambdaExpr = (LambdaExpression) expected;
+                    var expectedLambdaExpr = (LambdaExpression)expected;
                     AssertExpressionEquals(expectedLambdaExpr.Body, actualLambdaExpr.Body);
                     return;
                 }
@@ -100,7 +108,7 @@ namespace Pomona.UnitTests.Queries
                 var actualBinExpr = actual as BinaryExpression;
                 if (actualBinExpr != null)
                 {
-                    var expectedBinExpr = (BinaryExpression) expected;
+                    var expectedBinExpr = (BinaryExpression)expected;
 
                     AssertExpressionEquals(expectedBinExpr.Left, actualBinExpr.Left);
                     AssertExpressionEquals(expectedBinExpr.Right, actualBinExpr.Right);
@@ -110,10 +118,13 @@ namespace Pomona.UnitTests.Queries
                 var actualConstExpr = actual as ConstantExpression;
                 if (actualConstExpr != null)
                 {
-                    var expectedConstExpr = (ConstantExpression) expected;
+                    var expectedConstExpr = (ConstantExpression)expected;
                     if (actualConstExpr.Type != expectedConstExpr.Type)
-                        Assert.Fail("Got wrong type for constant expression, expected " + expectedConstExpr.Type +
-                                    ", but got " + actualConstExpr.Type);
+                    {
+                        Assert.Fail(
+                            "Got wrong type for constant expression, expected " + expectedConstExpr.Type +
+                            ", but got " + actualConstExpr.Type);
+                    }
 
                     if (!actualConstExpr.Value.Equals(expectedConstExpr.Value))
                         Assert.Fail("Constant expression was not of expected value " + expectedConstExpr.Value);
@@ -123,11 +134,9 @@ namespace Pomona.UnitTests.Queries
                 var actualMemberExpr = actual as MemberExpression;
                 if (actualMemberExpr != null)
                 {
-                    var expectedMemberExpr = (MemberExpression) expected;
+                    var expectedMemberExpr = (MemberExpression)expected;
                     if (actualMemberExpr.Member != expectedMemberExpr.Member)
-                    {
                         Assert.Fail("Wrong method on memberexpression when comparing expressions..");
-                    }
                     return;
                 }
 
@@ -139,46 +148,50 @@ namespace Pomona.UnitTests.Queries
             }
         }
 
+
         [Test]
         public void Parse_DateTimeConstant_CreatesCorrectExpression()
         {
             var dateTimeString = "2000-12-12T12:00";
             var expectedTime = DateTime.Parse(dateTimeString);
-            var expr = parser.Parse<Dummy>(string.Format("Time eq datetime'{0}'", dateTimeString));
+            var expr = this.parser.Parse<Dummy>(string.Format("Time eq datetime'{0}'", dateTimeString));
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftTimeConstant = AssertIsConstant<DateTime>(binExpr.Right);
             Assert.That(leftTimeConstant, Is.EqualTo(expectedTime));
         }
 
+
         [Test]
         public void Parse_GuidConstant_CreatesCorrectExpression()
         {
             var guid = Guid.NewGuid();
-            var expr = parser.Parse<Dummy>(string.Format("Guid eq guid'{0}'", guid));
+            var expr = this.parser.Parse<Dummy>(string.Format("Guid eq guid'{0}'", guid));
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftGuidConstant = AssertIsConstant<Guid>(binExpr.Right);
             Assert.That(leftGuidConstant, Is.EqualTo(guid));
         }
 
+
         [Test]
         public void Parse_PropertyEqualsIntegerAddedToInteger_ReturnsCorrectResult()
         {
-            var lambda = parser.Parse<Dummy>("Number eq 2 add 3");
+            var lambda = this.parser.Parse<Dummy>("Number eq 2 add 3");
             var binExpr = AssertCast<BinaryExpression>(lambda.Body);
             AssertCast<MemberExpression>(binExpr.Left);
             var addExpr = AssertCast<BinaryExpression>(binExpr.Right);
             Assert.That(addExpr.NodeType, Is.EqualTo(ExpressionType.Add));
-            Assert.That(addExpr.Type, Is.EqualTo(typeof (int)));
+            Assert.That(addExpr.Type, Is.EqualTo(typeof(int)));
             var leftAddInt = AssertIsConstant<int>(addExpr.Left);
             Assert.That(leftAddInt, Is.EqualTo(2));
             var rightAddInt = AssertIsConstant<int>(addExpr.Right);
             Assert.That(rightAddInt, Is.EqualTo(3));
         }
 
+
         [Test]
         public void Parse_PropertyEqualsStringExpression_CreatesCorrectExpression()
         {
-            var expr = parser.Parse<Dummy>("Text eq 'Jalla'");
+            var expr = this.parser.Parse<Dummy>("Text eq 'Jalla'");
 
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             AssertCast<MemberExpression>(binExpr.Left);
@@ -190,10 +203,10 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_PropertyEqualsStringExpression_ReturnsCorrectResult()
         {
-            var lambda = parser.Parse<Dummy>("Text eq 'Jalla'").Compile();
+            var lambda = this.parser.Parse<Dummy>("Text eq 'Jalla'").Compile();
 
-            var jallaDummy = new Dummy() {Text = "Jalla"};
-            var negativeDummy = new Dummy() {Text = "Boooo"};
+            var jallaDummy = new Dummy() { Text = "Jalla" };
+            var negativeDummy = new Dummy() { Text = "Boooo" };
 
             Assert.That(lambda(jallaDummy), Is.True);
             Assert.That(lambda(negativeDummy), Is.False);
@@ -203,7 +216,7 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_PropertyEqualsStringOrPropertyEqualString_CreatesCorrectExpression()
         {
-            var expr = parser.Parse<Dummy>("Text eq 'Jalla' or Text eq 'Mohahaa'");
+            var expr = this.parser.Parse<Dummy>("Text eq 'Jalla' or Text eq 'Mohahaa'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.OrElse));
         }
@@ -212,14 +225,15 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_StringConstantAlone_ThrowsArgumentException()
         {
-            Assert.That(() => parser.Parse<Dummy>("'blah'"), Throws.ArgumentException);
+            Assert.That(() => this.parser.Parse<Dummy>("'blah'"), Throws.ArgumentException);
         }
+
 
         [Test]
         public void Parse_ThreeTimesOr_CreatesCorrectExpression()
         {
             Expression<Func<Dummy, bool>> expected = x => x.Number == 4 || x.Number == 66 || x.Number == 2;
-            var expr = parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
+            var expr = this.parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
 
             AssertExpressionEquals(expected, expr);
         }
@@ -228,13 +242,13 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_WithProperty_ResolvesToCorrectProperty()
         {
-            var expr = parser.Parse<Dummy>("Text eq 'Jalla'");
+            var expr = this.parser.Parse<Dummy>("Text eq 'Jalla'");
 
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var memberExpr = AssertCast<MemberExpression>(binExpr.Left);
             var prop = memberExpr.Member as PropertyInfo;
             Assert.That(prop, Is.Not.Null, "Member expression expected to be of type PropertyInfo");
-            Assert.That(prop.DeclaringType, Is.EqualTo(typeof (Dummy)));
+            Assert.That(prop.DeclaringType, Is.EqualTo(typeof(Dummy)));
             Assert.That(prop.Name, Is.EqualTo("Text"));
         }
     }

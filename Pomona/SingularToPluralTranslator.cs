@@ -1,4 +1,32 @@
-﻿using System;
+﻿#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2012 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,8 +34,13 @@ namespace Pomona
 {
     public class SingularToPluralTranslator
     {
-        private readonly static HashSet<char> consonants;
-        private readonly static HashSet<string> sibilantEndings;
+        private static readonly HashSet<char> consonants;
+        private static readonly HashSet<string> sibilantEndings;
+
+        public static Dictionary<string, string> IrregularNouns
+                                                 ;
+
+        public static Dictionary<string, string> SingularToPluralDict;
 
         private static string irregularNounsText =
             @"mouse	mice
@@ -183,10 +216,6 @@ office	offices
 valley	valleys
 copy	copies";
 
-        public static Dictionary<string, string> SingularToPluralDict;
-        public static Dictionary<string, string> IrregularNouns
-;
-
 
         static SingularToPluralTranslator()
         {
@@ -195,6 +224,41 @@ copy	copies";
 
             consonants = new HashSet<char>("bcdfghjklmnpqrstvxz".ToCharArray());
             sibilantEndings = new HashSet<string>() { "s,sh,ch,x,z" };
+        }
+
+
+        public bool IsIrregular(string noun)
+        {
+            return IrregularNouns.ContainsKey(noun.ToLower());
+        }
+
+
+        public string ToPlural(string noun)
+        {
+            noun = noun.ToLower();
+            if (IrregularNouns.ContainsKey(noun))
+                return IrregularNouns[noun];
+
+            return ToPluralNoIrregular(noun);
+        }
+
+
+        public string ToPluralNoIrregular(string noun)
+        {
+            // check if word ends in sibilant sound
+            if (sibilantEndings.Any(x => noun.EndsWith(x)))
+                return noun + "es";
+
+            if (noun.EndsWith("y"))
+                return noun.Substring(0, noun.Length - 1) + "ies";
+
+            if (noun.EndsWith("f"))
+                return noun.Substring(0, noun.Length - 1) + "ves";
+
+            if (noun.EndsWith("fe"))
+                return noun.Substring(0, noun.Length - 2) + "ves";
+
+            return noun + "s";
         }
 
 
@@ -209,57 +273,15 @@ copy	copies";
         }
 
 
-        bool IsConsonant(char c)
+        private bool IsConsonant(char c)
         {
             return consonants.Contains(c);
         }
 
-        bool IsVowel(char c)
+
+        private bool IsVowel(char c)
         {
             return char.IsLetter(c) && !consonants.Contains(c);
-        }
-
-        public bool IsIrregular(string noun)
-        {
-            return IrregularNouns.ContainsKey(noun.ToLower());
-        }
-
-        public string ToPlural(string noun)
-        {
-            noun = noun.ToLower();
-            if (IrregularNouns.ContainsKey(noun))
-            {
-                return IrregularNouns[noun];
-            }
-
-            return ToPluralNoIrregular(noun);
-        }
-
-        public string ToPluralNoIrregular(string noun)
-        {
-
-            // check if word ends in sibilant sound
-            if (sibilantEndings.Any(x => noun.EndsWith(x)))
-            {
-                return noun + "es";
-            }
-
-            if (noun.EndsWith("y"))
-            {
-                return noun.Substring(0, noun.Length - 1) + "ies";
-            }
-
-            if (noun.EndsWith("f"))
-            {
-                return noun.Substring(0, noun.Length - 1) + "ves";
-            }
-
-            if (noun.EndsWith("fe"))
-            {
-                return noun.Substring(0, noun.Length - 2) + "ves";
-            }
-
-            return noun + "s";
         }
     }
 }

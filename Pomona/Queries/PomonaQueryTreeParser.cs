@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,10 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+
 using Antlr.Runtime.Tree;
 
 namespace Pomona.Queries
@@ -39,34 +44,34 @@ namespace Pomona.Queries
         static PomonaQueryTreeParser()
         {
             binaryNodeTypes = new HashSet<NodeType>()
-                                  {
-                                      NodeType.And,
-                                      NodeType.Or,
-                                      NodeType.Multiply,
-                                      NodeType.Add,
-                                      NodeType.Div,
-                                      NodeType.Subtract,
-                                      NodeType.GreaterThan,
-                                      NodeType.LessThan,
-                                      NodeType.GreaterThanOrEqual,
-                                      NodeType.LessThanOrEqual,
-                                      NodeType.Equal,
-                                  };
+            {
+                NodeType.AndAlso,
+                NodeType.OrElse,
+                NodeType.Multiply,
+                NodeType.Add,
+                NodeType.Div,
+                NodeType.Subtract,
+                NodeType.GreaterThan,
+                NodeType.LessThan,
+                NodeType.GreaterThanOrEqual,
+                NodeType.LessThanOrEqual,
+                NodeType.Equal,
+            };
             nodeTypeDict = new Dictionary<int, NodeType>
-                               {
-                                   {PomonaQueryParser.LT_OP, NodeType.LessThan},
-                                   {PomonaQueryParser.EQ_OP, NodeType.Equal},
-                                   {PomonaQueryParser.GT_OP, NodeType.GreaterThan},
-                                   {PomonaQueryParser.GE_OP, NodeType.GreaterThanOrEqual},
-                                   {PomonaQueryParser.LE_OP, NodeType.LessThanOrEqual},
-                                   {PomonaQueryParser.ADD_OP, NodeType.Add},
-                                   {PomonaQueryParser.SUB_OP, NodeType.Subtract},
-                                   {PomonaQueryParser.AND_OP, NodeType.And},
-                                   {PomonaQueryParser.OR_OP, NodeType.Or},
-                                   {PomonaQueryParser.MUL_OP, NodeType.Multiply},
-                                   {PomonaQueryParser.DIV_OP, NodeType.Div},
-                                   {PomonaQueryParser.STRING, NodeType.StringLiteral}
-                               };
+            {
+                { PomonaQueryParser.LT_OP, NodeType.LessThan },
+                { PomonaQueryParser.EQ_OP, NodeType.Equal },
+                { PomonaQueryParser.GT_OP, NodeType.GreaterThan },
+                { PomonaQueryParser.GE_OP, NodeType.GreaterThanOrEqual },
+                { PomonaQueryParser.LE_OP, NodeType.LessThanOrEqual },
+                { PomonaQueryParser.ADD_OP, NodeType.Add },
+                { PomonaQueryParser.SUB_OP, NodeType.Subtract },
+                { PomonaQueryParser.AND_OP, NodeType.AndAlso },
+                { PomonaQueryParser.OR_OP, NodeType.OrElse },
+                { PomonaQueryParser.MUL_OP, NodeType.Multiply },
+                { PomonaQueryParser.DIV_OP, NodeType.Div },
+                { PomonaQueryParser.STRING, NodeType.StringLiteral }
+            };
         }
 
 
@@ -77,9 +82,7 @@ namespace Pomona.Queries
                 var text = tree.Text;
                 var stringPartStart = text.IndexOf('\'');
                 if (stringPartStart == -1)
-                {
                     throw new InvalidOperationException("Unable to parse prefixed literal.");
-                }
 
                 var prefix = text.Substring(0, stringPartStart);
                 var value = text.Substring(stringPartStart + 1, text.Length - stringPartStart - 2);
@@ -115,9 +118,7 @@ namespace Pomona.Queries
 
                 var expr = childNodes.Dequeue();
                 while (childNodes.Count > 0)
-                {
-                    expr = new BinaryOperator(nodeType, new[] {expr, childNodes.Dequeue()});
-                }
+                    expr = new BinaryOperator(nodeType, new[] { expr, childNodes.Dequeue() });
                 return expr;
             }
 

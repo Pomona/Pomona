@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,16 +24,20 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using Newtonsoft.Json;
 
 namespace Pomona
 {
     public interface ITypeMappingFilter
     {
-        Type GetClientType(Type type);
+        string GetClientLibraryFilename();
+        Type GetClientLibraryType(Type type);
         object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);
         Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);

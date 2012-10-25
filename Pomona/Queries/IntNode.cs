@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
 
 namespace Pomona.Queries
@@ -39,7 +43,7 @@ namespace Pomona.Queries
 
         public int Value
         {
-            get { return value; }
+            get { return this.value; }
         }
 
 

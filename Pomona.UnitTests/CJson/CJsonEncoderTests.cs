@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,13 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+
 using NUnit.Framework;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
 using Pomona.Sandbox.CJson;
 
 namespace Pomona.UnitTests.CJson
@@ -58,7 +65,7 @@ namespace Pomona.UnitTests.CJson
                 zstream.Flush();
             }
 
-            return (int) zmemStream.ToArray().Length;
+            return (int)zmemStream.ToArray().Length;
         }
 
 
@@ -11663,13 +11670,13 @@ namespace Pomona.UnitTests.CJson
             var memstream = new MemoryStream();
             encoder.Stream = memstream;
 
-            var jtoken = JToken.Parse(bigJsonFileWithCritters);
+            var jtoken = JToken.Parse(this.bigJsonFileWithCritters);
             encoder.PackIt(jtoken);
             memstream.Flush();
             memstream.Seek(0, SeekOrigin.Begin);
 
             var originalBytes =
-                Encoding.UTF8.GetBytes(JToken.Parse(bigJsonFileWithCritters).ToString(Formatting.None));
+                Encoding.UTF8.GetBytes(JToken.Parse(this.bigJsonFileWithCritters).ToString(Formatting.None));
             var packedBytes = memstream.ToArray();
             var originalBytesZippedLength = GetZippedLength(originalBytes);
             var packedBytesZippedLength = GetZippedLength(packedBytes);
@@ -11677,9 +11684,9 @@ namespace Pomona.UnitTests.CJson
             Console.WriteLine(
                 "Size compressed: {0} ({1}%) ({2} ({3}%) gz'ed)",
                 packedBytes.Length,
-                100.0*(double) packedBytes.Length/originalBytes.Length,
+                100.0 * (double)packedBytes.Length / originalBytes.Length,
                 packedBytesZippedLength,
-                100.0*(double) packedBytesZippedLength/originalBytesZippedLength);
+                100.0 * (double)packedBytesZippedLength / originalBytesZippedLength);
             Console.WriteLine("Total cached property names: " + encoder.TotalCachedPropertyNames);
             Console.WriteLine("Total signatures: " + encoder.TotalCachedSignatures);
         }
@@ -11723,7 +11730,7 @@ namespace Pomona.UnitTests.CJson
         [Test]
         public void EncodeLotsaCritters()
         {
-            Parse(bigJsonFileWithCritters);
+            Parse(this.bigJsonFileWithCritters);
         }
     }
 }

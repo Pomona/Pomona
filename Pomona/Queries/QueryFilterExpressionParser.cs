@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq.Expressions;
+
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 
@@ -52,11 +57,11 @@ namespace Pomona.Queries
             var tokens = new CommonTokenStream(lexer);
             var parser = new PomonaQueryParser(tokens);
             var parseReturn = parser.parse();
-            var tree = (CommonTree) parseReturn.Tree;
+            var tree = (CommonTree)parseReturn.Tree;
 
             var tempTree = PomonaQueryTreeParser.ParseTree(tree, 0);
 
-            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter<T>(queryPropertyResolver);
+            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter<T>(this.queryPropertyResolver);
 
             return nodeTreeToExpressionConverter.ToLambdaExpression(tempTree);
         }

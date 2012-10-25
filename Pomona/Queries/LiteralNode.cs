@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
 
 namespace Pomona.Queries
@@ -30,14 +34,16 @@ namespace Pomona.Queries
     {
         private readonly T value;
 
+
         protected LiteralNode(NodeType nodeType, T value) : base(nodeType, Enumerable.Empty<NodeBase>())
         {
             this.value = value;
         }
 
+
         public T Value
         {
-            get { return value; }
+            get { return this.value; }
         }
     }
 }

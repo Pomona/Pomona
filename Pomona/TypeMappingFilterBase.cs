@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,10 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using Newtonsoft.Json;
 
 namespace Pomona
@@ -39,19 +44,19 @@ namespace Pomona
         static TypeMappingFilterBase()
         {
             jsonSupportedNativeTypes = new HashSet<Type>()
-                                           {
-                                               typeof (string),
-                                               typeof (int),
-                                               typeof (long),
-                                               typeof (double),
-                                               typeof (float),
-                                               typeof (decimal),
-                                               typeof (DateTime),
-                                               typeof (object),
-                                               typeof (bool),
-                                               typeof (Guid),
-                                               typeof (Uri)
-                                           };
+            {
+                typeof(string),
+                typeof(int),
+                typeof(long),
+                typeof(double),
+                typeof(float),
+                typeof(decimal),
+                typeof(DateTime),
+                typeof(object),
+                typeof(bool),
+                typeof(Guid),
+                typeof(Uri)
+            };
         }
 
 
@@ -59,9 +64,9 @@ namespace Pomona
         {
             get
             {
-                if (sourceTypesCached == null)
-                    sourceTypesCached = new HashSet<Type>(GetSourceTypes());
-                return sourceTypesCached;
+                if (this.sourceTypesCached == null)
+                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
+                return this.sourceTypesCached;
             }
         }
 
@@ -72,7 +77,13 @@ namespace Pomona
         public abstract IEnumerable<Type> GetSourceTypes();
 
 
-        public virtual Type GetClientType(Type type)
+        public virtual string GetClientLibraryFilename()
+        {
+            return "Client";
+        }
+
+
+        public virtual Type GetClientLibraryType(Type type)
         {
             return null;
         }
@@ -132,10 +143,10 @@ namespace Pomona
             //
 
             // Lets just try this for now:
-            if (sourceTypesCached.Contains(type))
+            if (this.sourceTypesCached.Contains(type))
                 return type;
 
-            if (type.BaseType != null && sourceTypesCached.Contains(type.BaseType))
+            if (type.BaseType != null && this.sourceTypesCached.Contains(type.BaseType))
                 return type.BaseType;
 
             return type;
@@ -153,7 +164,7 @@ namespace Pomona
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
+                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
         }
 
 
@@ -185,7 +196,7 @@ namespace Pomona
         private static bool IsNullableAllowedNativeType(Type type)
         {
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof (Nullable<>)) &&
+                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)) &&
                    jsonSupportedNativeTypes.Contains(type.GetGenericArguments()[0]);
         }
 

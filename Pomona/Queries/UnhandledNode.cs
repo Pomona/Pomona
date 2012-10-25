@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,7 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
+
 using Antlr.Runtime.Tree;
 
 namespace Pomona.Queries
@@ -40,13 +45,13 @@ namespace Pomona.Queries
 
         public ITree SourceTreeNode
         {
-            get { return sourceTreeNode; }
+            get { return this.sourceTreeNode; }
         }
 
 
         public override string ToString()
         {
-            return base.ToString() + " " + sourceTreeNode;
+            return base.ToString() + " " + this.sourceTreeNode;
         }
     }
 }

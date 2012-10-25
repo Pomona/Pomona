@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,8 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+
 using Newtonsoft.Json;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -32,7 +38,7 @@ namespace Pomona.Example
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof (WebColor);
+            return objectType == typeof(WebColor);
         }
 
 
@@ -46,7 +52,7 @@ namespace Pomona.Example
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var webColor = (WebColor) value;
+            var webColor = (WebColor)value;
             writer.WriteValue(webColor.ToStringConverted());
         }
     }

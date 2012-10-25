@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Newtonsoft.Json;
 
 namespace Pomona
@@ -65,12 +70,12 @@ namespace Pomona
 
         public IList<PropertyMapping> Properties
         {
-            get { return properties; }
+            get { return this.properties; }
         }
 
         public Type SourceType
         {
-            get { return sourceType; }
+            get { return this.sourceType; }
         }
 
         public TransformedType UriBaseType { get; set; }
@@ -97,14 +102,14 @@ namespace Pomona
             }
         }
 
-        public Type CustomClientType
+        public Type CustomClientLibraryType
         {
             get { return null; }
         }
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] {}; }
+            get { return new IMappedType[] { }; }
         }
 
         public bool IsAlwaysExpanded
@@ -144,7 +149,7 @@ namespace Pomona
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
         }
 
         #endregion
@@ -175,11 +180,9 @@ namespace Pomona
             {
                 var pathType = prop.PropertyType;
                 if (pathType.IsCollection)
-                {
                     pathType = pathType.CollectionElementType;
-                }
 
-                var nextType = (TransformedType) pathType;
+                var nextType = (TransformedType)pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;
@@ -223,8 +226,10 @@ namespace Pomona
                 // TODO Error handling here when remaningpath does not represents a TransformedType
                 var transformedPropType = prop.PropertyType as TransformedType;
                 if (transformedPropType == null)
+                {
                     throw new InvalidOperationException(
                         "Can not filter by subproperty when property is not TransformedType");
+                }
                 return transformedPropType.CreateExpressionForExternalPropertyPath(
                     propertyAccessExpression, remainingExternalPath);
             }
@@ -234,7 +239,7 @@ namespace Pomona
 
         public object GetId(object entity)
         {
-            return typeMapper.Filter.GetIdFor(entity);
+            return this.typeMapper.Filter.GetIdFor(entity);
         }
 
 
@@ -277,12 +282,12 @@ namespace Pomona
                 var value = initValues[ctorProp.Name.ToLower()];
 
                 if (ctorProp.PropertyType.IsBasicWireType)
-                    value = Convert.ChangeType(value, ((SharedType) ctorProp.PropertyType).TargetType);
+                    value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).TargetType);
 
                 ctorArgs[ctorProp.ConstructorArgIndex] = value;
             }
 
-            var newInstance = Activator.CreateInstance(sourceType, ctorArgs);
+            var newInstance = Activator.CreateInstance(this.sourceType, ctorArgs);
 
             foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
             {
@@ -297,7 +302,7 @@ namespace Pomona
 
         public void ScanProperties(Type type)
         {
-            var filter = typeMapper.Filter;
+            var filter = this.typeMapper.Filter;
 
             foreach (
                 var propInfo in
@@ -310,8 +315,8 @@ namespace Pomona
 
                 IMappedType declaringType;
 
-                if (typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
-                    declaringType = typeMapper.GetClassMapping(propInfo.DeclaringType);
+                if (this.typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
+                    declaringType = this.typeMapper.GetClassMapping(propInfo.DeclaringType);
                 else
                 {
                     // TODO: Find lowest base type with this property
@@ -324,9 +329,9 @@ namespace Pomona
                 var propertyType = filter.GetPropertyType(propInfo);
 
                 var propDef = new PropertyMapping(
-                    typeMapper.Filter.GetPropertyMappedName(propInfo),
+                    this.typeMapper.Filter.GetPropertyMappedName(propInfo),
                     declaringType,
-                    typeMapper.GetClassMapping(propertyType),
+                    this.typeMapper.GetClassMapping(propertyType),
                     propInfo);
 
                 // TODO: This is not the most optimized way to set property, small code gen needed.
@@ -346,11 +351,11 @@ namespace Pomona
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
 
-                properties.Add(propDef);
+                this.properties.Add(propDef);
             }
 
             // TODO: Support not including the whole type hierarchy. Remember that base type might be allowed to be a shared type.
-            BaseType = typeMapper.GetClassMapping(type.BaseType);
+            BaseType = this.typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
             var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
@@ -361,7 +366,7 @@ namespace Pomona
                 // TODO: match constructor arguments
                 foreach (var ctorParam in longestCtor.GetParameters())
                 {
-                    var matchingProperty = properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
+                    var matchingProperty = this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
                     if (matchingProperty != null)
                     {
                         matchingProperty.CreateMode = PropertyMapping.PropertyCreateMode.Required;

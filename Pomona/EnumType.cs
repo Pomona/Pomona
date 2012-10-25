@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -61,9 +66,9 @@ namespace Pomona
             get { throw new NotSupportedException(); }
         }
 
-        public Type CustomClientType
+        public Type CustomClientLibraryType
         {
-            get { return typeof (string); // TODO
+            get { return typeof(string); // TODO
             }
         }
 
@@ -109,7 +114,7 @@ namespace Pomona
 
         public string Name
         {
-            get { return targetType.Name; }
+            get { return this.targetType.Name; }
         }
 
         #endregion

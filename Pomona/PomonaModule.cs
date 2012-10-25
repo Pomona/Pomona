@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+
 using Nancy;
+
 using Pomona.Queries;
 
 namespace Pomona
@@ -53,40 +58,32 @@ namespace Pomona
             IHttpQueryTransformer queryTransformer)
         {
             this.dataSource = dataSource;
-            typeMapper = new TypeMapper(typeMappingFilter);
+
+            // TODO: This is performance hotspot: cache typemapper between each request.
+            this.typeMapper = new TypeMapper(typeMappingFilter);
 
             if (queryTransformer == null)
+            {
                 queryTransformer = new PomonaQueryTransformer(
-                    typeMapper, new QueryFilterExpressionParser(new QueryPropertyResolver(typeMapper)));
+                    this.typeMapper, new QueryFilterExpressionParser(new QueryPropertyResolver(this.typeMapper)));
+            }
             this.queryTransformer = queryTransformer;
 
-            session = new PomonaSession(dataSource, typeMapper, GetBaseUri);
+            this.session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri);
 
-            // Just eagerly load the type mappings so we can manipulate it
-
-            var registerRouteForT = typeof (PomonaModule).GetMethod(
-                "RegisterRouteFor", BindingFlags.Instance | BindingFlags.NonPublic);
-
-            foreach (
-                var type in
-                    typeMapper.TransformedTypes.Where(x => x.SourceType != null && !x.SourceType.IsAbstract).Select
-                        (
-                            x => x.UriBaseType ?? x).Distinct().Where(
-                                x => !x.MappedAsValueObject))
-            {
-                var genericMethod = registerRouteForT.MakeGenericMethod(type.SourceType);
-                genericMethod.Invoke(this, null);
-            }
+            Console.WriteLine("Registering routes..");
+            foreach (var transformedType in this.typeMapper.TransformedTypes.Select(x => x.UriBaseType).Distinct())
+                RegisterRouterFor(transformedType);
 
             Get["/schemas"] = x => GetSchemas();
 
-            Get["/Pomona.Client.dll"] = x => GetClientLibrary();
+            Get[string.Format("/{0}.dll", this.typeMapper.Filter.GetClientLibraryFilename())] = x => GetClientLibrary();
         }
 
 
         public IPomonaDataSource DataSource
         {
-            get { return dataSource; }
+            get { return this.dataSource; }
         }
 
 
@@ -95,7 +92,10 @@ namespace Pomona
             // Very simple content negotiation. Ainnt need noo fancy thing here.
 
             if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
-                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(res, htmlLinks, json, Context.Request.Url.BasePath);
+            {
+                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(
+                    res, this.htmlLinks, json, Context.Request.Url.BasePath);
+            }
             else
             {
                 res.ContentsFromString(json);
@@ -104,12 +104,12 @@ namespace Pomona
         }
 
 
-        private Response GetAsJson<T>(object id)
+        private Response GetAsJson(TransformedType transformedType, object id)
         {
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            var json = session.GetAsJson<T>(id, expand);
+            var json = this.session.GetAsJson(transformedType, id, expand);
 
             FillJsonResponse(res, json);
 
@@ -131,7 +131,7 @@ namespace Pomona
         {
             var response = new Response();
 
-            response.Contents = stream => session.WriteClientLibrary(stream);
+            response.Contents = stream => this.session.WriteClientLibrary(stream);
             response.ContentType = "binary/octet-stream";
 
             return response;
@@ -140,7 +140,7 @@ namespace Pomona
 
         private string GetExpandedPaths()
         {
-            var expand = string.Empty;
+            string expand = null;
 
             try
             {
@@ -150,16 +150,16 @@ namespace Pomona
             {
             }
 
-            return expand;
+            return expand ?? string.Empty;
         }
 
 
-        private Response GetPropertyFromEntityAsJson<T>(object id, string propname)
+        private Response GetPropertyFromEntityAsJson(TransformedType transformedType, object id, string propname)
         {
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            FillJsonResponse(res, session.GetPropertyAsJson<T>(id, propname, expand));
+            FillJsonResponse(res, this.session.GetPropertyAsJson(transformedType, id, propname, expand));
 
             return res;
         }
@@ -169,7 +169,7 @@ namespace Pomona
         {
             var res = new Response();
 
-            var schemas = new JsonSchemaGenerator(session).GenerateAllSchemas().ToString();
+            var schemas = new JsonSchemaGenerator(this.session).GenerateAllSchemas().ToString();
             res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 
@@ -177,40 +177,30 @@ namespace Pomona
         }
 
 
-        private Response ListAsJson<T>()
-        {
-            var res = new Response();
-            var expand = GetExpandedPaths().ToLower();
-
-            FillJsonResponse(res, session.ListAsJson<T>(expand));
-
-            return res;
-        }
-
-
-        private Response PostFromJson<T>()
+        private Response PostFromJson(TransformedType transformedType)
         {
             var req = Request;
 
             var res = new Response();
 
-            var responseBodyText = session.PostJson<T>(new StreamReader(req.Body));
+            var responseBodyText = this.session.PostJson(transformedType, new StreamReader(req.Body));
             res.ContentsFromString(responseBodyText);
+
+            // TODO: Set correct encoding [KNS]
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
         }
 
 
-        private Response QueryAsJson<T>()
+        private Response QueryAsJson(TransformedType transformedType)
         {
-            var mappedType = (TransformedType) typeMapper.GetClassMapping<T>();
-            var query = queryTransformer.TransformRequest(Request, Context, mappedType);
+            var query = this.queryTransformer.TransformRequest(Request, Context, transformedType);
 
             string jsonStr;
             using (var strWriter = new StringWriter())
             {
-                session.Query(query, strWriter);
+                this.session.Query(query, strWriter);
                 jsonStr = strWriter.ToString();
             }
 
@@ -221,35 +211,32 @@ namespace Pomona
         }
 
 
-        private void RegisterRouteFor<T>()
+        private void RegisterRouterFor(TransformedType type)
         {
-            var type = typeof (T);
-            var lowerTypeName = type.Name.ToLower();
-            var path = "/" + lowerTypeName;
-            Console.WriteLine("Registering path " + path);
+            var path = "/" + type.UriRelativePath;
+            //Console.WriteLine("Registering path " + path);
+            this.htmlLinks = this.htmlLinks
+                             + string.Format("<li><a href=\"{0}\">{1}</a></li>", path, type.Name);
 
-            htmlLinks = htmlLinks
-                        + string.Format("<li><a href=\"/{0}\">{1}</a></li>", lowerTypeName, type.Name);
+            Get[path + "/{id}"] = x => GetAsJson(type, x.id);
 
-            Get[path + "/{id}"] = x => GetAsJson<T>(x.id);
+            Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson(type, x.id, x.propname);
 
-            Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson<T>(x.id, x.propname);
+            Put[path + "/{id}"] = x => UpdateFromJson(type, x.id);
+            Post[path] = x => PostFromJson(type);
 
-            Put[path + "/{id}"] = x => UpdateFromJson<T>(x.id);
-            Post[path] = x => PostFromJson<T>();
-
-            //Get[path] = x => ListAsJson<T>();
-            Get[path] = x => QueryAsJson<T>();
+            Get[path] = x => QueryAsJson(type);
         }
 
 
-        private Response UpdateFromJson<T>(object id)
+        private Response UpdateFromJson(TransformedType transformedType, object id)
         {
             var req = Request;
 
             var res = new Response();
             res.Contents =
-                stream => session.UpdateFromJson<T>(id, new StreamReader(req.Body), new StreamWriter(stream));
+                stream =>
+                this.session.UpdateFromJson(transformedType, id, new StreamReader(req.Body), new StreamWriter(stream));
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;

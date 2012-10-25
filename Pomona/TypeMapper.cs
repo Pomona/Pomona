@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,25 +44,25 @@ namespace Pomona
             if (filter == null)
                 throw new ArgumentNullException("filter");
             this.filter = filter;
-            sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
-            foreach (var sourceType in sourceTypes)
+            this.sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
+            foreach (var sourceType in this.sourceTypes)
                 GetClassMapping(sourceType);
         }
 
 
         public ITypeMappingFilter Filter
         {
-            get { return filter; }
+            get { return this.filter; }
         }
 
         public ICollection<Type> SourceTypes
         {
-            get { return sourceTypes; }
+            get { return this.sourceTypes; }
         }
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return mappings.Values.OfType<TransformedType>(); }
+            get { return this.mappings.Values.OfType<TransformedType>(); }
         }
 
 
@@ -72,7 +76,7 @@ namespace Pomona
 
         public IMappedType GetClassMapping<T>()
         {
-            var type = typeof (T);
+            var type = typeof(T);
 
             return GetClassMapping(type);
         }
@@ -80,10 +84,10 @@ namespace Pomona
 
         public IMappedType GetClassMapping(Type type)
         {
-            type = filter.ResolveRealTypeForProxy(type);
+            type = this.filter.ResolveRealTypeForProxy(type);
 
             IMappedType mappedType;
-            if (!mappings.TryGetValue(type, out mappedType))
+            if (!this.mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
 
             return mappedType;
@@ -124,13 +128,13 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (!filter.TypeIsMapped(type))
+            if (!this.filter.TypeIsMapped(type))
                 throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
 
             if (type.IsEnum)
                 return new EnumType(type, this);
 
-            if (filter.TypeIsMappedAsSharedType(type))
+            if (this.filter.TypeIsMappedAsSharedType(type))
             {
                 SharedType newSharedType;
                 if (type.IsGenericType)
@@ -150,26 +154,26 @@ namespace Pomona
                 else
                     newSharedType = new SharedType(type, this);
 
-                newSharedType.JsonConverter = filter.GetJsonConverterForType(type);
-                newSharedType.CustomClientType = filter.GetClientType(type);
+                newSharedType.JsonConverter = this.filter.GetJsonConverterForType(type);
+                newSharedType.CustomClientLibraryType = this.filter.GetClientLibraryType(type);
 
-                mappings[type] = newSharedType;
+                this.mappings[type] = newSharedType;
                 return newSharedType;
             }
 
-            if (filter.TypeIsMappedAsTransformedType(type))
+            if (this.filter.TypeIsMappedAsTransformedType(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                mappings[type] = classDefinition;
+                this.mappings[type] = classDefinition;
 
-                if (filter.TypeIsMappedAsValueObject(type))
+                if (this.filter.TypeIsMappedAsValueObject(type))
                     classDefinition.MappedAsValueObject = true;
 
-                var uriBaseType = filter.GetUriBaseType(type);
+                var uriBaseType = this.filter.GetUriBaseType(type);
                 if (uriBaseType != type)
-                    classDefinition.UriBaseType = (TransformedType) GetClassMapping(uriBaseType);
+                    classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
                 else
                     classDefinition.UriBaseType = classDefinition;
 

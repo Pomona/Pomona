@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,13 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 namespace Pomona.Queries
 {
     public enum NodeType
     {
         Unhandled,
-        And,
-        Or,
+        AndAlso,
+        OrElse,
         Add,
         Subtract,
         Multiply,

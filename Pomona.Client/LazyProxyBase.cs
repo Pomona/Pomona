@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,54 +24,56 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 
 namespace Pomona.Client
 {
     public class LazyProxyBase : IHasResourceUri
     {
-        private ClientHelper client;
+        private ClientBase client;
 
         private object target;
         private Type targetType;
 
         private string uri;
 
-        public ClientHelper Client
+        public ClientBase Client
         {
-            get { return client; }
-            internal set { client = value; }
+            get { return this.client; }
+            internal set { this.client = value; }
         }
 
         public object Target
         {
-            get { return target; }
-            internal set { target = value; }
+            get { return this.target; }
+            internal set { this.target = value; }
         }
 
         public Type TargetType
         {
-            get { return targetType; }
-            internal set { targetType = value; }
+            get { return this.targetType; }
+            internal set { this.targetType = value; }
         }
 
         #region IHasResourceUri Members
 
         public string Uri
         {
-            get { return uri; }
-            internal set { uri = value; }
+            get { return this.uri; }
+            internal set { this.uri = value; }
         }
 
         #endregion
 
         protected object OnPropertyGet(string propertyName)
         {
-            if (target == null)
-                target = client.GetUri(uri, targetType);
+            if (this.target == null)
+                this.target = this.client.GetUri(this.uri, this.targetType);
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return targetType.GetProperty(propertyName).GetValue(target, null);
+            return this.targetType.GetProperty(propertyName).GetValue(this.target, null);
         }
 
 

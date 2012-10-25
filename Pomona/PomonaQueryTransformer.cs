@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,13 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Nancy;
-using Pomona.Queries;
 
-using System.Linq;
+using Nancy;
+
+using Pomona.Queries;
 
 namespace Pomona
 {
@@ -38,11 +43,13 @@ namespace Pomona
         private readonly QueryFilterExpressionParser filterParser;
         private readonly TypeMapper typeMapper;
 
+
         static PomonaQueryTransformer()
         {
-            toExpressionGenericMethod = typeof (PomonaQueryTransformer).GetMethod(
+            toExpressionGenericMethod = typeof(PomonaQueryTransformer).GetMethod(
                 "ToExpressionGeneric", BindingFlags.Instance | BindingFlags.NonPublic);
         }
+
 
         public PomonaQueryTransformer(TypeMapper typeMapper, QueryFilterExpressionParser filterParser)
         {
@@ -72,23 +79,17 @@ namespace Pomona
             var skip = 0;
 
             if (request.Query.top.HasValue)
-            {
                 top = int.Parse(request.Query.top);
-            }
 
             if (request.Query.skip.HasValue)
-            {
                 skip = int.Parse(request.Query.skip);
-            }
 
             if (request.Query.filter.HasValue)
-            {
-                filter = (string) request.Query.filter;
-            }
+                filter = (string)request.Query.filter;
 
             var sourceType = rootType.SourceType;
             var parseMethod = toExpressionGenericMethod.MakeGenericMethod(sourceType);
-            query.FilterExpression = (Expression) parseMethod.Invoke(this, new[] {filter});
+            query.FilterExpression = (Expression)parseMethod.Invoke(this, new[] { filter });
 
             query.Top = top;
             query.Skip = skip;
@@ -99,14 +100,11 @@ namespace Pomona
                 query.ExpandedPaths = ((string)request.Query.expand)
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Distinct()
-                    .Select(x => typeMapper.ConvertToInternalPropertyPath(rootType, x))
+                    .Select(x => this.typeMapper.ConvertToInternalPropertyPath(rootType, x))
                     .ToList();
-                
             }
             else
-            {
                 query.ExpandedPaths = Enumerable.Empty<string>();
-            }
 
             query.Url = request.Url;
 
@@ -122,7 +120,7 @@ namespace Pomona
                 Expression<Func<T, bool>> trueExpr = x => true;
                 return trueExpr;
             }
-            return filterParser.Parse<T>(filter);
+            return this.filterParser.Parse<T>(filter);
         }
     }
 }

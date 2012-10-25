@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Reflection;
@@ -82,7 +86,7 @@ namespace Pomona
 
         public IMappedType DeclaringType
         {
-            get { return declaringType; }
+            get { return this.declaringType; }
         }
 
         public Func<object, object> Getter { get; set; }
@@ -94,22 +98,22 @@ namespace Pomona
 
         public string JsonName
         {
-            get { return name.Substring(0, 1).ToLower() + name.Substring(1); }
+            get { return this.name.Substring(0, 1).ToLower() + this.name.Substring(1); }
         }
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
         }
 
         public PropertyInfo PropertyInfo
         {
-            get { return propertyInfo; }
+            get { return this.propertyInfo; }
         }
 
         public IMappedType PropertyType
         {
-            get { return propertyType; }
+            get { return this.propertyType; }
         }
 
         public Action<object, object> Setter { get; set; }

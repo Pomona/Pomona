@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,16 +24,27 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using TinyIoC;
 
 namespace Pomona.Example
 {
     public class CritterBootstrapper : PomonaBootstrapper
     {
+        private readonly CritterDataSource dataSource;
+
+
+        public CritterBootstrapper(CritterDataSource dataSource = null)
+        {
+            this.dataSource = dataSource ?? new CritterDataSource();
+        }
+
+
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
-            container.Register<CritterDataSource>().AsSingleton();
+            container.Register(this.dataSource);
         }
     }
 }

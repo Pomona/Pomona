@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -36,6 +40,7 @@ namespace Pomona.Queries
 
         private readonly int totalCount;
 
+
         public QueryResult(IEnumerable<T> items, int skip, int totalCount)
         {
             this.items = items.ToList();
@@ -43,56 +48,29 @@ namespace Pomona.Queries
             this.totalCount = totalCount;
         }
 
+
         public int Skip
         {
-            get { return skip; }
+            get { return this.skip; }
         }
 
         public int TotalCount
         {
-            get { return totalCount; }
+            get { return this.totalCount; }
         }
 
         #region IList<T> Members
 
-        public IEnumerator<T> GetEnumerator()
+        public T this[int index]
         {
-            return items.GetEnumerator();
+            get { return this.items[index]; }
+            set { throw new NotSupportedException(); }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return items.GetEnumerator();
-        }
-
-        public void Add(T item)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Clear()
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool Contains(T item)
-        {
-            return items.Contains(item);
-        }
-
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            items.CopyTo(array, arrayIndex);
-        }
-
-        public bool Remove(T item)
-        {
-            throw new NotSupportedException();
-        }
 
         public int Count
         {
-            get { return items.Count; }
+            get { return this.items.Count; }
         }
 
         public bool IsReadOnly
@@ -100,25 +78,64 @@ namespace Pomona.Queries
             get { return true; }
         }
 
+
+        public void Add(T item)
+        {
+            throw new NotSupportedException();
+        }
+
+
+        public void Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+
+        public bool Contains(T item)
+        {
+            return this.items.Contains(item);
+        }
+
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            this.items.CopyTo(array, arrayIndex);
+        }
+
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return this.items.GetEnumerator();
+        }
+
+
         public int IndexOf(T item)
         {
-            return items.IndexOf(item);
+            return this.items.IndexOf(item);
         }
+
 
         public void Insert(int index, T item)
         {
             throw new NotSupportedException();
         }
 
+
+        public bool Remove(T item)
+        {
+            throw new NotSupportedException();
+        }
+
+
         public void RemoveAt(int index)
         {
             throw new NotSupportedException();
         }
 
-        public T this[int index]
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            get { return items[index]; }
-            set { throw new NotSupportedException(); }
+            return this.items.GetEnumerator();
         }
 
         #endregion

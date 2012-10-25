@@ -5,6 +5,7 @@ options {
     output=AST;
 }
 
+
 tokens {
    ROOT;
    AND_OP;
@@ -22,6 +23,11 @@ tokens {
    DATETIME_LITERAL;
    GUID_LITERAL;
 }    
+
+
+@parser::namespace { Pomona.Queries }
+@lexer::namespace { Pomona.Queries }
+
 
 @lexer::members {const int HIDDEN = Hidden;}
 
