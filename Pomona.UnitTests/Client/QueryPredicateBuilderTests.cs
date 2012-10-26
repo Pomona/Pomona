@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq.Expressions;
 
 using NUnit.Framework;
@@ -40,6 +42,7 @@ namespace Pomona.UnitTests.Client
     {
         public class TestResource : IClientResource
         {
+            public IDictionary<string, string> StringToStringDict { get; set; }
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
             public decimal CashAmount { get; set; }
@@ -92,6 +95,11 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("(birthday eq datetime'2012-10-22T05:32:45')"));
         }
 
+        [Test]
+        public void BuildEqualExpressionOnPropertyOfDynamic_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringToStringDict["noob"] == "bob", "(x.dynattributes.noob eq 'bob')");
+        }
 
         [Test]
         public void BuildEqualExpression_ReturnsCorrectString()

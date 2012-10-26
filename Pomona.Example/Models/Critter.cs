@@ -41,6 +41,12 @@ namespace Pomona.Example.Models
 
             OkdayIsFun = "jada";
 
+            SimpleAttributes = new List<SimpleAttribute>()
+            {
+                new SimpleAttribute() { Key = "MeaningOfLife", Value = "42" },
+                new SimpleAttribute() { Key = "IsCat", Value = "maybe" }
+            };
+
             Hat = new Hat();
         }
 
@@ -55,6 +61,7 @@ namespace Pomona.Example.Models
         public string Name { get; set; }
 
         public string OkdayIsFun { get; set; }
+        public IList<SimpleAttribute> SimpleAttributes { get; set; }
 
         public IList<Subscription> Subscriptions { get; set; }
         public IList<Weapon> Weapons { get; set; }

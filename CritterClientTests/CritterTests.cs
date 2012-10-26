@@ -301,6 +301,14 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryCritter_SearchByAttribute()
+        {
+            TestQuery<ICritter, Critter>(x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"), null);
+            Assert.Fail("Test is stupid");
+        }
+
+
+        [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
             var firstCritter = this.critterHost.DataSource.List<Critter>().First();

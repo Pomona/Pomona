@@ -199,6 +199,22 @@ namespace Pomona.Client
 
         private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
         {
+            if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]))
+            {
+                var indexKeyExpression = Build(callExpr.Arguments[0]);
+                /*
+                 * 
+                 * TODO: Simplify dictionary member access like in JS.
+                 * So instead of writing dict['boo'] we can write dict.boo
+                if (indexKeyExpression.StartsWith("'") && indexKeyExpression.EndsWith("'"))
+                {
+                    // TODO: Decode!
+                    return string.Format("{0}.{1}", Build(callExpr.Object), );
+                }*/
+
+                return string.Format("{0}[{1}]", Build(callExpr.Object), indexKeyExpression);
+            }
+
             if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<string>(s => s.StartsWith(null)))
                 return string.Format("startswith({0},{1})", Build(callExpr.Object), Build(callExpr.Arguments[0]));
 
