@@ -175,6 +175,8 @@ namespace Pomona
         {
             var jObject = JObject.Load(new JsonTextReader(textReader));
 
+            var subclassType = transformedType;
+
             JToken typePropertyToken;
             if (jObject.TryGetValue("_type", out typePropertyToken))
             {
@@ -183,15 +185,15 @@ namespace Pomona
 
                 // TODO: Check if specified type inherits from transformedType [KNS]
 
-                transformedType =
+                subclassType =
                     this.typeMapper.TransformedTypes.First(x => x.Name == (string)((JValue)typePropertyToken).Value);
             }
 
             // A posted JSON object can either contain references to existing objects or
             // new objects that will be posted first.
 
-            var rootPath = transformedType.Name.ToLower(); // We want paths to be case insensitive
-            var o = PostJsonInternal(transformedType, jObject);
+            var rootPath = subclassType.Name.ToLower(); // We want paths to be case insensitive
+            var o = PostJsonInternal(subclassType, jObject);
 
             var context = new FetchContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, transformedType);

@@ -35,12 +35,12 @@ namespace Pomona.Queries
 {
     public class NodeTreeToExpressionConverter<T>
     {
-        private readonly IQueryPropertyResolver propertyResolver;
+        private readonly IQueryTypeResolver propertyResolver;
 
         private ParameterExpression thisParam;
 
 
-        public NodeTreeToExpressionConverter(IQueryPropertyResolver propertyResolver)
+        public NodeTreeToExpressionConverter(IQueryTypeResolver propertyResolver)
         {
             if (propertyResolver == null)
                 throw new ArgumentNullException("propertyResolver");
@@ -50,42 +50,22 @@ namespace Pomona.Queries
 
         public Expression ParseExpression(NodeBase node)
         {
+            return ParseExpression(node, null);
+        }
+
+
+        public Expression ParseExpression(NodeBase node, Expression memberExpression)
+        {
+            if (memberExpression == null)
+                memberExpression = this.thisParam;
+
             if (node.NodeType == NodeType.Symbol)
-                return ResolveSymbolNode((SymbolNode)node);
+                return ResolveSymbolNode((SymbolNode)node, memberExpression);
 
             var binaryOperatorNode = node as BinaryOperator;
 
             if (binaryOperatorNode != null)
-            {
-                var leftChild = ParseExpression(binaryOperatorNode.Left);
-                var rightChild = ParseExpression(binaryOperatorNode.Right);
-
-                switch (binaryOperatorNode.NodeType)
-                {
-                    case NodeType.AndAlso:
-                        return Expression.AndAlso(leftChild, rightChild);
-                    case NodeType.OrElse:
-                        return Expression.OrElse(leftChild, rightChild);
-                    case NodeType.Add:
-                        return Expression.Add(leftChild, rightChild);
-                    case NodeType.Subtract:
-                        return Expression.Subtract(leftChild, rightChild);
-                    case NodeType.Multiply:
-                        return Expression.Multiply(leftChild, rightChild);
-                    case NodeType.Div:
-                        return Expression.Divide(leftChild, rightChild);
-                    case NodeType.Equal:
-                        return Expression.Equal(leftChild, rightChild);
-                    case NodeType.LessThan:
-                        return Expression.LessThan(leftChild, rightChild);
-                    case NodeType.GreaterThan:
-                        return Expression.GreaterThan(leftChild, rightChild);
-                    case NodeType.GreaterThanOrEqual:
-                        return Expression.GreaterThanOrEqual(leftChild, rightChild);
-                    case NodeType.LessThanOrEqual:
-                        return Expression.LessThanOrEqual(leftChild, rightChild);
-                }
-            }
+                return ParseBinaryOperator(binaryOperatorNode, memberExpression);
 
             if (node.NodeType == NodeType.GuidLiteral)
             {
@@ -129,17 +109,69 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ResolveSymbolNode(SymbolNode node)
+        private Expression ParseBinaryOperator(BinaryOperator binaryOperatorNode, Expression memberExpression)
         {
-            if (node.HasArguments)
+            if (binaryOperatorNode.NodeType == NodeType.Dot)
             {
-                Expression expression;
-                if (TryResolveOdataExpression(node, out expression))
-                    return expression;
-                throw new InvalidOperationException("Unable to resolve property");
+                var left = ParseExpression(binaryOperatorNode.Left);
+                return ParseExpression(binaryOperatorNode.Right, left);
             }
-            else
-                return this.propertyResolver.Resolve<T>(this.thisParam, node.Name);
+
+            // Break dot chain
+            var leftChild = ParseExpression(binaryOperatorNode.Left);
+            var rightChild = ParseExpression(binaryOperatorNode.Right);
+
+            switch (binaryOperatorNode.NodeType)
+            {
+                case NodeType.AndAlso:
+                    return Expression.AndAlso(leftChild, rightChild);
+                case NodeType.OrElse:
+                    return Expression.OrElse(leftChild, rightChild);
+                case NodeType.Add:
+                    return Expression.Add(leftChild, rightChild);
+                case NodeType.Subtract:
+                    return Expression.Subtract(leftChild, rightChild);
+                case NodeType.Multiply:
+                    return Expression.Multiply(leftChild, rightChild);
+                case NodeType.Div:
+                    return Expression.Divide(leftChild, rightChild);
+                case NodeType.Equal:
+                    return Expression.Equal(leftChild, rightChild);
+                case NodeType.LessThan:
+                    return Expression.LessThan(leftChild, rightChild);
+                case NodeType.GreaterThan:
+                    return Expression.GreaterThan(leftChild, rightChild);
+                case NodeType.GreaterThanOrEqual:
+                    return Expression.GreaterThanOrEqual(leftChild, rightChild);
+                case NodeType.LessThanOrEqual:
+                    return Expression.LessThanOrEqual(leftChild, rightChild);
+                default:
+                    throw new NotImplementedException(
+                        "Don't know how to handle node type " + binaryOperatorNode.NodeType);
+            }
+        }
+
+
+        private Expression ResolveSymbolNode(SymbolNode node, Expression memberExpression)
+        {
+            if (memberExpression == null)
+                throw new ArgumentNullException("memberExpression");
+            if (memberExpression == this.thisParam)
+            {
+                if (node.Name == "true")
+                    return Expression.Constant(true);
+                if (node.Name == "false")
+                    return Expression.Constant(false);
+
+                if (node.HasArguments)
+                {
+                    Expression expression;
+                    if (TryResolveOdataExpression(node, out expression))
+                        return expression;
+                    throw new InvalidOperationException("Unable to resolve property");
+                }
+            }
+            return this.propertyResolver.Resolve<T>(memberExpression, node.Name);
         }
 
 
@@ -150,6 +182,15 @@ namespace Pomona.Queries
             List<Expression> argsExpressions;
             switch (node.Name)
             {
+                case "isof":
+                    var checkType = this.propertyResolver.Resolve(((SymbolNode)node.Children[0]).Name);
+                    expression = Expression.TypeIs(this.thisParam, checkType);
+                    return true;
+                case "cast":
+                    //var 
+                    var castToType = this.propertyResolver.Resolve(((SymbolNode)node.Children[0]).Name);
+                    expression = Expression.Convert(this.thisParam, castToType);
+                    return true;
                 case "substringof":
                     var stringContainsMethod = typeof(string).GetMethod("Contains");
                     argsExpressions = node.Children.Select(ParseExpression).ToList();

@@ -143,7 +143,7 @@ namespace Pomona
                 //var typeDef = new TypeDefinition(
                 //    "CritterClient", "I" + t.Name, TypeAttributes.Interface | TypeAttributes.Public);
                 var pocoDef = new TypeDefinition(
-                    "CritterClient", t.Name, TypeAttributes.Public);
+                    "CritterClient", t.Name + "Resource", TypeAttributes.Public);
 
                 typeInfo.PocoType = pocoDef;
 
@@ -185,11 +185,14 @@ namespace Pomona
                     baseCtorReference = baseTypeInfo.PocoType.GetConstructors().First(x => x.Parameters.Count == 0);
 
                     interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
+
+                    typeInfo.UriBaseType = toClientTypeDict[type.UriBaseType].InterfaceType;
                 }
                 else
                 {
                     interfaceDef.Interfaces.Add(resourceInterfaceRef);
                     pocoDef.BaseType = resourceBaseRef;
+                    typeInfo.UriBaseType = typeInfo.InterfaceType;
                     baseCtorReference = resourceBaseCtor;
                 }
 
@@ -327,6 +330,10 @@ namespace Pomona
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
                     "JsonTypeName", new CustomAttributeArgument(stringTypeReference, type.Name)));
+
+            custAttr.Properties.Add(
+                new CustomAttributeNamedArgument(
+                    "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
 
             interfaceDef.CustomAttributes.Add(custAttr);
             //var attrConstructor = attr.Resolve().GetConstructors();
@@ -591,6 +598,7 @@ namespace Pomona
             public MethodDefinition EmptyPocoCtor { get; set; }
             public TypeDefinition InterfaceType { get; set; }
 
+            public TypeDefinition UriBaseType { get; set; }
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition PostFormType { get; set; }

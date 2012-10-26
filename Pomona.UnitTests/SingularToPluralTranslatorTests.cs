@@ -38,7 +38,6 @@ namespace Pomona.UnitTests
         [Test]
         public void ToPlural_CheckRules()
         {
-            var translator = new SingularToPluralTranslator();
             var failedTranslationCount = 0;
             var redundantInIrregularDictCount = 0;
 
@@ -48,7 +47,7 @@ namespace Pomona.UnitTests
             {
                 var singular = kvp.Key;
                 var expectedPlural = kvp.Value;
-                var computedPlural = translator.ToPlural(singular);
+                var computedPlural = SingularToPluralTranslator.ToPlural(singular);
                 if (computedPlural != expectedPlural)
                 {
                     Console.WriteLine(
@@ -56,7 +55,7 @@ namespace Pomona.UnitTests
                     failedTranslationCount++;
                 }
 
-                var computedPluralIgnoreIrregulars = translator.ToPluralNoIrregular(singular);
+                var computedPluralIgnoreIrregulars = SingularToPluralTranslator.ToPluralNoIrregular(singular);
                 if (SingularToPluralTranslator.IrregularNouns.ContainsKey(singular)
                     && computedPluralIgnoreIrregulars == computedPlural)
                 {

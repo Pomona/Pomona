@@ -28,8 +28,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
+using Pomona.Internals;
 
 namespace Pomona.Client
 {
@@ -80,10 +84,51 @@ namespace Pomona.Client
         }
 
 
+        private static string DateTimeToString(DateTime dt)
+        {
+            var roundedDt = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, dt.Kind);
+            if (roundedDt == dt)
+            {
+                if (dt.Kind == DateTimeKind.Utc)
+                    return dt.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+                return dt.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
+            }
+            return dt.ToString("O");
+        }
+
+
+        private static string GetJsonTypeName(Type typeOperand)
+        {
+            var resourceInfoAttribute =
+                typeOperand.GetCustomAttributes(typeof(ResourceInfoAttribute), false).
+                    OfType<ResourceInfoAttribute>().First();
+            var jsonTypeName = resourceInfoAttribute.JsonTypeName;
+            return jsonTypeName;
+        }
+
+
         private static string GetMemberName(MemberInfo member)
         {
             // Do it JSON style camelCase
             return member.Name.Substring(0, 1).ToLower() + member.Name.Substring(1);
+        }
+
+
+        private static object GetMemberValue(object obj, MemberInfo member)
+        {
+            if (obj == null)
+                throw new ArgumentNullException("obj");
+            if (member == null)
+                throw new ArgumentNullException("member");
+            var propertyInfo = member as PropertyInfo;
+            if (propertyInfo != null)
+                return propertyInfo.GetValue(obj, null);
+
+            var fieldInfo = member as FieldInfo;
+            if (fieldInfo != null)
+                return fieldInfo.GetValue(obj);
+
+            throw new InvalidOperationException("Don't know how to get value from member of type " + member.GetType());
         }
 
 
@@ -100,6 +145,18 @@ namespace Pomona.Client
             var constantExpr = expr as ConstantExpression;
             if (constantExpr != null)
                 return BuildFromConstantExpression(constantExpr);
+
+            var callExpr = expr as MethodCallExpression;
+            if (callExpr != null)
+                return BuildFromMethodCallExpression(callExpr);
+
+            var typeBinaryExpression = expr as TypeBinaryExpression;
+            if (typeBinaryExpression != null)
+                return BuildFromTypeBinaryExpression(typeBinaryExpression);
+
+            var unaryExpression = expr as UnaryExpression;
+            if (unaryExpression != null)
+                return BuildFromUnaryExpression(unaryExpression);
 
             throw new NotImplementedException("NodeType " + expr.NodeType + " not yet handled.");
         }
@@ -130,23 +187,71 @@ namespace Pomona.Client
             // This gets weird with closures, see:
             // http://blog.nexterday.com/post/Automatic-compilation-of-Linq-to-SQL-queries.aspx
 
-            if (memberExpr.Member.DeclaringType.Name.StartsWith("<>c__")
-                && memberExpr.Member.MemberType == MemberTypes.Field)
-            {
-                var field = memberExpr.Member as FieldInfo;
-                if (field != null)
-                {
-                    var obj = ((ConstantExpression)memberExpr.Expression).Value;
-
-                    //Add the value to the extraction list
-                    var value = field.GetValue(obj);
-                    return GetEncodedConstant(field.FieldType, value);
-                }
-            }
+            object value;
+            if (IsClosureMemberAccess(memberExpr, out value))
+                return GetEncodedConstant(value.GetType(), value);
 
             if (memberExpr.Expression != InstanceParameter)
-                throw new NotImplementedException("Only support one level of properties for now..");
+                return string.Format("{0}.{1}", Build(memberExpr.Expression), GetMemberName(memberExpr.Member));
             return GetMemberName(memberExpr.Member);
+        }
+
+
+        private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
+        {
+            if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<string>(s => s.StartsWith(null)))
+                return string.Format("startswith({0},{1})", Build(callExpr.Object), Build(callExpr.Arguments[0]));
+
+            if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<string>(s => s.Contains(null)))
+                return string.Format("substringof({0},{1})", Build(callExpr.Arguments[0]), Build(callExpr.Object));
+
+            throw new NotImplementedException(
+                "Don't know what to do with method " + callExpr.Method.Name + " declared in "
+                + callExpr.Method.DeclaringType.FullName);
+        }
+
+
+        private string BuildFromTypeBinaryExpression(TypeBinaryExpression typeBinaryExpression)
+        {
+            switch (typeBinaryExpression.NodeType)
+            {
+                case ExpressionType.TypeIs:
+                    var typeOperand = typeBinaryExpression.TypeOperand;
+                    if (!typeOperand.IsInterface || !typeof(IClientResource).IsAssignableFrom(typeOperand))
+                    {
+                        throw new InvalidOperationException(
+                            typeOperand.FullName
+                            + " is not an interface and/or does not implement type IClientResource.");
+                    }
+                    if (typeBinaryExpression.Expression != InstanceParameter)
+                        throw new NotImplementedException(
+                            "Only know how to do TypeIs when target is instance parameter for now..");
+
+                    // TODO: Proper typename resolving
+
+                    var jsonTypeName = GetJsonTypeName(typeOperand);
+                    return string.Format("isof({0})", jsonTypeName);
+                    break;
+                default:
+                    throw new NotImplementedException(
+                        "Don't know how to handle TypeBinaryExpression with NodeType " + typeBinaryExpression.NodeType);
+            }
+        }
+
+
+        private string BuildFromUnaryExpression(UnaryExpression unaryExpression)
+        {
+            switch (unaryExpression.NodeType)
+            {
+                case ExpressionType.Convert:
+                    if (unaryExpression.Operand != InstanceParameter)
+                        throw new NotImplementedException("Only know how to cast `this` to something else");
+
+                    return "cast(" + GetJsonTypeName(unaryExpression.Type) + ")";
+                default:
+                    throw new NotImplementedException(
+                        "NodeType " + unaryExpression.NodeType + " in UnaryExpression not yet handled.");
+            }
         }
 
 
@@ -166,10 +271,51 @@ namespace Pomona.Client
                     return EncodeString((string)value);
                 case TypeCode.Int32:
                     return value.ToString();
+                case TypeCode.DateTime:
+                    return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
+                case TypeCode.Object:
+                    if (value == null)
+                        return "null";
+                    if (value is Guid)
+                        return "guid'" + ((Guid)value).ToString() + "'";
+                    break;
+                case TypeCode.Boolean:
+                    return ((bool)value) ? "true" : "false";
                 default:
-                    throw new NotImplementedException(
-                        "Don't know how to send constant of type " + valueType.FullName + " yet..");
+                    break;
             }
+            throw new NotImplementedException(
+                "Don't know how to send constant of type " + valueType.FullName + " yet..");
+        }
+
+
+        private bool IsClosureMemberAccess(MemberExpression memberExpression, out object value)
+        {
+            value = null;
+            var member = memberExpression.Member;
+            if (member.DeclaringType.Name.StartsWith("<>c__") && member.MemberType == MemberTypes.Field)
+            {
+                var field = (FieldInfo)member;
+                var obj = ((ConstantExpression)memberExpression.Expression).Value;
+
+                //Add the value to the extraction list
+                value = field.GetValue(obj);
+                return true;
+            }
+
+            var innerMemberExpr = memberExpression.Expression as MemberExpression;
+
+            if (innerMemberExpr == null)
+                return false;
+
+            object innerValue;
+            if (IsClosureMemberAccess(innerMemberExpr, out innerValue))
+            {
+                value = GetMemberValue(innerValue, member);
+                return true;
+            }
+
+            return false;
         }
     }
 }

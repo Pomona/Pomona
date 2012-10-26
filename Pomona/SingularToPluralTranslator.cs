@@ -32,7 +32,7 @@ using System.Linq;
 
 namespace Pomona
 {
-    public class SingularToPluralTranslator
+    public static class SingularToPluralTranslator
     {
         private static readonly HashSet<char> consonants;
         private static readonly HashSet<string> sibilantEndings;
@@ -227,13 +227,13 @@ copy	copies";
         }
 
 
-        public bool IsIrregular(string noun)
+        public static bool IsIrregular(string noun)
         {
             return IrregularNouns.ContainsKey(noun.ToLower());
         }
 
 
-        public string ToPlural(string noun)
+        public static string ToPlural(string noun)
         {
             noun = noun.ToLower();
             if (IrregularNouns.ContainsKey(noun))
@@ -243,7 +243,7 @@ copy	copies";
         }
 
 
-        public string ToPluralNoIrregular(string noun)
+        public static string ToPluralNoIrregular(string noun)
         {
             // check if word ends in sibilant sound
             if (sibilantEndings.Any(x => noun.EndsWith(x)))
@@ -273,13 +273,13 @@ copy	copies";
         }
 
 
-        private bool IsConsonant(char c)
+        private static bool IsConsonant(char c)
         {
             return consonants.Contains(c);
         }
 
 
-        private bool IsVowel(char c)
+        private static bool IsVowel(char c)
         {
             return char.IsLetter(c) && !consonants.Contains(c);
         }

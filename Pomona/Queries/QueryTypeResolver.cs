@@ -26,12 +26,40 @@
 
 #endregion
 
+using System;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Pomona.Queries
 {
-    public interface IQueryPropertyResolver
+    public class QueryTypeResolver : IQueryTypeResolver
     {
-        Expression Resolve<T>(Expression rootInstance, string propertyPath);
+        private readonly TypeMapper typeMapper;
+
+
+        public QueryTypeResolver(TypeMapper typeMapper)
+        {
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
+            this.typeMapper = typeMapper;
+        }
+
+        #region Implementation of IQueryTypeResolver
+
+        public Expression Resolve<T>(Expression rootInstance, string propertyPath)
+        {
+            // TODO: Proper exception handling when type is not TransformedType [KNS]
+            //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
+            var type = (TransformedType)typeMapper.GetClassMapping(rootInstance.Type);
+            return type.CreateExpressionForExternalPropertyPath(rootInstance, propertyPath);
+        }
+
+
+        public Type Resolve(string typeName)
+        {
+            return this.typeMapper.TransformedTypes.First(x => x.Name == typeName).SourceType;
+        }
+
+        #endregion
     }
 }

@@ -65,7 +65,7 @@ namespace Pomona
             if (queryTransformer == null)
             {
                 queryTransformer = new PomonaQueryTransformer(
-                    this.typeMapper, new QueryFilterExpressionParser(new QueryPropertyResolver(this.typeMapper)));
+                    this.typeMapper, new QueryFilterExpressionParser(new QueryTypeResolver(this.typeMapper)));
             }
             this.queryTransformer = queryTransformer;
 

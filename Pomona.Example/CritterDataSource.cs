@@ -163,10 +163,14 @@ namespace Pomona.Example
         private void CreateRandomCritter(Random rng)
         {
             Critter critter;
-            if (rng.NextDouble() > 0.8)
+            if (rng.NextDouble() > 0.76)
             {
-                critter = new MusicalCritter();
-                ((MusicalCritter)critter).Instrument = Words.GetCoolInstrument(rng);
+                var musicalCritter = new MusicalCritter
+                {
+                    BandName = Words.GetBandName(rng),
+                    Instrument = Save(new Instrument() { Type = Words.GetCoolInstrument(rng) })
+                };
+                critter = musicalCritter;
             }
             else
                 critter = new Critter();

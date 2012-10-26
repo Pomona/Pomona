@@ -56,6 +56,7 @@ namespace Pomona.Queries
                 NodeType.GreaterThanOrEqual,
                 NodeType.LessThanOrEqual,
                 NodeType.Equal,
+                NodeType.Dot
             };
             nodeTypeDict = new Dictionary<int, NodeType>
             {
@@ -70,6 +71,7 @@ namespace Pomona.Queries
                 { PomonaQueryParser.OR_OP, NodeType.OrElse },
                 { PomonaQueryParser.MUL_OP, NodeType.Multiply },
                 { PomonaQueryParser.DIV_OP, NodeType.Div },
+                { PomonaQueryParser.DOT_OP, NodeType.Dot },
                 { PomonaQueryParser.STRING, NodeType.StringLiteral }
             };
         }
@@ -92,7 +94,7 @@ namespace Pomona.Queries
                     case "guid":
                         return new GuidNode(Guid.Parse(value));
                     case "datetime":
-                        return new DateTimeNode(DateTime.Parse(value, CultureInfo.InvariantCulture));
+                        return new DateTimeNode(DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
                 }
             }
 

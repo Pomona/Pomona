@@ -39,6 +39,12 @@ namespace Pomona.Client
         public Type PocoType { get; set; }
         public Type PostFormType { get; set; }
         public Type PutFormType { get; set; }
+        public Type UriBaseType { get; set; }
         public string UrlRelativePath { get; set; }
+
+        public bool IsUriBaseType
+        {
+            get { return UriBaseType == InterfaceType; }
+        }
     }
 }

@@ -51,6 +51,11 @@ namespace Pomona.Internals
         public static MethodInfo GetInstanceMethodInfo<TInstance>(Expression<Func<TInstance, object>> expr)
         {
             var body = expr.Body;
+            if (body.NodeType == ExpressionType.Convert)
+            {
+                body = ((UnaryExpression)body).Operand;
+            }
+
             if (body.NodeType != ExpressionType.Call)
                 throw new ArgumentException("Needs node of type Call");
 

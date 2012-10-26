@@ -61,7 +61,6 @@
   <ItemGroup>
     <Compile Include="CritterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestConfigGuiByExpressions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">

@@ -55,7 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CJson\CJsonEncoderTests.cs" />
-    <Compile Include="Client\QueryBuilderTests.cs" />
+    <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="JsonSchemaGeneratorTests.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />

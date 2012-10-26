@@ -36,10 +36,10 @@ namespace Pomona.Queries
 {
     public class QueryFilterExpressionParser
     {
-        private readonly IQueryPropertyResolver queryPropertyResolver;
+        private readonly IQueryTypeResolver queryPropertyResolver;
 
 
-        public QueryFilterExpressionParser(IQueryPropertyResolver queryPropertyResolver)
+        public QueryFilterExpressionParser(IQueryTypeResolver queryPropertyResolver)
         {
             if (queryPropertyResolver == null)
                 throw new ArgumentNullException("queryPropertyResolver");

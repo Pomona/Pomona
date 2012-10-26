@@ -20,6 +20,7 @@ tokens {
    NE_OP;
    ADD_OP;
    SUB_OP;
+   DOT_OP;
    DATETIME_LITERAL;
    GUID_LITERAL;
 }    
@@ -36,7 +37,7 @@ PREFIXED_STRING
 	:	('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'0'..'9')*  '\'' ( ~( '\\' | '\'' ) )* '\''
 	;
 
-ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_'|'.')*	
+ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*	
     ;
 
 INT :	'0'..'9'+
@@ -126,18 +127,27 @@ unary_operator
 	:	'not'
 	;
 
+dot_operator
+	:	'.' -> DOT_OP
+	;
+
+
 unary_expr 
-	: postfix_expr^
-	| PREFIXED_STRING
+	: unary_operator unary_expr
+	| primary_expr
+	;
+
+primary_expr
+	: PREFIXED_STRING
+	| postfix_expr ( dot_operator^ postfix_expr )*
 	| STRING
 	| INT
-	| unary_operator unary_expr
-	| ID
 	| '('! exp ')'!
 	;
 
 postfix_expr
 	:	ID^ ( '('! ')'! | '('! arglist_expr ')'! )
+	| ID
 	;
 
 arglist_expr 

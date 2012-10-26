@@ -30,6 +30,7 @@ namespace Pomona.Example.Models
 {
     public class MusicalCritter : Critter
     {
-        public string Instrument { get; set; }
+        public string BandName { get; set; }
+        public Instrument Instrument { get; set; }
     }
 }

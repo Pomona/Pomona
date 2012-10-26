@@ -51,9 +51,15 @@ namespace Pomona.UnitTests.Queries
 
         private QueryFilterExpressionParser parser;
 
-        public class SimpleQueryPropertyResolver : IQueryPropertyResolver
+        public class SimpleQueryPropertyResolver : IQueryTypeResolver
         {
             #region IQueryPropertyResolver Members
+
+            public Type Resolve(string typeName)
+            {
+                throw new NotImplementedException();
+            }
+
 
             public Expression Resolve<T>(Expression rootInstance, string propertyPath)
             {

@@ -37,17 +37,6 @@ namespace Pomona
     /// </summary>
     public class PomonaQuery : IPomonaQuery
     {
-        #region Operator enum
-
-        public enum Operator
-        {
-            Eq,
-            Like,
-            In
-        }
-
-        #endregion
-
         private readonly TransformedType targetType;
 
 

@@ -47,6 +47,7 @@ namespace Pomona.Queries
         GuidLiteral,
         GreaterThanOrEqual,
         LessThanOrEqual,
-        DateTimeLiteral
+        DateTimeLiteral,
+        Dot
     }
 }

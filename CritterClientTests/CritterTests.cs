@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 using CritterClient;
@@ -37,8 +38,7 @@ using NUnit.Framework;
 
 using Pomona.Client;
 using Pomona.Example;
-
-using MusicalCritter = Pomona.Example.Models.MusicalCritter;
+using Pomona.Example.Models;
 
 namespace CritterClientTests
 {
@@ -121,9 +121,27 @@ namespace CritterClientTests
         private bool IsAllowedClientReferencedAssembly(Assembly assembly)
         {
             return assembly == typeof(object).Assembly ||
-                   assembly == typeof(Critter).Assembly ||
+                   assembly == typeof(ICritter).Assembly ||
                    assembly == typeof(ClientBase).Assembly ||
                    assembly == typeof(Uri).Assembly;
+        }
+
+
+        public void TestQuery<TResource, TEntity>(
+            Expression<Func<TResource, bool>> resourcePredicate, Func<TEntity, bool> entityPredicate)
+            where TResource : IEntityBase
+            where TEntity : EntityBase
+        {
+            var entities =
+                this.critterHost.DataSource.List<TEntity>().Where(entityPredicate).OrderBy(x => x.Id).ToList();
+            var fetchedResources = this.client.Query(resourcePredicate, top : 10000);
+            Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)));
+        }
+
+
+        private ICollection<Critter> CritterEntities
+        {
+            get { return this.critterHost.DataSource.List<Critter>(); }
         }
 
 
@@ -173,8 +191,7 @@ namespace CritterClientTests
         [Test]
         public void GetMusicalCritter()
         {
-            var musicalCritterId =
-                this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().OfType<MusicalCritter>().First().Id;
+            var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
             var musicalCritter = this.client.GetUri<ICritter>(this.critterHost.BaseUri + "critter/" + musicalCritterId);
 
@@ -242,22 +259,64 @@ namespace CritterClientTests
                 {
                     x.Hat = new HatForm() { HatType = hatType };
                     x.Name = critterName;
-                    x.Instrument = "banana";
+                    x.BandName = "banana";
+                    x.Instrument = new InstrumentForm() { Type = "helo" };
                 });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
-            Assert.That(critter.Instrument, Is.EqualTo("banana"));
+            Assert.That(critter.BandName, Is.EqualTo("banana"));
         }
 
+
+        [Test]
+        public void QueryCritter_CastToMusicalCritterWithEqualsOperator_ReturnsCorrectMusicalCritter()
+        {
+            var firstMusicalCritter =
+                CritterEntities.OfType<MusicalCritter>().First();
+            var bandName = firstMusicalCritter.BandName;
+
+            TestQuery<ICritter, Critter>(
+                x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
+                x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
+        }
+
+
+        [Test]
+        public void QueryCritter_IsOfMusicalCritter_ReturnsAllMusicalCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x is IMusicalCritter, x => x is MusicalCritter);
+        }
+
+
+        [Test]
+        public void QueryCritter_ReturnsExpandedProperties()
+        {
+            var critter = this.client.Query<ICritter>(x => true, expand : "hat,weapons").First();
+            // Check that we're not dealing with a lazy proxy
+            Assert.That(critter.Hat, Is.TypeOf<HatResource>());
+            Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
+            Assert.That(critter.Subscriptions, Is.TypeOf<LazyListProxy<ISubscription>>());
+        }
+
+
+        [Test]
+        public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
+        {
+            var firstCritter = this.critterHost.DataSource.List<Critter>().First();
+            var createdOn = firstCritter.CreatedOn;
+            var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn);
+
+            Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
+            Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
+        }
 
 
         [Test]
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
-            var orderedCritters =
-                this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().OrderBy(x => x.Id).Skip(2).Take(5).
-                    ToList();
+            var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
+                ToList();
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
 
@@ -268,25 +327,12 @@ namespace CritterClientTests
         }
 
 
-
-        [Test]
-        public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
-        {
-            var firstCritter = this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().First();
-            var createdOn = firstCritter.CreatedOn;
-            var fetchedCritter = client.Query<ICritter>(x => x.CreatedOn == createdOn);
-
-            Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
-            Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
-        }
-
-
         [Test]
         public void QueryCritter_WithNameEqualsOrNameEqualsSomethingElse_ReturnsCorrectResult()
         {
-            var nameOfFirstCritter = this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().First().Name;
+            var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().Skip(1).First().Name;
+                this.critterHost.DataSource.List<Critter>().Skip(1).First().Name;
 
             var critters =
                 this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
@@ -299,21 +345,36 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
         {
-            var nameOfFirstCritter = this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().First().Name;
-            var critters = this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
-            Assert.That(critters.Any(x => x.Name == nameOfFirstCritter));
+            var nameOfFirstCritter = CritterEntities.First().Name;
+            var fetchedCritters = this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
+            Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
         }
 
 
+        [Test]
+        public void QueryCritter_WithNameStartsWithA_ReturnsCrittersWithNameStartingWithA()
+        {
+            TestQuery<ICritter, Critter>(x => x.Name.StartsWith("A"), x => x.Name.StartsWith("A"));
+        }
 
 
         [Test]
-        public void QueryMusicalCritter_WithInstrumentEquals_ReturnsCorrectResult()
+        public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
         {
-            var firstMusicalCritter = this.critterHost.DataSource.List<Pomona.Example.Models.Critter>().OfType<Pomona.Example.Models.MusicalCritter>().First();
-            var instrument = firstMusicalCritter.Instrument;
-            var critters = this.client.Query<IMusicalCritter>(x => x.Instrument == instrument);
-            Assert.That(critters.Any(x => x.Id == firstMusicalCritter.Id));
+            var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
+            // Check that we're not dealing with a lazy proxy
+            Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
+        }
+
+
+        [Test]
+        public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
+        {
+            var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
+            var bandName = musicalCritter.BandName;
+            var critters =
+                this.client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
+            Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
         }
     }
 }

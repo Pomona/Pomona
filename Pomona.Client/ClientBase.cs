@@ -65,7 +65,8 @@ namespace Pomona.Client
             where T : IClientResource;
 
 
-        public abstract IList<T> Query<T>(Expression<Func<T, bool>> predicate, string expand = null);
+        public abstract IList<T> Query<T>(
+            Expression<Func<T, bool>> predicate, string expand = null, int? top = null, int? skip = null);
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -178,8 +179,9 @@ namespace Pomona.Client
             if (!type.IsInterface)
                 throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
 
-            var pocoType = GetPocoForInterface(type);
-            var newType = GetNewProxyForInterface(type);
+            var resourceInfo = GetResourceInfoForType(type);
+
+            var newType = resourceInfo.PostFormType;
             var newProxy = Activator.CreateInstance(newType);
 
             postAction((T)newProxy);
@@ -189,7 +191,7 @@ namespace Pomona.Client
 
             // Post the json!
             var requestJson = ((PutResourceBase)newProxy).ToJson();
-            requestJson["_type"] = pocoType.Name;
+            requestJson["_type"] = resourceInfo.JsonTypeName;
             var response = UploadToUri(uri, requestJson, "POST");
 
             return
@@ -220,13 +222,32 @@ namespace Pomona.Client
         }
 
 
-        public override IList<T> Query<T>(Expression<Func<T, bool>> predicate, string expand = null)
+        public override IList<T> Query<T>(
+            Expression<Func<T, bool>> predicate, string expand = null, int? top = null, int? skip = null)
         {
+            var resourceInfo = GetResourceInfoForType(typeof(T));
+            if (!resourceInfo.IsUriBaseType)
+            {
+                // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
+                // TODO: Optimize this by caching MethodInfo or make this method non-generic.
+                var transformedExpression = ChangeExpressionArgumentToType(predicate, resourceInfo.UriBaseType);
+                var genericMethod = typeof(ClientBase<TClient>).GetMethod("Query");
+                var results = (IEnumerable)genericMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
+                    this, new object[] { transformedExpression, expand, top, skip });
+                return new List<T>(results.OfType<T>());
+            }
+
             var filterString = new QueryPredicateBuilder<T>(predicate).ToString();
             var uri = BaseUri + GetRelativeUriForType(typeof(T)) + "?filter=" + filterString;
 
             if (expand != null)
                 uri = uri + "&expand=" + expand;
+
+            if (top.HasValue)
+                uri = uri + "&top=" + top.Value;
+
+            if (skip.HasValue)
+                uri = uri + "&skip=" + skip.Value;
 
             return GetUri<IList<T>>(uri);
         }
@@ -235,6 +256,25 @@ namespace Pomona.Client
         public string GetUri(Type type)
         {
             return BaseUri + GetRelativeUriForType(type);
+        }
+
+
+        private static Expression ChangeExpressionArgumentToType(LambdaExpression lambdaExpr, Type newArgType)
+        {
+            if (lambdaExpr == null)
+                throw new ArgumentNullException("lambdaExpr");
+            if (newArgType == null)
+                throw new ArgumentNullException("newArgType");
+            if (lambdaExpr.Parameters.Count != 1)
+                throw new InvalidOperationException("Only works using expressions with property count equal to one.");
+
+            var origParam = lambdaExpr.Parameters[0];
+            var body = lambdaExpr.Body;
+            var newParam = Expression.Parameter(newArgType, origParam.Name);
+            var visitor = new ChangeExpressionArgumentVisitor(origParam, newParam);
+            var newBody = visitor.Visit(body);
+            return
+                Expression.Lambda(Expression.AndAlso(Expression.TypeIs(newParam, origParam.Type), newBody), newParam);
         }
 
 
@@ -403,7 +443,7 @@ namespace Pomona.Client
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
             var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
-            // Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
+            Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
             return JToken.Parse(jsonString);
         }
 
@@ -428,5 +468,45 @@ namespace Pomona.Client
 
             return JToken.Parse(responseString);
         }
+
+        #region Nested type: ChangeExpressionArgumentVisitor
+
+        /// <summary>
+        /// This visitor will convert an expression like:
+        ///    MusicalCritter x => x.BandName == "Hi"
+        /// to
+        ///    Critter x => ((MusicalCritter)x).BandName == "Hi"
+        /// </summary>
+        private class ChangeExpressionArgumentVisitor : ExpressionVisitor
+        {
+            private readonly Expression baseclassedArgument;
+            private readonly Expression subclassedArgument;
+
+
+            public ChangeExpressionArgumentVisitor(Expression subclassedArgument, Expression baseclassedArgument)
+            {
+                this.subclassedArgument = subclassedArgument;
+                this.baseclassedArgument = baseclassedArgument;
+            }
+
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression == this.subclassedArgument)
+                {
+                    if (node.Member.DeclaringType == this.baseclassedArgument.Type)
+                    {
+                        // Don't need to do cast for accessing properties on base type..
+                        return Expression.MakeMemberAccess(this.baseclassedArgument, node.Member);
+                    }
+                    return
+                        Expression.MakeMemberAccess(
+                            Expression.Convert(this.baseclassedArgument, this.subclassedArgument.Type), node.Member);
+                }
+                return base.VisitMember(node);
+            }
+        }
+
+        #endregion
     }
 }

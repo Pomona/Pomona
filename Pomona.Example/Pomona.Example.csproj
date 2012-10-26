@@ -69,6 +69,7 @@
     <Compile Include="Models\Gun.cs" />
     <Compile Include="Models\HasCustomEnum.cs" />
     <Compile Include="Models\Hat.cs" />
+    <Compile Include="Models\Instrument.cs" />
     <Compile Include="Models\JunkWithNullableInt.cs" />
     <Compile Include="Models\JunkWithRenamedProperty.cs" />
     <Compile Include="Models\Knife.cs" />

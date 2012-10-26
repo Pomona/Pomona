@@ -91,14 +91,14 @@
     <Compile Include="Queries\DateTimeNode.cs" />
     <Compile Include="Queries\GuidNode.cs" />
     <Compile Include="Queries\IntNode.cs" />
-    <Compile Include="Queries\IQueryPropertyResolver.cs" />
+    <Compile Include="Queries\IQueryTypeResolver.cs" />
     <Compile Include="Queries\LiteralNode.cs" />
     <Compile Include="Queries\NodeBase.cs" />
     <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
     <Compile Include="Queries\NodeType.cs" />
     <Compile Include="Queries\PomonaQueryLexer.cs" />
     <Compile Include="Queries\PomonaQueryParser.cs" />
-    <Compile Include="Queries\QueryPropertyResolver.cs" />
+    <Compile Include="Queries\QueryTypeResolver.cs" />
     <Compile Include="Queries\QueryFilterExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />
     <Compile Include="Queries\QueryResult.cs" />
