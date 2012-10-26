@@ -52,9 +52,7 @@ namespace Pomona.Internals
         {
             var body = expr.Body;
             if (body.NodeType == ExpressionType.Convert)
-            {
                 body = ((UnaryExpression)body).Operand;
-            }
 
             if (body.NodeType != ExpressionType.Call)
                 throw new ArgumentException("Needs node of type Call");

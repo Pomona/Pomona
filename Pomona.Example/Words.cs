@@ -1396,6 +1396,105 @@ zany
 	zesty
 	zigzag";
 
+        private const string animalsRawText =
+            @"aardvark 	addax 	alligator 	alpaca
+anteater 	antelope 	aoudad 	ape
+argali 	armadillo 	ass 	baboon
+badger 	basilisk 	bat 	bear
+beaver 	bighorn 	bison 	boar
+budgerigar 	buffalo 	bull 	bunny
+burro 	camel 	canary 	capybara
+cat 	chameleon 	chamois 	cheetah
+chimpanzee 	chinchilla 	chipmunk 	civet
+coati 	colt 	cony 	cougar
+cow 	coyote 	crocodile 	crow
+deer 	dingo 	doe 	dog
+donkey 	dormouse 	dromedary 	duckbill
+dugong 	eland 	elephant 	elk
+ermine 	ewe 	fawn 	ferret
+finch 	fish 	fox 	frog
+gazelle 	gemsbok 	gila monster 	giraffe
+gnu 	goat 	gopher 	gorilla
+grizzly bear 	ground hog 	guanaco 	guinea pig
+hamster 	hare 	hartebeest 	hedgehog
+hippopotamus 	hog 	horse 	hyena
+ibex 	iguana 	impala 	jackal
+jaguar 	jerboa 	kangaroo 	kid
+kinkajou 	kitten 	koala 	koodoo
+lamb 	lemur 	leopard 	lion
+lizard 	llama 	lovebird 	lynx
+mandrill 	mare 	marmoset 	marten
+mink 	mole 	mongoose 	monkey
+moose 	mountain goat 	mouse 	mule
+musk deer 	musk-ox 	muskrat 	mustang
+mynah bird 	newt 	ocelot 	okapi
+opossum 	orangutan 	oryx 	otter
+ox 	panda 	panther 	parakeet
+parrot 	peccary 	pig 	platypus
+polar bear 	pony 	porcupine 	porpoise
+prairie dog 	pronghorn 	puma 	puppy
+quagga 	rabbit 	raccoon 	ram
+rat 	reindeer 	reptile 	rhinoceros
+roebuck 	salamander 	seal 	sheep
+shrew 	silver fox 	skunk 	sloth
+snake 	springbok 	squirrel 	stallion
+steer 	tapir 	tiger 	toad
+turtle 	vicuna 	walrus 	warthog
+waterbuck 	weasel 	whale 	wildcat
+wolf 	wolverine 	wombat 	woodchuck
+yak 	zebra 	zebu";
+
+        private const string instrumentsRawText =
+            @"Bagpipes
+Banjo
+Bass drum
+Bassoon
+Bell
+Bongo
+Castanets
+Cello
+Clarinet
+Clavichord
+Conga drum
+Contrabassoon
+Cornet
+Cymbals
+Double bass
+Dulcian
+Dynamophone
+Flute
+Flutophone
+Glockenspiel
+Gongs
+Guitar
+Harmonica
+Harp
+Harpsichord
+Lute
+Mandolin
+Maracas
+Metallophone
+Musical box
+Oboe
+Ondes-Martenot
+Piano
+Recorder
+Saxophone
+Shawm
+Snare drum
+Steel drum
+Tambourine
+Theremin
+Triangle
+Trombone
+Trumpet
+Tuba
+Ukulele
+Viola
+Violin
+Xylophone
+Zither";
+
         private const string randomNounsRawText =
             @"ball
 bat
@@ -1853,105 +1952,6 @@ wren
 wrist
 writer";
 
-        private const string animalsRawText =
-            @"aardvark 	addax 	alligator 	alpaca
-anteater 	antelope 	aoudad 	ape
-argali 	armadillo 	ass 	baboon
-badger 	basilisk 	bat 	bear
-beaver 	bighorn 	bison 	boar
-budgerigar 	buffalo 	bull 	bunny
-burro 	camel 	canary 	capybara
-cat 	chameleon 	chamois 	cheetah
-chimpanzee 	chinchilla 	chipmunk 	civet
-coati 	colt 	cony 	cougar
-cow 	coyote 	crocodile 	crow
-deer 	dingo 	doe 	dog
-donkey 	dormouse 	dromedary 	duckbill
-dugong 	eland 	elephant 	elk
-ermine 	ewe 	fawn 	ferret
-finch 	fish 	fox 	frog
-gazelle 	gemsbok 	gila monster 	giraffe
-gnu 	goat 	gopher 	gorilla
-grizzly bear 	ground hog 	guanaco 	guinea pig
-hamster 	hare 	hartebeest 	hedgehog
-hippopotamus 	hog 	horse 	hyena
-ibex 	iguana 	impala 	jackal
-jaguar 	jerboa 	kangaroo 	kid
-kinkajou 	kitten 	koala 	koodoo
-lamb 	lemur 	leopard 	lion
-lizard 	llama 	lovebird 	lynx
-mandrill 	mare 	marmoset 	marten
-mink 	mole 	mongoose 	monkey
-moose 	mountain goat 	mouse 	mule
-musk deer 	musk-ox 	muskrat 	mustang
-mynah bird 	newt 	ocelot 	okapi
-opossum 	orangutan 	oryx 	otter
-ox 	panda 	panther 	parakeet
-parrot 	peccary 	pig 	platypus
-polar bear 	pony 	porcupine 	porpoise
-prairie dog 	pronghorn 	puma 	puppy
-quagga 	rabbit 	raccoon 	ram
-rat 	reindeer 	reptile 	rhinoceros
-roebuck 	salamander 	seal 	sheep
-shrew 	silver fox 	skunk 	sloth
-snake 	springbok 	squirrel 	stallion
-steer 	tapir 	tiger 	toad
-turtle 	vicuna 	walrus 	warthog
-waterbuck 	weasel 	whale 	wildcat
-wolf 	wolverine 	wombat 	woodchuck
-yak 	zebra 	zebu";
-
-        private const string instrumentsRawText =
-            @"Bagpipes
-Banjo
-Bass drum
-Bassoon
-Bell
-Bongo
-Castanets
-Cello
-Clarinet
-Clavichord
-Conga drum
-Contrabassoon
-Cornet
-Cymbals
-Double bass
-Dulcian
-Dynamophone
-Flute
-Flutophone
-Glockenspiel
-Gongs
-Guitar
-Harmonica
-Harp
-Harpsichord
-Lute
-Mandolin
-Maracas
-Metallophone
-Musical box
-Oboe
-Ondes-Martenot
-Piano
-Recorder
-Saxophone
-Shawm
-Snare drum
-Steel drum
-Tambourine
-Theremin
-Triangle
-Trombone
-Trumpet
-Tuba
-Ukulele
-Viola
-Violin
-Xylophone
-Zither";
-
         private const string sicknessRawText =
             @"shingles
 cancer
@@ -1992,9 +1992,9 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
         private static readonly List<string> adjectives;
         private static readonly List<string> animals;
         private static readonly List<string> instruments;
+        private static readonly List<string> randomNouns;
         private static readonly List<string> sicknesses;
         private static readonly List<string> weapons;
-        private static readonly List<string> randomNouns;
 
 
         static Words()
@@ -2040,7 +2040,7 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
         public static string GetBandName(Random rng)
         {
             var randomNoun = SingularToPluralTranslator.ToPlural(randomNouns[rng.Next(0, instruments.Count)]);
-            return string.Format("The {0} {1}", FirstToUpper(GetAdjective(rng)), FirstToUpper( randomNoun));
+            return string.Format("The {0} {1}", FirstToUpper(GetAdjective(rng)), FirstToUpper(randomNoun));
         }
 
 

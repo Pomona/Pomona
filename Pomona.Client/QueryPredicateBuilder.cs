@@ -224,8 +224,10 @@ namespace Pomona.Client
                             + " is not an interface and/or does not implement type IClientResource.");
                     }
                     if (typeBinaryExpression.Expression != InstanceParameter)
+                    {
                         throw new NotImplementedException(
                             "Only know how to do TypeIs when target is instance parameter for now..");
+                    }
 
                     // TODO: Proper typename resolving
 

@@ -94,7 +94,9 @@ namespace Pomona.Queries
                     case "guid":
                         return new GuidNode(Guid.Parse(value));
                     case "datetime":
-                        return new DateTimeNode(DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
+                        return
+                            new DateTimeNode(
+                                DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
                 }
             }
 

@@ -359,15 +359,6 @@ namespace CritterClientTests
 
 
         [Test]
-        public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
-        {
-            var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
-            // Check that we're not dealing with a lazy proxy
-            Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
-        }
-
-
-        [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
             var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
@@ -375,6 +366,15 @@ namespace CritterClientTests
             var critters =
                 this.client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
+        }
+
+
+        [Test]
+        public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
+        {
+            var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
+            // Check that we're not dealing with a lazy proxy
+            Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
         }
     }
 }

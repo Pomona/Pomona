@@ -34,6 +34,12 @@ namespace Pomona.Client
     public class ResourceInfoAttribute : Attribute
     {
         public Type InterfaceType { get; set; }
+
+        public bool IsUriBaseType
+        {
+            get { return UriBaseType == InterfaceType; }
+        }
+
         public string JsonTypeName { get; set; }
         public Type LazyProxyType { get; set; }
         public Type PocoType { get; set; }
@@ -41,10 +47,5 @@ namespace Pomona.Client
         public Type PutFormType { get; set; }
         public Type UriBaseType { get; set; }
         public string UrlRelativePath { get; set; }
-
-        public bool IsUriBaseType
-        {
-            get { return UriBaseType == InterfaceType; }
-        }
     }
 }

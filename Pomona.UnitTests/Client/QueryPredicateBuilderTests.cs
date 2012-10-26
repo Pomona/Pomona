@@ -42,9 +42,9 @@ namespace Pomona.UnitTests.Client
         {
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
+            public decimal CashAmount { get; set; }
             public Guid Guid { get; set; }
             public string Jalla { get; set; }
-            public decimal CashAmount { get; set; }
             public double Precise { get; set; }
         }
 
@@ -108,19 +108,6 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => false, "false");
         }
 
-        [Test]
-        public void BuildPropEqDouble_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.Precise == 10.25, "(precise eq 10.25)");
-        }
-
-
-        [Test]
-        public void BuildPropEqualsDecimal_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.CashAmount == 100.10m, "(cashamount eq 100.10m)");
-        }
-
 
         [Test]
         public void BuildGuidLiteral_ReturnsCorrectString()
@@ -141,9 +128,23 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildPropEqDouble_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Precise == 10.25, "(precise eq 10.25)");
+        }
+
+
+        [Test]
         public void BuildPropEqProp_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla == x.Bonga, "(jalla eq bonga)");
+        }
+
+
+        [Test]
+        public void BuildPropEqualsDecimal_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.CashAmount == 100.10m, "(cashamount eq 100.10m)");
         }
 
 

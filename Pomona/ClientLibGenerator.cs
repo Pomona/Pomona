@@ -186,7 +186,7 @@ namespace Pomona
 
                     interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
 
-                    typeInfo.UriBaseType = toClientTypeDict[type.UriBaseType].InterfaceType;
+                    typeInfo.UriBaseType = this.toClientTypeDict[type.UriBaseType].InterfaceType;
                 }
                 else
                 {
@@ -598,13 +598,13 @@ namespace Pomona
             public MethodDefinition EmptyPocoCtor { get; set; }
             public TypeDefinition InterfaceType { get; set; }
 
-            public TypeDefinition UriBaseType { get; set; }
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition PostFormType { get; set; }
             public TypeDefinition PutFormType { get; set; }
 
             public TransformedType TransformedType { get; set; }
+            public TypeDefinition UriBaseType { get; set; }
         }
 
         #endregion
