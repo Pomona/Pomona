@@ -135,6 +135,12 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildPropEqFloat_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Precise == 10.75f, "(precise eq 10.75f)");
+        }
+
+        [Test]
         public void BuildPropEqProp_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla == x.Bonga, "(jalla eq bonga)");
