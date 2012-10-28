@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,15 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Pomona.Internals;
 
 namespace Pomona.Client
@@ -45,15 +40,15 @@ namespace Pomona.Client
         static QueryPredicateBuilder()
         {
             var binExprDict = new Dictionary<ExpressionType, string>()
-            {
-                { ExpressionType.AndAlso, "and" },
-                { ExpressionType.OrElse, "or" },
-                { ExpressionType.Equal, "eq" },
-                { ExpressionType.GreaterThan, "gt" },
-                { ExpressionType.GreaterThanOrEqual, "ge" },
-                { ExpressionType.LessThan, "lt" },
-                { ExpressionType.LessThanOrEqual, "le" }
-            };
+                                  {
+                                      {ExpressionType.AndAlso, "and"},
+                                      {ExpressionType.OrElse, "or"},
+                                      {ExpressionType.Equal, "eq"},
+                                      {ExpressionType.GreaterThan, "gt"},
+                                      {ExpressionType.GreaterThanOrEqual, "ge"},
+                                      {ExpressionType.LessThan, "lt"},
+                                      {ExpressionType.LessThanOrEqual, "le"}
+                                  };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);
         }
@@ -61,6 +56,9 @@ namespace Pomona.Client
 
     public class QueryPredicateBuilder<T> : QueryPredicateBuilder
     {
+        private static HashSet<char> validSymbolCharacters =
+            new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+
         private readonly Expression<Func<T, bool>> lambda;
 
 
@@ -74,13 +72,13 @@ namespace Pomona.Client
 
         private ParameterExpression InstanceParameter
         {
-            get { return this.lambda.Parameters[0]; }
+            get { return lambda.Parameters[0]; }
         }
 
 
         public override string ToString()
         {
-            return Build(this.lambda.Body);
+            return Build(lambda.Body);
         }
 
 
@@ -100,7 +98,7 @@ namespace Pomona.Client
         private static string GetJsonTypeName(Type typeOperand)
         {
             var resourceInfoAttribute =
-                typeOperand.GetCustomAttributes(typeof(ResourceInfoAttribute), false).
+                typeOperand.GetCustomAttributes(typeof (ResourceInfoAttribute), false).
                     OfType<ResourceInfoAttribute>().First();
             var jsonTypeName = resourceInfoAttribute.JsonTypeName;
             return jsonTypeName;
@@ -196,23 +194,33 @@ namespace Pomona.Client
             return GetMemberName(memberExpr.Member);
         }
 
+        private static bool ContainsOnlyValidSymbolCharacters(string text)
+        {
+            bool containsOnlyValidSymbolCharacters = text.All(x => validSymbolCharacters.Contains(x));
+            return containsOnlyValidSymbolCharacters;
+        }
+
+        private static string DecodeQuotedString(string quotedString)
+        {
+            if (quotedString.Length < 2 || quotedString[0] != '\'' || quotedString[quotedString.Length - 1] != '\'')
+                throw new ArgumentException("Quoted string needs to be enclosed with the character '");
+
+            // TODO: decode url encoded string
+            return quotedString.Substring(1, quotedString.Length - 2);
+        }
 
         private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
         {
             if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]))
             {
-                var indexKeyExpression = Build(callExpr.Arguments[0]);
-                /*
-                 * 
-                 * TODO: Simplify dictionary member access like in JS.
-                 * So instead of writing dict['boo'] we can write dict.boo
-                if (indexKeyExpression.StartsWith("'") && indexKeyExpression.EndsWith("'"))
-                {
-                    // TODO: Decode!
-                    return string.Format("{0}.{1}", Build(callExpr.Object), );
-                }*/
+                var quotedKey = Build(callExpr.Arguments[0]);
+                var key = DecodeQuotedString(quotedKey);
 
-                return string.Format("{0}[{1}]", Build(callExpr.Object), indexKeyExpression);
+                if (ContainsOnlyValidSymbolCharacters(key))
+                {
+                    return string.Format("{0}.{1}", Build(callExpr.Object), key);
+                }
+                return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);
             }
 
             if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<string>(s => s.StartsWith(null)))
@@ -233,7 +241,7 @@ namespace Pomona.Client
             {
                 case ExpressionType.TypeIs:
                     var typeOperand = typeBinaryExpression.TypeOperand;
-                    if (!typeOperand.IsInterface || !typeof(IClientResource).IsAssignableFrom(typeOperand))
+                    if (!typeOperand.IsInterface || !typeof (IClientResource).IsAssignableFrom(typeOperand))
                     {
                         throw new InvalidOperationException(
                             typeOperand.FullName
@@ -286,19 +294,19 @@ namespace Pomona.Client
             switch (Type.GetTypeCode(valueType))
             {
                 case TypeCode.String:
-                    return EncodeString((string)value);
+                    return EncodeString((string) value);
                 case TypeCode.Int32:
                     return value.ToString();
                 case TypeCode.DateTime:
-                    return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
+                    return string.Format("datetime'{0}'", DateTimeToString((DateTime) value));
                 case TypeCode.Object:
                     if (value == null)
                         return "null";
                     if (value is Guid)
-                        return "guid'" + ((Guid)value).ToString() + "'";
+                        return "guid'" + ((Guid) value).ToString() + "'";
                     break;
                 case TypeCode.Boolean:
-                    return ((bool)value) ? "true" : "false";
+                    return ((bool) value) ? "true" : "false";
                 default:
                     break;
             }
@@ -313,8 +321,8 @@ namespace Pomona.Client
             var member = memberExpression.Member;
             if (member.DeclaringType.Name.StartsWith("<>c__") && member.MemberType == MemberTypes.Field)
             {
-                var field = (FieldInfo)member;
-                var obj = ((ConstantExpression)memberExpression.Expression).Value;
+                var field = (FieldInfo) member;
+                var obj = ((ConstantExpression) memberExpression.Expression).Value;
 
                 //Add the value to the extraction list
                 value = field.GetValue(obj);

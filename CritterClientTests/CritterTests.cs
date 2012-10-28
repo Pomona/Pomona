@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,18 +22,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using CritterClient;
-
 using NUnit.Framework;
-
 using Pomona.Client;
 using Pomona.Example;
 using Pomona.Example.Models;
@@ -60,7 +53,7 @@ namespace CritterClientTests
         [SetUp]
         public void SetUp()
         {
-            this.critterHost.DataSource.ResetTestData();
+            critterHost.DataSource.ResetTestData();
         }
 
         #endregion
@@ -69,17 +62,17 @@ namespace CritterClientTests
         public void FixtureSetUp()
         {
             var rng = new Random();
-            this.baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
-            this.critterHost = new CritterHost(new Uri(this.baseUri));
-            this.critterHost.Start();
-            this.client = new Client { BaseUri = this.baseUri };
+            baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
+            critterHost = new CritterHost(new Uri(baseUri));
+            critterHost.Start();
+            client = new Client {BaseUri = baseUri};
         }
 
 
         [TestFixtureTearDown()]
         public void FixtureTearDown()
         {
-            this.critterHost.Stop();
+            critterHost.Stop();
         }
 
 
@@ -90,7 +83,7 @@ namespace CritterClientTests
 
         private IHat PostAHat(string hatType)
         {
-            var hat = this.client.Post<IHat>(
+            var hat = client.Post<IHat>(
                 x => { x.HatType = hatType; });
             return hat;
         }
@@ -120,10 +113,10 @@ namespace CritterClientTests
 
         private bool IsAllowedClientReferencedAssembly(Assembly assembly)
         {
-            return assembly == typeof(object).Assembly ||
-                   assembly == typeof(ICritter).Assembly ||
-                   assembly == typeof(ClientBase).Assembly ||
-                   assembly == typeof(Uri).Assembly;
+            return assembly == typeof (object).Assembly ||
+                   assembly == typeof (ICritter).Assembly ||
+                   assembly == typeof (ClientBase).Assembly ||
+                   assembly == typeof (Uri).Assembly;
         }
 
 
@@ -133,22 +126,22 @@ namespace CritterClientTests
             where TEntity : EntityBase
         {
             var entities =
-                this.critterHost.DataSource.List<TEntity>().Where(entityPredicate).OrderBy(x => x.Id).ToList();
-            var fetchedResources = this.client.Query(resourcePredicate, top : 10000);
+                critterHost.DataSource.List<TEntity>().Where(entityPredicate).OrderBy(x => x.Id).ToList();
+            var fetchedResources = client.Query(resourcePredicate, top: 10000);
             Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)));
         }
 
 
         private ICollection<Critter> CritterEntities
         {
-            get { return this.critterHost.DataSource.List<Critter>(); }
+            get { return critterHost.DataSource.List<Critter>(); }
         }
 
 
         [Test]
         public void AllPropertyTypesOfClientTypesAreAllowed()
         {
-            var clientAssembly = typeof(ICritter).Assembly;
+            var clientAssembly = typeof (ICritter).Assembly;
             var allPropTypes =
                 clientAssembly.GetExportedTypes().SelectMany(
                     x => x.GetProperties().Select(y => y.PropertyType)).Distinct();
@@ -183,7 +176,7 @@ namespace CritterClientTests
         [Test]
         public void DeserializeCritters()
         {
-            var critters = this.client.List<ICritter>("weapons.model");
+            var critters = client.List<ICritter>("weapons.model");
             var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
         }
 
@@ -193,7 +186,7 @@ namespace CritterClientTests
         {
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = this.client.GetUri<ICritter>(this.critterHost.BaseUri + "critter/" + musicalCritterId);
+            var musicalCritter = client.GetUri<ICritter>(critterHost.BaseUri + "critter/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
@@ -208,12 +201,12 @@ namespace CritterClientTests
 
             const string critterName = "Super critter";
 
-            var critter = this.client.Post<ICritter>(
+            var critter = client.Post<ICritter>(
                 x =>
-                {
-                    x.Hat = hat;
-                    x.Name = critterName;
-                });
+                    {
+                        x.Hat = hat;
+                        x.Name = critterName;
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -226,12 +219,12 @@ namespace CritterClientTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = this.client.Post<ICritter>(
+            var critter = client.Post<ICritter>(
                 x =>
-                {
-                    x.Hat = new HatForm() { HatType = hatType };
-                    x.Name = critterName;
-                });
+                    {
+                        x.Hat = new HatForm() {HatType = hatType};
+                        x.Name = critterName;
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -242,7 +235,7 @@ namespace CritterClientTests
         public void PostJunkWithRenamedProperty()
         {
             var propval = "Jalla jalla";
-            var junk = this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
+            var junk = client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
@@ -254,14 +247,14 @@ namespace CritterClientTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = this.client.Post<IMusicalCritter>(
+            var critter = client.Post<IMusicalCritter>(
                 x =>
-                {
-                    x.Hat = new HatForm() { HatType = hatType };
-                    x.Name = critterName;
-                    x.BandName = "banana";
-                    x.Instrument = new InstrumentForm() { Type = "helo" };
-                });
+                    {
+                        x.Hat = new HatForm() {HatType = hatType};
+                        x.Name = critterName;
+                        x.BandName = "banana";
+                        x.Instrument = new InstrumentForm() {Type = "helo"};
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -277,8 +270,8 @@ namespace CritterClientTests
             var bandName = firstMusicalCritter.BandName;
 
             TestQuery<ICritter, Critter>(
-                x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
-                x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
+                x => x is IMusicalCritter && ((IMusicalCritter) x).BandName == bandName,
+                x => x is MusicalCritter && ((MusicalCritter) x).BandName == bandName);
         }
 
 
@@ -292,7 +285,7 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_ReturnsExpandedProperties()
         {
-            var critter = this.client.Query<ICritter>(x => true, expand : "hat,weapons").First();
+            var critter = client.Query<ICritter>(x => true, expand: "hat,weapons").First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
@@ -303,7 +296,8 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_SearchByAttribute()
         {
-            TestQuery<ICritter, Critter>(x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"), null);
+            TestQuery<ICritter, Critter>(x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"),
+                                         x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"));
             Assert.Fail("Test is stupid");
         }
 
@@ -311,9 +305,9 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = this.critterHost.DataSource.List<Critter>().First();
+            var firstCritter = critterHost.DataSource.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
-            var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn);
+            var fetchedCritter = client.Query<ICritter>(x => x.CreatedOn == createdOn);
 
             Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
             Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
@@ -328,7 +322,7 @@ namespace CritterClientTests
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
 
-            var critters = this.client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
+            var critters = client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
 
             Assert.That(
                 critters.OrderBy(x => x.Id).Select(x => x.Id), Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
@@ -340,10 +334,10 @@ namespace CritterClientTests
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                this.critterHost.DataSource.List<Critter>().Skip(1).First().Name;
+                critterHost.DataSource.List<Critter>().Skip(1).First().Name;
 
             var critters =
-                this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
+                client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
 
             Assert.That(critters.Any(x => x.Name == nameOfFirstCritter));
             Assert.That(critters.Any(x => x.Name == nameOfSecondCritter));
@@ -354,7 +348,7 @@ namespace CritterClientTests
         public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
-            var fetchedCritters = this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
+            var fetchedCritters = client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
             Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
         }
 
@@ -372,7 +366,7 @@ namespace CritterClientTests
             var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
             var bandName = musicalCritter.BandName;
             var critters =
-                this.client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
+                client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
         }
 
@@ -380,7 +374,7 @@ namespace CritterClientTests
         [Test]
         public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
         {
-            var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
+            var musicalCritter = client.Query<IMusicalCritter>(x => true, expand: "instrument").First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
         }

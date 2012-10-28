@@ -96,9 +96,9 @@ namespace Pomona.UnitTests.Client
         }
 
         [Test]
-        public void BuildEqualExpressionOnPropertyOfDynamic_ReturnsCorrectString()
+        public void GetItemOnDictionary_ReturnsCorrectString()
         {
-            AssertBuild(x => x.StringToStringDict["noob"] == "bob", "(x.dynattributes.noob eq 'bob')");
+            AssertBuild(x => x.StringToStringDict["noob"] == "bob", "(stringToStringDict.noob eq 'bob')");
         }
 
         [Test]
