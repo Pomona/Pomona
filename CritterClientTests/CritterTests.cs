@@ -230,6 +230,14 @@ namespace CritterClientTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
+        [Test]
+        public void PostDictionaryContainer_WithItemSetInDictionary()
+        {
+            var response = client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
+            Assert.That(response.Map.ContainsKey("cow"));
+            Assert.That(response.Map["cow"] == "moo");
+        }
+
 
         [Test]
         public void PostJunkWithRenamedProperty()

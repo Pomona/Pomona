@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2012 Karsten Nikolai Strand
@@ -24,15 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq.Expressions;
-
 using NUnit.Framework;
-
 using Pomona.Client;
 
 namespace Pomona.UnitTests.Client
@@ -68,7 +61,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
         {
-            var container = new Container() { Junk = "Kirk" };
+            var container = new Container() {Junk = "Kirk"};
             var builder = new QueryPredicateBuilder<TestResource>(x => x.Jalla == container.Junk);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("(jalla eq 'Kirk')"));
@@ -93,12 +86,6 @@ namespace Pomona.UnitTests.Client
             var builder = new QueryPredicateBuilder<TestResource>(x => x.Birthday == dt);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("(birthday eq datetime'2012-10-22T05:32:45')"));
-        }
-
-        [Test]
-        public void GetItemOnDictionary_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.StringToStringDict["noob"] == "bob", "(stringToStringDict.noob eq 'bob')");
         }
 
         [Test]
@@ -170,6 +157,14 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("startswith(jalla,'Gangnam')"));
         }
 
+        [Test]
+        public void BuildStringEquals_EncodesSingleQuoteCorrectly()
+        {
+            AssertBuild(x => x.Jalla == "Banana'Boo", "(jalla eq 'Banana''Boo')");
+            AssertBuild(x => x.Jalla == "'", "(jalla eq '''')");
+            AssertBuild(x => x.Jalla == "''", "(jalla eq '''''')");
+        }
+
 
         [Test]
         public void BuildSubstringOfExpression_ReturnsCorrectString()
@@ -184,6 +179,12 @@ namespace Pomona.UnitTests.Client
         public void BuildTrue_ReturnsCorrectString()
         {
             AssertBuild(x => true, "true");
+        }
+
+        [Test]
+        public void GetItemOnDictionary_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringToStringDict["noob"] == "bob", "(stringToStringDict.noob eq 'bob')");
         }
     }
 }
