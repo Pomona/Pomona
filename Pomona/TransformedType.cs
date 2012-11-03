@@ -62,6 +62,7 @@ namespace Pomona
 
         public ConstructorInfo ConstructorInfo { get; set; }
         public bool MappedAsValueObject { get; set; }
+        public string PluralName { get; set; }
 
         public bool PostAllowed
         {

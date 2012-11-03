@@ -99,8 +99,6 @@ namespace Pomona
 
             this.toClientTypeDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
 
-            CreateClientType("Client");
-
             TypeReference resourceBaseRef;
             TypeReference resourceInterfaceRef;
             if (PomonaClientEmbeddingEnabled)
@@ -207,8 +205,6 @@ namespace Pomona
                 {
                     var propTypeRef = GetTypeReference(prop.PropertyType);
 
-                    var pocoPropDef = CreatePropertyDefinition(pocoDef, prop);
-
                     // For interface getters and setters
                     var interfacePropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
                     var interfaceGetMethod = new MethodDefinition(
@@ -234,30 +230,7 @@ namespace Pomona
                     interfaceDef.Methods.Add(interfaceSetMethod);
                     interfaceDef.Properties.Add(interfacePropDef);
 
-                    var propField =
-                        new FieldDefinition(
-                            "_" + prop.Name.Substring(0, 1).ToLower() + prop.Name.Substring(1),
-                            FieldAttributes.Private,
-                            propTypeRef);
-
-                    pocoDef.Fields.Add(propField);
-
-                    // Create get method
-
-                    pocoPropDef.GetMethod.Body.MaxStackSize = 1;
-                    var pocoGetIlProcessor = pocoPropDef.GetMethod.Body.GetILProcessor();
-                    pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-                    pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ldfld, propField));
-                    pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ret));
-                    // Create set method body
-
-                    pocoPropDef.SetMethod.Body.MaxStackSize = 8;
-
-                    var setIlProcessor = pocoPropDef.SetMethod.Body.GetILProcessor();
-                    setIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-                    setIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    setIlProcessor.Append(Instruction.Create(OpCodes.Stfld, propField));
-                    setIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+                    AddAutomaticProperty(pocoDef, prop.Name, GetTypeReference(prop.PropertyType));
                 }
             }
 
@@ -280,6 +253,8 @@ namespace Pomona
                 GeneratePropertyMethodsForNewResource,
                 alwaysPublic : true);
 
+            CreateClientType("Client");
+
             foreach (var typeInfo in this.toClientTypeDict.Values)
                 AddResourceInfoAttribute(typeInfo);
 
@@ -293,6 +268,68 @@ namespace Pomona
             stream.Write(array, 0, array.Length);
 
             //assembly.Write(stream);
+        }
+
+
+        private PropertyDefinition AddAutomaticProperty(
+            TypeDefinition declaringType, string name, TypeReference propertyType)
+        {
+            var propertyDefinition = AddProperty(declaringType, name, propertyType);
+
+            var propField =
+                new FieldDefinition(
+                    "_" + name.Substring(0, 1).ToLower() + name.Substring(1),
+                    FieldAttributes.Private,
+                    propertyType);
+
+            declaringType.Fields.Add(propField);
+
+            propertyDefinition.GetMethod.Body.MaxStackSize = 1;
+            var pocoGetIlProcessor = propertyDefinition.GetMethod.Body.GetILProcessor();
+            pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+            pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ldfld, propField));
+            pocoGetIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+            // Create set method body
+
+            propertyDefinition.SetMethod.Body.MaxStackSize = 8;
+
+            var setIlProcessor = propertyDefinition.SetMethod.Body.GetILProcessor();
+            setIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+            setIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            setIlProcessor.Append(Instruction.Create(OpCodes.Stfld, propField));
+            setIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+
+            return propertyDefinition;
+        }
+
+
+        /// <summary>
+        /// Create property with public getter and setter, with no method defined.
+        /// </summary>
+        private PropertyDefinition AddProperty(TypeDefinition declaringType, string name, TypeReference propertyType)
+        {
+            var proxyPropDef = new PropertyDefinition(name, PropertyAttributes.None, propertyType);
+            var proxyPropGetter = new MethodDefinition(
+                "get_" + name,
+                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
+                MethodAttributes.HideBySig
+                | MethodAttributes.Virtual | MethodAttributes.Public,
+                propertyType);
+            proxyPropDef.GetMethod = proxyPropGetter;
+
+            var proxyPropSetter = new MethodDefinition(
+                "set_" + name,
+                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
+                MethodAttributes.HideBySig
+                | MethodAttributes.Virtual | MethodAttributes.Public,
+                VoidTypeRef);
+            proxyPropSetter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propertyType));
+            proxyPropDef.SetMethod = proxyPropSetter;
+
+            declaringType.Methods.Add(proxyPropGetter);
+            declaringType.Methods.Add(proxyPropSetter);
+            declaringType.Properties.Add(proxyPropDef);
+            return proxyPropDef;
         }
 
 
@@ -342,11 +379,7 @@ namespace Pomona
 
         private void CreateClientType(string clientTypeName)
         {
-            TypeReference clientBaseTypeRef;
-            if (PomonaClientEmbeddingEnabled)
-                clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
-            else
-                clientBaseTypeRef = this.module.Import(typeof(ClientBase<>));
+            var clientBaseTypeRef = GetClientTypeReference(typeof(ClientBase<>));
 
             var clientTypeDefinition = new TypeDefinition(
                 "CritterClient", clientTypeName, TypeAttributes.Public);
@@ -374,34 +407,28 @@ namespace Pomona
 
             clientTypeDefinition.Methods.Add(ctor);
 
+            // Add repository properties
+
+            foreach (var resourceTypeInfo in this.toClientTypeDict.Values.Where(x => x.UriBaseType == x.InterfaceType))
+            {
+                var repoPropName = resourceTypeInfo.TransformedType.PluralName;
+                var repoPropType =
+                    GetClientTypeReference(typeof(ClientRepository<>)).MakeGenericInstanceType(
+                        resourceTypeInfo.InterfaceType);
+                var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
+                repoProp.SetMethod.IsPublic = false;
+            }
+
             this.module.Types.Add(clientTypeDefinition);
         }
 
 
-        private PropertyDefinition CreatePropertyDefinition(TypeDefinition proxyType, PropertyMapping prop)
+        private PropertyDefinition CreateProperty(TypeDefinition proxyType, PropertyMapping prop)
         {
             var propTypeRef = GetTypeReference(prop.PropertyType);
-            var proxyPropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
-            var proxyPropGetter = new MethodDefinition(
-                "get_" + prop.Name,
-                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual | MethodAttributes.Public,
-                propTypeRef);
-            proxyPropDef.GetMethod = proxyPropGetter;
+            var name = prop.Name;
 
-            var proxyPropSetter = new MethodDefinition(
-                "set_" + prop.Name,
-                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual | MethodAttributes.Public,
-                VoidTypeRef);
-            proxyPropSetter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propTypeRef));
-            proxyPropDef.SetMethod = proxyPropSetter;
-
-            proxyType.Methods.Add(proxyPropGetter);
-            proxyType.Methods.Add(proxyPropSetter);
-            proxyType.Properties.Add(proxyPropDef);
+            var proxyPropDef = AddProperty(proxyType, name, propTypeRef);
             return proxyPropDef;
         }
 
@@ -456,7 +483,7 @@ namespace Pomona
 
                 foreach (var prop in targetType.Properties)
                 {
-                    var proxyPropDef = CreatePropertyDefinition(proxyType, prop);
+                    var proxyPropDef = CreateProperty(proxyType, prop);
 
                     propertyMethodGenerator(prop, proxyPropDef, proxyBaseTypeDef);
                 }
@@ -544,6 +571,20 @@ namespace Pomona
                 setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
             setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
             setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
+        }
+
+
+        private TypeReference GetClientTypeReference(Type type)
+        {
+            TypeReference typeReference;
+            if (PomonaClientEmbeddingEnabled)
+            {
+                // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
+                typeReference = this.module.GetType(type.FullName);
+            }
+            else
+                typeReference = this.module.Import(type);
+            return typeReference;
         }
 
 

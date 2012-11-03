@@ -227,6 +227,17 @@ copy	copies";
         }
 
 
+        public static string CamelCaseToPlural(string camelCaseWord)
+        {
+            // step 1: split up into words
+            var parts = GetCamelCaseParts(camelCaseWord).ToArray();
+            // step 2: change last word to plural
+            parts[parts.Length - 1] = CapitalizeFirstLetter(ToPlural(parts[parts.Length - 1]));
+            // step 3: rejoin
+            return string.Concat(parts);
+        }
+
+
         public static bool IsIrregular(string noun)
         {
             return IrregularNouns.ContainsKey(noun.ToLower());
@@ -262,6 +273,14 @@ copy	copies";
         }
 
 
+        private static string CapitalizeFirstLetter(string word)
+        {
+            if (word.Length == 0)
+                return word;
+            return word.Substring(0, 1).ToUpper() + word.Substring(1).ToLower();
+        }
+
+
         private static Dictionary<string, string> CreateDictionaryFromText(string text)
         {
             return text
@@ -270,6 +289,23 @@ copy	copies";
                 .Select(x => x.Split("\t ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 .Where(x => x.Length == 2)
                 .ToDictionary(x => x[0], x => x[1]);
+        }
+
+
+        private static IEnumerable<string> GetCamelCaseParts(string camelCaseWord)
+        {
+            var startOfPart = 0;
+            for (var i = 0; i < camelCaseWord.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(camelCaseWord[i]))
+                {
+                    yield return camelCaseWord.Substring(startOfPart, i - startOfPart);
+                    startOfPart = i;
+                }
+            }
+
+            if (startOfPart < camelCaseWord.Length)
+                yield return camelCaseWord.Substring(startOfPart);
         }
 
 

@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 using CritterClient;
 
@@ -85,14 +86,14 @@ namespace CritterClientTests
 
         private CritterHost critterHost;
         private string baseUri;
-        private ClientBase client;
+        private Client client;
 
 
         private IHat PostAHat(string hatType)
         {
             var hat = this.client.Post<IHat>(
                 x => { x.HatType = hatType; });
-            return hat;
+            return (IHat)hat;
         }
 
 
@@ -181,6 +182,36 @@ namespace CritterClientTests
 
 
         [Test]
+        public void ClientLibraryIsCorrectlyGenerated()
+        {
+            var foundError = false;
+            var errors = new StringBuilder();
+            foreach (
+                var prop in
+                    this.client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                        x =>
+                        x.PropertyType.IsGenericType
+                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<>)))
+            {
+                var value = prop.GetValue(this.client, null);
+                if (value == null)
+                {
+                    foundError = true;
+                    errors.AppendFormat("Property {0} of generated client lib is null\r\n", prop.Name);
+                }
+                if (prop.GetSetMethod(true).IsPublic)
+                {
+                    foundError = true;
+                    errors.AppendFormat("Property {0} of generated client lib has a public setter.\r\n", prop.Name);
+                }
+            }
+
+            if (foundError)
+                Assert.Fail("Found the following errors on generated client lib: {0}\r\n", errors);
+        }
+
+
+        [Test]
         public void DeserializeCritters()
         {
             var critters = this.client.List<ICritter>("weapons.model");
@@ -208,7 +239,7 @@ namespace CritterClientTests
 
             const string critterName = "Super critter";
 
-            var critter = this.client.Post<ICritter>(
+            var critter = (ICritter)this.client.Post<ICritter>(
                 x =>
                 {
                     x.Hat = hat;
@@ -226,7 +257,7 @@ namespace CritterClientTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = this.client.Post<ICritter>(
+            var critter = (ICritter)this.client.Post<ICritter>(
                 x =>
                 {
                     x.Hat = new HatForm() { HatType = hatType };
@@ -241,7 +272,7 @@ namespace CritterClientTests
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
         {
-            var response = this.client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
+            var response = (IDictionaryContainer)this.client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
             Assert.That(response.Map.ContainsKey("cow"));
             Assert.That(response.Map["cow"] == "moo");
         }
@@ -251,7 +282,9 @@ namespace CritterClientTests
         public void PostJunkWithRenamedProperty()
         {
             var propval = "Jalla jalla";
-            var junk = this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
+            var junk =
+                (IJunkWithRenamedProperty)
+                this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
@@ -263,7 +296,7 @@ namespace CritterClientTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = this.client.Post<IMusicalCritter>(
+            var critter = (IMusicalCritter)this.client.Post<IMusicalCritter>(
                 x =>
                 {
                     x.Hat = new HatForm() { HatType = hatType };

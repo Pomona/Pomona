@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientBase.cs" />
+    <Compile Include="ClientRepository.cs" />
     <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="IProxyInterceptor.cs" />

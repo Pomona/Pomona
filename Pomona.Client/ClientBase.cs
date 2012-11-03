@@ -57,7 +57,7 @@ namespace Pomona.Client
             where T : IClientResource;
 
 
-        public abstract T Post<T>(Action<T> postAction)
+        public abstract object Post<T>(Action<T> postAction)
             where T : IClientResource;
 
 
@@ -116,6 +116,8 @@ namespace Pomona.Client
         protected ClientBase()
         {
             BaseUri = "http://localhost:2211/";
+
+            InstantiateClientRepositories();
         }
 
 
@@ -172,7 +174,7 @@ namespace Pomona.Client
         }
 
 
-        public override T Post<T>(Action<T> postAction)
+        public override object Post<T>(Action<T> postAction)
         {
             var type = typeof(T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
@@ -445,6 +447,22 @@ namespace Pomona.Client
             var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
             Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
             return JToken.Parse(jsonString);
+        }
+
+
+        private void InstantiateClientRepositories()
+        {
+            foreach (
+                var prop in
+                    GetType().GetProperties().Where(
+                        x =>
+                        x.PropertyType.IsGenericType
+                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<>)))
+            {
+                var repositoryResourceType = prop.PropertyType.GetGenericArguments()[0];
+                var repositoryType = typeof(ClientRepository<>).MakeGenericType(repositoryResourceType);
+                prop.SetValue(this, Activator.CreateInstance(repositoryType, this), null);
+            }
         }
 
 

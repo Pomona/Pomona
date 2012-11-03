@@ -194,6 +194,8 @@ namespace Pomona
 
                 classDefinition.ScanProperties(type);
 
+                classDefinition.PluralName = SingularToPluralTranslator.CamelCaseToPlural(classDefinition.Name);
+
                 return classDefinition;
             }
 

@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,46 +27,26 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace Pomona.Queries
+namespace Pomona.Client
 {
-    internal class SymbolNode : NodeBase
+    public class ClientRepository<TResource>
+        where TResource : IClientResource
     {
-        private readonly string name;
+        private readonly ClientBase client;
 
 
-        public SymbolNode(string name, IEnumerable<NodeBase> children) : base(NodeType.Symbol, children)
+        public ClientRepository(ClientBase client)
         {
-            if (name != null)
-                this.name = name;
+            if (client == null)
+                throw new ArgumentNullException("client");
+            this.client = client;
         }
 
 
-        public bool HasArguments
+        public TResource Post(Action<TResource> postAction)
         {
-            get { return Children.Count > 0; }
-        }
-
-        public string Name
-        {
-            get { return this.name; }
-        }
-
-
-        public override string ToString()
-        {
-            if (Children.Count == 0)
-                return String.Format("{0} {1}", base.ToString(), this.name);
-            else
-            {
-                return String.Format(
-                    "{0} {1}({2})",
-                    base.ToString(),
-                    this.name,
-                    string.Join(", ", Children.Select(x => x.ToString())));
-            }
+            return (TResource)this.client.Post(postAction);
         }
     }
 }
