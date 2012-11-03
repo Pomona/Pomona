@@ -50,7 +50,7 @@ namespace Pomona.UnitTests.PomonaSession
         }
 
 
-        private JObject SaveAndGetBackAsJson<T>(T entity)
+        private JObject SaveAndGetBackAsJson<T>(T entity, string expand = null)
             where T : EntityBase
         {
             DataSource.Save(entity);
@@ -62,6 +62,27 @@ namespace Pomona.UnitTests.PomonaSession
         {
             var thing = DataSource.List<ThingWithCustomIList>().First();
             return GetAsJson<ThingWithCustomIList>(thing.Id, expand);
+        }
+
+
+        [Test]
+        public void GetDictionaryContainerWithItemSet_HasDictionaryAsMapInJson()
+        {
+            var dictionaryContainer = new DictionaryContainer();
+            dictionaryContainer.Map["cow"] = "moo";
+            var jobject = SaveAndGetBackAsJson(dictionaryContainer, "map");
+            var mapJobject = jobject.AssertHasPropertyWithObject("map");
+            var cowString = mapJobject.AssertHasPropertyWithString("cow");
+            Assert.That(cowString, Is.EqualTo("moo"));
+        }
+
+
+        [Test]
+        public void GetIntListContainerAsJson()
+        {
+            var jobject = SaveAndGetBackAsJson(new IntListContainer() { Ints = { 1337 } }, "ints");
+            var stringArray = jobject.AssertHasPropertyWithArray("ints");
+            Assert.That(stringArray.Children().Select(x => x.Value<int>()), Is.EquivalentTo(new[] { 1337 }));
         }
 
 
@@ -78,6 +99,15 @@ namespace Pomona.UnitTests.PomonaSession
         {
             var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() { Maybe = 123 });
             jobject.AssertHasPropertyWithInteger("maybe");
+        }
+
+
+        [Test]
+        public void GetStringListContainerAsJson()
+        {
+            var jobject = SaveAndGetBackAsJson(new StringListContainer() { Strings = { "Doh!" } }, "strings");
+            var stringArray = jobject.AssertHasPropertyWithArray("strings");
+            Assert.That(stringArray.Children().Select(x => x.Value<string>()), Is.EquivalentTo(new[] { "Doh!" }));
         }
 
 

@@ -26,11 +26,18 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace Pomona.Example.Models
 {
-    public class SimpleAttribute : EntityBase
+    public class DictionaryContainer : EntityBase
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
+        public DictionaryContainer()
+        {
+            Map = new Dictionary<string, string>();
+        }
+
+
+        public IDictionary<string, string> Map { get; set; }
     }
 }

@@ -239,6 +239,15 @@ namespace CritterClientTests
 
 
         [Test]
+        public void PostDictionaryContainer_WithItemSetInDictionary()
+        {
+            var response = this.client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
+            Assert.That(response.Map.ContainsKey("cow"));
+            Assert.That(response.Map["cow"] == "moo");
+        }
+
+
+        [Test]
         public void PostJunkWithRenamedProperty()
         {
             var propval = "Jalla jalla";
@@ -303,19 +312,23 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_SearchByAttribute()
         {
-            TestQuery<ICritter, Critter>(x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"), null);
+            TestQuery<ICritter, Critter>(
+                x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"),
+                x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"));
             Assert.Fail("Test is stupid");
         }
+
 
         [Test]
         public void QueryCritter_WithDateBetween_ReturnsCorrectResult()
         {
             var fromTime = DateTime.UtcNow.AddDays(-5);
             var toTime = DateTime.UtcNow.AddDays(-2);
-            var fetchedCritters = client.Query<ICritter>(x => x.CreatedOn > fromTime && x.CreatedOn <= toTime);
+            var fetchedCritters = this.client.Query<ICritter>(x => x.CreatedOn > fromTime && x.CreatedOn <= toTime);
 
             Assert.Fail("Remove this test..");
         }
+
 
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()

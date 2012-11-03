@@ -26,11 +26,18 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace Pomona.Example.Models
 {
-    public class SimpleAttribute : EntityBase
+    public class StringListContainer : EntityBase
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
+        public StringListContainer()
+        {
+            Strings = new List<string>();
+        }
+
+
+        public IList<string> Strings { get; set; }
     }
 }

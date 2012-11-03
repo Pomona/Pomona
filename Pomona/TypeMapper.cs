@@ -110,6 +110,21 @@ namespace Pomona
         }
 
 
+        public bool IsSerializedAsDictionary(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return IsSerializedAsDictionary(GetClassMapping(type));
+        }
+
+
+        public bool IsSerializedAsDictionary(IMappedType mappedType)
+        {
+            //mappedType.IsGenericType && mappedType.
+            throw new NotImplementedException("NOCOMMIT!");
+        }
+
+
         public bool IsSerializedAsObject(IMappedType mappedType)
         {
             if (mappedType == null)
