@@ -48,6 +48,7 @@ namespace Pomona.Queries
                 NodeType.AndAlso,
                 NodeType.OrElse,
                 NodeType.Multiply,
+                NodeType.Modulo,
                 NodeType.Add,
                 NodeType.Div,
                 NodeType.Subtract,
@@ -71,6 +72,7 @@ namespace Pomona.Queries
                 { PomonaQueryParser.OR_OP, NodeType.OrElse },
                 { PomonaQueryParser.MUL_OP, NodeType.Multiply },
                 { PomonaQueryParser.DIV_OP, NodeType.Div },
+                { PomonaQueryParser.MOD_OP, NodeType.Modulo },
                 { PomonaQueryParser.DOT_OP, NodeType.Dot },
                 { PomonaQueryParser.STRING, NodeType.StringLiteral }
             };

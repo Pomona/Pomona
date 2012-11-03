@@ -52,7 +52,12 @@ namespace Pomona.Client
                 { ExpressionType.GreaterThan, "gt" },
                 { ExpressionType.GreaterThanOrEqual, "ge" },
                 { ExpressionType.LessThan, "lt" },
-                { ExpressionType.LessThanOrEqual, "le" }
+                { ExpressionType.LessThanOrEqual, "le" },
+                { ExpressionType.Subtract, "sub" },
+                { ExpressionType.Add, "add" },
+                { ExpressionType.Multiply, "mul" },
+                { ExpressionType.Divide, "div" },
+                { ExpressionType.Modulo, "mod" }
             };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);

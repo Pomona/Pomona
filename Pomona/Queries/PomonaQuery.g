@@ -20,6 +20,7 @@ tokens {
    NE_OP;
    ADD_OP;
    SUB_OP;
+   MOD_OP;
    DOT_OP;
    DATETIME_LITERAL;
    GUID_LITERAL;
@@ -117,6 +118,7 @@ additive_expr
 multiplicative_operator
     :   'mul' -> MUL_OP
     |   'div' -> DIV_OP
+	|   'mod' -> MOD_OP
     ;
 
 multiplicative_expr 

@@ -307,6 +307,15 @@ namespace CritterClientTests
             Assert.Fail("Test is stupid");
         }
 
+        [Test]
+        public void QueryCritter_WithDateBetween_ReturnsCorrectResult()
+        {
+            var fromTime = DateTime.UtcNow.AddDays(-5);
+            var toTime = DateTime.UtcNow.AddDays(-2);
+            var fetchedCritters = client.Query<ICritter>(x => x.CreatedOn > fromTime && x.CreatedOn <= toTime);
+
+            Assert.Fail("Remove this test..");
+        }
 
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()

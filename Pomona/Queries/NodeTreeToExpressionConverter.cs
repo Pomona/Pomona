@@ -133,6 +133,8 @@ namespace Pomona.Queries
                     return Expression.Subtract(leftChild, rightChild);
                 case NodeType.Multiply:
                     return Expression.Multiply(leftChild, rightChild);
+                case NodeType.Modulo:
+                    return Expression.Modulo(leftChild, rightChild);
                 case NodeType.Div:
                     return Expression.Divide(leftChild, rightChild);
                 case NodeType.Equal:
