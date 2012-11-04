@@ -60,6 +60,7 @@ namespace Pomona
             PluralName = SingularToPluralTranslator.CamelCaseToPlural(Name);
         }
 
+
         public ConstructorInfo ConstructorInfo { get; set; }
         public bool MappedAsValueObject { get; set; }
         public string PluralName { get; set; }

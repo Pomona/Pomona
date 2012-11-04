@@ -273,7 +273,6 @@ copy	copies";
         }
 
 
-
         private static Dictionary<string, string> CreateDictionaryFromText(string text)
         {
             return text
@@ -283,7 +282,6 @@ copy	copies";
                 .Where(x => x.Length == 2)
                 .ToDictionary(x => x[0], x => x[1]);
         }
-
 
 
         private static bool IsConsonant(char c)

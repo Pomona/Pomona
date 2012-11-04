@@ -285,7 +285,7 @@ namespace CritterClientTests
             var junk =
                 (IJunkWithRenamedProperty)
                 this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
-            
+
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
 

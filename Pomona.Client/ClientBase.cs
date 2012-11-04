@@ -174,12 +174,6 @@ namespace Pomona.Client
         }
 
 
-        private string GetUriOfType(Type type)
-        {
-            return this.BaseUri + GetResourceInfoForType(type).UrlRelativePath;
-        }
-
-
         public override object Post<T>(Action<T> postAction)
         {
             var type = typeof(T);
@@ -453,6 +447,12 @@ namespace Pomona.Client
             var jsonString = Encoding.UTF8.GetString(this.webClient.DownloadData(uri));
             Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
             return JToken.Parse(jsonString);
+        }
+
+
+        private string GetUriOfType(Type type)
+        {
+            return BaseUri + GetResourceInfoForType(type).UrlRelativePath;
         }
 
 
