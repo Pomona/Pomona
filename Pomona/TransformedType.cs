@@ -57,8 +57,8 @@ namespace Pomona
             this.typeMapper = typeMapper;
 
             UriBaseType = this;
+            PluralName = SingularToPluralTranslator.CamelCaseToPlural(Name);
         }
-
 
         public ConstructorInfo ConstructorInfo { get; set; }
         public bool MappedAsValueObject { get; set; }
@@ -81,14 +81,7 @@ namespace Pomona
 
         public TransformedType UriBaseType { get; set; }
 
-        public string UriRelativePath
-        {
-            get
-            {
-                // TODO: Make it possible to modify path
-                return UriBaseType.Name.ToLower();
-            }
-        }
+        public string UriRelativePath { get; set; }
 
         #region IMappedType Members
 

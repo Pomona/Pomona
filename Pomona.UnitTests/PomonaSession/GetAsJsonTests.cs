@@ -198,7 +198,7 @@ namespace Pomona.UnitTests.PomonaSession
             var musicalJobject = GetAsJson<Critter>(MusicalCritterId);
 
             var musicalCritterUri = musicalJobject.AssertHasPropertyWithString("_uri");
-            Assert.That(musicalCritterUri, Is.EqualTo("http://localhost/critter/" + MusicalCritterId));
+            Assert.That(musicalCritterUri, Is.EqualTo("http://localhost/critters/" + MusicalCritterId));
         }
 
 

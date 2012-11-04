@@ -162,7 +162,7 @@ namespace Pomona.Client
 
             if (type.IsInterface && type.Name.StartsWith("I"))
             {
-                var uri = BaseUri + type.Name.Substring(1).ToLower();
+                var uri = GetUriOfType(type);
 
                 if (expand != null)
                     uri = uri + "?expand=" + expand;
@@ -171,6 +171,12 @@ namespace Pomona.Client
             }
             else
                 throw new NotImplementedException("We expect an interface as Type parameter!");
+        }
+
+
+        private string GetUriOfType(Type type)
+        {
+            return this.BaseUri + GetResourceInfoForType(type).UrlRelativePath;
         }
 
 
@@ -457,10 +463,9 @@ namespace Pomona.Client
                     GetType().GetProperties().Where(
                         x =>
                         x.PropertyType.IsGenericType
-                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<>)))
+                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,>)))
             {
-                var repositoryResourceType = prop.PropertyType.GetGenericArguments()[0];
-                var repositoryType = typeof(ClientRepository<>).MakeGenericType(repositoryResourceType);
+                var repositoryType = prop.PropertyType;
                 prop.SetValue(this, Activator.CreateInstance(repositoryType, this), null);
             }
         }

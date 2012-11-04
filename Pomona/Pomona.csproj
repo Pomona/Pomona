@@ -78,6 +78,7 @@
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="JsonSchemaGenerator.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
+    <Compile Include="NameUtils.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="PomonaBootstrapper.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />

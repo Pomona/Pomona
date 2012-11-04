@@ -413,8 +413,8 @@ namespace Pomona
             {
                 var repoPropName = resourceTypeInfo.TransformedType.PluralName;
                 var repoPropType =
-                    GetClientTypeReference(typeof(ClientRepository<>)).MakeGenericInstanceType(
-                        resourceTypeInfo.InterfaceType);
+                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
+                        resourceTypeInfo.InterfaceType, resourceTypeInfo.InterfaceType);
                 var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
                 repoProp.SetMethod.IsPublic = false;
             }

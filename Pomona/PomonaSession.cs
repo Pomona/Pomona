@@ -250,8 +250,8 @@ namespace Pomona
 
             // Now we need to find matching mapped type
             // Hmm.. Here the _type part could be used.
-            var transformedType = TypeMapper.TransformedTypes.First(x => x.Name.ToLower() == entityName.ToLower());
-            var sourceType = transformedType.SourceType;
+            var transformedType = TypeMapper.TransformedTypes.First(x => x.UriRelativePath == entityName.ToLower());
+            var sourceType = transformedType.UriBaseType.SourceType;
 
             if (sourceType == null)
             {

@@ -191,7 +191,7 @@ namespace CritterClientTests
                     this.client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                         x.PropertyType.IsGenericType
-                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<>)))
+                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,>)))
             {
                 var value = prop.GetValue(this.client, null);
                 if (value == null)
@@ -224,7 +224,7 @@ namespace CritterClientTests
         {
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = this.client.GetUri<ICritter>(this.critterHost.BaseUri + "critter/" + musicalCritterId);
+            var musicalCritter = this.client.GetUri<ICritter>(this.critterHost.BaseUri + "critters/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
@@ -285,7 +285,7 @@ namespace CritterClientTests
             var junk =
                 (IJunkWithRenamedProperty)
                 this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
-
+            
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
 

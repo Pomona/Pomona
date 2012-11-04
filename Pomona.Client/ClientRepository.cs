@@ -27,11 +27,14 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Pomona.Client
 {
-    public class ClientRepository<TResource>
+    public class ClientRepository<TResource, TPostResponseResource>
         where TResource : IClientResource
+        where TPostResponseResource : IClientResource
     {
         private readonly ClientBase client;
 
@@ -44,9 +47,16 @@ namespace Pomona.Client
         }
 
 
-        public TResource Post(Action<TResource> postAction)
+        public TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TResource)this.client.Post(postAction);
+            return (TPostResponseResource)this.client.Post(postAction);
+        }
+
+
+        public IList<TResource> Query(
+            Expression<Func<TResource, bool>> predicate, string expand = null, int? top = null, int? skip = null)
+        {
+            return this.client.Query(predicate, expand, top, skip);
         }
     }
 }

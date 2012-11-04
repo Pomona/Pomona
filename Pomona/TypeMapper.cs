@@ -192,9 +192,10 @@ namespace Pomona
                 else
                     classDefinition.UriBaseType = classDefinition;
 
-                classDefinition.ScanProperties(type);
+                classDefinition.UriRelativePath = NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
 
-                classDefinition.PluralName = SingularToPluralTranslator.CamelCaseToPlural(classDefinition.Name);
+
+                classDefinition.ScanProperties(type);
 
                 return classDefinition;
             }

@@ -73,7 +73,7 @@ namespace Pomona
 
             Console.WriteLine("Registering routes..");
             foreach (var transformedType in this.typeMapper.TransformedTypes.Select(x => x.UriBaseType).Distinct())
-                RegisterRouterFor(transformedType);
+                RegisterRoutesFor(transformedType);
 
             Get["/schemas"] = x => GetSchemas();
 
@@ -211,7 +211,7 @@ namespace Pomona
         }
 
 
-        private void RegisterRouterFor(TransformedType type)
+        private void RegisterRoutesFor(TransformedType type)
         {
             var path = "/" + type.UriRelativePath;
             //Console.WriteLine("Registering path " + path);
