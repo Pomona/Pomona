@@ -37,26 +37,28 @@ namespace Pomona.Client
         where TPostResponseResource : IClientResource
     {
         private readonly ClientBase client;
+        private readonly string uri;
 
 
-        public ClientRepository(ClientBase client)
+        public ClientRepository(ClientBase client, string uri)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
             this.client = client;
+            this.uri = uri;
         }
 
 
         public TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post(postAction);
+            return (TPostResponseResource)this.client.Post(uri, postAction);
         }
 
 
         public IList<TResource> Query(
             Expression<Func<TResource, bool>> predicate, string expand = null, int? top = null, int? skip = null)
         {
-            return this.client.Query(predicate, expand, top, skip);
+            return this.client.Query(uri, predicate, expand, top, skip);
         }
     }
 }

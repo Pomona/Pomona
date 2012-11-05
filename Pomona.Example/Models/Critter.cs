@@ -53,6 +53,7 @@ namespace Pomona.Example.Models
 
         public DateTime CreatedOn { get; set; }
         public IList<Critter> Enemies { get; set; }
+        public Farm Farm { get; set; }
 
         public Hat Hat { get; set; }
 

@@ -63,6 +63,15 @@ namespace Pomona
 
         public ConstructorInfo ConstructorInfo { get; set; }
         public bool MappedAsValueObject { get; set; }
+
+        /// <summary>
+        /// Other types having the same URI as this type. (in same inheritance chain)
+        /// </summary>
+        public IEnumerable<TransformedType> MergedTypes
+        {
+            get { return this.typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
+        }
+
         public string PluralName { get; set; }
 
         public bool PostAllowed
@@ -295,15 +304,29 @@ namespace Pomona
         }
 
 
-        public void ScanProperties(Type type)
+        public void TakeLeftmostPathPart(string path, out string leftName, out string remainingPropPath)
+        {
+            var leftPathSeparatorIndex = path.IndexOf('.');
+            if (leftPathSeparatorIndex == -1)
+            {
+                leftName = path;
+                remainingPropPath = null;
+            }
+            else
+            {
+                leftName = path.Substring(0, leftPathSeparatorIndex);
+                remainingPropPath = path.Substring(leftPathSeparatorIndex + 1);
+            }
+        }
+
+
+        internal void ScanProperties(Type type)
         {
             var filter = this.typeMapper.Filter;
 
-            foreach (
-                var propInfo in
-                    type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(
-                        x => x.Name)
-                        .Where(x => x.GetIndexParameters().Count() == 0))
+            var scannedProperties = GetPropertiesToScanOrderedByName(type).ToList();
+
+            foreach (var propInfo in scannedProperties)
             {
                 if (!filter.PropertyIsIncluded(propInfo))
                     continue;
@@ -322,11 +345,12 @@ namespace Pomona
                 var getter = filter.GetPropertyGetter(propInfo);
                 var setter = filter.GetPropertySetter(propInfo);
                 var propertyType = filter.GetPropertyType(propInfo);
+                var propertyTypeMapped = this.typeMapper.GetClassMapping(propertyType);
 
                 var propDef = new PropertyMapping(
                     this.typeMapper.Filter.GetPropertyMappedName(propInfo),
                     declaringType,
-                    this.typeMapper.GetClassMapping(propertyType),
+                    propertyTypeMapped,
                     propInfo);
 
                 // TODO: This is not the most optimized way to set property, small code gen needed.
@@ -372,19 +396,11 @@ namespace Pomona
         }
 
 
-        public void TakeLeftmostPathPart(string path, out string leftName, out string remainingPropPath)
+        private static IEnumerable<PropertyInfo> GetPropertiesToScanOrderedByName(Type type)
         {
-            var leftPathSeparatorIndex = path.IndexOf('.');
-            if (leftPathSeparatorIndex == -1)
-            {
-                leftName = path;
-                remainingPropPath = null;
-            }
-            else
-            {
-                leftName = path.Substring(0, leftPathSeparatorIndex);
-                remainingPropPath = path.Substring(leftPathSeparatorIndex + 1);
-            }
+            return
+                type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).OrderBy(
+                    x => x.Name).Where(x => x.GetIndexParameters().Count() == 0);
         }
     }
 }

@@ -89,7 +89,20 @@ namespace Pomona
             get { return this.declaringType; }
         }
 
+        /// <summary>
+        /// For one-to-many collection properties this defines which property on the
+        /// many side refers to the one side of the relation.
+        /// 
+        /// This only applies to one-to-many collections..
+        /// </summary>
+        public PropertyMapping ElementForeignKey { get; set; }
+
         public Func<object, object> Getter { get; set; }
+
+        public bool IsOneToManyCollection
+        {
+            get { return this.propertyType.IsCollection; }
+        }
 
         public bool IsWriteable
         {

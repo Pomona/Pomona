@@ -40,6 +40,7 @@ namespace Pomona
         Type GetClientLibraryType(Type type);
         object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);
+        PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);
         Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
         string GetPropertyMappedName(PropertyInfo propertyInfo);
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);

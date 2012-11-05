@@ -90,6 +90,8 @@ namespace Pomona.Example
 
         public override Type GetUriBaseType(Type type)
         {
+            if (typeof(Weapon).IsAssignableFrom(type))
+                return typeof(Weapon);
             if (type == typeof(MusicalCritter))
                 return typeof(Critter);
 

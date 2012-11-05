@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Common.Logging;
+
 using Newtonsoft.Json;
 
 namespace Pomona
@@ -38,6 +40,7 @@ namespace Pomona
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
+        private ILog log = LogManager.GetLogger(typeof(TypeMappingFilterBase));
         private HashSet<Type> sourceTypesCached;
 
 
@@ -183,6 +186,31 @@ namespace Pomona
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
             return false;
+        }
+
+
+        public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
+        {
+            Type[] genericArguments;
+            if (
+                !TypeUtils.TryGetTypeArguments(
+                    collectionProperty.PropertyType, typeof(IEnumerable<>), out genericArguments))
+                return null;
+
+            var elementType = genericArguments[0];
+
+            var foreignPropCandicates =
+                elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
+            if (foreignPropCandicates.Count > 1)
+            {
+                this.log.Warn(
+                    "Not mapping foreign key relation of one-to-many collection property " + collectionProperty.Name
+                    + " of type "
+                    + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
+                    + string.Join(", ", foreignPropCandicates.Select(x => x.Name)) + " (of " + elementType.FullName);
+            }
+
+            return foreignPropCandicates.Count == 1 ? foreignPropCandicates[0] : null;
         }
 
         #endregion

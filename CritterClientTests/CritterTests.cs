@@ -231,6 +231,14 @@ namespace CritterClientTests
 
 
         [Test]
+        public void GetWeaponsLazy_FromCritter()
+        {
+            var critter = this.client.List<ICritter>().First();
+            var weapons = critter.Weapons.ToList();
+        }
+
+
+        [Test]
         public void PostCritterWithExistingHat()
         {
             const string hatType = "Old";

@@ -30,13 +30,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Common.Logging;
+
 namespace Pomona
 {
     public class TypeMapper
     {
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
-        private HashSet<Type> sourceTypes;
+        private ILog log = LogManager.GetLogger(typeof(TypeMapper));
+        private readonly HashSet<Type> sourceTypes;
 
 
         public TypeMapper(ITypeMappingFilter filter)
@@ -45,8 +48,12 @@ namespace Pomona
                 throw new ArgumentNullException("filter");
             this.filter = filter;
             this.sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
+
             foreach (var sourceType in this.sourceTypes)
+            {
                 GetClassMapping(sourceType);
+                MapForeignKeys();
+            }
         }
 
 
@@ -201,6 +208,32 @@ namespace Pomona
             }
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
+        }
+
+
+        private void MapForeignKeys()
+        {
+            // This method maps all properties representing foreign keys for one-to-many collections
+            // TODO: Make this configurable through filter
+
+            var collectionProperties =
+                TransformedTypes
+                    .SelectMany(x => x.Properties)
+                    .Where(x => x.PropertyType.IsCollection);
+
+            foreach (var prop in collectionProperties.Where(x => x.PropertyInfo != null))
+            {
+                var foreignKeyProp = this.filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
+
+                if (foreignKeyProp != null)
+                {
+                    prop.ElementForeignKey =
+                        TransformedTypes
+                            .Where(x => x.SourceType == foreignKeyProp.DeclaringType)
+                            .SelectMany(x => x.Properties)
+                            .FirstOrDefault(x => x.PropertyInfo.Name == foreignKeyProp.Name);
+                }
+            }
         }
     }
 }

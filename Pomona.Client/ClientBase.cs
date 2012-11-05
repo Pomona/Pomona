@@ -67,6 +67,22 @@ namespace Pomona.Client
 
         public abstract IList<T> Query<T>(
             Expression<Func<T, bool>> predicate, string expand = null, int? top = null, int? skip = null);
+
+
+        internal abstract object Post<T>(string uri, Action<T> postAction)
+            where T : IClientResource;
+
+
+        internal abstract T Put<T>(string uri, T target, Action<T> updateAction)
+            where T : IClientResource;
+
+
+        internal abstract IList<T> Query<T>(
+            string uri,
+            Expression<Func<T, bool>> predicate,
+            string expand = null,
+            int? top = null,
+            int? skip = null);
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -227,6 +243,36 @@ namespace Pomona.Client
         public override IList<T> Query<T>(
             Expression<Func<T, bool>> predicate, string expand = null, int? top = null, int? skip = null)
         {
+            var uri = BaseUri + GetRelativeUriForType(typeof(T));
+            return Query(uri, predicate, expand, top, skip);
+        }
+
+
+        public string GetUri(Type type)
+        {
+            return BaseUri + GetRelativeUriForType(type);
+        }
+
+
+        internal override object Post<T>(string uri, Action<T> postAction)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        internal override T Put<T>(string uri, T target, Action<T> updateAction)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        internal override IList<T> Query<T>(
+            string uri,
+            Expression<Func<T, bool>> predicate,
+            string expand = null,
+            int? top = null,
+            int? skip = null)
+        {
             var resourceInfo = GetResourceInfoForType(typeof(T));
             if (!resourceInfo.IsUriBaseType)
             {
@@ -240,7 +286,8 @@ namespace Pomona.Client
             }
 
             var filterString = new QueryPredicateBuilder<T>(predicate).ToString();
-            var uri = BaseUri + GetRelativeUriForType(typeof(T)) + "?filter=" + filterString;
+
+            uri = uri + "?filter=" + filterString;
 
             if (expand != null)
                 uri = uri + "&expand=" + expand;
@@ -252,12 +299,6 @@ namespace Pomona.Client
                 uri = uri + "&skip=" + skip.Value;
 
             return GetUri<IList<T>>(uri);
-        }
-
-
-        public string GetUri(Type type)
-        {
-            return BaseUri + GetRelativeUriForType(type);
         }
 
 
@@ -466,7 +507,9 @@ namespace Pomona.Client
                         && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,>)))
             {
                 var repositoryType = prop.PropertyType;
-                prop.SetValue(this, Activator.CreateInstance(repositoryType, this), null);
+                var tResource = repositoryType.GetGenericArguments()[0];
+                var uri = GetUriOfType(tResource);
+                prop.SetValue(this, Activator.CreateInstance(repositoryType, this, uri), null);
             }
         }
 

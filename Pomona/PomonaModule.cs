@@ -127,6 +127,31 @@ namespace Pomona
         }
 
 
+        private Response GetByForeignKeyPropertyAsJson(TransformedType type, PropertyMapping key, object id)
+        {
+            // HACK: This is quite hacky, I'll gladly admit that [KNS]
+            // TODO: Fix that this only works if primary key is named Id [KNS]
+            if (Request.Query.filter.HasValue)
+                Request.Query.filter = string.Format("{0}.id eq {1} and ({2})", key.JsonName, id, Request.Query.filter);
+            else
+                Request.Query.filter = string.Format("{0}.id eq {1}", key.JsonName, id);
+
+            var query = (PomonaQuery)this.queryTransformer.TransformRequest(Request, Context, type);
+
+            string jsonStr;
+            using (var strWriter = new StringWriter())
+            {
+                this.session.Query(query, strWriter);
+                jsonStr = strWriter.ToString();
+            }
+
+            var response = new Response();
+            FillJsonResponse(response, jsonStr);
+
+            return response;
+        }
+
+
         private Response GetClientLibrary()
         {
             var response = new Response();
@@ -219,6 +244,26 @@ namespace Pomona
                              + string.Format("<li><a href=\"{0}\">{1}</a></li>", path, type.Name);
 
             Get[path + "/{id}"] = x => GetAsJson(type, x.id);
+
+            foreach (var prop in type.Properties)
+            {
+                if (prop.IsOneToManyCollection && prop.ElementForeignKey != null)
+                {
+                    var collectionElementType = (TransformedType)prop.PropertyType.CollectionElementType;
+                    var elementForeignKey = prop.ElementForeignKey;
+
+                    Get[path + "/{id}/" + prop.JsonName] =
+                        x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id);
+
+                    var propname = prop.Name;
+                    Get[path + "/{id}/_old_" + prop.JsonName] = x => GetPropertyFromEntityAsJson(type, x.id, propname);
+                }
+                else
+                {
+                    var propname = prop.Name;
+                    Get[path + "/{id}/" + prop.JsonName] = x => GetPropertyFromEntityAsJson(type, x.id, propname);
+                }
+            }
 
             Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson(type, x.id, x.propname);
 

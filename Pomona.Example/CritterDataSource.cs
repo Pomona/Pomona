@@ -133,6 +133,13 @@ namespace Pomona.Example
         }
 
 
+        private void CreateFarms()
+        {
+            Save(new Farm("Insanity valley"));
+            Save(new Farm("Broken boulevard"));
+        }
+
+
         private void CreateJunkWithNullables()
         {
             Save(new JunkWithNullableInt() { Maybe = 1337, MentalState = "I'm happy, I have value!" });
@@ -142,10 +149,12 @@ namespace Pomona.Example
 
         private void CreateObjectModel()
         {
-            var rng = new Random(678343);
+            var rng = new Random(23576758);
 
             for (var i = 0; i < 70; i++)
                 Save(new WeaponModel() { Name = Words.GetSpecialWeapon(rng) });
+
+            CreateFarms();
 
             const int critterCount = 180;
 
@@ -182,10 +191,18 @@ namespace Pomona.Example
             critter.CrazyValue = new CrazyValueObject()
             { Sickness = Words.GetCritterHealthDiagnosis(rng, critter.Name) };
 
-            CreateWeapons(rng, critter, 4);
+            CreateWeapons(rng, critter, 24);
             CreateSubscriptions(rng, critter, 3);
 
-            Save(critter.Hat); // Random hat
+            // Add to one of the farms
+            var farms = GetEntityList<Farm>();
+            var chosenFarm = farms[rng.Next(farms.Count)];
+
+            chosenFarm.Critters.Add(critter);
+            critter.Farm = chosenFarm;
+
+            // Put on a random hat
+            Save(critter.Hat);
             Save(critter);
         }
 
@@ -215,9 +232,9 @@ namespace Pomona.Example
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var weapon =
                     rng.NextDouble() > 0.5
-                        ? Save(new Weapon(weaponType) { Dependability = rng.NextDouble() })
-                        : Save(
-                            new Gun(weaponType)
+                        ? Save(new Weapon(critter, weaponType) { Dependability = rng.NextDouble() })
+                        : Save<Weapon>(
+                            new Gun(critter, weaponType)
                             { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
                 critter.Weapons.Add(weapon);
             }

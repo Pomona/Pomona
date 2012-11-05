@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,25 +26,21 @@
 
 #endregion
 
-using Nancy.TinyIoc;
+using System.Collections.Generic;
 
-namespace Pomona.Example
+namespace Pomona.Example.Models
 {
-    public class CritterBootstrapper : PomonaBootstrapper
+    public class Farm : EntityBase
     {
-        private readonly CritterDataSource dataSource;
-
-
-        public CritterBootstrapper(CritterDataSource dataSource = null)
+        public Farm(string name)
         {
-            this.dataSource = dataSource ?? new CritterDataSource();
+            Name = name;
+            Critters = new List<Critter>();
         }
 
 
-        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
-        {
-            base.ConfigureApplicationContainer(container);
-            container.Register(this.dataSource);
-        }
+        public List<Critter> Critters { get; set; }
+
+        public string Name { get; set; }
     }
 }
