@@ -39,6 +39,10 @@ namespace Pomona.UnitTests.Client
     [TestFixture]
     public class QueryPredicateBuilderTests
     {
+        public class FooBar : IClientResource
+        {
+        }
+
         public class TestResource : IClientResource
         {
             public DateTime Birthday { get; set; }
@@ -46,7 +50,9 @@ namespace Pomona.UnitTests.Client
             public decimal CashAmount { get; set; }
             public Guid Guid { get; set; }
             public string Jalla { get; set; }
+            public float LessPrecise { get; set; }
             public double Precise { get; set; }
+            public IList<FooBar> SomeList { get; set; }
             public IDictionary<string, string> StringToStringDict { get; set; }
         }
 
@@ -75,6 +81,25 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildCountOfList_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Count == 4, "(count(someList) eq 4)");
+        }
+
+
+        [Test]
+        public void BuildDateComponentExtractExpressions_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Birthday.Year == 2012, "(year(birthday) eq 2012)");
+            AssertBuild(x => x.Birthday.Month == 10, "(month(birthday) eq 10)");
+            AssertBuild(x => x.Birthday.Day == 15, "(day(birthday) eq 15)");
+            AssertBuild(x => x.Birthday.Hour == 11, "(hour(birthday) eq 11)");
+            AssertBuild(x => x.Birthday.Minute == 33, "(minute(birthday) eq 33)");
+            AssertBuild(x => x.Birthday.Second == 44, "(second(birthday) eq 44)");
+        }
+
+
+        [Test]
         public void BuildDateTimeUtc_ReturnsCorrectString()
         {
             var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Utc);
@@ -92,6 +117,13 @@ namespace Pomona.UnitTests.Client
             var builder = new QueryPredicateBuilder<TestResource>(x => x.Birthday == dt);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("(birthday eq datetime'2012-10-22T05:32:45')"));
+        }
+
+
+        [Test]
+        public void BuildEndsWithExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.EndsWith("boja"), "endswith(jalla,'boja')");
         }
 
 
@@ -123,6 +155,27 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildIndexOfExpressionWithCharArg_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.IndexOf('z') == 2, "(indexof(jalla,'z') eq 2)");
+        }
+
+
+        [Test]
+        public void BuildIndexOfExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.IndexOf("banana") == 2, "(indexof(jalla,'banana') eq 2)");
+        }
+
+
+        [Test]
+        public void BuildLengthExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.Length == 1, "(length(jalla) eq 1)");
+        }
+
+
+        [Test]
         public void BuildNull_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla == null, "(jalla eq null)");
@@ -139,7 +192,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildPropEqFloat_ReturnsCorrectString()
         {
-            AssertBuild(x => x.Precise == 10.75f, "(precise eq 10.75f)");
+            AssertBuild(x => x.LessPrecise == 10.75f, "(lessPrecise eq 10.75f)");
         }
 
 
@@ -153,7 +206,14 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildPropEqualsDecimal_ReturnsCorrectString()
         {
-            AssertBuild(x => x.CashAmount == 100.10m, "(cashamount eq 100.10m)");
+            AssertBuild(x => x.CashAmount == 100.10m, "(cashAmount eq 100.10m)");
+        }
+
+
+        [Test]
+        public void BuildReplaceExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.Replace("a", "e") == "crezy", "(replace(jalla,'a','e') eq 'crezy')");
         }
 
 
@@ -172,6 +232,14 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla == "Banana'Boo", "(jalla eq 'Banana''Boo')");
             AssertBuild(x => x.Jalla == "'", "(jalla eq '''')");
             AssertBuild(x => x.Jalla == "''", "(jalla eq '''''')");
+        }
+
+
+        [Test]
+        public void BuildSubstringExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.Substring(1) == "alla", "(substring(jalla,1) eq 'alla')");
+            AssertBuild(x => x.Jalla.Substring(1, 2) == "al", "(substring(jalla,1,2) eq 'al')");
         }
 
 

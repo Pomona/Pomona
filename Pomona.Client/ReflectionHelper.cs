@@ -48,6 +48,22 @@ namespace Pomona.Internals
         }
 
 
+        public static MemberInfo GetInstanceMemberInfo<TInstance>(Expression<Func<TInstance, object>> expr)
+        {
+            var body = expr.Body;
+            if (body.NodeType == ExpressionType.Convert)
+                body = ((UnaryExpression)body).Operand;
+
+            if (body.NodeType == ExpressionType.Call)
+                return ((MethodCallExpression)body).Method;
+
+            if (body.NodeType == ExpressionType.MemberAccess)
+                return ((MemberExpression)body).Member;
+
+            throw new ArgumentException("Needs node of type Call or MemberAccess");
+        }
+
+
         public static MethodInfo GetInstanceMethodInfo<TInstance>(Expression<Func<TInstance, object>> expr)
         {
             var body = expr.Body;

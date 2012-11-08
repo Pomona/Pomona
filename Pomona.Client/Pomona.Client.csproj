@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,6 +50,8 @@
     <Compile Include="ClientRepository.cs" />
     <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="IHasResourceUri.cs" />
+    <Compile Include="Internals\OdataFunctionMapping.cs" />
+    <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IProxyInterceptor.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="LazyListProxy.cs" />

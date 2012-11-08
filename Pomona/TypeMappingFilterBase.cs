@@ -35,6 +35,8 @@ using Common.Logging;
 
 using Newtonsoft.Json;
 
+using Pomona.Client.Internals;
+
 namespace Pomona
 {
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
@@ -78,6 +80,12 @@ namespace Pomona
         public abstract object GetIdFor(object entity);
 
         public abstract IEnumerable<Type> GetSourceTypes();
+
+
+        public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
+        {
+            return false;
+        }
 
 
         public virtual string GetClientLibraryFilename()

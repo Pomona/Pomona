@@ -160,14 +160,15 @@ namespace Pomona
 
         public string ConvertToInternalPropertyPath(string externalPath)
         {
-            // TODO: Fix for inherited types..
             // TODO: Fix for lists, but first gotta find out how that would work..
 
             string externalPropertyName, remainingExternalPath;
             TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
 
+            // TODO: Fix for multiple inherited types with property of same name..
             var prop =
-                Properties.FirstOrDefault(x => x.Name.ToLowerInvariant() == externalPropertyName.ToLowerInvariant());
+                Properties.Concat(MergedTypes.SelectMany(x => x.Properties)).FirstOrDefault(
+                    x => x.Name.ToLowerInvariant() == externalPropertyName.ToLowerInvariant());
             if (prop == null)
             {
                 throw new PomonaMappingException(

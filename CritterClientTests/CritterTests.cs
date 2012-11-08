@@ -71,9 +71,10 @@ namespace CritterClientTests
         {
             var rng = new Random();
             this.baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
+            Console.WriteLine("Starting CritterHost on " + this.baseUri);
             this.critterHost = new CritterHost(new Uri(this.baseUri));
             this.critterHost.Start();
-            this.client = new Client { BaseUri = this.baseUri };
+            this.client = new Client(this.baseUri);
         }
 
 
@@ -320,6 +321,21 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
+        {
+            var farms = this.client.Farms.Query(x => true).ToList();
+            Assert.That(farms.Count, Is.GreaterThanOrEqualTo(2));
+            var firstFarm = farms[0];
+            var secondFarm = farms[1];
+
+            var someCritters = firstFarm.Critters.Query(x => x.Farm.Id == firstFarm.Id).ToList();
+            Assert.That(someCritters, Has.Count.GreaterThanOrEqualTo(1));
+            var noCritters = firstFarm.Critters.Query(x => x.Farm.Id == secondFarm.Id);
+            Assert.That(noCritters, Has.Count.EqualTo(0));
+        }
+
+
+        [Test]
         public void QueryCritter_CastToMusicalCritterWithEqualsOperator_ReturnsCorrectMusicalCritter()
         {
             var firstMusicalCritter =
@@ -340,6 +356,20 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryCritter_NameContainsString_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x.Name.Contains("Bear"), x => x.Name.Contains("Bear"));
+        }
+
+
+        [Test]
+        public void QueryCritter_NameEndsWith_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x.Name.EndsWith("e"), x => x.Name.EndsWith("e"));
+        }
+
+
+        [Test]
         public void QueryCritter_ReturnsExpandedProperties()
         {
             var critter = this.client.Query<ICritter>(x => true, expand : "hat,weapons").First();
@@ -351,12 +381,47 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryCritter_RoundDecimal_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => decimal.Round(3.33m) == 3m, x => decimal.Round(3.33m) == 3m);
+        }
+
+
+        [Test]
+        public void QueryCritter_RoundDouble_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => Math.Round(3.33) == 3.0, x => Math.Round(3.33) == 3.0);
+        }
+
+
+        [Test]
         public void QueryCritter_SearchByAttribute()
         {
             TestQuery<ICritter, Critter>(
                 x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"),
                 x => x.SimpleAttributes.Any(y => y.Key == "Moo" && y.Value == "Boo"));
             Assert.Fail("Test is stupid");
+        }
+
+
+        [Test]
+        public void QueryCritter_Sqrt_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => Math.Sqrt(9.0) == 3.0, x => Math.Sqrt(9.0) == 3.0);
+        }
+
+
+        [Test]
+        public void QueryCritter_TolowerNameContainsString_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x.Name.ToLower().Contains("bear"), x => x.Name.ToLower().Contains("bear"));
+        }
+
+
+        [Test]
+        public void QueryCritter_WithCreatedDayMod3Equals0_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day % 3 == 0, x => x.CreatedOn.Day % 3 == 0);
         }
 
 
@@ -399,6 +464,13 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryCritter_WithLengthEquals_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x.Name.Length == 11, x => x.Name.Length == 11);
+        }
+
+
+        [Test]
         public void QueryCritter_WithNameEqualsOrNameEqualsSomethingElse_ReturnsCorrectResult()
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
@@ -430,6 +502,13 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryCritter_WithWeaponsCountIsGreaterThan7_ReturnsCorrectCritters()
+        {
+            TestQuery<ICritter, Critter>(x => x.Weapons.Count > 7, x => x.Weapons.Count > 7);
+        }
+
+
+        [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
             var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
@@ -446,6 +525,20 @@ namespace CritterClientTests
             var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
+        }
+
+
+        [Test]
+        public void QueryWeapons_WithFilterOnDecimal_ReturnsCorrectCritters()
+        {
+            TestQuery<IWeapon, Weapon>(x => x.Price < 500m, x => x.Price < 500m);
+        }
+
+
+        [Test]
+        public void QueryWeapons_WithFilterOnDouble_ReturnsCorrectCritters()
+        {
+            TestQuery<IWeapon, Weapon>(x => x.Dependability > 0.8, x => x.Dependability > 0.8);
         }
     }
 }

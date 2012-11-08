@@ -105,7 +105,7 @@ namespace Pomona.Queries
             switch (tree.Type)
             {
                 case PomonaQueryParser.INT:
-                    return new IntNode(int.Parse(tree.Text));
+                    return new NumberNode(tree.Text);
                 case PomonaQueryParser.STRING:
                     return new StringNode(tree.Text);
                 case PomonaQueryParser.ID:

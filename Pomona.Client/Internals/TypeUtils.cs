@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Pomona
+namespace Pomona.Client.Internals
 {
-    internal static class TypeUtils
+    public static class TypeUtils
     {
-        internal static IEnumerable<Type> AllBaseTypesAndInterfaces(Type type)
+        public static IEnumerable<Type> AllBaseTypesAndInterfaces(Type type)
         {
             var baseType = type;
 
@@ -57,7 +57,7 @@ namespace Pomona
         /// <param name="genericTypeToSearchFor">Generic type to whether checkType implements</param>
         /// <param name="genericArguments">Generic arguments for T</param>
         /// <returns>true if type implements , false if not</returns>
-        internal static bool TryGetTypeArguments(
+        public static bool TryGetTypeArguments(
             Type checkType, Type genericTypeToSearchFor, out Type[] genericArguments)
         {
             genericArguments = null;

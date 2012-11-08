@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Pomona.Client.Internals;
+
 namespace Pomona.Queries
 {
     public class NodeTreeToExpressionConverter<T>
@@ -85,10 +87,10 @@ namespace Pomona.Queries
                 return Expression.Constant(stringNode.Value);
             }
 
-            if (node.NodeType == NodeType.IntLiteral)
+            if (node.NodeType == NodeType.NumberLiteral)
             {
-                var intNode = (IntNode)node;
-                return Expression.Constant(intNode.Value);
+                var intNode = (NumberNode)node;
+                return Expression.Constant(intNode.Parse());
             }
 
             throw new NotImplementedException();
@@ -181,6 +183,10 @@ namespace Pomona.Queries
         {
             expression = null;
 
+            var exprArgs = node.Children.Select(ParseExpression);
+            if (OdataFunctionMapping.TryConvertToExpression(node.Name, node.Children.Count, exprArgs, out expression))
+                return true;
+
             List<Expression> argsExpressions;
             switch (node.Name)
             {
@@ -192,17 +198,6 @@ namespace Pomona.Queries
                     //var 
                     var castToType = this.propertyResolver.Resolve(((SymbolNode)node.Children[0]).Name);
                     expression = Expression.Convert(this.thisParam, castToType);
-                    return true;
-                case "substringof":
-                    var stringContainsMethod = typeof(string).GetMethod("Contains");
-                    argsExpressions = node.Children.Select(ParseExpression).ToList();
-                    expression = Expression.Call(argsExpressions[1], stringContainsMethod, argsExpressions[0]);
-                    return true;
-
-                case "startswith":
-                    var stringStartsWithMethod = typeof(string).GetMethod("StartsWith", new Type[] { typeof(string) });
-                    argsExpressions = node.Children.Select(ParseExpression).ToList();
-                    expression = Expression.Call(argsExpressions[0], stringStartsWithMethod, argsExpressions[1]);
                     return true;
             }
 

@@ -36,6 +36,7 @@ namespace Pomona
 {
     public interface ITypeMappingFilter
     {
+        bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientLibraryFilename();
         Type GetClientLibraryType(Type type);
         object GetIdFor(object entity);

@@ -40,5 +40,6 @@ namespace Pomona.Example.Models
         public Critter Critter { get; set; }
         public double Dependability { get; set; }
         public WeaponModel Model { get; set; }
+        public decimal Price { get; set; }
     }
 }

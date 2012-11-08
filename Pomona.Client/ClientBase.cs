@@ -49,6 +49,8 @@ namespace Pomona.Client
         }
 
 
+        public abstract string BaseUri { get; }
+
         public abstract T GetUri<T>(string uri);
         public abstract object GetUri(string uri, Type type);
 
@@ -99,6 +101,7 @@ namespace Pomona.Client
 
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
         private readonly WebClient webClient = new WebClient();
+        private string baseUri;
 
 
         static ClientBase()
@@ -129,15 +132,19 @@ namespace Pomona.Client
         }
 
 
-        protected ClientBase()
+        protected ClientBase(string baseUri)
         {
-            BaseUri = "http://localhost:2211/";
+            this.baseUri = baseUri;
+            // BaseUri = "http://localhost:2211/";
 
             InstantiateClientRepositories();
         }
 
 
-        public string BaseUri { get; set; }
+        public override string BaseUri
+        {
+            get { return this.baseUri; }
+        }
 
 
         public static string GetRelativeUriForType(Type type)
@@ -380,6 +387,8 @@ namespace Pomona.Client
         {
             // Check if this is a proxy for a collection or not
             Type elementType;
+            if (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof(ClientRepository<,>))
+                return Activator.CreateInstance(expectedType, this, uri);
             if (TryGetCollectionElementType(expectedType, out elementType))
             {
                 var proxy = LazyListProxy.CreateForType(elementType, uri, this);

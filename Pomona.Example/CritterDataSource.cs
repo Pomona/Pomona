@@ -235,7 +235,11 @@ namespace Pomona.Example
                         ? Save(new Weapon(critter, weaponType) { Dependability = rng.NextDouble() })
                         : Save<Weapon>(
                             new Gun(critter, weaponType)
-                            { Dependability = rng.NextDouble(), ExplosionFactor = rng.NextDouble() });
+                            {
+                                Dependability = rng.NextDouble(),
+                                ExplosionFactor = rng.NextDouble(),
+                                Price = (decimal)(rng.NextDouble() * 10000)
+                            });
                 critter.Weapons.Add(weapon);
             }
         }

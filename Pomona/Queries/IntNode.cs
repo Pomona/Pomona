@@ -26,22 +26,24 @@
 
 #endregion
 
+using System;
+using System.Globalization;
 using System.Linq;
 
 namespace Pomona.Queries
 {
-    internal class IntNode : NodeBase
+    internal class NumberNode : NodeBase
     {
-        private readonly int value;
+        private readonly string value;
 
 
-        public IntNode(int value) : base(NodeType.IntLiteral, Enumerable.Empty<NodeBase>())
+        public NumberNode(string value) : base(NodeType.NumberLiteral, Enumerable.Empty<NodeBase>())
         {
             this.value = value;
         }
 
 
-        public int Value
+        public string Value
         {
             get { return this.value; }
         }
@@ -50,6 +52,24 @@ namespace Pomona.Queries
         public override string ToString()
         {
             return base.ToString() + " " + Value;
+        }
+
+
+        public object Parse()
+        {
+            var lastCharacter = this.value[this.value.Length - 1];
+            if (lastCharacter == 'm' || lastCharacter == 'M')
+                return decimal.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+            if (lastCharacter == 'f' || lastCharacter == 'F')
+                return float.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+
+            var parts = this.value.Split('.');
+            if (parts.Length == 1)
+                return int.Parse(parts[0], CultureInfo.InvariantCulture);
+            if (parts.Length == 2)
+                return double.Parse(this.value, CultureInfo.InvariantCulture);
+
+            throw new InvalidOperationException("Unable to parse " + this.value);
         }
     }
 }

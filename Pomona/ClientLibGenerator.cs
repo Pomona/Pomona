@@ -60,6 +60,11 @@ namespace Pomona
 
         public bool PomonaClientEmbeddingEnabled { get; set; }
 
+        private TypeReference StringTypeRef
+        {
+            get { return this.module.Import(typeof(string)); }
+        }
+
         private TypeReference VoidTypeRef
         {
             get { return this.module.Import(typeof(void)); }
@@ -203,7 +208,7 @@ namespace Pomona
 
                 foreach (var prop in classMapping.Properties.Where(x => x.DeclaringType == classMapping))
                 {
-                    var propTypeRef = GetTypeReference(prop.PropertyType);
+                    var propTypeRef = GetPropertyTypeReference(prop);
 
                     // For interface getters and setters
                     var interfacePropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
@@ -230,7 +235,7 @@ namespace Pomona
                     interfaceDef.Methods.Add(interfaceSetMethod);
                     interfaceDef.Properties.Add(interfacePropDef);
 
-                    AddAutomaticProperty(pocoDef, prop.Name, GetTypeReference(prop.PropertyType));
+                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
                 }
             }
 
@@ -393,15 +398,18 @@ namespace Pomona
                 | MethodAttributes.Public,
                 VoidTypeRef);
 
+            ctor.Parameters.Add(new ParameterDefinition("uri", ParameterAttributes.None, StringTypeRef));
+
             var clientBaseTypeCtor =
                 this.module.Import(
-                    clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
+                    clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 1));
             clientBaseTypeCtor.DeclaringType =
                 clientBaseTypeCtor.DeclaringType.MakeGenericInstanceType(clientTypeDefinition);
 
             ctor.Body.MaxStackSize = 8;
             var ctorIlProcessor = ctor.Body.GetILProcessor();
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, clientBaseTypeCtor));
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
@@ -425,7 +433,7 @@ namespace Pomona
 
         private PropertyDefinition CreateProperty(TypeDefinition proxyType, PropertyMapping prop)
         {
-            var propTypeRef = GetTypeReference(prop.PropertyType);
+            var propTypeRef = GetPropertyTypeReference(prop);
             var name = prop.Name;
 
             var proxyPropDef = AddProperty(proxyType, name, propTypeRef);
@@ -585,6 +593,23 @@ namespace Pomona
             else
                 typeReference = this.module.Import(type);
             return typeReference;
+        }
+
+
+        private TypeReference GetPropertyTypeReference(PropertyMapping prop)
+        {
+            TypeReference propTypeRef;
+            if (prop.IsOneToManyCollection
+                && this.typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
+            {
+                var elementTypeReference = GetTypeReference(prop.PropertyType.CollectionElementType);
+                propTypeRef =
+                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
+                        elementTypeReference, elementTypeReference);
+            }
+            else
+                propTypeRef = GetTypeReference(prop.PropertyType);
+            return propTypeRef;
         }
 
 

@@ -33,6 +33,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Pomona.Client.Internals;
 using Pomona.Internals;
 
 namespace Pomona.Client
@@ -119,6 +120,17 @@ namespace Pomona.Client
 
             // TODO: decode url encoded string
             return quotedString.Substring(1, quotedString.Length - 2);
+        }
+
+
+        private static string DoubleToString(double value)
+        {
+            // We must always include . to make sure number gets interpreted as double and not int.
+            // Yeah, there's probably a more elegant way to do this, but don't care about finding it out right now.
+            // This should work.
+            return value != (long)value
+                       ? value.ToString("R", CultureInfo.InvariantCulture)
+                       : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
         }
 
 
@@ -209,6 +221,11 @@ namespace Pomona.Client
 
         private string BuildFromMemberExpression(MemberExpression memberExpr)
         {
+            string odataExpression;
+            if (TryMapKnownOdataFunction(
+                memberExpr.Member, Enumerable.Repeat(memberExpr.Expression, 1), out odataExpression))
+                return odataExpression;
+
             // This gets weird with closures, see:
             // http://blog.nexterday.com/post/Automatic-compilation-of-Linq-to-SQL-queries.aspx
 
@@ -234,15 +251,22 @@ namespace Pomona.Client
                 return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);
             }
 
-            if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<string>(s => s.StartsWith(null)))
-                return string.Format("startswith({0},{1})", Build(callExpr.Object), Build(callExpr.Arguments[0]));
+            string odataExpression;
 
-            if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<string>(s => s.Contains(null)))
-                return string.Format("substringof({0},{1})", Build(callExpr.Arguments[0]), Build(callExpr.Object));
+            // Include this (object) parameter as first argument if not null!
+            var args = callExpr.Object != null
+                           ? Enumerable.Repeat(callExpr.Object, 1).Concat(callExpr.Arguments)
+                           : callExpr.Arguments;
 
-            throw new NotImplementedException(
-                "Don't know what to do with method " + callExpr.Method.Name + " declared in "
-                + callExpr.Method.DeclaringType.FullName);
+            if (
+                !TryMapKnownOdataFunction(callExpr.Method, args, out odataExpression))
+            {
+                throw new NotImplementedException(
+                    "Don't know what to do with method " + callExpr.Method.Name + " declared in "
+                    + callExpr.Method.DeclaringType.FullName);
+            }
+
+            return odataExpression;
         }
 
 
@@ -310,6 +334,12 @@ namespace Pomona.Client
                     return value.ToString();
                 case TypeCode.DateTime:
                     return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
+                case TypeCode.Double:
+                    return DoubleToString((double)value);
+                case TypeCode.Single:
+                    return ((float)value).ToString("R", CultureInfo.InvariantCulture) + "f";
+                case TypeCode.Decimal:
+                    return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
                     if (value == null)
                         return "null";
@@ -353,6 +383,22 @@ namespace Pomona.Client
             }
 
             return false;
+        }
+
+
+        private bool TryMapKnownOdataFunction(
+            MemberInfo member, IEnumerable<Expression> arguments, out string odataExpression)
+        {
+            string odataFunctionFormat;
+            if (!OdataFunctionMapping.TryGetOdataFunctionFormatString(member, out odataFunctionFormat))
+            {
+                odataExpression = null;
+                return false;
+            }
+
+            var odataArguments = arguments.Select(Build).Cast<object>().ToArray();
+            odataExpression = string.Format(odataFunctionFormat, odataArguments);
+            return true;
         }
     }
 }

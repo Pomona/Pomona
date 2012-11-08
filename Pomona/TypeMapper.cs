@@ -38,8 +38,8 @@ namespace Pomona
     {
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
-        private ILog log = LogManager.GetLogger(typeof(TypeMapper));
         private readonly HashSet<Type> sourceTypes;
+        private ILog log = LogManager.GetLogger(typeof(TypeMapper));
 
 
         public TypeMapper(ITypeMappingFilter filter)

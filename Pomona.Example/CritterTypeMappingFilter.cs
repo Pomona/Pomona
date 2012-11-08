@@ -38,6 +38,15 @@ namespace Pomona.Example
 {
     public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
+        public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.DeclaringType == typeof(Farm) && propertyInfo.Name == "Critters")
+                return true;
+
+            return base.ClientPropertyIsExposedAsRepository(propertyInfo);
+        }
+
+
         public override string GetClientLibraryFilename()
         {
             return "Critter.Client";

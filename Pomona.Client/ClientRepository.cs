@@ -49,16 +49,22 @@ namespace Pomona.Client
         }
 
 
+        public string Uri
+        {
+            get { return this.uri; }
+        }
+
+
         public TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post(uri, postAction);
+            return (TPostResponseResource)this.client.Post(Uri, postAction);
         }
 
 
         public IList<TResource> Query(
             Expression<Func<TResource, bool>> predicate, string expand = null, int? top = null, int? skip = null)
         {
-            return this.client.Query(uri, predicate, expand, top, skip);
+            return this.client.Query(Uri, predicate, expand, top, skip);
         }
     }
 }
