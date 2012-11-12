@@ -40,12 +40,12 @@ namespace Pomona
             base.ConfigureConventions(nancyConventions);
 
             Console.WriteLine(Environment.CurrentDirectory);
-            nancyConventions.StaticContentsConventions.Add(
-                StaticContentConventionBuilder.AddDirectory("/scripts/prettify", "Scripts/Prettify"));
-            nancyConventions.StaticContentsConventions.Add(
-                StaticContentConventionBuilder.AddDirectory("/content/prettify", "Content/Prettify"));
-            nancyConventions.StaticContentsConventions.Add(
-                StaticContentConventionBuilder.AddDirectory("/content/prettify/themes", "Content/Prettify/Themes"));
+            //nancyConventions.StaticContentsConventions.Add(
+            //    StaticContentConventionBuilder.AddDirectory("/scripts/prettify", "Scripts/Prettify"));
+            //nancyConventions.StaticContentsConventions.Add(
+            //    StaticContentConventionBuilder.AddDirectory("/content/prettify", "Content/Prettify"));
+            //nancyConventions.StaticContentsConventions.Add(
+            //    StaticContentConventionBuilder.AddDirectory("/content/prettify/themes", "Content/Prettify/Themes"));
         }
     }
 }
