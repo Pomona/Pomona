@@ -35,6 +35,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.4.5.10\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -57,6 +61,7 @@
   <ItemGroup>
     <Compile Include="CJson\CJsonEncoderTests.cs" />
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
+    <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="JsonSchemaGeneratorTests.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />

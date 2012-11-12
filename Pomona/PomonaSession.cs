@@ -35,6 +35,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using Pomona.CodeGen;
 using Pomona.Internals;
 using Pomona.Queries;
 

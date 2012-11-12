@@ -89,7 +89,11 @@ namespace Pomona.Client
 
         public override string ToString()
         {
-            return Build(this.lambda.Body);
+            // Strip away redundant parens around query
+            var queryFilterString = Build(this.lambda.Body);
+            while (queryFilterString.Length > 1 && queryFilterString[0] == '(' && queryFilterString[queryFilterString.Length - 1] == ')')
+                queryFilterString = queryFilterString.Substring(1, queryFilterString.Length - 2);
+            return queryFilterString;
         }
 
 
@@ -334,7 +338,7 @@ namespace Pomona.Client
                     return value.ToString();
                 case TypeCode.DateTime:
                     return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
-                case TypeCode.Double:
+                case TypeCode   .Double:
                     return DoubleToString((double)value);
                 case TypeCode.Single:
                     return ((float)value).ToString("R", CultureInfo.InvariantCulture) + "f";

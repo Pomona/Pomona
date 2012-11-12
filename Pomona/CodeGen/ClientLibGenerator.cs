@@ -37,7 +37,7 @@ using Mono.Cecil.Rocks;
 
 using Pomona.Client;
 
-namespace Pomona
+namespace Pomona.CodeGen
 {
     public class ClientLibGenerator
     {
