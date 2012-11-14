@@ -30,7 +30,7 @@ namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        public CritterModule(CritterDataSource dataSource) : base(dataSource, new CritterTypeMappingFilter())
+        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper) : base(dataSource, typeMapper)
         {
         }
 

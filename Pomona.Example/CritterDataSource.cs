@@ -58,8 +58,22 @@ namespace Pomona.Example
         {
             lock (this.syncLock)
             {
-                var idInt = Convert.ToInt32(id);
-                return (T)((object)GetEntityList<T>().Cast<EntityBase>().First(x => x.Id == idInt));
+                object entity;
+                try
+                {
+                    var idInt = Convert.ToInt32(id);
+                    entity = GetEntityList<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == idInt);
+                }
+                catch (Exception)
+                {
+                    entity = null;
+                }
+
+                if (entity == null)
+                    throw new ResourceNotFoundException(
+                        string.Format("No entity of type {0} with id {1} found.", typeof(T).Name, id));
+
+                return (T)entity;
             }
         }
 

@@ -74,6 +74,7 @@ namespace Pomona
 
             var query = new PomonaQuery(rootType);
 
+            string select = null;
             string filter = null;
             var top = 10;
             var skip = 0;
@@ -86,6 +87,9 @@ namespace Pomona
 
             if (request.Query.filter.HasValue)
                 filter = (string)request.Query.filter;
+
+            if (request.Query.select.HasValue)
+                select = (string)request.Query.select;
 
             var sourceType = rootType.SourceType;
             var parseMethod = toExpressionGenericMethod.MakeGenericMethod(sourceType);

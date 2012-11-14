@@ -67,6 +67,15 @@ namespace Pomona.Client
 
         #endregion
 
+        protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            if (this.target == null)
+                this.target = this.client.GetUri(this.uri, this.targetType);
+
+            return property.Getter((TOwner)this.target);
+        }
+
+
         protected object OnPropertyGet(string propertyName)
         {
             if (this.target == null)
@@ -78,6 +87,12 @@ namespace Pomona.Client
 
 
         protected void OnPropertySet(string propertyName, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
             throw new NotImplementedException();
         }

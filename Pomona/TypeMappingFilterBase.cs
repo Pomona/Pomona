@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 using Common.Logging;
@@ -108,7 +109,19 @@ namespace Pomona
 
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            return x => propertyInfo.GetValue(x, null);
+            var selfParam = Expression.Parameter(typeof(object), "x");
+            var expr = Expression.Lambda<Func<object, object>>(
+                Expression.Convert(
+                    Expression.MakeMemberAccess(
+                        Expression.Convert(selfParam, propertyInfo.DeclaringType),
+                        propertyInfo
+                        ),
+                    typeof(object)
+                    ),
+                selfParam
+                );
+
+            return expr.Compile();
         }
 
 
@@ -120,7 +133,29 @@ namespace Pomona
 
         public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
         {
-            return (x, value) => propertyInfo.SetValue(x, value, null);
+            if (!propertyInfo.CanWrite)
+            {
+                return (obj, value) =>
+                {
+                    throw new InvalidOperationException(
+                        "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
+                };
+            }
+
+            var selfParam = Expression.Parameter(typeof(object), "x");
+            var valueParam = Expression.Parameter(typeof(object), "value");
+            var expr = Expression.Lambda<Action<object, object>>(
+                Expression.Assign(
+                    Expression.Property(
+                        Expression.Convert(selfParam, propertyInfo.DeclaringType),
+                        propertyInfo
+                        ),
+                    Expression.Convert(valueParam, propertyInfo.PropertyType)
+                    ),
+                selfParam,
+                valueParam);
+
+            return expr.Compile();
         }
 
 

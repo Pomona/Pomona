@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,9 +33,9 @@ using System.Linq;
 using Nancy;
 using Nancy.ErrorHandling;
 
-namespace Pomona.Example
+namespace Pomona
 {
-    public class CritterErrorHandler : IErrorHandler
+    public class ErrorHandler : IErrorHandler
     {
         private readonly HttpStatusCode[] _supportedStatusCodes = new[]
         {
@@ -48,9 +48,6 @@ namespace Pomona.Example
 
         public void Handle(HttpStatusCode statusCode, NancyContext context)
         {
-            var resp = new Response();
-            resp.StatusCode = HttpStatusCode.InternalServerError;
-
             object exceptionObject;
             context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject);
 
@@ -60,6 +57,13 @@ namespace Pomona.Example
             if (exception is RequestExecutionException)
                 exception = exception.InnerException;
 
+            if (exception is ResourceNotFoundException)
+            {
+                context.Response = new NotFoundResponse();
+                return;
+            }
+
+            var resp = new Response();
             object errorTrace;
             context.Items.TryGetValue("ERROR_TRACE", out errorTrace);
 
@@ -81,7 +85,7 @@ namespace Pomona.Example
                 }
             };
             resp.ContentType = "text/plain";
-            resp.StatusCode = HttpStatusCode.OK;
+            resp.StatusCode = HttpStatusCode.InternalServerError;
             context.Response = resp;
         }
 

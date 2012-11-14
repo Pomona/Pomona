@@ -39,6 +39,12 @@ using Pomona.Client;
 
 namespace Pomona.CodeGen
 {
+    public class NoCommitType
+    {
+        // NOCOMMIT!
+        private static List<int> blah = new List<int>();
+    }
+
     public class ClientLibGenerator
     {
         private ModuleDefinition module;
@@ -243,7 +249,13 @@ namespace Pomona.CodeGen
 
             // Create proxy types
 
-            CreateProxyType("{0}Proxy", GetProxyType("LazyProxyBase"), (info, def) => { info.LazyProxyType = def; });
+            CreateProxyType("{0}OldProxy", GetProxyType("LazyProxyBase"), (info, def) => { info.LazyProxyType = def; });
+
+            CreateProxyType(
+                "{0}Proxy",
+                GetProxyType("LazyProxyBase"),
+                (info, def) => { info.LazyProxyType = def; },
+                GenerateAcceleratedPropertyProxyMethods);
 
             CreateProxyType(
                 "{0}Update",
@@ -445,7 +457,7 @@ namespace Pomona.CodeGen
             string proxyTypeFormat,
             TypeReference proxyBaseTypeDef,
             Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
-            Action<PropertyMapping, PropertyDefinition, TypeReference> propertyMethodGenerator
+            Action<PropertyMapping, PropertyDefinition, TypeReference, TypeReference> propertyMethodGenerator
                 = null,
             bool alwaysPublic = false)
         {
@@ -472,6 +484,7 @@ namespace Pomona.CodeGen
                         proxyTypeName,
                         typeAttributes,
                         proxyBaseTypeDef);
+                this.module.Types.Add(proxyType);
                 proxyType.Interfaces.Add(typeInfo.InterfaceType);
 
                 // Empty public constructor
@@ -492,11 +505,11 @@ namespace Pomona.CodeGen
                 foreach (var prop in targetType.Properties)
                 {
                     var proxyPropDef = CreateProperty(proxyType, prop);
-
-                    propertyMethodGenerator(prop, proxyPropDef, proxyBaseTypeDef);
+                    var declaringTypeInfo = this.toClientTypeDict[prop.DeclaringType];
+                    propertyMethodGenerator(prop, proxyPropDef, proxyBaseTypeDef, declaringTypeInfo.InterfaceType);
                 }
 
-                this.module.Types.Add(proxyType);
+                //this.module.Types.Add(proxyType);
 
                 if (onTypeGenerated != null)
                     onTypeGenerated(typeInfo, proxyType);
@@ -504,14 +517,83 @@ namespace Pomona.CodeGen
         }
 
 
+        private void GenerateAcceleratedPropertyProxyMethods(
+            PropertyMapping prop, PropertyDefinition def, TypeReference baseRef, TypeReference proxyTargetType)
+        {
+            var propWrapperTypeDef = GetClientTypeReference(typeof(PropertyWrapper<,>)).Resolve();
+            var propWrapperTypeRef =
+                this.module.Import(
+                    propWrapperTypeDef.MakeGenericInstanceType(proxyTargetType, def.PropertyType));
+
+            var propWrapperCtor = this.module.Import(
+                propWrapperTypeDef.GetConstructors().First(
+                    x => !x.IsStatic &&
+                         x.Parameters.Count == 1 &&
+                         x.Parameters[0].ParameterType.FullName == this.module.TypeSystem.String.FullName).
+                    MakeHostInstanceGeneric(proxyTargetType, def.PropertyType));
+
+            var propertyWrapperField = new FieldDefinition(
+                "_pwrap_" + prop.Name,
+                /*FieldAttributes.SpecialName | */FieldAttributes.Private | FieldAttributes.Static,
+                propWrapperTypeRef);
+            def.DeclaringType.Fields.Add(propertyWrapperField);
+
+            var initPropertyWrappersMethod = GetInitPropertyWrappersMethod(def);
+
+            var initIl = initPropertyWrappersMethod.Body.GetILProcessor();
+            var lastInstruction = initPropertyWrappersMethod.Body.Instructions.Last();
+            if (lastInstruction.OpCode != OpCodes.Ret)
+                throw new InvalidOperationException("Expected to find ret instruction as last instruction");
+
+            initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Ldstr, prop.Name));
+            initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Newobj, propWrapperCtor));
+            initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Stsfld, propertyWrapperField));
+
+            var baseDef = baseRef.Resolve();
+            var proxyOnGetMethod =
+                this.module.Import(baseDef.Methods.First(x => x.Name == "OnGet"));
+            var proxyOnSetMethod =
+                this.module.Import(baseDef.Methods.First(x => x.Name == "OnSet"));
+
+            if (proxyOnGetMethod.GenericParameters.Count != 2)
+                throw new InvalidOperationException(
+                    "OnGet method of base class is required to have two generic parameters.");
+            if (proxyOnSetMethod.GenericParameters.Count != 2)
+                throw new InvalidOperationException(
+                    "OnSet method of base class is required to have two generic parameters.");
+
+            var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
+            proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);
+            proxyOnGetMethodInstance.GenericArguments.Add(def.PropertyType);
+
+            var proxyOnSetMethodInstance = new GenericInstanceMethod(proxyOnSetMethod);
+            proxyOnSetMethodInstance.GenericArguments.Add(proxyTargetType);
+            proxyOnSetMethodInstance.GenericArguments.Add(def.PropertyType);
+
+            var getIl = def.GetMethod.Body.GetILProcessor();
+            getIl.Emit(OpCodes.Ldarg_0);
+            getIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
+            getIl.Emit(OpCodes.Callvirt, proxyOnGetMethodInstance);
+            getIl.Emit(OpCodes.Ret);
+
+            var setIl = def.SetMethod.Body.GetILProcessor();
+            setIl.Emit(OpCodes.Ldarg_0);
+            setIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
+            setIl.Emit(OpCodes.Ldarg_1);
+            setIl.Emit(OpCodes.Callvirt, proxyOnSetMethodInstance);
+            setIl.Emit(OpCodes.Ret);
+        }
+
+
         private void GeneratePropertyMethodsForNewResource(
             PropertyMapping prop,
             PropertyDefinition proxyPropDef,
-            TypeReference proxyBaseDefinition)
+            TypeReference proxyBaseDefinition,
+            TypeReference proxyTargetType)
         {
             if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Required ||
                 prop.CreateMode == PropertyMapping.PropertyCreateMode.Optional)
-                GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition);
+                GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition, proxyTargetType);
             else
             {
                 var invalidOperationStrCtor = typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
@@ -531,10 +613,11 @@ namespace Pomona.CodeGen
         private void GeneratePropertyMethodsForUpdateProxy(
             PropertyMapping prop,
             PropertyDefinition proxyPropDef,
-            TypeReference proxyBaseDefinition)
+            TypeReference proxyBaseDefinition,
+            TypeReference proxyTargetType)
         {
             if (prop.IsWriteable)
-                GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition);
+                GeneratePropertyProxyMethods(prop, proxyPropDef, proxyBaseDefinition, proxyTargetType);
             else
             {
                 var invalidOperationStrCtor = typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
@@ -554,7 +637,8 @@ namespace Pomona.CodeGen
         private void GeneratePropertyProxyMethods(
             PropertyMapping prop,
             PropertyDefinition proxyPropDef,
-            TypeReference proxyBaseDefinition)
+            TypeReference proxyBaseDefinition,
+            TypeReference proxyTargetType)
         {
             var proxyOnPropertyGetMethod =
                 this.module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
@@ -596,6 +680,41 @@ namespace Pomona.CodeGen
         }
 
 
+        private MethodDefinition GetInitPropertyWrappersMethod(PropertyDefinition def)
+        {
+            const string initPropertyWrappersMethodName = "InitPropertyWrappers";
+            var initPropertyWrappersMethod =
+                def.DeclaringType.Methods.FirstOrDefault(x => x.IsStatic && x.Name == initPropertyWrappersMethodName);
+
+            if (initPropertyWrappersMethod == null)
+            {
+                initPropertyWrappersMethod = new MethodDefinition(
+                    initPropertyWrappersMethodName,
+                    MethodAttributes.Static | MethodAttributes.Private,
+                    this.module.TypeSystem.Void);
+                def.DeclaringType.Methods.Add(initPropertyWrappersMethod);
+
+                initPropertyWrappersMethod.Body.MaxStackSize = 8;
+                var il = initPropertyWrappersMethod.Body.GetILProcessor();
+                il.Emit(OpCodes.Ret);
+
+                var cctor = new MethodDefinition(
+                    ".cctor",
+                    MethodAttributes.HideBySig | MethodAttributes.Private | MethodAttributes.SpecialName
+                    | MethodAttributes.RTSpecialName | MethodAttributes.Static,
+                    this.module.TypeSystem.Void);
+
+                def.DeclaringType.Methods.Add(cctor);
+
+                cctor.Body.MaxStackSize = 8;
+                var cctorIl = cctor.Body.GetILProcessor();
+                cctorIl.Emit(OpCodes.Call, initPropertyWrappersMethod);
+                cctorIl.Emit(OpCodes.Ret);
+            }
+            return initPropertyWrappersMethod;
+        }
+
+
         private TypeReference GetPropertyTypeReference(PropertyMapping prop)
         {
             TypeReference propTypeRef;
@@ -618,7 +737,7 @@ namespace Pomona.CodeGen
             if (PomonaClientEmbeddingEnabled)
                 return this.module.Types.First(x => x.Name == proxyTypeName);
             else
-                return this.module.Import(typeof(ProxyBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
+                return this.module.Import(typeof(ClientBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
         }
 
 

@@ -37,6 +37,7 @@ using CritterClient;
 
 using NUnit.Framework;
 
+using Pomona;
 using Pomona.Client;
 using Pomona.Example;
 using Pomona.Example.Models;
@@ -45,7 +46,7 @@ namespace CritterClientTests
 {
     public class CritterModuleInternal : CritterModule
     {
-        public CritterModuleInternal(CritterDataSource dataSource) : base(dataSource)
+        public CritterModuleInternal(CritterDataSource dataSource, TypeMapper typeMapper) : base(dataSource, typeMapper)
         {
         }
     }
@@ -215,8 +216,10 @@ namespace CritterClientTests
         [Test]
         public void DeserializeCritters()
         {
-            var critters = this.client.List<ICritter>("weapons.model");
-            var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
+            for (var i = 0; i < 1; i++)
+                this.client.Query<ICritter>(x => true, "weapons.model", top : 100);
+
+            //var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
         }
 
 

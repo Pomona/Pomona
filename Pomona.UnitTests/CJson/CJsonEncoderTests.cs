@@ -57,8 +57,6 @@ namespace Pomona.UnitTests.CJson
         {
             var zmemStream = new MemoryStream();
 
-            int zcompressedLength;
-
             using (var zstream = new GZipStream(zmemStream, CompressionMode.Compress))
             {
                 zstream.Write(array, 0, array.Length);

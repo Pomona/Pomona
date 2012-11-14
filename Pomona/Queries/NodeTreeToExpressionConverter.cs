@@ -187,7 +187,6 @@ namespace Pomona.Queries
             if (OdataFunctionMapping.TryConvertToExpression(node.Name, node.Children.Count, exprArgs, out expression))
                 return true;
 
-            List<Expression> argsExpressions;
             switch (node.Name)
             {
                 case "isof":

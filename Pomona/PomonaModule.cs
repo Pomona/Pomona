@@ -46,21 +46,21 @@ namespace Pomona
         private string htmlLinks = string.Empty;
 
 
-        public PomonaModule(IPomonaDataSource dataSource, ITypeMappingFilter typeMappingFilter)
-            : this(dataSource, typeMappingFilter, null)
+        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
+            : this(dataSource, typeMapper, null)
         {
         }
 
 
-        public PomonaModule(
+        protected PomonaModule(
             IPomonaDataSource dataSource,
-            ITypeMappingFilter typeMappingFilter,
+            TypeMapper typeMapper,
             IHttpQueryTransformer queryTransformer)
         {
             this.dataSource = dataSource;
 
             // TODO: This is performance hotspot: cache typemapper between each request.
-            this.typeMapper = new TypeMapper(typeMappingFilter);
+            this.typeMapper = typeMapper;
 
             if (queryTransformer == null)
             {
@@ -131,6 +131,10 @@ namespace Pomona
         {
             // HACK: This is quite hacky, I'll gladly admit that [KNS]
             // TODO: Fix that this only works if primary key is named Id [KNS]
+
+            // Fetch entity first to see if entity with id actually exists.
+            var entity = this.session.GetAsJson((TransformedType)key.PropertyType, id, null);
+
             if (Request.Query.filter.HasValue)
                 Request.Query.filter = string.Format("{0}.id eq {1} and ({2})", key.JsonName, id, Request.Query.filter);
             else

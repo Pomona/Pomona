@@ -33,11 +33,13 @@ namespace Pomona.Example
     public class CritterBootstrapper : PomonaBootstrapper
     {
         private readonly CritterDataSource dataSource;
+        private readonly TypeMapper typeMapper;
 
 
         public CritterBootstrapper(CritterDataSource dataSource = null)
         {
             this.dataSource = dataSource ?? new CritterDataSource();
+            this.typeMapper = new TypeMapper(new CritterTypeMappingFilter());
         }
 
 
@@ -45,6 +47,7 @@ namespace Pomona.Example
         {
             base.ConfigureApplicationContainer(container);
             container.Register(this.dataSource);
+            container.Register(this.typeMapper);
         }
     }
 }

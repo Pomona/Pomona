@@ -26,6 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
+    <NoWarn>3021</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -79,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
+    <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
     <Compile Include="EnumType.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
@@ -90,6 +92,8 @@
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NameUtils.cs" />
     <Compile Include="NancyExtensions.cs" />
+    <Compile Include="PomonaErrorHandler.cs" />
+    <Compile Include="ResourceNotFoundException.cs" />
     <Compile Include="PomonaBootstrapper.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaMappingException.cs" />

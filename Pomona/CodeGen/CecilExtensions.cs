@@ -26,28 +26,31 @@
 
 #endregion
 
-namespace Pomona.Client
+using Mono.Cecil;
+using Mono.Cecil.Rocks;
+
+namespace Pomona.CodeGen
 {
-    public class ProxyBase
+    internal static class CecilExtensions
     {
-        private IProxyInterceptor proxyInterceptor;
-
-        public IProxyInterceptor ProxyInterceptor
+        internal static MethodReference MakeHostInstanceGeneric(
+            this MethodReference self, params TypeReference[] arguments)
         {
-            get { return this.proxyInterceptor; }
-            set { this.proxyInterceptor = value; }
-        }
+            var reference = new MethodReference(
+                self.Name, self.ReturnType, self.DeclaringType.MakeGenericInstanceType(arguments))
+            {
+                HasThis = self.HasThis,
+                ExplicitThis = self.ExplicitThis,
+                CallingConvention = self.CallingConvention
+            };
 
+            foreach (var parameter in self.Parameters)
+                reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
 
-        protected object OnPropertyGet(string propertyName)
-        {
-            return ProxyInterceptor.OnPropertyGet(propertyName);
-        }
+            foreach (var generic_parameter in self.GenericParameters)
+                reference.GenericParameters.Add(new GenericParameter(generic_parameter.Name, reference));
 
-
-        protected void OnPropertySet(string propertyName, object value)
-        {
-            ProxyInterceptor.OnPropertySet(propertyName, value);
+            return reference;
         }
     }
 }

@@ -55,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CritterBootstrapper.cs" />
-    <Compile Include="CritterErrorHandler.cs" />
     <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />
     <Compile Include="CritterDataSource.cs" />
