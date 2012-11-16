@@ -46,7 +46,7 @@ namespace Pomona.Queries
 
         #region Implementation of IQueryTypeResolver
 
-        public Expression Resolve<T>(Expression rootInstance, string propertyPath)
+        public Expression Resolve(Expression rootInstance, string propertyPath)
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
             //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();

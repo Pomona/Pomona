@@ -93,6 +93,9 @@
     <Compile Include="NameUtils.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="PomonaErrorHandler.cs" />
+    <Compile Include="Queries\IndexerAccessNode.cs" />
+    <Compile Include="Queries\MethodCallNode.cs" />
+    <Compile Include="Queries\QueryParseException.cs" />
     <Compile Include="ResourceNotFoundException.cs" />
     <Compile Include="PomonaBootstrapper.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />

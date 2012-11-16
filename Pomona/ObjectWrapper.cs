@@ -97,7 +97,8 @@ namespace Pomona
                         child,
                         this.path,
                         this.context.TypeMapper.GetClassMapping(child.GetType()),
-                        collectionElementType);
+                        collectionElementType,
+                        false);
                 }
                 writer.WriteEndArray();
             }
@@ -142,7 +143,12 @@ namespace Pomona
                         else
                         {
                             WriteJsonExpandedOrReference(
-                                writer, propertyValue, subPath, valueTypeMapping, propDef.PropertyType);
+                                writer,
+                                propertyValue,
+                                subPath,
+                                valueTypeMapping,
+                                propDef.PropertyType,
+                                propDef.AlwaysExpand);
                         }
                     }
                     else
@@ -270,11 +276,16 @@ namespace Pomona
 
 
         private void WriteJsonExpandedOrReference(
-            JsonWriter writer, object propertyValue, string subPath, IMappedType valueType, IMappedType expectedBaseType)
+            JsonWriter writer,
+            object propertyValue,
+            string subPath,
+            IMappedType valueType,
+            IMappedType expectedBaseType,
+            bool propertyAlwaysExpanded)
         {
             var isCollection = IsIList(valueType);
 
-            if (this.context.PathToBeExpanded(subPath) || valueType.IsAlwaysExpanded
+            if (propertyAlwaysExpanded || this.context.PathToBeExpanded(subPath) || valueType.IsAlwaysExpanded
                 || (isCollection && this.context.PathToBeExpanded(subPath + "!")))
             {
                 var wrapper = this.context.CreateWrapperFor(propertyValue, subPath, expectedBaseType);

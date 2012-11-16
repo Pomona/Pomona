@@ -47,13 +47,15 @@ namespace Pomona.UnitTests.Client
         {
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
+            public dynamic Boo { get; set; }
             public decimal CashAmount { get; set; }
             public Guid Guid { get; set; }
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
             public double Precise { get; set; }
             public IList<FooBar> SomeList { get; set; }
-            public IDictionary<string, string> StringToStringDict { get; set; }
+            public IDictionary<string, string> Attributes { get; set; }
+            public TimeSpan TimeSpan { get; set; }
         }
 
         public class Container
@@ -62,11 +64,21 @@ namespace Pomona.UnitTests.Client
         }
 
 
-        private void AssertBuild(Expression<Func<TestResource, bool>> predicate, string expected)
+        private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
         {
-            var builder = new QueryPredicateBuilder<TestResource>(predicate);
+            var builder = QueryPredicateBuilder.Create<TestResource, T>(predicate);
             var queryString = builder.ToString();
+            Console.WriteLine("Transformed \"" + predicate + "\" TO \"" + queryString + "\"");
             Assert.That(queryString, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void BuildConcat_ReturnsCorrectString()
+        {
+            AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
+            AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
+            AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
         }
 
 
@@ -74,7 +86,7 @@ namespace Pomona.UnitTests.Client
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
         {
             var container = new Container() { Junk = "Kirk" };
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Jalla == container.Junk);
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == container.Junk);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("jalla eq 'Kirk'"));
         }
@@ -103,7 +115,7 @@ namespace Pomona.UnitTests.Client
         public void BuildDateTimeUtc_ReturnsCorrectString()
         {
             var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Utc);
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Birthday == dt);
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Birthday == dt);
             var queryString = builder.ToString();
 
             Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45Z'"));
@@ -114,9 +126,23 @@ namespace Pomona.UnitTests.Client
         public void BuildDateTime_ReturnsCorrectString()
         {
             var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Local);
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Birthday == dt);
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Birthday == dt);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45'"));
+        }
+
+
+        [Test]
+        public void BuildDecimal_ReturnsCorrectString()
+        {
+            AssertBuild(x => 10.25m, "10.25m");
+        }
+
+
+        [Test]
+        public void BuildDouble_ReturnsCorrectString()
+        {
+            AssertBuild(x => 10.25, "10.25");
         }
 
 
@@ -130,7 +156,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildEqualExpression_ReturnsCorrectString()
         {
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Jalla == "What");
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == "What");
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("jalla eq 'What'"));
         }
@@ -144,11 +170,19 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildFloat_ReturnsCorrectString()
+        {
+            AssertBuild(x => 10.25f, "10.25f");
+            AssertBuild(x => 10f, "10f");
+        }
+
+
+        [Test]
         public void BuildGuidLiteral_ReturnsCorrectString()
         {
             var guidString = "6dd20569-5c87-46f9-8665-9f413d9e7c47";
             var guid = new Guid(guidString);
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Guid == guid);
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Guid == guid);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo(string.Format("guid eq guid'{0}'", guidString)));
         }
@@ -172,6 +206,13 @@ namespace Pomona.UnitTests.Client
         public void BuildLengthExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla.Length == 1, "length(jalla) eq 1");
+        }
+
+
+        [Test]
+        public void BuildNotEquals_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla != "blob", "jalla ne 'blob'");
         }
 
 
@@ -220,18 +261,18 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildStartsWithExpression_ReturnsCorrectString()
         {
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Jalla.StartsWith("Gangnam"));
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla.StartsWith("Gangnam"));
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("startswith(jalla,'Gangnam')"));
         }
 
 
         [Test]
-        public void BuildStringEquals_EncodesSingleQuoteCorrectly()
+        public void BuildString_EncodesSingleQuoteCorrectly()
         {
-            AssertBuild(x => x.Jalla == "Banana'Boo", "jalla eq 'Banana''Boo'");
-            AssertBuild(x => x.Jalla == "'", "jalla eq ''''");
-            AssertBuild(x => x.Jalla == "''", "jalla eq ''''''");
+            AssertBuild(x => "Banana'Boo", "'Banana''Boo'");
+            AssertBuild(x => "'", "''''");
+            AssertBuild(x => "''", "''''''");
         }
 
 
@@ -246,9 +287,16 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildSubstringOfExpression_ReturnsCorrectString()
         {
-            var builder = new QueryPredicateBuilder<TestResource>(x => x.Jalla.Contains("cool"));
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla.Contains("cool"));
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("substringof('cool',jalla)"));
+        }
+
+
+        [Test]
+        public void BuildTrim_ReturnsCorrectString()
+        {
+            AssertBuild(x => "   lallala   ".Trim(), "trim('   lallala   ')");
         }
 
 
@@ -262,7 +310,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void GetItemOnDictionary_ReturnsCorrectString()
         {
-            AssertBuild(x => x.StringToStringDict["noob"] == "bob", "stringToStringDict.noob eq 'bob'");
+            AssertBuild(x => x.Attributes["hello world"] == "bob", "attributes['hello world'] eq 'bob'");
         }
     }
 }

@@ -58,6 +58,7 @@ namespace Pomona
 
             UriBaseType = this;
             PluralName = SingularToPluralTranslator.CamelCaseToPlural(Name);
+            PostReturnType = this;
         }
 
 
@@ -78,6 +79,12 @@ namespace Pomona
         {
             get { return true; }
         }
+
+        /// <summary>
+        /// What type will be returned when this type is POST'ed.
+        /// By default this will refer to itself.
+        /// </summary>
+        public TransformedType PostReturnType { get; set; }
 
         public IList<PropertyMapping> Properties
         {
@@ -354,9 +361,9 @@ namespace Pomona
                     propertyTypeMapped,
                     propInfo);
 
-                // TODO: This is not the most optimized way to set property, small code gen needed.
                 propDef.Getter = getter;
                 propDef.Setter = setter;
+                propDef.AlwaysExpand = filter.PropertyIsAlwaysExpanded(propInfo);
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 // TODO: This should rather be configured by filter.

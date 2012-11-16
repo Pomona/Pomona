@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -61,9 +63,9 @@ namespace Pomona.UnitTests.Queries
             }
 
 
-            public Expression Resolve<T>(Expression rootInstance, string propertyPath)
+            public Expression Resolve(Expression rootInstance, string propertyPath)
             {
-                return Expression.Property(rootInstance, typeof(T).GetProperty(propertyPath));
+                return Expression.Property(rootInstance, rootInstance.Type.GetProperties().First(x => x.Name.ToLower() == propertyPath.ToLower()));
             }
 
             #endregion
@@ -75,6 +77,7 @@ namespace Pomona.UnitTests.Queries
             public int Number { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
+            public IDictionary<string, string> Attributes { get; set; }
         }
 
 
@@ -95,8 +98,12 @@ namespace Pomona.UnitTests.Queries
             return objAsT;
         }
 
+        private void AssertExpressionEquals<T, TReturn>(Expression<Func<T, TReturn>> actual, Expression<Func<T, TReturn>> expected)
+        {
+            AssertExpressionEquals((Expression)actual, (Expression)expected);
+        }
 
-        private void AssertExpressionEquals(Expression expected, Expression actual)
+        private void AssertExpressionEquals(Expression actual, Expression expected)
         {
             try
             {
@@ -107,7 +114,7 @@ namespace Pomona.UnitTests.Queries
                 if (actualLambdaExpr != null)
                 {
                     var expectedLambdaExpr = (LambdaExpression)expected;
-                    AssertExpressionEquals(expectedLambdaExpr.Body, actualLambdaExpr.Body);
+                    AssertExpressionEquals(actualLambdaExpr.Body, expectedLambdaExpr.Body);
                     return;
                 }
 
@@ -116,8 +123,8 @@ namespace Pomona.UnitTests.Queries
                 {
                     var expectedBinExpr = (BinaryExpression)expected;
 
-                    AssertExpressionEquals(expectedBinExpr.Left, actualBinExpr.Left);
-                    AssertExpressionEquals(expectedBinExpr.Right, actualBinExpr.Right);
+                    AssertExpressionEquals(actualBinExpr.Left, expectedBinExpr.Left);
+                    AssertExpressionEquals(actualBinExpr.Right, expectedBinExpr.Right);
                     return;
                 }
 
@@ -154,6 +161,12 @@ namespace Pomona.UnitTests.Queries
             }
         }
 
+        [Test]
+        public void Parse_DictAccess_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("attributes['foo'] eq 'bar'");
+            AssertExpressionEquals(expr, x => x.Attributes["foo"] == "bar");
+        }
 
         [Test]
         public void Parse_DateTimeConstant_CreatesCorrectExpression()
@@ -229,19 +242,12 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
-        public void Parse_StringConstantAlone_ThrowsArgumentException()
-        {
-            Assert.That(() => this.parser.Parse<Dummy>("'blah'"), Throws.ArgumentException);
-        }
-
-
-        [Test]
         public void Parse_ThreeTimesOr_CreatesCorrectExpression()
         {
             Expression<Func<Dummy, bool>> expected = x => x.Number == 4 || x.Number == 66 || x.Number == 2;
             var expr = this.parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
 
-            AssertExpressionEquals(expected, expr);
+            AssertExpressionEquals(expr, expected);
         }
 
 

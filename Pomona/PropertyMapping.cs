@@ -79,6 +79,7 @@ namespace Pomona
 
 
         public PropertyAccessMode AccessMode { get; set; }
+        public bool AlwaysExpand { get; set; }
 
         public int ConstructorArgIndex { get; set; }
 

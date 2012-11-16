@@ -68,6 +68,7 @@
     <Compile Include="Models\EntityBase.cs" />
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Farm.cs" />
+    <Compile Include="Models\FooBarRequest.cs" />
     <Compile Include="Models\Gun.cs" />
     <Compile Include="Models\HasCustomEnum.cs" />
     <Compile Include="Models\Hat.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Models\Knife.cs" />
     <Compile Include="Models\Loner.cs" />
     <Compile Include="Models\MusicalCritter.cs" />
+    <Compile Include="Models\OrderResponse.cs" />
     <Compile Include="Models\SimpleAttribute.cs" />
     <Compile Include="Models\StringListContainer.cs" />
     <Compile Include="Models\Subscription.cs" />

@@ -26,41 +26,15 @@
 
 #endregion
 
-using System;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace Pomona.Queries
 {
-    internal class StringNode : NodeBase
+    internal class IndexerAccessNode : SymbolNode
     {
-        private readonly string value;
-
-
-        public StringNode(string unescapedString) : base(NodeType.StringLiteral, Enumerable.Empty<NodeBase>())
+        public IndexerAccessNode(string name, IEnumerable<NodeBase> children)
+            : base(NodeType.IndexerAccess, name, children)
         {
-            this.value = UnescapeText(unescapedString);
-        }
-
-
-        public string Value
-        {
-            get { return this.value; }
-        }
-
-
-        public override string ToString()
-        {
-            return String.Format("{0} '{1}'", base.ToString(), Value);
-        }
-
-
-        private string UnescapeText(string unescapedString)
-        {
-            if (unescapedString[0] != '\'' || unescapedString[unescapedString.Length - 1] != '\'')
-                throw new InvalidOperationException("Don't know how to unescape string, expected quotes around");
-
-            // TODO: Proper unescaping of strings
-            return unescapedString.Substring(1, unescapedString.Length - 2).Replace("''", "'");
         }
     }
 }

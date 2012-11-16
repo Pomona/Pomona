@@ -38,19 +38,22 @@ namespace Pomona.Client.Internals
 {
     public class OdataFunctionMapping
     {
-        private static readonly object[] emptyStrings;
-
         private static readonly Dictionary<MemberInfo, string> memberToOdataFunctionMap =
             new Dictionary<MemberInfo, string>();
 
         private static readonly Dictionary<string, MemberInfo> odataFunctionToMemberMap =
             new Dictionary<string, MemberInfo>();
 
+        private static readonly object[] questionStrings;
+
+        public static readonly MethodInfo DictGetMethod;
 
         static OdataFunctionMapping()
         {
+            DictGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
+
             // Just some empty strings used for creating odata method signature
-            emptyStrings = Enumerable.Repeat("?", 100).Cast<object>().ToArray();
+            questionStrings = Enumerable.Repeat("?", 100).Cast<object>().ToArray();
 
             Add<string>(x => x.Length, "length({0})");
             Add<string>(x => x.StartsWith(null), "startswith({0},{1})");
@@ -65,6 +68,8 @@ namespace Pomona.Client.Internals
             Add<string>(x => x.Trim(), "trim({0})");
             Add<string>(x => x.IndexOf("a"), "indexof({0},{1})");
             Add<string>(x => x.IndexOf('a'), "indexof({0},{1})");
+            Add<string>(x => string.Concat("", ""), "concat({0},{1})");
+            Add<string>(x => x.Trim(), "trim({0})");
 
             // TODO: Concat function, this one's static
 
@@ -115,15 +120,22 @@ namespace Pomona.Client.Internals
         public static bool TryConvertToExpression(
             string odataFunctionName, int argCount, IEnumerable<Expression> arguments, out Expression expression)
         {
+            var argumentsList = arguments.ToList();
+
             expression = null;
             var odataFunctionSpec = string.Format(
-                "{0}({1})", odataFunctionName, string.Join(",", Enumerable.Repeat("?", argCount)));
+                "{0}({1})>({2})",
+                odataFunctionName,
+                string.Join(",", Enumerable.Repeat("?", argCount)),
+                string.Join(",", argumentsList.Select(x => Type.GetTypeCode(x.Type))));
+            //var odataFunctionSpec = string.Format(
+            //    "{0}({1})", odataFunctionName, string.Join(",", Enumerable.Repeat("?", argCount)));
             MemberInfo memberInfo;
             var memberfound = odataFunctionToMemberMap.TryGetValue(odataFunctionSpec, out memberInfo);
             if (!memberfound)
                 return false;
 
-            var odataOrderedArglist = arguments.ToList();
+            var odataOrderedArglist = argumentsList;
 
             var formatString = memberToOdataFunctionMap[memberInfo];
             var argOrder = GetArgumentOrder(formatString).ToArray();
@@ -181,23 +193,6 @@ namespace Pomona.Client.Internals
         }
 
 
-        public static bool TryGetMemberInfo(
-            string odataFunctionName, int argCount, out MemberInfo memberInfo, out int[] argOrder)
-        {
-            argOrder = null;
-            var odataFunctionSpec = string.Format(
-                "{0}({1})", odataFunctionName, string.Join(",", Enumerable.Repeat("?", argCount)));
-            var memberfound = odataFunctionToMemberMap.TryGetValue(odataFunctionSpec, out memberInfo);
-            if (!memberfound)
-                return false;
-
-            var formatString = memberToOdataFunctionMap[memberInfo];
-            argOrder = GetArgumentOrder(formatString).ToArray();
-
-            return true;
-        }
-
-
         public static bool TryGetOdataFunctionFormatString(MemberInfo member, out string functionFormat)
         {
             var success = memberToOdataFunctionMap.TryGetValue(member, out functionFormat);
@@ -218,7 +213,34 @@ namespace Pomona.Client.Internals
         {
             var memberInfo = ReflectionHelper.GetInstanceMemberInfo(expr);
             memberToOdataFunctionMap[memberInfo] = functionFormat;
-            var methodSpecString = string.Format(functionFormat, emptyStrings);
+
+            // We might have multiple overloads of one function with same argument count, so we add the type to the key
+            IEnumerable<Type> args = null;
+
+            var propInfo = memberInfo as PropertyInfo;
+            if (propInfo != null)
+            {
+                if (propInfo.GetGetMethod().IsStatic)
+                    throw new NotImplementedException("Don't know what to do with a static property here :(");
+
+                args = propInfo.DeclaringType.WrapAsEnumerable();
+            }
+            var methodInfo = memberInfo as MethodInfo;
+            if (methodInfo != null)
+            {
+                if (methodInfo.IsStatic)
+                    args = methodInfo.GetParameters().Select(x => x.ParameterType);
+                else
+                {
+                    args = methodInfo.DeclaringType.WrapAsEnumerable()
+                        .Concat(methodInfo.GetParameters().Select(x => x.ParameterType));
+                }
+            }
+
+            var methodSpecString = string.Format(functionFormat, questionStrings) + string.Format(
+                ">({0})",
+                string.Join(",", args.Select(Type.GetTypeCode)));
+
             odataFunctionToMemberMap[methodSpecString] = memberInfo;
         }
 

@@ -57,12 +57,14 @@ namespace Pomona.Queries
                 NodeType.GreaterThanOrEqual,
                 NodeType.LessThanOrEqual,
                 NodeType.Equal,
+                NodeType.NotEqual,
                 NodeType.Dot
             };
             nodeTypeDict = new Dictionary<int, NodeType>
             {
                 { PomonaQueryParser.LT_OP, NodeType.LessThan },
                 { PomonaQueryParser.EQ_OP, NodeType.Equal },
+                { PomonaQueryParser.NE_OP, NodeType.NotEqual },
                 { PomonaQueryParser.GT_OP, NodeType.GreaterThan },
                 { PomonaQueryParser.GE_OP, NodeType.GreaterThanOrEqual },
                 { PomonaQueryParser.LE_OP, NodeType.LessThanOrEqual },
@@ -104,6 +106,10 @@ namespace Pomona.Queries
 
             switch (tree.Type)
             {
+                case PomonaQueryParser.METHOD_CALL:
+                    return new MethodCallNode(tree.GetChild(0).Text, ParseChildren(tree, depth, 1));
+                case PomonaQueryParser.INDEXER_ACCESS:
+                    return new IndexerAccessNode(tree.GetChild(0).Text, ParseChildren(tree, depth, 1));
                 case PomonaQueryParser.INT:
                     return new NumberNode(tree.Text);
                 case PomonaQueryParser.STRING:
@@ -160,9 +166,9 @@ namespace Pomona.Queries
         }
 
 
-        private static IEnumerable<NodeBase> ParseChildren(ITree tree, int depth)
+        private static IEnumerable<NodeBase> ParseChildren(ITree tree, int depth, int skip = 0)
         {
-            return GetChildren(tree).Select(x => ParseTree(x, depth + 1));
+            return GetChildren(tree).Skip(skip).Select(x => ParseTree(x, depth + 1));
         }
 
 

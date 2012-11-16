@@ -44,6 +44,14 @@ namespace Pomona.Queries
         }
 
 
+        protected SymbolNode(NodeType nodeType, string name, IEnumerable<NodeBase> children)
+            : base(nodeType, children)
+        {
+            if (name != null)
+                this.name = name;
+        }
+
+
         public bool HasArguments
         {
             get { return Children.Count > 0; }

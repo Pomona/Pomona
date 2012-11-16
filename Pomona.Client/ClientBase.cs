@@ -67,8 +67,7 @@ namespace Pomona.Client
             where T : IClientResource;
 
 
-        public abstract IList<T> Query<T>(
-            Expression<Func<T, bool>> predicate, string expand = null, int? top = null, int? skip = null);
+        public abstract IList<T> Query<T>(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null);
 
 
         internal abstract object Post<T>(string uri, Action<T> postAction)
@@ -79,12 +78,7 @@ namespace Pomona.Client
             where T : IClientResource;
 
 
-        internal abstract IList<T> Query<T>(
-            string uri,
-            Expression<Func<T, bool>> predicate,
-            string expand = null,
-            int? top = null,
-            int? skip = null);
+        internal abstract IList<T> Query<T>(string uri, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null);
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -199,28 +193,7 @@ namespace Pomona.Client
 
         public override object Post<T>(Action<T> postAction)
         {
-            var type = typeof(T);
-            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
-            if (!type.IsInterface)
-                throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
-
-            var resourceInfo = GetResourceInfoForType(type);
-
-            var newType = resourceInfo.PostFormType;
-            var newProxy = Activator.CreateInstance(newType);
-
-            postAction((T)newProxy);
-
-            // TODO: Implement baseuri property or something.
-            var uri = GetUri(type);
-
-            // Post the json!
-            var requestJson = ((PutResourceBase)newProxy).ToJson();
-            requestJson["_type"] = resourceInfo.JsonTypeName;
-            var response = UploadToUri(uri, requestJson, "POST");
-
-            return
-                (T)Deserialize(type, response);
+            return Post<T>(GetUri(typeof(T)), postAction);
         }
 
 
@@ -247,11 +220,10 @@ namespace Pomona.Client
         }
 
 
-        public override IList<T> Query<T>(
-            Expression<Func<T, bool>> predicate, string expand = null, int? top = null, int? skip = null)
+        public override IList<T> Query<T>(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null)
         {
             var uri = BaseUri + GetRelativeUriForType(typeof(T));
-            return Query(uri, predicate, expand, top, skip);
+            return Query(uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
 
 
@@ -263,7 +235,26 @@ namespace Pomona.Client
 
         internal override object Post<T>(string uri, Action<T> postAction)
         {
-            throw new NotImplementedException();
+            var type = typeof(T);
+            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
+            if (!type.IsInterface)
+                throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
+
+            var resourceInfo = GetResourceInfoForType(type);
+
+            var newType = resourceInfo.PostFormType;
+            var newProxy = Activator.CreateInstance(newType);
+
+            postAction((T)newProxy);
+
+            // TODO: Implement baseuri property or something.
+
+            // Post the json!
+            var requestJson = ((PutResourceBase)newProxy).ToJson();
+            requestJson["_type"] = resourceInfo.JsonTypeName;
+            var response = UploadToUri(uri, requestJson, "POST");
+
+            return Deserialize(type, response);
         }
 
 
@@ -273,12 +264,7 @@ namespace Pomona.Client
         }
 
 
-        internal override IList<T> Query<T>(
-            string uri,
-            Expression<Func<T, bool>> predicate,
-            string expand = null,
-            int? top = null,
-            int? skip = null)
+        internal override IList<T> Query<T>(string uri, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null)
         {
             var resourceInfo = GetResourceInfoForType(typeof(T));
             if (!resourceInfo.IsUriBaseType)
@@ -288,24 +274,45 @@ namespace Pomona.Client
                 var transformedExpression = ChangeExpressionArgumentToType(predicate, resourceInfo.UriBaseType);
                 var genericMethod = typeof(ClientBase<TClient>).GetMethod("Query");
                 var results = (IEnumerable)genericMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
-                    this, new object[] { transformedExpression, expand, top, skip });
+                    this, new object[] { transformedExpression, orderBy, sortOrder, top, skip, expand });
                 return new List<T>(results.OfType<T>());
             }
 
-            var filterString = new QueryPredicateBuilder<T>(predicate).ToString();
+            var queryPart = string.Empty;
 
-            uri = uri + "?filter=" + filterString;
+            queryPart = AddExpressionParameterToUri(queryPart, "filter", predicate);
+            if (orderBy != null)
+                queryPart = AddExpressionParameterToUri(queryPart, "orderby", orderBy, x => sortOrder == SortOrder.Descending ? x + " desc" : x);
 
             if (expand != null)
-                uri = uri + "&expand=" + expand;
+                queryPart = queryPart + "&expand=" + expand;
 
             if (top.HasValue)
-                uri = uri + "&top=" + top.Value;
+                queryPart = queryPart + "&top=" + top.Value;
 
             if (skip.HasValue)
-                uri = uri + "&skip=" + skip.Value;
+                queryPart = queryPart + "&skip=" + skip.Value;
+
+            uri = uri + "?" + queryPart;
 
             return GetUri<IList<T>>(uri);
+        }
+
+
+        private static string AddExpressionParameterToUri(
+            string queryToAppendTo, string queryKey, LambdaExpression predicate, Func<string,string> transform = null)
+        {
+            var filterString = new QueryPredicateBuilder(predicate).ToString();
+
+            if (transform != null)
+                filterString = transform(filterString);
+
+            var encodedFilterExpression = EncodeUriQueryParameter(filterString);
+            if (queryToAppendTo != string.Empty)
+                queryToAppendTo = queryToAppendTo + "&";
+
+            queryToAppendTo = string.Format("{0}{1}={2}", queryToAppendTo, queryKey, encodedFilterExpression);
+            return queryToAppendTo;
         }
 
 
@@ -325,6 +332,23 @@ namespace Pomona.Client
             var newBody = visitor.Visit(body);
             return
                 Expression.Lambda(Expression.AndAlso(Expression.TypeIs(newParam, origParam.Type), newBody), newParam);
+        }
+
+
+        private static string EncodeUriQueryParameter(string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            var sb = new StringBuilder();
+
+            foreach (var b in bytes)
+            {
+                if (b < 128 && (char.IsLetterOrDigit((char)b) || b == '.' || b == '~' || b == '-' || b == '_'))
+                    sb.Append((char)b);
+                else
+                    sb.AppendFormat("%{0:X2}", b);
+            }
+
+            return sb.ToString();
         }
 
 

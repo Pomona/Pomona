@@ -49,6 +49,9 @@ namespace Pomona.Queries
         LessThanOrEqual,
         DateTimeLiteral,
         Dot,
-        Modulo
+        Modulo,
+        NotEqual,
+        MethodCall,
+        IndexerAccess
     }
 }

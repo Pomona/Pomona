@@ -77,6 +77,15 @@ namespace Pomona.Example
         }
 
 
+        public override Type GetPostReturnType(Type type)
+        {
+            if (type == typeof(Order))
+                return typeof(OrderResponse);
+
+            return base.GetPostReturnType(type);
+        }
+
+
         public override string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof(JunkWithRenamedProperty)
@@ -108,6 +117,17 @@ namespace Pomona.Example
         }
 
 
+        public override bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.DeclaringType == typeof(DictionaryContainer) && propertyInfo.Name == "Map")
+                return true;
+            if (propertyInfo.DeclaringType == typeof(OrderResponse) && propertyInfo.Name == "Order")
+                return true;
+
+            return base.PropertyIsAlwaysExpanded(propertyInfo);
+        }
+
+
         public override bool TypeIsMapped(Type type)
         {
             if (type == typeof(ExcludedThing))
@@ -128,6 +148,9 @@ namespace Pomona.Example
 
         public override bool TypeIsMappedAsValueObject(Type type)
         {
+            if (type == typeof(OrderResponse))
+                return true;
+
             if (type == typeof(CrazyValueObject))
                 return true;
             return base.TypeIsMappedAsValueObject(type);

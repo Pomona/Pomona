@@ -42,6 +42,7 @@ namespace Pomona
         object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);
         PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);
+        Type GetPostReturnType(Type type);
         Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
         string GetPropertyMappedName(PropertyInfo propertyInfo);
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
@@ -66,6 +67,8 @@ namespace Pomona
         /// <returns></returns>
         Type GetUriBaseType(Type type);
 
+
+        bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo);
 
         bool PropertyIsIncluded(PropertyInfo propertyInfo);
         Type ResolveRealTypeForProxy(Type type);

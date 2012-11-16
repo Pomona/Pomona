@@ -35,7 +35,7 @@ using Pomona.Client.Internals;
 
 namespace Pomona.Queries
 {
-    public class NodeTreeToExpressionConverter<T>
+    public class NodeTreeToExpressionConverter
     {
         private readonly IQueryTypeResolver propertyResolver;
 
@@ -60,6 +60,12 @@ namespace Pomona.Queries
         {
             if (memberExpression == null)
                 memberExpression = this.thisParam;
+
+            if (node.NodeType == NodeType.MethodCall)
+                return ParseMethodCallNode((MethodCallNode)node, memberExpression);
+
+            if (node.NodeType == NodeType.IndexerAccess)
+                return ParseIndexerAccessNode((IndexerAccessNode)node, memberExpression);
 
             if (node.NodeType == NodeType.Symbol)
                 return ResolveSymbolNode((SymbolNode)node, memberExpression);
@@ -97,17 +103,23 @@ namespace Pomona.Queries
         }
 
 
-        public Expression<Func<T, bool>> ToLambdaExpression(NodeBase node)
+        public LambdaExpression ToLambdaExpression(Type thisType, NodeBase node)
         {
             try
             {
-                this.thisParam = Expression.Parameter(typeof(T), "x");
-                return Expression.Lambda<Func<T, bool>>(ParseExpression(node), this.thisParam);
+                this.thisParam = Expression.Parameter(thisType, "x");
+                return Expression.Lambda(ParseExpression(node), this.thisParam);
             }
             finally
             {
                 this.thisParam = null;
             }
+        }
+
+
+        private Exception CreateParseException(MethodCallNode node, string message)
+        {
+            return new QueryParseException(message);
         }
 
 
@@ -156,6 +168,35 @@ namespace Pomona.Queries
         }
 
 
+        private Expression ParseIndexerAccessNode(IndexerAccessNode node, Expression memberExpression)
+        {
+            var property = this.propertyResolver.Resolve(memberExpression, node.Name);
+            if (typeof(IDictionary<string, string>).IsAssignableFrom(property.Type))
+            {
+                return Expression.Call(
+                    property, OdataFunctionMapping.DictGetMethod, ParseExpression(node.Children[0], null));
+            }
+            throw new NotImplementedException();
+        }
+
+
+        private Expression ParseMethodCallNode(MethodCallNode node, Expression memberExpression)
+        {
+            if (memberExpression == null)
+                throw new ArgumentNullException("memberExpression");
+            if (memberExpression == this.thisParam)
+            {
+                if (node.HasArguments)
+                {
+                    Expression expression;
+                    if (TryResolveOdataExpression(node, out expression))
+                        return expression;
+                }
+            }
+            throw CreateParseException(node, "Could not recognize method " + node.Name);
+        }
+
+
         private Expression ResolveSymbolNode(SymbolNode node, Expression memberExpression)
         {
             if (memberExpression == null)
@@ -166,26 +207,14 @@ namespace Pomona.Queries
                     return Expression.Constant(true);
                 if (node.Name == "false")
                     return Expression.Constant(false);
-
-                if (node.HasArguments)
-                {
-                    Expression expression;
-                    if (TryResolveOdataExpression(node, out expression))
-                        return expression;
-                    throw new InvalidOperationException("Unable to resolve property");
-                }
             }
-            return this.propertyResolver.Resolve<T>(memberExpression, node.Name);
+            return this.propertyResolver.Resolve(memberExpression, node.Name);
         }
 
 
-        private bool TryResolveOdataExpression(SymbolNode node, out Expression expression)
+        private bool TryResolveOdataExpression(MethodCallNode node, out Expression expression)
         {
             expression = null;
-
-            var exprArgs = node.Children.Select(ParseExpression);
-            if (OdataFunctionMapping.TryConvertToExpression(node.Name, node.Children.Count, exprArgs, out expression))
-                return true;
 
             switch (node.Name)
             {
@@ -199,6 +228,10 @@ namespace Pomona.Queries
                     expression = Expression.Convert(this.thisParam, castToType);
                     return true;
             }
+
+            var exprArgs = node.Children.Select(ParseExpression);
+            if (OdataFunctionMapping.TryConvertToExpression(node.Name, node.Children.Count, exprArgs, out expression))
+                return true;
 
             return false;
         }

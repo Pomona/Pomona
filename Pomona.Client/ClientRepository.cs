@@ -55,16 +55,29 @@ namespace Pomona.Client
         }
 
 
+        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
+            where TSubResource : TResource
+        {
+            return this.client.Put(resource, patchAction);
+        }
+
+
+        public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+            where TSubResource : TResource
+        {
+            return (TPostResponseResource)this.client.Post(Uri, postAction);
+        }
+
+
         public TPostResponseResource Post(Action<TResource> postAction)
         {
             return (TPostResponseResource)this.client.Post(Uri, postAction);
         }
 
 
-        public IList<TResource> Query(
-            Expression<Func<TResource, bool>> predicate, string expand = null, int? top = null, int? skip = null)
+        public IList<TResource> Query(Expression<Func<TResource, bool>> predicate, Expression<Func<TResource, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null)
         {
-            return this.client.Query(Uri, predicate, expand, top, skip);
+            return this.client.Query(this.Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
     }
 }

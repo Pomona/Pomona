@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,41 +26,10 @@
 
 #endregion
 
-using System;
-using System.Linq;
-
-namespace Pomona.Queries
+namespace Pomona.Example.Models
 {
-    internal class StringNode : NodeBase
+    public class Order : EntityBase
     {
-        private readonly string value;
-
-
-        public StringNode(string unescapedString) : base(NodeType.StringLiteral, Enumerable.Empty<NodeBase>())
-        {
-            this.value = UnescapeText(unescapedString);
-        }
-
-
-        public string Value
-        {
-            get { return this.value; }
-        }
-
-
-        public override string ToString()
-        {
-            return String.Format("{0} '{1}'", base.ToString(), Value);
-        }
-
-
-        private string UnescapeText(string unescapedString)
-        {
-            if (unescapedString[0] != '\'' || unescapedString[unescapedString.Length - 1] != '\'')
-                throw new InvalidOperationException("Don't know how to unescape string, expected quotes around");
-
-            // TODO: Proper unescaping of strings
-            return unescapedString.Substring(1, unescapedString.Length - 2).Replace("''", "'");
-        }
+        public string Description { get; set; }
     }
 }

@@ -32,15 +32,21 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 using Pomona.Client.Internals;
 using Pomona.Internals;
 
 namespace Pomona.Client
 {
-    public abstract class QueryPredicateBuilder
+    public class QueryPredicateBuilder
     {
         protected static readonly ReadOnlyDictionary<ExpressionType, string> binaryExpressionNodeDict;
+
+        private static HashSet<char> validSymbolCharacters =
+            new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
+
+        private readonly LambdaExpression lambda;
 
 
         static QueryPredicateBuilder()
@@ -50,6 +56,7 @@ namespace Pomona.Client
                 { ExpressionType.AndAlso, "and" },
                 { ExpressionType.OrElse, "or" },
                 { ExpressionType.Equal, "eq" },
+                { ExpressionType.NotEqual, "ne" },
                 { ExpressionType.GreaterThan, "gt" },
                 { ExpressionType.GreaterThanOrEqual, "ge" },
                 { ExpressionType.LessThan, "lt" },
@@ -62,18 +69,11 @@ namespace Pomona.Client
             };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);
+
         }
-    }
-
-    public class QueryPredicateBuilder<T> : QueryPredicateBuilder
-    {
-        private static HashSet<char> validSymbolCharacters =
-            new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
-
-        private readonly Expression<Func<T, bool>> lambda;
 
 
-        public QueryPredicateBuilder(Expression<Func<T, bool>> lambda)
+        public QueryPredicateBuilder(LambdaExpression lambda)
         {
             if (lambda == null)
                 throw new ArgumentNullException("expr");
@@ -87,10 +87,24 @@ namespace Pomona.Client
         }
 
 
+        public static QueryPredicateBuilder Create<T>(Expression<Func<T, bool>> lambda)
+        {
+            return new QueryPredicateBuilder(lambda);
+        }
+
+
+        public static QueryPredicateBuilder Create<T, TResult>(Expression<Func<T, TResult>> lambda)
+        {
+            return new QueryPredicateBuilder(lambda);
+        }
+
+
         public override string ToString()
         {
             // Strip away redundant parens around query
-            var queryFilterString = Build(this.lambda.Body);
+            var visitor = new PreBuildVisitor();
+            var preprocessedBody = visitor.Visit(this.lambda.Body);
+            var queryFilterString = Build(preprocessedBody);
             if (queryFilterString.Length > 1 && queryFilterString[0] == '('
                 && queryFilterString[queryFilterString.Length - 1] == ')')
                 queryFilterString = queryFilterString.Substring(1, queryFilterString.Length - 2);
@@ -246,13 +260,13 @@ namespace Pomona.Client
 
         private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
         {
-            if (callExpr.Method == ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]))
+            if (callExpr.Method == OdataFunctionMapping.DictGetMethod)
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
                 var key = DecodeQuotedString(quotedKey);
-
+/* 
                 if (ContainsOnlyValidSymbolCharacters(key))
-                    return string.Format("{0}.{1}", Build(callExpr.Object), key);
+                    return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
                 return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);
             }
 
@@ -323,8 +337,19 @@ namespace Pomona.Client
         private string EncodeString(string text)
         {
             // TODO: IMPORTANT! Proper encoding!!
+            var sb = new StringBuilder();
+            sb.Append('\'');
 
-            return "'" + text + "'";
+            foreach (var c in text)
+            {
+                if (c == '\'')
+                    sb.Append("''");
+                else
+                    sb.Append(c);
+            }
+
+            sb.Append('\'');
+            return sb.ToString();
         }
 
 
@@ -332,6 +357,9 @@ namespace Pomona.Client
         {
             switch (Type.GetTypeCode(valueType))
             {
+                case TypeCode.Char:
+                    // Note: char will be interpreted as string on other end.
+                    return EncodeString(value.ToString());
                 case TypeCode.String:
                     return EncodeString((string)value);
                 case TypeCode.Int32:
@@ -404,5 +432,29 @@ namespace Pomona.Client
             odataExpression = string.Format(odataFunctionFormat, odataArguments);
             return true;
         }
+
+        #region Nested type: PreBuildVisitor
+
+        private class PreBuildVisitor : ExpressionVisitor
+        {
+            private static readonly MethodInfo concatMethod;
+
+
+            static PreBuildVisitor()
+            {
+                concatMethod = typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) });
+            }
+
+
+            protected override Expression VisitBinary(BinaryExpression node)
+            {
+                if (node.NodeType == ExpressionType.Add && node.Left.Type == typeof(string)
+                    && node.Right.Type == typeof(string))
+                    return Expression.Call(concatMethod, Visit(node.Left), Visit(node.Right));
+                return base.VisitBinary(node);
+            }
+        }
+
+        #endregion
     }
 }

@@ -27,28 +27,20 @@
 #endregion
 
 using System;
+using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 
 using Nancy;
 
+using Pomona.Client;
 using Pomona.Queries;
 
 namespace Pomona
 {
     public class PomonaQueryTransformer : IHttpQueryTransformer
     {
-        private static MethodInfo toExpressionGenericMethod;
         private readonly QueryFilterExpressionParser filterParser;
         private readonly TypeMapper typeMapper;
-
-
-        static PomonaQueryTransformer()
-        {
-            toExpressionGenericMethod = typeof(PomonaQueryTransformer).GetMethod(
-                "ToExpressionGeneric", BindingFlags.Instance | BindingFlags.NonPublic);
-        }
 
 
         public PomonaQueryTransformer(TypeMapper typeMapper, QueryFilterExpressionParser filterParser)
@@ -91,9 +83,10 @@ namespace Pomona
             if (request.Query.select.HasValue)
                 select = (string)request.Query.select;
 
-            var sourceType = rootType.SourceType;
-            var parseMethod = toExpressionGenericMethod.MakeGenericMethod(sourceType);
-            query.FilterExpression = (Expression)parseMethod.Invoke(this, new[] { filter });
+            if (request.Query.orderby.HasValue)
+                ParseOrderBy(query, (string)request.Query.orderby);
+
+            ParseFilterExpression(query, filter);
 
             query.Top = top;
             query.Skip = skip;
@@ -117,14 +110,31 @@ namespace Pomona
 
         #endregion
 
-        private Expression ToExpressionGeneric<T>(string filter)
+        private void ParseFilterExpression(PomonaQuery query, string filter)
         {
-            if (string.IsNullOrWhiteSpace(filter))
+            filter = filter ?? "true";
+            query.FilterExpression = this.filterParser.Parse(query.TargetType.SourceType, filter);
+        }
+
+
+        private void ParseOrderBy(PomonaQuery query, string orderby)
+        {
+            const string ascMark = " asc";
+            var descMark = " desc";
+            if (orderby.EndsWith(ascMark, true, CultureInfo.InvariantCulture))
             {
-                Expression<Func<T, bool>> trueExpr = x => true;
-                return trueExpr;
+                orderby = orderby.Substring(0, orderby.Length - ascMark.Length);
+                query.SortOrder = SortOrder.Ascending;
             }
-            return this.filterParser.Parse<T>(filter);
+            else if (orderby.EndsWith(descMark, true, CultureInfo.InvariantCulture))
+            {
+                orderby = orderby.Substring(0, orderby.Length - descMark.Length);
+                query.SortOrder = SortOrder.Descending;
+            }
+            else
+                query.SortOrder = SortOrder.Ascending;
+
+            query.OrderByExpression = this.filterParser.Parse(query.TargetType.SourceType, orderby);
         }
     }
 }

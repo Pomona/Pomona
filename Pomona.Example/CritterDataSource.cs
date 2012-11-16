@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Pomona.Client;
 using Pomona.Example.Models;
 using Pomona.Queries;
 
@@ -70,8 +71,10 @@ namespace Pomona.Example
                 }
 
                 if (entity == null)
+                {
                     throw new ResourceNotFoundException(
                         string.Format("No entity of type {0} with id {1} found.", typeof(T).Name, id));
+                }
 
                 return (T)entity;
             }
@@ -95,22 +98,37 @@ namespace Pomona.Example
                 var expr = (Expression<Func<T, bool>>)pq.FilterExpression;
                 var compiledExpr = expr.Compile();
                 var count = GetEntityList<T>().Count(compiledExpr);
+                var result = GetEntityList<T>().Where(compiledExpr);
+
+                if (pq.OrderByExpression != null)
+                {
+                    var keySelector = (Func<T, object>)pq.OrderByExpression.Compile();
+                    if (pq.SortOrder == SortOrder.Ascending)
+                        result = result.OrderBy(keySelector);
+                    else
+                        result = result.OrderByDescending(keySelector);
+                }
+
+                result = result.Skip(pq.Skip).Take(pq.Top);
+
                 return new QueryResult<T>(
-                    GetEntityList<T>()
-                        .Where(compiledExpr)
-                        .Skip(pq.Skip)
-                        .Take(pq.Top),
+                    result,
                     pq.Skip,
                     count);
             }
         }
 
 
-        public T Post<T>(T newObject)
+        public object Post<T>(T newObject)
         {
             lock (this.syncLock)
             {
-                return Save(newObject);
+                newObject = Save(newObject);
+                var order = newObject as Order;
+                if (order != null)
+                    return new OrderResponse(order);
+
+                return newObject;
             }
         }
 
@@ -252,7 +270,7 @@ namespace Pomona.Example
                             {
                                 Dependability = rng.NextDouble(),
                                 ExplosionFactor = rng.NextDouble(),
-                                Price = (decimal)(rng.NextDouble() * 10000)
+                                Price = (decimal)(rng.NextDouble() * 10)
                             });
                 critter.Weapons.Add(weapon);
             }

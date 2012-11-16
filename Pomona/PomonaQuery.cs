@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
+using Pomona.Client;
+
 namespace Pomona
 {
     /// <summary>
@@ -48,11 +50,12 @@ namespace Pomona
         }
 
 
-        public Expression FilterExpression { get; set; }
+        public LambdaExpression FilterExpression { get; set; }
 
-        public string OrderBy { get; set; }
+        public LambdaExpression OrderByExpression { get; set; }
 
         public int Skip { get; set; }
+        public SortOrder SortOrder { get; set; }
         public int Top { get; set; }
 
         #region IPomonaQuery Members

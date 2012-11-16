@@ -37,6 +37,6 @@ namespace Pomona
         T GetById<T>(object id);
         ICollection<T> List<T>();
         QueryResult<T> List<T>(IPomonaQuery query);
-        T Post<T>(T newObject);
+        object Post<T>(T newObject);
     }
 }

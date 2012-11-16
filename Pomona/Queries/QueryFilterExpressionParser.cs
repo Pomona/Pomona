@@ -49,6 +49,12 @@ namespace Pomona.Queries
 
         public Expression<Func<T, bool>> Parse<T>(string odataExpression)
         {
+            return (Expression<Func<T, bool>>)Parse(typeof(T), odataExpression);
+        }
+
+
+        public LambdaExpression Parse(Type thisType, string odataExpression)
+        {
             if (odataExpression == null)
                 throw new ArgumentNullException("odataExpression");
             var input = new ANTLRStringStream(odataExpression);
@@ -61,9 +67,10 @@ namespace Pomona.Queries
 
             var tempTree = PomonaQueryTreeParser.ParseTree(tree, 0);
 
-            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter<T>(this.queryPropertyResolver);
+            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(this.queryPropertyResolver);
 
-            return nodeTreeToExpressionConverter.ToLambdaExpression(tempTree);
+            var lambdaExpression = nodeTreeToExpressionConverter.ToLambdaExpression(thisType, tempTree);
+            return lambdaExpression;
         }
     }
 }

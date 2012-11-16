@@ -24,6 +24,8 @@ tokens {
    DOT_OP;
    DATETIME_LITERAL;
    GUID_LITERAL;
+   METHOD_CALL;
+   INDEXER_ACCESS;
 }    
 
 
@@ -59,7 +61,7 @@ STRING
     ;
 */
 STRING
-    :  '\'' ( ~( '\\' | '\'' ) )* '\''
+    :  ( '\'' ( ~( '\\' | '\'' ) )* '\'' )+
     ;
     
     
@@ -148,7 +150,10 @@ primary_expr
 	;
 
 postfix_expr
-	:	ID^ ( '('! ')'! | '('! arglist_expr ')'! )
+	:	ID ( '(' arglist_expr ')' ) -> ^(METHOD_CALL ID arglist_expr)
+	|	ID ( '(' ')' ) -> ^(METHOD_CALL ID)
+	|	ID ( '[' arglist_expr ']' ) -> ^(INDEXER_ACCESS ID arglist_expr)
+	|	ID ( '[' ']' ) -> ^(INDEXER_ACCESS ID)
 	| ID
 	;
 

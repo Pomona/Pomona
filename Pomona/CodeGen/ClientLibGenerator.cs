@@ -350,6 +350,22 @@ namespace Pomona.CodeGen
         }
 
 
+        private void AddRepositoryPropertiesToClientType(TypeDefinition clientTypeDefinition)
+        {
+            foreach (var resourceTypeInfo in this.toClientTypeDict.Values.Where(x => x.UriBaseType == x.InterfaceType))
+            {
+                var transformedType = resourceTypeInfo.TransformedType;
+                var repoPropName = transformedType.PluralName;
+                var postReturnTypeRef = this.toClientTypeDict[transformedType.PostReturnType].InterfaceType;
+                var repoPropType =
+                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
+                        resourceTypeInfo.InterfaceType, postReturnTypeRef);
+                var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
+                repoProp.SetMethod.IsPublic = false;
+            }
+        }
+
+
         private void AddResourceInfoAttribute(TypeCodeGenInfo typeInfo)
         {
             var interfaceDef = typeInfo.InterfaceType;
@@ -427,17 +443,7 @@ namespace Pomona.CodeGen
 
             clientTypeDefinition.Methods.Add(ctor);
 
-            // Add repository properties
-
-            foreach (var resourceTypeInfo in this.toClientTypeDict.Values.Where(x => x.UriBaseType == x.InterfaceType))
-            {
-                var repoPropName = resourceTypeInfo.TransformedType.PluralName;
-                var repoPropType =
-                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
-                        resourceTypeInfo.InterfaceType, resourceTypeInfo.InterfaceType);
-                var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
-                repoProp.SetMethod.IsPublic = false;
-            }
+            AddRepositoryPropertiesToClientType(clientTypeDefinition);
 
             this.module.Types.Add(clientTypeDefinition);
         }
@@ -556,11 +562,15 @@ namespace Pomona.CodeGen
                 this.module.Import(baseDef.Methods.First(x => x.Name == "OnSet"));
 
             if (proxyOnGetMethod.GenericParameters.Count != 2)
+            {
                 throw new InvalidOperationException(
                     "OnGet method of base class is required to have two generic parameters.");
+            }
             if (proxyOnSetMethod.GenericParameters.Count != 2)
+            {
                 throw new InvalidOperationException(
                     "OnSet method of base class is required to have two generic parameters.");
+            }
 
             var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
             proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);

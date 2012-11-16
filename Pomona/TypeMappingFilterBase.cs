@@ -107,6 +107,12 @@ namespace Pomona
         }
 
 
+        public virtual Type GetPostReturnType(Type type)
+        {
+            return type;
+        }
+
+
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
             var selfParam = Expression.Parameter(typeof(object), "x");
@@ -168,6 +174,12 @@ namespace Pomona
         public virtual Type GetUriBaseType(Type type)
         {
             return type;
+        }
+
+
+        public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        {
+            return false;
         }
 
 

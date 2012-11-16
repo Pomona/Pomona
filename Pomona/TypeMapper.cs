@@ -202,6 +202,8 @@ namespace Pomona
                 classDefinition.UriRelativePath = NameUtils.ConvertCamelCaseToUri(
                     classDefinition.UriBaseType.PluralName);
 
+                classDefinition.PostReturnType = (TransformedType)GetClassMapping(this.filter.GetPostReturnType(type));
+
                 classDefinition.ScanProperties(type);
 
                 return classDefinition;
