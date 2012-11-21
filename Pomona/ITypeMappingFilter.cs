@@ -37,7 +37,7 @@ namespace Pomona
     public interface ITypeMappingFilter
     {
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
-        string GetClientLibraryFilename();
+        string GetClientAssemblyName();
         Type GetClientLibraryType(Type type);
         object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);
@@ -55,6 +55,9 @@ namespace Pomona
         /// </summary>
         /// <returns>List of types considered for mapping.</returns>
         IEnumerable<Type> GetSourceTypes();
+
+
+        ConstructorInfo GetTypeConstructor(Type type);
 
 
         /// <summary>

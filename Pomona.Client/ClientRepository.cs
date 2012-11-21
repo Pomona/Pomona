@@ -75,9 +75,15 @@ namespace Pomona.Client
         }
 
 
-        public IList<TResource> Query(Expression<Func<TResource, bool>> predicate, Expression<Func<TResource, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null)
+        public IList<TResource> Query(
+            Expression<Func<TResource, bool>> predicate,
+            Expression<Func<TResource, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null)
         {
-            return this.client.Query(this.Uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return this.client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
     }
 }

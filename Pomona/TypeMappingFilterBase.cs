@@ -35,6 +35,7 @@ using System.Reflection;
 using Common.Logging;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using Pomona.Client.Internals;
 
@@ -89,7 +90,7 @@ namespace Pomona
         }
 
 
-        public virtual string GetClientLibraryFilename()
+        public virtual string GetClientAssemblyName()
         {
             return "Client";
         }
@@ -103,6 +104,8 @@ namespace Pomona
 
         public virtual JsonConverter GetJsonConverterForType(Type type)
         {
+            if (IsNullableType(type) && type.GetGenericArguments()[0].IsEnum)
+                return new StringEnumConverter();
             return null;
         }
 
@@ -168,6 +171,13 @@ namespace Pomona
         public virtual Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return propertyInfo.PropertyType;
+        }
+
+
+        public virtual ConstructorInfo GetTypeConstructor(Type type)
+        {
+            // Find longest (most specific) public constructor
+            return type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
         }
 
 
@@ -270,17 +280,23 @@ namespace Pomona
 
         #endregion
 
-        private static bool IsNativelySupportedType(Type type)
+        private static bool IsNullableType(Type type)
+        {
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
+        }
+
+
+        private bool IsNativelySupportedType(Type type)
         {
             return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
         }
 
 
-        private static bool IsNullableAllowedNativeType(Type type)
+        private bool IsNullableAllowedNativeType(Type type)
         {
-            return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)) &&
-                   jsonSupportedNativeTypes.Contains(type.GetGenericArguments()[0]);
+            return IsNullableType(type) &&
+                   TypeIsMapped(type.GetGenericArguments()[0]);
         }
 
 

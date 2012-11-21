@@ -30,7 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Pomona.Client
+namespace Pomona.Client.Proxies
 {
     public abstract class LazyListProxy
     {

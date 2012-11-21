@@ -26,31 +26,15 @@
 
 #endregion
 
-using Mono.Cecil;
-using Mono.Cecil.Rocks;
+using System;
 
-namespace Pomona.CodeGen
+namespace Pomona.Example.Models
 {
-    internal static class CecilExtensions
+    /// <summary>
+    /// Test class for checking that IHasResourceUri.Url does not conflict with properties named Url on resources.
+    /// </summary>
+    public class ThingWithPropertyNamedUri : EntityBase
     {
-        internal static MethodReference MakeHostInstanceGeneric(
-            this MethodReference self, params TypeReference[] arguments)
-        {
-            var reference = new MethodReference(
-                self.Name, self.ReturnType, self.DeclaringType.MakeGenericInstanceType(arguments))
-            {
-                HasThis = self.HasThis,
-                ExplicitThis = self.ExplicitThis,
-                CallingConvention = self.CallingConvention
-            };
-
-            foreach (var parameter in self.Parameters)
-                reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
-
-            foreach (var generic_parameter in self.GenericParameters)
-                reference.GenericParameters.Add(new GenericParameter(generic_parameter.Name, reference));
-
-            return reference;
-        }
+        public Uri Uri { get; set; }
     }
 }

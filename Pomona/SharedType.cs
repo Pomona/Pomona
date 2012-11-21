@@ -46,37 +46,46 @@ namespace Pomona
                 typeof(bool), typeof(decimal), typeof(DateTime), typeof(Uri)
             };
 
-        private readonly Type targetType;
+        private readonly Type mappedType;
+        private readonly Type mappedTypeInstance;
         private readonly TypeMapper typeMapper;
         private bool isCollection;
 
 
-        public SharedType(Type targetType, TypeMapper typeMapper)
+        public SharedType(Type mappedType, Type mappedTypeInstance, TypeMapper typeMapper)
         {
-            if (targetType == null)
+            if (mappedType == null)
                 throw new ArgumentNullException("targetType");
+            if (mappedTypeInstance == null)
+                throw new ArgumentNullException("mappedTypeInstance");
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            this.targetType = targetType;
+            this.mappedType = mappedType;
+            this.mappedTypeInstance = mappedTypeInstance;
             this.typeMapper = typeMapper;
             this.isCollection =
-                targetType.GetInterfaces().Where(x => x.IsGenericType)
+                mappedType.GetInterfaces().Where(x => x.IsGenericType)
                     .Select(x => x.IsGenericTypeDefinition ? x : x.GetGenericTypeDefinition()).Any
                     (x => x == typeof(ICollection<>));
             GenericArguments = new List<IMappedType>();
         }
 
 
-        public Type TargetType
+        public Type MappedType
         {
-            get { return this.targetType; }
+            get { return this.mappedType; }
+        }
+
+        public Type MappedTypeInstance
+        {
+            get { return this.mappedTypeInstance; }
         }
 
         #region IMappedType Members
 
         public IMappedType BaseType
         {
-            get { return (SharedType)this.typeMapper.GetClassMapping(this.targetType.BaseType); }
+            get { return (SharedType)this.typeMapper.GetClassMapping(this.mappedType.BaseType); }
         }
 
         public IMappedType CollectionElementType
@@ -86,8 +95,8 @@ namespace Pomona
                 if (!this.isCollection)
                     throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
 
-                if (TargetType.IsArray)
-                    return this.typeMapper.GetClassMapping(TargetType.GetElementType());
+                if (MappedType.IsArray)
+                    return this.typeMapper.GetClassMapping(MappedType.GetElementType());
 
                 if (GenericArguments.Count == 0)
                 {
@@ -110,7 +119,7 @@ namespace Pomona
 
         public bool IsBasicWireType
         {
-            get { return basicWireTypes.Contains(this.targetType); }
+            get { return basicWireTypes.Contains(this.mappedType); }
         }
 
         public bool IsCollection
@@ -120,7 +129,7 @@ namespace Pomona
 
         public bool IsGenericType
         {
-            get { return this.targetType.IsGenericType; }
+            get { return this.mappedType.IsGenericType; }
         }
 
         public bool IsGenericTypeDefinition
@@ -130,14 +139,14 @@ namespace Pomona
 
         public bool IsValueType
         {
-            get { return this.targetType.IsValueType; }
+            get { return this.mappedType.IsValueType; }
         }
 
         public JsonConverter JsonConverter { get; set; }
 
         public string Name
         {
-            get { return this.targetType.Name; }
+            get { return this.mappedType.Name; }
         }
 
         #endregion

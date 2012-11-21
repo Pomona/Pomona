@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,12 @@
 
 #endregion
 
-namespace Pomona.Client
+using System;
+
+namespace Pomona.Example.Models
 {
-    public interface IHasResourceUri
+    public class ThingWithNullableDateTime : EntityBase
     {
-        string Uri { get; set; }
+        public DateTime? MaybeDateTime { get; set; }
     }
 }

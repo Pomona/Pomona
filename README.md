@@ -29,8 +29,7 @@ it all depends on the domain model mapped.
 ## State of the project
 
 Although usable for simple scenarios, Pomona should be considered early work-in-progress stuff.
-It doesn't even have query and ordering support. It will change. A lot.
-It's for the adventurous and the rebels! ;)
+It will change. A lot. It's for the adventurous and the rebels! ;)
 
 My personal goal is to release a version 1.0 before christmas. But no promises, yet.
 

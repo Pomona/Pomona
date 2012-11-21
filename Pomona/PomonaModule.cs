@@ -32,7 +32,9 @@ using System.Linq;
 
 using Nancy;
 
+using Pomona.CodeGen;
 using Pomona.Queries;
+using Pomona.Schemas;
 
 namespace Pomona
 {
@@ -77,7 +79,9 @@ namespace Pomona
 
             Get["/schemas"] = x => GetSchemas();
 
-            Get[string.Format("/{0}.dll", this.typeMapper.Filter.GetClientLibraryFilename())] = x => GetClientLibrary();
+            Get[string.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName())] = x => GetClientLibrary();
+
+            RegisterClientNugetPackageRoute();
         }
 
 
@@ -135,10 +139,13 @@ namespace Pomona
             // Fetch entity first to see if entity with id actually exists.
             var entity = this.session.GetAsJson((TransformedType)key.PropertyType, id, null);
 
-            if (Request.Query.filter.HasValue)
-                Request.Query.filter = string.Format("{0}.id eq {1} and ({2})", key.JsonName, id, Request.Query.filter);
+            if (Request.Query["$filter"].HasValue)
+            {
+                Request.Query["$filter"] = string.Format(
+                    "{0}.id eq {1} and ({2})", key.JsonName, id, Request.Query["$filter"]);
+            }
             else
-                Request.Query.filter = string.Format("{0}.id eq {1}", key.JsonName, id);
+                Request.Query["$filter"] = string.Format("{0}.id eq {1}", key.JsonName, id);
 
             var query = (PomonaQuery)this.queryTransformer.TransformRequest(Request, Context, type);
 
@@ -167,13 +174,33 @@ namespace Pomona
         }
 
 
+        private Response GetClientNugetPackage()
+        {
+            var response = new Response();
+
+            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            response.Contents = stream =>
+            {
+                using (var memstream = new MemoryStream())
+                {
+                    packageBuilder.BuildPackage(memstream);
+                    var bytes = memstream.ToArray();
+                    stream.Write(bytes, 0, bytes.Length);
+                }
+            };
+            response.ContentType = "binary/octet-stream";
+
+            return response;
+        }
+
+
         private string GetExpandedPaths()
         {
             string expand = null;
 
             try
             {
-                expand = Request.Query.expand;
+                expand = Request.Query["$expand"];
             }
             catch (Exception)
             {
@@ -198,7 +225,7 @@ namespace Pomona
         {
             var res = new Response();
 
-            var schemas = new JsonSchemaGenerator(this.session).GenerateAllSchemas().ToString();
+            var schemas = new JsonSchemaGenerator(this.typeMapper).GenerateAllSchemas().ToString();
             res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 
@@ -237,6 +264,13 @@ namespace Pomona
             FillJsonResponse(response, jsonStr);
 
             return response;
+        }
+
+
+        private void RegisterClientNugetPackageRoute()
+        {
+            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
         }
 
 

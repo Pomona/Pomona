@@ -57,7 +57,7 @@ namespace Pomona.Queries
 
         public Type Resolve(string typeName)
         {
-            return this.typeMapper.TransformedTypes.First(x => x.Name == typeName).SourceType;
+            return this.typeMapper.TransformedTypes.First(x => x.Name == typeName).MappedType;
         }
 
         #endregion

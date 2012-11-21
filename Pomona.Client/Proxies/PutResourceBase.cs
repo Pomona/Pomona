@@ -29,18 +29,45 @@
 using System;
 using System.Collections.Generic;
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Pomona.Client
+namespace Pomona.Client.Proxies
 {
     public class PutResourceBase
     {
         private Dictionary<string, object> putMap = new Dictionary<string, object>();
 
 
-        public JObject ToJson()
+        protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            object value;
+            if (!this.putMap.TryGetValue(property.Name, out value))
+            {
+                if (property.PropertyInfo.PropertyType == typeof(IDictionary<string, string>))
+                {
+                    // TODO: Fix this for all non-complex types..
+                    object newDict = new Dictionary<string, string>();
+                    this.putMap[property.Name] = newDict;
+                    return (TPropType)newDict;
+                }
+                throw new InvalidOperationException("Update value for " + property.Name + " has not been set");
+            }
+
+            return (TPropType)value;
+        }
+
+
+        protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
+        {
+            this.putMap[property.Name] = value;
+        }
+
+
+        internal JObject ToJson(JsonSerializer jsonSerializer)
         {
             var jObject = new JObject();
+
             foreach (var kvp in this.putMap)
             {
                 var jsonName = kvp.Key.Substring(0, 1).ToLower() + kvp.Key.Substring(1);
@@ -49,10 +76,12 @@ namespace Pomona.Client
                 var putValue = value as PutResourceBase;
                 var hasResourceUri = value as IHasResourceUri;
 
-                if (putValue != null)
+                if (value == null)
+                    jObject.Add(jsonName, null);
+                else if (putValue != null)
                 {
                     // Recursive put
-                    jObject.Add(jsonName, putValue.ToJson());
+                    jObject.Add(jsonName, putValue.ToJson(jsonSerializer));
                 }
                 else if (hasResourceUri != null)
                 {
@@ -62,26 +91,22 @@ namespace Pomona.Client
                     jObject.Add(jsonName, propRefJObject);
                 }
                 else
-                    jObject.Add(jsonName, new JValue(value));
+                {
+                    var valueType = value.GetType();
+                    var typeCode = Type.GetTypeCode(valueType);
+
+                    if (valueType.IsEnum || typeCode == TypeCode.Object)
+                    {
+                        var tokenWriter = new JTokenWriter();
+                        jsonSerializer.Serialize(tokenWriter, value);
+                        jObject.Add(jsonName, tokenWriter.Token);
+                    }
+                    else
+                        jObject.Add(jsonName, new JValue(value));
+                }
             }
 
             return jObject;
-        }
-
-
-        protected object OnPropertyGet(string propertyName)
-        {
-            object value;
-            if (!this.putMap.TryGetValue(propertyName, out value))
-                throw new InvalidOperationException("Update value for " + propertyName + " has not been set");
-
-            return value;
-        }
-
-
-        protected void OnPropertySet(string propertyName, object value)
-        {
-            this.putMap[propertyName] = value;
         }
     }
 }

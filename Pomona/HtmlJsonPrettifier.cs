@@ -66,8 +66,8 @@ display: inline;
 <div><ul>{1}</ul></div>
 <div>
   <form action=""{2}"" method=""get"">
-    <div>Query <input type=""text"" class=""search"" name=""filter"" /></div>
-    <div>Expand <input type=""text"" class=""search"" name=""expand"" /></div>
+    <div>Query <input type=""text"" class=""search"" name=""$filter"" /></div>
+    <div>Expand <input type=""text"" class=""search"" name=""$expand"" /></div>
     <input type=""submit"" value=""Submit"" />
   </form>
 </div>

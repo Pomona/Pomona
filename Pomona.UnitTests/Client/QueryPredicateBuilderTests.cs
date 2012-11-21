@@ -45,6 +45,7 @@ namespace Pomona.UnitTests.Client
 
         public class TestResource : IClientResource
         {
+            public IDictionary<string, string> Attributes { get; set; }
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
             public dynamic Boo { get; set; }
@@ -54,7 +55,6 @@ namespace Pomona.UnitTests.Client
             public float LessPrecise { get; set; }
             public double Precise { get; set; }
             public IList<FooBar> SomeList { get; set; }
-            public IDictionary<string, string> Attributes { get; set; }
             public TimeSpan TimeSpan { get; set; }
         }
 

@@ -41,18 +41,18 @@ namespace Pomona
     /// </summary>
     public class TransformedType : IMappedType
     {
+        private readonly Type mappedType;
         private readonly string name;
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
 
-        private readonly Type sourceType;
         private readonly TypeMapper typeMapper;
 
 
-        internal TransformedType(Type sourceType, string name, TypeMapper typeMapper)
+        internal TransformedType(Type mappedType, string name, TypeMapper typeMapper)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            this.sourceType = sourceType;
+            this.mappedType = mappedType;
             this.name = name;
             this.typeMapper = typeMapper;
 
@@ -64,6 +64,11 @@ namespace Pomona
 
         public ConstructorInfo ConstructorInfo { get; set; }
         public bool MappedAsValueObject { get; set; }
+
+        public Type MappedType
+        {
+            get { return this.mappedType; }
+        }
 
         /// <summary>
         /// Other types having the same URI as this type. (in same inheritance chain)
@@ -89,11 +94,6 @@ namespace Pomona
         public IList<PropertyMapping> Properties
         {
             get { return this.properties; }
-        }
-
-        public Type SourceType
-        {
-            get { return this.sourceType; }
         }
 
         public TransformedType UriBaseType { get; set; }
@@ -158,6 +158,11 @@ namespace Pomona
             get { return null; }
         }
 
+        public Type MappedTypeInstance
+        {
+            get { return this.mappedType; }
+        }
+
         public string Name
         {
             get { return this.name; }
@@ -203,7 +208,7 @@ namespace Pomona
 
         public Expression CreateExpressionForExternalPropertyPath(string externalPath)
         {
-            if (SourceType == null)
+            if (MappedType == null)
             {
                 throw new InvalidOperationException(
                     string.Format(
@@ -211,7 +216,7 @@ namespace Pomona
                         Name));
             }
 
-            var parameter = Expression.Parameter(SourceType, "x");
+            var parameter = Expression.Parameter(MappedType, "x");
             var propertyAccessExpression = CreateExpressionForExternalPropertyPath(parameter, externalPath);
 
             return Expression.Lambda(propertyAccessExpression, parameter);
@@ -294,12 +299,12 @@ namespace Pomona
                 var value = initValues[ctorProp.Name.ToLower()];
 
                 if (ctorProp.PropertyType.IsBasicWireType)
-                    value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).TargetType);
+                    value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).MappedType);
 
                 ctorArgs[ctorProp.ConstructorArgIndex] = value;
             }
 
-            var newInstance = Activator.CreateInstance(this.sourceType, ctorArgs);
+            var newInstance = Activator.CreateInstance(this.mappedType, ctorArgs);
 
             foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
             {
@@ -385,15 +390,16 @@ namespace Pomona
             BaseType = this.typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
-            var longestCtor = type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
-            ConstructorInfo = longestCtor;
+            var constructor = this.typeMapper.Filter.GetTypeConstructor(type);
+            ConstructorInfo = constructor;
 
-            if (longestCtor != null)
+            if (constructor != null)
             {
                 // TODO: match constructor arguments
-                foreach (var ctorParam in longestCtor.GetParameters())
+                foreach (var ctorParam in constructor.GetParameters())
                 {
-                    var matchingProperty = this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name);
+                    var matchingProperty =
+                        this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name.ToLower());
                     if (matchingProperty != null)
                     {
                         matchingProperty.CreateMode = PropertyMapping.PropertyCreateMode.Required;

@@ -33,7 +33,7 @@ using System.Reflection;
 
 using Pomona.Client.Internals;
 
-namespace Pomona.Client
+namespace Pomona.Client.Proxies
 {
     public class PropertyWrapper<TOwner, TPropType>
     {
@@ -80,6 +80,11 @@ namespace Pomona.Client
         public Expression<Func<TOwner, TPropType>> GetterExpression
         {
             get { return this.getterExpression; }
+        }
+
+        public string Name
+        {
+            get { return this.propertyInfo.Name; }
         }
 
         public PropertyInfo PropertyInfo

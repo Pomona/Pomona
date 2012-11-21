@@ -206,7 +206,7 @@ namespace Pomona
         {
             //var elementType = query.TargetType;
             var o = queryGenericMethod
-                .MakeGenericMethod(query.TargetType.SourceType)
+                .MakeGenericMethod(query.TargetType.MappedType)
                 .Invoke(this, new object[] { query, writer });
         }
 
@@ -232,11 +232,78 @@ namespace Pomona
         }
 
 
+        private object DeserializeToken(IMappedType propertyType, JToken propertyValue, string propertyName)
+        {
+            var propTransformedType = propertyType as TransformedType;
+            var propSharedType = propertyType as SharedType;
+            var propEnumType = propertyType as EnumType;
+            object propValueToSet;
+
+            if (propertyType.JsonConverter != null)
+            {
+                var jsonReader = propertyValue.CreateReader();
+                jsonReader.Read();
+                propValueToSet = propertyType.JsonConverter.ReadJson(
+                    jsonReader, propertyType.MappedTypeInstance, null, null);
+            }
+            else if (propSharedType != null && propSharedType.MappedType == typeof(Nullable<>))
+            {
+                if (propertyValue.Type == JTokenType.Null || propertyValue.Type == JTokenType.Undefined)
+                    propValueToSet = null;
+                else
+                    propValueToSet = DeserializeToken(propSharedType.GenericArguments[0], propertyValue, propertyName);
+            }
+            else if (propSharedType != null && propSharedType.MappedType == typeof(Uri))
+                propValueToSet = new Uri(propertyValue.ToString());
+            else if (propTransformedType != null)
+            {
+                // We expect jProp to be an object
+                var jPropObject = propertyValue as JObject;
+
+                if (jPropObject == null)
+                {
+                    throw new PomonaSerializationException(
+                        "The property " + propertyName
+                        + " is of wrong type, expected to be a JSON object (dictionary).");
+                }
+
+                JToken refUriToken;
+                if (jPropObject.TryGetValue("_ref", out refUriToken))
+                {
+                    if (!(refUriToken is JValue))
+                        throw new PomonaSerializationException("_ref JSON property must be a string with valid URI");
+
+                    var refUri = (string)((JValue)refUriToken).Value;
+
+                    // HMMM How are we supposed to resolve the URI here?? It seems the URI routing stuff needs to go a bit deeper in the architecture..
+                    // HACK HACK HACK For now assume that the URL ends with {entityname}/{id}
+                    propValueToSet = GetObjectFromUri(refUri);
+                }
+                else
+                {
+                    // Create a new one!
+                    propValueToSet = PostJsonInternal(propTransformedType, jPropObject);
+                }
+            }
+            else if (propEnumType != null)
+            {
+                // TODO: Proper enum handling (check whether value is string etc..)
+                propValueToSet = Enum.Parse(propEnumType.MappedType, (string)((JValue)propertyValue).Value, true);
+            }
+            else if (propertyType.IsBasicWireType)
+                propValueToSet = ((JValue)propertyValue).Value;
+            else
+                throw new PomonaSerializationException("Don't know how to deserialize JSON property " + propertyName);
+
+            return propValueToSet;
+        }
+
+
         private object GetById(TransformedType transformedType, object id)
         {
             // TODO: Maybe cache method instance?
 
-            return getByIdMethod.Call(transformedType.SourceType, this.dataSource, id);
+            return getByIdMethod.Call(transformedType.MappedType, this.dataSource, id);
         }
 
 
@@ -252,7 +319,7 @@ namespace Pomona
             // Now we need to find matching mapped type
             // Hmm.. Here the _type part could be used.
             var transformedType = TypeMapper.TransformedTypes.First(x => x.UriRelativePath == entityName.ToLower());
-            var sourceType = transformedType.UriBaseType.SourceType;
+            var sourceType = transformedType.UriBaseType.MappedType;
 
             if (sourceType == null)
             {
@@ -284,47 +351,18 @@ namespace Pomona
                     continue;
 
                 var mappedProperty = mappedType.GetPropertyByJsonName(jProp.Name);
-                var propTransformedType = mappedProperty.PropertyType as TransformedType;
-                object propValueToSet;
-                if (propTransformedType != null)
-                {
-                    // We expect jProp to be an object
-                    var jPropObject = jProp.Value as JObject;
+                var propertyType = mappedProperty.PropertyType;
+                var propertyValue = jProp.Value;
 
-                    if (jPropObject == null)
-                    {
-                        throw new PomonaSerializationException(
-                            "The property " + jProp.Name
-                            + " is of wrong type, expected to be a JSON object (dictionary).");
-                    }
-
-                    JToken refUriToken;
-                    if (jPropObject.TryGetValue("_ref", out refUriToken))
-                    {
-                        if (!(refUriToken is JValue))
-                            throw new PomonaSerializationException("_ref JSON property must be a string with valid URI");
-
-                        var refUri = (string)((JValue)refUriToken).Value;
-
-                        // HMMM How are we supposed to resolve the URI here?? It seems the URI routing stuff needs to go a bit deeper in the architecture..
-                        // HACK HACK HACK For now assume that the URL ends with {entityname}/{id}
-                        propValueToSet = GetObjectFromUri(refUri);
-                    }
-                    else
-                    {
-                        // Create a new one!
-                        propValueToSet = PostJsonInternal(propTransformedType, jPropObject);
-                    }
-                }
-                else if (mappedProperty.PropertyType.IsBasicWireType)
-                    propValueToSet = ((JValue)jProp.Value).Value;
-                else
-                    throw new PomonaSerializationException("Don't know how to deserialize JSON property " + jProp.Name);
+                var propValueToSet = DeserializeToken(propertyType, propertyValue, jProp.Name);
 
                 initValues.Add(jProp.Name.ToLower(), propValueToSet);
             }
 
             var newInstance = mappedType.NewInstance(initValues);
+
+            if (mappedType.MappedAsValueObject)
+                return newInstance;
 
             return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] { newInstance });
         }

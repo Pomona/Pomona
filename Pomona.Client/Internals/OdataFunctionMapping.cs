@@ -38,6 +38,8 @@ namespace Pomona.Client.Internals
 {
     public class OdataFunctionMapping
     {
+        public static readonly MethodInfo DictGetMethod;
+
         private static readonly Dictionary<MemberInfo, string> memberToOdataFunctionMap =
             new Dictionary<MemberInfo, string>();
 
@@ -46,7 +48,6 @@ namespace Pomona.Client.Internals
 
         private static readonly object[] questionStrings;
 
-        public static readonly MethodInfo DictGetMethod;
 
         static OdataFunctionMapping()
         {

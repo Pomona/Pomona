@@ -26,10 +26,10 @@
 
 #endregion
 
-namespace Pomona.Client
+namespace Pomona.Example.Models
 {
-    public interface IHasResourceUri
+    public class HasCustomNullableEnum : EntityBase
     {
-        string Uri { get; set; }
+        public CustomEnum? TheEnumValue { get; set; }
     }
 }

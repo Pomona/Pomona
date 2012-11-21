@@ -30,6 +30,7 @@ using System;
 
 using NUnit.Framework;
 
+using Pomona.Schemas;
 using Pomona.UnitTests.PomonaSession;
 
 namespace Pomona.UnitTests
@@ -41,7 +42,7 @@ namespace Pomona.UnitTests
         public void GenerateAllSchemas_DoesNotThrowAnyExceptions()
         {
             // Smoketest, just check that GenerateAllSchemas does not throw any exceptions
-            var schemaGenerator = new JsonSchemaGenerator(Session);
+            var schemaGenerator = new JsonSchemaGenerator(Session.TypeMapper);
             Console.WriteLine(schemaGenerator.GenerateAllSchemas());
         }
     }

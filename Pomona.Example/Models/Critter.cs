@@ -35,6 +35,7 @@ namespace Pomona.Example.Models
     {
         public Critter()
         {
+            Guid = Guid.NewGuid();
             Enemies = new List<Critter>();
             Weapons = new List<Weapon>();
             Subscriptions = new List<Subscription>();
@@ -55,6 +56,7 @@ namespace Pomona.Example.Models
         public IList<Critter> Enemies { get; set; }
         public Farm Farm { get; set; }
 
+        public Guid Guid { get; set; }
         public Hat Hat { get; set; }
 
         public string Name { get; set; }

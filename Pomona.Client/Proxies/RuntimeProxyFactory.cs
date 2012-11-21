@@ -29,36 +29,49 @@
 using System;
 using System.IO;
 
-using Pomona.Example;
+using Mono.Cecil;
 
-namespace Pomona.UnitTests.GenerateClientDllApp
+using Pomona.Client.Internals;
+
+namespace Pomona.Client.Proxies
 {
-    internal class Program
+    public static class RuntimeProxyFactory<TProxyBase, T>
     {
-        private static void Main(string[] args)
+        private static readonly Type proxyType;
+
+
+        static RuntimeProxyFactory()
         {
-            var session = new PomonaSession(
-                new CritterDataSource(), new TypeMapper(new CritterTypeMappingFilter()), UriResolver);
+            var type = typeof(T);
+            var typeName = type.Name;
+            var assemblyName = typeName + "Proxy" + Guid.NewGuid().ToString();
+            var assembly =
+                AssemblyDefinition.CreateAssembly(
+                    new AssemblyNameDefinition(assemblyName, new Version(1, 0)), assemblyName, ModuleKind.Dll);
 
-            using (var file = new FileStream(@"..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
+            var module = assembly.MainModule;
+
+            var builder = new WrappedPropertyProxyBuilder(
+                module, module.Import(typeof(TProxyBase)), module.Import(typeof(PropertyWrapper<,>)).Resolve());
+
+            var typeDef = builder.CreateProxyType(typeName, module.Import(type).Resolve().WrapAsEnumerable());
+
+            byte[] assemblyBlob;
+
+            using (var memoryStream = new MemoryStream())
             {
-                session.WriteClientLibrary(file, embedPomonaClient : false);
+                assembly.Write(memoryStream);
+                assemblyBlob = memoryStream.ToArray();
             }
 
-            using (
-                var file = new FileStream(
-                    @"..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
-            {
-                session.WriteClientLibrary(file, embedPomonaClient : true);
-            }
-
-            Console.WriteLine("Wrote client dll.");
+            var loadedAssembly = AppDomain.CurrentDomain.Load(assemblyBlob);
+            proxyType = loadedAssembly.GetType(typeDef.FullName);
         }
 
 
-        private static Uri UriResolver()
+        public static T Create()
         {
-            return new Uri("http://localhost:2211/");
+            return (T)Activator.CreateInstance(proxyType);
         }
     }
 }

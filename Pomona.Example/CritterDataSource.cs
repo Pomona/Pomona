@@ -32,7 +32,9 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Pomona.Client;
+using Pomona.Client.Internals;
 using Pomona.Example.Models;
+using Pomona.Internals;
 using Pomona.Queries;
 
 namespace Pomona.Example
@@ -96,6 +98,10 @@ namespace Pomona.Example
             {
                 var pq = (PomonaQuery)query;
                 var expr = (Expression<Func<T, bool>>)pq.FilterExpression;
+
+                var visitor = new MakeDictAccessesSafeVisitor();
+                expr = (Expression<Func<T, bool>>)visitor.Visit(expr);
+
                 var compiledExpr = expr.Compile();
                 var count = GetEntityList<T>().Count(compiledExpr);
                 var result = GetEntityList<T>().Where(compiledExpr);
@@ -129,6 +135,30 @@ namespace Pomona.Example
                     return new OrderResponse(order);
 
                 return newObject;
+            }
+        }
+
+
+        private static string GetDictItemOrDefault(IDictionary<string, string> dict, string key)
+        {
+            string value;
+            return dict.TryGetValue(key, out value) ? value : Guid.NewGuid().ToString();
+        }
+
+
+        public class MakeDictAccessesSafeVisitor : ExpressionVisitor
+        {
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                if (node.Method == OdataFunctionMapping.DictGetMethod)
+                {
+                    return
+                        Expression.Call(
+                            ReflectionHelper.GetMethodInfo<string, string>(x => GetDictItemOrDefault(null, null)),
+                            node.Object,
+                            node.Arguments.First());
+                }
+                return base.VisitMethodCall(node);
             }
         }
 

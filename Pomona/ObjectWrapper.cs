@@ -87,7 +87,19 @@ namespace Pomona
         public virtual void ToJson(JsonWriter writer)
         {
             IMappedType collectionElementType;
-            if (TryGetCollectionElementType(this.targetType, out collectionElementType))
+            if (this.targetType is SharedType && ((SharedType)this.targetType).MappedType == typeof(Dictionary<,>))
+            {
+                // TODO: Support dictionary of other types too..
+                writer.WriteStartObject();
+                var dict = (IDictionary<string, string>)this.target;
+                foreach (var kvp in dict)
+                {
+                    writer.WritePropertyName(kvp.Key);
+                    writer.WriteValue(kvp.Value);
+                }
+                writer.WriteEndObject();
+            }
+            else if (TryGetCollectionElementType(this.targetType, out collectionElementType))
             {
                 writer.WriteStartArray();
                 foreach (var child in ((IEnumerable)this.target))
@@ -206,7 +218,7 @@ namespace Pomona
                     this.target,
                     Convert.ChangeType(
                         ((JValue)jsonProperty.Value).Value,
-                        propertyType.TargetType));
+                        propertyType.MappedType));
             }
         }
 
@@ -217,7 +229,7 @@ namespace Pomona
             if (sharedType == null)
                 return false;
 
-            return IsIList(sharedType.TargetType);
+            return IsIList(sharedType.MappedType);
         }
 
 
@@ -250,7 +262,7 @@ namespace Pomona
             // First look if we're dealing directly with a known collection type
 
             var collectionInterface =
-                sharedType.TargetType.GetInterfaces().FirstOrDefault(
+                sharedType.MappedType.GetInterfaces().FirstOrDefault(
                     x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
 
             if (collectionInterface == null)
@@ -261,7 +273,7 @@ namespace Pomona
             if (genargs.IsGenericParameter)
             {
                 // This means that we have to get the element type from one of the type arguments in TargetType
-                IList<Type> targetTypeGenericArgs = sharedType.TargetType.GetGenericArguments();
+                IList<Type> targetTypeGenericArgs = sharedType.MappedType.GetGenericArguments();
                 var indexOfElementType = targetTypeGenericArgs.IndexOf(genargs);
                 elementType = sharedType.GenericArguments[indexOfElementType];
             }

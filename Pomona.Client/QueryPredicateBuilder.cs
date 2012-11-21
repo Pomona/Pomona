@@ -35,7 +35,6 @@ using System.Reflection;
 using System.Text;
 
 using Pomona.Client.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Client
 {
@@ -69,7 +68,6 @@ namespace Pomona.Client
             };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);
-
         }
 
 
@@ -264,7 +262,7 @@ namespace Pomona.Client
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
                 var key = DecodeQuotedString(quotedKey);
-/* 
+                /* 
                 if (ContainsOnlyValidSymbolCharacters(key))
                     return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
                 return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);

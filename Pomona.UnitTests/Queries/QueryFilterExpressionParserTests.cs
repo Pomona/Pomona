@@ -65,7 +65,9 @@ namespace Pomona.UnitTests.Queries
 
             public Expression Resolve(Expression rootInstance, string propertyPath)
             {
-                return Expression.Property(rootInstance, rootInstance.Type.GetProperties().First(x => x.Name.ToLower() == propertyPath.ToLower()));
+                return Expression.Property(
+                    rootInstance,
+                    rootInstance.Type.GetProperties().First(x => x.Name.ToLower() == propertyPath.ToLower()));
             }
 
             #endregion
@@ -73,11 +75,11 @@ namespace Pomona.UnitTests.Queries
 
         public class Dummy
         {
+            public IDictionary<string, string> Attributes { get; set; }
             public Guid Guid { get; set; }
             public int Number { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
-            public IDictionary<string, string> Attributes { get; set; }
         }
 
 
@@ -98,10 +100,13 @@ namespace Pomona.UnitTests.Queries
             return objAsT;
         }
 
-        private void AssertExpressionEquals<T, TReturn>(Expression<Func<T, TReturn>> actual, Expression<Func<T, TReturn>> expected)
+
+        private void AssertExpressionEquals<T, TReturn>(
+            Expression<Func<T, TReturn>> actual, Expression<Func<T, TReturn>> expected)
         {
             AssertExpressionEquals((Expression)actual, (Expression)expected);
         }
+
 
         private void AssertExpressionEquals(Expression actual, Expression expected)
         {
@@ -161,12 +166,6 @@ namespace Pomona.UnitTests.Queries
             }
         }
 
-        [Test]
-        public void Parse_DictAccess_CreatesCorrectExpression()
-        {
-            var expr = this.parser.Parse<Dummy>("attributes['foo'] eq 'bar'");
-            AssertExpressionEquals(expr, x => x.Attributes["foo"] == "bar");
-        }
 
         [Test]
         public void Parse_DateTimeConstant_CreatesCorrectExpression()
@@ -177,6 +176,14 @@ namespace Pomona.UnitTests.Queries
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftTimeConstant = AssertIsConstant<DateTime>(binExpr.Right);
             Assert.That(leftTimeConstant, Is.EqualTo(expectedTime));
+        }
+
+
+        [Test]
+        public void Parse_DictAccess_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("attributes['foo'] eq 'bar'");
+            AssertExpressionEquals(expr, x => x.Attributes["foo"] == "bar");
         }
 
 

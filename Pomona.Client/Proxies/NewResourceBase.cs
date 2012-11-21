@@ -26,7 +26,7 @@
 
 #endregion
 
-namespace Pomona.Client
+namespace Pomona.Client.Proxies
 {
     public abstract class NewResourceBase : PutResourceBase
     {

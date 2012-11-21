@@ -32,7 +32,7 @@ namespace Pomona.Client
     {
         #region IHasResourceUri Members
 
-        public string Uri { get; set; }
+        string IHasResourceUri.Uri { get; set; }
 
         #endregion
     }

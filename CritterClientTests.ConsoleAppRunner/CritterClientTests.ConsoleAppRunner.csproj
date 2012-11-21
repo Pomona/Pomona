@@ -37,8 +37,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Critter.Client">
-      <HintPath>..\lib\Critter.Client.dll</HintPath>
+    <Reference Include="Critters.Client">
+      <HintPath>..\lib\Critters.Client.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.10\lib\net40\Newtonsoft.Json.dll</HintPath>

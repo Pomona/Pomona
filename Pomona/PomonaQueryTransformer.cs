@@ -71,30 +71,30 @@ namespace Pomona
             var top = 10;
             var skip = 0;
 
-            if (request.Query.top.HasValue)
-                top = int.Parse(request.Query.top);
+            if (request.Query["$top"].HasValue)
+                top = int.Parse(request.Query["$top"]);
 
-            if (request.Query.skip.HasValue)
-                skip = int.Parse(request.Query.skip);
+            if (request.Query["$skip"].HasValue)
+                skip = int.Parse(request.Query["$skip"]);
 
-            if (request.Query.filter.HasValue)
-                filter = (string)request.Query.filter;
+            if (request.Query["$filter"].HasValue)
+                filter = (string)request.Query["$filter"];
 
-            if (request.Query.select.HasValue)
-                select = (string)request.Query.select;
+            if (request.Query["$select"].HasValue)
+                select = (string)request.Query["$select"];
 
-            if (request.Query.orderby.HasValue)
-                ParseOrderBy(query, (string)request.Query.orderby);
+            if (request.Query["$orderby"].HasValue)
+                ParseOrderBy(query, (string)request.Query["$orderby"]);
 
             ParseFilterExpression(query, filter);
 
             query.Top = top;
             query.Skip = skip;
 
-            if (request.Query.expand.HasValue)
+            if (request.Query["$expand"].HasValue)
             {
                 // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string)request.Query.expand)
+                query.ExpandedPaths = ((string)request.Query["$expand"])
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Distinct()
                     .Select(x => this.typeMapper.ConvertToInternalPropertyPath(rootType, x))
@@ -113,7 +113,7 @@ namespace Pomona
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = this.filterParser.Parse(query.TargetType.SourceType, filter);
+            query.FilterExpression = this.filterParser.Parse(query.TargetType.MappedType, filter);
         }
 
 
@@ -134,7 +134,7 @@ namespace Pomona
             else
                 query.SortOrder = SortOrder.Ascending;
 
-            query.OrderByExpression = this.filterParser.Parse(query.TargetType.SourceType, orderby);
+            query.OrderByExpression = this.filterParser.Parse(query.TargetType.MappedType, orderby);
         }
     }
 }

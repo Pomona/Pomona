@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,68 +27,28 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 
-namespace Pomona.Client
+namespace Pomona.Client.Proxies
 {
-    public class LazyProxyBase : IHasResourceUri
+    public class ClientSideResourceProxyBase
     {
-        private ClientBase client;
+        public object ProxyTarget { get; internal set; }
+        internal PropertyInfo AttributesProperty { get; set; }
 
-        private object target;
-        private Type targetType;
-
-        private string uri;
-
-        public ClientBase Client
-        {
-            get { return this.client; }
-            internal set { this.client = value; }
-        }
-
-        public object Target
-        {
-            get { return this.target; }
-            internal set { this.target = value; }
-        }
-
-        public Type TargetType
-        {
-            get { return this.targetType; }
-            internal set { this.targetType = value; }
-        }
-
-        #region IHasResourceUri Members
-
-        public string Uri
-        {
-            get { return this.uri; }
-            internal set { this.uri = value; }
-        }
-
-        #endregion
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (this.target == null)
-                this.target = this.client.GetUri(this.uri, this.targetType);
+            if (property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget))
+                return property.Getter((TOwner)ProxyTarget);
 
-            return property.Getter((TOwner)this.target);
-        }
+            if (typeof(TPropType) != typeof(string))
+                throw new NotImplementedException("Only supports wrapping of string properties");
 
+            var dict = (IDictionary<string, string>)AttributesProperty.GetValue(ProxyTarget, null);
 
-        protected object OnPropertyGet(string propertyName)
-        {
-            if (this.target == null)
-                this.target = this.client.GetUri(this.uri, this.targetType);
-
-            // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return this.targetType.GetProperty(propertyName).GetValue(this.target, null);
-        }
-
-
-        protected void OnPropertySet(string propertyName, object value)
-        {
-            throw new NotImplementedException();
+            return (TPropType)((object)dict[property.PropertyInfo.Name]);
         }
 
 

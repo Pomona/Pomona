@@ -47,9 +47,9 @@ namespace Pomona.Example
         }
 
 
-        public override string GetClientLibraryFilename()
+        public override string GetClientAssemblyName()
         {
-            return "Critter.Client";
+            return "Critters.Client";
         }
 
 

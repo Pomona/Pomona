@@ -54,7 +54,7 @@ namespace Pomona
             var sharedType = mappedType as SharedType;
             if (sharedType != null && sharedType.IsBasicWireType)
             {
-                var targetType = sharedType.TargetType;
+                var targetType = sharedType.MappedType;
                 if (numberTypes.Contains(targetType))
                 {
                     if (targetType == typeof(double) || targetType == typeof(float))

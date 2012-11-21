@@ -33,14 +33,17 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-using CritterClient;
+using Critters.Client;
 
 using NUnit.Framework;
 
 using Pomona;
 using Pomona.Client;
+using Pomona.Client.Proxies;
 using Pomona.Example;
 using Pomona.Example.Models;
+
+using CustomEnum = Critters.Client.CustomEnum;
 
 namespace CritterClientTests
 {
@@ -66,6 +69,12 @@ namespace CritterClientTests
         }
 
         #endregion
+
+        public interface IHasCustomAttributes : IDictionaryContainer
+        {
+            string WrappedAttribute { get; set; }
+        }
+
 
         [TestFixtureSetUp]
         public void FixtureSetUp()
@@ -149,6 +158,27 @@ namespace CritterClientTests
         private ICollection<Critter> CritterEntities
         {
             get { return this.critterHost.DataSource.List<Critter>(); }
+        }
+
+        public CritterDataSource DataSource
+        {
+            get { return this.critterHost.DataSource; }
+        }
+
+
+        public void AssertIsOrderedBy<T, TOrderKey>(
+            IEnumerable<T> enumerable, Func<T, TOrderKey> orderby, SortOrder sortOrder)
+            where T : IEntityBase
+        {
+            var list = enumerable.ToList();
+            IEnumerable<T> expected;
+
+            if (sortOrder == SortOrder.Ascending)
+                expected = list.OrderBy(orderby);
+            else
+                expected = list.OrderByDescending(orderby);
+
+            Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
         }
 
 
@@ -295,6 +325,35 @@ namespace CritterClientTests
 
 
         [Test]
+        public void PostHasCustomEnum()
+        {
+            var response = this.client.HasCustomEnums.Post(
+                x => { x.TheEnumValue = CustomEnum.Tock; });
+
+            Assert.That(response.TheEnumValue, Is.EqualTo(CustomEnum.Tock));
+        }
+
+
+        [Test]
+        public void PostHasNullableCustomEnum_WithNonNullValue()
+        {
+            var response = this.client.HasCustomNullableEnums.Post(
+                x => { x.TheEnumValue = CustomEnum.Tock; });
+            Assert.That(response.TheEnumValue.HasValue, Is.True);
+            Assert.That(response.TheEnumValue.Value, Is.EqualTo(CustomEnum.Tock));
+        }
+
+
+        [Test]
+        public void PostHasNullableCustomEnum_WithNull()
+        {
+            var response = this.client.HasCustomNullableEnums.Post(
+                x => { x.TheEnumValue = null; });
+            Assert.That(response.TheEnumValue.HasValue, Is.False);
+        }
+
+
+        [Test]
         public void PostJunkWithRenamedProperty()
         {
             var propval = "Jalla jalla";
@@ -339,6 +398,39 @@ namespace CritterClientTests
 
 
         [Test]
+        public void PostThingWithNullableDateTime_WithNonNullValue()
+        {
+            DateTime? maybeDateTime = new DateTime(2011, 10, 22, 1, 33, 22);
+            var response = this.client.ThingWithNullableDateTimes.Post(
+                x => { x.MaybeDateTime = maybeDateTime; });
+
+            Assert.That(response.MaybeDateTime.HasValue, Is.True);
+            Assert.That(response.MaybeDateTime, Is.EqualTo(maybeDateTime));
+        }
+
+
+        [Test]
+        public void PostThingWithNullableDateTime_WithNullValue()
+        {
+            var response = this.client.ThingWithNullableDateTimes.Post(
+                x => { x.MaybeDateTime = null; });
+
+            Assert.That(response.MaybeDateTime.HasValue, Is.False);
+        }
+
+
+        [Test]
+        public void PostThingWithPropertyNamedUri()
+        {
+            var uri = new Uri("http://bahaha");
+            var response = this.client.ThingWithPropertyNamedUris.Post(
+                x => { x.Uri = uri; });
+
+            Assert.That(response.Uri, Is.EqualTo(uri));
+        }
+
+
+        [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
             var farms = this.client.Farms.Query(x => true).ToList();
@@ -350,6 +442,26 @@ namespace CritterClientTests
             Assert.That(someCritters, Has.Count.GreaterThanOrEqualTo(1));
             var noCritters = firstFarm.Critters.Query(x => x.Farm.Id == secondFarm.Id);
             Assert.That(noCritters, Has.Count.EqualTo(0));
+        }
+
+
+        [Test]
+        public void QueryClientSideInheritedResource_ReturnsCorrectResults()
+        {
+            DataSource.Post(
+                new DictionaryContainer() { Map = new Dictionary<string, string>() { { "Lulu", "booja" } } });
+            DataSource.Post(
+                new DictionaryContainer() { Map = new Dictionary<string, string>() { { "WrappedAttribute", "booja" } } });
+            DataSource.Post(
+                new DictionaryContainer() { Map = new Dictionary<string, string>() { { "WrappedAttribute", "hooha" } } });
+            DataSource.Post(
+                new DictionaryContainer()
+                { Map = new Dictionary<string, string>() { { "WrappedAttribute", "halala" } } });
+
+            var critters = this.client.Query<IHasCustomAttributes>(
+                this.client.BaseUri + "dictionary-containers", x => x.WrappedAttribute.StartsWith("h"));
+
+            Assert.Fail("Test not complete");
         }
 
 
@@ -423,33 +535,6 @@ namespace CritterClientTests
         public void QueryCritter_RoundDecimal_ReturnsCorrectCritters()
         {
             TestQuery<IWeapon, Weapon>(x => decimal.Round(x.Price) == 5m, x => decimal.Round(x.Price) == 5m);
-        }
-
-        public CritterDataSource DataSource { get { return critterHost.DataSource; } }
-
-        [Test]
-        public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
-        {
-            var matching =  (DictionaryContainer)DataSource.Post(new DictionaryContainer()
-            {
-                Map = new Dictionary<string, string>() { { "fubu", "bar" } }
-            });
-            var notMatching = (DictionaryContainer)DataSource.Post(new DictionaryContainer()
-            {
-                Map = new Dictionary<string, string>() { { "fubu", "nope" } }
-            });
-
-            var resultIds = TestQuery<IDictionaryContainer, DictionaryContainer>(
-                x => x.Map["fubu"] == "bar", x => x.Map["fubu"] == "bar").Select(x => x.Id);
-
-            Assert.That(resultIds, Has.Member(matching.Id));
-            Assert.That(resultIds, Has.No.Member(notMatching.Id));
-        }
-
-        [Test]
-        public void QueryWeapon_RoundDouble_ReturnsCorrectCritters()
-        {
-            TestQuery<IWeapon, Weapon>(x => Math.Round(x.Dependability) == 1.0, x => Math.Round(x.Dependability) == 1.0);
         }
 
 
@@ -561,10 +646,27 @@ namespace CritterClientTests
 
 
         [Test]
+        public void QueryCritter_WithOrderByIntDesc_ReturnsCrittersInCorrectOrder()
+        {
+            var fetchedCritters = this.client.Critters.Query(x => true, orderBy : x => x.Id, top : 1000);
+            Assert.Inconclusive("TODO: Test assertion not written");
+        }
+
+
+        [Test]
         public void QueryCritter_WithOrderByInt_ReturnsCrittersInCorrectOrder()
         {
             var fetchedCritters = this.client.Critters.Query(x => true, orderBy : x => x.Id, top : 1000);
             Assert.Inconclusive("TODO: Test assertion not written");
+        }
+
+
+        [Test]
+        public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
+        {
+            var fetchedCritters = this.client.Critters.Query(
+                x => true, orderBy : x => x.Name, sortOrder : SortOrder.Descending, top : 1000);
+            AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
         }
 
 
@@ -575,43 +677,33 @@ namespace CritterClientTests
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Ascending);
         }
 
-        [Test]
-        public void QueryCritter_WithOrderByIntDesc_ReturnsCrittersInCorrectOrder()
-        {
-            var fetchedCritters = this.client.Critters.Query(x => true, orderBy: x => x.Id, top: 1000);
-            Assert.Inconclusive("TODO: Test assertion not written");
-        }
-
-        public void AssertIsOrderedBy<T, TOrderKey>(IEnumerable<T> enumerable, Func<T, TOrderKey> orderby, SortOrder sortOrder)
-            where T : IEntityBase
-        {
-            var list = enumerable.ToList();
-            IEnumerable<T> expected;
-
-            if (sortOrder == SortOrder.Ascending)
-            {
-                expected = list.OrderBy(orderby);
-            }
-            else
-            {
-                expected = list.OrderByDescending(orderby);
-            }
-
-            Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
-        }
-
-        [Test]
-        public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
-        {
-            var fetchedCritters = this.client.Critters.Query(x => true, orderBy: x => x.Name, sortOrder: SortOrder.Descending, top: 1000);
-            AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
-        }
-
 
         [Test]
         public void QueryCritter_WithWeaponsCountIsGreaterThan7_ReturnsCorrectCritters()
         {
             TestQuery<ICritter, Critter>(x => x.Weapons.Count > 7, x => x.Weapons.Count > 7);
+        }
+
+
+        [Test]
+        public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
+        {
+            var matching = (DictionaryContainer)DataSource.Post(
+                new DictionaryContainer()
+                {
+                    Map = new Dictionary<string, string>() { { "fubu", "bar" } }
+                });
+            var notMatching = (DictionaryContainer)DataSource.Post(
+                new DictionaryContainer()
+                {
+                    Map = new Dictionary<string, string>() { { "fubu", "nope" } }
+                });
+
+            var resultIds = TestQuery<IDictionaryContainer, DictionaryContainer>(
+                x => x.Map["fubu"] == "bar", x => x.Map["fubu"] == "bar").Select(x => x.Id);
+
+            Assert.That(resultIds, Has.Member(matching.Id));
+            Assert.That(resultIds, Has.No.Member(notMatching.Id));
         }
 
 
@@ -632,6 +724,13 @@ namespace CritterClientTests
             var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
+        }
+
+
+        [Test]
+        public void QueryWeapon_RoundDouble_ReturnsCorrectCritters()
+        {
+            TestQuery<IWeapon, Weapon>(x => Math.Round(x.Dependability) == 1.0, x => Math.Round(x.Dependability) == 1.0);
         }
 
 

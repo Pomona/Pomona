@@ -36,8 +36,12 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
+using Pomona.Client.Internals;
+using Pomona.Client.Proxies;
 using Pomona.Internals;
 
 namespace Pomona.Client
@@ -67,7 +71,23 @@ namespace Pomona.Client
             where T : IClientResource;
 
 
-        public abstract IList<T> Query<T>(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null);
+        public abstract IList<T> Query<T>(
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null);
+
+
+        public abstract IList<T> Query<T>(
+            string uri,
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null);
 
 
         internal abstract object Post<T>(string uri, Action<T> postAction)
@@ -76,9 +96,6 @@ namespace Pomona.Client
 
         internal abstract T Put<T>(string uri, T target, Action<T> updateAction)
             where T : IClientResource;
-
-
-        internal abstract IList<T> Query<T>(string uri, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null);
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -94,6 +111,8 @@ namespace Pomona.Client
             };
 
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
+        private static MethodInfo queryWithUriMethod;
+        private readonly JsonSerializer jsonSerializer;
         private readonly WebClient webClient = new WebClient();
         private string baseUri;
 
@@ -104,6 +123,10 @@ namespace Pomona.Client
                 new GenericMethodCaller<ClientBase<TClient>, IEnumerable, object>(
                     ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
                         x => x.CreateListOfTypeGeneric<object>(null)));
+
+            queryWithUriMethod =
+                typeof(ClientBase<TClient>).GetMethods().Single(
+                    x => x.Name == "Query" && x.GetParameters().Count() == 7);
 
             // Preload resource info attributes..
             var resourceTypes =
@@ -128,6 +151,9 @@ namespace Pomona.Client
 
         protected ClientBase(string baseUri)
         {
+            this.jsonSerializer = new JsonSerializer();
+            this.jsonSerializer.Converters.Add(new StringEnumConverter());
+
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
 
@@ -151,12 +177,18 @@ namespace Pomona.Client
         public static ResourceInfoAttribute GetResourceInfoForType(Type type)
         {
             ResourceInfoAttribute resourceInfoAttribute;
-            if (!interfaceToResourceInfoDict.TryGetValue(type, out resourceInfoAttribute))
+            if (!TryGetResourceInfoForType(type, out resourceInfoAttribute))
             {
                 throw new InvalidOperationException(
                     "Unable to find ResourceInfoAttribute for type " + type.FullName);
             }
             return resourceInfoAttribute;
+        }
+
+
+        public static bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        {
+            return interfaceToResourceInfoDict.TryGetValue(type, out resourceInfo);
         }
 
 
@@ -212,18 +244,74 @@ namespace Pomona.Client
             updateAction((T)updateProxy);
 
             // Put the json!
-            return
-                (T)
-                Deserialize(
-                    type,
-                    UploadToUri(((IHasResourceUri)target).Uri, ((PutResourceBase)updateProxy).ToJson(), "PUT"));
+            var responseJson = UploadToUri(
+                ((IHasResourceUri)target).Uri, ((PutResourceBase)updateProxy).ToJson(this.jsonSerializer), "PUT");
+            return (T)Deserialize(type, responseJson);
         }
 
 
-        public override IList<T> Query<T>(Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null)
+        public override IList<T> Query<T>(
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null)
         {
             var uri = BaseUri + GetRelativeUriForType(typeof(T));
             return Query(uri, predicate, orderBy, sortOrder, top, skip, expand);
+        }
+
+
+        public override IList<T> Query<T>(
+            string uri,
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null)
+        {
+            ResourceInfoAttribute resourceInfo;
+
+            if (!TryGetResourceInfoForType(typeof(T), out resourceInfo))
+                return QueryInheritedCustomType(uri, predicate, orderBy, sortOrder, top, skip, expand);
+
+            resourceInfo = GetResourceInfoForType(typeof(T));
+            if (!resourceInfo.IsUriBaseType)
+            {
+                // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
+                // TODO: Optimize this by caching MethodInfo or make this method non-generic.
+                var transformedExpression = ChangeExpressionArgumentToType(predicate, resourceInfo.UriBaseType);
+                var results = (IEnumerable)queryWithUriMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
+                    this, new object[] { uri, transformedExpression, orderBy, sortOrder, top, skip, expand });
+                return new List<T>(results.OfType<T>());
+            }
+
+            var queryPart = string.Empty;
+
+            queryPart = AddExpressionParameterToUri(queryPart, "$filter", predicate);
+            if (orderBy != null)
+            {
+                queryPart = AddExpressionParameterToUri(
+                    queryPart,
+                    "$orderby",
+                    RemoveCastOfResult(orderBy),
+                    x => sortOrder == SortOrder.Descending ? x + " desc" : x);
+            }
+
+            if (expand != null)
+                queryPart = queryPart + "&$expand=" + expand;
+
+            if (top.HasValue)
+                queryPart = queryPart + "&$top=" + top.Value;
+
+            if (skip.HasValue)
+                queryPart = queryPart + "&$skip=" + skip.Value;
+
+            uri = uri + "?" + queryPart;
+
+            return GetUri<IList<T>>(uri);
         }
 
 
@@ -250,7 +338,7 @@ namespace Pomona.Client
             // TODO: Implement baseuri property or something.
 
             // Post the json!
-            var requestJson = ((PutResourceBase)newProxy).ToJson();
+            var requestJson = ((PutResourceBase)newProxy).ToJson(this.jsonSerializer);
             requestJson["_type"] = resourceInfo.JsonTypeName;
             var response = UploadToUri(uri, requestJson, "POST");
 
@@ -264,43 +352,8 @@ namespace Pomona.Client
         }
 
 
-        internal override IList<T> Query<T>(string uri, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy = null, SortOrder sortOrder = SortOrder.Ascending, int? top = null, int? skip = null, string expand = null)
-        {
-            var resourceInfo = GetResourceInfoForType(typeof(T));
-            if (!resourceInfo.IsUriBaseType)
-            {
-                // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
-                // TODO: Optimize this by caching MethodInfo or make this method non-generic.
-                var transformedExpression = ChangeExpressionArgumentToType(predicate, resourceInfo.UriBaseType);
-                var genericMethod = typeof(ClientBase<TClient>).GetMethod("Query");
-                var results = (IEnumerable)genericMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
-                    this, new object[] { transformedExpression, orderBy, sortOrder, top, skip, expand });
-                return new List<T>(results.OfType<T>());
-            }
-
-            var queryPart = string.Empty;
-
-            queryPart = AddExpressionParameterToUri(queryPart, "filter", predicate);
-            if (orderBy != null)
-                queryPart = AddExpressionParameterToUri(queryPart, "orderby", orderBy, x => sortOrder == SortOrder.Descending ? x + " desc" : x);
-
-            if (expand != null)
-                queryPart = queryPart + "&expand=" + expand;
-
-            if (top.HasValue)
-                queryPart = queryPart + "&top=" + top.Value;
-
-            if (skip.HasValue)
-                queryPart = queryPart + "&skip=" + skip.Value;
-
-            uri = uri + "?" + queryPart;
-
-            return GetUri<IList<T>>(uri);
-        }
-
-
         private static string AddExpressionParameterToUri(
-            string queryToAppendTo, string queryKey, LambdaExpression predicate, Func<string,string> transform = null)
+            string queryToAppendTo, string queryKey, LambdaExpression predicate, Func<string, string> transform = null)
         {
             var filterString = new QueryPredicateBuilder(predicate).ToString();
 
@@ -352,6 +405,27 @@ namespace Pomona.Client
         }
 
 
+        private static ResourceInfoAttribute GetLeafResourceInfo(Type sourceType)
+        {
+            var allResourceInfos = sourceType.GetInterfaces().Select(
+                x =>
+                {
+                    ResourceInfoAttribute resourceInfo;
+                    if (!TryGetResourceInfoForType(x, out resourceInfo))
+                        resourceInfo = null;
+                    return resourceInfo;
+                }).Where(x => x != null).ToList();
+
+            var mostSubtyped = allResourceInfos
+                .FirstOrDefault(
+                    x =>
+                    !allResourceInfos.Any(
+                        y => x.InterfaceType != y.InterfaceType && x.InterfaceType.IsAssignableFrom(y.InterfaceType)));
+
+            return mostSubtyped;
+        }
+
+
         private static Type GetNewProxyForInterface(Type expectedType)
         {
             return GetResourceInfoForType(expectedType).PostFormType;
@@ -367,6 +441,17 @@ namespace Pomona.Client
         private static Type GetUpdateProxyForInterface(Type expectedType)
         {
             return GetResourceInfoForType(expectedType).PutFormType;
+        }
+
+
+        private static LambdaExpression RemoveCastOfResult(LambdaExpression lambda)
+        {
+            if (lambda.Body.NodeType == ExpressionType.Convert)
+            {
+                var convertExpr = (UnaryExpression)lambda.Body;
+                lambda = Expression.Lambda(convertExpr.Operand, lambda.Parameters);
+            }
+            return lambda;
         }
 
 
@@ -422,8 +507,9 @@ namespace Pomona.Client
             {
                 var resourceInfo = GetResourceInfoForType(expectedType);
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
-                proxy.Uri = uri;
-                proxy.TargetType = resourceInfo.PocoType;
+                var proxyHasResourceUri = (IHasResourceUri)proxy;
+                proxyHasResourceUri.Uri = uri;
+                proxy.ProxyTargetType = resourceInfo.PocoType;
                 proxy.Client = this;
                 return proxy;
             }
@@ -460,12 +546,25 @@ namespace Pomona.Client
                 return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
             }
 
-            return Convert.ChangeType(((JValue)jToken).Value, expectedType);
+            var jValue = (JValue)jToken;
+            return this.jsonSerializer.Deserialize(jValue.CreateReader(), expectedType);
+        }
+
+
+        private object DeserializeDictionary(Type expectedType, JObject jObject)
+        {
+            if (expectedType != typeof(IDictionary<string, string>))
+                throw new NotImplementedException("Only supports string to string dict for now");
+
+            return JsonConvert.DeserializeObject<Dictionary<string, string>>(jObject.ToString());
         }
 
 
         private object DeserializeObject(Type expectedType, JObject jObject)
         {
+            if (IsSerializedAsDictionary(expectedType))
+                return DeserializeDictionary(expectedType, jObject);
+
             var receivedSubclassInterface = expectedType;
 
             JToken typePropertyToken;
@@ -492,11 +591,12 @@ namespace Pomona.Client
             }
 
             var target = (ResourceBase)Activator.CreateInstance(createdType);
+            var targetHasResourceUri = (IHasResourceUri)target;
 
             // Set uri, if available in json (for updates etc)
             JToken uriToken;
             if (jObject.TryGetValue("_uri", out uriToken))
-                target.Uri = (string)(((JValue)uriToken).Value);
+                targetHasResourceUri.Uri = (string)(((JValue)uriToken).Value);
 
             // TODO: Cache this dictionary
             var propertiesForType = createdType.GetProperties().ToDictionary(x => x.Name.ToLower(), x => x);
@@ -547,9 +647,74 @@ namespace Pomona.Client
         }
 
 
+        private bool IsSerializedAsDictionary(Type expectedType)
+        {
+            // TODO: Support all types of dictionaries..
+            return expectedType == typeof(IDictionary<string, string>);
+        }
+
+
         private JToken PutUri(string uri, JToken jsonData)
         {
             return UploadToUri(uri, jsonData, "PUT");
+        }
+
+
+        private IList<T> QueryInheritedCustomType<T>(
+            string uri,
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null)
+        {
+            var customType = typeof(T);
+
+            if (!customType.IsInterface)
+            {
+                throw new ArgumentException(
+                    "Custom type T is required to be an interface which inherits from a known client resource type.");
+            }
+
+            var serverKnownResourceInfo = GetLeafResourceInfo(customType);
+
+            if (serverKnownResourceInfo == null)
+            {
+                throw new ArgumentException(
+                    "Custom type T is required to be an interface which inherits from a known client resource type.");
+            }
+
+            var serverKnownType = serverKnownResourceInfo.InterfaceType;
+
+            var newParameter = Expression.Parameter(serverKnownType, "x");
+            var sourceParameter = predicate.Parameters.First();
+            var attributesProperty =
+                serverKnownType.GetProperties().First(
+                    x => typeof(IDictionary<string, string>).IsAssignableFrom(x.PropertyType));
+
+            var visitor = new InheritedCustomTypePropertyToAttributeAccessVisitor(
+                sourceParameter, newParameter, attributesProperty);
+
+            var newBody = visitor.Visit(predicate.Body);
+
+            var transformedExpression = Expression.Lambda(newBody, newParameter);
+
+            var results = (IEnumerable)queryWithUriMethod.MakeGenericMethod(serverKnownType).Invoke(
+                this, new object[] { uri, transformedExpression, orderBy, sortOrder, top, skip, expand });
+            var resultsWrapper =
+                results.Cast<object>().Select(
+                    x =>
+                    {
+                        var proxy =
+                            (ClientSideResourceProxyBase)
+                            ((object)RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
+                        proxy.AttributesProperty = attributesProperty;
+                        proxy.ProxyTarget = x;
+                        return (T)((object)proxy);
+                    }).ToList();
+
+            return resultsWrapper;
         }
 
 
@@ -603,6 +768,57 @@ namespace Pomona.Client
                             Expression.Convert(this.baseclassedArgument, this.subclassedArgument.Type), node.Member);
                 }
                 return base.VisitMember(node);
+            }
+        }
+
+        #endregion
+
+        #region Nested type: InheritedCustomTypePropertyToAttributeAccessVisitor
+
+        private class InheritedCustomTypePropertyToAttributeAccessVisitor : ExpressionVisitor
+        {
+            private PropertyInfo attributesProperty;
+            private HashSet<Type> serverKnownInterfaces;
+            private ParameterExpression sourceParameter;
+            private ParameterExpression targetParameter;
+
+
+            public InheritedCustomTypePropertyToAttributeAccessVisitor(
+                ParameterExpression sourceParameter,
+                ParameterExpression targetParameter,
+                PropertyInfo attributesProperty)
+            {
+                this.sourceParameter = sourceParameter;
+
+                var targetType = targetParameter.Type;
+                var clientAssembly = typeof(TClient).Assembly;
+                this.serverKnownInterfaces =
+                    new HashSet<Type>(
+                        targetType.WrapAsEnumerable().Concat(
+                            targetType.GetInterfaces().Where(x => x.Assembly == clientAssembly)));
+
+                this.targetParameter = targetParameter;
+                this.attributesProperty = attributesProperty;
+            }
+
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (this.serverKnownInterfaces.Contains(node.Member.DeclaringType))
+                    return base.VisitMember(node);
+
+                var propInfo = node.Member as PropertyInfo;
+
+                // TODO: Support attribute for specifying what name attribute should have in dictionary
+
+                var attrName = propInfo.Name;
+
+                return Expression.Call(
+                    Expression.Property(this.targetParameter, this.attributesProperty),
+                    OdataFunctionMapping.DictGetMethod,
+                    Expression.Constant(attrName));
+
+                throw new NotImplementedException();
             }
         }
 

@@ -36,22 +36,27 @@ namespace Pomona
 {
     public class EnumType : IMappedType
     {
-        private readonly Type targetType;
+        private readonly Dictionary<string, int> enumValues;
+        private readonly Type mappedType;
+
         private readonly TypeMapper typeMapper;
 
 
-        public EnumType(Type targetType, TypeMapper typeMapper)
+        public EnumType(Type mappedType, TypeMapper typeMapper, Dictionary<string, int> enumValues)
         {
-            if (targetType == null)
+            if (mappedType == null)
                 throw new ArgumentNullException("targetType");
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
+            if (enumValues == null)
+                throw new ArgumentNullException("enumValues");
 
-            if (!targetType.IsEnum)
+            if (!mappedType.IsEnum)
                 throw new ArgumentException("Type is not enum.", "targetType");
 
-            this.targetType = targetType;
+            this.mappedType = mappedType;
             this.typeMapper = typeMapper;
+            this.enumValues = enumValues;
         }
 
         #region IMappedType Members
@@ -66,11 +71,7 @@ namespace Pomona
             get { throw new NotSupportedException(); }
         }
 
-        public Type CustomClientLibraryType
-        {
-            get { return typeof(string); // TODO
-            }
-        }
+        public Type CustomClientLibraryType { get; set; }
 
         public IList<IMappedType> GenericArguments
         {
@@ -112,11 +113,26 @@ namespace Pomona
             get { return new StringEnumConverter(); }
         }
 
+        public Type MappedTypeInstance
+        {
+            get { return this.mappedType; }
+        }
+
         public string Name
         {
-            get { return this.targetType.Name; }
+            get { return this.mappedType.Name; }
         }
 
         #endregion
+
+        public Dictionary<string, int> EnumValues
+        {
+            get { return this.enumValues; }
+        }
+
+        public Type MappedType
+        {
+            get { return this.mappedType; }
+        }
     }
 }

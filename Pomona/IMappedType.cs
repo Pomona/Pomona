@@ -52,6 +52,8 @@ namespace Pomona
         bool IsGenericTypeDefinition { get; }
         bool IsValueType { get; }
         JsonConverter JsonConverter { get; }
+        Type MappedType { get; }
+        Type MappedTypeInstance { get; }
         string Name { get; }
     }
 }

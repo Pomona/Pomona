@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,40 @@
 
 #endregion
 
-namespace Pomona.Client
+using System.IO;
+
+using NUnit.Framework;
+
+using Pomona.CodeGen;
+using Pomona.UnitTests.PomonaSession;
+
+namespace Pomona.UnitTests.Nuget
 {
-    public interface IHasResourceUri
+    [TestFixture]
+    public class ClientNugetPackageBuilderTests : SessionTestsBase
     {
-        string Uri { get; set; }
+        [Test]
+        public void BuildPackage_DoesNotThrowAnyExceptions()
+        {
+            var packageBuilder = new ClientNugetPackageBuilder(TypeMapper);
+            byte[] fileData;
+            using (var fileStream = new MemoryStream())
+            {
+                packageBuilder.BuildPackage(fileStream);
+                fileData = fileStream.ToArray();
+            }
+        }
+
+
+        [Ignore("For running manually, to inspect nupkg (will put resulting nupkg in current dir)")]
+        [Test]
+        public void BuildPackage_ToFile()
+        {
+            var packageBuilder = new ClientNugetPackageBuilder(TypeMapper);
+            using (var fileStream = File.Create(packageBuilder.PackageFileName))
+            {
+                packageBuilder.BuildPackage(fileStream);
+            }
+        }
     }
 }

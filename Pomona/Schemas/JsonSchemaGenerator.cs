@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,24 +31,40 @@ using System.Linq;
 
 using Newtonsoft.Json.Linq;
 
-namespace Pomona
+namespace Pomona.Schemas
 {
+#if false
+    // TODO: Implement serialization to and from Json schema
+
+    public class JsonSchemaProperty
+    {
+        public string Type { get; set; }
+        public bool Generated { get; set; }
+        public bool ReadOnly { get; set; }
+    }
+    public class JsonSchemaType
+    {
+        public string Name { get; set; }
+        public IDictionary<string, JsonSchemaProperty> Properties { get; set; }
+    }
+#endif
+
     public class JsonSchemaGenerator
     {
-        private readonly PomonaSession session;
+        private readonly TypeMapper typeMapper;
 
 
-        public JsonSchemaGenerator(PomonaSession session)
+        public JsonSchemaGenerator(TypeMapper typeMapper)
         {
-            if (session == null)
-                throw new ArgumentNullException("session");
-            this.session = session;
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
+            this.typeMapper = typeMapper;
         }
 
 
         public JArray GenerateAllSchemas()
         {
-            return new JArray(this.session.TypeMapper.TransformedTypes.Select(GenerateSchemaFor));
+            return new JArray(this.typeMapper.TransformedTypes.Select(GenerateSchemaFor));
         }
 
 
@@ -79,6 +95,8 @@ namespace Pomona
 
             if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Required)
                 propDef.Add("required", true);
+            else if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Excluded)
+                propDef.Add("generated", true);
 
             if (!prop.IsWriteable)
                 propDef.Add("readonly", true);

@@ -68,6 +68,7 @@
     <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="JsonSchemaGeneratorTests.cs" />
+    <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

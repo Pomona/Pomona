@@ -57,6 +57,11 @@ namespace Pomona
         }
 
 
+        public IEnumerable<EnumType> EnumTypes
+        {
+            get { return this.mappings.Values.OfType<EnumType>(); }
+        }
+
         public ITypeMappingFilter Filter
         {
             get { return this.filter; }
@@ -154,14 +159,19 @@ namespace Pomona
                 throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
 
             if (type.IsEnum)
-                return new EnumType(type, this);
+            {
+                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int)x);
+                var newEnumType = new EnumType(type, this, values);
+                this.mappings[type] = newEnumType;
+                return newEnumType;
+            }
 
             if (this.filter.TypeIsMappedAsSharedType(type))
             {
                 SharedType newSharedType;
                 if (type.IsGenericType)
                 {
-                    newSharedType = new SharedType(type.GetGenericTypeDefinition(), this);
+                    newSharedType = new SharedType(type.GetGenericTypeDefinition(), type, this);
                     foreach (var genericTypeArg in type.GetGenericArguments())
                     {
                         if (genericTypeArg == type)
@@ -174,7 +184,7 @@ namespace Pomona
                     }
                 }
                 else
-                    newSharedType = new SharedType(type, this);
+                    newSharedType = new SharedType(type, type, this);
 
                 newSharedType.JsonConverter = this.filter.GetJsonConverterForType(type);
                 newSharedType.CustomClientLibraryType = this.filter.GetClientLibraryType(type);
@@ -231,7 +241,7 @@ namespace Pomona
                 {
                     prop.ElementForeignKey =
                         TransformedTypes
-                            .Where(x => x.SourceType == foreignKeyProp.DeclaringType)
+                            .Where(x => x.MappedType == foreignKeyProp.DeclaringType)
                             .SelectMany(x => x.Properties)
                             .FirstOrDefault(x => x.PropertyInfo.Name == foreignKeyProp.Name);
                 }
