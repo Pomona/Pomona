@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -47,6 +48,12 @@ namespace Pomona.Client.Internals
             new Dictionary<string, MemberInfo>();
 
         private static readonly object[] questionStrings;
+
+        private static Dictionary<int, MemberMapping> metadataTokenToMemberMappingDict =
+            new Dictionary<int, MemberMapping>();
+
+        private static Dictionary<string, List<MemberMapping>> nameToMemberMappingDict =
+            new Dictionary<string, List<MemberMapping>>();
 
 
         static OdataFunctionMapping()
@@ -94,6 +101,13 @@ namespace Pomona.Client.Internals
 
             // Custom functions, not odata standard
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
+            Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})");
+            Add<IEnumerable<WildcardType>>(x => x.Select(y => (WildcardType)null), "select({0},{1})");
+            Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})");
+            Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
+            Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
+            Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");
+            Add<IEnumerable<decimal>>(x => x.Sum(), "sum({0})");
         }
 
 
@@ -115,6 +129,14 @@ namespace Pomona.Client.Internals
             var changedMember = wildcardMemberCandidates[0];
 
             return changedMember;
+        }
+
+
+        public static IEnumerable<MemberMapping> GetMemberCandidates(
+            string odataFunctionName, int argCount)
+        {
+            return nameToMemberMappingDict.GetValueOrDefault(odataFunctionName + argCount)
+                   ?? Enumerable.Empty<MemberMapping>();
         }
 
 
@@ -196,23 +218,24 @@ namespace Pomona.Client.Internals
 
         public static bool TryGetOdataFunctionFormatString(MemberInfo member, out string functionFormat)
         {
-            var success = memberToOdataFunctionMap.TryGetValue(member, out functionFormat);
-            var declaringType = member.DeclaringType;
-            if (!success && declaringType.IsGenericType)
-            {
-                var wildcardMember = ChangeDeclaringGenericTypeArguments(
-                    member,
-                    Enumerable.Repeat(typeof(WildcardType), declaringType.GetGenericArguments().Length).ToArray());
+            functionFormat = null;
+            MemberMapping memberMapping;
+            if (!metadataTokenToMemberMappingDict.TryGetValue(member.MetadataToken, out memberMapping))
+                return false;
 
-                return memberToOdataFunctionMap.TryGetValue(wildcardMember, out functionFormat);
-            }
-            return success;
+            functionFormat = memberMapping.MethodFormatString;
+            return true;
         }
 
 
         private static void Add<T>(Expression<Func<T, object>> expr, string functionFormat)
         {
             var memberInfo = ReflectionHelper.GetInstanceMemberInfo(expr);
+
+            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat);
+            nameToMemberMappingDict.GetOrCreate(memberMapping.Name + memberMapping.ArgumentCount).Add(memberMapping);
+            metadataTokenToMemberMappingDict[memberMapping.Member.MetadataToken] = memberMapping;
+
             memberToOdataFunctionMap[memberInfo] = functionFormat;
 
             // We might have multiple overloads of one function with same argument count, so we add the type to the key
@@ -274,6 +297,200 @@ namespace Pomona.Client.Internals
                 return (((PropertyInfo)memberInfo).GetGetMethod().Attributes & MethodAttributes.Static) == 0;
             throw new NotImplementedException();
         }
+
+        #region Nested type: MemberMapping
+
+        public class MemberMapping
+        {
+            private readonly IList<int> argumentOrder;
+            private readonly MemberInfo member;
+            private readonly string methodFormatString;
+            private readonly string name;
+
+
+            private MemberMapping(MemberInfo member, string name, IList<int> argumentOrder, string methodFormatString)
+            {
+                this.member = member;
+                this.name = name;
+                this.argumentOrder = argumentOrder;
+                this.methodFormatString = methodFormatString;
+            }
+
+
+            public int ArgumentCount
+            {
+                get { return ArgumentOrder.Count; }
+            }
+
+            public IList<int> ArgumentOrder
+            {
+                get { return this.argumentOrder; }
+            }
+
+            public MemberInfo Member
+            {
+                get { return this.member; }
+            }
+
+            public string MethodFormatString
+            {
+                get { return this.methodFormatString; }
+            }
+
+            public string Name
+            {
+                get { return this.name; }
+            }
+
+
+            public static MemberMapping Parse(MemberInfo member, string odataMethodFormat)
+            {
+                var name = odataMethodFormat.Split('(').First();
+                var argOrder = GetArgumentOrder(odataMethodFormat);
+
+                var memberAsMethod = member as MethodInfo;
+                if (memberAsMethod != null)
+                {
+                    if (memberAsMethod.IsGenericMethod
+                        && memberAsMethod.GetGenericArguments().Any(x => x == typeof(WildcardType)))
+                        member = memberAsMethod.GetGenericMethodDefinition();
+                }
+
+                if (HasWildcardArgument(member.DeclaringType))
+                {
+                    var memberLocal = member;
+                    member =
+                        member.DeclaringType.GetGenericTypeDefinition().GetMembers()
+                            .First(x => x.MetadataToken == memberLocal.MetadataToken);
+                }
+
+                return new MemberMapping(member, name, argOrder.ToArray(), odataMethodFormat);
+            }
+
+
+            public IList<T> ReorderArguments<T>(IList<T> arguments)
+            {
+                return new ReorderedList<T>(arguments, ArgumentOrder);
+            }
+
+
+            private static bool HasWildcardArgument(Type type)
+            {
+                if (!type.IsGenericType)
+                    return false;
+
+                var genericArguments = type.GetGenericArguments();
+                var wildcardType = typeof(WildcardType);
+                return genericArguments.Any(x => x == wildcardType) || genericArguments.Any(HasWildcardArgument);
+            }
+        }
+
+        #endregion
+
+        #region Nested type: ReorderedList
+
+        private class ReorderedList<T> : IList<T>
+        {
+            private IList<int> order;
+            private IList<T> targetList;
+
+
+            public ReorderedList(IList<T> targetList, IList<int> order)
+            {
+                if (targetList.Count != order.Count)
+                    throw new ArgumentException();
+                if (targetList == null)
+                    throw new ArgumentNullException("targetList");
+                if (order == null)
+                    throw new ArgumentNullException("order");
+                this.targetList = targetList;
+                this.order = order;
+            }
+
+
+            public T this[int index]
+            {
+                get { return this.targetList[this.order[index]]; }
+                set { throw new NotSupportedException(); }
+            }
+
+
+            public int Count
+            {
+                get { return this.targetList.Count; }
+            }
+
+            public bool IsReadOnly
+            {
+                get { return true; }
+            }
+
+
+            public void Add(T item)
+            {
+                throw new NotSupportedException();
+            }
+
+
+            public void Clear()
+            {
+                throw new NotSupportedException();
+            }
+
+
+            public bool Contains(T item)
+            {
+                return this.targetList.Contains(item);
+            }
+
+
+            public void CopyTo(T[] array, int arrayIndex)
+            {
+                this.ToList().CopyTo(array, arrayIndex);
+            }
+
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                for (var i = 0; i < Count; i++)
+                    yield return this[i];
+            }
+
+
+            public int IndexOf(T item)
+            {
+                var index = this.targetList.IndexOf(item);
+                if (index != -1)
+                    index = this.order.IndexOf(index);
+                return index;
+            }
+
+
+            public void Insert(int index, T item)
+            {
+                throw new NotSupportedException();
+            }
+
+
+            public bool Remove(T item)
+            {
+                throw new NotSupportedException();
+            }
+
+
+            public void RemoveAt(int index)
+            {
+                throw new NotSupportedException();
+            }
+
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        #endregion
 
         #region Nested type: WildcardType
 

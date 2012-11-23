@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 using Pomona.Client.Internals;
 
@@ -38,6 +39,7 @@ namespace Pomona.Queries
     public class NodeTreeToExpressionConverter
     {
         private readonly IQueryTypeResolver propertyResolver;
+        private Dictionary<string, ParameterExpression> parameters;
 
         private ParameterExpression thisParam;
 
@@ -52,11 +54,11 @@ namespace Pomona.Queries
 
         public Expression ParseExpression(NodeBase node)
         {
-            return ParseExpression(node, null);
+            return ParseExpression(node, null, null);
         }
 
 
-        public Expression ParseExpression(NodeBase node, Expression memberExpression)
+        public Expression ParseExpression(NodeBase node, Expression memberExpression, Type expectedType)
         {
             if (memberExpression == null)
                 memberExpression = this.thisParam;
@@ -99,16 +101,43 @@ namespace Pomona.Queries
                 return Expression.Constant(intNode.Parse());
             }
 
+            if (node.NodeType == NodeType.Lambda)
+            {
+                var lambdaNode = (LambdaNode)node;
+                return ParseLambda(lambdaNode, memberExpression, expectedType);
+            }
+
             throw new NotImplementedException();
         }
 
 
         public LambdaExpression ToLambdaExpression(Type thisType, NodeBase node)
         {
+            var param = Expression.Parameter(thisType, "_this");
+            return ToLambdaExpression(param, param.WrapAsEnumerable(), null, node);
+        }
+
+
+        public LambdaExpression ToLambdaExpression(
+            ParameterExpression thisParam,
+            IEnumerable<ParameterExpression> lamdbaParameters,
+            IEnumerable<ParameterExpression> outerParameters,
+            NodeBase node)
+        {
+            if (thisParam == null)
+                throw new ArgumentNullException("thisParam");
+            if (lamdbaParameters == null)
+                throw new ArgumentNullException("lamdbaParameters");
             try
             {
-                this.thisParam = Expression.Parameter(thisType, "x");
-                return Expression.Lambda(ParseExpression(node), this.thisParam);
+                this.thisParam = thisParam;
+                this.parameters =
+                    lamdbaParameters
+                        .Where(x => x != thisParam)
+                        .Concat(outerParameters ?? Enumerable.Empty<ParameterExpression>())
+                        .ToDictionary(x => x.Name, x => x);
+
+                return Expression.Lambda(ParseExpression(node), lamdbaParameters);
             }
             finally
             {
@@ -128,7 +157,7 @@ namespace Pomona.Queries
             if (binaryOperatorNode.NodeType == NodeType.Dot)
             {
                 var left = ParseExpression(binaryOperatorNode.Left);
-                return ParseExpression(binaryOperatorNode.Right, left);
+                return ParseExpression(binaryOperatorNode.Right, left, null);
             }
 
             // Break dot chain
@@ -170,13 +199,45 @@ namespace Pomona.Queries
 
         private Expression ParseIndexerAccessNode(IndexerAccessNode node, Expression memberExpression)
         {
-            var property = this.propertyResolver.Resolve(memberExpression, node.Name);
+            var property = this.propertyResolver.ResolveProperty(memberExpression, node.Name);
             if (typeof(IDictionary<string, string>).IsAssignableFrom(property.Type))
             {
                 return Expression.Call(
-                    property, OdataFunctionMapping.DictGetMethod, ParseExpression(node.Children[0], null));
+                    property, OdataFunctionMapping.DictGetMethod, ParseExpression(node.Children[0]));
             }
             throw new NotImplementedException();
+        }
+
+
+        private Expression ParseLambda(LambdaNode lambdaNode, Expression memberExpression, Type expectedType)
+        {
+            if (expectedType.MetadataToken == typeof(Expression<>).MetadataToken)
+            {
+                // Quote if expression
+                return Expression.Quote(
+                    ParseLambda(lambdaNode, memberExpression, expectedType.GetGenericArguments()[0]));
+            }
+
+            var nestedConverter = new NodeTreeToExpressionConverter(this.propertyResolver);
+
+            // TODO: Check that we don't already have a arg with same name.
+
+            // TODO: Proper check that we have a func here
+            if (expectedType.MetadataToken != typeof(Func<,>).MetadataToken)
+                throw new QueryParseException("Can't parse lambda to expected type that is not a Func delegate..");
+
+            if (expectedType.GetGenericArguments()[0].IsGenericParameter)
+                throw new QueryParseException("Unable to resolve generic type for parsing lambda.");
+
+            var funcTypeArgs = expectedType.GetGenericArguments();
+
+            // TODO: Support multiple lambda args..(?)
+            var lambdaParams =
+                lambdaNode.Argument.WrapAsEnumerable().Select(
+                    (x, idx) => Expression.Parameter(funcTypeArgs[idx], x.Name)).ToList();
+
+            return nestedConverter.ToLambdaExpression(
+                this.thisParam, lambdaParams, this.parameters.Values, lambdaNode.Body);
         }
 
 
@@ -189,7 +250,7 @@ namespace Pomona.Queries
                 if (node.HasArguments)
                 {
                     Expression expression;
-                    if (TryResolveOdataExpression(node, out expression))
+                    if (TryResolveOdataExpression(node, memberExpression, out expression))
                         return expression;
                 }
             }
@@ -207,31 +268,226 @@ namespace Pomona.Queries
                     return Expression.Constant(true);
                 if (node.Name == "false")
                     return Expression.Constant(false);
+                ParameterExpression parameter;
+                if (this.parameters.TryGetValue(node.Name, out parameter))
+                    return parameter;
             }
-            return this.propertyResolver.Resolve(memberExpression, node.Name);
+
+            return this.propertyResolver.ResolveProperty(memberExpression, node.Name);
         }
 
 
-        private bool TryResolveOdataExpression(MethodCallNode node, out Expression expression)
+        private bool ResolveTypeArgs(
+            Type wantedType, Type actualType, Type[] methodTypeArgs, out bool typeArgsWasResolved)
+        {
+            typeArgsWasResolved = false;
+            if (wantedType.IsGenericTypeDefinition)
+                throw new ArgumentException(
+                    "Does not expect genDefArgType to be a generic type definition.", "genDefArgType");
+            if (actualType.IsGenericTypeDefinition)
+                throw new ArgumentException(
+                    "Does not expect instanceArgType to be a generic type definition.", "instanceArgType");
+
+            if (!wantedType.IsGenericType)
+            {
+                if (!wantedType.IsAssignableFrom(actualType))
+                    return false;
+            }
+            else
+            {
+                var wantedTypeArgs = wantedType.GetGenericArguments();
+                Type[] actualTypeArgs;
+                if (!TryExtractTypeArguments(wantedType.GetGenericTypeDefinition(), actualType, out actualTypeArgs))
+                    return false;
+
+                for (var i = 0; i < wantedTypeArgs.Length; i++)
+                {
+                    var wantedTypeArg = wantedTypeArgs[i];
+                    var actualTypeArg = actualTypeArgs[i];
+
+                    if (wantedTypeArg.IsGenericParameter)
+                    {
+                        if (methodTypeArgs[wantedTypeArg.GenericParameterPosition] != actualTypeArg)
+                        {
+                            typeArgsWasResolved = true;
+                            methodTypeArgs[wantedTypeArg.GenericParameterPosition] = actualTypeArg;
+                        }
+                    }
+                    else
+                    {
+                        bool innerTypeArgsWasResolved;
+                        if (!ResolveTypeArgs(wantedTypeArg, actualTypeArg, methodTypeArgs, out innerTypeArgsWasResolved))
+                            return false;
+
+                        if (innerTypeArgsWasResolved)
+                            typeArgsWasResolved = true;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+
+        private bool TryExtractTypeArguments(Type genTypeDef, Type typeInstance, out Type[] typeArgs)
+        {
+            if (typeInstance.GetGenericTypeDefinition() == genTypeDef)
+            {
+                typeArgs = typeInstance.GetGenericArguments();
+                return true;
+            }
+            foreach (var interfaceType in typeInstance.GetInterfaces())
+            {
+                if (TryExtractTypeArguments(genTypeDef, interfaceType, out typeArgs))
+                    return true;
+            }
+
+            typeArgs = null;
+            return false;
+        }
+
+
+        private bool TryResolveGenericInstanceMethod<TMemberInfo>(Expression instance, ref TMemberInfo member)
+            where TMemberInfo : MemberInfo
+        {
+            var declaringType = member.DeclaringType;
+            if (declaringType.IsGenericTypeDefinition)
+            {
+                Type[] typeArgs;
+                if (TryExtractTypeArguments(declaringType, instance.Type, out typeArgs))
+                {
+                    var memberLocal = member;
+                    member = declaringType
+                        .MakeGenericType(typeArgs)
+                        .GetMember(memberLocal.Name)
+                        .OfType<TMemberInfo>()
+                        .Single(x => x.MetadataToken == memberLocal.MetadataToken);
+                }
+                else
+                {
+                    // Neither type nor any of interfaces of instance matches declaring type.
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+        private bool TryResolveMemberMapping(
+            OdataFunctionMapping.MemberMapping memberMapping, MethodCallNode node, out Expression expression)
+        {
+            expression = null;
+            var reorderedArgs = memberMapping.ReorderArguments(node.Children);
+            var method = memberMapping.Member as MethodInfo;
+            var property = memberMapping.Member as PropertyInfo;
+            if (method != null)
+            {
+                Expression instance = null;
+
+                if (!method.IsStatic)
+                {
+                    instance = ParseExpression(reorderedArgs[0], this.thisParam, null);
+                    if (!TryResolveGenericInstanceMethod(instance, ref method))
+                        return false;
+                }
+
+                // Convert each node and check whether argument matches..
+                var argArrayOffset = method.IsStatic ? 0 : 1;
+                var methodParameters = method.GetParameters();
+                if (methodParameters.Length != reorderedArgs.Count - argArrayOffset)
+                {
+                    throw new PomonaExpressionSyntaxException(
+                        string.Format(
+                            "Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})",
+                            methodParameters.Length,
+                            method.DeclaringType.FullName,
+                            method.Name,
+                            (reorderedArgs.Count - argArrayOffset)));
+                }
+
+                var argExprArray = new Expression[methodParameters.Length];
+
+                if (!method.IsGenericMethodDefinition)
+                {
+                    for (var i = 0; i < methodParameters.Length; i++)
+                    {
+                        var param = methodParameters[i];
+                        var argNode = reorderedArgs[i + argArrayOffset];
+                        var argExpr = ParseExpression(argNode, this.thisParam, param.ParameterType);
+
+                        if (!param.ParameterType.IsAssignableFrom(argExpr.Type))
+                            return false;
+
+                        argExprArray[i] = argExpr;
+                    }
+                }
+                else
+                {
+                    var methodDefinition = method;
+                    var methodTypeArgs = method.GetGenericArguments();
+
+                    for (var i = 0; i < methodParameters.Length; i++)
+                    {
+                        var param = methodParameters[i];
+                        var argNode = reorderedArgs[i + argArrayOffset];
+                        var argExpr = ParseExpression(argNode, this.thisParam, param.ParameterType);
+
+                        bool typeArgsWasResolved;
+                        if (!ResolveTypeArgs(param.ParameterType, argExpr.Type, methodTypeArgs, out typeArgsWasResolved))
+                            return false;
+
+                        if (typeArgsWasResolved)
+                        {
+                            // Upgrade to real method when all type args are resolved!!
+                            method = methodDefinition.MakeGenericMethod(methodTypeArgs);
+                            methodParameters = method.GetParameters();
+                        }
+
+                        argExprArray[i] = argExpr;
+                    }
+                }
+
+                expression = Expression.Call(instance, method, argExprArray);
+                return true;
+            }
+            if (property != null)
+            {
+                var instance = ParseExpression(reorderedArgs[0], this.thisParam, null);
+                if (!TryResolveGenericInstanceMethod(instance, ref property))
+                    return false;
+
+                expression = Expression.MakeMemberAccess(instance, property);
+                return true;
+            }
+            return false;
+        }
+
+
+        private bool TryResolveOdataExpression(
+            MethodCallNode node, Expression memberExpression, out Expression expression)
         {
             expression = null;
 
             switch (node.Name)
             {
                 case "isof":
-                    var checkType = this.propertyResolver.Resolve(((SymbolNode)node.Children[0]).Name);
+                    var checkType = this.propertyResolver.ResolveType(((SymbolNode)node.Children[0]).Name);
                     expression = Expression.TypeIs(this.thisParam, checkType);
                     return true;
                 case "cast":
                     //var 
-                    var castToType = this.propertyResolver.Resolve(((SymbolNode)node.Children[0]).Name);
+                    var castToType = this.propertyResolver.ResolveType(((SymbolNode)node.Children[0]).Name);
                     expression = Expression.Convert(this.thisParam, castToType);
                     return true;
             }
 
-            var exprArgs = node.Children.Select(ParseExpression);
-            if (OdataFunctionMapping.TryConvertToExpression(node.Name, node.Children.Count, exprArgs, out expression))
-                return true;
+            var memberCandidates = OdataFunctionMapping.GetMemberCandidates(node.Name, node.Children.Count);
+
+            foreach (var memberMapping in memberCandidates)
+            {
+                if (TryResolveMemberMapping(memberMapping, node, out expression))
+                    return true;
+            }
 
             return false;
         }

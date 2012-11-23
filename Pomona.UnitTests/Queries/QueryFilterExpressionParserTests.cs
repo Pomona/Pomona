@@ -57,17 +57,17 @@ namespace Pomona.UnitTests.Queries
         {
             #region IQueryPropertyResolver Members
 
-            public Type Resolve(string typeName)
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public Expression Resolve(Expression rootInstance, string propertyPath)
+            public Expression ResolveProperty(Expression rootInstance, string propertyPath)
             {
                 return Expression.Property(
                     rootInstance,
                     rootInstance.Type.GetProperties().First(x => x.Name.ToLower() == propertyPath.ToLower()));
+            }
+
+
+            public Type ResolveType(string typeName)
+            {
+                throw new NotImplementedException();
             }
 
             #endregion
@@ -76,8 +76,10 @@ namespace Pomona.UnitTests.Queries
         public class Dummy
         {
             public IDictionary<string, string> Attributes { get; set; }
+            public IEnumerable<Dummy> Children { get; set; }
             public Guid Guid { get; set; }
             public int Number { get; set; }
+            public IEnumerable<string> SomeStrings { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
         }
@@ -112,6 +114,13 @@ namespace Pomona.UnitTests.Queries
         {
             try
             {
+                if (expected == null)
+                {
+                    if (actual != null)
+                        Assert.Fail("Expected null expression.");
+                    return;
+                }
+
                 if (actual.NodeType != expected.NodeType)
                     Assert.Fail("Expected nodetype " + expected.NodeType + " got nodetype " + actual.NodeType);
 
@@ -154,16 +163,62 @@ namespace Pomona.UnitTests.Queries
                 {
                     var expectedMemberExpr = (MemberExpression)expected;
                     if (actualMemberExpr.Member != expectedMemberExpr.Member)
-                        Assert.Fail("Wrong method on memberexpression when comparing expressions..");
+                        Assert.Fail("Wrong member on memberexpression when comparing expressions..");
                     return;
                 }
 
-                throw new NotImplementedException("Don't know how to compare expression node" + actual);
+                var actualCallExpr = actual as MethodCallExpression;
+                if (actualCallExpr != null)
+                {
+                    var expectedCallExpr = (MethodCallExpression)expected;
+                    if (actualCallExpr.Method != expectedCallExpr.Method)
+                        Assert.Fail("Wrong method on methodexpression when comparing expressions..");
+
+                    AssertExpressionEquals(actualCallExpr.Object, expectedCallExpr.Object);
+
+                    // Recursively check arguments
+                    expectedCallExpr
+                        .Arguments
+                        .Zip(
+                            actualCallExpr.Arguments,
+                            (ex, ac) =>
+                            {
+                                AssertExpressionEquals(ac, ex);
+                                return true;
+                            }).ToList();
+                    return;
+                }
+
+                var actualParamExpr = actual as ParameterExpression;
+                if (actualParamExpr != null)
+                {
+                    var expectedParamExpr = (ParameterExpression)expected;
+                    Assert.That(
+                        actualParamExpr.Type, Is.EqualTo(expectedParamExpr.Type), "Parameter was not of expected type.");
+                    Assert.That(
+                        actualParamExpr.Name,
+                        Is.EqualTo(expectedParamExpr.Name),
+                        "Parameter did not have expected name.");
+                    return;
+                }
+
+                throw new NotImplementedException(
+                    "Don't know how to compare expression node " + actual + " of nodetype " + actual.NodeType);
             }
             catch
             {
                 Console.WriteLine("Expected expression: " + expected + "\r\nActual expression:" + actual);
+                throw;
             }
+        }
+
+
+        [Test]
+        public void Parse_AnyExpressionWithLambda_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("any(Children,x:x.Number eq 5 and any(x.SomeStrings,y:y eq x.Text))");
+            AssertExpressionEquals(
+                expr, _this => _this.Children.Any(x => x.Number == 5 && x.SomeStrings.Any(y => y == x.Text)));
         }
 
 
@@ -245,6 +300,14 @@ namespace Pomona.UnitTests.Queries
             var expr = this.parser.Parse<Dummy>("Text eq 'Jalla' or Text eq 'Mohahaa'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.OrElse));
+        }
+
+
+        [Test]
+        public void Parse_SubSelectExpression_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("sum(select(Children,x:x.Number)) gt 10");
+            AssertExpressionEquals(expr, _this => _this.Children.Select(x => x.Number).Sum() > 10);
         }
 
 

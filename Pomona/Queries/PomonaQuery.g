@@ -26,6 +26,7 @@ tokens {
    GUID_LITERAL;
    METHOD_CALL;
    INDEXER_ACCESS;
+   LAMBDA_OP;
 }    
 
 
@@ -70,7 +71,11 @@ public parse
 	;
 
 exp
-	:	or_expression
+	:	lambda_expression
+	;
+
+lambda_expression
+	:	or_expression ( ':' or_expression )? -> ^(LAMBDA_OP or_expression+)
 	;
 
 or_expression

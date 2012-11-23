@@ -46,6 +46,7 @@ namespace Pomona.Client
             new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 
         private readonly LambdaExpression lambda;
+        private ParameterExpression thisParameter;
 
 
         static QueryPredicateBuilder()
@@ -71,17 +72,12 @@ namespace Pomona.Client
         }
 
 
-        public QueryPredicateBuilder(LambdaExpression lambda)
+        public QueryPredicateBuilder(LambdaExpression lambda, ParameterExpression thisParameter = null)
         {
             if (lambda == null)
                 throw new ArgumentNullException("expr");
+            this.thisParameter = thisParameter ?? lambda.Parameters[0];
             this.lambda = lambda;
-        }
-
-
-        private ParameterExpression InstanceParameter
-        {
-            get { return this.lambda.Parameters[0]; }
         }
 
 
@@ -212,6 +208,14 @@ namespace Pomona.Client
             if (unaryExpression != null)
                 return BuildFromUnaryExpression(unaryExpression);
 
+            var lambdaExpression = expr as LambdaExpression;
+            if (lambdaExpression != null)
+                return BuildFromLambdaExpression(lambdaExpression);
+
+            var parameterExpression = expr as ParameterExpression;
+            if (parameterExpression != null)
+                return parameterExpression.Name;
+
             throw new NotImplementedException("NodeType " + expr.NodeType + " not yet handled.");
         }
 
@@ -236,6 +240,17 @@ namespace Pomona.Client
         }
 
 
+        private string BuildFromLambdaExpression(LambdaExpression lambdaExpression)
+        {
+            if (lambdaExpression.Parameters.Count != 1)
+                throw new NotImplementedException("Only supports one parameter in lambda expression for now.");
+
+            var param = lambdaExpression.Parameters[0];
+            var predicateBuilder = new QueryPredicateBuilder(lambdaExpression, this.thisParameter);
+            return string.Format("{0}:{1}", param.Name, predicateBuilder.ToString());
+        }
+
+
         private string BuildFromMemberExpression(MemberExpression memberExpr)
         {
             string odataExpression;
@@ -250,7 +265,7 @@ namespace Pomona.Client
             if (IsClosureMemberAccess(memberExpr, out value))
                 return GetEncodedConstant(value.GetType(), value);
 
-            if (memberExpr.Expression != InstanceParameter)
+            if (memberExpr.Expression != this.thisParameter)
                 return string.Format("{0}.{1}", Build(memberExpr.Expression), GetMemberName(memberExpr.Member));
             return GetMemberName(memberExpr.Member);
         }
@@ -299,7 +314,7 @@ namespace Pomona.Client
                             typeOperand.FullName
                             + " is not an interface and/or does not implement type IClientResource.");
                     }
-                    if (typeBinaryExpression.Expression != InstanceParameter)
+                    if (typeBinaryExpression.Expression != this.thisParameter)
                     {
                         throw new NotImplementedException(
                             "Only know how to do TypeIs when target is instance parameter for now..");
@@ -321,7 +336,7 @@ namespace Pomona.Client
             switch (unaryExpression.NodeType)
             {
                 case ExpressionType.Convert:
-                    if (unaryExpression.Operand != InstanceParameter)
+                    if (unaryExpression.Operand != this.thisParameter)
                         throw new NotImplementedException("Only know how to cast `this` to something else");
 
                     return "cast(" + GetJsonTypeName(unaryExpression.Type) + ")";

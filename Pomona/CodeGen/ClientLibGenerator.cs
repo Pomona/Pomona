@@ -673,8 +673,10 @@ namespace Pomona.CodeGen
 
                 if (propertyMapping.CreateMode == PropertyMapping.PropertyCreateMode.Required ||
                     propertyMapping.CreateMode == PropertyMapping.PropertyCreateMode.Optional)
+                {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
+                }
                 else
                 {
                     var invalidOperationStrCtor =
@@ -757,8 +759,10 @@ namespace Pomona.CodeGen
             {
                 var propertyMapping = this.owner.GetPropertyMapping(targetProp);
                 if (propertyMapping.IsWriteable)
+                {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
+                }
                 else
                 {
                     var invalidOperationStrCtor =

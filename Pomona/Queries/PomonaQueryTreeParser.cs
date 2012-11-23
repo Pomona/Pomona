@@ -83,6 +83,8 @@ namespace Pomona.Queries
 
         public static NodeBase ParseTree(ITree tree, int depth)
         {
+            depth++;
+
             if (tree.Type == PomonaQueryParser.PREFIXED_STRING)
             {
                 var text = tree.Text;
@@ -104,6 +106,9 @@ namespace Pomona.Queries
                 }
             }
 
+            if (IsReduceableBinaryOperator(tree.Type) && tree.ChildCount == 1)
+                return ParseTree(tree.GetChild(0), depth);
+
             switch (tree.Type)
             {
                 case PomonaQueryParser.METHOD_CALL:
@@ -118,10 +123,9 @@ namespace Pomona.Queries
                     return new SymbolNode(tree.Text, ParseChildren(tree, depth));
                 case PomonaQueryParser.ROOT:
                     return ParseTree(tree.GetChild(0), depth);
+                case PomonaQueryParser.LAMBDA_OP:
+                    return new LambdaNode(ParseChildren(tree, depth));
             }
-
-            if (IsReduceableBinaryOperator(tree.Type) && tree.ChildCount == 1)
-                return ParseTree(tree.GetChild(0), depth + 1);
 
             NodeType nodeType;
             if (IsBinaryOperator(tree.Type, out nodeType))
@@ -157,6 +161,7 @@ namespace Pomona.Queries
         {
             switch (type)
             {
+                case PomonaQueryParser.LAMBDA_OP:
                 case PomonaQueryParser.AND_OP:
                 case PomonaQueryParser.OR_OP:
                     return true;

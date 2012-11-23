@@ -34,9 +34,9 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly : AssemblyTitle("Pomona")]
-[assembly : AssemblyDescription("")]
+[assembly : AssemblyDescription("Pomona. The DTO-free way to REST for lazy people!")]
 [assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("")]
+[assembly : AssemblyCompany("Karsten N. Strand")]
 [assembly : AssemblyProduct("Pomona")]
 [assembly : AssemblyCopyright("Copyright ©  2012")]
 [assembly : AssemblyTrademark("")]

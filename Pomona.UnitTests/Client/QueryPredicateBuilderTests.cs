@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 using NUnit.Framework;
@@ -41,6 +42,8 @@ namespace Pomona.UnitTests.Client
     {
         public class FooBar : IClientResource
         {
+            public string SomeString { get; set; }
+            public IList<TestResource> TestResources { get; set; }
         }
 
         public class TestResource : IClientResource
@@ -70,6 +73,13 @@ namespace Pomona.UnitTests.Client
             var queryString = builder.ToString();
             Console.WriteLine("Transformed \"" + predicate + "\" TO \"" + queryString + "\"");
             Assert.That(queryString, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void BuildAnyLambdaExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Any(y => y.SomeString == "lalala"), "any(someList,y:y.someString eq 'lalala')");
         }
 
 
@@ -248,6 +258,15 @@ namespace Pomona.UnitTests.Client
         public void BuildPropEqualsDecimal_ReturnsCorrectString()
         {
             AssertBuild(x => x.CashAmount == 100.10m, "cashAmount eq 100.10m");
+        }
+
+
+        [Test]
+        public void BuildRecursiveLambdaExpression_ReturnsCorrectString()
+        {
+            AssertBuild(
+                x => x.SomeList.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
+                "any(someList,y:(y.someString eq 'lalala') and any(y.testResources,z:z.bonga eq y.someString))");
         }
 
 

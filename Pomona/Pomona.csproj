@@ -69,11 +69,12 @@
       <HintPath>..\packages\Nancy.0.13.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.4.5.10\lib\net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="NuGet.Core, Version=2.1.31002.9028, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nuget.Core.2.1.0\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.1.31022.9038, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nuget.Core.2.1.1\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -98,7 +99,9 @@
     <Compile Include="NameUtils.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="PomonaErrorHandler.cs" />
+    <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />
+    <Compile Include="Queries\LambdaNode.cs" />
     <Compile Include="Queries\MethodCallNode.cs" />
     <Compile Include="Queries\QueryParseException.cs" />
     <Compile Include="ResourceNotFoundException.cs" />

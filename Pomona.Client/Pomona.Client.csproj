@@ -47,7 +47,8 @@
       <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.4.5.10\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -60,6 +61,7 @@
   <ItemGroup>
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
+    <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />

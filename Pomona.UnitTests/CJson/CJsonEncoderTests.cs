@@ -116,7 +116,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/70"",
-        ""dependability"": 0.01949272771342319,
+        ""strength"": 0.01949272771342319,
         ""id"": 70,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/2""
@@ -125,7 +125,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/71"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.85390793152801125,
+        ""strength"": 0.85390793152801125,
         ""explosionFactor"": 0.18986279805650133,
         ""id"": 71,
         ""model"": {
@@ -135,7 +135,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/72"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.54473644287546,
+        ""strength"": 0.54473644287546,
         ""explosionFactor"": 0.050817372301042718,
         ""id"": 72,
         ""model"": {
@@ -144,7 +144,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/73"",
-        ""dependability"": 0.48024091612558856,
+        ""strength"": 0.48024091612558856,
         ""id"": 73,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/30""
@@ -188,7 +188,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/78"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.41854639417424166,
+        ""strength"": 0.41854639417424166,
         ""explosionFactor"": 0.35643959294838812,
         ""id"": 78,
         ""model"": {
@@ -257,7 +257,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/82"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.18679526736344923,
+        ""strength"": 0.18679526736344923,
         ""explosionFactor"": 0.43386475715500522,
         ""id"": 82,
         ""model"": {
@@ -267,7 +267,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/83"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.36775914131093729,
+        ""strength"": 0.36775914131093729,
         ""explosionFactor"": 0.45646231363362738,
         ""id"": 83,
         ""model"": {
@@ -276,7 +276,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/84"",
-        ""dependability"": 0.5483650823814632,
+        ""strength"": 0.5483650823814632,
         ""id"": 84,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/9""
@@ -306,7 +306,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/90"",
-        ""dependability"": 0.89077329490835466,
+        ""strength"": 0.89077329490835466,
         ""id"": 90,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/66""
@@ -373,7 +373,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/93"",
-        ""dependability"": 0.9438327103591676,
+        ""strength"": 0.9438327103591676,
         ""id"": 93,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/6""
@@ -441,7 +441,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/99"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.17562022673693495,
+        ""strength"": 0.17562022673693495,
         ""explosionFactor"": 0.12927481258719917,
         ""id"": 99,
         ""model"": {
@@ -486,7 +486,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/105"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.49502573325067095,
+        ""strength"": 0.49502573325067095,
         ""explosionFactor"": 0.68480016090199358,
         ""id"": 105,
         ""model"": {
@@ -495,7 +495,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/106"",
-        ""dependability"": 0.3633674370885675,
+        ""strength"": 0.3633674370885675,
         ""id"": 106,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/58""
@@ -503,7 +503,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/107"",
-        ""dependability"": 0.5148508234484358,
+        ""strength"": 0.5148508234484358,
         ""id"": 107,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/18""
@@ -547,7 +547,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/111"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.97016622310977718,
+        ""strength"": 0.97016622310977718,
         ""explosionFactor"": 0.18469185344162017,
         ""id"": 111,
         ""model"": {
@@ -557,7 +557,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/112"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.48711420990857957,
+        ""strength"": 0.48711420990857957,
         ""explosionFactor"": 0.14734574321068159,
         ""id"": 112,
         ""model"": {
@@ -566,7 +566,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/113"",
-        ""dependability"": 0.28000297829508919,
+        ""strength"": 0.28000297829508919,
         ""id"": 113,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/43""
@@ -575,7 +575,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/114"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.99892503675023325,
+        ""strength"": 0.99892503675023325,
         ""explosionFactor"": 0.926447535365097,
         ""id"": 114,
         ""model"": {
@@ -644,7 +644,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/118"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.40708276741536464,
+        ""strength"": 0.40708276741536464,
         ""explosionFactor"": 0.38962483331077957,
         ""id"": 118,
         ""model"": {
@@ -653,7 +653,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/119"",
-        ""dependability"": 0.95636456783691637,
+        ""strength"": 0.95636456783691637,
         ""id"": 119,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/50""
@@ -709,7 +709,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/125"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.63277222338727312,
+        ""strength"": 0.63277222338727312,
         ""explosionFactor"": 0.21292520277804006,
         ""id"": 125,
         ""model"": {
@@ -718,7 +718,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/126"",
-        ""dependability"": 0.8166109155009551,
+        ""strength"": 0.8166109155009551,
         ""id"": 126,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -727,7 +727,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/127"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.98032631817289,
+        ""strength"": 0.98032631817289,
         ""explosionFactor"": 0.70188546772202731,
         ""id"": 127,
         ""model"": {
@@ -801,7 +801,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/132"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.90878824419751214,
+        ""strength"": 0.90878824419751214,
         ""explosionFactor"": 0.98397313802688058,
         ""id"": 132,
         ""model"": {
@@ -810,7 +810,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/133"",
-        ""dependability"": 0.98963369940856183,
+        ""strength"": 0.98963369940856183,
         ""id"": 133,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/68""
@@ -841,7 +841,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/139"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.25477706280293738,
+        ""strength"": 0.25477706280293738,
         ""explosionFactor"": 0.073970737435841344,
         ""id"": 139,
         ""model"": {
@@ -850,7 +850,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/140"",
-        ""dependability"": 0.87493311514842,
+        ""strength"": 0.87493311514842,
         ""id"": 140,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/5""
@@ -858,7 +858,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/141"",
-        ""dependability"": 0.32379278509122916,
+        ""strength"": 0.32379278509122916,
         ""id"": 141,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/29""
@@ -904,7 +904,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/144"",
-        ""dependability"": 0.665452947684309,
+        ""strength"": 0.665452947684309,
         ""id"": 144,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -934,7 +934,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/148"",
-        ""dependability"": 0.14087041613686382,
+        ""strength"": 0.14087041613686382,
         ""id"": 148,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/45""
@@ -943,7 +943,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/149"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.83717011280226061,
+        ""strength"": 0.83717011280226061,
         ""explosionFactor"": 0.72919607522394325,
         ""id"": 149,
         ""model"": {
@@ -952,7 +952,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/150"",
-        ""dependability"": 0.29994862121527482,
+        ""strength"": 0.29994862121527482,
         ""id"": 150,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/63""
@@ -1007,7 +1007,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/153"",
-        ""dependability"": 0.1162001924199053,
+        ""strength"": 0.1162001924199053,
         ""id"": 153,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/64""
@@ -1016,7 +1016,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/154"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.050703755603499594,
+        ""strength"": 0.050703755603499594,
         ""explosionFactor"": 0.10344130038444013,
         ""id"": 154,
         ""model"": {
@@ -1025,7 +1025,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/155"",
-        ""dependability"": 0.24510950559988129,
+        ""strength"": 0.24510950559988129,
         ""id"": 155,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/36""
@@ -1069,7 +1069,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/160"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.87159222125615565,
+        ""strength"": 0.87159222125615565,
         ""explosionFactor"": 0.59282539672815493,
         ""id"": 160,
         ""model"": {
@@ -1079,7 +1079,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/161"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.61013411386410432,
+        ""strength"": 0.61013411386410432,
         ""explosionFactor"": 0.14474510920454986,
         ""id"": 161,
         ""model"": {
@@ -1089,7 +1089,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/162"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.80768738119289618,
+        ""strength"": 0.80768738119289618,
         ""explosionFactor"": 0.25879317440967686,
         ""id"": 162,
         ""model"": {
@@ -1146,7 +1146,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/166"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.81505577909529947,
+        ""strength"": 0.81505577909529947,
         ""explosionFactor"": 0.75162557920051065,
         ""id"": 166,
         ""model"": {
@@ -1156,7 +1156,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/167"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.63903440844222648,
+        ""strength"": 0.63903440844222648,
         ""explosionFactor"": 0.270295194476049,
         ""id"": 167,
         ""model"": {
@@ -1166,7 +1166,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/168"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.90222209128654662,
+        ""strength"": 0.90222209128654662,
         ""explosionFactor"": 0.95278293124995328,
         ""id"": 168,
         ""model"": {
@@ -1175,7 +1175,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/169"",
-        ""dependability"": 0.045547633918722921,
+        ""strength"": 0.045547633918722921,
         ""id"": 169,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/23""
@@ -1242,7 +1242,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/174"",
-        ""dependability"": 0.394899630637327,
+        ""strength"": 0.394899630637327,
         ""id"": 174,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/11""
@@ -1251,7 +1251,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/175"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.081558652260135228,
+        ""strength"": 0.081558652260135228,
         ""explosionFactor"": 0.79127121101658382,
         ""id"": 175,
         ""model"": {
@@ -1260,7 +1260,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/176"",
-        ""dependability"": 0.056536442160856182,
+        ""strength"": 0.056536442160856182,
         ""id"": 176,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/13""
@@ -1290,7 +1290,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/182"",
-        ""dependability"": 0.98065767948546334,
+        ""strength"": 0.98065767948546334,
         ""id"": 182,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/55""
@@ -1298,7 +1298,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/183"",
-        ""dependability"": 0.70860286415955187,
+        ""strength"": 0.70860286415955187,
         ""id"": 183,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/6""
@@ -1306,7 +1306,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/184"",
-        ""dependability"": 0.47011568186344377,
+        ""strength"": 0.47011568186344377,
         ""id"": 184,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/59""
@@ -1314,7 +1314,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/185"",
-        ""dependability"": 0.75484091451151336,
+        ""strength"": 0.75484091451151336,
         ""id"": 185,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/33""
@@ -1357,7 +1357,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/188"",
-        ""dependability"": 0.46065895560228215,
+        ""strength"": 0.46065895560228215,
         ""id"": 188,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/37""
@@ -1388,7 +1388,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/192"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.25580070459088344,
+        ""strength"": 0.25580070459088344,
         ""explosionFactor"": 0.16042220460270634,
         ""id"": 192,
         ""model"": {
@@ -1398,7 +1398,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/193"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.81061353153112048,
+        ""strength"": 0.81061353153112048,
         ""explosionFactor"": 0.08805828638750049,
         ""id"": 193,
         ""model"": {
@@ -1430,7 +1430,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/196"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.99419132433561208,
+        ""strength"": 0.99419132433561208,
         ""explosionFactor"": 0.14423586295183555,
         ""id"": 196,
         ""model"": {
@@ -1439,7 +1439,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/197"",
-        ""dependability"": 0.79086931552312767,
+        ""strength"": 0.79086931552312767,
         ""id"": 197,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/30""
@@ -1483,7 +1483,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/200"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.7323837614303379,
+        ""strength"": 0.7323837614303379,
         ""explosionFactor"": 0.50761523913015394,
         ""id"": 200,
         ""model"": {
@@ -1492,7 +1492,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/201"",
-        ""dependability"": 0.016766073655693825,
+        ""strength"": 0.016766073655693825,
         ""id"": 201,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/18""
@@ -1501,7 +1501,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/202"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.49904020992063,
+        ""strength"": 0.49904020992063,
         ""explosionFactor"": 0.024431658454440376,
         ""id"": 202,
         ""model"": {
@@ -1510,7 +1510,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/203"",
-        ""dependability"": 0.73454835160381549,
+        ""strength"": 0.73454835160381549,
         ""id"": 203,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/29""
@@ -1578,7 +1578,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/207"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.15569770203702976,
+        ""strength"": 0.15569770203702976,
         ""explosionFactor"": 0.37733321235390993,
         ""id"": 207,
         ""model"": {
@@ -1587,7 +1587,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/208"",
-        ""dependability"": 0.833644103647044,
+        ""strength"": 0.833644103647044,
         ""id"": 208,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/46""
@@ -1633,7 +1633,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/214"",
-        ""dependability"": 0.17359142106659312,
+        ""strength"": 0.17359142106659312,
         ""id"": 214,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -1641,7 +1641,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/215"",
-        ""dependability"": 0.25455521571196393,
+        ""strength"": 0.25455521571196393,
         ""id"": 215,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/28""
@@ -1650,7 +1650,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/216"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.25376790401235588,
+        ""strength"": 0.25376790401235588,
         ""explosionFactor"": 0.7503185378156223,
         ""id"": 216,
         ""model"": {
@@ -1660,7 +1660,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/217"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.10895030158988679,
+        ""strength"": 0.10895030158988679,
         ""explosionFactor"": 0.594569550172691,
         ""id"": 217,
         ""model"": {
@@ -1717,7 +1717,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/221"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.948987161716906,
+        ""strength"": 0.948987161716906,
         ""explosionFactor"": 0.89625157504167952,
         ""id"": 221,
         ""model"": {
@@ -1726,7 +1726,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/222"",
-        ""dependability"": 0.94767217335648468,
+        ""strength"": 0.94767217335648468,
         ""id"": 222,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/40""
@@ -1782,7 +1782,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/227"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.7581098902775486,
+        ""strength"": 0.7581098902775486,
         ""explosionFactor"": 0.38945486181855893,
         ""id"": 227,
         ""model"": {
@@ -1813,7 +1813,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/232"",
-        ""dependability"": 0.35830364067028447,
+        ""strength"": 0.35830364067028447,
         ""id"": 232,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/4""
@@ -1821,7 +1821,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/233"",
-        ""dependability"": 0.3060957306558712,
+        ""strength"": 0.3060957306558712,
         ""id"": 233,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/30""
@@ -1830,7 +1830,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/234"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.11951433872781431,
+        ""strength"": 0.11951433872781431,
         ""explosionFactor"": 0.87801144778635887,
         ""id"": 234,
         ""model"": {
@@ -1861,7 +1861,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/237"",
-        ""dependability"": 0.4545277145013808,
+        ""strength"": 0.4545277145013808,
         ""id"": 237,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/47""
@@ -1869,7 +1869,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/238"",
-        ""dependability"": 0.953259715788653,
+        ""strength"": 0.953259715788653,
         ""id"": 238,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/21""
@@ -1878,7 +1878,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/239"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.0621657329900962,
+        ""strength"": 0.0621657329900962,
         ""explosionFactor"": 0.42248607679385974,
         ""id"": 239,
         ""model"": {
@@ -1888,7 +1888,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/240"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.48224345291137855,
+        ""strength"": 0.48224345291137855,
         ""explosionFactor"": 0.14662623784813389,
         ""id"": 240,
         ""model"": {
@@ -1957,7 +1957,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/243"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.40636681039182787,
+        ""strength"": 0.40636681039182787,
         ""explosionFactor"": 0.2070306358891682,
         ""id"": 243,
         ""model"": {
@@ -2013,7 +2013,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/249"",
-        ""dependability"": 0.16373482447291485,
+        ""strength"": 0.16373482447291485,
         ""id"": 249,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/7""
@@ -2022,7 +2022,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/250"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.7296389666058305,
+        ""strength"": 0.7296389666058305,
         ""explosionFactor"": 0.63909241586881338,
         ""id"": 250,
         ""model"": {
@@ -2031,7 +2031,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/251"",
-        ""dependability"": 0.63672770123776412,
+        ""strength"": 0.63672770123776412,
         ""id"": 251,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/69""
@@ -2061,7 +2061,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/256"",
-        ""dependability"": 0.77609781817351364,
+        ""strength"": 0.77609781817351364,
         ""id"": 256,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/42""
@@ -2070,7 +2070,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/257"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.11068113060234167,
+        ""strength"": 0.11068113060234167,
         ""explosionFactor"": 0.67581300515486531,
         ""id"": 257,
         ""model"": {
@@ -2079,7 +2079,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/258"",
-        ""dependability"": 0.12069516168939656,
+        ""strength"": 0.12069516168939656,
         ""id"": 258,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/44""
@@ -2123,7 +2123,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/261"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.33225805048470297,
+        ""strength"": 0.33225805048470297,
         ""explosionFactor"": 0.27884341277128244,
         ""id"": 261,
         ""model"": {
@@ -2168,7 +2168,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/265"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.48122841328439697,
+        ""strength"": 0.48122841328439697,
         ""explosionFactor"": 0.15482852987704265,
         ""id"": 265,
         ""model"": {
@@ -2215,7 +2215,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/269"",
-        ""dependability"": 0.42519574539046534,
+        ""strength"": 0.42519574539046534,
         ""id"": 269,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/4""
@@ -2223,7 +2223,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/270"",
-        ""dependability"": 0.21005100999495527,
+        ""strength"": 0.21005100999495527,
         ""id"": 270,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/6""
@@ -2291,7 +2291,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/274"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.62113897345081859,
+        ""strength"": 0.62113897345081859,
         ""explosionFactor"": 0.39161066682618606,
         ""id"": 274,
         ""model"": {
@@ -2300,7 +2300,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/275"",
-        ""dependability"": 0.69199844342283834,
+        ""strength"": 0.69199844342283834,
         ""id"": 275,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/67""
@@ -2308,7 +2308,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/276"",
-        ""dependability"": 0.64636761306150237,
+        ""strength"": 0.64636761306150237,
         ""id"": 276,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/8""
@@ -2317,7 +2317,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/277"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.17442011003122671,
+        ""strength"": 0.17442011003122671,
         ""explosionFactor"": 0.99649168317974157,
         ""id"": 277,
         ""model"": {
@@ -2362,7 +2362,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/283"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.062739556218841835,
+        ""strength"": 0.062739556218841835,
         ""explosionFactor"": 0.87462215166288526,
         ""id"": 283,
         ""model"": {
@@ -2371,7 +2371,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/284"",
-        ""dependability"": 0.12554761819799787,
+        ""strength"": 0.12554761819799787,
         ""id"": 284,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/60""
@@ -2379,7 +2379,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/285"",
-        ""dependability"": 0.710002792864108,
+        ""strength"": 0.710002792864108,
         ""id"": 285,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -2388,7 +2388,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/286"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.82964124848583776,
+        ""strength"": 0.82964124848583776,
         ""explosionFactor"": 0.59788110507553494,
         ""id"": 286,
         ""model"": {
@@ -2432,7 +2432,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/290"",
-        ""dependability"": 0.30585768879664021,
+        ""strength"": 0.30585768879664021,
         ""id"": 290,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/57""
@@ -2463,7 +2463,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/294"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.57107814847076221,
+        ""strength"": 0.57107814847076221,
         ""explosionFactor"": 0.30338337985024944,
         ""id"": 294,
         ""model"": {
@@ -2472,7 +2472,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/295"",
-        ""dependability"": 0.254585371936944,
+        ""strength"": 0.254585371936944,
         ""id"": 295,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/8""
@@ -2480,7 +2480,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/296"",
-        ""dependability"": 0.19572591371635251,
+        ""strength"": 0.19572591371635251,
         ""id"": 296,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/1""
@@ -2488,7 +2488,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/297"",
-        ""dependability"": 0.62534607836294276,
+        ""strength"": 0.62534607836294276,
         ""id"": 297,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/43""
@@ -2531,7 +2531,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/300"",
-        ""dependability"": 0.33350031745317404,
+        ""strength"": 0.33350031745317404,
         ""id"": 300,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/37""
@@ -2540,7 +2540,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/301"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.565179041384337,
+        ""strength"": 0.565179041384337,
         ""explosionFactor"": 0.50349506619549123,
         ""id"": 301,
         ""model"": {
@@ -2597,7 +2597,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/305"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.81571374312774914,
+        ""strength"": 0.81571374312774914,
         ""explosionFactor"": 0.65770597739969661,
         ""id"": 305,
         ""model"": {
@@ -2641,7 +2641,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/310"",
-        ""dependability"": 0.73157461440729654,
+        ""strength"": 0.73157461440729654,
         ""id"": 310,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/55""
@@ -2649,7 +2649,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/311"",
-        ""dependability"": 0.0630130917127305,
+        ""strength"": 0.0630130917127305,
         ""id"": 311,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/11""
@@ -2657,7 +2657,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/312"",
-        ""dependability"": 0.61241268255394543,
+        ""strength"": 0.61241268255394543,
         ""id"": 312,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/30""
@@ -2713,7 +2713,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/316"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.757949044815241,
+        ""strength"": 0.757949044815241,
         ""explosionFactor"": 0.011053988715193228,
         ""id"": 316,
         ""model"": {
@@ -2723,7 +2723,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/317"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.2231480014618244,
+        ""strength"": 0.2231480014618244,
         ""explosionFactor"": 0.95417733022672,
         ""id"": 317,
         ""model"": {
@@ -2733,7 +2733,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/318"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.083353918550235176,
+        ""strength"": 0.083353918550235176,
         ""explosionFactor"": 0.75175227632362041,
         ""id"": 318,
         ""model"": {
@@ -2742,7 +2742,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/319"",
-        ""dependability"": 0.51069451706050639,
+        ""strength"": 0.51069451706050639,
         ""id"": 319,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -2773,7 +2773,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/324"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.45569478834778759,
+        ""strength"": 0.45569478834778759,
         ""explosionFactor"": 0.65731728945733858,
         ""id"": 324,
         ""model"": {
@@ -2820,7 +2820,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/327"",
-        ""dependability"": 0.93836543519905091,
+        ""strength"": 0.93836543519905091,
         ""id"": 327,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/19""
@@ -2851,7 +2851,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/331"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.17057236571357229,
+        ""strength"": 0.17057236571357229,
         ""explosionFactor"": 0.60695132129218021,
         ""id"": 331,
         ""model"": {
@@ -2861,7 +2861,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/332"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.68043964015340419,
+        ""strength"": 0.68043964015340419,
         ""explosionFactor"": 0.96576069386944208,
         ""id"": 332,
         ""model"": {
@@ -2871,7 +2871,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/333"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.26374962891626619,
+        ""strength"": 0.26374962891626619,
         ""explosionFactor"": 0.84981674693981968,
         ""id"": 333,
         ""model"": {
@@ -2881,7 +2881,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/334"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.85885955479874254,
+        ""strength"": 0.85885955479874254,
         ""explosionFactor"": 0.81427140152746413,
         ""id"": 334,
         ""model"": {
@@ -2937,7 +2937,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/337"",
-        ""dependability"": 0.39283058158719475,
+        ""strength"": 0.39283058158719475,
         ""id"": 337,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/38""
@@ -2981,7 +2981,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/342"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.67240959763173458,
+        ""strength"": 0.67240959763173458,
         ""explosionFactor"": 0.26541249838909714,
         ""id"": 342,
         ""model"": {
@@ -2990,7 +2990,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/343"",
-        ""dependability"": 0.97158926770630727,
+        ""strength"": 0.97158926770630727,
         ""id"": 343,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/57""
@@ -2999,7 +2999,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/344"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.2944858750768406,
+        ""strength"": 0.2944858750768406,
         ""explosionFactor"": 0.0622115321747081,
         ""id"": 344,
         ""model"": {
@@ -3009,7 +3009,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/345"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.62502468359890617,
+        ""strength"": 0.62502468359890617,
         ""explosionFactor"": 0.4256549093060451,
         ""id"": 345,
         ""model"": {
@@ -3057,7 +3057,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/349"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.2305126931660402,
+        ""strength"": 0.2305126931660402,
         ""explosionFactor"": 0.2916809293868397,
         ""id"": 349,
         ""model"": {
@@ -3066,7 +3066,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/350"",
-        ""dependability"": 0.056568757657226527,
+        ""strength"": 0.056568757657226527,
         ""id"": 350,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/45""
@@ -3074,7 +3074,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/351"",
-        ""dependability"": 0.39046856825727438,
+        ""strength"": 0.39046856825727438,
         ""id"": 351,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/3""
@@ -3082,7 +3082,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/352"",
-        ""dependability"": 0.62059084820588628,
+        ""strength"": 0.62059084820588628,
         ""id"": 352,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/58""
@@ -3125,7 +3125,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/356"",
-        ""dependability"": 0.79479655148219153,
+        ""strength"": 0.79479655148219153,
         ""id"": 356,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/35""
@@ -3134,7 +3134,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/357"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.935930609207568,
+        ""strength"": 0.935930609207568,
         ""explosionFactor"": 0.29577908026789274,
         ""id"": 357,
         ""model"": {
@@ -3144,7 +3144,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/358"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.68788227796921608,
+        ""strength"": 0.68788227796921608,
         ""explosionFactor"": 0.0076318429818525175,
         ""id"": 358,
         ""model"": {
@@ -3153,7 +3153,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/359"",
-        ""dependability"": 0.60268388809761209,
+        ""strength"": 0.60268388809761209,
         ""id"": 359,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/2""
@@ -3183,7 +3183,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/363"",
-        ""dependability"": 0.88084413664454786,
+        ""strength"": 0.88084413664454786,
         ""id"": 363,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/17""
@@ -3192,7 +3192,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/364"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.90983884637702206,
+        ""strength"": 0.90983884637702206,
         ""explosionFactor"": 0.58695791689071708,
         ""id"": 364,
         ""model"": {
@@ -3201,7 +3201,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/365"",
-        ""dependability"": 0.64288392134145089,
+        ""strength"": 0.64288392134145089,
         ""id"": 365,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -3233,7 +3233,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/368"",
-        ""dependability"": 0.15479419853295862,
+        ""strength"": 0.15479419853295862,
         ""id"": 368,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/4""
@@ -3241,7 +3241,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/369"",
-        ""dependability"": 0.75952171895630738,
+        ""strength"": 0.75952171895630738,
         ""id"": 369,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/35""
@@ -3249,7 +3249,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/370"",
-        ""dependability"": 0.50741413445557193,
+        ""strength"": 0.50741413445557193,
         ""id"": 370,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/68""
@@ -3258,7 +3258,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/371"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.8872460121695166,
+        ""strength"": 0.8872460121695166,
         ""explosionFactor"": 0.13921777165458435,
         ""id"": 371,
         ""model"": {
@@ -3302,7 +3302,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/374"",
-        ""dependability"": 0.96025131594401381,
+        ""strength"": 0.96025131594401381,
         ""id"": 374,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/45""
@@ -3310,7 +3310,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/375"",
-        ""dependability"": 0.3765193072038327,
+        ""strength"": 0.3765193072038327,
         ""id"": 375,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -3354,7 +3354,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/379"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.41360468762628955,
+        ""strength"": 0.41360468762628955,
         ""explosionFactor"": 0.7360251065045712,
         ""id"": 379,
         ""model"": {
@@ -3386,7 +3386,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/383"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.554588433147682,
+        ""strength"": 0.554588433147682,
         ""explosionFactor"": 0.94795409121921015,
         ""id"": 383,
         ""model"": {
@@ -3395,7 +3395,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/384"",
-        ""dependability"": 0.466813616206317,
+        ""strength"": 0.466813616206317,
         ""id"": 384,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/36""
@@ -3404,7 +3404,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/385"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.049366200831423609,
+        ""strength"": 0.049366200831423609,
         ""explosionFactor"": 0.17497924676862511,
         ""id"": 385,
         ""model"": {
@@ -3472,7 +3472,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/388"",
-        ""dependability"": 0.268462053159467,
+        ""strength"": 0.268462053159467,
         ""id"": 388,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/47""
@@ -3505,7 +3505,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/394"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.75010416319132978,
+        ""strength"": 0.75010416319132978,
         ""explosionFactor"": 0.15197034280373264,
         ""id"": 394,
         ""model"": {
@@ -3514,7 +3514,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/395"",
-        ""dependability"": 0.059381714118356681,
+        ""strength"": 0.059381714118356681,
         ""id"": 395,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/23""
@@ -3570,7 +3570,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/398"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.65708311817472942,
+        ""strength"": 0.65708311817472942,
         ""explosionFactor"": 0.47540447044903622,
         ""id"": 398,
         ""model"": {
@@ -3615,7 +3615,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/403"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.63437596644944327,
+        ""strength"": 0.63437596644944327,
         ""explosionFactor"": 0.865567897849515,
         ""id"": 403,
         ""model"": {
@@ -3624,7 +3624,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/404"",
-        ""dependability"": 0.18494691242694245,
+        ""strength"": 0.18494691242694245,
         ""id"": 404,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/30""
@@ -3633,7 +3633,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/405"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.55232137886449761,
+        ""strength"": 0.55232137886449761,
         ""explosionFactor"": 0.049373197392268663,
         ""id"": 405,
         ""model"": {
@@ -3702,7 +3702,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/409"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.28069916473734152,
+        ""strength"": 0.28069916473734152,
         ""explosionFactor"": 0.32107535438662177,
         ""id"": 409,
         ""model"": {
@@ -3712,7 +3712,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/410"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.21698037871019002,
+        ""strength"": 0.21698037871019002,
         ""explosionFactor"": 0.80077787619120344,
         ""id"": 410,
         ""model"": {
@@ -3722,7 +3722,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/411"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.39183967765040678,
+        ""strength"": 0.39183967765040678,
         ""explosionFactor"": 0.99494740739229481,
         ""id"": 411,
         ""model"": {
@@ -3731,7 +3731,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/412"",
-        ""dependability"": 0.10203418792320144,
+        ""strength"": 0.10203418792320144,
         ""id"": 412,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/69""
@@ -3799,7 +3799,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/418"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.178668521893522,
+        ""strength"": 0.178668521893522,
         ""explosionFactor"": 0.30701106102532288,
         ""id"": 418,
         ""model"": {
@@ -3831,7 +3831,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/424"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.087099782231775946,
+        ""strength"": 0.087099782231775946,
         ""explosionFactor"": 0.088870908175069332,
         ""id"": 424,
         ""model"": {
@@ -3899,7 +3899,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/427"",
-        ""dependability"": 0.292133392436492,
+        ""strength"": 0.292133392436492,
         ""id"": 427,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/46""
@@ -3954,7 +3954,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/433"",
-        ""dependability"": 0.19525876976328846,
+        ""strength"": 0.19525876976328846,
         ""id"": 433,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/19""
@@ -3962,7 +3962,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/434"",
-        ""dependability"": 0.81667924943225423,
+        ""strength"": 0.81667924943225423,
         ""id"": 434,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/26""
@@ -3971,7 +3971,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/435"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.73901487455657444,
+        ""strength"": 0.73901487455657444,
         ""explosionFactor"": 0.054263034395064712,
         ""id"": 435,
         ""model"": {
@@ -3980,7 +3980,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/436"",
-        ""dependability"": 0.685423597081296,
+        ""strength"": 0.685423597081296,
         ""id"": 436,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/10""
@@ -4048,7 +4048,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/441"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.06821826895150275,
+        ""strength"": 0.06821826895150275,
         ""explosionFactor"": 0.12711747415695221,
         ""id"": 441,
         ""model"": {
@@ -4058,7 +4058,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/442"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.32206874122939477,
+        ""strength"": 0.32206874122939477,
         ""explosionFactor"": 0.081553471312650228,
         ""id"": 442,
         ""model"": {
@@ -4067,7 +4067,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/443"",
-        ""dependability"": 0.32204226745387643,
+        ""strength"": 0.32204226745387643,
         ""id"": 443,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/35""
@@ -4114,7 +4114,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/449"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.41515089683940209,
+        ""strength"": 0.41515089683940209,
         ""explosionFactor"": 0.98731163190086912,
         ""id"": 449,
         ""model"": {
@@ -4123,7 +4123,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/450"",
-        ""dependability"": 0.28915231036448491,
+        ""strength"": 0.28915231036448491,
         ""id"": 450,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/66""
@@ -4191,7 +4191,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/454"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.56069577744263033,
+        ""strength"": 0.56069577744263033,
         ""explosionFactor"": 0.96733677432282672,
         ""id"": 454,
         ""model"": {
@@ -4248,7 +4248,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/460"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.33473063555300731,
+        ""strength"": 0.33473063555300731,
         ""explosionFactor"": 0.91902015959798367,
         ""id"": 460,
         ""model"": {
@@ -4322,7 +4322,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/465"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.20560774775483076,
+        ""strength"": 0.20560774775483076,
         ""explosionFactor"": 0.82368512117475512,
         ""id"": 465,
         ""model"": {
@@ -4332,7 +4332,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/466"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.37981547526075293,
+        ""strength"": 0.37981547526075293,
         ""explosionFactor"": 0.21080097007136836,
         ""id"": 466,
         ""model"": {
@@ -4364,7 +4364,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/472"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.26620785857839874,
+        ""strength"": 0.26620785857839874,
         ""explosionFactor"": 0.13622280309732202,
         ""id"": 472,
         ""model"": {
@@ -4373,7 +4373,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/473"",
-        ""dependability"": 0.75207807624343692,
+        ""strength"": 0.75207807624343692,
         ""id"": 473,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/52""
@@ -4382,7 +4382,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/474"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.13844137924650748,
+        ""strength"": 0.13844137924650748,
         ""explosionFactor"": 0.24904890835706559,
         ""id"": 474,
         ""model"": {
@@ -4392,7 +4392,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/475"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.80028508314876123,
+        ""strength"": 0.80028508314876123,
         ""explosionFactor"": 0.47464064856741606,
         ""id"": 475,
         ""model"": {
@@ -4436,7 +4436,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/478"",
-        ""dependability"": 0.31918975679166139,
+        ""strength"": 0.31918975679166139,
         ""id"": 478,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/46""
@@ -4444,7 +4444,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/479"",
-        ""dependability"": 0.12062292411952416,
+        ""strength"": 0.12062292411952416,
         ""id"": 479,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/67""
@@ -4453,7 +4453,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/480"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.41875019083672677,
+        ""strength"": 0.41875019083672677,
         ""explosionFactor"": 0.8646915181841196,
         ""id"": 480,
         ""model"": {
@@ -4498,7 +4498,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/484"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.499898404581425,
+        ""strength"": 0.499898404581425,
         ""explosionFactor"": 0.35769353544232135,
         ""id"": 484,
         ""model"": {
@@ -4508,7 +4508,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/485"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.38303974894016968,
+        ""strength"": 0.38303974894016968,
         ""explosionFactor"": 0.68936736913834107,
         ""id"": 485,
         ""model"": {
@@ -4553,7 +4553,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/489"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.78848922615334827,
+        ""strength"": 0.78848922615334827,
         ""explosionFactor"": 0.80024943770852375,
         ""id"": 489,
         ""model"": {
@@ -4562,7 +4562,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/490"",
-        ""dependability"": 0.075227563770128208,
+        ""strength"": 0.075227563770128208,
         ""id"": 490,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/65""
@@ -4635,7 +4635,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/494"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.35962143091467275,
+        ""strength"": 0.35962143091467275,
         ""explosionFactor"": 0.76123659627569684,
         ""id"": 494,
         ""model"": {
@@ -4704,7 +4704,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/500"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.69148522088838982,
+        ""strength"": 0.69148522088838982,
         ""explosionFactor"": 0.42467084081129675,
         ""id"": 500,
         ""model"": {
@@ -4713,7 +4713,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/501"",
-        ""dependability"": 0.012579219421641537,
+        ""strength"": 0.012579219421641537,
         ""id"": 501,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/5""
@@ -4721,7 +4721,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/502"",
-        ""dependability"": 0.58408057763431254,
+        ""strength"": 0.58408057763431254,
         ""id"": 502,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/36""
@@ -4730,7 +4730,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/503"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.99835823429671966,
+        ""strength"": 0.99835823429671966,
         ""explosionFactor"": 0.64983946068670573,
         ""id"": 503,
         ""model"": {
@@ -4786,7 +4786,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/509"",
-        ""dependability"": 0.51349838288198146,
+        ""strength"": 0.51349838288198146,
         ""id"": 509,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/24""
@@ -4795,7 +4795,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/510"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.55038687286450849,
+        ""strength"": 0.55038687286450849,
         ""explosionFactor"": 0.87601948756539239,
         ""id"": 510,
         ""model"": {
@@ -4843,7 +4843,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/515"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.62374374672013511,
+        ""strength"": 0.62374374672013511,
         ""explosionFactor"": 0.683380618544007,
         ""id"": 515,
         ""model"": {
@@ -4853,7 +4853,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/516"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.63174015313002285,
+        ""strength"": 0.63174015313002285,
         ""explosionFactor"": 0.4168688247058861,
         ""id"": 516,
         ""model"": {
@@ -4862,7 +4862,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/517"",
-        ""dependability"": 0.18346858405669619,
+        ""strength"": 0.18346858405669619,
         ""id"": 517,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/48""
@@ -4905,7 +4905,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/521"",
-        ""dependability"": 0.8183659970845869,
+        ""strength"": 0.8183659970845869,
         ""id"": 521,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/19""
@@ -4914,7 +4914,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/522"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.15338687279885024,
+        ""strength"": 0.15338687279885024,
         ""explosionFactor"": 0.82441350064445917,
         ""id"": 522,
         ""model"": {
@@ -4924,7 +4924,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/523"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.51448316616680623,
+        ""strength"": 0.51448316616680623,
         ""explosionFactor"": 0.35783095627922146,
         ""id"": 523,
         ""model"": {
@@ -4933,7 +4933,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/524"",
-        ""dependability"": 0.8780741178794178,
+        ""strength"": 0.8780741178794178,
         ""id"": 524,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/32""
@@ -5000,7 +5000,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/528"",
-        ""dependability"": 0.37624636589374688,
+        ""strength"": 0.37624636589374688,
         ""id"": 528,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/35""
@@ -5044,7 +5044,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/534"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.18445940510577494,
+        ""strength"": 0.18445940510577494,
         ""explosionFactor"": 0.40950142657826721,
         ""id"": 534,
         ""model"": {
@@ -5053,7 +5053,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/535"",
-        ""dependability"": 0.21805933081454565,
+        ""strength"": 0.21805933081454565,
         ""id"": 535,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/50""
@@ -5109,7 +5109,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/539"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.03458013061181648,
+        ""strength"": 0.03458013061181648,
         ""explosionFactor"": 0.19269449831577692,
         ""id"": 539,
         ""model"": {
@@ -5118,7 +5118,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/540"",
-        ""dependability"": 0.49947321019110885,
+        ""strength"": 0.49947321019110885,
         ""id"": 540,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/57""
@@ -5127,7 +5127,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/541"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.633205270689542,
+        ""strength"": 0.633205270689542,
         ""explosionFactor"": 0.15255942202758016,
         ""id"": 541,
         ""model"": {
@@ -5183,7 +5183,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/546"",
-        ""dependability"": 0.7199365504644516,
+        ""strength"": 0.7199365504644516,
         ""id"": 546,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/50""
@@ -5191,7 +5191,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/547"",
-        ""dependability"": 0.14558214281945589,
+        ""strength"": 0.14558214281945589,
         ""id"": 547,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/29""
@@ -5235,7 +5235,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/552"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.085082680492234733,
+        ""strength"": 0.085082680492234733,
         ""explosionFactor"": 0.50744278380062557,
         ""id"": 552,
         ""model"": {
@@ -5245,7 +5245,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/553"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.212014999339364,
+        ""strength"": 0.212014999339364,
         ""explosionFactor"": 0.8488212920952688,
         ""id"": 553,
         ""model"": {
@@ -5254,7 +5254,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/554"",
-        ""dependability"": 0.53632120487108881,
+        ""strength"": 0.53632120487108881,
         ""id"": 554,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -5310,7 +5310,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/558"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.7959571544993469,
+        ""strength"": 0.7959571544993469,
         ""explosionFactor"": 0.47098091126930941,
         ""id"": 558,
         ""model"": {
@@ -5320,7 +5320,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/559"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.92584178500149483,
+        ""strength"": 0.92584178500149483,
         ""explosionFactor"": 0.25466041371908987,
         ""id"": 559,
         ""model"": {
@@ -5388,7 +5388,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/564"",
-        ""dependability"": 0.26223863254405494,
+        ""strength"": 0.26223863254405494,
         ""id"": 564,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/14""
@@ -5444,7 +5444,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/570"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.55643073774708007,
+        ""strength"": 0.55643073774708007,
         ""explosionFactor"": 0.95735458562027409,
         ""id"": 570,
         ""model"": {
@@ -5454,7 +5454,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/571"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.86265552270349843,
+        ""strength"": 0.86265552270349843,
         ""explosionFactor"": 0.87760720023773942,
         ""id"": 571,
         ""model"": {
@@ -5464,7 +5464,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/572"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.57067469999691223,
+        ""strength"": 0.57067469999691223,
         ""explosionFactor"": 0.19209927096595023,
         ""id"": 572,
         ""model"": {
@@ -5508,7 +5508,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/577"",
-        ""dependability"": 0.85119526034742377,
+        ""strength"": 0.85119526034742377,
         ""id"": 577,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/34""
@@ -5517,7 +5517,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/578"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.4733103790661834,
+        ""strength"": 0.4733103790661834,
         ""explosionFactor"": 0.81951267915755166,
         ""id"": 578,
         ""model"": {
@@ -5526,7 +5526,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/579"",
-        ""dependability"": 0.58021844438287362,
+        ""strength"": 0.58021844438287362,
         ""id"": 579,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/54""
@@ -5534,7 +5534,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/580"",
-        ""dependability"": 0.68123328996879673,
+        ""strength"": 0.68123328996879673,
         ""id"": 580,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/64""
@@ -5601,7 +5601,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/584"",
-        ""dependability"": 0.52477693395911573,
+        ""strength"": 0.52477693395911573,
         ""id"": 584,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/24""
@@ -5609,7 +5609,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/585"",
-        ""dependability"": 0.97772621082967437,
+        ""strength"": 0.97772621082967437,
         ""id"": 585,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/35""
@@ -5618,7 +5618,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/586"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.76902401250275965,
+        ""strength"": 0.76902401250275965,
         ""explosionFactor"": 0.54257273978673515,
         ""id"": 586,
         ""model"": {
@@ -5650,7 +5650,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/592"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.91920106155760639,
+        ""strength"": 0.91920106155760639,
         ""explosionFactor"": 0.662804403650949,
         ""id"": 592,
         ""model"": {
@@ -5695,7 +5695,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/595"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.77647672070957563,
+        ""strength"": 0.77647672070957563,
         ""explosionFactor"": 0.9457337008536485,
         ""id"": 595,
         ""model"": {
@@ -5705,7 +5705,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/596"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.24951164855133354,
+        ""strength"": 0.24951164855133354,
         ""explosionFactor"": 0.81119443188011386,
         ""id"": 596,
         ""model"": {
@@ -5749,7 +5749,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/600"",
-        ""dependability"": 0.11650221148342929,
+        ""strength"": 0.11650221148342929,
         ""id"": 600,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/27""
@@ -5757,7 +5757,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/601"",
-        ""dependability"": 0.19960385849680931,
+        ""strength"": 0.19960385849680931,
         ""id"": 601,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/27""
@@ -5816,7 +5816,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/605"",
-        ""dependability"": 0.81551282471768227,
+        ""strength"": 0.81551282471768227,
         ""id"": 605,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/15""
@@ -5824,7 +5824,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/606"",
-        ""dependability"": 0.32640546389222397,
+        ""strength"": 0.32640546389222397,
         ""id"": 606,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/58""
@@ -5833,7 +5833,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/607"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.80383030455737858,
+        ""strength"": 0.80383030455737858,
         ""explosionFactor"": 0.2695971635494368,
         ""id"": 607,
         ""model"": {
@@ -5843,7 +5843,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/608"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.78924140836542533,
+        ""strength"": 0.78924140836542533,
         ""explosionFactor"": 0.030787626761378546,
         ""id"": 608,
         ""model"": {
@@ -5912,7 +5912,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/613"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.13895222178611541,
+        ""strength"": 0.13895222178611541,
         ""explosionFactor"": 0.36069555224883165,
         ""id"": 613,
         ""model"": {
@@ -5922,7 +5922,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/614"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.23449112532403837,
+        ""strength"": 0.23449112532403837,
         ""explosionFactor"": 0.31344258753277482,
         ""id"": 614,
         ""model"": {
@@ -5932,7 +5932,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/615"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.34079358416646421,
+        ""strength"": 0.34079358416646421,
         ""explosionFactor"": 0.59213767181715815,
         ""id"": 615,
         ""model"": {
@@ -5942,7 +5942,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/616"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.90918260715398125,
+        ""strength"": 0.90918260715398125,
         ""explosionFactor"": 0.25666905392737549,
         ""id"": 616,
         ""model"": {
@@ -5987,7 +5987,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/622"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.70209134402782258,
+        ""strength"": 0.70209134402782258,
         ""explosionFactor"": 0.24648718733642586,
         ""id"": 622,
         ""model"": {
@@ -5997,7 +5997,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/623"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.44313475230854693,
+        ""strength"": 0.44313475230854693,
         ""explosionFactor"": 0.81811852511862226,
         ""id"": 623,
         ""model"": {
@@ -6006,7 +6006,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/624"",
-        ""dependability"": 0.47579882083265057,
+        ""strength"": 0.47579882083265057,
         ""id"": 624,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/68""
@@ -6074,7 +6074,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/628"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.90300568654341884,
+        ""strength"": 0.90300568654341884,
         ""explosionFactor"": 0.86948724597202953,
         ""id"": 628,
         ""model"": {
@@ -6084,7 +6084,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/629"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.4071854052167318,
+        ""strength"": 0.4071854052167318,
         ""explosionFactor"": 0.42813205878628979,
         ""id"": 629,
         ""model"": {
@@ -6094,7 +6094,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/630"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.48165043465869989,
+        ""strength"": 0.48165043465869989,
         ""explosionFactor"": 0.34303283055454159,
         ""id"": 630,
         ""model"": {
@@ -6163,7 +6163,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/636"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.47305370330487084,
+        ""strength"": 0.47305370330487084,
         ""explosionFactor"": 0.23491171478988218,
         ""id"": 636,
         ""model"": {
@@ -6195,7 +6195,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/642"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.62434313754753357,
+        ""strength"": 0.62434313754753357,
         ""explosionFactor"": 0.39408275875918697,
         ""id"": 642,
         ""model"": {
@@ -6227,7 +6227,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/645"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.25375715980946884,
+        ""strength"": 0.25375715980946884,
         ""explosionFactor"": 0.72726977603848553,
         ""id"": 645,
         ""model"": {
@@ -6271,7 +6271,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/648"",
-        ""dependability"": 0.38767513650826885,
+        ""strength"": 0.38767513650826885,
         ""id"": 648,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/9""
@@ -6279,7 +6279,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/649"",
-        ""dependability"": 0.19657972138215774,
+        ""strength"": 0.19657972138215774,
         ""id"": 649,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/1""
@@ -6287,7 +6287,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/650"",
-        ""dependability"": 0.65816840886053085,
+        ""strength"": 0.65816840886053085,
         ""id"": 650,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/48""
@@ -6342,7 +6342,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/654"",
-        ""dependability"": 0.10084458538370421,
+        ""strength"": 0.10084458538370421,
         ""id"": 654,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/21""
@@ -6385,7 +6385,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/659"",
-        ""dependability"": 0.84222522789716037,
+        ""strength"": 0.84222522789716037,
         ""id"": 659,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/56""
@@ -6393,7 +6393,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/660"",
-        ""dependability"": 0.87904214667111735,
+        ""strength"": 0.87904214667111735,
         ""id"": 660,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/67""
@@ -6402,7 +6402,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/661"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.25835776573901892,
+        ""strength"": 0.25835776573901892,
         ""explosionFactor"": 0.85519865101911063,
         ""id"": 661,
         ""model"": {
@@ -6411,7 +6411,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/662"",
-        ""dependability"": 0.11534068878523106,
+        ""strength"": 0.11534068878523106,
         ""id"": 662,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/59""
@@ -6454,7 +6454,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/666"",
-        ""dependability"": 0.045462986475537988,
+        ""strength"": 0.045462986475537988,
         ""id"": 666,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/31""
@@ -6463,7 +6463,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/667"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.61773278313583357,
+        ""strength"": 0.61773278313583357,
         ""explosionFactor"": 0.89223495726112045,
         ""id"": 667,
         ""model"": {
@@ -6473,7 +6473,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/668"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.33947452592639,
+        ""strength"": 0.33947452592639,
         ""explosionFactor"": 0.3382196115973497,
         ""id"": 668,
         ""model"": {
@@ -6547,7 +6547,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/672"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.504311840284761,
+        ""strength"": 0.504311840284761,
         ""explosionFactor"": 0.9599488116614282,
         ""id"": 672,
         ""model"": {
@@ -6556,7 +6556,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/673"",
-        ""dependability"": 0.31614923538460826,
+        ""strength"": 0.31614923538460826,
         ""id"": 673,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/56""
@@ -6565,7 +6565,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/674"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.73095705580476533,
+        ""strength"": 0.73095705580476533,
         ""explosionFactor"": 0.56094341239004553,
         ""id"": 674,
         ""model"": {
@@ -6574,7 +6574,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/675"",
-        ""dependability"": 0.1767708306092633,
+        ""strength"": 0.1767708306092633,
         ""id"": 675,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/20""
@@ -6633,7 +6633,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/681"",
-        ""dependability"": 0.61531559639392219,
+        ""strength"": 0.61531559639392219,
         ""id"": 681,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/65""
@@ -6641,7 +6641,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/682"",
-        ""dependability"": 0.8932867450142683,
+        ""strength"": 0.8932867450142683,
         ""id"": 682,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/37""
@@ -6649,7 +6649,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/683"",
-        ""dependability"": 0.32580277338894215,
+        ""strength"": 0.32580277338894215,
         ""id"": 683,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/23""
@@ -6679,7 +6679,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/688"",
-        ""dependability"": 0.31706349333611478,
+        ""strength"": 0.31706349333611478,
         ""id"": 688,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/21""
@@ -6687,7 +6687,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/689"",
-        ""dependability"": 0.65923603328840619,
+        ""strength"": 0.65923603328840619,
         ""id"": 689,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/43""
@@ -6695,7 +6695,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/690"",
-        ""dependability"": 0.99049700283934228,
+        ""strength"": 0.99049700283934228,
         ""id"": 690,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/69""
@@ -6703,7 +6703,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/691"",
-        ""dependability"": 0.287682710349412,
+        ""strength"": 0.287682710349412,
         ""id"": 691,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/59""
@@ -6759,7 +6759,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/694"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.54670897058523682,
+        ""strength"": 0.54670897058523682,
         ""explosionFactor"": 0.82659449466811241,
         ""id"": 694,
         ""model"": {
@@ -6828,7 +6828,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/699"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.29825210305780736,
+        ""strength"": 0.29825210305780736,
         ""explosionFactor"": 0.909924442837911,
         ""id"": 699,
         ""model"": {
@@ -6838,7 +6838,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/700"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.34017744117424703,
+        ""strength"": 0.34017744117424703,
         ""explosionFactor"": 0.28240383057035684,
         ""id"": 700,
         ""model"": {
@@ -6847,7 +6847,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/701"",
-        ""dependability"": 0.097922481642068585,
+        ""strength"": 0.097922481642068585,
         ""id"": 701,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/23""
@@ -6903,7 +6903,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/707"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.193527275786515,
+        ""strength"": 0.193527275786515,
         ""explosionFactor"": 0.89234567475148741,
         ""id"": 707,
         ""model"": {
@@ -6912,7 +6912,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/708"",
-        ""dependability"": 0.080388011448265989,
+        ""strength"": 0.080388011448265989,
         ""id"": 708,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/18""
@@ -6920,7 +6920,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/709"",
-        ""dependability"": 0.4419913969198202,
+        ""strength"": 0.4419913969198202,
         ""id"": 709,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/24""
@@ -6979,7 +6979,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/714"",
-        ""dependability"": 0.8006025575104182,
+        ""strength"": 0.8006025575104182,
         ""id"": 714,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/18""
@@ -6988,7 +6988,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/715"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.15380430089021302,
+        ""strength"": 0.15380430089021302,
         ""explosionFactor"": 0.41694797408624923,
         ""id"": 715,
         ""model"": {
@@ -7033,7 +7033,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/720"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.093994443348606321,
+        ""strength"": 0.093994443348606321,
         ""explosionFactor"": 0.47582452533572189,
         ""id"": 720,
         ""model"": {
@@ -7064,7 +7064,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/724"",
-        ""dependability"": 0.62512127339147094,
+        ""strength"": 0.62512127339147094,
         ""id"": 724,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/31""
@@ -7072,7 +7072,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/725"",
-        ""dependability"": 0.20223273439436812,
+        ""strength"": 0.20223273439436812,
         ""id"": 725,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/24""
@@ -7119,7 +7119,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/728"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.50449639721982942,
+        ""strength"": 0.50449639721982942,
         ""explosionFactor"": 0.048267745901023854,
         ""id"": 728,
         ""model"": {
@@ -7129,7 +7129,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/729"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.96245147844890666,
+        ""strength"": 0.96245147844890666,
         ""explosionFactor"": 0.63595969445815292,
         ""id"": 729,
         ""model"": {
@@ -7139,7 +7139,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/730"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.436761171760392,
+        ""strength"": 0.436761171760392,
         ""explosionFactor"": 0.50780882290928109,
         ""id"": 730,
         ""model"": {
@@ -7207,7 +7207,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/734"",
-        ""dependability"": 0.1325137788115599,
+        ""strength"": 0.1325137788115599,
         ""id"": 734,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/14""
@@ -7215,7 +7215,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/735"",
-        ""dependability"": 0.12312756251689398,
+        ""strength"": 0.12312756251689398,
         ""id"": 735,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -7223,7 +7223,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/736"",
-        ""dependability"": 0.47489574666828649,
+        ""strength"": 0.47489574666828649,
         ""id"": 736,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/17""
@@ -7231,7 +7231,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/737"",
-        ""dependability"": 0.92120676949676439,
+        ""strength"": 0.92120676949676439,
         ""id"": 737,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/62""
@@ -7275,7 +7275,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/743"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.14932444745177612,
+        ""strength"": 0.14932444745177612,
         ""explosionFactor"": 0.75534214999309846,
         ""id"": 743,
         ""model"": {
@@ -7285,7 +7285,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/744"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.74377880280082054,
+        ""strength"": 0.74377880280082054,
         ""explosionFactor"": 0.96569481956106373,
         ""id"": 744,
         ""model"": {
@@ -7295,7 +7295,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/745"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.17161818368901413,
+        ""strength"": 0.17161818368901413,
         ""explosionFactor"": 0.67906631700651088,
         ""id"": 745,
         ""model"": {
@@ -7304,7 +7304,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/746"",
-        ""dependability"": 0.71827134057798947,
+        ""strength"": 0.71827134057798947,
         ""id"": 746,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/12""
@@ -7335,7 +7335,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/750"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.73001809033100407,
+        ""strength"": 0.73001809033100407,
         ""explosionFactor"": 0.040239774640761214,
         ""id"": 750,
         ""model"": {
@@ -7345,7 +7345,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/751"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.21597394310681797,
+        ""strength"": 0.21597394310681797,
         ""explosionFactor"": 0.67412320416147042,
         ""id"": 751,
         ""model"": {
@@ -7355,7 +7355,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/752"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.57624248861160243,
+        ""strength"": 0.57624248861160243,
         ""explosionFactor"": 0.54154054566358245,
         ""id"": 752,
         ""model"": {
@@ -7365,7 +7365,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/753"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.14400822443142916,
+        ""strength"": 0.14400822443142916,
         ""explosionFactor"": 0.78868761835093038,
         ""id"": 753,
         ""model"": {
@@ -7421,7 +7421,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/756"",
-        ""dependability"": 0.098170928237108018,
+        ""strength"": 0.098170928237108018,
         ""id"": 756,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/44""
@@ -7481,7 +7481,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/761"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.49749497952754373,
+        ""strength"": 0.49749497952754373,
         ""explosionFactor"": 0.7274063987319388,
         ""id"": 761,
         ""model"": {
@@ -7491,7 +7491,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/762"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.1767307949144071,
+        ""strength"": 0.1767307949144071,
         ""explosionFactor"": 0.12396969977951129,
         ""id"": 762,
         ""model"": {
@@ -7500,7 +7500,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/763"",
-        ""dependability"": 0.79791443506158632,
+        ""strength"": 0.79791443506158632,
         ""id"": 763,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/9""
@@ -7573,7 +7573,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/768"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.55073238981456141,
+        ""strength"": 0.55073238981456141,
         ""explosionFactor"": 0.041606111005696521,
         ""id"": 768,
         ""model"": {
@@ -7583,7 +7583,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/769"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.38618655753610032,
+        ""strength"": 0.38618655753610032,
         ""explosionFactor"": 0.37181589164390039,
         ""id"": 769,
         ""model"": {
@@ -7592,7 +7592,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/770"",
-        ""dependability"": 0.73556466853970881,
+        ""strength"": 0.73556466853970881,
         ""id"": 770,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/21""
@@ -7601,7 +7601,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/771"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.6224148001626203,
+        ""strength"": 0.6224148001626203,
         ""explosionFactor"": 0.65856622981772117,
         ""id"": 771,
         ""model"": {
@@ -7670,7 +7670,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/777"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.43929608000409609,
+        ""strength"": 0.43929608000409609,
         ""explosionFactor"": 0.87999152107163869,
         ""id"": 777,
         ""model"": {
@@ -7680,7 +7680,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/778"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.62599840509984572,
+        ""strength"": 0.62599840509984572,
         ""explosionFactor"": 0.082363588773814764,
         ""id"": 778,
         ""model"": {
@@ -7689,7 +7689,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/779"",
-        ""dependability"": 0.411727877525486,
+        ""strength"": 0.411727877525486,
         ""id"": 779,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/2""
@@ -7697,7 +7697,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/780"",
-        ""dependability"": 0.67947301020821227,
+        ""strength"": 0.67947301020821227,
         ""id"": 780,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/13""
@@ -7740,7 +7740,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/786"",
-        ""dependability"": 0.91801685463544769,
+        ""strength"": 0.91801685463544769,
         ""id"": 786,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/51""
@@ -7749,7 +7749,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/787"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.16868031731279581,
+        ""strength"": 0.16868031731279581,
         ""explosionFactor"": 0.64032022126033916,
         ""id"": 787,
         ""model"": {
@@ -7759,7 +7759,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/788"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.94494555562033578,
+        ""strength"": 0.94494555562033578,
         ""explosionFactor"": 0.65455560323528739,
         ""id"": 788,
         ""model"": {
@@ -7769,7 +7769,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/789"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.010335365315124096,
+        ""strength"": 0.010335365315124096,
         ""explosionFactor"": 0.98195785143503822,
         ""id"": 789,
         ""model"": {
@@ -7825,7 +7825,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/793"",
-        ""dependability"": 0.52462210856593317,
+        ""strength"": 0.52462210856593317,
         ""id"": 793,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/51""
@@ -7856,7 +7856,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/798"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.1133949864252447,
+        ""strength"": 0.1133949864252447,
         ""explosionFactor"": 0.91889247480728309,
         ""id"": 798,
         ""model"": {
@@ -7865,7 +7865,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/799"",
-        ""dependability"": 0.72518698485809707,
+        ""strength"": 0.72518698485809707,
         ""id"": 799,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/16""
@@ -7921,7 +7921,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/802"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.65224807600129775,
+        ""strength"": 0.65224807600129775,
         ""explosionFactor"": 0.73252767684521514,
         ""id"": 802,
         ""model"": {
@@ -7930,7 +7930,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/803"",
-        ""dependability"": 0.86950424121204029,
+        ""strength"": 0.86950424121204029,
         ""id"": 803,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -7938,7 +7938,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/804"",
-        ""dependability"": 0.0679521831068919,
+        ""strength"": 0.0679521831068919,
         ""id"": 804,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/52""
@@ -8006,7 +8006,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/809"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.088900935411872772,
+        ""strength"": 0.088900935411872772,
         ""explosionFactor"": 0.84213307958195593,
         ""id"": 809,
         ""model"": {
@@ -8016,7 +8016,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/810"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.52230150928828,
+        ""strength"": 0.52230150928828,
         ""explosionFactor"": 0.38541086129164831,
         ""id"": 810,
         ""model"": {
@@ -8026,7 +8026,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/811"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.61342451610296245,
+        ""strength"": 0.61342451610296245,
         ""explosionFactor"": 0.33982007640405559,
         ""id"": 811,
         ""model"": {
@@ -8058,7 +8058,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/817"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.32602891667095429,
+        ""strength"": 0.32602891667095429,
         ""explosionFactor"": 0.92133606873514884,
         ""id"": 817,
         ""model"": {
@@ -8090,7 +8090,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/820"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.85384975739468338,
+        ""strength"": 0.85384975739468338,
         ""explosionFactor"": 0.23379714937591792,
         ""id"": 820,
         ""model"": {
@@ -8100,7 +8100,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/821"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.22765198220855182,
+        ""strength"": 0.22765198220855182,
         ""explosionFactor"": 0.25107425788933146,
         ""id"": 821,
         ""model"": {
@@ -8110,7 +8110,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/822"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.46567633816305376,
+        ""strength"": 0.46567633816305376,
         ""explosionFactor"": 0.57485281050896864,
         ""id"": 822,
         ""model"": {
@@ -8166,7 +8166,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/825"",
-        ""dependability"": 0.03450723459688352,
+        ""strength"": 0.03450723459688352,
         ""id"": 825,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/39""
@@ -8174,7 +8174,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/826"",
-        ""dependability"": 0.01360136457420949,
+        ""strength"": 0.01360136457420949,
         ""id"": 826,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/34""
@@ -8182,7 +8182,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/827"",
-        ""dependability"": 0.70542056379160867,
+        ""strength"": 0.70542056379160867,
         ""id"": 827,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/39""
@@ -8191,7 +8191,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/828"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.083362430372909843,
+        ""strength"": 0.083362430372909843,
         ""explosionFactor"": 0.58033265852384863,
         ""id"": 828,
         ""model"": {
@@ -8247,7 +8247,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/833"",
-        ""dependability"": 0.38426452147972978,
+        ""strength"": 0.38426452147972978,
         ""id"": 833,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/50""
@@ -8256,7 +8256,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/834"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.77686384263302377,
+        ""strength"": 0.77686384263302377,
         ""explosionFactor"": 0.13971865230226827,
         ""id"": 834,
         ""model"": {
@@ -8266,7 +8266,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/835"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.12286199355631228,
+        ""strength"": 0.12286199355631228,
         ""explosionFactor"": 0.91557703675496249,
         ""id"": 835,
         ""model"": {
@@ -8276,7 +8276,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/836"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.34158741605542015,
+        ""strength"": 0.34158741605542015,
         ""explosionFactor"": 0.84024839282047392,
         ""id"": 836,
         ""model"": {
@@ -8323,7 +8323,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/841"",
-        ""dependability"": 0.315173013748216,
+        ""strength"": 0.315173013748216,
         ""id"": 841,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/17""
@@ -8331,7 +8331,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/842"",
-        ""dependability"": 0.096559310376904586,
+        ""strength"": 0.096559310376904586,
         ""id"": 842,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/16""
@@ -8387,7 +8387,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/846"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.83072434357866842,
+        ""strength"": 0.83072434357866842,
         ""explosionFactor"": 0.27209409711514326,
         ""id"": 846,
         ""model"": {
@@ -8396,7 +8396,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/847"",
-        ""dependability"": 0.31580425580768112,
+        ""strength"": 0.31580425580768112,
         ""id"": 847,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/1""
@@ -8439,7 +8439,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/852"",
-        ""dependability"": 0.60040402300674656,
+        ""strength"": 0.60040402300674656,
         ""id"": 852,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/8""
@@ -8507,7 +8507,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/856"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.46140636990843636,
+        ""strength"": 0.46140636990843636,
         ""explosionFactor"": 0.46598109857457742,
         ""id"": 856,
         ""model"": {
@@ -8517,7 +8517,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/857"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.25869661581641834,
+        ""strength"": 0.25869661581641834,
         ""explosionFactor"": 0.17673557492752354,
         ""id"": 857,
         ""model"": {
@@ -8526,7 +8526,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/858"",
-        ""dependability"": 0.87525862589257708,
+        ""strength"": 0.87525862589257708,
         ""id"": 858,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/34""
@@ -8594,7 +8594,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/864"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.6552842634987478,
+        ""strength"": 0.6552842634987478,
         ""explosionFactor"": 0.30250245113973617,
         ""id"": 864,
         ""model"": {
@@ -8603,7 +8603,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/865"",
-        ""dependability"": 0.39231503307461507,
+        ""strength"": 0.39231503307461507,
         ""id"": 865,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/51""
@@ -8612,7 +8612,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/866"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.99647249281242145,
+        ""strength"": 0.99647249281242145,
         ""explosionFactor"": 0.17286005391406828,
         ""id"": 866,
         ""model"": {
@@ -8622,7 +8622,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/867"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.10367118385791369,
+        ""strength"": 0.10367118385791369,
         ""explosionFactor"": 0.98737651388504377,
         ""id"": 867,
         ""model"": {
@@ -8696,7 +8696,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/873"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.96681567140240954,
+        ""strength"": 0.96681567140240954,
         ""explosionFactor"": 0.23163062437979068,
         ""id"": 873,
         ""model"": {
@@ -8706,7 +8706,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/874"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.2065575207614142,
+        ""strength"": 0.2065575207614142,
         ""explosionFactor"": 0.99278038367292865,
         ""id"": 874,
         ""model"": {
@@ -8715,7 +8715,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/875"",
-        ""dependability"": 0.91716082204001059,
+        ""strength"": 0.91716082204001059,
         ""id"": 875,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/28""
@@ -8770,7 +8770,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/881"",
-        ""dependability"": 0.390252368706396,
+        ""strength"": 0.390252368706396,
         ""id"": 881,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/11""
@@ -8801,7 +8801,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/886"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.28202752875258563,
+        ""strength"": 0.28202752875258563,
         ""explosionFactor"": 0.39739321097610203,
         ""id"": 886,
         ""model"": {
@@ -8810,7 +8810,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/887"",
-        ""dependability"": 0.1327811619885178,
+        ""strength"": 0.1327811619885178,
         ""id"": 887,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/39""
@@ -8819,7 +8819,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/888"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.2623105096920908,
+        ""strength"": 0.2623105096920908,
         ""explosionFactor"": 0.64709665190758958,
         ""id"": 888,
         ""model"": {
@@ -8829,7 +8829,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/889"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.40051668994152767,
+        ""strength"": 0.40051668994152767,
         ""explosionFactor"": 0.26782844973161279,
         ""id"": 889,
         ""model"": {
@@ -8885,7 +8885,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/892"",
-        ""dependability"": 0.63016711996410368,
+        ""strength"": 0.63016711996410368,
         ""id"": 892,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/42""
@@ -8894,7 +8894,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/893"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.08319940794408294,
+        ""strength"": 0.08319940794408294,
         ""explosionFactor"": 0.61571138101430212,
         ""id"": 893,
         ""model"": {
@@ -8950,7 +8950,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/898"",
-        ""dependability"": 0.10199558972473982,
+        ""strength"": 0.10199558972473982,
         ""id"": 898,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/2""
@@ -8958,7 +8958,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/899"",
-        ""dependability"": 0.11174449702340387,
+        ""strength"": 0.11174449702340387,
         ""id"": 899,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/30""
@@ -9025,7 +9025,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/904"",
-        ""dependability"": 0.766768135953121,
+        ""strength"": 0.766768135953121,
         ""id"": 904,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/29""
@@ -9033,7 +9033,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/905"",
-        ""dependability"": 0.22114319690556414,
+        ""strength"": 0.22114319690556414,
         ""id"": 905,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/36""
@@ -9042,7 +9042,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/906"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.66589745770483155,
+        ""strength"": 0.66589745770483155,
         ""explosionFactor"": 0.34584273600291587,
         ""id"": 906,
         ""model"": {
@@ -9111,7 +9111,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/912"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.52960053576603561,
+        ""strength"": 0.52960053576603561,
         ""explosionFactor"": 0.46102912512655797,
         ""id"": 912,
         ""model"": {
@@ -9121,7 +9121,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/913"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.39353275317397562,
+        ""strength"": 0.39353275317397562,
         ""explosionFactor"": 0.65805233626535742,
         ""id"": 913,
         ""model"": {
@@ -9177,7 +9177,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/919"",
-        ""dependability"": 0.48786539653682404,
+        ""strength"": 0.48786539653682404,
         ""id"": 919,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/42""
@@ -9185,7 +9185,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/920"",
-        ""dependability"": 0.38012064033193543,
+        ""strength"": 0.38012064033193543,
         ""id"": 920,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -9252,7 +9252,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/925"",
-        ""dependability"": 0.66816717231095168,
+        ""strength"": 0.66816717231095168,
         ""id"": 925,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/20""
@@ -9260,7 +9260,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/926"",
-        ""dependability"": 0.47491758478568752,
+        ""strength"": 0.47491758478568752,
         ""id"": 926,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/0""
@@ -9268,7 +9268,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/927"",
-        ""dependability"": 0.43351977245580392,
+        ""strength"": 0.43351977245580392,
         ""id"": 927,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/55""
@@ -9311,7 +9311,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/933"",
-        ""dependability"": 0.49879460944737986,
+        ""strength"": 0.49879460944737986,
         ""id"": 933,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/33""
@@ -9319,7 +9319,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/934"",
-        ""dependability"": 0.79473220826812652,
+        ""strength"": 0.79473220826812652,
         ""id"": 934,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/3""
@@ -9351,7 +9351,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/938"",
-        ""dependability"": 0.7451247376134269,
+        ""strength"": 0.7451247376134269,
         ""id"": 938,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/68""
@@ -9407,7 +9407,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/941"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.7872219494484467,
+        ""strength"": 0.7872219494484467,
         ""explosionFactor"": 0.6083822821305982,
         ""id"": 941,
         ""model"": {
@@ -9417,7 +9417,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/942"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.51646465878769043,
+        ""strength"": 0.51646465878769043,
         ""explosionFactor"": 0.20788546847546727,
         ""id"": 942,
         ""model"": {
@@ -9478,7 +9478,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/947"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.34258893706956361,
+        ""strength"": 0.34258893706956361,
         ""explosionFactor"": 0.82489373806160582,
         ""id"": 947,
         ""model"": {
@@ -9487,7 +9487,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/948"",
-        ""dependability"": 0.31922347299718462,
+        ""strength"": 0.31922347299718462,
         ""id"": 948,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/23""
@@ -9543,7 +9543,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/953"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.24280860379469049,
+        ""strength"": 0.24280860379469049,
         ""explosionFactor"": 0.036824836412828806,
         ""id"": 953,
         ""model"": {
@@ -9553,7 +9553,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/954"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.30781330368845411,
+        ""strength"": 0.30781330368845411,
         ""explosionFactor"": 0.27796109918410011,
         ""id"": 954,
         ""model"": {
@@ -9562,7 +9562,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/955"",
-        ""dependability"": 0.37982676149337868,
+        ""strength"": 0.37982676149337868,
         ""id"": 955,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/13""
@@ -9571,7 +9571,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/956"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.34166552095751535,
+        ""strength"": 0.34166552095751535,
         ""explosionFactor"": 0.81049879119289048,
         ""id"": 956,
         ""model"": {
@@ -9618,7 +9618,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/961"",
-        ""dependability"": 0.83145181407753932,
+        ""strength"": 0.83145181407753932,
         ""id"": 961,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/19""
@@ -9627,7 +9627,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/962"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.63845247525649729,
+        ""strength"": 0.63845247525649729,
         ""explosionFactor"": 0.25250550464377997,
         ""id"": 962,
         ""model"": {
@@ -9695,7 +9695,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/966"",
-        ""dependability"": 0.95108182074086822,
+        ""strength"": 0.95108182074086822,
         ""id"": 966,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/38""
@@ -9754,7 +9754,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/972"",
-        ""dependability"": 0.64396539593300106,
+        ""strength"": 0.64396539593300106,
         ""id"": 972,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/38""
@@ -9784,7 +9784,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/977"",
-        ""dependability"": 0.12513588933513309,
+        ""strength"": 0.12513588933513309,
         ""id"": 977,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/21""
@@ -9793,7 +9793,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/978"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.2672848958835401,
+        ""strength"": 0.2672848958835401,
         ""explosionFactor"": 0.68999930084217309,
         ""id"": 978,
         ""model"": {
@@ -9802,7 +9802,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/979"",
-        ""dependability"": 0.081731691994579359,
+        ""strength"": 0.081731691994579359,
         ""id"": 979,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/26""
@@ -9870,7 +9870,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/982"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.90753420158640208,
+        ""strength"": 0.90753420158640208,
         ""explosionFactor"": 0.4731071332810014,
         ""id"": 982,
         ""model"": {
@@ -9880,7 +9880,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/983"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.24786877503985016,
+        ""strength"": 0.24786877503985016,
         ""explosionFactor"": 0.29358315528071632,
         ""id"": 983,
         ""model"": {
@@ -9889,7 +9889,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/984"",
-        ""dependability"": 0.013039322576038223,
+        ""strength"": 0.013039322576038223,
         ""id"": 984,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/14""
@@ -9956,7 +9956,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/990"",
-        ""dependability"": 0.53897333030541117,
+        ""strength"": 0.53897333030541117,
         ""id"": 990,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/6""
@@ -9965,7 +9965,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/991"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.64835927153395456,
+        ""strength"": 0.64835927153395456,
         ""explosionFactor"": 0.85516294364592194,
         ""id"": 991,
         ""model"": {
@@ -10009,7 +10009,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/997"",
-        ""dependability"": 0.37304530077290038,
+        ""strength"": 0.37304530077290038,
         ""id"": 997,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/19""
@@ -10017,7 +10017,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/998"",
-        ""dependability"": 0.48072291281107948,
+        ""strength"": 0.48072291281107948,
         ""id"": 998,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/2""
@@ -10073,7 +10073,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1002"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.36468005104208367,
+        ""strength"": 0.36468005104208367,
         ""explosionFactor"": 0.14364346495999184,
         ""id"": 1002,
         ""model"": {
@@ -10082,7 +10082,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1003"",
-        ""dependability"": 0.26889670745883915,
+        ""strength"": 0.26889670745883915,
         ""id"": 1003,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/40""
@@ -10091,7 +10091,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1004"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.5088760072872397,
+        ""strength"": 0.5088760072872397,
         ""explosionFactor"": 0.789181327349125,
         ""id"": 1004,
         ""model"": {
@@ -10101,7 +10101,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1005"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.84353708189145526,
+        ""strength"": 0.84353708189145526,
         ""explosionFactor"": 0.10597192128466998,
         ""id"": 1005,
         ""model"": {
@@ -10145,7 +10145,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1010"",
-        ""dependability"": 0.42333695265619875,
+        ""strength"": 0.42333695265619875,
         ""id"": 1010,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/0""
@@ -10154,7 +10154,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1011"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.78334655695750688,
+        ""strength"": 0.78334655695750688,
         ""explosionFactor"": 0.07694290907911161,
         ""id"": 1011,
         ""model"": {
@@ -10164,7 +10164,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1012"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.88956552226541818,
+        ""strength"": 0.88956552226541818,
         ""explosionFactor"": 0.54754942727626743,
         ""id"": 1012,
         ""model"": {
@@ -10196,7 +10196,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1016"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.46588424661470773,
+        ""strength"": 0.46588424661470773,
         ""explosionFactor"": 0.44754873236992804,
         ""id"": 1016,
         ""model"": {
@@ -10240,7 +10240,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1019"",
-        ""dependability"": 0.097735104662242861,
+        ""strength"": 0.097735104662242861,
         ""id"": 1019,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/20""
@@ -10249,7 +10249,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1020"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.6679395808223354,
+        ""strength"": 0.6679395808223354,
         ""explosionFactor"": 0.73756998578904664,
         ""id"": 1020,
         ""model"": {
@@ -10306,7 +10306,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1024"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.85532318700818488,
+        ""strength"": 0.85532318700818488,
         ""explosionFactor"": 0.19867144534302478,
         ""id"": 1024,
         ""model"": {
@@ -10379,7 +10379,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1029"",
-        ""dependability"": 0.16675871851237431,
+        ""strength"": 0.16675871851237431,
         ""id"": 1029,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/42""
@@ -10387,7 +10387,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1030"",
-        ""dependability"": 0.41677588523215425,
+        ""strength"": 0.41677588523215425,
         ""id"": 1030,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/33""
@@ -10396,7 +10396,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1031"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.30871522534113155,
+        ""strength"": 0.30871522534113155,
         ""explosionFactor"": 0.470016930005521,
         ""id"": 1031,
         ""model"": {
@@ -10406,7 +10406,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1032"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.47390955242976057,
+        ""strength"": 0.47390955242976057,
         ""explosionFactor"": 0.76174757804802973,
         ""id"": 1032,
         ""model"": {
@@ -10463,7 +10463,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1038"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.035097702888351727,
+        ""strength"": 0.035097702888351727,
         ""explosionFactor"": 0.75675122428534147,
         ""id"": 1038,
         ""model"": {
@@ -10473,7 +10473,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1039"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.84128733391002164,
+        ""strength"": 0.84128733391002164,
         ""explosionFactor"": 0.033184271321252116,
         ""id"": 1039,
         ""model"": {
@@ -10517,7 +10517,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1044"",
-        ""dependability"": 0.53953023792222621,
+        ""strength"": 0.53953023792222621,
         ""id"": 1044,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/10""
@@ -10560,7 +10560,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1048"",
-        ""dependability"": 0.89382588253069006,
+        ""strength"": 0.89382588253069006,
         ""id"": 1048,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -10616,7 +10616,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1052"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.20464230710856723,
+        ""strength"": 0.20464230710856723,
         ""explosionFactor"": 0.00925508793874415,
         ""id"": 1052,
         ""model"": {
@@ -10626,7 +10626,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1053"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.62049446283862664,
+        ""strength"": 0.62049446283862664,
         ""explosionFactor"": 0.55211290975665339,
         ""id"": 1053,
         ""model"": {
@@ -10686,7 +10686,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1058"",
-        ""dependability"": 0.091279378669000877,
+        ""strength"": 0.091279378669000877,
         ""id"": 1058,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/0""
@@ -10694,7 +10694,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1059"",
-        ""dependability"": 0.60417279442966576,
+        ""strength"": 0.60417279442966576,
         ""id"": 1059,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/32""
@@ -10761,7 +10761,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1064"",
-        ""dependability"": 0.46033529679306562,
+        ""strength"": 0.46033529679306562,
         ""id"": 1064,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/7""
@@ -10769,7 +10769,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1065"",
-        ""dependability"": 0.29812964112410772,
+        ""strength"": 0.29812964112410772,
         ""id"": 1065,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/6""
@@ -10812,7 +10812,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1071"",
-        ""dependability"": 0.7092441817322952,
+        ""strength"": 0.7092441817322952,
         ""id"": 1071,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/1""
@@ -10820,7 +10820,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1072"",
-        ""dependability"": 0.48348388424305427,
+        ""strength"": 0.48348388424305427,
         ""id"": 1072,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/31""
@@ -10866,7 +10866,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1076"",
-        ""dependability"": 0.69016671445694133,
+        ""strength"": 0.69016671445694133,
         ""id"": 1076,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/52""
@@ -10874,7 +10874,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1077"",
-        ""dependability"": 0.13116495922727742,
+        ""strength"": 0.13116495922727742,
         ""id"": 1077,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/50""
@@ -10882,7 +10882,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1078"",
-        ""dependability"": 0.0090804342222774552,
+        ""strength"": 0.0090804342222774552,
         ""id"": 1078,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/55""
@@ -10891,7 +10891,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1079"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.57103799962021318,
+        ""strength"": 0.57103799962021318,
         ""explosionFactor"": 0.037355399707963408,
         ""id"": 1079,
         ""model"": {
@@ -10948,7 +10948,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1083"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.097947144460839755,
+        ""strength"": 0.097947144460839755,
         ""explosionFactor"": 0.57536145000502537,
         ""id"": 1083,
         ""model"": {
@@ -10958,7 +10958,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1084"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.54597765605243742,
+        ""strength"": 0.54597765605243742,
         ""explosionFactor"": 0.92574213022633556,
         ""id"": 1084,
         ""model"": {
@@ -10967,7 +10967,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1085"",
-        ""dependability"": 0.36240475269146483,
+        ""strength"": 0.36240475269146483,
         ""id"": 1085,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/13""
@@ -10975,7 +10975,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1086"",
-        ""dependability"": 0.12482597172485012,
+        ""strength"": 0.12482597172485012,
         ""id"": 1086,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/11""
@@ -11043,7 +11043,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1091"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.509483822858652,
+        ""strength"": 0.509483822858652,
         ""explosionFactor"": 0.62409419967983581,
         ""id"": 1091,
         ""model"": {
@@ -11053,7 +11053,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1092"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.266225343694084,
+        ""strength"": 0.266225343694084,
         ""explosionFactor"": 0.79989322684700281,
         ""id"": 1092,
         ""model"": {
@@ -11109,7 +11109,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1098"",
-        ""dependability"": 0.97016335649889118,
+        ""strength"": 0.97016335649889118,
         ""id"": 1098,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/10""
@@ -11117,7 +11117,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1099"",
-        ""dependability"": 0.12705032300532346,
+        ""strength"": 0.12705032300532346,
         ""id"": 1099,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/58""
@@ -11126,7 +11126,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1100"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.71943426258835674,
+        ""strength"": 0.71943426258835674,
         ""explosionFactor"": 0.19249807586544104,
         ""id"": 1100,
         ""model"": {
@@ -11136,7 +11136,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1101"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.098191710700370236,
+        ""strength"": 0.098191710700370236,
         ""explosionFactor"": 0.41625830736768354,
         ""id"": 1101,
         ""model"": {
@@ -11181,7 +11181,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1106"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.80070094987782692,
+        ""strength"": 0.80070094987782692,
         ""explosionFactor"": 0.16987963494373468,
         ""id"": 1106,
         ""model"": {
@@ -11191,7 +11191,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1107"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.663197286270185,
+        ""strength"": 0.663197286270185,
         ""explosionFactor"": 0.49684542347530153,
         ""id"": 1107,
         ""model"": {
@@ -11200,7 +11200,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1108"",
-        ""dependability"": 0.30889438060526475,
+        ""strength"": 0.30889438060526475,
         ""id"": 1108,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/25""
@@ -11243,7 +11243,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1112"",
-        ""dependability"": 0.46658250292138315,
+        ""strength"": 0.46658250292138315,
         ""id"": 1112,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/5""
@@ -11251,7 +11251,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1113"",
-        ""dependability"": 0.961454875749282,
+        ""strength"": 0.961454875749282,
         ""id"": 1113,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/49""
@@ -11307,7 +11307,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1117"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.549554627644622,
+        ""strength"": 0.549554627644622,
         ""explosionFactor"": 0.67592716760743743,
         ""id"": 1117,
         ""model"": {
@@ -11317,7 +11317,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1118"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.60134628722506867,
+        ""strength"": 0.60134628722506867,
         ""explosionFactor"": 0.056846367221719755,
         ""id"": 1118,
         ""model"": {
@@ -11361,7 +11361,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1123"",
-        ""dependability"": 0.0981381633775952,
+        ""strength"": 0.0981381633775952,
         ""id"": 1123,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/5""
@@ -11369,7 +11369,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1124"",
-        ""dependability"": 0.66451787281060493,
+        ""strength"": 0.66451787281060493,
         ""id"": 1124,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/15""
@@ -11400,7 +11400,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1128"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.16480587709918892,
+        ""strength"": 0.16480587709918892,
         ""explosionFactor"": 0.751379841822842,
         ""id"": 1128,
         ""model"": {
@@ -11444,7 +11444,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1131"",
-        ""dependability"": 0.69357266961297614,
+        ""strength"": 0.69357266961297614,
         ""id"": 1131,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/28""
@@ -11452,7 +11452,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1132"",
-        ""dependability"": 0.7692307642517755,
+        ""strength"": 0.7692307642517755,
         ""id"": 1132,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/51""
@@ -11460,7 +11460,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1133"",
-        ""dependability"": 0.84820450881878129,
+        ""strength"": 0.84820450881878129,
         ""id"": 1133,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/23""
@@ -11468,7 +11468,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1134"",
-        ""dependability"": 0.31153633180611595,
+        ""strength"": 0.31153633180611595,
         ""id"": 1134,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/21""
@@ -11528,7 +11528,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1138"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.80145982364260582,
+        ""strength"": 0.80145982364260582,
         ""explosionFactor"": 0.3689590554539855,
         ""id"": 1138,
         ""model"": {
@@ -11560,7 +11560,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1143"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.24462129373318575,
+        ""strength"": 0.24462129373318575,
         ""explosionFactor"": 0.16549196800472771,
         ""id"": 1143,
         ""model"": {
@@ -11569,7 +11569,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1144"",
-        ""dependability"": 0.40035272175462577,
+        ""strength"": 0.40035272175462577,
         ""id"": 1144,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/68""
@@ -11624,7 +11624,7 @@ namespace Pomona.UnitTests.CJson
     ""weapons"": [
       {
         ""_uri"": ""http://localhost:2211/weapon/1147"",
-        ""dependability"": 0.73761465574503626,
+        ""strength"": 0.73761465574503626,
         ""id"": 1147,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -11632,7 +11632,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1148"",
-        ""dependability"": 0.10059414296438644,
+        ""strength"": 0.10059414296438644,
         ""id"": 1148,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/61""
@@ -11641,7 +11641,7 @@ namespace Pomona.UnitTests.CJson
       {
         ""_uri"": ""http://localhost:2211/gun/1149"",
         ""_type"": ""Gun"",
-        ""dependability"": 0.40027170879778995,
+        ""strength"": 0.40027170879778995,
         ""explosionFactor"": 0.79920329190753558,
         ""id"": 1149,
         ""model"": {
@@ -11650,7 +11650,7 @@ namespace Pomona.UnitTests.CJson
       },
       {
         ""_uri"": ""http://localhost:2211/weapon/1150"",
-        ""dependability"": 0.84325384248199586,
+        ""strength"": 0.84325384248199586,
         ""id"": 1150,
         ""model"": {
           ""_ref"": ""http://localhost:2211/weaponmodel/53""

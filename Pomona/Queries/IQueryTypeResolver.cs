@@ -33,7 +33,7 @@ namespace Pomona.Queries
 {
     public interface IQueryTypeResolver
     {
-        Type Resolve(string typeName);
-        Expression Resolve(Expression rootInstance, string propertyPath);
+        Expression ResolveProperty(Expression rootInstance, string propertyPath);
+        Type ResolveType(string typeName);
     }
 }
