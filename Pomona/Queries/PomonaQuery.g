@@ -147,11 +147,7 @@ unary_expr
 	;
 
 primary_expr
-	: PREFIXED_STRING
-	| postfix_expr ( dot_operator^ postfix_expr )*
-	| STRING
-	| INT
-	| '('! exp ')'!
+	: postfix_expr ( dot_operator^ postfix_expr )*
 	;
 
 postfix_expr
@@ -160,10 +156,14 @@ postfix_expr
 	|	ID ( '[' arglist_expr ']' ) -> ^(INDEXER_ACCESS ID arglist_expr)
 	|	ID ( '[' ']' ) -> ^(INDEXER_ACCESS ID)
 	| ID
+	| STRING
+	| INT
+	| '('! exp ')'!
+	| PREFIXED_STRING
 	;
 
 arglist_expr 
-	:	or_expression ( ','! exp )*
+	:	exp ( ','! exp )*
 	;
 	/*
 constant_expr
