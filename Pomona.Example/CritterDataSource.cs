@@ -93,22 +93,6 @@ namespace Pomona.Example
         }
 
 
-        private static IEnumerable<T> OrderByCompiledExpression<T>(IEnumerable<T> enumerable, LambdaExpression expression, SortOrder sortOrder)
-        {
-            var method = typeof(CritterDataSource).GetMethod(
-                "OrderByCompiledExpressionGeneric", BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(
-                    typeof(T), expression.ReturnType);
-            return (IEnumerable<T>)method.Invoke(null, new object[] { enumerable, expression, sortOrder });
-
-        }
-
-        private static IEnumerable<T> OrderByCompiledExpressionGeneric<T,TResult>(IEnumerable<T> enumerable, Expression<Func<T, TResult>> expression, SortOrder sortOrder)
-        {
-            var keySelector = expression.Compile();
-            return sortOrder == SortOrder.Ascending ? enumerable.OrderBy(keySelector) : enumerable.OrderByDescending(keySelector);
-        }
-
-
         public QueryResult<T> List<T>(IPomonaQuery query)
         {
             lock (this.syncLock)
@@ -124,9 +108,7 @@ namespace Pomona.Example
                 var result = GetEntityList<T>().Where(compiledExpr);
 
                 if (pq.OrderByExpression != null)
-                {
                     result = OrderByCompiledExpression(result, pq.OrderByExpression, pq.SortOrder);
-                }
 
                 result = result.Skip(pq.Skip).Take(pq.Top);
 
@@ -156,6 +138,26 @@ namespace Pomona.Example
         {
             string value;
             return dict.TryGetValue(key, out value) ? value : Guid.NewGuid().ToString();
+        }
+
+
+        private static IEnumerable<T> OrderByCompiledExpression<T>(
+            IEnumerable<T> enumerable, LambdaExpression expression, SortOrder sortOrder)
+        {
+            var method = typeof(CritterDataSource).GetMethod(
+                "OrderByCompiledExpressionGeneric", BindingFlags.Static | BindingFlags.NonPublic).MakeGenericMethod(
+                    typeof(T), expression.ReturnType);
+            return (IEnumerable<T>)method.Invoke(null, new object[] { enumerable, expression, sortOrder });
+        }
+
+
+        private static IEnumerable<T> OrderByCompiledExpressionGeneric<T, TResult>(
+            IEnumerable<T> enumerable, Expression<Func<T, TResult>> expression, SortOrder sortOrder)
+        {
+            var keySelector = expression.Compile();
+            return sortOrder == SortOrder.Ascending
+                       ? enumerable.OrderBy(keySelector)
+                       : enumerable.OrderByDescending(keySelector);
         }
 
 

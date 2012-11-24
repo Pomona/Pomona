@@ -72,20 +72,27 @@ Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
 
 ## Roadmap for first release
 
-* Add tests for serialization and deserialization on client
+Features:
+* Add tests for serialization and deserialization on client DONE
 * Create IPomonaDataSource, for retrieval of data. DONE
-* Create PomonaSession and PomonaSessionFactory that will bind everything together
+* Create PomonaSession and PomonaSessionFactory that will bind everything together.
 * Write correct metadata for generated client dll (AssemblyInfo etc..)
-* Implement support for value types (which is always expanded, and don't have URI). 70% DONE.
-* Implement simple query mechanism (Linq? relinq? something simpler?) 75% DONE.
+* Implement support for value types (which is always expanded, and don't have URI). 90% DONE.
+* Implement simple query mechanism (Linq? relinq? something simpler?) 90% DONE.
   * Syntax inspired by OData, with some differences.
   * Most OData operators are supported, but functions are missing.
 * Create a test helper that will compare an existing JSON schema with new one,
   then detect any breaking changes in API.
+* Implement proper PATCH functionality.
+* ETags and versioning
+
+Issues to be fixed:
+* (De)serialization of dictionaries incomplete.
+* (De)serialization of lists/arrays of native JSON types incomplete (int, strings etc..)
 
 ## Future tasks
 
-* Implement another layer of abstraction for serializing and deserializing, to support more types than Json. Will look at ServiceStack for this.
+* Refactoring of serialization layer. (it currently looks like a mess)
 * Implement JS client lib. Maybe two types, one based on KnockoutJs? That would be cool.
 * Implement html media type for friendly browseing.
 * Implement batch fetching on client side

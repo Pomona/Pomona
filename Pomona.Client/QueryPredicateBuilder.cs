@@ -273,7 +273,7 @@ namespace Pomona.Client
 
         private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
         {
-            if (callExpr.Method == OdataFunctionMapping.DictGetMethod)
+            if (callExpr.Method.MetadataToken == OdataFunctionMapping.DictGetMethod.MetadataToken)
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
                 var key = DecodeQuotedString(quotedKey);
@@ -435,14 +435,19 @@ namespace Pomona.Client
             MemberInfo member, IEnumerable<Expression> arguments, out string odataExpression)
         {
             string odataFunctionFormat;
-            if (!OdataFunctionMapping.TryGetOdataFunctionFormatString(member, out odataFunctionFormat))
+            OdataFunctionMapping.MemberMapping memberMapping;
+            if (!OdataFunctionMapping.TryGetMemberMapping(member, out memberMapping))
             {
                 odataExpression = null;
                 return false;
             }
 
             var odataArguments = arguments.Select(Build).Cast<object>().ToArray();
-            odataExpression = string.Format(odataFunctionFormat, odataArguments);
+            var callFormat = memberMapping.PreferredCallStyle == OdataFunctionMapping.MethodCallStyle.Chained
+                                 ? memberMapping.ChainedCallFormat
+                                 : memberMapping.StaticCallFormat;
+
+            odataExpression = string.Format(callFormat, odataArguments);
             return true;
         }
 

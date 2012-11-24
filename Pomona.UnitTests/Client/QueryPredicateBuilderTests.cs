@@ -79,7 +79,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildAnyLambdaExpression_ReturnsCorrectString()
         {
-            AssertBuild(x => x.SomeList.Any(y => y.SomeString == "lalala"), "any(someList,y:y.someString eq 'lalala')");
+            AssertBuild(x => x.SomeList.Any(y => y.SomeString == "lalala"), "someList.any(y:y.someString eq 'lalala')");
         }
 
 
@@ -266,7 +266,7 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(
                 x => x.SomeList.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
-                "any(someList,y:(y.someString eq 'lalala') and any(y.testResources,z:z.bonga eq y.someString))");
+                "someList.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
         }
 
 

@@ -77,8 +77,10 @@ namespace Pomona.UnitTests.Queries
         {
             public IDictionary<string, string> Attributes { get; set; }
             public IEnumerable<Dummy> Children { get; set; }
+            public Dummy Friend { get; set; }
             public Guid Guid { get; set; }
             public int Number { get; set; }
+            public Dummy Parent { get; set; }
             public IEnumerable<string> SomeStrings { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
@@ -164,6 +166,7 @@ namespace Pomona.UnitTests.Queries
                     var expectedMemberExpr = (MemberExpression)expected;
                     if (actualMemberExpr.Member != expectedMemberExpr.Member)
                         Assert.Fail("Wrong member on memberexpression when comparing expressions..");
+                    AssertExpressionEquals(actualMemberExpr.Expression, expectedMemberExpr.Expression);
                     return;
                 }
 
@@ -213,6 +216,12 @@ namespace Pomona.UnitTests.Queries
         }
 
 
+        public void Parse_CastExpression_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("cast()");
+        }
+
+
         [Test]
         public void Parse_AnyExpressionWithLambda_CreatesCorrectExpression()
         {
@@ -238,7 +247,7 @@ namespace Pomona.UnitTests.Queries
         public void Parse_DictAccess_CreatesCorrectExpression()
         {
             var expr = this.parser.Parse<Dummy>("attributes['foo'] eq 'bar'");
-            AssertExpressionEquals(expr, x => x.Attributes["foo"] == "bar");
+            AssertExpressionEquals(expr, _this => _this.Attributes["foo"] == "bar");
         }
 
 
@@ -304,6 +313,14 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void Parse_RecursiveDotting_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("parent.parent.friend.text eq 'whoot'");
+            AssertExpressionEquals(expr, _this => _this.Parent.Parent.Friend.Text == "whoot");
+        }
+
+
+        [Test]
         public void Parse_SubSelectExpression_CreatesCorrectExpression()
         {
             var expr = this.parser.Parse<Dummy>("sum(select(Children,x:x.Number)) gt 10");
@@ -314,10 +331,24 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_ThreeTimesOr_CreatesCorrectExpression()
         {
-            Expression<Func<Dummy, bool>> expected = x => x.Number == 4 || x.Number == 66 || x.Number == 2;
+            Expression<Func<Dummy, bool>> expected =
+                _this => _this.Number == 4 || _this.Number == 66 || _this.Number == 2;
             var expr = this.parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
 
             AssertExpressionEquals(expr, expected);
+        }
+
+
+        [Test]
+        public void Parse_ToStringWithExtensionMethodCallStyle_CreatesCorrectExpression()
+        {
+            var expr = this.parser.Parse<Dummy>("text.tolower().substring(0,3) eq 'whoot'");
+            AssertExpressionEquals(expr, _this => _this.Text.ToLower().Substring(0, 3) == "whoot");
+
+            var expr2 = this.parser.Parse<Dummy>("text.substring(2,5).substringof(parent.text)");
+            // Note that Contains is the .NET "inverted" version of substringof,
+            // so in C# this looks different (which is correct).
+            AssertExpressionEquals(expr2, _this => _this.Parent.Text.Contains(_this.Text.Substring(2, 5)));
         }
 
 

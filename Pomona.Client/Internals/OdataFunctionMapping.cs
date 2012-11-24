@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 using Pomona.Internals;
 
@@ -39,29 +40,28 @@ namespace Pomona.Client.Internals
 {
     public class OdataFunctionMapping
     {
+        #region MethodCallStyle enum
+
+        public enum MethodCallStyle
+        {
+            Chained,
+            Static
+        }
+
+        #endregion
+
         public static readonly MethodInfo DictGetMethod;
 
-        private static readonly Dictionary<MemberInfo, string> memberToOdataFunctionMap =
-            new Dictionary<MemberInfo, string>();
-
-        private static readonly Dictionary<string, MemberInfo> odataFunctionToMemberMap =
-            new Dictionary<string, MemberInfo>();
-
-        private static readonly object[] questionStrings;
-
-        private static Dictionary<int, MemberMapping> metadataTokenToMemberMappingDict =
+        private static readonly Dictionary<int, MemberMapping> metadataTokenToMemberMappingDict =
             new Dictionary<int, MemberMapping>();
 
-        private static Dictionary<string, List<MemberMapping>> nameToMemberMappingDict =
+        private static readonly Dictionary<string, List<MemberMapping>> nameToMemberMappingDict =
             new Dictionary<string, List<MemberMapping>>();
 
 
         static OdataFunctionMapping()
         {
             DictGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
-
-            // Just some empty strings used for creating odata method signature
-            questionStrings = Enumerable.Repeat("?", 100).Cast<object>().ToArray();
 
             Add<string>(x => x.Length, "length({0})");
             Add<string>(x => x.StartsWith(null), "startswith({0},{1})");
@@ -101,34 +101,16 @@ namespace Pomona.Client.Internals
 
             // Custom functions, not odata standard
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
-            Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})");
-            Add<IEnumerable<WildcardType>>(x => x.Select(y => (WildcardType)null), "select({0},{1})");
-            Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})");
+            Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(
+                x => x.Select(y => (WildcardType)null), "select({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
+
             Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");
+            Add<IEnumerable<float>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<decimal>>(x => x.Sum(), "sum({0})");
-        }
-
-
-        public static MemberInfo ChangeDeclaringGenericTypeArguments(MemberInfo member, Type[] genericParameters)
-        {
-            var declaringType = member.DeclaringType;
-            var genericTypeDefinition = declaringType.GetGenericTypeDefinition();
-            var wildcardTypeArguments = genericParameters;
-            var wildcardTypeInstance = genericTypeDefinition.MakeGenericType(wildcardTypeArguments);
-            var wildcardMemberCandidates = wildcardTypeInstance.GetMember(
-                member.Name, member.MemberType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (wildcardMemberCandidates.Length > 1)
-            {
-                throw new NotImplementedException(
-                    "Unable to map method of generic type with wildcards that have multiple members with same name and same member type.");
-            }
-
-            var changedMember = wildcardMemberCandidates[0];
-
-            return changedMember;
         }
 
 
@@ -140,132 +122,22 @@ namespace Pomona.Client.Internals
         }
 
 
-        public static bool TryConvertToExpression(
-            string odataFunctionName, int argCount, IEnumerable<Expression> arguments, out Expression expression)
+        public static bool TryGetMemberMapping(MemberInfo member, out MemberMapping memberMapping)
         {
-            var argumentsList = arguments.ToList();
-
-            expression = null;
-            var odataFunctionSpec = string.Format(
-                "{0}({1})>({2})",
-                odataFunctionName,
-                string.Join(",", Enumerable.Repeat("?", argCount)),
-                string.Join(",", argumentsList.Select(x => Type.GetTypeCode(x.Type))));
-            //var odataFunctionSpec = string.Format(
-            //    "{0}({1})", odataFunctionName, string.Join(",", Enumerable.Repeat("?", argCount)));
-            MemberInfo memberInfo;
-            var memberfound = odataFunctionToMemberMap.TryGetValue(odataFunctionSpec, out memberInfo);
-            if (!memberfound)
-                return false;
-
-            var odataOrderedArglist = argumentsList;
-
-            var formatString = memberToOdataFunctionMap[memberInfo];
-            var argOrder = GetArgumentOrder(formatString).ToArray();
-            var fixedArgList = argOrder.Select(x => odataOrderedArglist[x]);
-
-            if (IsInstanceMember(memberInfo))
-            {
-                var instance = fixedArgList.First();
-                fixedArgList = fixedArgList.Skip(1);
-
-                var instanceType = instance.Type;
-
-                var memberDeclaringType = memberInfo.DeclaringType;
-                if (!memberDeclaringType.IsAssignableFrom(instanceType))
-                {
-                    // First check whether we're dealing with a wildcarded generic method
-                    Type[] instanceGenericArguments;
-                    if (memberDeclaringType.IsGenericType
-                        &&
-                        TypeUtils.TryGetTypeArguments(
-                            instanceType, memberDeclaringType.GetGenericTypeDefinition(), out instanceGenericArguments))
-                    {
-                        // Get member of correct generic type instance
-                        memberInfo = ChangeDeclaringGenericTypeArguments(memberInfo, instanceGenericArguments);
-                    }
-                    else
-                    {
-                        // TODO: Proper error here..
-                        return false;
-                    }
-                }
-
-                var methodInfo = memberInfo as MethodInfo;
-                if (methodInfo != null)
-                {
-                    expression = Expression.Call(instance, methodInfo, fixedArgList);
-                    return true;
-                }
-
-                expression = Expression.MakeMemberAccess(instance, memberInfo);
-                return true;
-            }
-            else
-            {
-                // Static method
-                var methodInfo = memberInfo as MethodInfo;
-                if (methodInfo != null)
-                {
-                    expression = Expression.Call(methodInfo, fixedArgList);
-                    return true;
-                }
-            }
-
-            return false;
+            return metadataTokenToMemberMappingDict.TryGetValue(member.MetadataToken, out memberMapping);
         }
 
 
-        public static bool TryGetOdataFunctionFormatString(MemberInfo member, out string functionFormat)
-        {
-            functionFormat = null;
-            MemberMapping memberMapping;
-            if (!metadataTokenToMemberMappingDict.TryGetValue(member.MetadataToken, out memberMapping))
-                return false;
-
-            functionFormat = memberMapping.MethodFormatString;
-            return true;
-        }
-
-
-        private static void Add<T>(Expression<Func<T, object>> expr, string functionFormat)
+        private static void Add<T>(
+            Expression<Func<T, object>> expr,
+            string functionFormat,
+            MethodCallStyle preferredCallStyle = MethodCallStyle.Static)
         {
             var memberInfo = ReflectionHelper.GetInstanceMemberInfo(expr);
 
-            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat);
+            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat, preferredCallStyle);
             nameToMemberMappingDict.GetOrCreate(memberMapping.Name + memberMapping.ArgumentCount).Add(memberMapping);
             metadataTokenToMemberMappingDict[memberMapping.Member.MetadataToken] = memberMapping;
-
-            memberToOdataFunctionMap[memberInfo] = functionFormat;
-
-            // We might have multiple overloads of one function with same argument count, so we add the type to the key
-            IEnumerable<Type> args = null;
-
-            var propInfo = memberInfo as PropertyInfo;
-            if (propInfo != null)
-            {
-                if (propInfo.GetGetMethod().IsStatic)
-                    throw new NotImplementedException("Don't know what to do with a static property here :(");
-
-                args = propInfo.DeclaringType.WrapAsEnumerable();
-            }
-            var methodInfo = memberInfo as MethodInfo;
-            if (methodInfo != null)
-            {
-                if (methodInfo.IsStatic)
-                    args = methodInfo.GetParameters().Select(x => x.ParameterType);
-                else
-                {
-                    args = methodInfo.DeclaringType.WrapAsEnumerable()
-                        .Concat(methodInfo.GetParameters().Select(x => x.ParameterType));
-                }
-            }
-
-            var methodSpecString = string.Format(functionFormat, questionStrings) + string.Format(
-                ">({0})",
-                string.Join(",", args.Select(Type.GetTypeCode)));
-
-            odataFunctionToMemberMap[methodSpecString] = memberInfo;
         }
 
 
@@ -288,32 +160,33 @@ namespace Pomona.Client.Internals
             }
         }
 
-
-        private static bool IsInstanceMember(MemberInfo memberInfo)
-        {
-            if (memberInfo.MemberType == MemberTypes.Method)
-                return (((MethodInfo)memberInfo).Attributes & MethodAttributes.Static) == 0;
-            if (memberInfo.MemberType == MemberTypes.Property)
-                return (((PropertyInfo)memberInfo).GetGetMethod().Attributes & MethodAttributes.Static) == 0;
-            throw new NotImplementedException();
-        }
-
         #region Nested type: MemberMapping
 
         public class MemberMapping
         {
             private readonly IList<int> argumentOrder;
+            private readonly string chainedCallFormat;
             private readonly MemberInfo member;
-            private readonly string methodFormatString;
+
             private readonly string name;
+            private readonly MethodCallStyle preferredCallStyle;
+            private readonly string staticCallFormat;
 
 
-            private MemberMapping(MemberInfo member, string name, IList<int> argumentOrder, string methodFormatString)
+            private MemberMapping(
+                MemberInfo member,
+                string name,
+                IList<int> argumentOrder,
+                string staticCallFormat,
+                string chainedCallFormat,
+                MethodCallStyle preferredCallStyle)
             {
                 this.member = member;
                 this.name = name;
                 this.argumentOrder = argumentOrder;
-                this.methodFormatString = methodFormatString;
+                this.staticCallFormat = staticCallFormat;
+                this.chainedCallFormat = chainedCallFormat;
+                this.preferredCallStyle = preferredCallStyle;
             }
 
 
@@ -327,14 +200,14 @@ namespace Pomona.Client.Internals
                 get { return this.argumentOrder; }
             }
 
+            public string ChainedCallFormat
+            {
+                get { return this.chainedCallFormat; }
+            }
+
             public MemberInfo Member
             {
                 get { return this.member; }
-            }
-
-            public string MethodFormatString
-            {
-                get { return this.methodFormatString; }
             }
 
             public string Name
@@ -342,8 +215,19 @@ namespace Pomona.Client.Internals
                 get { return this.name; }
             }
 
+            public MethodCallStyle PreferredCallStyle
+            {
+                get { return this.preferredCallStyle; }
+            }
 
-            public static MemberMapping Parse(MemberInfo member, string odataMethodFormat)
+            public string StaticCallFormat
+            {
+                get { return this.staticCallFormat; }
+            }
+
+
+            public static MemberMapping Parse(
+                MemberInfo member, string odataMethodFormat, MethodCallStyle preferredCallStyle)
             {
                 var name = odataMethodFormat.Split('(').First();
                 var argOrder = GetArgumentOrder(odataMethodFormat);
@@ -364,13 +248,45 @@ namespace Pomona.Client.Internals
                             .First(x => x.MetadataToken == memberLocal.MetadataToken);
                 }
 
-                return new MemberMapping(member, name, argOrder.ToArray(), odataMethodFormat);
+                var argOrderArray = argOrder.ToArray();
+                var extensionMethodFormatString = CreateChainedCallFormatString(name, argOrderArray);
+                return new MemberMapping(
+                    member, name, argOrderArray, odataMethodFormat, extensionMethodFormatString, preferredCallStyle);
             }
 
 
             public IList<T> ReorderArguments<T>(IList<T> arguments)
             {
                 return new ReorderedList<T>(arguments, ArgumentOrder);
+            }
+
+
+            private static string CreateChainedCallFormatString(string name, IList<int> argumentOrder)
+            {
+                // Functions can be called in two ways. Either as a stand-alone function like this:
+                //    any(items,x:x gt 5)
+                // or like this:
+                //    items.any(x:x gt 5)
+                // The second way has a format string called "extensionMethodFormatString" which we generate in this function.
+
+                var stringBuilder = new StringBuilder();
+                stringBuilder.AppendFormat("{{{0}}}.", argumentOrder[0]);
+                stringBuilder.Append(name);
+                stringBuilder.Append('(');
+                var firstArgWritten = false;
+                for (var i = 1; i < argumentOrder.Count; i++)
+                {
+                    if (firstArgWritten)
+                        stringBuilder.Append(',');
+                    else
+                        firstArgWritten = true;
+
+                    stringBuilder.Append('{');
+                    stringBuilder.Append(argumentOrder[i]);
+                    stringBuilder.Append('}');
+                }
+                stringBuilder.Append(')');
+                return stringBuilder.ToString();
             }
 
 

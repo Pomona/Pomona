@@ -200,6 +200,7 @@ namespace Pomona.Client
 
         public override T GetUri<T>(string uri)
         {
+            Log("Fetching uri {0}", uri);
             return (T)Deserialize(typeof(T), GetUri(uri));
         }
 
@@ -395,7 +396,10 @@ namespace Pomona.Client
 
             foreach (var b in bytes)
             {
-                if (b < 128 && (char.IsLetterOrDigit((char)b) || b == '.' || b == '~' || b == '-' || b == '_'))
+                if (b < 128
+                    &&
+                    (char.IsLetterOrDigit((char)b) || b == '\'' || b == '.' || b == '~' || b == '-' || b == '_'
+                     || b == ')' || b == '(' || b == ' '))
                     sb.Append((char)b);
                 else
                     sb.AppendFormat("%{0:X2}", b);
@@ -651,6 +655,13 @@ namespace Pomona.Client
         {
             // TODO: Support all types of dictionaries..
             return expectedType == typeof(IDictionary<string, string>);
+        }
+
+
+        private void Log(string format, params object[] args)
+        {
+            // TODO: Provide optional integration with CommonLogging
+            Console.WriteLine(format, args);
         }
 
 

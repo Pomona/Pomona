@@ -156,6 +156,18 @@ namespace Pomona.Queries
         {
             if (binaryOperatorNode.NodeType == NodeType.Dot)
             {
+                if (binaryOperatorNode.Right.NodeType == NodeType.MethodCall)
+                {
+                    var origCallNode = (MethodCallNode)binaryOperatorNode.Right;
+                    // Rewrite extension method call to static method call of tree:
+                    // We do this by taking inserting the first node before arg nodes of extension method call.
+                    var staticMethodArgs = binaryOperatorNode
+                        .Left.WrapAsEnumerable()
+                        .Concat(binaryOperatorNode.Right.Children);
+                    var staticMethodCall = new MethodCallNode(origCallNode.Name, staticMethodArgs);
+
+                    return ParseExpression(staticMethodCall);
+                }
                 var left = ParseExpression(binaryOperatorNode.Left);
                 return ParseExpression(binaryOperatorNode.Right, left, null);
             }
@@ -282,11 +294,15 @@ namespace Pomona.Queries
         {
             typeArgsWasResolved = false;
             if (wantedType.IsGenericTypeDefinition)
+            {
                 throw new ArgumentException(
                     "Does not expect genDefArgType to be a generic type definition.", "genDefArgType");
+            }
             if (actualType.IsGenericTypeDefinition)
+            {
                 throw new ArgumentException(
                     "Does not expect instanceArgType to be a generic type definition.", "instanceArgType");
+            }
 
             if (!wantedType.IsGenericType)
             {
