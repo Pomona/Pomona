@@ -32,7 +32,7 @@ using System.Linq;
 
 using Nancy;
 
-using Pomona.Client;
+using Pomona.Common;
 using Pomona.Queries;
 
 namespace Pomona
@@ -94,14 +94,10 @@ namespace Pomona
             if (request.Query["$expand"].HasValue)
             {
                 // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string)request.Query["$expand"])
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Distinct()
-                    .Select(x => this.typeMapper.ConvertToInternalPropertyPath(rootType, x))
-                    .ToList();
+                query.ExpandedPaths = ((string)request.Query["$expand"]);
             }
             else
-                query.ExpandedPaths = Enumerable.Empty<string>();
+                query.ExpandedPaths = string.Empty;
 
             query.Url = request.Url;
 

@@ -285,10 +285,11 @@ namespace Pomona
 
             foreach (var prop in type.Properties)
             {
-                if (prop.IsOneToManyCollection && prop.ElementForeignKey != null)
+                var transformedProp = prop as PropertyMapping;
+                if (transformedProp != null && transformedProp.IsOneToManyCollection && transformedProp.ElementForeignKey != null)
                 {
                     var collectionElementType = (TransformedType)prop.PropertyType.CollectionElementType;
-                    var elementForeignKey = prop.ElementForeignKey;
+                    var elementForeignKey = transformedProp.ElementForeignKey;
 
                     Get[path + "/{id}/" + prop.JsonName] =
                         x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id);

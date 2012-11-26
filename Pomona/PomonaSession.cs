@@ -35,9 +35,11 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using Pomona.Common.TypeSystem;
 using Pomona.CodeGen;
 using Pomona.Internals;
 using Pomona.Queries;
+using Pomona.Serialization;
 
 namespace Pomona
 {
@@ -47,12 +49,14 @@ namespace Pomona
     /// </summary>
     public class PomonaSession
     {
+        public const bool UseNewSerializer = true;
         private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
         private static readonly MethodInfo queryGenericMethod;
         private readonly Func<Uri> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
+        private PomonaJsonSerializer serializer;
 
 
         static PomonaSession()
@@ -85,6 +89,7 @@ namespace Pomona
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
             this.baseUriGetter = baseUriGetter;
+            this.serializer = new PomonaJsonSerializer();
         }
 
 
@@ -111,8 +116,26 @@ namespace Pomona
             var mappedType = this.typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
-            var wrapper = new ObjectWrapper(o, string.Empty, context, transformedType);
-            wrapper.ToJson(textWriter);
+
+            if (UseNewSerializer)
+            {
+                PomonaJsonSerializerState state = null;
+                try
+                {
+                    state = new PomonaJsonSerializerState(textWriter);
+                    serializer.SerializeNode(new ItemValueSerializerNode<TransformedType>(o, transformedType, string.Empty, context), state);
+                }
+                finally
+                {
+                    if (state != null)
+                        state.Dispose();
+                }
+            }
+            else
+            {
+                var wrapper = new ObjectWrapper(o, string.Empty, context, transformedType);
+                wrapper.ToJson(textWriter);
+            }
         }
 
 
@@ -148,6 +171,11 @@ namespace Pomona
             wrapper.ToJson(textWriter);
         }
 
+
+        public string GetUri(IPropertyInfo property, object entity)
+        {
+            return GetUri(entity) + "/" + property.LowerCaseName;
+        }
 
         public string GetUri(object entity)
         {
@@ -371,9 +399,19 @@ namespace Pomona
         private object QueryGeneric<T>(IPomonaQuery query, TextWriter writer)
         {
             var queryResult = this.dataSource.List<T>(query);
-            var queryResultJsonConverter = new QueryResultJsonConverter<T>(this);
 
-            queryResultJsonConverter.ToJson((PomonaQuery)query, queryResult, writer);
+            if (UseNewSerializer)
+            {
+                var context = new FetchContext(query.ExpandedPaths, false, this);
+                var state = new PomonaJsonSerializerState(writer);
+                serializer.SerializeQueryResult((PomonaQuery)query, queryResult, context, state);
+            }
+            else
+            {
+                var queryResultJsonConverter = new QueryResultJsonConverter<T>(this);
+
+                queryResultJsonConverter.ToJson((PomonaQuery)query, queryResult, writer);
+            }
             return null;
         }
     }

@@ -31,7 +31,7 @@ using System.IO;
 
 using NuGet;
 
-using Pomona.Client;
+using Pomona.Common;
 
 namespace Pomona.CodeGen
 {

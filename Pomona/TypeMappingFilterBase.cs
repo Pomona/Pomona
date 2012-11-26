@@ -37,7 +37,7 @@ using Common.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-using Pomona.Client.Internals;
+using Pomona.Common.Internals;
 
 namespace Pomona
 {

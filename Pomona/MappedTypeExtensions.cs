@@ -29,6 +29,8 @@
 using System;
 using System.Linq;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     public static class MappedTypeExtensions

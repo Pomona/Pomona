@@ -32,6 +32,8 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     public class EnumType : IMappedType
@@ -121,6 +123,41 @@ namespace Pomona
         public string Name
         {
             get { return this.mappedType.Name; }
+        }
+
+        public bool IsDictionary
+        {
+            get { return false; }
+        }
+
+        IMappedType IMappedType.DictionaryType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        IMappedType IMappedType.DictionaryKeyType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        IMappedType IMappedType.DictionaryValueType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        TypeSerializationMode IMappedType.SerializationMode
+        {
+            get { return TypeSerializationMode.Value; }
+        }
+
+        bool IMappedType.HasUri
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        IList<IPropertyInfo> IMappedType.Properties
+        {
+            get { return new IPropertyInfo[] { }; }
         }
 
         #endregion

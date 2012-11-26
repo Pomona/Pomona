@@ -33,7 +33,7 @@ using System.Linq.Expressions;
 
 using NUnit.Framework;
 
-using Pomona.Client;
+using Pomona.Common;
 
 namespace Pomona.UnitTests.Client
 {

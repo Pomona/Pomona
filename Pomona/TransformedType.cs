@@ -34,6 +34,9 @@ using System.Reflection;
 
 using Newtonsoft.Json;
 
+using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     /// <summary>
@@ -46,6 +49,11 @@ namespace Pomona
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
 
         private readonly TypeMapper typeMapper;
+
+        public TypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
+        }
 
 
         internal TransformedType(Type mappedType, string name, TypeMapper typeMapper)
@@ -64,6 +72,13 @@ namespace Pomona
 
         public ConstructorInfo ConstructorInfo { get; set; }
         public bool MappedAsValueObject { get; set; }
+
+        public TypeSerializationMode SerializationMode
+        {
+            get { return TypeSerializationMode.Complex; }
+        }
+
+        public bool HasUri { get { return !MappedAsValueObject; } }
 
         public Type MappedType
         {
@@ -91,9 +106,9 @@ namespace Pomona
         /// </summary>
         public TransformedType PostReturnType { get; set; }
 
-        public IList<PropertyMapping> Properties
+        public IList<IPropertyInfo> Properties
         {
-            get { return this.properties; }
+            get { return new CastingListWrapper<IPropertyInfo>(properties); }
         }
 
         public TransformedType UriBaseType { get; set; }
@@ -168,6 +183,26 @@ namespace Pomona
             get { return this.name; }
         }
 
+        public bool IsDictionary
+        {
+            get { return false; }
+        }
+
+        public IMappedType DictionaryType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        public IMappedType DictionaryKeyType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        public IMappedType DictionaryValueType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
         #endregion
 
         public string ConvertToInternalPropertyPath(string externalPath)
@@ -179,7 +214,7 @@ namespace Pomona
 
             // TODO: Fix for multiple inherited types with property of same name..
             var prop =
-                Properties.Concat(MergedTypes.SelectMany(x => x.Properties)).FirstOrDefault(
+                Properties.Concat(MergedTypes.SelectMany(x => x.Properties)).OfType<PropertyMapping>().FirstOrDefault(
                     x => x.Name.ToLowerInvariant() == externalPropertyName.ToLowerInvariant());
             if (prop == null)
             {
@@ -228,7 +263,7 @@ namespace Pomona
             string externalPropertyName, remainingExternalPath;
             TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
 
-            var prop = Properties.First(x => x.Name.ToLower() == externalPropertyName.ToLower());
+            var prop = Properties.OfType<PropertyMapping>().First(x => x.Name.ToLower() == externalPropertyName.ToLower());
 
             if (prop.PropertyInfo == null)
             {
@@ -263,7 +298,7 @@ namespace Pomona
         public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
         {
             // TODO: Create a dictionary for this if suboptimal.
-            return Properties.First(x => x.JsonName == jsonPropertyName);
+            return properties.First(x => x.JsonName == jsonPropertyName);
         }
 
 
@@ -273,7 +308,7 @@ namespace Pomona
                 propertyName = propertyName.ToLower();
 
             // TODO: Possible to optimize here by putting property names in a dictionary
-            return Properties.First(x => x.Name == propertyName);
+            return properties.First(x => x.Name == propertyName);
         }
 
 
@@ -292,8 +327,8 @@ namespace Pomona
 
             foreach (
                 var ctorProp in
-                    Properties.Where(
-                        x => x.CreateMode == PropertyMapping.PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
+                    properties.Where(
+                        x => x.CreateMode == PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
             {
                 // TODO: Proper validation here!
                 var value = initValues[ctorProp.Name.ToLower()];
@@ -306,7 +341,7 @@ namespace Pomona
 
             var newInstance = Activator.CreateInstance(this.mappedType, ctorArgs);
 
-            foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyMapping.PropertyCreateMode.Optional))
+            foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyCreateMode.Optional))
             {
                 object propSetValue;
                 if (initValues.TryGetValue(optProp.Name.ToLower(), out propSetValue))
@@ -362,7 +397,7 @@ namespace Pomona
 
                 var propDef = new PropertyMapping(
                     this.typeMapper.Filter.GetPropertyMappedName(propInfo),
-                    declaringType,
+                    (TransformedType)declaringType,
                     propertyTypeMapped,
                     propInfo);
 
@@ -374,12 +409,12 @@ namespace Pomona
                 // TODO: This should rather be configured by filter.
                 if (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null)
                 {
-                    propDef.CreateMode = PropertyMapping.PropertyCreateMode.Optional;
+                    propDef.CreateMode = PropertyCreateMode.Optional;
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadWrite;
                 }
                 else
                 {
-                    propDef.CreateMode = PropertyMapping.PropertyCreateMode.Excluded;
+                    propDef.CreateMode = PropertyCreateMode.Excluded;
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
 
@@ -402,7 +437,7 @@ namespace Pomona
                         this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name.ToLower());
                     if (matchingProperty != null)
                     {
-                        matchingProperty.CreateMode = PropertyMapping.PropertyCreateMode.Required;
+                        matchingProperty.CreateMode = PropertyCreateMode.Required;
                         matchingProperty.ConstructorArgIndex = ctorParam.Position;
                     }
                 }

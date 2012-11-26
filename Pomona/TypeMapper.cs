@@ -32,6 +32,8 @@ using System.Linq;
 
 using Common.Logging;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     public class TypeMapper
@@ -233,7 +235,7 @@ namespace Pomona
                     .SelectMany(x => x.Properties)
                     .Where(x => x.PropertyType.IsCollection);
 
-            foreach (var prop in collectionProperties.Where(x => x.PropertyInfo != null))
+            foreach (var prop in collectionProperties.OfType<PropertyMapping>().Where(x => x.PropertyInfo != null))
             {
                 var foreignKeyProp = this.filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
 
@@ -242,7 +244,7 @@ namespace Pomona
                     prop.ElementForeignKey =
                         TransformedTypes
                             .Where(x => x.MappedType == foreignKeyProp.DeclaringType)
-                            .SelectMany(x => x.Properties)
+                            .SelectMany(x => x.Properties.OfType<PropertyMapping>())
                             .FirstOrDefault(x => x.PropertyInfo.Name == foreignKeyProp.Name);
                 }
             }

@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 using NUnit.Framework;
 
@@ -54,7 +55,7 @@ namespace Pomona.UnitTests.PomonaSession
             where T : EntityBase
         {
             DataSource.Save(entity);
-            return GetAsJson<T>(entity.Id);
+            return GetAsJson<T>(entity.Id, expand);
         }
 
 
@@ -75,7 +76,6 @@ namespace Pomona.UnitTests.PomonaSession
             var cowString = mapJobject.AssertHasPropertyWithString("cow");
             Assert.That(cowString, Is.EqualTo("moo"));
         }
-
 
         [Test]
         public void GetIntListContainerAsJson()

@@ -63,7 +63,8 @@ When ServerApp is running go here with a web browser to see what Pomona is all a
 
 * http://localhost:2211/critter
 * http://localhost:2211/critter?expand=critter.hat
-* http://localhost:2211/Pomona.Client.dll <-- this generates a client dll on-the-fly
+* http://localhost:2211/Critters.Client.dll <-- this generates a client dll on-the-fly
+* http://localhost:2211/Critters.Client.1.0.0.0.nupkg <-- this generates a nupkg for client on-the-fly
 * http://localhost:2211/schemas <-- this returns the JSON schema for the transformed data model
 
 You can also POST to http://localhost:2211/critter create a new critter entity.

@@ -32,6 +32,8 @@ using System.Linq;
 
 using Newtonsoft.Json;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     /// <summary>
@@ -48,8 +50,11 @@ namespace Pomona
 
         private readonly Type mappedType;
         private readonly Type mappedTypeInstance;
+        private readonly TypeSerializationMode serializationMode;
         private readonly TypeMapper typeMapper;
+
         private bool isCollection;
+        private bool isDictionary;
 
 
         public SharedType(Type mappedType, Type mappedTypeInstance, TypeMapper typeMapper)
@@ -63,13 +68,37 @@ namespace Pomona
             this.mappedType = mappedType;
             this.mappedTypeInstance = mappedTypeInstance;
             this.typeMapper = typeMapper;
-            this.isCollection =
-                mappedType.GetInterfaces().Where(x => x.IsGenericType)
-                    .Select(x => x.IsGenericTypeDefinition ? x : x.GetGenericTypeDefinition()).Any
-                    (x => x == typeof(ICollection<>));
+
+            var dictMetadataToken = typeof(IDictionary<,>).MetadataToken;
+            this.isDictionary = mappedTypeInstance.MetadataToken == dictMetadataToken ||
+                                mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == dictMetadataToken);
+
+            if (!this.isDictionary)
+            {
+                if (mappedType != typeof(string))
+                {
+                    var collectionMetadataToken = typeof(ICollection<>).MetadataToken;
+                    this.isCollection =
+                        mappedTypeInstance.MetadataToken == collectionMetadataToken ||
+                        mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == collectionMetadataToken);
+                }
+            }
+
+            if (this.isDictionary)
+                this.serializationMode = TypeSerializationMode.Dictionary;
+            else if (this.isCollection)
+                this.serializationMode = TypeSerializationMode.Array;
+            else
+                this.serializationMode = TypeSerializationMode.Value;
+
             GenericArguments = new List<IMappedType>();
         }
 
+
+        public bool IsDictionary
+        {
+            get { return this.isDictionary; }
+        }
 
         public Type MappedType
         {
@@ -79,6 +108,21 @@ namespace Pomona
         public Type MappedTypeInstance
         {
             get { return this.mappedTypeInstance; }
+        }
+
+        public TypeSerializationMode SerializationMode
+        {
+            get { return this.serializationMode; }
+        }
+
+        public bool HasUri
+        {
+            get { return false; }
+        }
+
+        public IList<IPropertyInfo> Properties
+        {
+            get { throw new NotImplementedException(); }
         }
 
         #region IMappedType Members
@@ -109,6 +153,34 @@ namespace Pomona
         }
 
         public Type CustomClientLibraryType { get; set; }
+
+        public IMappedType DictionaryKeyType
+        {
+            get { return DictionaryType.GenericArguments[0]; }
+        }
+
+        public IMappedType DictionaryType
+        {
+            get
+            {
+                if (!this.isDictionary)
+                    throw new InvalidOperationException("Type does not implement IDictionary<,>");
+
+                var dictMetadataToken = typeof(IDictionary<,>).MetadataToken;
+
+                if (this.mappedTypeInstance.MetadataToken == dictMetadataToken)
+                    return this;
+
+                return
+                    this.typeMapper.GetClassMapping(
+                        this.mappedTypeInstance.GetInterfaces().First(x => x.MetadataToken == dictMetadataToken));
+            }
+        }
+
+        public IMappedType DictionaryValueType
+        {
+            get { return DictionaryType.GenericArguments[1]; }
+        }
 
         public IList<IMappedType> GenericArguments { get; private set; }
 
@@ -147,6 +219,21 @@ namespace Pomona
         public string Name
         {
             get { return this.mappedType.Name; }
+        }
+
+
+        public virtual void WriteJson(
+            JsonWriter jsonWriter,
+            object value,
+            IMappedType expectedType,
+            string parentPath,
+            string propName,
+            FetchContext context)
+        {
+            if (JsonConverter != null)
+                JsonConverter.WriteJson(jsonWriter, value, null);
+            else
+                jsonWriter.WriteValue(value);
         }
 
         #endregion

@@ -28,6 +28,8 @@
 
 using System.Collections.Generic;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     public class FetchContext
@@ -35,6 +37,12 @@ namespace Pomona
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
         private readonly PomonaSession session;
+
+        public PomonaSession Session
+        {
+            get { return this.session; }
+        }
+
         private readonly TypeMapper typeMapper;
 
 
@@ -71,6 +79,11 @@ namespace Pomona
             return new ObjectWrapper(target, path, this, expectedBaseType);
         }
 
+        public string GetUri(IPropertyInfo property, object entity)
+        {
+            return this.session.GetUri(property, entity);
+        }
+
 
         public string GetUri(object value)
         {
@@ -80,6 +93,9 @@ namespace Pomona
 
         internal bool PathToBeExpanded(string path)
         {
+            if (path == string.Empty)
+                return true;
+
             return this.expandedPaths.Contains(path.ToLower());
         }
     }

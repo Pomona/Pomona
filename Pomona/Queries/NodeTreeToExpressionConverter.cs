@@ -32,7 +32,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Pomona.Client.Internals;
+using Pomona.Common.Internals;
 
 namespace Pomona.Queries
 {

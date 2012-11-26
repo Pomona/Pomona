@@ -132,11 +132,16 @@
     <Compile Include="Queries\StringNode.cs" />
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />
-    <Compile Include="Sandbox\CJson\CJsonCodes.cs" />
     <Compile Include="Schemas\JsonSchemaGenerator.cs" />
+    <Compile Include="Serialization\ISerializer.cs" />
+    <Compile Include="Serialization\ISerializerNode.cs" />
+    <Compile Include="Serialization\ItemValueSerializerNode.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializer.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializerState.cs" />
+    <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
+    <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TypeMapper.cs" />
-    <Compile Include="IMappedType.cs" />
     <Compile Include="SharedType.cs" />
     <Compile Include="TransformedType.cs" />
     <Compile Include="ExpandPathsUtils.cs" />
@@ -154,12 +159,14 @@
     </Antlr3>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">
+    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
-      <Name>Pomona.Client</Name>
+      <Name>Pomona.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="TypeSystem\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>

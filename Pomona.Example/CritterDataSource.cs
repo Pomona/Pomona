@@ -32,8 +32,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Pomona.Client;
-using Pomona.Client.Internals;
+using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Example.Models;
 using Pomona.Internals;
 using Pomona.Queries;

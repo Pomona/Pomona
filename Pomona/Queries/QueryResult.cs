@@ -33,8 +33,17 @@ using System.Linq;
 
 namespace Pomona.Queries
 {
-    public class QueryResult<T> : IList<T>
+    public abstract class QueryResult
     {
+        public abstract int Skip { get; }
+        public abstract int TotalCount { get; }
+        public abstract int Count { get; }
+        public abstract Type ListType { get; }
+    }
+
+    public class QueryResult<T> : QueryResult, IList<T>
+    {
+        public override Type ListType { get { return typeof(IList<T>); } }
         private readonly List<T> items;
         private readonly int skip;
 
@@ -49,12 +58,12 @@ namespace Pomona.Queries
         }
 
 
-        public int Skip
+        public override int Skip
         {
             get { return this.skip; }
         }
 
-        public int TotalCount
+        public override int TotalCount
         {
             get { return this.totalCount; }
         }
@@ -68,7 +77,7 @@ namespace Pomona.Queries
         }
 
 
-        public int Count
+        public override int Count
         {
             get { return this.items.Count; }
         }

@@ -34,8 +34,8 @@ using Critters.Client;
 
 using NUnit.Framework;
 
-using Pomona.Client;
-using Pomona.Client.Proxies;
+using Pomona.Common;
+using Pomona.Common.Proxies;
 using Pomona.Example.Models;
 
 namespace CritterClientTests

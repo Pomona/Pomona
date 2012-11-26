@@ -36,9 +36,10 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
-using Pomona.Client;
-using Pomona.Client.Internals;
-using Pomona.Client.Proxies;
+using Pomona.Common;
+using Pomona.Common.Internals;
+using Pomona.Common.Proxies;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.CodeGen
 {
@@ -107,7 +108,7 @@ namespace Pomona.CodeGen
 
             if (PomonaClientEmbeddingEnabled)
             {
-                foreach (var clientHelperType in this.module.Types.Where(x => x.Namespace == "Pomona.Client"))
+                foreach (var clientHelperType in this.module.Types.Where(x => x.Namespace == "Pomona.Common"))
                     clientHelperType.Namespace = this.assemblyName;
             }
 
@@ -118,8 +119,8 @@ namespace Pomona.CodeGen
             TypeReference resourceInterfaceRef;
             if (PomonaClientEmbeddingEnabled)
             {
-                resourceBaseRef = this.module.GetType("Pomona.Client.ResourceBase");
-                resourceInterfaceRef = this.module.GetType("Pomona.Client.IClientResource");
+                resourceBaseRef = this.module.GetType("Pomona.Common.ResourceBase");
+                resourceInterfaceRef = this.module.GetType("Pomona.Common.IClientResource");
             }
             else
             {
@@ -216,7 +217,7 @@ namespace Pomona.CodeGen
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
-                foreach (var prop in classMapping.Properties.Where(x => x.DeclaringType == classMapping))
+                foreach (var prop in classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
                 {
                     if (prop.Name == "TheEnumValue")
                         Debugger.Break();
@@ -574,7 +575,7 @@ namespace Pomona.CodeGen
                 this.clientTypeInfoDict
                     .Values
                     .First(x => x.InterfaceType == reflectedInterface)
-                    .TransformedType.Properties
+                    .TransformedType.Properties.Cast<PropertyMapping>()
                     .First(x => x.Name == propertyDefinition.Name);
         }
 
@@ -671,8 +672,8 @@ namespace Pomona.CodeGen
             {
                 var propertyMapping = this.owner.GetPropertyMapping(targetProp, rootProxyTargetType);
 
-                if (propertyMapping.CreateMode == PropertyMapping.PropertyCreateMode.Required ||
-                    propertyMapping.CreateMode == PropertyMapping.PropertyCreateMode.Optional)
+                if (propertyMapping.CreateMode == PropertyCreateMode.Required ||
+                    propertyMapping.CreateMode == PropertyCreateMode.Optional)
                 {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);

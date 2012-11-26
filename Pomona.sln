@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona", "Pomona\Pomona.csproj", "{EE396A59-956E-4DEE-B222-991F2274ED67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Client", "Pomona.Client\Pomona.Client.csproj", "{94E7B042-6595-46F8-9400-897058E76E91}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Common", "Pomona.Common\Pomona.Common.csproj", "{94E7B042-6595-46F8-9400-897058E76E91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CritterClientTests", "CritterClientTests\CritterClientTests.csproj", "{D38E1728-EC41-4780-843E-5F9D6C35C641}"
 	ProjectSection(ProjectDependencies) = postProject

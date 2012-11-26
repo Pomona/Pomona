@@ -31,6 +31,8 @@ using System.Linq;
 
 using Newtonsoft.Json.Linq;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Schemas
 {
 #if false
@@ -84,7 +86,7 @@ namespace Pomona.Schemas
         }
 
 
-        private JToken GetPropertyDefinition(PropertyMapping prop)
+        private JToken GetPropertyDefinition(IPropertyInfo prop)
         {
             var propType = prop.PropertyType;
 
@@ -93,9 +95,9 @@ namespace Pomona.Schemas
             var propDef = new JObject();
             propDef.Add("type", jsonSchemaTypeName);
 
-            if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Required)
+            if (prop.CreateMode == PropertyCreateMode.Required)
                 propDef.Add("required", true);
-            else if (prop.CreateMode == PropertyMapping.PropertyCreateMode.Excluded)
+            else if (prop.CreateMode == PropertyCreateMode.Excluded)
                 propDef.Add("generated", true);
 
             if (!prop.IsWriteable)

@@ -65,9 +65,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Pomona.Client\Pomona.Client.csproj">
+    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
-      <Name>Pomona.Client</Name>
+      <Name>Pomona.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
       <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>

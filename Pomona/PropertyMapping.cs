@@ -29,9 +29,11 @@
 using System;
 using System.Reflection;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
-    public class PropertyMapping
+    public class PropertyMapping : IPropertyInfo
     {
         #region PropertyAccessMode enum
 
@@ -46,23 +48,16 @@ namespace Pomona
 
         #region PropertyCreateMode enum
 
-        public enum PropertyCreateMode
-        {
-            Excluded, // Default for all generated properties.
-            Optional, // Default for all publicly writable properties, 
-            Required, // Default for properties that got a matching argument in shortest constructor
-        }
-
         #endregion
 
-        private readonly IMappedType declaringType;
+        private readonly TransformedType declaringType;
         private readonly string name;
         private readonly PropertyInfo propertyInfo;
         private readonly IMappedType propertyType;
 
 
         public PropertyMapping(
-            string name, IMappedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
+            string name, TransformedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
@@ -71,6 +66,8 @@ namespace Pomona
             if (propertyType == null)
                 throw new ArgumentNullException("propertyType");
             this.name = name;
+            LowerCaseName = name.ToLower();
+            JsonName = name.Substring(0, 1).ToLower() + name.Substring(1);
             this.declaringType = declaringType;
             this.propertyType = propertyType;
             this.propertyInfo = propertyInfo;
@@ -110,10 +107,8 @@ namespace Pomona
             get { return AccessMode == PropertyAccessMode.WriteOnly || AccessMode == PropertyAccessMode.ReadWrite; }
         }
 
-        public string JsonName
-        {
-            get { return this.name.Substring(0, 1).ToLower() + this.name.Substring(1); }
-        }
+        public string JsonName { get; set; }
+        public string LowerCaseName { get; private set; }
 
         public string Name
         {
@@ -131,5 +126,10 @@ namespace Pomona
         }
 
         public Action<object, object> Setter { get; set; }
+
+        public TypeMapper TypeMapper
+        {
+            get { return declaringType.TypeMapper; }
+        }
     }
 }
