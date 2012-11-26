@@ -128,7 +128,6 @@
     <Compile Include="Queries\QueryFilterExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />
     <Compile Include="Queries\QueryResult.cs" />
-    <Compile Include="Queries\QueryResultJsonConverter.cs" />
     <Compile Include="Queries\StringNode.cs" />
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />

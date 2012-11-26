@@ -35,6 +35,7 @@ using System.Reflection;
 
 using Nancy.Helpers;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
@@ -43,12 +44,6 @@ namespace Pomona.Serialization
     public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializerState>
     {
         #region Implementation of ISerializer<PomonaJsonSerializerState>
-
-        public void SerializeEnumType(ISerializerNode<EnumType> node, PomonaJsonSerializerState state)
-        {
-            throw new NotImplementedException();
-        }
-
 
         public void SerializeQueryResult(
             PomonaQuery query, QueryResult queryResult, FetchContext fetchContext, PomonaJsonSerializerState state)
@@ -66,14 +61,14 @@ namespace Pomona.Serialization
             jsonWriter.WriteValue(queryResult.Count);
 
             Uri previousPageUri;
-            if (TryGetPage(query, queryResult, -1, out previousPageUri))
+            if (queryResult.TryGetPage(-1, out previousPageUri))
             {
                 jsonWriter.WritePropertyName("previous");
                 jsonWriter.WriteValue(previousPageUri.ToString());
             }
 
             Uri nextPageUri;
-            if (TryGetPage(query, queryResult, 1, out nextPageUri))
+            if (queryResult.TryGetPage(1, out nextPageUri))
             {
                 jsonWriter.WritePropertyName("next");
                 jsonWriter.WriteValue(nextPageUri.ToString());
@@ -81,7 +76,7 @@ namespace Pomona.Serialization
 
             jsonWriter.WritePropertyName("items");
             this.SerializeNode(
-                ItemValueSerializerNode.Create(
+                new ItemValueSerializerNode(
                     queryResult,
                     fetchContext.TypeMapper.GetClassMapping(queryResult.ListType),
                     string.Empty,
@@ -93,22 +88,7 @@ namespace Pomona.Serialization
         }
 
 
-        public void SerializeSharedType(ISerializerNode<SharedType> node, PomonaJsonSerializerState state)
-        {
-            if (node.Value == null)
-                state.Writer.WriteNull();
-            else if (node.ExpectedBaseType.IsCollection)
-                SerializeCollection(node, state);
-            else if (node.ExpectedBaseType.IsDictionary)
-                SerializeDictionary(node, state);
-            else if (node.ExpectedBaseType.JsonConverter != null)
-                node.ExpectedBaseType.JsonConverter.WriteJson(state.Writer, node.Value, null);
-            else
-                state.Writer.WriteValue(node.Value);
-        }
-
-
-        private void SerializeTransformedType(ISerializerNode node, PomonaJsonSerializerState state)
+        private void SerializeComplex(ISerializerNode node, PomonaJsonSerializerState state)
         {
             if (node.Value == null)
                 state.Writer.WriteNull();
@@ -132,7 +112,7 @@ namespace Pomona.Serialization
                     SerializeDictionary(node, state);
                     break;
                 case TypeSerializationMode.Complex:
-                    SerializeTransformedType(node, state);
+                    SerializeComplex(node, state);
                     break;
                 case TypeSerializationMode.Array:
                     SerializeCollection(node, state);
@@ -181,7 +161,7 @@ namespace Pomona.Serialization
                 var elementType = node.ExpectedBaseType.CollectionElementType;
                 foreach (var item in (IEnumerable)node.Value)
                     this.SerializeNode(
-                        ItemValueSerializerNode.Create(item, elementType, node.ExpandPath, node.FetchContext), state);
+                        new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.FetchContext), state);
                 writer.WriteEndArray();
             }
         }
@@ -199,7 +179,7 @@ namespace Pomona.Serialization
 
 
         private void SerializeDictionaryGeneric<TKey, TValue>(
-            ISerializerNode<SharedType> node, PomonaJsonSerializerState state)
+            ISerializerNode node, PomonaJsonSerializerState state)
         {
             var writer = state.Writer;
             var dict = (IDictionary<TKey, TValue>)node.Value;
@@ -211,7 +191,7 @@ namespace Pomona.Serialization
                 // TODO: Support other key types than string
                 writer.WritePropertyName((string)((object)kvp.Key));
                 this.SerializeNode(
-                    ItemValueSerializerNode.Create(kvp.Value, expectedValueType, node.ExpandPath, node.FetchContext),
+                    new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.FetchContext), 
                     state);
             }
             writer.WriteEndObject();
@@ -242,32 +222,6 @@ namespace Pomona.Serialization
             writer.WriteEndObject();
         }
 
-
-        private bool TryGetPage(PomonaQuery query, QueryResult queryResult, int offset, out Uri pageUri)
-        {
-            var newSkip = Math.Max(query.Skip + (query.Top * offset), 0);
-            var uriBuilder = new UriBuilder(query.Url);
-
-            if (query.Skip == newSkip || newSkip >= queryResult.TotalCount)
-            {
-                pageUri = null;
-                return false;
-            }
-
-            NameValueCollection parameters;
-            if (!string.IsNullOrEmpty(uriBuilder.Query))
-            {
-                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
-                parameters["skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
-                uriBuilder.Query = parameters.ToString();
-            }
-            else
-                uriBuilder.Query = "skip=" + newSkip;
-
-            pageUri = uriBuilder.Uri;
-
-            return true;
-        }
 
         #endregion
     }

@@ -99,7 +99,7 @@ namespace Pomona
             else
                 query.ExpandedPaths = string.Empty;
 
-            query.Url = request.Url;
+            query.Url = request.Url.ToString();
 
             return query;
         }

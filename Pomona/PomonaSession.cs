@@ -123,7 +123,7 @@ namespace Pomona
                 try
                 {
                     state = new PomonaJsonSerializerState(textWriter);
-                    serializer.SerializeNode(new ItemValueSerializerNode<TransformedType>(o, transformedType, string.Empty, context), state);
+                    serializer.SerializeNode(new ItemValueSerializerNode(o, transformedType, string.Empty, context), state);
                 }
                 finally
                 {
@@ -400,18 +400,9 @@ namespace Pomona
         {
             var queryResult = this.dataSource.List<T>(query);
 
-            if (UseNewSerializer)
-            {
-                var context = new FetchContext(query.ExpandedPaths, false, this);
-                var state = new PomonaJsonSerializerState(writer);
-                serializer.SerializeQueryResult((PomonaQuery)query, queryResult, context, state);
-            }
-            else
-            {
-                var queryResultJsonConverter = new QueryResultJsonConverter<T>(this);
-
-                queryResultJsonConverter.ToJson((PomonaQuery)query, queryResult, writer);
-            }
+            var context = new FetchContext(query.ExpandedPaths, false, this);
+            var state = new PomonaJsonSerializerState(writer);
+            serializer.SerializeQueryResult((PomonaQuery)query, queryResult, context, state);
             return null;
         }
     }

@@ -32,8 +32,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Serialization
 {
-    public class PropertyValueSerializerNode<TMappedType> : ISerializerNode<TMappedType>
-        where TMappedType : IMappedType
+    public class PropertyValueSerializerNode : ISerializerNode
     {
         private readonly FetchContext fetchContext;
         private string expandPath;
@@ -41,7 +40,7 @@ namespace Pomona.Serialization
         private bool propertyIsLoaded;
         private IPropertyInfo propertyMapping;
         private object propertyValue;
-        private TMappedType propertyValueType;
+        private IMappedType propertyValueType;
 
         #region Implementation of ISerializerNode
 
@@ -75,9 +74,9 @@ namespace Pomona.Serialization
             }
         }
 
-        public TMappedType ExpectedBaseType
+        public IMappedType ExpectedBaseType
         {
-            get { return (TMappedType)this.propertyMapping.PropertyType; }
+            get { return this.propertyMapping.PropertyType; }
         }
 
         public FetchContext FetchContext
@@ -123,47 +122,20 @@ namespace Pomona.Serialization
             }
         }
 
-        public TMappedType ValueType
+        public IMappedType ValueType
         {
             get
             {
                 if (this.propertyValueType == null)
                 {
                     this.propertyValueType = Value != null
-                                                 ? (TMappedType)FetchContext.TypeMapper.GetClassMapping(Value.GetType())
+                                                 ? FetchContext.TypeMapper.GetClassMapping(Value.GetType())
                                                  : ExpectedBaseType;
                 }
                 return this.propertyValueType;
             }
         }
 
-        IMappedType ISerializerNode.ExpectedBaseType
-        {
-            get { return ExpectedBaseType; }
-        }
-
-        IMappedType ISerializerNode.ValueType
-        {
-            get { return ValueType; }
-        }
-
         #endregion
-    }
-
-    public class PropertyValueSerializerNode
-    {
-        public static ISerializerNode Create(
-            ISerializerNode parentNode, IPropertyInfo propertyMapping)
-        {
-            if (propertyMapping.PropertyType is SharedType)
-                return new PropertyValueSerializerNode<SharedType>(parentNode, propertyMapping, parentNode.FetchContext);
-            if (propertyMapping.PropertyType is TransformedType)
-                return new PropertyValueSerializerNode<TransformedType>(
-                    parentNode, propertyMapping, parentNode.FetchContext);
-            if (propertyMapping.PropertyType is EnumType)
-                return new PropertyValueSerializerNode<EnumType>(parentNode, propertyMapping, parentNode.FetchContext);
-
-            throw new InvalidOperationException("Mapped type not recognized.");
-        }
     }
 }

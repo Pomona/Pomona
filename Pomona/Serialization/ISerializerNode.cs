@@ -30,13 +30,6 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Serialization
 {
-    public interface ISerializerNode<TMappedType> : ISerializerNode
-        where TMappedType : IMappedType
-    {
-        new TMappedType ExpectedBaseType { get; }
-        new TMappedType ValueType { get; }
-    }
-
     public interface ISerializerNode
     {
         string ExpandPath { get; }

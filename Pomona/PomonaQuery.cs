@@ -67,7 +67,7 @@ namespace Pomona
             get { return this.targetType; }
         }
 
-        public Uri Url { get; set; }
+        public string Url { get; set; }
 
         #endregion
     }

@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.IO;
 
 using NUnit.Framework;
@@ -48,6 +49,7 @@ namespace Pomona.UnitTests.Nuget
                 packageBuilder.BuildPackage(fileStream);
                 fileData = fileStream.ToArray();
             }
+            Console.WriteLine("Package size is " + fileData.Length / 1024.0 + " KiB");
         }
 
 

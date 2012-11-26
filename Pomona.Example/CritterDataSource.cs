@@ -112,10 +112,7 @@ namespace Pomona.Example
 
                 result = result.Skip(pq.Skip).Take(pq.Top);
 
-                return new QueryResult<T>(
-                    result,
-                    pq.Skip,
-                    count);
+                return new QueryResult<T>(result, pq.Skip, count, pq.Url);
             }
         }
 

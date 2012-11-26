@@ -26,25 +26,22 @@
 
 #endregion
 
-using System;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Serialization
 {
-    public class ItemValueSerializerNode<TMappedType> : ISerializerNode<TMappedType>
-        where TMappedType : class, IMappedType
+    public class ItemValueSerializerNode : ISerializerNode
     {
         private string expandPath;
-        private TMappedType expectedBaseType;
+        private IMappedType expectedBaseType;
         private FetchContext fetchContext;
         private object value;
-        private TMappedType valueType;
+        private IMappedType valueType;
 
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, TMappedType expectedBaseType, string expandPath, FetchContext fetchContext)
+            object value, IMappedType expectedBaseType, string expandPath, FetchContext fetchContext)
         {
             this.value = value;
             this.expectedBaseType = expectedBaseType;
@@ -58,7 +55,7 @@ namespace Pomona.Serialization
             get { return this.expandPath; }
         }
 
-        public TMappedType ExpectedBaseType
+        public IMappedType ExpectedBaseType
         {
             get { return this.expectedBaseType; }
         }
@@ -83,45 +80,17 @@ namespace Pomona.Serialization
             get { return this.value; }
         }
 
-        public TMappedType ValueType
+        public IMappedType ValueType
         {
             get
             {
                 if (this.valueType == null)
-                    this.valueType = (TMappedType)this.fetchContext.TypeMapper.GetClassMapping(Value.GetType());
+                    this.valueType = this.fetchContext.TypeMapper.GetClassMapping(Value.GetType());
                 return this.valueType;
             }
         }
 
-        IMappedType ISerializerNode.ExpectedBaseType
-        {
-            get { return ExpectedBaseType; }
-        }
-
-        IMappedType ISerializerNode.ValueType
-        {
-            get { return ValueType; }
-        }
 
         #endregion
-    }
-
-    public static class ItemValueSerializerNode
-    {
-        public static ISerializerNode Create(
-            object value, IMappedType expectedBaseType, string expandPath, FetchContext fetchContext)
-        {
-            if (expectedBaseType is SharedType)
-                return new ItemValueSerializerNode<SharedType>(
-                    value, (SharedType)expectedBaseType, expandPath, fetchContext);
-            if (expectedBaseType is TransformedType)
-                return new ItemValueSerializerNode<TransformedType>(
-                    value, (TransformedType)expectedBaseType, expandPath, fetchContext);
-            if (expectedBaseType is EnumType)
-                return new ItemValueSerializerNode<EnumType>(
-                    value, (EnumType)expectedBaseType, expandPath, fetchContext);
-
-            throw new InvalidOperationException("Mapped type not recognized.");
-        }
     }
 }

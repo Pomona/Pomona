@@ -38,6 +38,6 @@ namespace Pomona
     {
         string ExpandedPaths { get; }
         TransformedType TargetType { get; }
-        Uri Url { get; set; }
+        string Url { get; set; }
     }
 }

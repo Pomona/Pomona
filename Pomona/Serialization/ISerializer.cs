@@ -26,6 +26,7 @@
 
 #endregion
 
+using Pomona.Common;
 using Pomona.Queries;
 
 namespace Pomona.Serialization

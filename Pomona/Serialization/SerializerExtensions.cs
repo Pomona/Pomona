@@ -38,7 +38,7 @@ namespace Pomona.Serialization
             this ISerializerNode node, TSerializer serializer, TState state, IPropertyInfo property)
             where TSerializer : ISerializer<TState>
         {
-            serializer.SerializeNode(PropertyValueSerializerNode.Create(node, property), state);
+            serializer.SerializeNode(new PropertyValueSerializerNode(node, property, node.FetchContext), state);
         }
     }
 }

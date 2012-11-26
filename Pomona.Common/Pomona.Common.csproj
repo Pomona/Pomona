@@ -8,8 +8,8 @@
     <ProjectGuid>{94E7B042-6595-46F8-9400-897058E76E91}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Pomona.Client</RootNamespace>
-    <AssemblyName>Pomona.Client</AssemblyName>
+    <RootNamespace>Pomona.Common</RootNamespace>
+    <AssemblyName>Pomona.Common</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -63,6 +63,8 @@
     <Compile Include="ClientRepository.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
+    <Compile Include="HttpEncoder.cs" />
+    <Compile Include="HttpUtility.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
@@ -81,6 +83,7 @@
     <Compile Include="Proxies\ProxyBuilder.cs" />
     <Compile Include="Proxies\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="QueryPredicateBuilder.cs" />
+    <Compile Include="QueryResult.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ResourceBase.cs" />

@@ -29,34 +29,36 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
+
+using Pomona.Common;
 
 namespace Pomona.Queries
 {
-    public abstract class QueryResult
-    {
-        public abstract int Skip { get; }
-        public abstract int TotalCount { get; }
-        public abstract int Count { get; }
-        public abstract Type ListType { get; }
-    }
-
     public class QueryResult<T> : QueryResult, IList<T>
     {
-        public override Type ListType { get { return typeof(IList<T>); } }
         private readonly List<T> items;
         private readonly int skip;
 
         private readonly int totalCount;
+        private readonly string url;
 
 
-        public QueryResult(IEnumerable<T> items, int skip, int totalCount)
+        public QueryResult(IEnumerable<T> items, int skip, int totalCount, string url)
         {
             this.items = items.ToList();
             this.skip = skip;
             this.totalCount = totalCount;
+            this.url = url;
         }
 
+
+        public override Type ListType
+        {
+            get { return typeof(IList<T>); }
+        }
 
         public override int Skip
         {
@@ -66,6 +68,11 @@ namespace Pomona.Queries
         public override int TotalCount
         {
             get { return this.totalCount; }
+        }
+
+        public string Url
+        {
+            get { return this.url; }
         }
 
         #region IList<T> Members
@@ -148,5 +155,31 @@ namespace Pomona.Queries
         }
 
         #endregion
+
+        public override bool TryGetPage(int offset, out Uri pageUri)
+        {
+            var newSkip = Math.Max(Skip + (Count * offset), 0);
+            var uriBuilder = new UriBuilder(Url);
+
+            if (Skip == newSkip || newSkip >= TotalCount)
+            {
+                pageUri = null;
+                return false;
+            }
+
+            NameValueCollection parameters;
+            if (!string.IsNullOrEmpty(uriBuilder.Query))
+            {
+                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
+                parameters["$skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
+                uriBuilder.Query = parameters.ToString();
+            }
+            else
+                uriBuilder.Query = "$skip=" + newSkip;
+
+            pageUri = uriBuilder.Uri;
+
+            return true;
+        }
     }
 }
