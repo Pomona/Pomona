@@ -27,40 +27,16 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 
-using Newtonsoft.Json;
+using Pomona.Common.TypeSystem;
 
-namespace Pomona.Common.TypeSystem
+namespace Pomona.Common.Serialization
 {
-    /// <summary>
-    /// This is the pomona way of representing a type.
-    /// 
-    /// Can't use Type directly, since the transformed types might not exist
-    /// as Type in server context.
-    /// </summary>
-    public interface IMappedType
+    public interface ISerializationContext
     {
-        IMappedType BaseType { get; }
-        IMappedType CollectionElementType { get; }
-        Type CustomClientLibraryType { get; }
-        IMappedType DictionaryKeyType { get; }
-        IMappedType DictionaryType { get; }
-        IMappedType DictionaryValueType { get; }
-        IList<IMappedType> GenericArguments { get; }
-        bool HasUri { get; }
-        bool IsAlwaysExpanded { get; }
-        bool IsBasicWireType { get; }
-        bool IsCollection { get; }
-        bool IsDictionary { get; }
-        bool IsGenericType { get; }
-        bool IsGenericTypeDefinition { get; }
-        bool IsValueType { get; }
-        JsonConverter JsonConverter { get; }
-        Type MappedType { get; }
-        Type MappedTypeInstance { get; }
-        string Name { get; }
-        IList<IPropertyInfo> Properties { get; }
-        TypeSerializationMode SerializationMode { get; }
+        IMappedType GetClassMapping(Type type);
+        string GetUri(object value);
+        string GetUri(IPropertyInfo property, object value);
+        bool PathToBeExpanded(string expandPath);
     }
 }

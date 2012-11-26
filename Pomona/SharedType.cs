@@ -95,6 +95,11 @@ namespace Pomona
         }
 
 
+        public bool HasUri
+        {
+            get { return false; }
+        }
+
         public bool IsDictionary
         {
             get { return this.isDictionary; }
@@ -110,19 +115,14 @@ namespace Pomona
             get { return this.mappedTypeInstance; }
         }
 
-        public TypeSerializationMode SerializationMode
-        {
-            get { return this.serializationMode; }
-        }
-
-        public bool HasUri
-        {
-            get { return false; }
-        }
-
         public IList<IPropertyInfo> Properties
         {
             get { throw new NotImplementedException(); }
+        }
+
+        public TypeSerializationMode SerializationMode
+        {
+            get { return this.serializationMode; }
         }
 
         #region IMappedType Members

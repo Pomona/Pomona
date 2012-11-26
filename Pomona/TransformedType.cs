@@ -50,11 +50,6 @@ namespace Pomona
 
         private readonly TypeMapper typeMapper;
 
-        public TypeMapper TypeMapper
-        {
-            get { return this.typeMapper; }
-        }
-
 
         internal TransformedType(Type mappedType, string name, TypeMapper typeMapper)
         {
@@ -71,14 +66,13 @@ namespace Pomona
 
 
         public ConstructorInfo ConstructorInfo { get; set; }
-        public bool MappedAsValueObject { get; set; }
 
-        public TypeSerializationMode SerializationMode
+        public bool HasUri
         {
-            get { return TypeSerializationMode.Complex; }
+            get { return !MappedAsValueObject; }
         }
 
-        public bool HasUri { get { return !MappedAsValueObject; } }
+        public bool MappedAsValueObject { get; set; }
 
         public Type MappedType
         {
@@ -108,7 +102,17 @@ namespace Pomona
 
         public IList<IPropertyInfo> Properties
         {
-            get { return new CastingListWrapper<IPropertyInfo>(properties); }
+            get { return new CastingListWrapper<IPropertyInfo>(this.properties); }
+        }
+
+        public TypeSerializationMode SerializationMode
+        {
+            get { return TypeSerializationMode.Complex; }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
         }
 
         public TransformedType UriBaseType { get; set; }
@@ -133,6 +137,21 @@ namespace Pomona
             get { return null; }
         }
 
+        public IMappedType DictionaryKeyType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        public IMappedType DictionaryType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        public IMappedType DictionaryValueType
+        {
+            get { throw new NotSupportedException(); }
+        }
+
         public IList<IMappedType> GenericArguments
         {
             get { return new IMappedType[] { }; }
@@ -149,6 +168,11 @@ namespace Pomona
         }
 
         public bool IsCollection
+        {
+            get { return false; }
+        }
+
+        public bool IsDictionary
         {
             get { return false; }
         }
@@ -181,26 +205,6 @@ namespace Pomona
         public string Name
         {
             get { return this.name; }
-        }
-
-        public bool IsDictionary
-        {
-            get { return false; }
-        }
-
-        public IMappedType DictionaryType
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public IMappedType DictionaryKeyType
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        public IMappedType DictionaryValueType
-        {
-            get { throw new NotSupportedException(); }
         }
 
         #endregion
@@ -263,7 +267,8 @@ namespace Pomona
             string externalPropertyName, remainingExternalPath;
             TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
 
-            var prop = Properties.OfType<PropertyMapping>().First(x => x.Name.ToLower() == externalPropertyName.ToLower());
+            var prop =
+                Properties.OfType<PropertyMapping>().First(x => x.Name.ToLower() == externalPropertyName.ToLower());
 
             if (prop.PropertyInfo == null)
             {
@@ -298,7 +303,7 @@ namespace Pomona
         public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
         {
             // TODO: Create a dictionary for this if suboptimal.
-            return properties.First(x => x.JsonName == jsonPropertyName);
+            return this.properties.First(x => x.JsonName == jsonPropertyName);
         }
 
 
@@ -308,7 +313,7 @@ namespace Pomona
                 propertyName = propertyName.ToLower();
 
             // TODO: Possible to optimize here by putting property names in a dictionary
-            return properties.First(x => x.Name == propertyName);
+            return this.properties.First(x => x.Name == propertyName);
         }
 
 
@@ -327,7 +332,7 @@ namespace Pomona
 
             foreach (
                 var ctorProp in
-                    properties.Where(
+                    this.properties.Where(
                         x => x.CreateMode == PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
             {
                 // TODO: Proper validation here!

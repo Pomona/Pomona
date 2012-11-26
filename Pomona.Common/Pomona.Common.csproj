@@ -89,6 +89,14 @@
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PutResourceBase.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
+    <Compile Include="Serialization\ISerializationContext.cs" />
+    <Compile Include="Serialization\ISerializer.cs" />
+    <Compile Include="Serialization\ISerializerNode.cs" />
+    <Compile Include="Serialization\ItemValueSerializerNode.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializer.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializerState.cs" />
+    <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
+    <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="TypeSystem\IMappedType.cs" />
     <Compile Include="TypeSystem\IPropertyInfo.cs" />

@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,39 +26,13 @@
 
 #endregion
 
-using System;
-using System.IO;
+using Pomona.Common;
 
-using Newtonsoft.Json;
-
-namespace Pomona.Serialization
+namespace Pomona.Common.Serialization
 {
-    public class PomonaJsonSerializerState : IDisposable
+    public interface ISerializer<TState>
     {
-        private readonly JsonTextWriter writer;
-
-
-        public PomonaJsonSerializerState(TextWriter textWriter)
-        {
-            if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
-            this.writer = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
-        }
-
-
-        public JsonWriter Writer
-        {
-            get { return this.writer; }
-        }
-
-        #region Implementation of IDisposable
-
-        public void Dispose()
-        {
-            // NOTE: Not sure if this is correct
-            this.writer.Flush();
-        }
-
-        #endregion
+        void SerializeNode(ISerializerNode node, TState state);
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TState state);
     }
 }

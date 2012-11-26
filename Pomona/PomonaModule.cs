@@ -286,7 +286,8 @@ namespace Pomona
             foreach (var prop in type.Properties)
             {
                 var transformedProp = prop as PropertyMapping;
-                if (transformedProp != null && transformedProp.IsOneToManyCollection && transformedProp.ElementForeignKey != null)
+                if (transformedProp != null && transformedProp.IsOneToManyCollection
+                    && transformedProp.ElementForeignKey != null)
                 {
                     var collectionElementType = (TransformedType)prop.PropertyType.CollectionElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;

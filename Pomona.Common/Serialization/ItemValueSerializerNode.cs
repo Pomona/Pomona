@@ -28,20 +28,20 @@
 
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Serialization
+namespace Pomona.Common.Serialization
 {
     public class ItemValueSerializerNode : ISerializerNode
     {
         private string expandPath;
         private IMappedType expectedBaseType;
-        private FetchContext fetchContext;
+        private ISerializationContext fetchContext;
         private object value;
         private IMappedType valueType;
 
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, IMappedType expectedBaseType, string expandPath, FetchContext fetchContext)
+            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext fetchContext)
         {
             this.value = value;
             this.expectedBaseType = expectedBaseType;
@@ -60,7 +60,7 @@ namespace Pomona.Serialization
             get { return this.expectedBaseType; }
         }
 
-        public FetchContext FetchContext
+        public ISerializationContext FetchContext
         {
             get { return this.fetchContext; }
         }
@@ -72,7 +72,7 @@ namespace Pomona.Serialization
 
         public string Uri
         {
-            get { return FetchContext.Session.GetUri(Value); }
+            get { return FetchContext.GetUri(Value); }
         }
 
         public object Value
@@ -85,11 +85,10 @@ namespace Pomona.Serialization
             get
             {
                 if (this.valueType == null)
-                    this.valueType = this.fetchContext.TypeMapper.GetClassMapping(Value.GetType());
+                    this.valueType = this.fetchContext.GetClassMapping(Value.GetType());
                 return this.valueType;
             }
         }
-
 
         #endregion
     }

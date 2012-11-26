@@ -217,7 +217,9 @@ namespace Pomona.CodeGen
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
-                foreach (var prop in classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
+                foreach (
+                    var prop in
+                        classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
                 {
                     if (prop.Name == "TheEnumValue")
                         Debugger.Break();

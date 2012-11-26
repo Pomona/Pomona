@@ -35,11 +35,10 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using Pomona.Common.TypeSystem;
 using Pomona.CodeGen;
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
-using Pomona.Queries;
-using Pomona.Serialization;
+using Pomona.Common.Serialization;
 
 namespace Pomona
 {
@@ -123,7 +122,8 @@ namespace Pomona
                 try
                 {
                     state = new PomonaJsonSerializerState(textWriter);
-                    serializer.SerializeNode(new ItemValueSerializerNode(o, transformedType, string.Empty, context), state);
+                    this.serializer.SerializeNode(
+                        new ItemValueSerializerNode(o, transformedType, string.Empty, context), state);
                 }
                 finally
                 {
@@ -176,6 +176,7 @@ namespace Pomona
         {
             return GetUri(entity) + "/" + property.LowerCaseName;
         }
+
 
         public string GetUri(object entity)
         {
@@ -402,7 +403,7 @@ namespace Pomona
 
             var context = new FetchContext(query.ExpandedPaths, false, this);
             var state = new PomonaJsonSerializerState(writer);
-            serializer.SerializeQueryResult((PomonaQuery)query, queryResult, context, state);
+            this.serializer.SerializeQueryResult(queryResult, context, state);
             return null;
         }
     }

@@ -94,7 +94,8 @@ namespace Pomona
             {
                 context.Session.JsonSerializer.Serialize(writer, target);
             }
-            else */ if (this.targetType is SharedType && ((SharedType)this.targetType).MappedType == typeof(Dictionary<,>))
+            else */
+            if (this.targetType is SharedType && ((SharedType)this.targetType).MappedType == typeof(Dictionary<,>))
             {
                 // TODO: Support dictionary of other types too..
                 writer.WriteStartObject();
@@ -188,16 +189,6 @@ namespace Pomona
 
                 writer.WriteEndObject();
             }
-        }
-
-
-        private bool TypeAndAllTypeArgumentsAreShared(IMappedType mappedType)
-        {
-            var sharedType = mappedType as SharedType;
-            if (sharedType == null)
-                return false;
-
-            return !mappedType.IsGenericType || mappedType.GenericArguments.All(TypeAndAllTypeArgumentsAreShared);
         }
 
 
@@ -301,6 +292,16 @@ namespace Pomona
             }
 
             return elementType != null;
+        }
+
+
+        private bool TypeAndAllTypeArgumentsAreShared(IMappedType mappedType)
+        {
+            var sharedType = mappedType as SharedType;
+            if (sharedType == null)
+                return false;
+
+            return !mappedType.IsGenericType || mappedType.GenericArguments.All(TypeAndAllTypeArgumentsAreShared);
         }
 
 

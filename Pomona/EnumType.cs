@@ -95,6 +95,11 @@ namespace Pomona
             get { return false; }
         }
 
+        public bool IsDictionary
+        {
+            get { return false; }
+        }
+
         public bool IsGenericType
         {
             get { return false; }
@@ -125,9 +130,9 @@ namespace Pomona
             get { return this.mappedType.Name; }
         }
 
-        public bool IsDictionary
+        IMappedType IMappedType.DictionaryKeyType
         {
-            get { return false; }
+            get { throw new NotSupportedException(); }
         }
 
         IMappedType IMappedType.DictionaryType
@@ -135,19 +140,9 @@ namespace Pomona
             get { throw new NotSupportedException(); }
         }
 
-        IMappedType IMappedType.DictionaryKeyType
-        {
-            get { throw new NotSupportedException(); }
-        }
-
         IMappedType IMappedType.DictionaryValueType
         {
             get { throw new NotSupportedException(); }
-        }
-
-        TypeSerializationMode IMappedType.SerializationMode
-        {
-            get { return TypeSerializationMode.Value; }
         }
 
         bool IMappedType.HasUri
@@ -158,6 +153,11 @@ namespace Pomona
         IList<IPropertyInfo> IMappedType.Properties
         {
             get { return new IPropertyInfo[] { }; }
+        }
+
+        TypeSerializationMode IMappedType.SerializationMode
+        {
+            get { return TypeSerializationMode.Value; }
         }
 
         #endregion

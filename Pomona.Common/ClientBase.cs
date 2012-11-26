@@ -712,9 +712,7 @@ namespace Pomona.Common
             if (string.IsNullOrEmpty(expand))
                 expand = attributesProperty.Name.ToLower();
             else
-            {
                 expand = expand + "," + attributesProperty.Name.ToLower();
-            }
 
             var transformedExpression = Expression.Lambda(newBody, newParameter);
 

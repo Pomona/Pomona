@@ -28,16 +28,15 @@
 
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Serialization
+namespace Pomona.Common.Serialization
 {
-    public interface ISerializerNode
+    public static class SerializerExtensions
     {
-        string ExpandPath { get; }
-        IMappedType ExpectedBaseType { get; }
-        FetchContext FetchContext { get; }
-        bool SerializeAsReference { get; }
-        string Uri { get; }
-        object Value { get; }
-        IMappedType ValueType { get; }
+        public static void SerializeProperty<TSerializer, TState>(
+            this ISerializerNode node, TSerializer serializer, TState state, IPropertyInfo property)
+            where TSerializer : ISerializer<TState>
+        {
+            serializer.SerializeNode(new PropertyValueSerializerNode(node, property, node.FetchContext), state);
+        }
     }
 }

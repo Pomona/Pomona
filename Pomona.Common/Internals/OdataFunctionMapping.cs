@@ -112,7 +112,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<float>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<decimal>>(x => x.Sum(), "sum({0})");
 
-            Add<IDictionary<WildcardType, WildcardType>>(x => x.Contains(null, null), "contains({0},{1})", MethodCallStyle.Chained);
+            Add<IDictionary<WildcardType, WildcardType>>(
+                x => x.Contains(null, null), "contains({0},{1})", MethodCallStyle.Chained);
         }
 
 

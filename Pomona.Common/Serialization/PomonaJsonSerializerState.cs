@@ -27,18 +27,38 @@
 #endregion
 
 using System;
+using System.IO;
 
-using Pomona.Common.TypeSystem;
+using Newtonsoft.Json;
 
-namespace Pomona.Serialization
+namespace Pomona.Common.Serialization
 {
-    public static class SerializerExtensions
+    public class PomonaJsonSerializerState : IDisposable
     {
-        public static void SerializeProperty<TSerializer, TState>(
-            this ISerializerNode node, TSerializer serializer, TState state, IPropertyInfo property)
-            where TSerializer : ISerializer<TState>
+        private readonly JsonTextWriter writer;
+
+
+        public PomonaJsonSerializerState(TextWriter textWriter)
         {
-            serializer.SerializeNode(new PropertyValueSerializerNode(node, property, node.FetchContext), state);
+            if (textWriter == null)
+                throw new ArgumentNullException("textWriter");
+            this.writer = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
         }
+
+
+        public JsonWriter Writer
+        {
+            get { return this.writer; }
+        }
+
+        #region Implementation of IDisposable
+
+        public void Dispose()
+        {
+            // NOTE: Not sure if this is correct
+            this.writer.Flush();
+        }
+
+        #endregion
     }
 }

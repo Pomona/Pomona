@@ -1,33 +1,30 @@
+#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
 // 
-// System.Web.HttpUtility
-//
-// Authors:
-//   Patrik Torstensson (Patrik.Torstensson@labs2.com)
-//   Wictor Wilén (decode/encode functions) (wictor@ibizkit.se)
-//   Tim Coleman (tim@timcoleman.com)
-//   Gonzalo Paniagua Javier (gonzalo@ximian.com)
-//
-// Copyright (C) 2005-2010 Novell, Inc (http://www.novell.com)
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
+// Copyright © 2012 Karsten Nikolai Strand
 // 
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
 // 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections;
@@ -40,19 +37,17 @@ namespace Pomona.Common
 {
     public sealed class HttpUtility
     {
-        sealed class HttpQSCollection : NameValueCollection
+        private sealed class HttpQSCollection : NameValueCollection
         {
             public override string ToString()
             {
-                int count = Count;
+                var count = Count;
                 if (count == 0)
                     return "";
-                StringBuilder sb = new StringBuilder();
-                string[] keys = AllKeys;
-                for (int i = 0; i < count; i++)
-                {
+                var sb = new StringBuilder();
+                var keys = AllKeys;
+                for (var i = 0; i < count; i++)
                     sb.AppendFormat("{0}={1}&", keys[i], this[keys[i]]);
-                }
                 if (sb.Length > 0)
                     sb.Length--;
                 return sb.ToString();
@@ -86,6 +81,7 @@ namespace Pomona.Common
 #endif
         }
 
+
         public static string HtmlAttributeEncode(string s)
         {
 #if NET_4_0
@@ -101,26 +97,30 @@ namespace Pomona.Common
 #endif
         }
 
+
         public static string UrlDecode(string str)
         {
             return UrlDecode(str, Encoding.UTF8);
         }
 
-        static char[] GetChars(MemoryStream b, Encoding e)
+
+        private static char[] GetChars(MemoryStream b, Encoding e)
         {
             return e.GetChars(b.GetBuffer(), 0, (int)b.Length);
         }
 
-        static void WriteCharBytes(IList buf, char ch, Encoding e)
+
+        private static void WriteCharBytes(IList buf, char ch, Encoding e)
         {
             if (ch > 255)
             {
-                foreach (byte b in e.GetBytes(new char[] { ch }))
+                foreach (var b in e.GetBytes(new char[] { ch }))
                     buf.Add(b);
             }
             else
                 buf.Add((byte)ch);
         }
+
 
         public static string UrlDecode(string s, Encoding e)
         {
@@ -138,7 +138,7 @@ namespace Pomona.Common
             int xchar;
             char ch;
 
-            for (int i = 0; i < len; i++)
+            for (var i = 0; i < len; i++)
             {
                 ch = s[i];
                 if (ch == '%' && i + 2 < len && s[i + 1] != '%')
@@ -161,9 +161,7 @@ namespace Pomona.Common
                         i += 2;
                     }
                     else
-                    {
                         WriteCharBytes(bytes, '%', e);
-                    }
                     continue;
                 }
 
@@ -173,11 +171,11 @@ namespace Pomona.Common
                     WriteCharBytes(bytes, ch, e);
             }
 
-            byte[] buf = bytes.ToArray();
+            var buf = bytes.ToArray();
             bytes = null;
             return e.GetString(buf);
-
         }
+
 
         public static string UrlDecode(byte[] bytes, Encoding e)
         {
@@ -187,9 +185,10 @@ namespace Pomona.Common
             return UrlDecode(bytes, 0, bytes.Length, e);
         }
 
-        static int GetInt(byte b)
+
+        private static int GetInt(byte b)
         {
-            char c = (char)b;
+            var c = (char)b;
             if (c >= '0' && c <= '9')
                 return c - '0';
 
@@ -202,13 +201,14 @@ namespace Pomona.Common
             return -1;
         }
 
-        static int GetChar(byte[] bytes, int offset, int length)
+
+        private static int GetChar(byte[] bytes, int offset, int length)
         {
-            int value = 0;
-            int end = length + offset;
-            for (int i = offset; i < end; i++)
+            var value = 0;
+            var end = length + offset;
+            for (var i = offset; i < end; i++)
             {
-                int current = GetInt(bytes[i]);
+                var current = GetInt(bytes[i]);
                 if (current == -1)
                     return -1;
                 value = (value << 4) + current;
@@ -217,17 +217,18 @@ namespace Pomona.Common
             return value;
         }
 
-        static int GetChar(string str, int offset, int length)
+
+        private static int GetChar(string str, int offset, int length)
         {
-            int val = 0;
-            int end = length + offset;
-            for (int i = offset; i < end; i++)
+            var val = 0;
+            var end = length + offset;
+            for (var i = offset; i < end; i++)
             {
-                char c = str[i];
+                var c = str[i];
                 if (c > 127)
                     return -1;
 
-                int current = GetInt((byte)c);
+                var current = GetInt((byte)c);
                 if (current == -1)
                     return -1;
                 val = (val << 4) + current;
@@ -235,6 +236,7 @@ namespace Pomona.Common
 
             return val;
         }
+
 
         public static string UrlDecode(byte[] bytes, int offset, int count, Encoding e)
         {
@@ -252,12 +254,12 @@ namespace Pomona.Common
             if (count < 0 || offset + count > bytes.Length)
                 throw new ArgumentOutOfRangeException("count");
 
-            StringBuilder output = new StringBuilder();
-            MemoryStream acc = new MemoryStream();
+            var output = new StringBuilder();
+            var acc = new MemoryStream();
 
-            int end = count + offset;
+            var end = count + offset;
             int xchar;
-            for (int i = offset; i < end; i++)
+            for (var i = offset; i < end; i++)
             {
                 if (bytes[i] == '%' && i + 2 < count && bytes[i + 1] != '%')
                 {
@@ -291,23 +293,18 @@ namespace Pomona.Common
                 }
 
                 if (bytes[i] == '+')
-                {
                     output.Append(' ');
-                }
                 else
-                {
                     output.Append((char)bytes[i]);
-                }
             }
 
             if (acc.Length > 0)
-            {
                 output.Append(GetChars(acc, e));
-            }
 
             acc = null;
             return output.ToString();
         }
+
 
         public static byte[] UrlDecodeToBytes(byte[] bytes)
         {
@@ -317,10 +314,12 @@ namespace Pomona.Common
             return UrlDecodeToBytes(bytes, 0, bytes.Length);
         }
 
+
         public static byte[] UrlDecodeToBytes(string str)
         {
             return UrlDecodeToBytes(str, Encoding.UTF8);
         }
+
 
         public static byte[] UrlDecodeToBytes(string str, Encoding e)
         {
@@ -333,6 +332,7 @@ namespace Pomona.Common
             return UrlDecodeToBytes(e.GetBytes(str));
         }
 
+
         public static byte[] UrlDecodeToBytes(byte[] bytes, int offset, int count)
         {
             if (bytes == null)
@@ -340,25 +340,23 @@ namespace Pomona.Common
             if (count == 0)
                 return new byte[0];
 
-            int len = bytes.Length;
+            var len = bytes.Length;
             if (offset < 0 || offset >= len)
                 throw new ArgumentOutOfRangeException("offset");
 
             if (count < 0 || offset > len - count)
                 throw new ArgumentOutOfRangeException("count");
 
-            MemoryStream result = new MemoryStream();
-            int end = offset + count;
-            for (int i = offset; i < end; i++)
+            var result = new MemoryStream();
+            var end = offset + count;
+            for (var i = offset; i < end; i++)
             {
-                char c = (char)bytes[i];
+                var c = (char)bytes[i];
                 if (c == '+')
-                {
                     c = ' ';
-                }
                 else if (c == '%' && i < end - 2)
                 {
-                    int xchar = GetChar(bytes, i + 1, 2);
+                    var xchar = GetChar(bytes, i + 1, 2);
                     if (xchar != -1)
                     {
                         c = (char)xchar;
@@ -371,10 +369,12 @@ namespace Pomona.Common
             return result.ToArray();
         }
 
+
         public static string UrlEncode(string str)
         {
             return UrlEncode(str, Encoding.UTF8);
         }
+
 
         public static string UrlEncode(string s, Encoding Enc)
         {
@@ -384,11 +384,11 @@ namespace Pomona.Common
             if (s == String.Empty)
                 return String.Empty;
 
-            bool needEncode = false;
-            int len = s.Length;
-            for (int i = 0; i < len; i++)
+            var needEncode = false;
+            var len = s.Length;
+            for (var i = 0; i < len; i++)
             {
-                char c = s[i];
+                var c = s[i];
                 if ((c < '0') || (c < 'A' && c > '9') || (c > 'Z' && c < 'a') || (c > 'z'))
                 {
                     if (HttpEncoder.NotEncoded(c))
@@ -403,10 +403,11 @@ namespace Pomona.Common
                 return s;
 
             // avoided GetByteCount call
-            byte[] bytes = new byte[Enc.GetMaxByteCount(s.Length)];
-            int realLen = Enc.GetBytes(s, 0, s.Length, bytes, 0);
+            var bytes = new byte[Enc.GetMaxByteCount(s.Length)];
+            var realLen = Enc.GetBytes(s, 0, s.Length, bytes, 0);
             return Encoding.ASCII.GetString(UrlEncodeToBytes(bytes, 0, realLen));
         }
+
 
         public static string UrlEncode(byte[] bytes)
         {
@@ -419,6 +420,7 @@ namespace Pomona.Common
             return Encoding.ASCII.GetString(UrlEncodeToBytes(bytes, 0, bytes.Length));
         }
 
+
         public static string UrlEncode(byte[] bytes, int offset, int count)
         {
             if (bytes == null)
@@ -430,10 +432,12 @@ namespace Pomona.Common
             return Encoding.ASCII.GetString(UrlEncodeToBytes(bytes, offset, count));
         }
 
+
         public static byte[] UrlEncodeToBytes(string str)
         {
             return UrlEncodeToBytes(str, Encoding.UTF8);
         }
+
 
         public static byte[] UrlEncodeToBytes(string str, Encoding e)
         {
@@ -443,9 +447,10 @@ namespace Pomona.Common
             if (str.Length == 0)
                 return new byte[0];
 
-            byte[] bytes = e.GetBytes(str);
+            var bytes = e.GetBytes(str);
             return UrlEncodeToBytes(bytes, 0, bytes.Length);
         }
+
 
         public static byte[] UrlEncodeToBytes(byte[] bytes)
         {
@@ -458,6 +463,7 @@ namespace Pomona.Common
             return UrlEncodeToBytes(bytes, 0, bytes.Length);
         }
 
+
         public static byte[] UrlEncodeToBytes(byte[] bytes, int offset, int count)
         {
             if (bytes == null)
@@ -469,6 +475,7 @@ namespace Pomona.Common
 #endif
         }
 
+
         public static string UrlEncodeUnicode(string str)
         {
             if (str == null)
@@ -476,6 +483,7 @@ namespace Pomona.Common
 
             return Encoding.ASCII.GetString(UrlEncodeUnicodeToBytes(str));
         }
+
 
         public static byte[] UrlEncodeUnicodeToBytes(string str)
         {
@@ -485,13 +493,12 @@ namespace Pomona.Common
             if (str.Length == 0)
                 return new byte[0];
 
-            MemoryStream result = new MemoryStream(str.Length);
-            foreach (char c in str)
-            {
+            var result = new MemoryStream(str.Length);
+            foreach (var c in str)
                 HttpEncoder.UrlEncodeChar(c, result, true);
-            }
             return result.ToArray();
         }
+
 
         /// <summary>
         /// Decodes an HTML-encoded string and returns the decoded string.
@@ -512,6 +519,7 @@ namespace Pomona.Common
             return HttpEncoder.HtmlDecode(s);
 #endif
         }
+
 
         /// <summary>
         /// Decodes an HTML-encoded string and sends the resulting output to a TextWriter output stream.
@@ -539,6 +547,7 @@ namespace Pomona.Common
             }
         }
 
+
         public static string HtmlEncode(string s)
         {
 #if NET_4_0
@@ -553,6 +562,7 @@ namespace Pomona.Common
             return HttpEncoder.HtmlEncode(s);
 #endif
         }
+
 
         /// <summary>
         /// HTML-encodes a string and sends the resulting output to a TextWriter output stream.
@@ -579,6 +589,8 @@ namespace Pomona.Common
 #endif
             }
         }
+
+
 #if NET_4_0
 		public static string HtmlEncode (object value)
 		{
@@ -666,6 +678,8 @@ namespace Pomona.Common
 			return sb.ToString ();
 		}
 #endif
+
+
         public static string UrlPathEncode(string s)
         {
 #if NET_4_0
@@ -675,10 +689,12 @@ namespace Pomona.Common
 #endif
         }
 
+
         public static NameValueCollection ParseQueryString(string query)
         {
             return ParseQueryString(query, Encoding.UTF8);
         }
+
 
         public static NameValueCollection ParseQueryString(string query, Encoding encoding)
         {
@@ -696,24 +712,23 @@ namespace Pomona.Common
             return result;
         }
 
+
         internal static void ParseQueryString(string query, Encoding encoding, NameValueCollection result)
         {
             if (query.Length == 0)
                 return;
 
-            string decoded = HtmlDecode(query);
-            int decodedLength = decoded.Length;
-            int namePos = 0;
-            bool first = true;
+            var decoded = HtmlDecode(query);
+            var decodedLength = decoded.Length;
+            var namePos = 0;
+            var first = true;
             while (namePos <= decodedLength)
             {
                 int valuePos = -1, valueEnd = -1;
-                for (int q = namePos; q < decodedLength; q++)
+                for (var q = namePos; q < decodedLength; q++)
                 {
                     if (valuePos == -1 && decoded[q] == '=')
-                    {
                         valuePos = q + 1;
-                    }
                     else if (decoded[q] == '&')
                     {
                         valueEnd = q;
@@ -735,18 +750,14 @@ namespace Pomona.Common
                     valuePos = namePos;
                 }
                 else
-                {
                     name = UrlDecode(decoded.Substring(namePos, valuePos - namePos - 1), encoding);
-                }
                 if (valueEnd < 0)
                 {
                     namePos = -1;
                     valueEnd = decoded.Length;
                 }
                 else
-                {
                     namePos = valueEnd + 1;
-                }
                 value = UrlDecode(decoded.Substring(valuePos, valueEnd - valuePos), encoding);
 
                 result.Add(name, value);
@@ -754,6 +765,7 @@ namespace Pomona.Common
                     break;
             }
         }
+
         #endregion // Methods
     }
 }

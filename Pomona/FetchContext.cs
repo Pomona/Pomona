@@ -26,22 +26,19 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 
 using Pomona.Common.TypeSystem;
+using Pomona.Common.Serialization;
 
 namespace Pomona
 {
-    public class FetchContext
+    public class FetchContext : ISerializationContext
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
         private readonly PomonaSession session;
-
-        public PomonaSession Session
-        {
-            get { return this.session; }
-        }
 
         private readonly TypeMapper typeMapper;
 
@@ -63,6 +60,11 @@ namespace Pomona
             get { return this.debugMode; }
         }
 
+        public PomonaSession Session
+        {
+            get { return this.session; }
+        }
+
         public TypeMapper TypeMapper
         {
             get { return this.typeMapper; }
@@ -79,6 +81,13 @@ namespace Pomona
             return new ObjectWrapper(target, path, this, expectedBaseType);
         }
 
+
+        public IMappedType GetClassMapping(Type type)
+        {
+            return this.typeMapper.GetClassMapping(type);
+        }
+
+
         public string GetUri(IPropertyInfo property, object entity)
         {
             return this.session.GetUri(property, entity);
@@ -91,7 +100,7 @@ namespace Pomona
         }
 
 
-        internal bool PathToBeExpanded(string path)
+        public bool PathToBeExpanded(string path)
         {
             if (path == string.Empty)
                 return true;

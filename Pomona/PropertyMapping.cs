@@ -46,10 +46,6 @@ namespace Pomona
 
         #endregion
 
-        #region PropertyCreateMode enum
-
-        #endregion
-
         private readonly TransformedType declaringType;
         private readonly string name;
         private readonly PropertyInfo propertyInfo;
@@ -129,7 +125,7 @@ namespace Pomona
 
         public TypeMapper TypeMapper
         {
-            get { return declaringType.TypeMapper; }
+            get { return this.declaringType.TypeMapper; }
         }
     }
 }

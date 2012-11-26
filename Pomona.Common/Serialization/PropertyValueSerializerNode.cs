@@ -30,11 +30,11 @@ using System;
 
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Serialization
+namespace Pomona.Common.Serialization
 {
     public class PropertyValueSerializerNode : ISerializerNode
     {
-        private readonly FetchContext fetchContext;
+        private readonly ISerializationContext fetchContext;
         private string expandPath;
         private ISerializerNode parentNode;
         private bool propertyIsLoaded;
@@ -45,7 +45,7 @@ namespace Pomona.Serialization
         #region Implementation of ISerializerNode
 
         public PropertyValueSerializerNode(
-            ISerializerNode parentNode, IPropertyInfo propertyMapping, FetchContext fetchContext)
+            ISerializerNode parentNode, IPropertyInfo propertyMapping, ISerializationContext fetchContext)
         {
             if (parentNode == null)
                 throw new ArgumentNullException("parentNode");
@@ -79,7 +79,7 @@ namespace Pomona.Serialization
             get { return this.propertyMapping.PropertyType; }
         }
 
-        public FetchContext FetchContext
+        public ISerializationContext FetchContext
         {
             get { return this.fetchContext; }
         }
@@ -90,9 +90,9 @@ namespace Pomona.Serialization
             {
                 if (ExpectedBaseType.IsAlwaysExpanded)
                     return false;
-                if (FetchContext.ExpandedPaths.Contains(ExpandPath))
+                if (FetchContext.PathToBeExpanded(ExpandPath))
                     return false;
-                if (ExpectedBaseType.IsCollection && FetchContext.ExpandedPaths.Contains(ExpandPath + "!"))
+                if (ExpectedBaseType.IsCollection && FetchContext.PathToBeExpanded(ExpandPath + "!"))
                     return false;
 
                 return true;
@@ -103,7 +103,7 @@ namespace Pomona.Serialization
         {
             get
             {
-                if (this.propertyMapping.PropertyType is TransformedType)
+                if (this.propertyMapping.PropertyType.SerializationMode == TypeSerializationMode.Complex)
                     return FetchContext.GetUri(Value);
                 return FetchContext.GetUri(this.propertyMapping, this.parentNode.Value);
             }
@@ -129,7 +129,7 @@ namespace Pomona.Serialization
                 if (this.propertyValueType == null)
                 {
                     this.propertyValueType = Value != null
-                                                 ? FetchContext.TypeMapper.GetClassMapping(Value.GetType())
+                                                 ? FetchContext.GetClassMapping(Value.GetType())
                                                  : ExpectedBaseType;
                 }
                 return this.propertyValueType;

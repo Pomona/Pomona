@@ -132,13 +132,6 @@
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="Schemas\JsonSchemaGenerator.cs" />
-    <Compile Include="Serialization\ISerializer.cs" />
-    <Compile Include="Serialization\ISerializerNode.cs" />
-    <Compile Include="Serialization\ItemValueSerializerNode.cs" />
-    <Compile Include="Serialization\PomonaJsonSerializer.cs" />
-    <Compile Include="Serialization\PomonaJsonSerializerState.cs" />
-    <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
-    <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TypeMapper.cs" />
     <Compile Include="SharedType.cs" />

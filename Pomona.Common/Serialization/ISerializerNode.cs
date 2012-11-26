@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,14 +26,18 @@
 
 #endregion
 
-using Pomona.Common;
-using Pomona.Queries;
+using Pomona.Common.TypeSystem;
 
-namespace Pomona.Serialization
+namespace Pomona.Common.Serialization
 {
-    public interface ISerializer<TState>
+    public interface ISerializerNode
     {
-        void SerializeQueryResult(PomonaQuery query, QueryResult queryResult, FetchContext fetchContext, TState state);
-        void SerializeNode(ISerializerNode node, TState state);
+        string ExpandPath { get; }
+        IMappedType ExpectedBaseType { get; }
+        ISerializationContext FetchContext { get; }
+        bool SerializeAsReference { get; }
+        string Uri { get; }
+        object Value { get; }
+        IMappedType ValueType { get; }
     }
 }
