@@ -170,23 +170,8 @@ namespace Pomona
 
             if (this.filter.TypeIsMappedAsSharedType(type))
             {
-                SharedType newSharedType;
-                if (type.IsGenericType)
-                {
-                    newSharedType = new SharedType(type.GetGenericTypeDefinition(), type, this);
-                    foreach (var genericTypeArg in type.GetGenericArguments())
-                    {
-                        if (genericTypeArg == type)
-                        {
-                            // Special case, self referencing generics
-                            newSharedType.GenericArguments.Add(newSharedType);
-                        }
-                        else
-                            newSharedType.GenericArguments.Add(GetClassMapping(genericTypeArg));
-                    }
-                }
-                else
-                    newSharedType = new SharedType(type, type, this);
+                SharedType newSharedType = new SharedType(type, this);
+
 
                 newSharedType.JsonConverter = this.filter.GetJsonConverterForType(type);
                 newSharedType.CustomClientLibraryType = this.filter.GetClientLibraryType(type);

@@ -57,16 +57,17 @@ namespace Pomona
         private bool isDictionary;
 
 
-        public SharedType(Type mappedType, Type mappedTypeInstance, TypeMapper typeMapper)
+        public SharedType(Type mappedTypeInstance, TypeMapper typeMapper)
         {
-            if (mappedType == null)
-                throw new ArgumentNullException("targetType");
             if (mappedTypeInstance == null)
                 throw new ArgumentNullException("mappedTypeInstance");
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            this.mappedType = mappedType;
+
             this.mappedTypeInstance = mappedTypeInstance;
+            this.mappedType = mappedTypeInstance.IsGenericType
+                                  ? mappedTypeInstance.GetGenericTypeDefinition()
+                                  : mappedTypeInstance;
             this.typeMapper = typeMapper;
 
             var dictMetadataToken = typeof(IDictionary<,>).MetadataToken;
@@ -75,7 +76,7 @@ namespace Pomona
 
             if (!this.isDictionary)
             {
-                if (mappedType != typeof(string))
+                if (this.mappedType != typeof(string))
                 {
                     var collectionMetadataToken = typeof(ICollection<>).MetadataToken;
                     this.isCollection =
@@ -92,6 +93,8 @@ namespace Pomona
                 this.serializationMode = TypeSerializationMode.Value;
 
             GenericArguments = new List<IMappedType>();
+
+            InitializeGenericArguments();
         }
 
 
@@ -237,5 +240,22 @@ namespace Pomona
         }
 
         #endregion
+
+        private void InitializeGenericArguments()
+        {
+            if (this.mappedTypeInstance.IsGenericType)
+            {
+                foreach (var genericTypeArg in this.mappedTypeInstance.GetGenericArguments())
+                {
+                    if (genericTypeArg == this.mappedTypeInstance)
+                    {
+                        // Special case, self referencing generics
+                        GenericArguments.Add(this);
+                    }
+                    else
+                        GenericArguments.Add(this.typeMapper.GetClassMapping(genericTypeArg));
+                }
+            }
+        }
     }
 }
