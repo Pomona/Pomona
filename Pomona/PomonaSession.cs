@@ -55,7 +55,7 @@ namespace Pomona
         private readonly Func<Uri> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
-        private PomonaJsonSerializer serializer;
+        private ISerializer serializer;
 
 
         static PomonaSession()
@@ -88,7 +88,7 @@ namespace Pomona
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
             this.baseUriGetter = baseUriGetter;
-            this.serializer = new PomonaJsonSerializer();
+            this.serializer = typeMapper.SerializerFactory.GetSerialier();
         }
 
 
@@ -118,17 +118,17 @@ namespace Pomona
 
             if (UseNewSerializer)
             {
-                PomonaJsonSerializerState state = null;
+                ISerializerWriter writer = null;
                 try
                 {
-                    state = new PomonaJsonSerializerState(textWriter);
+                    writer = serializer.CreateWriter(textWriter);
                     this.serializer.SerializeNode(
-                        new ItemValueSerializerNode(o, transformedType, string.Empty, context), state);
+                        new ItemValueSerializerNode(o, transformedType, string.Empty, context), writer);
                 }
                 finally
                 {
-                    if (state != null)
-                        state.Dispose();
+                    if (writer != null && writer is IDisposable)
+                        ((IDisposable)writer).Dispose();
                 }
             }
             else
@@ -402,7 +402,7 @@ namespace Pomona
             var queryResult = this.dataSource.List<T>(query);
 
             var context = new FetchContext(query.ExpandedPaths, false, this);
-            var state = new PomonaJsonSerializerState(writer);
+            var state = new PomonaJsonSerializerWriter(writer);
             this.serializer.SerializeQueryResult(queryResult, context, state);
             return null;
         }

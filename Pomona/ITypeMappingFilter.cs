@@ -48,6 +48,7 @@ namespace Pomona
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);
 
+        bool PropertyIsPrimaryId(PropertyInfo propertyInfo);
 
         /// <summary>
         /// Gets a list of all types to CONSIDER for inclusion.

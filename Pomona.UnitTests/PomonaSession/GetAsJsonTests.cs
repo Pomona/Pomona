@@ -34,6 +34,7 @@ using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 
 using Pomona.Example.Models;
+using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.PomonaSession
 {

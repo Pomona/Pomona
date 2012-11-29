@@ -29,12 +29,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Newtonsoft.Json;
 
-using Pomona.Common.TypeSystem;
-
-namespace Pomona
+namespace Pomona.Common.TypeSystem
 {
     /// <summary>
     /// Represents a type that is shared between server and client.
@@ -50,14 +49,15 @@ namespace Pomona
 
         private readonly Type mappedType;
         private readonly Type mappedTypeInstance;
-        private readonly TypeSerializationMode serializationMode;
-        private readonly TypeMapper typeMapper;
+        private TypeSerializationMode serializationMode;
+        private readonly ITypeMapper typeMapper;
 
         private bool isCollection;
         private bool isDictionary;
+        private IList<IPropertyInfo> properties;
 
 
-        public SharedType(Type mappedTypeInstance, TypeMapper typeMapper)
+        public SharedType(Type mappedTypeInstance, ITypeMapper typeMapper)
         {
             if (mappedTypeInstance == null)
                 throw new ArgumentNullException("mappedTypeInstance");
@@ -92,7 +92,7 @@ namespace Pomona
             else
                 this.serializationMode = TypeSerializationMode.Value;
 
-            GenericArguments = new List<IMappedType>();
+            this.GenericArguments = new List<IMappedType>();
 
             InitializeGenericArguments();
         }
@@ -118,14 +118,33 @@ namespace Pomona
             get { return this.mappedTypeInstance; }
         }
 
+        public IPropertyInfo PrimaryId
+        {
+            get { return null; }
+        }
+
         public IList<IPropertyInfo> Properties
         {
-            get { throw new NotImplementedException(); }
+            get { return GetPropertiesLazy(); }
         }
+
+
+        private IList<IPropertyInfo> GetPropertiesLazy()
+        {
+            if (properties == null)
+            {
+                properties =
+                    mappedTypeInstance.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(
+                        x => new SharedPropertyInfo(x, typeMapper)).Cast<IPropertyInfo>().ToList();
+            }
+            return properties;
+        }
+
 
         public TypeSerializationMode SerializationMode
         {
             get { return this.serializationMode; }
+            set { this.serializationMode = value; }
         }
 
         #region IMappedType Members
@@ -135,23 +154,23 @@ namespace Pomona
             get { return (SharedType)this.typeMapper.GetClassMapping(this.mappedType.BaseType); }
         }
 
-        public IMappedType CollectionElementType
+        public IMappedType ElementType
         {
             get
             {
                 if (!this.isCollection)
                     throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
 
-                if (MappedType.IsArray)
-                    return this.typeMapper.GetClassMapping(MappedType.GetElementType());
+                if (this.MappedType.IsArray)
+                    return this.typeMapper.GetClassMapping(this.MappedType.GetElementType());
 
-                if (GenericArguments.Count == 0)
+                if (this.GenericArguments.Count == 0)
                 {
                     throw new InvalidOperationException(
                         "Does not know how to find out what element type this collection is of, it has no generic arguement!");
                 }
 
-                return GenericArguments[0];
+                return this.GenericArguments[0];
             }
         }
 
@@ -159,7 +178,7 @@ namespace Pomona
 
         public IMappedType DictionaryKeyType
         {
-            get { return DictionaryType.GenericArguments[0]; }
+            get { return this.DictionaryType.GenericArguments[0]; }
         }
 
         public IMappedType DictionaryType
@@ -182,7 +201,7 @@ namespace Pomona
 
         public IMappedType DictionaryValueType
         {
-            get { return DictionaryType.GenericArguments[1]; }
+            get { return this.DictionaryType.GenericArguments[1]; }
         }
 
         public IList<IMappedType> GenericArguments { get; private set; }
@@ -225,20 +244,6 @@ namespace Pomona
         }
 
 
-        public virtual void WriteJson(
-            JsonWriter jsonWriter,
-            object value,
-            IMappedType expectedType,
-            string parentPath,
-            string propName,
-            FetchContext context)
-        {
-            if (JsonConverter != null)
-                JsonConverter.WriteJson(jsonWriter, value, null);
-            else
-                jsonWriter.WriteValue(value);
-        }
-
         #endregion
 
         private void InitializeGenericArguments()
@@ -250,10 +255,10 @@ namespace Pomona
                     if (genericTypeArg == this.mappedTypeInstance)
                     {
                         // Special case, self referencing generics
-                        GenericArguments.Add(this);
+                        this.GenericArguments.Add(this);
                     }
                     else
-                        GenericArguments.Add(this.typeMapper.GetClassMapping(genericTypeArg));
+                        this.GenericArguments.Add(this.typeMapper.GetClassMapping(genericTypeArg));
                 }
             }
         }

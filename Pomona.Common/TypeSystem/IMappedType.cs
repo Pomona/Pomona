@@ -42,7 +42,7 @@ namespace Pomona.Common.TypeSystem
     public interface IMappedType
     {
         IMappedType BaseType { get; }
-        IMappedType CollectionElementType { get; }
+        IMappedType ElementType { get; }
         Type CustomClientLibraryType { get; }
         IMappedType DictionaryKeyType { get; }
         IMappedType DictionaryType { get; }
@@ -60,6 +60,7 @@ namespace Pomona.Common.TypeSystem
         Type MappedType { get; }
         Type MappedTypeInstance { get; }
         string Name { get; }
+        IPropertyInfo PrimaryId { get; }
         IList<IPropertyInfo> Properties { get; }
         TypeSerializationMode SerializationMode { get; }
     }

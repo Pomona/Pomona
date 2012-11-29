@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Linq.Expressions;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -42,11 +43,13 @@ namespace Pomona.Common.TypeSystem
         PropertyCreateMode CreateMode { get; }
         IMappedType DeclaringType { get; }
         Func<object, object> Getter { get; }
+        Expression CreateGetterExpression(Expression instance);
         bool IsWriteable { get; }
         string JsonName { get; }
         string LowerCaseName { get; }
         string Name { get; }
         IMappedType PropertyType { get; }
         Action<object, object> Setter { get; }
+        bool IsPrimaryKey { get; }
     }
 }

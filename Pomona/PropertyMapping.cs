@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.TypeSystem;
@@ -98,6 +99,12 @@ namespace Pomona
             get { return this.propertyType.IsCollection; }
         }
 
+        public Expression CreateGetterExpression(Expression instance)
+        {
+            return Expression.MakeMemberAccess(instance, PropertyInfo);
+        }
+
+
         public bool IsWriteable
         {
             get { return AccessMode == PropertyAccessMode.WriteOnly || AccessMode == PropertyAccessMode.ReadWrite; }
@@ -122,6 +129,11 @@ namespace Pomona
         }
 
         public Action<object, object> Setter { get; set; }
+
+        public bool IsPrimaryKey
+        {
+            get { return DeclaringType.PrimaryId == this; }
+        }
 
         public TypeMapper TypeMapper
         {

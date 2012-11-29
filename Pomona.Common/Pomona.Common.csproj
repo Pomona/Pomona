@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
+    <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="HttpEncoder.cs" />
@@ -71,7 +72,9 @@
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
+    <Compile Include="NameUtils.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />
+    <Compile Include="Proxies\PostResourceList.cs" />
     <Compile Include="Proxies\RuntimeProxyFactory.cs" />
     <Compile Include="Proxies\LazyListProxy.cs" />
     <Compile Include="Proxies\LazyProxyBase.cs" />
@@ -89,18 +92,27 @@
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PutResourceBase.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
+    <Compile Include="Serialization\ClientSerializationContext.cs" />
+    <Compile Include="Serialization\IPomonaSerializable.cs" />
     <Compile Include="Serialization\ISerializationContext.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
+    <Compile Include="Serialization\ISerializerFactory.cs" />
     <Compile Include="Serialization\ISerializerNode.cs" />
+    <Compile Include="Serialization\ISerializerWriter.cs" />
     <Compile Include="Serialization\ItemValueSerializerNode.cs" />
     <Compile Include="Serialization\PomonaJsonSerializer.cs" />
-    <Compile Include="Serialization\PomonaJsonSerializerState.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializerFactory.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializerWriter.cs" />
+    <Compile Include="Serialization\PomonaJsonSerializerTypeEntry.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
-    <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="SortOrder.cs" />
+    <Compile Include="TypeExtensions.cs" />
     <Compile Include="TypeSystem\IMappedType.cs" />
     <Compile Include="TypeSystem\IPropertyInfo.cs" />
+    <Compile Include="TypeSystem\ITypeMapper.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
+    <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
+    <Compile Include="TypeSystem\SharedType.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
   </ItemGroup>
   <ItemGroup>

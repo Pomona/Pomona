@@ -33,22 +33,22 @@ using Newtonsoft.Json;
 
 namespace Pomona.Common.Serialization
 {
-    public class PomonaJsonSerializerState : IDisposable
+    public class PomonaJsonSerializerWriter : ISerializerWriter, IDisposable
     {
-        private readonly JsonTextWriter writer;
+        private readonly JsonTextWriter jsonWriter;
 
 
-        public PomonaJsonSerializerState(TextWriter textWriter)
+        public PomonaJsonSerializerWriter(TextWriter textWriter)
         {
             if (textWriter == null)
                 throw new ArgumentNullException("textWriter");
-            this.writer = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
+            this.jsonWriter = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
         }
 
 
-        public JsonWriter Writer
+        public JsonWriter JsonWriter
         {
-            get { return this.writer; }
+            get { return this.jsonWriter; }
         }
 
         #region Implementation of IDisposable
@@ -56,7 +56,7 @@ namespace Pomona.Common.Serialization
         public void Dispose()
         {
             // NOTE: Not sure if this is correct
-            this.writer.Flush();
+            this.jsonWriter.Flush();
         }
 
         #endregion

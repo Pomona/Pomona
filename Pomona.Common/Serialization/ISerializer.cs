@@ -26,13 +26,22 @@
 
 #endregion
 
-using Pomona.Common;
+using System.IO;
 
 namespace Pomona.Common.Serialization
 {
-    public interface ISerializer<TState>
+    public interface ISerializer
     {
-        void SerializeNode(ISerializerNode node, TState state);
-        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TState state);
+        ISerializerWriter CreateWriter(TextWriter textWriter);
+        void SerializeNode(ISerializerNode node, ISerializerWriter writer);
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer);
+    }
+
+    public interface ISerializer<TWriter> : ISerializer
+        where TWriter : ISerializerWriter
+    {
+        new TWriter CreateWriter(TextWriter textWriter);
+        void SerializeNode(ISerializerNode node, TWriter writer);
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer);
     }
 }

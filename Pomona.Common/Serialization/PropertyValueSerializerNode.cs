@@ -45,17 +45,15 @@ namespace Pomona.Common.Serialization
         #region Implementation of ISerializerNode
 
         public PropertyValueSerializerNode(
-            ISerializerNode parentNode, IPropertyInfo propertyMapping, ISerializationContext fetchContext)
+            ISerializerNode parentNode, IPropertyInfo propertyMapping)
         {
             if (parentNode == null)
                 throw new ArgumentNullException("parentNode");
             if (propertyMapping == null)
                 throw new ArgumentNullException("propertyMapping");
-            if (fetchContext == null)
-                throw new ArgumentNullException("fetchContext");
             this.parentNode = parentNode;
             this.propertyMapping = propertyMapping;
-            this.fetchContext = fetchContext;
+            this.fetchContext = parentNode.FetchContext;
         }
 
 

@@ -113,7 +113,7 @@ namespace Pomona.Schemas
 
                 // hackity hack hack attack. silly code but should work for now.
                 propDef.Add(
-                    "items", new JObject(new JProperty("type", propType.CollectionElementType.GetSchemaTypeName())));
+                    "items", new JObject(new JProperty("type", propType.ElementType.GetSchemaTypeName())));
             }
 
             return propDef;

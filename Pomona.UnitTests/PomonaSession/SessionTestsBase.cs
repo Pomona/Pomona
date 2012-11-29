@@ -83,7 +83,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void SetUp()
         {
             this.dataSource = new CritterDataSource();
-            this.typeMapper = new TypeMapper(new CritterTypeMappingFilter());
+            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             this.session = new Pomona.PomonaSession(this.dataSource, this.typeMapper, UriResolver);
             this.firstCritter = this.dataSource.List<Critter>().First();
         }

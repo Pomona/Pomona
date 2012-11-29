@@ -36,7 +36,7 @@ using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
-    public class CritterTypeMappingFilter : TypeMappingFilterBase
+    internal class CritterTypeMappingFilter : TypeMappingFilterBase
     {
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
@@ -75,30 +75,6 @@ namespace Pomona.Example
 
             return base.GetJsonConverterForType(type);
         }
-
-
-        public override Type GetPostReturnType(Type type)
-        {
-            if (type == typeof(Order))
-                return typeof(OrderResponse);
-
-            return base.GetPostReturnType(type);
-        }
-
-
-        public override string GetPropertyMappedName(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo.DeclaringType == typeof(JunkWithRenamedProperty)
-                && propertyInfo.Name == "ReallyUglyPropertyName")
-                return "BeautifulAndExposed";
-
-            if (propertyInfo.DeclaringType == typeof(ThingWithRenamedReferenceProperty)
-                && propertyInfo.Name == "Junky")
-                return "DiscoFunky";
-
-            return base.GetPropertyMappedName(propertyInfo);
-        }
-
 
         public override IEnumerable<Type> GetSourceTypes()
         {

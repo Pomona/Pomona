@@ -89,27 +89,28 @@ namespace Pomona.Common.Proxies
             var baseDef = proxyBaseType.Resolve();
             var proxyOnGetMethod =
                 Module.Import((MethodReference)baseDef.Methods.First(x => x.Name == "OnGet"));
-            var proxyOnSetMethod =
-                Module.Import((MethodReference)baseDef.Methods.First(x => x.Name == "OnSet"));
-
             if (proxyOnGetMethod.GenericParameters.Count != 2)
             {
                 throw new InvalidOperationException(
                     "OnGet method of base class is required to have two generic parameters.");
             }
+            var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
+            proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);
+            proxyOnGetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
+
+            var proxyOnSetMethod =
+                Module.Import((MethodReference)baseDef.Methods.First(x => x.Name == "OnSet"));
             if (proxyOnSetMethod.GenericParameters.Count != 2)
             {
                 throw new InvalidOperationException(
                     "OnSet method of base class is required to have two generic parameters.");
             }
-
-            var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
-            proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);
-            proxyOnGetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
-
             var proxyOnSetMethodInstance = new GenericInstanceMethod(proxyOnSetMethod);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyTargetType);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
+
+
+
 
             var getIl = proxyProp.GetMethod.Body.GetILProcessor();
             getIl.Emit(OpCodes.Ldarg_0);

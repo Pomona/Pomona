@@ -42,6 +42,7 @@ using Newtonsoft.Json.Linq;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
+using Pomona.Common.Serialization;
 using Pomona.Internals;
 
 namespace Pomona.Common
@@ -115,6 +116,8 @@ namespace Pomona.Common
         private readonly JsonSerializer jsonSerializer;
         private readonly WebClient webClient = new WebClient();
         private string baseUri;
+        private ISerializerFactory serializerFactory;
+        private ISerializer serializer;
 
 
         static ClientBase()
@@ -157,6 +160,8 @@ namespace Pomona.Common
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
 
+            this.serializerFactory = new PomonaJsonSerializerFactory();
+            this.serializer = serializerFactory.GetSerialier();
             InstantiateClientRepositories();
         }
 
@@ -339,6 +344,7 @@ namespace Pomona.Common
             // TODO: Implement baseuri property or something.
 
             // Post the json!
+
             var requestJson = ((PutResourceBase)newProxy).ToJson(this.jsonSerializer);
             requestJson["_type"] = resourceInfo.JsonTypeName;
             var response = UploadToUri(uri, requestJson, "POST");

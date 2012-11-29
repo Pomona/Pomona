@@ -28,28 +28,40 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using Pomona.Common.Serialization;
+
 namespace Pomona.Common.Proxies
 {
-    public class PutResourceBase
+    public class PutResourceBase : IPomonaSerializable
     {
-        private Dictionary<string, object> putMap = new Dictionary<string, object>();
+        private Dictionary<string, bool> dirtyMap = new Dictionary<string, bool>();
+        private Dictionary<string, object> propMap = new Dictionary<string, object>();
 
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             object value;
-            if (!this.putMap.TryGetValue(property.Name, out value))
+            if (!this.propMap.TryGetValue(property.Name, out value))
             {
-                if (property.PropertyInfo.PropertyType == typeof(IDictionary<string, string>))
+                var propertyType = property.PropertyInfo.PropertyType;
+                if (propertyType.IsGenericInstanceOf(typeof(IDictionary<,>)))
                 {
-                    // TODO: Fix this for all non-complex types..
-                    object newDict = new Dictionary<string, string>();
-                    this.putMap[property.Name] = newDict;
+                    var newDictType = typeof(Dictionary<,>).MakeGenericType(propertyType.GetGenericArguments());
+                    var newDict = Activator.CreateInstance(newDictType);
+                    this.propMap[property.Name] = newDict;
                     return (TPropType)newDict;
+                }
+                if (propertyType.IsGenericInstanceOf(typeof(ICollection<>), typeof(IList<>)))
+                {
+                    var newListType = typeof(PostResourceList<>).MakeGenericType(propertyType.GetGenericArguments());
+                    var newList = Activator.CreateInstance(newListType, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.CreateInstance, null, new object[] { this, property.Name }, null);
+                    this.propMap[property.Name] = newList;
+                    return (TPropType)newList;
                 }
                 throw new InvalidOperationException("Update value for " + property.Name + " has not been set");
             }
@@ -60,7 +72,14 @@ namespace Pomona.Common.Proxies
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
-            this.putMap[property.Name] = value;
+            this.propMap[property.Name] = value;
+            this.dirtyMap[property.Name] = true;
+        }
+
+
+        internal void SetDirty(string propertyName)
+        {
+            this.dirtyMap[propertyName] = true;
         }
 
 
@@ -68,9 +87,9 @@ namespace Pomona.Common.Proxies
         {
             var jObject = new JObject();
 
-            foreach (var kvp in this.putMap)
+            foreach (var kvp in this.propMap)
             {
-                var jsonName = kvp.Key.Substring(0, 1).ToLower() + kvp.Key.Substring(1);
+                var jsonName = kvp.Key.LowercaseFirstLetter();
                 var value = kvp.Value;
 
                 var putValue = value as PutResourceBase;
@@ -108,5 +127,14 @@ namespace Pomona.Common.Proxies
 
             return jObject;
         }
+
+        #region Implementation of IPomonaSerializable
+
+        bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
+        {
+            return this.dirtyMap.GetValueOrDefault(propertyName);
+        }
+
+        #endregion
     }
 }

@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.Common;
+
 namespace Pomona
 {
     public static class SingularToPluralTranslator

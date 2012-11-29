@@ -77,9 +77,17 @@ namespace Pomona
             }
         }
 
+        
+
         #region ITypeMappingFilter Members
 
         public abstract object GetIdFor(object entity);
+
+        public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.Name.ToLower() == "id";
+        }
+
 
         public abstract IEnumerable<Type> GetSourceTypes();
 

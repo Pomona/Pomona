@@ -29,50 +29,82 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 
-using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
-    public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializerState>
+    // Provides custom rules for serialization
+
+    public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializerWriter>
     {
+        private readonly IDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache;
+
+
+        internal PomonaJsonSerializer(IDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache)
+        {
+            if (typeCache == null)
+                throw new ArgumentNullException("typeCache");
+            this.typeCache = typeCache;
+        }
+
         #region Implementation of ISerializer<PomonaJsonSerializerState>
 
-        public void SerializeNode(ISerializerNode node, PomonaJsonSerializerState state)
+        public PomonaJsonSerializerWriter CreateWriter(TextWriter textWriter)
+        {
+            return new PomonaJsonSerializerWriter(textWriter);
+        }
+
+
+        public void SerializeNode(ISerializerNode node, ISerializerWriter writer)
+        {
+            SerializeNode(node, CastWriter(writer));
+        }
+
+
+        public void SerializeNode(ISerializerNode node, PomonaJsonSerializerWriter writer)
         {
             if (node.Value == null)
             {
-                state.Writer.WriteNull();
+                writer.JsonWriter.WriteNull();
                 return;
             }
             switch (node.ExpectedBaseType.SerializationMode)
             {
                 case TypeSerializationMode.Dictionary:
-                    SerializeDictionary(node, state);
+                    SerializeDictionary(node, writer);
                     break;
                 case TypeSerializationMode.Complex:
-                    SerializeComplex(node, state);
+                    SerializeComplex(node, writer);
                     break;
                 case TypeSerializationMode.Array:
-                    SerializeCollection(node, state);
+                    SerializeCollection(node, writer);
                     break;
                 case TypeSerializationMode.Value:
                     var jsonConverter = node.ValueType.JsonConverter;
                     if (jsonConverter != null)
-                        jsonConverter.WriteJson(state.Writer, node.Value, null);
+                        jsonConverter.WriteJson(writer.JsonWriter, node.Value, null);
                     else
-                        state.Writer.WriteValue(node.Value);
+                        writer.JsonWriter.WriteValue(node.Value);
                     break;
             }
         }
 
 
         public void SerializeQueryResult(
-            QueryResult queryResult, ISerializationContext fetchContext, PomonaJsonSerializerState state)
+            QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer)
         {
-            var jsonWriter = state.Writer;
+            SerializeQueryResult(queryResult, fetchContext, CastWriter(writer));
+        }
+
+
+        public void SerializeQueryResult(
+            QueryResult queryResult, ISerializationContext fetchContext, PomonaJsonSerializerWriter writer)
+        {
+            var jsonWriter = writer.JsonWriter;
             jsonWriter.WriteStartObject();
 
             jsonWriter.WritePropertyName("_type");
@@ -105,118 +137,152 @@ namespace Pomona.Common.Serialization
                     fetchContext.GetClassMapping(queryResult.ListType),
                     string.Empty,
                     fetchContext),
-                state);
+                writer);
 
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
         }
 
 
-        private static void SerializeReference(ISerializerNode node, PomonaJsonSerializerState state)
+        private static void SerializeReference(ISerializerNode node, PomonaJsonSerializerWriter writer)
         {
-            var writer = state.Writer;
+            var jsonWriter = writer.JsonWriter;
 
-            writer.WriteStartObject();
-            writer.WritePropertyName("_ref");
-            writer.WriteValue(node.Uri);
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("_ref");
+            jsonWriter.WriteValue(node.Uri);
             if (node.ExpectedBaseType != node.ValueType)
             {
-                writer.WritePropertyName("_type");
-                writer.WriteValue(node.ValueType.Name);
+                jsonWriter.WritePropertyName("_type");
+                jsonWriter.WriteValue(node.ValueType.Name);
             }
 
-            writer.WriteEndObject();
+            jsonWriter.WriteEndObject();
         }
 
 
-        private void SerializeCollection(ISerializerNode node, PomonaJsonSerializerState state)
+        private PomonaJsonSerializerWriter CastWriter(ISerializerWriter writer)
         {
-            var writer = state.Writer;
+            var castedWriter = writer as PomonaJsonSerializerWriter;
+            if (castedWriter == null)
+                throw new ArgumentException("Writer required to be of type PomonaJsonSerializationWriter", "writer");
+            return castedWriter;
+        }
+
+
+        private void SerializeCollection(ISerializerNode node, PomonaJsonSerializerWriter writer)
+        {
+            var jsonWriter = writer.JsonWriter;
             if (node.SerializeAsReference)
             {
-                writer.WriteStartObject();
-                writer.WritePropertyName("_ref");
-                writer.WriteValue(node.Uri);
-                writer.WriteEndObject();
+                jsonWriter.WriteStartObject();
+                jsonWriter.WritePropertyName("_ref");
+                jsonWriter.WriteValue(node.Uri);
+                jsonWriter.WriteEndObject();
             }
             else
             {
-                writer.WriteStartArray();
-                var elementType = node.ExpectedBaseType.CollectionElementType;
+                jsonWriter.WriteStartArray();
+                var elementType = node.ExpectedBaseType.ElementType;
                 foreach (var item in (IEnumerable)node.Value)
                 {
                     SerializeNode(
-                        new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.FetchContext), state);
+                        new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.FetchContext), writer);
                 }
-                writer.WriteEndArray();
+                jsonWriter.WriteEndArray();
             }
         }
 
 
-        private void SerializeComplex(ISerializerNode node, PomonaJsonSerializerState state)
+        private void SerializeComplex(ISerializerNode node, PomonaJsonSerializerWriter writer)
         {
             if (node.Value == null)
-                state.Writer.WriteNull();
+                writer.JsonWriter.WriteNull();
             else if (node.SerializeAsReference)
-                SerializeReference(node, state);
+                SerializeReference(node, writer);
             else
-                SerializeExpanded(node, state);
+                SerializeExpanded(node, writer);
         }
 
 
-        private void SerializeDictionary(ISerializerNode node, PomonaJsonSerializerState state)
+        private void SerializeDictionary(ISerializerNode node, PomonaJsonSerializerWriter writer)
         {
             var keyMappedType = node.ExpectedBaseType.DictionaryKeyType.MappedTypeInstance;
             var valueMappedType = node.ExpectedBaseType.DictionaryValueType.MappedTypeInstance;
             typeof(PomonaJsonSerializer)
                 .GetMethod("SerializeDictionaryGeneric", BindingFlags.NonPublic | BindingFlags.Instance)
                 .MakeGenericMethod(keyMappedType, valueMappedType)
-                .Invoke(this, new object[] { node, state });
+                .Invoke(this, new object[] { node, writer });
         }
 
 
         private void SerializeDictionaryGeneric<TKey, TValue>(
-            ISerializerNode node, PomonaJsonSerializerState state)
+            ISerializerNode node, PomonaJsonSerializerWriter writer)
         {
-            var writer = state.Writer;
+            var jsonWriter = writer.JsonWriter;
             var dict = (IDictionary<TKey, TValue>)node.Value;
             var expectedValueType = node.ExpectedBaseType.DictionaryValueType;
 
-            writer.WriteStartObject();
+            jsonWriter.WriteStartObject();
             foreach (var kvp in dict)
             {
                 // TODO: Support other key types than string
-                writer.WritePropertyName((string)((object)kvp.Key));
+                jsonWriter.WritePropertyName((string)((object)kvp.Key));
                 SerializeNode(
                     new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.FetchContext),
-                    state);
+                    writer);
             }
-            writer.WriteEndObject();
+            jsonWriter.WriteEndObject();
         }
 
 
-        private void SerializeExpanded(ISerializerNode node, PomonaJsonSerializerState state)
+        private void SerializeExpanded(ISerializerNode node, PomonaJsonSerializerWriter writer)
         {
-            var writer = state.Writer;
+            var jsonWriter = writer.JsonWriter;
 
-            writer.WriteStartObject();
+            jsonWriter.WriteStartObject();
             if (node.ValueType.HasUri)
             {
-                writer.WritePropertyName("_uri");
-                writer.WriteValue(node.Uri);
+                jsonWriter.WritePropertyName("_uri");
+                jsonWriter.WriteValue(node.Uri);
             }
             if (node.ExpectedBaseType != node.ValueType)
             {
-                writer.WritePropertyName("_type");
-                writer.WriteValue(node.ValueType.Name);
+                jsonWriter.WritePropertyName("_type");
+                jsonWriter.WriteValue(node.ValueType.Name);
             }
 
-            foreach (var prop in node.ValueType.Properties)
+            PomonaJsonSerializerTypeEntry cacheTypeEntry;
+            IEnumerable<IPropertyInfo> propertiesToSerialize = null;
+            if (typeCache.TryGetValue(node.ValueType, out cacheTypeEntry))
             {
-                writer.WritePropertyName(prop.JsonName);
-                node.SerializeProperty(this, state, prop);
+                cacheTypeEntry.WritePropertiesFunc(jsonWriter, node.Value);
+                propertiesToSerialize = cacheTypeEntry.ManuallyWrittenProperties;
             }
-            writer.WriteEndObject();
+
+            propertiesToSerialize = propertiesToSerialize ?? node.ValueType.Properties;
+
+            var pomonaSerializable = node.Value as IPomonaSerializable;
+            if (pomonaSerializable != null)
+            {
+                propertiesToSerialize = propertiesToSerialize.Where(x => pomonaSerializable.PropertyIsSerialized(x.Name));
+            }
+
+            foreach (var prop in propertiesToSerialize)
+            {
+                jsonWriter.WritePropertyName(prop.JsonName);
+                SerializeNode(new PropertyValueSerializerNode(node, prop), writer);
+            }
+            jsonWriter.WriteEndObject();
+        }
+
+        #endregion
+
+        #region Implementation of ISerializer
+
+        ISerializerWriter ISerializer.CreateWriter(TextWriter textWriter)
+        {
+            return CreateWriter(textWriter);
         }
 
         #endregion

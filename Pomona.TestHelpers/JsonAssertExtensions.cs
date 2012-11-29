@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2012 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@ using NUnit.Framework;
 
 using Newtonsoft.Json.Linq;
 
-namespace Pomona.UnitTests
+namespace Pomona.TestHelpers
 {
     public static class JsonAssertExtensions
     {

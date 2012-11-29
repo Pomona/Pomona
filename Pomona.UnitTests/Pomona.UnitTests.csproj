@@ -66,7 +66,6 @@
   <ItemGroup>
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
-    <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="JsonSchemaGeneratorTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />
@@ -87,6 +86,10 @@
     <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
       <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
       <Name>Pomona.Example</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pomona.TestHelpers\Pomona.TestHelpers.csproj">
+      <Project>{bf914b52-ebe9-422b-af7f-fc7f48cee550}</Project>
+      <Name>Pomona.TestHelpers</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pomona\Pomona.csproj">
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>

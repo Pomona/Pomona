@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{D38E1728-EC41-4780-843E-5F9D6C35C641}</ProjectGuid>
+    <ProjectGuid>{BF914B52-EBE9-422B-AF7F-FC7F48CEE550}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CritterClientTests</RootNamespace>
-    <AssemblyName>CritterClientTests</AssemblyName>
+    <RootNamespace>Pomona.TestHelpers</RootNamespace>
+    <AssemblyName>Pomona.TestHelpers</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +23,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,19 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Critters.Client">
-      <HintPath>..\lib\Critters.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Nancy, Version=0.13.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nancy.0.13.0\lib\net40\Nancy.dll</HintPath>
-    </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=0.13.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nancy.Hosting.Self.0.13.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
@@ -62,31 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientTestsBase.cs" />
-    <Compile Include="CritterModuleInternal.cs" />
-    <Compile Include="CritterTests.cs" />
-    <Compile Include="JsonClientSerializationTests.cs" />
-    <Compile Include="PostTests.cs" />
+    <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
-      <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
-      <Name>Pomona.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
-      <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
-      <Name>Pomona.Example</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pomona.TestHelpers\Pomona.TestHelpers.csproj">
-      <Project>{bf914b52-ebe9-422b-af7f-fc7f48cee550}</Project>
-      <Name>Pomona.TestHelpers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pomona\Pomona.csproj">
-      <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
-      <Name>Pomona</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

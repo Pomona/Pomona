@@ -221,9 +221,6 @@ namespace Pomona.CodeGen
                     var prop in
                         classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
                 {
-                    if (prop.Name == "TheEnumValue")
-                        Debugger.Break();
-
                     var propTypeRef = GetPropertyTypeReference(prop);
 
                     // For interface getters and setters
@@ -588,7 +585,7 @@ namespace Pomona.CodeGen
             if (prop.IsOneToManyCollection
                 && this.typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
             {
-                var elementTypeReference = GetTypeReference(prop.PropertyType.CollectionElementType);
+                var elementTypeReference = GetTypeReference(prop.PropertyType.ElementType);
                 propTypeRef =
                     GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
                         elementTypeReference, elementTypeReference);

@@ -43,7 +43,7 @@ namespace Pomona.UnitTests
         [SetUp]
         public void SetUp()
         {
-            this.typeMapper = new TypeMapper(new CritterTypeMappingFilter());
+            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
         }
 
         #endregion

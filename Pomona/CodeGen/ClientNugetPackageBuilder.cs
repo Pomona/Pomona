@@ -27,11 +27,18 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.IO;
+
+using Mono.Cecil;
+
+using Newtonsoft.Json;
 
 using NuGet;
 
 using Pomona.Common;
+
+using System.Linq;
 
 namespace Pomona.CodeGen
 {
@@ -91,12 +98,20 @@ namespace Pomona.CodeGen
                     null,
                     new[]
                     {
-                        new PackageDependency(
-                        "Mono.Cecil", new VersionSpec(new SemanticVersion("0.9.5.0"))),
-                        new PackageDependency("Newtonsoft.Json", new VersionSpec(new SemanticVersion("4.5.11"))),
+                        CreatePackageDependency<TypeDefinition>(4),
+                        CreatePackageDependency<JsonSerializer>(3)
                     }));
 
             packageBuilder.Save(stream);
+        }
+
+        PackageDependency CreatePackageDependency<TInAssembly>(int versionPartCount)
+        {
+            var assembly = typeof(TInAssembly).Assembly;
+            var packageName = assembly.GetName().Name;
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var strippedVersion = string.Join(".", fvi.FileVersion.Split('.').Take(versionPartCount));
+            return new PackageDependency(packageName, new VersionSpec( new SemanticVersion(strippedVersion)));
         }
 
 

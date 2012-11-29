@@ -32,23 +32,52 @@ using System.Linq;
 
 using Common.Logging;
 
+using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
+using Pomona.FluentMapping;
 
 namespace Pomona
 {
-    public class TypeMapper
+    public abstract class PomonaConfigurationBase
     {
+        public abstract ITypeMappingFilter TypeMappingFilter { get; }
+        public abstract IEnumerable<object> FluentRuleObjects { get; }
+    }
+    public class TypeMapper : ITypeMapper
+    {
+        private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private readonly HashSet<Type> sourceTypes;
         private ILog log = LogManager.GetLogger(typeof(TypeMapper));
+        private ISerializerFactory serializerFactory;
 
-
-        public TypeMapper(ITypeMappingFilter filter)
+        /// <summary>
+        /// The Json serializer factory.
+        /// TODO: This should be moved out of here..
+        /// </summary>
+        public ISerializerFactory SerializerFactory
         {
+            get { return this.serializerFactory; }
+        }
+
+
+        public TypeMapper(PomonaConfigurationBase configuration)
+        {
+            if (configuration == null)
+                throw new ArgumentNullException("configuration");
+            this.configuration = configuration;
+            
+            filter = configuration.TypeMappingFilter;
+            var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
+            if (fluentRuleObjects.Length > 0)
+                filter = new FluentTypeMappingFilter(filter, fluentRuleObjects);
+
+
             if (filter == null)
                 throw new ArgumentNullException("filter");
-            this.filter = filter;
+
             this.sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
 
             foreach (var sourceType in this.sourceTypes)
@@ -56,6 +85,8 @@ namespace Pomona
                 GetClassMapping(sourceType);
                 MapForeignKeys();
             }
+
+            serializerFactory = new PomonaJsonSerializerFactory(TransformedTypes);
         }
 
 

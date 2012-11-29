@@ -68,7 +68,7 @@ namespace Pomona
             get { return null; }
         }
 
-        public IMappedType CollectionElementType
+        public IMappedType ElementType
         {
             get { throw new NotSupportedException(); }
         }
@@ -128,6 +128,11 @@ namespace Pomona
         public string Name
         {
             get { return this.mappedType.Name; }
+        }
+
+        public IPropertyInfo PrimaryId
+        {
+            get { return null; }
         }
 
         IMappedType IMappedType.DictionaryKeyType

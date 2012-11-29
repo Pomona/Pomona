@@ -137,12 +137,12 @@ namespace Pomona
             // TODO: Fix that this only works if primary key is named Id [KNS]
 
             // Fetch entity first to see if entity with id actually exists.
-            var entity = this.session.GetAsJson((TransformedType)key.PropertyType, id, null);
+            this.session.GetAsJson((TransformedType)key.PropertyType, id, null);
 
             if (Request.Query["$filter"].HasValue)
             {
                 Request.Query["$filter"] = string.Format(
-                    "{0}.id eq {1} and ({2})", key.JsonName, id, Request.Query["$filter"]);
+                    "{0}.{1} eq {2} and ({3})", key.JsonName, key.PropertyType.PrimaryId.JsonName, id, Request.Query["$filter"]);
             }
             else
                 Request.Query["$filter"] = string.Format("{0}.id eq {1}", key.JsonName, id);
@@ -289,7 +289,7 @@ namespace Pomona
                 if (transformedProp != null && transformedProp.IsOneToManyCollection
                     && transformedProp.ElementForeignKey != null)
                 {
-                    var collectionElementType = (TransformedType)prop.PropertyType.CollectionElementType;
+                    var collectionElementType = (TransformedType)prop.PropertyType.ElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;
 
                     Get[path + "/{id}/" + prop.JsonName] =

@@ -100,6 +100,8 @@ namespace Pomona
         /// </summary>
         public TransformedType PostReturnType { get; set; }
 
+        public IPropertyInfo PrimaryId { get; set; }
+
         public IList<IPropertyInfo> Properties
         {
             get { return new CastingListWrapper<IPropertyInfo>(this.properties); }
@@ -123,7 +125,7 @@ namespace Pomona
 
         public IMappedType BaseType { get; set; }
 
-        public IMappedType CollectionElementType
+        public IMappedType ElementType
         {
             get
             {
@@ -236,7 +238,7 @@ namespace Pomona
             {
                 var pathType = prop.PropertyType;
                 if (pathType.IsCollection)
-                    pathType = pathType.CollectionElementType;
+                    pathType = pathType.ElementType;
 
                 var nextType = (TransformedType)pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
@@ -409,6 +411,8 @@ namespace Pomona
                 propDef.Getter = getter;
                 propDef.Setter = setter;
                 propDef.AlwaysExpand = filter.PropertyIsAlwaysExpanded(propInfo);
+                if (filter.PropertyIsPrimaryId(propInfo))
+                    PrimaryId = propDef;
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 // TODO: This should rather be configured by filter.
