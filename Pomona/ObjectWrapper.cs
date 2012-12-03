@@ -45,14 +45,14 @@ namespace Pomona
                 typeof (List<>)
             };
 
-        private readonly FetchContext context;
+        private readonly ServerSerializationContext context;
         private readonly IMappedType expectedBaseType;
         private readonly string path;
         private readonly object target;
         private readonly IMappedType targetType;
 
 
-        public ObjectWrapper(object target, string path, FetchContext context, IMappedType expectedBaseType)
+        public ObjectWrapper(object target, string path, ServerSerializationContext context, IMappedType expectedBaseType)
         {
             if (target == null)
                 throw new ArgumentNullException("target");

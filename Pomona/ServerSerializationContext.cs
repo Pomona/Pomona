@@ -33,7 +33,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class FetchContext : ISerializationContext
+    public class ServerSerializationContext : ISerializationContext
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
@@ -42,7 +42,7 @@ namespace Pomona
         private readonly TypeMapper typeMapper;
 
 
-        public FetchContext(
+        public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
             PomonaSession session)

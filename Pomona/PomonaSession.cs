@@ -113,7 +113,7 @@ namespace Pomona
             var o = GetById(transformedType, id);
             var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
+            var context = new ServerSerializationContext(string.Format("{0},{1}", rootPath, expand), false, this);
 
             if (UseNewSerializer)
             {
@@ -164,7 +164,7 @@ namespace Pomona
             var propertyType = property.PropertyType;
 
             var rootPath = propertyName.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
+            var context = new ServerSerializationContext(string.Format("{0},{1}", rootPath, expand), false, this);
 
             var wrapper = context.CreateWrapperFor(propertyValue, rootPath, propertyType);
             wrapper.ToJson(textWriter);
@@ -224,7 +224,7 @@ namespace Pomona
             var rootPath = subclassType.Name.ToLower(); // We want paths to be case insensitive
             var o = PostJsonInternal(subclassType, jObject);
 
-            var context = new FetchContext(rootPath, false, this);
+            var context = new ServerSerializationContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, transformedType);
             wrapper.ToJson(textWriter);
         }
@@ -245,7 +245,7 @@ namespace Pomona
             var o = GetById(transformedType, id);
             var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new FetchContext(rootPath, false, this);
+            var context = new ServerSerializationContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.UpdateFromJson(textReader);
             wrapper.ToJson(textWriter);
@@ -400,7 +400,7 @@ namespace Pomona
         {
             var queryResult = dataSource.List<T>(query);
 
-            var context = new FetchContext(query.ExpandedPaths, false, this);
+            var context = new ServerSerializationContext(query.ExpandedPaths, false, this);
             var state = new PomonaJsonSerializer.Writer(writer);
             serializer.SerializeQueryResult(queryResult, context, state);
             return null;
