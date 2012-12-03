@@ -27,7 +27,6 @@
 #endregion
 
 using NUnit.Framework;
-
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.TestHelpers
@@ -58,14 +57,14 @@ namespace Pomona.TestHelpers
         public static double AssertHasPropertyWithDouble(this JToken jtoken, string propertyName)
         {
             var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
-            return (double)jsonValue.Value;
+            return (double) jsonValue.Value;
         }
 
 
         public static long AssertHasPropertyWithInteger(this JToken jtoken, string propertyName)
         {
             var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
-            return (long)jsonValue.Value;
+            return (long) jsonValue.Value;
         }
 
 
@@ -98,7 +97,7 @@ namespace Pomona.TestHelpers
                     "JSON property {0} is not of type JValue. Contents:\r\n{1}",
                     propertyName,
                     jobject));
-            return (string)jsonValue.Value;
+            return (string) jsonValue.Value;
         }
 
 
@@ -133,9 +132,9 @@ namespace Pomona.TestHelpers
                 "Object does not contain property with name \"" + propertyName + "\":\r\n" + jobject);
 
             if (!(propToken is T))
-                Assert.Fail("Expected that property " + propertyName + " had a value of JSON type " + typeof(T).Name);
+                Assert.Fail("Expected that property " + propertyName + " had a value of JSON type " + typeof (T).Name);
 
-            return (T)propToken;
+            return (T) propToken;
         }
 
 

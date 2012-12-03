@@ -28,9 +28,7 @@
 
 using System;
 using System.Linq;
-
 using NUnit.Framework;
-
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -45,17 +43,17 @@ namespace Pomona.UnitTests.PomonaSession
 
         public Critter FirstCritter
         {
-            get { return this.firstCritter; }
+            get { return firstCritter; }
         }
 
         public int FirstCritterId
         {
-            get { return this.firstCritter.Id; }
+            get { return firstCritter.Id; }
         }
 
         public MusicalCritter MusicalCritter
         {
-            get { return this.dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
+            get { return dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
         }
 
         public int MusicalCritterId
@@ -65,27 +63,27 @@ namespace Pomona.UnitTests.PomonaSession
 
         protected CritterDataSource DataSource
         {
-            get { return this.dataSource; }
+            get { return dataSource; }
         }
 
         protected Pomona.PomonaSession Session
         {
-            get { return this.session; }
+            get { return session; }
         }
 
         protected TypeMapper TypeMapper
         {
-            get { return this.typeMapper; }
+            get { return typeMapper; }
         }
 
 
         [SetUp]
         public void SetUp()
         {
-            this.dataSource = new CritterDataSource();
-            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.session = new Pomona.PomonaSession(this.dataSource, this.typeMapper, UriResolver);
-            this.firstCritter = this.dataSource.List<Critter>().First();
+            dataSource = new CritterDataSource();
+            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver);
+            firstCritter = dataSource.List<Critter>().First();
         }
 
 

@@ -28,9 +28,8 @@
 
 using System;
 using System.Collections.Generic;
-
-using Pomona.Common.TypeSystem;
 using Pomona.Common.Serialization;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
@@ -50,53 +49,47 @@ namespace Pomona
         {
             this.debugMode = debugMode;
             this.session = session;
-            this.typeMapper = session.TypeMapper;
+            typeMapper = session.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
 
         public bool DebugMode
         {
-            get { return this.debugMode; }
+            get { return debugMode; }
         }
 
         public PomonaSession Session
         {
-            get { return this.session; }
+            get { return session; }
         }
 
         public TypeMapper TypeMapper
         {
-            get { return this.typeMapper; }
+            get { return typeMapper; }
         }
 
         internal HashSet<string> ExpandedPaths
         {
-            get { return this.expandedPaths; }
-        }
-
-
-        public ObjectWrapper CreateWrapperFor(object target, string path, IMappedType expectedBaseType)
-        {
-            return new ObjectWrapper(target, path, this, expectedBaseType);
+            get { return expandedPaths; }
         }
 
 
         public IMappedType GetClassMapping(Type type)
         {
-            return this.typeMapper.GetClassMapping(type);
+            return typeMapper.GetClassMapping(type);
         }
 
 
         public string GetUri(IPropertyInfo property, object entity)
         {
-            return this.session.GetUri(property, entity);
+            return session.GetUri(property, entity);
         }
 
 
         public string GetUri(object value)
         {
-            return this.session.GetUri(value);
+            return session.GetUri(value);
         }
 
 
@@ -105,7 +98,33 @@ namespace Pomona
             if (path == string.Empty)
                 return true;
 
-            return this.expandedPaths.Contains(path.ToLower());
+            return expandedPaths.Contains(path.ToLower());
+        }
+
+
+        public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
+            where TWriter : ISerializerWriter
+        {
+            //    if (ExpectedBaseType.IsAlwaysExpanded)
+            //        return false;
+            //    if (this.Context.PathToBeExpanded(ExpandPath))
+            //        return false;
+            //    if (ExpectedBaseType.IsCollection && this.Context.PathToBeExpanded(ExpandPath + "!"))
+            //        return false;
+
+            //    return true;
+
+            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded || PathToBeExpanded(node.ExpandPath) ||
+                             (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"));
+
+            node.SerializeAsReference = !isExpanded;
+
+            serializer.SerializeNode(node, writer);
+        }
+
+        public ObjectWrapper CreateWrapperFor(object target, string path, IMappedType expectedBaseType)
+        {
+            return new ObjectWrapper(target, path, this, expectedBaseType);
         }
     }
 }

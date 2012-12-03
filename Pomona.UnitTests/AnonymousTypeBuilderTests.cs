@@ -28,9 +28,7 @@
 
 using System;
 using System.IO;
-
 using NUnit.Framework;
-
 using Pomona.CodeGen;
 
 namespace Pomona.UnitTests
@@ -38,16 +36,12 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class AnonymousTypeBuilderTests
     {
-        #region Setup/Teardown
-
         [SetUp]
         public void SetUp()
         {
-            this.propNames = new[] { "Number", "Text" };
-            this.builder = new AnonymousTypeBuilder(this.propNames);
+            propNames = new[] {"Number", "Text"};
+            builder = new AnonymousTypeBuilder(propNames);
         }
-
-        #endregion
 
         private string[] propNames;
         private AnonymousTypeBuilder builder;
@@ -56,7 +50,7 @@ namespace Pomona.UnitTests
         private object CreateAnonObject(int number, string text)
         {
             var type = BuildTypeAndLoad();
-            var typeInstance = type.MakeGenericType(typeof(int), typeof(string));
+            var typeInstance = type.MakeGenericType(typeof (int), typeof (string));
             var obj = Activator.CreateInstance(typeInstance, number, text);
             return obj;
         }
@@ -73,7 +67,7 @@ namespace Pomona.UnitTests
 
         private Type BuildTypeAndLoad()
         {
-            var typeDef = this.builder.BuildAnonymousType();
+            var typeDef = builder.BuildAnonymousType();
             var memStream = new MemoryStream();
             typeDef.Module.Assembly.Write(memStream);
             var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
@@ -149,7 +143,7 @@ namespace Pomona.UnitTests
         [Ignore]
         public void WriteAssemblyToFileForDebugging()
         {
-            var tb = new AnonymousTypeBuilder(new[] { "Foo", "Bar" });
+            var tb = new AnonymousTypeBuilder(new[] {"Foo", "Bar"});
             var def = tb.BuildAnonymousType();
             def.Module.Assembly.Write("tempasm.dll");
 

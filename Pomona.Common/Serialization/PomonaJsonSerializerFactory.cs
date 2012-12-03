@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -15,7 +14,7 @@ namespace Pomona.Common.Serialization
 
         public PomonaJsonSerializerFactory(IEnumerable<IMappedType> cachedTypes)
         {
-            this.typeCache = cachedTypes.ToDictionary(x => x, x => new PomonaJsonSerializerTypeEntry(x));
+            typeCache = cachedTypes.ToDictionary(x => x, x => new PomonaJsonSerializerTypeEntry(x));
         }
 
         #region Implementation of ISerializerFactory
@@ -23,6 +22,12 @@ namespace Pomona.Common.Serialization
         public ISerializer GetSerialier()
         {
             return new PomonaJsonSerializer(typeCache);
+        }
+
+
+        public IDeserializer GetDeserializer()
+        {
+            return new PomonaJsonDeserializer();
         }
 
         #endregion

@@ -12,7 +12,8 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AsUriBaseType();
         ITypeMappingConfigurator<TDeclaringType> AsValueObject();
 
-        ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(Expression<Func<TDeclaringType, TDeclaringType>> constructExpr);
+        ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+            Expression<Func<TDeclaringType, TDeclaringType>> constructExpr);
 
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);
 

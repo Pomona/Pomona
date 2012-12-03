@@ -27,7 +27,6 @@
 #endregion
 
 using System.Linq;
-
 using Antlr.Runtime.Tree;
 
 namespace Pomona.Queries
@@ -45,13 +44,13 @@ namespace Pomona.Queries
 
         public ITree SourceTreeNode
         {
-            get { return this.sourceTreeNode; }
+            get { return sourceTreeNode; }
         }
 
 
         public override string ToString()
         {
-            return base.ToString() + " " + this.sourceTreeNode;
+            return base.ToString() + " " + sourceTreeNode;
         }
     }
 }

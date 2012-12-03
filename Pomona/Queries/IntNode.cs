@@ -45,7 +45,7 @@ namespace Pomona.Queries
 
         public string Value
         {
-            get { return this.value; }
+            get { return value; }
         }
 
 
@@ -57,19 +57,19 @@ namespace Pomona.Queries
 
         public object Parse()
         {
-            var lastCharacter = this.value[this.value.Length - 1];
+            var lastCharacter = value[value.Length - 1];
             if (lastCharacter == 'm' || lastCharacter == 'M')
-                return decimal.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+                return decimal.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
             if (lastCharacter == 'f' || lastCharacter == 'F')
-                return float.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+                return float.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
 
-            var parts = this.value.Split('.');
+            var parts = value.Split('.');
             if (parts.Length == 1)
                 return int.Parse(parts[0], CultureInfo.InvariantCulture);
             if (parts.Length == 2)
-                return double.Parse(this.value, CultureInfo.InvariantCulture);
+                return double.Parse(value, CultureInfo.InvariantCulture);
 
-            throw new InvalidOperationException("Unable to parse " + this.value);
+            throw new InvalidOperationException("Unable to parse " + value);
         }
     }
 }

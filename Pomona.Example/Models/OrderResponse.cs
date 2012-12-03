@@ -41,7 +41,7 @@ namespace Pomona.Example.Models
 
         public Order Order
         {
-            get { return this.order; }
+            get { return order; }
         }
     }
 }

@@ -30,9 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 
 namespace Pomona.UnitTests.Client
@@ -44,6 +42,13 @@ namespace Pomona.UnitTests.Client
         {
             public string SomeString { get; set; }
             public IList<TestResource> TestResources { get; set; }
+        }
+
+        public enum TestEnum
+        {
+            Tick,
+            Tack,
+            Tock
         }
 
         public class TestResource : IClientResource
@@ -59,6 +64,7 @@ namespace Pomona.UnitTests.Client
             public double Precise { get; set; }
             public IList<FooBar> SomeList { get; set; }
             public TimeSpan TimeSpan { get; set; }
+            public TestEnum SomeEnum { get; set; }
         }
 
         public class Container
@@ -69,10 +75,25 @@ namespace Pomona.UnitTests.Client
 
         private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
         {
-            var builder = QueryPredicateBuilder.Create<TestResource, T>(predicate);
-            var queryString = builder.ToString();
+            var queryString = BuildQueryString(predicate);
             Console.WriteLine("Transformed \"" + predicate + "\" TO \"" + queryString + "\"");
             Assert.That(queryString, Is.EqualTo(expected));
+        }
+
+
+        private static string BuildQueryString<T>(Expression<Func<TestResource, T>> predicate)
+        {
+            var builder = QueryPredicateBuilder.Create<TestResource, T>(predicate);
+            var queryString = builder.ToString();
+            return queryString;
+        }
+
+        public static class SomeStaticClass
+        {
+            public static DateTime SomeDate
+            {
+                get { return new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc); }
+            }
         }
 
 
@@ -80,6 +101,20 @@ namespace Pomona.UnitTests.Client
         public void BuildAnyLambdaExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeList.Any(y => y.SomeString == "lalala"), "someList.any(y:y.someString eq 'lalala')");
+        }
+
+        [Test]
+        public void BuildComparisonWithEnum_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeEnum == TestEnum.Tock, "someEnum eq 'Tock'");
+            AssertBuild(x => TestEnum.Tick == x.SomeEnum, "'Tick' eq someEnum");
+        }
+
+        [Test]
+        public void BuildComparisonWithStaticMethodToBeTurnedToConstant_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Birthday == SomeStaticClass.SomeDate.AddDays(1),
+                        "birthday eq datetime'2222-11-02T01:01:01Z'");
         }
 
 
@@ -95,7 +130,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
         {
-            var container = new Container() { Junk = "Kirk" };
+            var container = new Container() {Junk = "Kirk"};
             var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == container.Junk);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("jalla eq 'Kirk'"));
@@ -107,7 +142,6 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.SomeList.Count == 4, "count(someList) eq 4");
         }
-
 
         [Test]
         public void BuildDateComponentExtractExpressions_ReturnsCorrectString()
@@ -313,11 +347,17 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildTrim_ReturnsCorrectString()
+        public void BuildTrimOfConstant_ReturnsCorrectString()
         {
-            AssertBuild(x => "   lallala   ".Trim(), "trim('   lallala   ')");
+            AssertBuild(x => "   lallala   ".Trim(), "'lallala'");
         }
 
+
+        [Test]
+        public void BuildTrimOfProperty_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.Trim(), "trim(jalla)");
+        }
 
         [Test]
         public void BuildTrue_ReturnsCorrectString()

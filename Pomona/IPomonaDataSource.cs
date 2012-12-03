@@ -27,7 +27,6 @@
 #endregion
 
 using System.Collections.Generic;
-
 using Pomona.Queries;
 
 namespace Pomona

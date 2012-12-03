@@ -28,7 +28,6 @@
 
 using System;
 using System.Linq;
-
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -57,17 +56,17 @@ namespace Pomona.Common.Proxies
             TypeReference proxyTargetType,
             TypeReference rootProxyTargetType)
         {
-            var propWrapperTypeDef = this.propertyWrapperType;
+            var propWrapperTypeDef = propertyWrapperType;
             var propWrapperTypeRef =
                 Module.Import(
                     propWrapperTypeDef.MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType));
 
             var propWrapperCtor = Module.Import(
-                (MethodReference)propWrapperTypeDef.GetConstructors().First(
+                (MethodReference) propWrapperTypeDef.GetConstructors().First(
                     x => !x.IsStatic &&
                          x.Parameters.Count == 1 &&
                          x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName).
-                                     MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType));
+                                                     MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType));
 
             var propertyWrapperField = new FieldDefinition(
                 "_pwrap_" + targetProp.Name,
@@ -88,7 +87,7 @@ namespace Pomona.Common.Proxies
 
             var baseDef = proxyBaseType.Resolve();
             var proxyOnGetMethod =
-                Module.Import((MethodReference)baseDef.Methods.First(x => x.Name == "OnGet"));
+                Module.Import((MethodReference) baseDef.Methods.First(x => x.Name == "OnGet"));
             if (proxyOnGetMethod.GenericParameters.Count != 2)
             {
                 throw new InvalidOperationException(
@@ -99,7 +98,7 @@ namespace Pomona.Common.Proxies
             proxyOnGetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
 
             var proxyOnSetMethod =
-                Module.Import((MethodReference)baseDef.Methods.First(x => x.Name == "OnSet"));
+                Module.Import((MethodReference) baseDef.Methods.First(x => x.Name == "OnSet"));
             if (proxyOnSetMethod.GenericParameters.Count != 2)
             {
                 throw new InvalidOperationException(
@@ -108,8 +107,6 @@ namespace Pomona.Common.Proxies
             var proxyOnSetMethodInstance = new GenericInstanceMethod(proxyOnSetMethod);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyTargetType);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
-
-
 
 
             var getIl = proxyProp.GetMethod.Body.GetILProcessor();
@@ -155,7 +152,7 @@ namespace Pomona.Common.Proxies
 
                 cctor.Body.MaxStackSize = 8;
                 var cctorIl = cctor.Body.GetILProcessor();
-                cctorIl.Emit(OpCodes.Call, (MethodReference)initPropertyWrappersMethod);
+                cctorIl.Emit(OpCodes.Call, (MethodReference) initPropertyWrappersMethod);
                 cctorIl.Emit(OpCodes.Ret);
             }
             return initPropertyWrappersMethod;

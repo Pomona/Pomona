@@ -28,7 +28,6 @@
 
 using System;
 using System.Linq.Expressions;
-
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 
@@ -49,7 +48,7 @@ namespace Pomona.Queries
 
         public Expression<Func<T, bool>> Parse<T>(string odataExpression)
         {
-            return (Expression<Func<T, bool>>)Parse(typeof(T), odataExpression);
+            return (Expression<Func<T, bool>>) Parse(typeof (T), odataExpression);
         }
 
 
@@ -63,11 +62,11 @@ namespace Pomona.Queries
             var tokens = new CommonTokenStream(lexer);
             var parser = new PomonaQueryParser(tokens);
             var parseReturn = parser.parse();
-            var tree = (CommonTree)parseReturn.Tree;
+            var tree = (CommonTree) parseReturn.Tree;
 
             var tempTree = PomonaQueryTreeParser.ParseTree(tree, 0);
 
-            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(this.queryPropertyResolver);
+            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(queryPropertyResolver);
 
             var lambdaExpression = nodeTreeToExpressionConverter.ToLambdaExpression(thisType, tempTree);
             return lambdaExpression;

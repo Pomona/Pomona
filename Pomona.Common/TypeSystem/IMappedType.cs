@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-
 using Newtonsoft.Json;
 
 namespace Pomona.Common.TypeSystem
@@ -63,5 +62,6 @@ namespace Pomona.Common.TypeSystem
         IPropertyInfo PrimaryId { get; }
         IList<IPropertyInfo> Properties { get; }
         TypeSerializationMode SerializationMode { get; }
+        object Create(IDictionary<IPropertyInfo, object> args);
     }
 }

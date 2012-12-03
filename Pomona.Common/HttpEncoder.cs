@@ -158,7 +158,7 @@ namespace Pomona.Common
                 ch = input[i];
 
                 if ((ch < 32 && ch != 9) || ch == 127)
-                    StringBuilderAppend(String.Format("%{0:x2}", (int)ch), ref sb);
+                    StringBuilderAppend(String.Format("%{0:x2}", (int) ch), ref sb);
             }
 
             if (sb != null)
@@ -259,7 +259,7 @@ namespace Pomona.Common
             var result = new MemoryStream(count);
             var end = offset + count;
             for (var i = offset; i < end; i++)
-                UrlEncodeChar((char)bytes[i], result, false);
+                UrlEncodeChar((char) bytes[i], result, false);
 
             return result.ToArray();
         }
@@ -329,7 +329,7 @@ namespace Pomona.Common
                         if (ch > 159 && ch < 256)
                         {
                             output.Append("&#");
-                            output.Append(((int)ch).ToString(CultureInfo.InvariantCulture));
+                            output.Append(((int) ch).ToString(CultureInfo.InvariantCulture));
                             output.Append(";");
                         }
                         else
@@ -516,7 +516,7 @@ namespace Pomona.Common
                             output.Append(";");
                         }
                         else
-                            output.Append((char)number);
+                            output.Append((char) number);
                         state = 0;
                         entity.Length = 0;
 #if NET_4_0
@@ -526,7 +526,7 @@ namespace Pomona.Common
                     }
                     else if (is_hex_value && Uri.IsHexDigit(c))
                     {
-                        number = number * 16 + Uri.FromHex(c);
+                        number = number*16 + Uri.FromHex(c);
                         have_trailing_digits = true;
 #if NET_4_0
 						rawEntity.Append (c);
@@ -534,7 +534,7 @@ namespace Pomona.Common
                     }
                     else if (Char.IsDigit(c))
                     {
-                        number = number * 10 + ((int)c - '0');
+                        number = number*10 + ((int) c - '0');
                         have_trailing_digits = true;
 #if NET_4_0
 						rawEntity.Append (c);
@@ -586,29 +586,29 @@ namespace Pomona.Common
                 //if (!isUnicode)
                 //	throw new ArgumentOutOfRangeException ("c", c, "c must be less than 256");
                 int idx;
-                var i = (int)c;
+                var i = (int) c;
 
-                result.WriteByte((byte)'%');
-                result.WriteByte((byte)'u');
+                result.WriteByte((byte) '%');
+                result.WriteByte((byte) 'u');
                 idx = i >> 12;
-                result.WriteByte((byte)hexChars[idx]);
+                result.WriteByte((byte) hexChars[idx]);
                 idx = (i >> 8) & 0x0F;
-                result.WriteByte((byte)hexChars[idx]);
+                result.WriteByte((byte) hexChars[idx]);
                 idx = (i >> 4) & 0x0F;
-                result.WriteByte((byte)hexChars[idx]);
+                result.WriteByte((byte) hexChars[idx]);
                 idx = i & 0x0F;
-                result.WriteByte((byte)hexChars[idx]);
+                result.WriteByte((byte) hexChars[idx]);
                 return;
             }
 
             if (c > ' ' && NotEncoded(c))
             {
-                result.WriteByte((byte)c);
+                result.WriteByte((byte) c);
                 return;
             }
             if (c == ' ')
             {
-                result.WriteByte((byte)'+');
+                result.WriteByte((byte) '+');
                 return;
             }
             if ((c < '0') ||
@@ -618,21 +618,21 @@ namespace Pomona.Common
             {
                 if (isUnicode && c > 127)
                 {
-                    result.WriteByte((byte)'%');
-                    result.WriteByte((byte)'u');
-                    result.WriteByte((byte)'0');
-                    result.WriteByte((byte)'0');
+                    result.WriteByte((byte) '%');
+                    result.WriteByte((byte) 'u');
+                    result.WriteByte((byte) '0');
+                    result.WriteByte((byte) '0');
                 }
                 else
-                    result.WriteByte((byte)'%');
+                    result.WriteByte((byte) '%');
 
-                var idx = ((int)c) >> 4;
-                result.WriteByte((byte)hexChars[idx]);
-                idx = ((int)c) & 0x0F;
-                result.WriteByte((byte)hexChars[idx]);
+                var idx = ((int) c) >> 4;
+                result.WriteByte((byte) hexChars[idx]);
+                idx = ((int) c) & 0x0F;
+                result.WriteByte((byte) hexChars[idx]);
             }
             else
-                result.WriteByte((byte)c);
+                result.WriteByte((byte) c);
         }
 
 
@@ -643,21 +643,21 @@ namespace Pomona.Common
                 var bIn = Encoding.UTF8.GetBytes(c.ToString());
                 for (var i = 0; i < bIn.Length; i++)
                 {
-                    result.WriteByte((byte)'%');
-                    var idx = ((int)bIn[i]) >> 4;
-                    result.WriteByte((byte)hexChars[idx]);
-                    idx = ((int)bIn[i]) & 0x0F;
-                    result.WriteByte((byte)hexChars[idx]);
+                    result.WriteByte((byte) '%');
+                    var idx = ((int) bIn[i]) >> 4;
+                    result.WriteByte((byte) hexChars[idx]);
+                    idx = ((int) bIn[i]) & 0x0F;
+                    result.WriteByte((byte) hexChars[idx]);
                 }
             }
             else if (c == ' ')
             {
-                result.WriteByte((byte)'%');
-                result.WriteByte((byte)'2');
-                result.WriteByte((byte)'0');
+                result.WriteByte((byte) '%');
+                result.WriteByte((byte) '2');
+                result.WriteByte((byte) '0');
             }
             else
-                result.WriteByte((byte)c);
+                result.WriteByte((byte) c);
         }
 
 

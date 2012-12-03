@@ -28,7 +28,6 @@
 
 using System;
 using System.Linq;
-
 using NUnit.Framework;
 
 namespace CritterClientTests.ConsoleAppRunner
@@ -46,13 +45,13 @@ namespace CritterClientTests.ConsoleAppRunner
 
             critterTests.FixtureSetUp();
 
-            var tests = typeof(CritterTests).GetMethods().Select(
+            var tests = typeof (CritterTests).GetMethods().Select(
                 x => new
-                {
-                    TestInfo =
-                         x.GetCustomAttributes(typeof(TestAttribute), false).OfType<TestAttribute>().FirstOrDefault(),
-                    Method = x
-                }).Where(x => x.TestInfo != null).ToList();
+                    {
+                        TestInfo =
+                         x.GetCustomAttributes(typeof (TestAttribute), false).OfType<TestAttribute>().FirstOrDefault(),
+                        Method = x
+                    }).Where(x => x.TestInfo != null).ToList();
 
             for (var i = 0; i < testRunCount; i++)
             {

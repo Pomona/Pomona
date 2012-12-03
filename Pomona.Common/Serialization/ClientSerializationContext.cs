@@ -1,5 +1,5 @@
 ﻿using System;
-
+using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -24,7 +24,8 @@ namespace Pomona.Common.Serialization
 
         public string GetUri(object value)
         {
-            return "http://todo";
+            var hasUriResource = value as IHasResourceUri;
+            return hasUriResource != null ? hasUriResource.Uri : null;
         }
 
 
@@ -37,6 +38,17 @@ namespace Pomona.Common.Serialization
         public bool PathToBeExpanded(string expandPath)
         {
             return true;
+        }
+
+
+        public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
+            where TWriter : ISerializerWriter
+        {
+            if (node.Value is IClientResource && !(node.Value is PutResourceBase))
+            {
+                node.SerializeAsReference = true;
+            }
+            serializer.SerializeNode(node, writer);
         }
 
         #endregion

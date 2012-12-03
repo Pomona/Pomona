@@ -41,48 +41,48 @@ namespace Pomona.Common.Proxies
 
         public ClientBase Client
         {
-            get { return this.client; }
-            internal set { this.client = value; }
+            get { return client; }
+            internal set { client = value; }
         }
 
         public object ProxyTarget
         {
-            get { return this.proxyTarget; }
-            internal set { this.proxyTarget = value; }
+            get { return proxyTarget; }
+            internal set { proxyTarget = value; }
         }
 
         public Type ProxyTargetType
         {
-            get { return this.proxyTargetType; }
-            internal set { this.proxyTargetType = value; }
+            get { return proxyTargetType; }
+            internal set { proxyTargetType = value; }
         }
 
         #region IHasResourceUri Members
 
         string IHasResourceUri.Uri
         {
-            get { return this.uri; }
-            set { this.uri = value; }
+            get { return uri; }
+            set { uri = value; }
         }
 
         #endregion
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (this.proxyTarget == null)
-                this.proxyTarget = this.client.GetUri(this.uri, this.proxyTargetType);
+            if (proxyTarget == null)
+                proxyTarget = client.GetUri(uri, proxyTargetType);
 
-            return property.Getter((TOwner)this.proxyTarget);
+            return property.Getter((TOwner) proxyTarget);
         }
 
 
         protected object OnPropertyGet(string propertyName)
         {
-            if (this.proxyTarget == null)
-                this.proxyTarget = this.client.GetUri(this.uri, this.proxyTargetType);
+            if (proxyTarget == null)
+                proxyTarget = client.GetUri(uri, proxyTargetType);
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return this.proxyTargetType.GetProperty(propertyName).GetValue(this.proxyTarget, null);
+            return proxyTargetType.GetProperty(propertyName).GetValue(proxyTarget, null);
         }
 
 

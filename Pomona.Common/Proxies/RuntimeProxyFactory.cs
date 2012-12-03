@@ -28,9 +28,7 @@
 
 using System;
 using System.IO;
-
 using Mono.Cecil;
-
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
@@ -42,7 +40,7 @@ namespace Pomona.Common.Proxies
 
         static RuntimeProxyFactory()
         {
-            var type = typeof(T);
+            var type = typeof (T);
             var typeName = type.Name;
             var assemblyName = typeName + "Proxy" + Guid.NewGuid().ToString();
             var assembly =
@@ -52,7 +50,7 @@ namespace Pomona.Common.Proxies
             var module = assembly.MainModule;
 
             var builder = new WrappedPropertyProxyBuilder(
-                module, module.Import(typeof(TProxyBase)), module.Import(typeof(PropertyWrapper<,>)).Resolve());
+                module, module.Import(typeof (TProxyBase)), module.Import(typeof (PropertyWrapper<,>)).Resolve());
 
             var typeDef = builder.CreateProxyType(typeName, module.Import(type).Resolve().WrapAsEnumerable());
 
@@ -71,7 +69,7 @@ namespace Pomona.Common.Proxies
 
         public static T Create()
         {
-            return (T)Activator.CreateInstance(proxyType);
+            return (T) Activator.CreateInstance(proxyType);
         }
     }
 }

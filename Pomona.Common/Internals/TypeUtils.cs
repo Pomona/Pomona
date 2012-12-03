@@ -38,7 +38,7 @@ namespace Pomona.Common.Internals
         {
             var baseType = type;
 
-            while (baseType != null && baseType != typeof(object))
+            while (baseType != null && baseType != typeof (object))
             {
                 yield return baseType;
                 baseType = baseType.BaseType;

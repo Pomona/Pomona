@@ -39,14 +39,14 @@ namespace Pomona
 
         static PomonaDataSourceExtensions()
         {
-            getByIdMethod = GetStaticMethodUsingReflection("GetByIdGeneric", typeof(IPomonaDataSource), typeof(object));
-            postMethod = GetStaticMethodUsingReflection("PostGeneric", typeof(IPomonaDataSource), typeof(object));
+            getByIdMethod = GetStaticMethodUsingReflection("GetByIdGeneric", typeof (IPomonaDataSource), typeof (object));
+            postMethod = GetStaticMethodUsingReflection("PostGeneric", typeof (IPomonaDataSource), typeof (object));
         }
 
 
         public static object GetById(this IPomonaDataSource dataSource, Type type, object id)
         {
-            return getByIdMethod.MakeGenericMethod(type).Invoke(null, new[] { dataSource, id });
+            return getByIdMethod.MakeGenericMethod(type).Invoke(null, new[] {dataSource, id});
         }
 
 
@@ -55,7 +55,7 @@ namespace Pomona
             if (submittedObject == null)
                 throw new ArgumentNullException("submittedObject");
             return postMethod.MakeGenericMethod(submittedObject.GetType()).Invoke(
-                null, new[] { dataSource, submittedObject });
+                null, new[] {dataSource, submittedObject});
         }
 
 
@@ -67,7 +67,7 @@ namespace Pomona
 
         private static MethodInfo GetStaticMethodUsingReflection(string methodName, params Type[] paramTypes)
         {
-            var method = typeof(PomonaDataSourceExtensions).GetMethod(
+            var method = typeof (PomonaDataSourceExtensions).GetMethod(
                 methodName,
                 BindingFlags.NonPublic | BindingFlags.Static,
                 null,
@@ -81,7 +81,7 @@ namespace Pomona
 
         private static object PostGeneric<T>(IPomonaDataSource dataSource, object submittedObject)
         {
-            return dataSource.Post((T)submittedObject);
+            return dataSource.Post((T) submittedObject);
         }
     }
 }

@@ -44,19 +44,19 @@ namespace Pomona.Queries
             if (Children[0].NodeType != NodeType.Symbol)
                 throw new PomonaExpressionSyntaxException("Left side of lambda expression needs to be a symbol.");
 
-            this.argument = Children[0] as SymbolNode;
-            this.body = Children[1];
+            argument = Children[0] as SymbolNode;
+            body = Children[1];
         }
 
 
         public SymbolNode Argument
         {
-            get { return this.argument; }
+            get { return argument; }
         }
 
         public NodeBase Body
         {
-            get { return this.body; }
+            get { return body; }
         }
     }
 }

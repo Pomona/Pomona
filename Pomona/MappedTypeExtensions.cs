@@ -28,7 +28,6 @@
 
 using System;
 using System.Linq;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -41,10 +40,10 @@ namespace Pomona
         static MappedTypeExtensions()
         {
             numberTypes = new Type[]
-            {
-                typeof(int), typeof(double), typeof(float), typeof(long), typeof(byte),
-                typeof(short)
-            };
+                {
+                    typeof (int), typeof (double), typeof (float), typeof (long), typeof (byte),
+                    typeof (short)
+                };
         }
 
 
@@ -59,18 +58,18 @@ namespace Pomona
                 var targetType = sharedType.MappedType;
                 if (numberTypes.Contains(targetType))
                 {
-                    if (targetType == typeof(double) || targetType == typeof(float))
+                    if (targetType == typeof (double) || targetType == typeof (float))
                         return "number";
                     return "integer";
                 }
 
-                if (targetType == typeof(string))
+                if (targetType == typeof (string))
                     return "string";
 
-                if (targetType == typeof(bool))
+                if (targetType == typeof (bool))
                     return "boolean";
 
-                if (targetType == typeof(object))
+                if (targetType == typeof (object))
                     return "any";
             }
 

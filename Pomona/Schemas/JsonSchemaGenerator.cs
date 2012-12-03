@@ -28,9 +28,7 @@
 
 using System;
 using System.Linq;
-
 using Newtonsoft.Json.Linq;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -66,7 +64,7 @@ namespace Pomona.Schemas
 
         public JArray GenerateAllSchemas()
         {
-            return new JArray(this.typeMapper.TransformedTypes.Select(GenerateSchemaFor));
+            return new JArray(typeMapper.TransformedTypes.Select(GenerateSchemaFor));
         }
 
 

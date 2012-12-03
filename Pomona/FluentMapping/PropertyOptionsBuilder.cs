@@ -26,7 +26,7 @@ namespace Pomona.FluentMapping
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
         {
-            this.propertyMappingOptions.Name = name;
+            propertyMappingOptions.Name = name;
             return this;
         }
 

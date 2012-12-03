@@ -51,27 +51,27 @@ namespace Pomona.Common
 
         public string Uri
         {
-            get { return this.uri; }
+            get { return uri; }
         }
 
 
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
             where TSubResource : TResource
         {
-            return this.client.Put(resource, patchAction);
+            return client.Put(resource, patchAction);
         }
 
 
         public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : TResource
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction);
+            return (TPostResponseResource) client.Post(Uri, postAction);
         }
 
 
         public TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction);
+            return (TPostResponseResource) client.Post(Uri, postAction);
         }
 
 
@@ -83,7 +83,7 @@ namespace Pomona.Common
             int? skip = null,
             string expand = null)
         {
-            return this.client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
     }
 }

@@ -45,18 +45,18 @@ namespace Pomona.Queries
 
         public List<NodeBase> Children
         {
-            get { return this.children; }
+            get { return children; }
         }
 
         public NodeType NodeType
         {
-            get { return this.nodeType; }
+            get { return nodeType; }
         }
 
 
         public override string ToString()
         {
-            return this.nodeType.ToString();
+            return nodeType.ToString();
         }
     }
 }

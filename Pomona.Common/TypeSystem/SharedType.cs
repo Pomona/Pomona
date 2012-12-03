@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
 using Newtonsoft.Json;
 
 namespace Pomona.Common.TypeSystem
@@ -43,18 +42,18 @@ namespace Pomona.Common.TypeSystem
     {
         private static Type[] basicWireTypes =
             {
-                typeof(int), typeof(double), typeof(float), typeof(string),
-                typeof(bool), typeof(decimal), typeof(DateTime), typeof(Uri)
+                typeof (int), typeof (double), typeof (float), typeof (string),
+                typeof (bool), typeof (decimal), typeof (DateTime), typeof (Uri)
             };
 
         private readonly Type mappedType;
         private readonly Type mappedTypeInstance;
-        private TypeSerializationMode serializationMode;
         private readonly ITypeMapper typeMapper;
 
         private bool isCollection;
         private bool isDictionary;
         private IList<IPropertyInfo> properties;
+        private TypeSerializationMode serializationMode;
 
 
         public SharedType(Type mappedTypeInstance, ITypeMapper typeMapper)
@@ -65,38 +64,146 @@ namespace Pomona.Common.TypeSystem
                 throw new ArgumentNullException("typeMapper");
 
             this.mappedTypeInstance = mappedTypeInstance;
-            this.mappedType = mappedTypeInstance.IsGenericType
-                                  ? mappedTypeInstance.GetGenericTypeDefinition()
-                                  : mappedTypeInstance;
+            mappedType = mappedTypeInstance.IsGenericType
+                             ? mappedTypeInstance.GetGenericTypeDefinition()
+                             : mappedTypeInstance;
             this.typeMapper = typeMapper;
 
-            var dictMetadataToken = typeof(IDictionary<,>).MetadataToken;
-            this.isDictionary = mappedTypeInstance.MetadataToken == dictMetadataToken ||
-                                mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == dictMetadataToken);
+            var dictMetadataToken = typeof (IDictionary<,>).MetadataToken;
+            isDictionary = mappedTypeInstance.MetadataToken == dictMetadataToken ||
+                           mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == dictMetadataToken);
 
-            if (!this.isDictionary)
+            if (!isDictionary)
             {
-                if (this.mappedType != typeof(string))
+                if (mappedType != typeof (string))
                 {
-                    var collectionMetadataToken = typeof(ICollection<>).MetadataToken;
-                    this.isCollection =
+                    var collectionMetadataToken = typeof (ICollection<>).MetadataToken;
+                    isCollection =
                         mappedTypeInstance.MetadataToken == collectionMetadataToken ||
                         mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == collectionMetadataToken);
                 }
             }
 
-            if (this.isDictionary)
-                this.serializationMode = TypeSerializationMode.Dictionary;
-            else if (this.isCollection)
-                this.serializationMode = TypeSerializationMode.Array;
+            if (isDictionary)
+                serializationMode = TypeSerializationMode.Dictionary;
+            else if (isCollection)
+                serializationMode = TypeSerializationMode.Array;
             else
-                this.serializationMode = TypeSerializationMode.Value;
+                serializationMode = TypeSerializationMode.Value;
 
-            this.GenericArguments = new List<IMappedType>();
+            GenericArguments = new List<IMappedType>();
 
             InitializeGenericArguments();
         }
 
+        public ITypeMapper TypeMapper
+        {
+            get { return typeMapper; }
+        }
+
+        #region IMappedType Members
+
+        public IMappedType BaseType
+        {
+            get { return (SharedType) typeMapper.GetClassMapping(mappedType.BaseType); }
+        }
+
+        public Type CustomClientLibraryType { get; set; }
+
+        public IMappedType DictionaryKeyType
+        {
+            get { return DictionaryType.GenericArguments[0]; }
+        }
+
+        public IMappedType DictionaryType
+        {
+            get
+            {
+                if (!isDictionary)
+                    throw new InvalidOperationException("Type does not implement IDictionary<,>");
+
+                var dictMetadataToken = typeof (IDictionary<,>).MetadataToken;
+
+                if (mappedTypeInstance.MetadataToken == dictMetadataToken)
+                    return this;
+
+                return
+                    typeMapper.GetClassMapping(
+                        mappedTypeInstance.GetInterfaces().First(x => x.MetadataToken == dictMetadataToken));
+            }
+        }
+
+        public IMappedType DictionaryValueType
+        {
+            get { return DictionaryType.GenericArguments[1]; }
+        }
+
+        public IMappedType ElementType
+        {
+            get
+            {
+                if (!isCollection)
+                    throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
+
+                if (MappedType.IsArray)
+                    return typeMapper.GetClassMapping(MappedType.GetElementType());
+
+                if (GenericArguments.Count == 0)
+                {
+                    throw new InvalidOperationException(
+                        "Does not know how to find out what element type this collection is of, it has no generic arguement!");
+                }
+
+                return GenericArguments[0];
+            }
+        }
+
+        public IList<IMappedType> GenericArguments { get; private set; }
+
+        public bool IsAlwaysExpanded
+        {
+            get { return !isCollection; }
+        }
+
+        public bool IsBasicWireType
+        {
+            get { return basicWireTypes.Contains(mappedType); }
+        }
+
+        public bool IsCollection
+        {
+            get { return isCollection; }
+        }
+
+        public bool IsGenericType
+        {
+            get { return mappedType.IsGenericType; }
+        }
+
+        public bool IsGenericTypeDefinition
+        {
+            get { return false; }
+        }
+
+        public bool IsValueType
+        {
+            get { return mappedType.IsValueType; }
+        }
+
+        public JsonConverter JsonConverter { get; set; }
+
+        public virtual string Name
+        {
+            get { return mappedType.Name; }
+        }
+
+
+        public virtual object Create(IDictionary<IPropertyInfo, object> args)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
 
         public bool HasUri
         {
@@ -105,17 +212,17 @@ namespace Pomona.Common.TypeSystem
 
         public bool IsDictionary
         {
-            get { return this.isDictionary; }
+            get { return isDictionary; }
         }
 
         public Type MappedType
         {
-            get { return this.mappedType; }
+            get { return mappedType; }
         }
 
         public Type MappedTypeInstance
         {
-            get { return this.mappedTypeInstance; }
+            get { return mappedTypeInstance; }
         }
 
         public IPropertyInfo PrimaryId
@@ -128,137 +235,40 @@ namespace Pomona.Common.TypeSystem
             get { return GetPropertiesLazy(); }
         }
 
+        public TypeSerializationMode SerializationMode
+        {
+            get { return serializationMode; }
+            set { serializationMode = value; }
+        }
+
+        protected virtual IEnumerable<IPropertyInfo> OnGetProperties()
+        {
+            return mappedTypeInstance.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(
+                x => new SharedPropertyInfo(x, typeMapper));
+        }
+
 
         private IList<IPropertyInfo> GetPropertiesLazy()
         {
             if (properties == null)
-            {
-                properties =
-                    mappedTypeInstance.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(
-                        x => new SharedPropertyInfo(x, typeMapper)).Cast<IPropertyInfo>().ToList();
-            }
+                properties = OnGetProperties().ToList();
             return properties;
         }
 
 
-        public TypeSerializationMode SerializationMode
-        {
-            get { return this.serializationMode; }
-            set { this.serializationMode = value; }
-        }
-
-        #region IMappedType Members
-
-        public IMappedType BaseType
-        {
-            get { return (SharedType)this.typeMapper.GetClassMapping(this.mappedType.BaseType); }
-        }
-
-        public IMappedType ElementType
-        {
-            get
-            {
-                if (!this.isCollection)
-                    throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
-
-                if (this.MappedType.IsArray)
-                    return this.typeMapper.GetClassMapping(this.MappedType.GetElementType());
-
-                if (this.GenericArguments.Count == 0)
-                {
-                    throw new InvalidOperationException(
-                        "Does not know how to find out what element type this collection is of, it has no generic arguement!");
-                }
-
-                return this.GenericArguments[0];
-            }
-        }
-
-        public Type CustomClientLibraryType { get; set; }
-
-        public IMappedType DictionaryKeyType
-        {
-            get { return this.DictionaryType.GenericArguments[0]; }
-        }
-
-        public IMappedType DictionaryType
-        {
-            get
-            {
-                if (!this.isDictionary)
-                    throw new InvalidOperationException("Type does not implement IDictionary<,>");
-
-                var dictMetadataToken = typeof(IDictionary<,>).MetadataToken;
-
-                if (this.mappedTypeInstance.MetadataToken == dictMetadataToken)
-                    return this;
-
-                return
-                    this.typeMapper.GetClassMapping(
-                        this.mappedTypeInstance.GetInterfaces().First(x => x.MetadataToken == dictMetadataToken));
-            }
-        }
-
-        public IMappedType DictionaryValueType
-        {
-            get { return this.DictionaryType.GenericArguments[1]; }
-        }
-
-        public IList<IMappedType> GenericArguments { get; private set; }
-
-        public bool IsAlwaysExpanded
-        {
-            get { return !this.isCollection; }
-        }
-
-        public bool IsBasicWireType
-        {
-            get { return basicWireTypes.Contains(this.mappedType); }
-        }
-
-        public bool IsCollection
-        {
-            get { return this.isCollection; }
-        }
-
-        public bool IsGenericType
-        {
-            get { return this.mappedType.IsGenericType; }
-        }
-
-        public bool IsGenericTypeDefinition
-        {
-            get { return false; }
-        }
-
-        public bool IsValueType
-        {
-            get { return this.mappedType.IsValueType; }
-        }
-
-        public JsonConverter JsonConverter { get; set; }
-
-        public string Name
-        {
-            get { return this.mappedType.Name; }
-        }
-
-
-        #endregion
-
         private void InitializeGenericArguments()
         {
-            if (this.mappedTypeInstance.IsGenericType)
+            if (mappedTypeInstance.IsGenericType)
             {
-                foreach (var genericTypeArg in this.mappedTypeInstance.GetGenericArguments())
+                foreach (var genericTypeArg in mappedTypeInstance.GetGenericArguments())
                 {
-                    if (genericTypeArg == this.mappedTypeInstance)
+                    if (genericTypeArg == mappedTypeInstance)
                     {
                         // Special case, self referencing generics
-                        this.GenericArguments.Add(this);
+                        GenericArguments.Add(this);
                     }
                     else
-                        this.GenericArguments.Add(this.typeMapper.GetClassMapping(genericTypeArg));
+                        GenericArguments.Add(typeMapper.GetClassMapping(genericTypeArg));
                 }
             }
         }

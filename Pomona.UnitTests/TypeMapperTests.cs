@@ -27,9 +27,7 @@
 #endregion
 
 using System.Linq;
-
 using NUnit.Framework;
-
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -38,15 +36,11 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class TypeMapperTests
     {
-        #region Setup/Teardown
-
         [SetUp]
         public void SetUp()
         {
-            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
         }
-
-        #endregion
 
         private TypeMapper typeMapper;
 
@@ -54,8 +48,8 @@ namespace Pomona.UnitTests
         [Test]
         public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
         {
-            var transformedType = (TransformedType)this.typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
-            var internalPath = this.typeMapper.ConvertToInternalPropertyPath(
+            var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedReferenceProperty>();
+            var internalPath = typeMapper.ConvertToInternalPropertyPath(
                 transformedType,
                 "DiscoFunky.BeautifulAndExposed");
             Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
@@ -66,7 +60,7 @@ namespace Pomona.UnitTests
         public void DoesNotCreateTransformedTypeForExcludedClass()
         {
             Assert.That(
-                this.typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
+                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
                 Is.False,
                 "Excluded thing should not have been part of transformed types");
         }

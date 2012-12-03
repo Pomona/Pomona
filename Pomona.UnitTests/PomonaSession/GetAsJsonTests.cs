@@ -28,11 +28,8 @@
 
 using System;
 using System.Linq;
-
 using NUnit.Framework;
-
 using Newtonsoft.Json.Linq;
-
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
 
@@ -44,7 +41,7 @@ namespace Pomona.UnitTests.PomonaSession
         private JObject GetAsJson<T>(int id, string expand = null)
             where T : EntityBase
         {
-            var transformedType = (TransformedType)Session.TypeMapper.GetClassMapping<T>();
+            var transformedType = (TransformedType) Session.TypeMapper.GetClassMapping<T>();
             var jsonString = Session.GetAsJson(transformedType, id, expand);
             Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
             return JObject.Parse(jsonString);
@@ -81,16 +78,16 @@ namespace Pomona.UnitTests.PomonaSession
         [Test]
         public void GetIntListContainerAsJson()
         {
-            var jobject = SaveAndGetBackAsJson(new IntListContainer() { Ints = { 1337 } }, "ints");
+            var jobject = SaveAndGetBackAsJson(new IntListContainer() {Ints = {1337}}, "ints");
             var stringArray = jobject.AssertHasPropertyWithArray("ints");
-            Assert.That(stringArray.Children().Select(x => x.Value<int>()), Is.EquivalentTo(new[] { 1337 }));
+            Assert.That(stringArray.Children().Select(x => x.Value<int>()), Is.EquivalentTo(new[] {1337}));
         }
 
 
         [Test]
         public void GetNullableJunkWithNull_HasNullValue()
         {
-            var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() { Maybe = null });
+            var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() {Maybe = null});
             jobject.AssertHasPropertyWithNull("maybe");
         }
 
@@ -98,7 +95,7 @@ namespace Pomona.UnitTests.PomonaSession
         [Test]
         public void GetNullableJunkWithValue_HasValue()
         {
-            var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() { Maybe = 123 });
+            var jobject = SaveAndGetBackAsJson(new JunkWithNullableInt() {Maybe = 123});
             jobject.AssertHasPropertyWithInteger("maybe");
         }
 
@@ -106,9 +103,9 @@ namespace Pomona.UnitTests.PomonaSession
         [Test]
         public void GetStringListContainerAsJson()
         {
-            var jobject = SaveAndGetBackAsJson(new StringListContainer() { Strings = { "Doh!" } }, "strings");
+            var jobject = SaveAndGetBackAsJson(new StringListContainer() {Strings = {"Doh!"}}, "strings");
             var stringArray = jobject.AssertHasPropertyWithArray("strings");
-            Assert.That(stringArray.Children().Select(x => x.Value<string>()), Is.EquivalentTo(new[] { "Doh!" }));
+            Assert.That(stringArray.Children().Select(x => x.Value<string>()), Is.EquivalentTo(new[] {"Doh!"}));
         }
 
 
@@ -126,7 +123,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithCustomEnum_SerializesAsEnumValueString()
         {
             var theEnumValue = CustomEnum.Tock;
-            var jobject = SaveAndGetBackAsJson(new HasCustomEnum() { TheEnumValue = theEnumValue });
+            var jobject = SaveAndGetBackAsJson(new HasCustomEnum() {TheEnumValue = theEnumValue});
             var jsonEnumValue = jobject.AssertHasPropertyWithString("theEnumValue");
             Assert.That(jsonEnumValue, Is.EqualTo(theEnumValue.ToString()));
         }
@@ -147,7 +144,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithEntityThatGotRenamedProperty_HasCorrectPropertyName()
         {
             var propval = "Funky junk";
-            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() { ReallyUglyPropertyName = propval });
+            var jobject = SaveAndGetBackAsJson(new JunkWithRenamedProperty() {ReallyUglyPropertyName = propval});
 
             // Assert
             jobject.AssertHasPropertyWithString("beautifulAndExposed");
@@ -207,7 +204,7 @@ namespace Pomona.UnitTests.PomonaSession
         public void WithThingWithUri_ReturnsUrlAsString()
         {
             var theUrlString = "http://bahahaha/";
-            var jobject = SaveAndGetBackAsJson(new ThingWithUri() { TheUrl = new Uri(theUrlString) });
+            var jobject = SaveAndGetBackAsJson(new ThingWithUri() {TheUrl = new Uri(theUrlString)});
 
             Assert.That(jobject.AssertHasPropertyWithString("theUrl"), Is.EqualTo(theUrlString));
         }

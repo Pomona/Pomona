@@ -28,9 +28,7 @@
 
 using System;
 using System.IO;
-
 using NUnit.Framework;
-
 using Pomona.CodeGen;
 using Pomona.UnitTests.PomonaSession;
 
@@ -49,7 +47,7 @@ namespace Pomona.UnitTests.Nuget
                 packageBuilder.BuildPackage(fileStream);
                 fileData = fileStream.ToArray();
             }
-            Console.WriteLine("Package size is " + fileData.Length / 1024.0 + " KiB");
+            Console.WriteLine("Package size is " + fileData.Length/1024.0 + " KiB");
         }
 
 

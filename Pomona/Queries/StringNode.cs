@@ -38,13 +38,13 @@ namespace Pomona.Queries
 
         public StringNode(string unescapedString) : base(NodeType.StringLiteral, Enumerable.Empty<NodeBase>())
         {
-            this.value = UnescapeText(unescapedString);
+            value = UnescapeText(unescapedString);
         }
 
 
         public string Value
         {
-            get { return this.value; }
+            get { return value; }
         }
 
 

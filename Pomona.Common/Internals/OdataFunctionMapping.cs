@@ -33,7 +33,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-
 using Pomona.Internals;
 
 namespace Pomona.Common.Internals
@@ -103,7 +102,7 @@ namespace Pomona.Common.Internals
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(
-                x => x.Select(y => (WildcardType)null), "select({0},{1})", MethodCallStyle.Chained);
+                x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
 
@@ -200,32 +199,32 @@ namespace Pomona.Common.Internals
 
             public IList<int> ArgumentOrder
             {
-                get { return this.argumentOrder; }
+                get { return argumentOrder; }
             }
 
             public string ChainedCallFormat
             {
-                get { return this.chainedCallFormat; }
+                get { return chainedCallFormat; }
             }
 
             public MemberInfo Member
             {
-                get { return this.member; }
+                get { return member; }
             }
 
             public string Name
             {
-                get { return this.name; }
+                get { return name; }
             }
 
             public MethodCallStyle PreferredCallStyle
             {
-                get { return this.preferredCallStyle; }
+                get { return preferredCallStyle; }
             }
 
             public string StaticCallFormat
             {
-                get { return this.staticCallFormat; }
+                get { return staticCallFormat; }
             }
 
 
@@ -239,7 +238,7 @@ namespace Pomona.Common.Internals
                 if (memberAsMethod != null)
                 {
                     if (memberAsMethod.IsGenericMethod
-                        && memberAsMethod.GetGenericArguments().Any(x => x == typeof(WildcardType)))
+                        && memberAsMethod.GetGenericArguments().Any(x => x == typeof (WildcardType)))
                         member = memberAsMethod.GetGenericMethodDefinition();
                 }
 
@@ -248,7 +247,7 @@ namespace Pomona.Common.Internals
                     var memberLocal = member;
                     member =
                         member.DeclaringType.GetGenericTypeDefinition().GetMembers()
-                            .First(x => x.MetadataToken == memberLocal.MetadataToken);
+                              .First(x => x.MetadataToken == memberLocal.MetadataToken);
                 }
 
                 var argOrderArray = argOrder.ToArray();
@@ -299,7 +298,7 @@ namespace Pomona.Common.Internals
                     return false;
 
                 var genericArguments = type.GetGenericArguments();
-                var wildcardType = typeof(WildcardType);
+                var wildcardType = typeof (WildcardType);
                 return genericArguments.Any(x => x == wildcardType) || genericArguments.Any(HasWildcardArgument);
             }
         }
@@ -329,14 +328,14 @@ namespace Pomona.Common.Internals
 
             public T this[int index]
             {
-                get { return this.targetList[this.order[index]]; }
+                get { return targetList[order[index]]; }
                 set { throw new NotSupportedException(); }
             }
 
 
             public int Count
             {
-                get { return this.targetList.Count; }
+                get { return targetList.Count; }
             }
 
             public bool IsReadOnly
@@ -359,7 +358,7 @@ namespace Pomona.Common.Internals
 
             public bool Contains(T item)
             {
-                return this.targetList.Contains(item);
+                return targetList.Contains(item);
             }
 
 
@@ -378,9 +377,9 @@ namespace Pomona.Common.Internals
 
             public int IndexOf(T item)
             {
-                var index = this.targetList.IndexOf(item);
+                var index = targetList.IndexOf(item);
                 if (index != -1)
-                    index = this.order.IndexOf(index);
+                    index = order.IndexOf(index);
                 return index;
             }
 

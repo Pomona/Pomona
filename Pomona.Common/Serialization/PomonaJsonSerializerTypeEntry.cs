@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Newtonsoft.Json;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -33,12 +31,12 @@ namespace Pomona.Common.Serialization
 
         public IEnumerable<IPropertyInfo> ManuallyWrittenProperties
         {
-            get { return this.manuallyWrittenProperties; }
+            get { return manuallyWrittenProperties; }
         }
 
         public Action<JsonWriter, object> WritePropertiesFunc
         {
-            get { return this.writePropertiesFunc; }
+            get { return writePropertiesFunc; }
         }
 
 
@@ -48,7 +46,7 @@ namespace Pomona.Common.Serialization
             if (type.SerializationMode != TypeSerializationMode.Value)
                 return false;
 
-            method = typeof(JsonWriter)
+            method = typeof (JsonWriter)
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                 .Where(x => x.Name == "WriteValue")
                 .FirstOrDefault(
@@ -60,17 +58,17 @@ namespace Pomona.Common.Serialization
 
         private void BuildAcceleratedPropertyWritingAction()
         {
-            var writePropertyNameMethod = typeof(JsonWriter).GetMethod("WritePropertyName");
+            var writePropertyNameMethod = typeof (JsonWriter).GetMethod("WritePropertyName");
 
             var expressions = new List<Expression>();
-            var jsonWriterParam = Expression.Parameter(typeof(JsonWriter));
-            var objValueParam = Expression.Parameter(typeof(object));
-            var valueVariable = Expression.Variable(this.type.MappedTypeInstance);
+            var jsonWriterParam = Expression.Parameter(typeof (JsonWriter));
+            var objValueParam = Expression.Parameter(typeof (object));
+            var valueVariable = Expression.Variable(type.MappedTypeInstance);
 
             expressions.Add(
-                Expression.Assign(valueVariable, Expression.Convert(objValueParam, this.type.MappedTypeInstance)));
+                Expression.Assign(valueVariable, Expression.Convert(objValueParam, type.MappedTypeInstance)));
 
-            foreach (var prop in this.type.Properties)
+            foreach (var prop in type.Properties)
             {
                 MethodInfo method;
                 if (TryGetJsonWriterMethodForWritingType(prop.PropertyType, out method))
@@ -82,15 +80,15 @@ namespace Pomona.Common.Serialization
                         Expression.Call(jsonWriterParam, method, prop.CreateGetterExpression(valueVariable)));
                 }
                 else
-                    this.manuallyWrittenProperties.Add(prop);
+                    manuallyWrittenProperties.Add(prop);
             }
 
-            this.writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object>>(
-                Expression.Block(new[] { valueVariable }, expressions), jsonWriterParam, objValueParam);
+            writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object>>(
+                Expression.Block(new[] {valueVariable}, expressions), jsonWriterParam, objValueParam);
 
-            this.writePropertiesFunc = this.writePropertiesExpression.Compile();
+            writePropertiesFunc = writePropertiesExpression.Compile();
 
-            this.manuallyWrittenProperties.Capacity = this.manuallyWrittenProperties.Count;
+            manuallyWrittenProperties.Capacity = manuallyWrittenProperties.Count;
         }
     }
 }

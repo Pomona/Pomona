@@ -3,5 +3,6 @@
     public interface ISerializerFactory
     {
         ISerializer GetSerialier();
+        IDeserializer GetDeserializer();
     }
 }

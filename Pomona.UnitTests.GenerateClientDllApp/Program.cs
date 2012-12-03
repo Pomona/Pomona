@@ -28,7 +28,6 @@
 
 using System;
 using System.IO;
-
 using Pomona.Example;
 
 namespace Pomona.UnitTests.GenerateClientDllApp
@@ -42,14 +41,14 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             using (var file = new FileStream(@"..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
-                session.WriteClientLibrary(file, embedPomonaClient : false);
+                session.WriteClientLibrary(file, embedPomonaClient: false);
             }
 
             using (
                 var file = new FileStream(
                     @"..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
             {
-                session.WriteClientLibrary(file, embedPomonaClient : true);
+                session.WriteClientLibrary(file, embedPomonaClient: true);
             }
 
             Console.WriteLine("Wrote client dll.");

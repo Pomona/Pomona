@@ -52,13 +52,13 @@ namespace Pomona.Internals
         {
             var body = expr.Body;
             if (body.NodeType == ExpressionType.Convert)
-                body = ((UnaryExpression)body).Operand;
+                body = ((UnaryExpression) body).Operand;
 
             if (body.NodeType == ExpressionType.Call)
-                return ((MethodCallExpression)body).Method;
+                return ((MethodCallExpression) body).Method;
 
             if (body.NodeType == ExpressionType.MemberAccess)
-                return ((MemberExpression)body).Member;
+                return ((MemberExpression) body).Member;
 
             throw new ArgumentException("Needs node of type Call or MemberAccess");
         }
@@ -68,12 +68,12 @@ namespace Pomona.Internals
         {
             var body = expr.Body;
             if (body.NodeType == ExpressionType.Convert)
-                body = ((UnaryExpression)body).Operand;
+                body = ((UnaryExpression) body).Operand;
 
             if (body.NodeType != ExpressionType.Call)
                 throw new ArgumentException("Needs node of type Call");
 
-            var call = (MethodCallExpression)body;
+            var call = (MethodCallExpression) body;
             return call.Method;
         }
 
@@ -84,7 +84,7 @@ namespace Pomona.Internals
             if (body.NodeType != ExpressionType.Call)
                 throw new ArgumentException("Needs node of type Call");
 
-            var call = (MethodCallExpression)body;
+            var call = (MethodCallExpression) body;
             return call.Method;
         }
     }

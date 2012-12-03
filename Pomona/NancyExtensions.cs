@@ -27,7 +27,6 @@
 #endregion
 
 using System.IO;
-
 using Nancy;
 
 namespace Pomona
@@ -37,12 +36,12 @@ namespace Pomona
         internal static void ContentsFromString(this Response resp, string text)
         {
             resp.Contents = stream =>
-            {
-                using (var writer = new StreamWriter(stream))
                 {
-                    writer.Write(text);
-                }
-            };
+                    using (var writer = new StreamWriter(stream))
+                    {
+                        writer.Write(text);
+                    }
+                };
         }
     }
 }

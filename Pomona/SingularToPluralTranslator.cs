@@ -29,7 +29,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Pomona.Common;
 
 namespace Pomona
@@ -225,7 +224,7 @@ copy	copies";
             IrregularNouns = CreateDictionaryFromText(irregularNounsText);
 
             consonants = new HashSet<char>("bcdfghjklmnpqrstvxz".ToCharArray());
-            sibilantEndings = new HashSet<string>() { "s,sh,ch,x,z" };
+            sibilantEndings = new HashSet<string>() {"s,sh,ch,x,z"};
         }
 
 
@@ -279,7 +278,7 @@ copy	copies";
         {
             return text
                 .Replace("\r", "")
-                .Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new char[] {'\n'}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Split("\t ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 .Where(x => x.Length == 2)
                 .ToDictionary(x => x[0], x => x[1]);

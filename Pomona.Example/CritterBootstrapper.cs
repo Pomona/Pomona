@@ -28,8 +28,6 @@
 
 using Nancy.TinyIoc;
 
-using Pomona.FluentMapping;
-
 namespace Pomona.Example
 {
     public class CritterBootstrapper : PomonaBootstrapper
@@ -41,16 +39,15 @@ namespace Pomona.Example
         public CritterBootstrapper(CritterDataSource dataSource = null)
         {
             this.dataSource = dataSource ?? new CritterDataSource();
-            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
         }
-
 
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
-            container.Register(this.dataSource);
-            container.Register(this.typeMapper);
+            container.Register(dataSource);
+            container.Register(typeMapper);
         }
     }
 }

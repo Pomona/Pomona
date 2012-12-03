@@ -52,7 +52,8 @@ namespace Pomona.Common
             return ret;
         }
 
-        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> creator)
+        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key,
+                                                       Func<TValue> creator)
         {
             TValue ret;
             if (!dictionary.TryGetValue(key, out ret))

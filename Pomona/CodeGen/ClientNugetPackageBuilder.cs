@@ -29,16 +29,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-
-using Mono.Cecil;
-
-using Newtonsoft.Json;
-
-using NuGet;
-
-using Pomona.Common;
-
 using System.Linq;
+using Mono.Cecil;
+using Newtonsoft.Json;
+using NuGet;
+using Pomona.Common;
 
 namespace Pomona.CodeGen
 {
@@ -57,7 +52,7 @@ namespace Pomona.CodeGen
 
         public string PackageFileName
         {
-            get { return this.typeMapper.Filter.GetClientAssemblyName() + "." + GetVersionString() + ".nupkg"; }
+            get { return typeMapper.Filter.GetClientAssemblyName() + "." + GetVersionString() + ".nupkg"; }
         }
 
 
@@ -89,7 +84,7 @@ namespace Pomona.CodeGen
             var packageBuilder = new PackageBuilder();
 
             // Have no idea what this means, copy paste from http://stackoverflow.com/questions/6808868/howto-create-a-nuget-package-using-nuget-core
-            packageBuilder.PopulateFiles(tempPath, new[] { new ManifestFile() { Source = "**" } });
+            packageBuilder.PopulateFiles(tempPath, new[] {new ManifestFile() {Source = "**"}});
 
             packageBuilder.Populate(metadata);
 
@@ -97,45 +92,45 @@ namespace Pomona.CodeGen
                 new PackageDependencySet(
                     null,
                     new[]
-                    {
-                        CreatePackageDependency<TypeDefinition>(4),
-                        CreatePackageDependency<JsonSerializer>(3)
-                    }));
+                        {
+                            CreatePackageDependency<TypeDefinition>(4),
+                            CreatePackageDependency<JsonSerializer>(3)
+                        }));
 
             packageBuilder.Save(stream);
         }
 
-        PackageDependency CreatePackageDependency<TInAssembly>(int versionPartCount)
+        private PackageDependency CreatePackageDependency<TInAssembly>(int versionPartCount)
         {
-            var assembly = typeof(TInAssembly).Assembly;
+            var assembly = typeof (TInAssembly).Assembly;
             var packageName = assembly.GetName().Name;
             var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             var strippedVersion = string.Join(".", fvi.FileVersion.Split('.').Take(versionPartCount));
-            return new PackageDependency(packageName, new VersionSpec( new SemanticVersion(strippedVersion)));
+            return new PackageDependency(packageName, new VersionSpec(new SemanticVersion(strippedVersion)));
         }
 
 
         private ManifestMetadata GetManifestMetadata()
         {
             return new ManifestMetadata()
-            {
-                Authors = "nobody@example.com", // TODO: find a way to configure author in nuget file
-                Version = GetVersionString(), // TODO: API versioning
-                Id = this.typeMapper.Filter.GetClientAssemblyName(),
-                Description = "TODO: Make it possible to set description for nuget file"
-            };
+                {
+                    Authors = "nobody@example.com", // TODO: find a way to configure author in nuget file
+                    Version = GetVersionString(), // TODO: API versioning
+                    Id = typeMapper.Filter.GetClientAssemblyName(),
+                    Description = "TODO: Make it possible to set description for nuget file"
+                };
         }
 
 
         private void WritePackageContents(string tempPath)
         {
-            var clientLibGen = new ClientLibGenerator(this.typeMapper);
+            var clientLibGen = new ClientLibGenerator(typeMapper);
 
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(Path.Combine(tempPath, "lib"));
             var dllDir = Path.Combine(tempPath, "lib", "net40");
             Directory.CreateDirectory(dllDir);
-            var dllPath = Path.Combine(dllDir, this.typeMapper.Filter.GetClientAssemblyName() + ".dll");
+            var dllPath = Path.Combine(dllDir, typeMapper.Filter.GetClientAssemblyName() + ".dll");
 
             using (var stream = File.Create(dllPath))
             {
@@ -143,7 +138,7 @@ namespace Pomona.CodeGen
                 clientLibGen.CreateClientDll(stream);
             }
 
-            var pomonaClientAssemblySourcePath = typeof(ClientBase<>).Assembly.Location;
+            var pomonaClientAssemblySourcePath = typeof (ClientBase<>).Assembly.Location;
 
             var pomonaClientAssemblyDestPath = Path.Combine(dllDir, Path.GetFileName(pomonaClientAssemblySourcePath));
 

@@ -44,14 +44,14 @@ namespace Pomona.Example.Models
 
         public string Name
         {
-            get { return this.name; }
+            get { return name; }
         }
 
         public string Occupation { get; set; }
 
         public int Strength
         {
-            get { return this.strength; }
+            get { return strength; }
         }
     }
 }

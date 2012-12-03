@@ -60,32 +60,32 @@ namespace Pomona.Internals
 
         public virtual MethodInfo GenericMethodDefinition
         {
-            get { return this.genericMethodDefinition; }
+            get { return genericMethodDefinition; }
         }
 
 
         public TResult Call(Type genTypeParam, TInstance target, T1 arg1)
         {
             Func<TInstance, T1, TResult> func;
-            lock (this.cacheLock)
+            lock (cacheLock)
             {
-                this.cachedFastCallers.TryGetValue(genTypeParam, out func);
+                cachedFastCallers.TryGetValue(genTypeParam, out func);
             }
 
             if (func == null)
             {
-                var instanceParameter = Expression.Parameter(typeof(TInstance), "instance");
-                var arg1Param = Expression.Parameter(typeof(T1), "arg1");
-                var methodInstance = this.genericMethodDefinition.MakeGenericMethod(genTypeParam);
+                var instanceParameter = Expression.Parameter(typeof (TInstance), "instance");
+                var arg1Param = Expression.Parameter(typeof (T1), "arg1");
+                var methodInstance = genericMethodDefinition.MakeGenericMethod(genTypeParam);
                 var expr = Expression.Lambda<Func<TInstance, T1, TResult>>(
-                    Expression.Convert(Expression.Call(instanceParameter, methodInstance, arg1Param), typeof(TResult)),
+                    Expression.Convert(Expression.Call(instanceParameter, methodInstance, arg1Param), typeof (TResult)),
                     instanceParameter,
                     arg1Param);
                 func = expr.Compile();
 
-                lock (this.cacheLock)
+                lock (cacheLock)
                 {
-                    this.cachedFastCallers[genTypeParam] = func;
+                    cachedFastCallers[genTypeParam] = func;
                 }
             }
 

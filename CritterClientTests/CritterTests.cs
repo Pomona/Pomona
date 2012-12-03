@@ -30,11 +30,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 using Pomona.Example.Models;
 
@@ -49,7 +46,7 @@ namespace CritterClientTests
         [Test]
         public void AllPropertyTypesOfClientTypesAreAllowed()
         {
-            var clientAssembly = typeof(ICritter).Assembly;
+            var clientAssembly = typeof (ICritter).Assembly;
             var allPropTypes =
                 clientAssembly.GetExportedTypes().SelectMany(
                     x => x.GetProperties().Select(y => y.PropertyType)).Distinct();
@@ -88,12 +85,12 @@ namespace CritterClientTests
             var errors = new StringBuilder();
             foreach (
                 var prop in
-                    this.client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                    client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                         x.PropertyType.IsGenericType
-                        && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,>)))
+                        && x.PropertyType.GetGenericTypeDefinition() == typeof (ClientRepository<,>)))
             {
-                var value = prop.GetValue(this.client, null);
+                var value = prop.GetValue(client, null);
                 if (value == null)
                 {
                     foundError = true;
@@ -115,7 +112,7 @@ namespace CritterClientTests
         public void DeserializeCritters()
         {
             for (var i = 0; i < 1; i++)
-                this.client.Query<ICritter>(x => true, top : 100, expand : "weapons.model");
+                client.Query<ICritter>(x => true, top: 100, expand: "weapons.model");
 
             //var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
         }
@@ -126,7 +123,7 @@ namespace CritterClientTests
         {
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = this.client.GetUri<ICritter>(this.critterHost.BaseUri + "critters/" + musicalCritterId);
+            var musicalCritter = client.GetUri<ICritter>(critterHost.BaseUri + "critters/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
@@ -135,7 +132,7 @@ namespace CritterClientTests
         [Test]
         public void GetWeaponsLazy_FromCritter()
         {
-            var critter = this.client.List<ICritter>().First();
+            var critter = client.List<ICritter>().First();
             var weapons = critter.Weapons.ToList();
         }
     }

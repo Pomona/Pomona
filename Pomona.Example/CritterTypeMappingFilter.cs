@@ -29,9 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using Newtonsoft.Json;
-
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -40,7 +38,7 @@ namespace Pomona.Example
     {
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
-            if (propertyInfo.DeclaringType == typeof(Farm) && propertyInfo.Name == "Critters")
+            if (propertyInfo.DeclaringType == typeof (Farm) && propertyInfo.Name == "Critters")
                 return true;
 
             return base.ClientPropertyIsExposedAsRepository(propertyInfo);
@@ -55,8 +53,8 @@ namespace Pomona.Example
 
         public override Type GetClientLibraryType(Type type)
         {
-            if (type == typeof(WebColor))
-                return typeof(string);
+            if (type == typeof (WebColor))
+                return typeof (string);
 
             return base.GetClientLibraryType(type);
         }
@@ -64,13 +62,13 @@ namespace Pomona.Example
 
         public override object GetIdFor(object entity)
         {
-            return ((EntityBase)entity).Id;
+            return ((EntityBase) entity).Id;
         }
 
 
         public override JsonConverter GetJsonConverterForType(Type type)
         {
-            if (type == typeof(WebColor))
+            if (type == typeof (WebColor))
                 return new WebColorConverter();
 
             return base.GetJsonConverterForType(type);
@@ -84,10 +82,10 @@ namespace Pomona.Example
 
         public override Type GetUriBaseType(Type type)
         {
-            if (typeof(Weapon).IsAssignableFrom(type))
-                return typeof(Weapon);
-            if (type == typeof(MusicalCritter))
-                return typeof(Critter);
+            if (typeof (Weapon).IsAssignableFrom(type))
+                return typeof (Weapon);
+            if (type == typeof (MusicalCritter))
+                return typeof (Critter);
 
             return base.GetUriBaseType(type);
         }
@@ -95,9 +93,9 @@ namespace Pomona.Example
 
         public override bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            if (propertyInfo.DeclaringType == typeof(DictionaryContainer) && propertyInfo.Name == "Map")
+            if (propertyInfo.DeclaringType == typeof (DictionaryContainer) && propertyInfo.Name == "Map")
                 return true;
-            if (propertyInfo.DeclaringType == typeof(OrderResponse) && propertyInfo.Name == "Order")
+            if (propertyInfo.DeclaringType == typeof (OrderResponse) && propertyInfo.Name == "Order")
                 return true;
 
             return base.PropertyIsAlwaysExpanded(propertyInfo);
@@ -106,7 +104,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMapped(Type type)
         {
-            if (type == typeof(ExcludedThing))
+            if (type == typeof (ExcludedThing))
                 return false;
 
             return base.TypeIsMapped(type);
@@ -115,7 +113,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMappedAsSharedType(Type type)
         {
-            if (type == typeof(WebColor))
+            if (type == typeof (WebColor))
                 return true;
 
             return base.TypeIsMappedAsSharedType(type);
@@ -124,10 +122,10 @@ namespace Pomona.Example
 
         public override bool TypeIsMappedAsValueObject(Type type)
         {
-            if (type == typeof(OrderResponse))
+            if (type == typeof (OrderResponse))
                 return true;
 
-            if (type == typeof(CrazyValueObject))
+            if (type == typeof (CrazyValueObject))
                 return true;
             return base.TypeIsMappedAsValueObject(type);
         }

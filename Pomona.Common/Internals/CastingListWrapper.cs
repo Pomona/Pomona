@@ -47,7 +47,7 @@ namespace Pomona.Common.Internals
 
         public IEnumerator<TOuter> GetEnumerator()
         {
-            return this.inner.Cast<TOuter>().GetEnumerator();
+            return inner.Cast<TOuter>().GetEnumerator();
         }
 
 
@@ -62,42 +62,42 @@ namespace Pomona.Common.Internals
 
         public int Count
         {
-            get { return this.inner.Count; }
+            get { return inner.Count; }
         }
 
         public bool IsReadOnly
         {
-            get { return this.inner.IsReadOnly; }
+            get { return inner.IsReadOnly; }
         }
 
 
         public void Add(TOuter item)
         {
-            this.inner.Add(item);
+            inner.Add(item);
         }
 
 
         public void Clear()
         {
-            this.inner.Clear();
+            inner.Clear();
         }
 
 
         public bool Contains(TOuter item)
         {
-            return this.inner.Contains(item);
+            return inner.Contains(item);
         }
 
 
         public void CopyTo(TOuter[] array, int arrayIndex)
         {
-            this.inner.Cast<TOuter>().ToList().CopyTo(array, arrayIndex);
+            inner.Cast<TOuter>().ToList().CopyTo(array, arrayIndex);
         }
 
 
         public bool Remove(TOuter item)
         {
-            this.inner.Remove(item);
+            inner.Remove(item);
             return true;
         }
 
@@ -107,26 +107,26 @@ namespace Pomona.Common.Internals
 
         public TOuter this[int index]
         {
-            get { return (TOuter)this.inner[index]; }
-            set { this.inner[index] = value; }
+            get { return (TOuter) inner[index]; }
+            set { inner[index] = value; }
         }
 
 
         public int IndexOf(TOuter item)
         {
-            return this.inner.IndexOf(item);
+            return inner.IndexOf(item);
         }
 
 
         public void Insert(int index, TOuter item)
         {
-            this.inner.Insert(index, item);
+            inner.Insert(index, item);
         }
 
 
         public void RemoveAt(int index)
         {
-            this.inner.RemoveAt(index);
+            inner.RemoveAt(index);
         }
 
         #endregion

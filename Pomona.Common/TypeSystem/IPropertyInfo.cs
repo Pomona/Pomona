@@ -43,7 +43,6 @@ namespace Pomona.Common.TypeSystem
         PropertyCreateMode CreateMode { get; }
         IMappedType DeclaringType { get; }
         Func<object, object> Getter { get; }
-        Expression CreateGetterExpression(Expression instance);
         bool IsWriteable { get; }
         string JsonName { get; }
         string LowerCaseName { get; }
@@ -51,5 +50,6 @@ namespace Pomona.Common.TypeSystem
         IMappedType PropertyType { get; }
         Action<object, object> Setter { get; }
         bool IsPrimaryKey { get; }
+        Expression CreateGetterExpression(Expression instance);
     }
 }

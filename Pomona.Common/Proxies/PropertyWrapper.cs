@@ -30,7 +30,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
@@ -46,60 +45,60 @@ namespace Pomona.Common.Proxies
 
         public PropertyWrapper(string propertyName)
         {
-            var ownerType = typeof(TOwner);
+            var ownerType = typeof (TOwner);
 
-            this.propertyInfo = TypeUtils.AllBaseTypesAndInterfaces(ownerType).Select(
+            propertyInfo = TypeUtils.AllBaseTypesAndInterfaces(ownerType).Select(
                 t => t.GetProperty(
                     propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)).FirstOrDefault(
                         t => t != null);
 
             var getterSelfParam = Expression.Parameter(ownerType, "x");
-            this.getterExpression =
+            getterExpression =
                 Expression.Lambda<Func<TOwner, TPropType>>(
-                    Expression.MakeMemberAccess(getterSelfParam, this.propertyInfo), getterSelfParam);
+                    Expression.MakeMemberAccess(getterSelfParam, propertyInfo), getterSelfParam);
             var setterSelfParam = Expression.Parameter(ownerType, "x");
-            var setterValueParam = Expression.Parameter(typeof(TPropType), "value");
+            var setterValueParam = Expression.Parameter(typeof (TPropType), "value");
 
-            this.getter = this.getterExpression.Compile();
+            getter = getterExpression.Compile();
 
-            this.setterExpression =
+            setterExpression =
                 Expression.Lambda<Action<TOwner, TPropType>>(
-                    Expression.Assign(Expression.Property(setterSelfParam, this.propertyInfo), setterValueParam),
+                    Expression.Assign(Expression.Property(setterSelfParam, propertyInfo), setterValueParam),
                     setterSelfParam,
                     setterValueParam);
 
-            this.setter = this.setterExpression.Compile();
+            setter = setterExpression.Compile();
         }
 
 
         public Func<TOwner, TPropType> Getter
         {
-            get { return this.getter; }
+            get { return getter; }
         }
 
         public Expression<Func<TOwner, TPropType>> GetterExpression
         {
-            get { return this.getterExpression; }
+            get { return getterExpression; }
         }
 
         public string Name
         {
-            get { return this.propertyInfo.Name; }
+            get { return propertyInfo.Name; }
         }
 
         public PropertyInfo PropertyInfo
         {
-            get { return this.propertyInfo; }
+            get { return propertyInfo; }
         }
 
         public Action<TOwner, TPropType> Setter
         {
-            get { return this.setter; }
+            get { return setter; }
         }
 
         public Expression<Action<TOwner, TPropType>> SetterExpression
         {
-            get { return this.setterExpression; }
+            get { return setterExpression; }
         }
 
 

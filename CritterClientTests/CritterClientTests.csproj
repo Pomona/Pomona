@@ -65,6 +65,7 @@
     <Compile Include="ClientTestsBase.cs" />
     <Compile Include="CritterModuleInternal.cs" />
     <Compile Include="CritterTests.cs" />
+    <Compile Include="JsonClientDeserializationTests.cs" />
     <Compile Include="JsonClientSerializationTests.cs" />
     <Compile Include="PostTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

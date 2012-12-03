@@ -39,7 +39,7 @@ namespace Pomona.Common
 
         public ReadOnlyDictionary()
         {
-            this.dictionary = new Dictionary<TKey, TValue>();
+            dictionary = new Dictionary<TKey, TValue>();
         }
 
 
@@ -52,19 +52,19 @@ namespace Pomona.Common
 
         public TValue this[TKey key]
         {
-            get { return this.dictionary[key]; }
+            get { return dictionary[key]; }
             set { throw new NotSupportedException("This dictionary is read-only"); }
         }
 
 
         public ICollection<TKey> Keys
         {
-            get { return this.dictionary.Keys; }
+            get { return dictionary.Keys; }
         }
 
         public ICollection<TValue> Values
         {
-            get { return this.dictionary.Values; }
+            get { return dictionary.Values; }
         }
 
 
@@ -76,7 +76,7 @@ namespace Pomona.Common
 
         public bool ContainsKey(TKey key)
         {
-            return this.dictionary.ContainsKey(key);
+            return dictionary.ContainsKey(key);
         }
 
 
@@ -88,7 +88,7 @@ namespace Pomona.Common
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            return this.dictionary.TryGetValue(key, out value);
+            return dictionary.TryGetValue(key, out value);
         }
 
         #endregion
@@ -97,7 +97,7 @@ namespace Pomona.Common
 
         public int Count
         {
-            get { return this.dictionary.Count; }
+            get { return dictionary.Count; }
         }
 
         public bool IsReadOnly
@@ -120,13 +120,13 @@ namespace Pomona.Common
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            return this.dictionary.Contains(item);
+            return dictionary.Contains(item);
         }
 
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            this.dictionary.CopyTo(array, arrayIndex);
+            dictionary.CopyTo(array, arrayIndex);
         }
 
 
@@ -141,7 +141,7 @@ namespace Pomona.Common
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            return this.dictionary.GetEnumerator();
+            return dictionary.GetEnumerator();
         }
 
         #endregion
@@ -150,7 +150,7 @@ namespace Pomona.Common
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (this.dictionary as IEnumerable).GetEnumerator();
+            return (dictionary as IEnumerable).GetEnumerator();
         }
 
         #endregion

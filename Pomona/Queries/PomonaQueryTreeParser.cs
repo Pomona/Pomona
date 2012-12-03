@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-
 using Antlr.Runtime.Tree;
 
 namespace Pomona.Queries
@@ -44,40 +43,40 @@ namespace Pomona.Queries
         static PomonaQueryTreeParser()
         {
             binaryNodeTypes = new HashSet<NodeType>()
-            {
-                NodeType.AndAlso,
-                NodeType.OrElse,
-                NodeType.Multiply,
-                NodeType.Modulo,
-                NodeType.Add,
-                NodeType.Div,
-                NodeType.Subtract,
-                NodeType.GreaterThan,
-                NodeType.LessThan,
-                NodeType.GreaterThanOrEqual,
-                NodeType.LessThanOrEqual,
-                NodeType.Equal,
-                NodeType.NotEqual,
-                NodeType.Dot
-            };
+                {
+                    NodeType.AndAlso,
+                    NodeType.OrElse,
+                    NodeType.Multiply,
+                    NodeType.Modulo,
+                    NodeType.Add,
+                    NodeType.Div,
+                    NodeType.Subtract,
+                    NodeType.GreaterThan,
+                    NodeType.LessThan,
+                    NodeType.GreaterThanOrEqual,
+                    NodeType.LessThanOrEqual,
+                    NodeType.Equal,
+                    NodeType.NotEqual,
+                    NodeType.Dot
+                };
             nodeTypeDict = new Dictionary<int, NodeType>
-            {
-                { PomonaQueryParser.LT_OP, NodeType.LessThan },
-                { PomonaQueryParser.EQ_OP, NodeType.Equal },
-                { PomonaQueryParser.NE_OP, NodeType.NotEqual },
-                { PomonaQueryParser.GT_OP, NodeType.GreaterThan },
-                { PomonaQueryParser.GE_OP, NodeType.GreaterThanOrEqual },
-                { PomonaQueryParser.LE_OP, NodeType.LessThanOrEqual },
-                { PomonaQueryParser.ADD_OP, NodeType.Add },
-                { PomonaQueryParser.SUB_OP, NodeType.Subtract },
-                { PomonaQueryParser.AND_OP, NodeType.AndAlso },
-                { PomonaQueryParser.OR_OP, NodeType.OrElse },
-                { PomonaQueryParser.MUL_OP, NodeType.Multiply },
-                { PomonaQueryParser.DIV_OP, NodeType.Div },
-                { PomonaQueryParser.MOD_OP, NodeType.Modulo },
-                { PomonaQueryParser.DOT_OP, NodeType.Dot },
-                { PomonaQueryParser.STRING, NodeType.StringLiteral }
-            };
+                {
+                    {PomonaQueryParser.LT_OP, NodeType.LessThan},
+                    {PomonaQueryParser.EQ_OP, NodeType.Equal},
+                    {PomonaQueryParser.NE_OP, NodeType.NotEqual},
+                    {PomonaQueryParser.GT_OP, NodeType.GreaterThan},
+                    {PomonaQueryParser.GE_OP, NodeType.GreaterThanOrEqual},
+                    {PomonaQueryParser.LE_OP, NodeType.LessThanOrEqual},
+                    {PomonaQueryParser.ADD_OP, NodeType.Add},
+                    {PomonaQueryParser.SUB_OP, NodeType.Subtract},
+                    {PomonaQueryParser.AND_OP, NodeType.AndAlso},
+                    {PomonaQueryParser.OR_OP, NodeType.OrElse},
+                    {PomonaQueryParser.MUL_OP, NodeType.Multiply},
+                    {PomonaQueryParser.DIV_OP, NodeType.Div},
+                    {PomonaQueryParser.MOD_OP, NodeType.Modulo},
+                    {PomonaQueryParser.DOT_OP, NodeType.Dot},
+                    {PomonaQueryParser.STRING, NodeType.StringLiteral}
+                };
         }
 
 
@@ -134,7 +133,7 @@ namespace Pomona.Queries
 
                 var expr = childNodes.Dequeue();
                 while (childNodes.Count > 0)
-                    expr = new BinaryOperator(nodeType, new[] { expr, childNodes.Dequeue() });
+                    expr = new BinaryOperator(nodeType, new[] {expr, childNodes.Dequeue()});
                 return expr;
             }
 

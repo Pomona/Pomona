@@ -37,7 +37,7 @@ namespace Pomona.Example
 
         public CritterDataSource CritterDataSource
         {
-            get { return (CritterDataSource)DataSource; }
+            get { return (CritterDataSource) DataSource; }
         }
     }
 }

@@ -27,9 +27,7 @@
 #endregion
 
 using System;
-
 using NUnit.Framework;
-
 using Pomona.Schemas;
 using Pomona.UnitTests.PomonaSession;
 

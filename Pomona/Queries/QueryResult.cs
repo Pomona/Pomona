@@ -32,7 +32,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
-
 using Pomona.Common;
 
 namespace Pomona.Queries
@@ -57,36 +56,36 @@ namespace Pomona.Queries
 
         public override Type ListType
         {
-            get { return typeof(IList<T>); }
+            get { return typeof (IList<T>); }
         }
 
         public override int Skip
         {
-            get { return this.skip; }
+            get { return skip; }
         }
 
         public override int TotalCount
         {
-            get { return this.totalCount; }
+            get { return totalCount; }
         }
 
         public string Url
         {
-            get { return this.url; }
+            get { return url; }
         }
 
         #region IList<T> Members
 
         public T this[int index]
         {
-            get { return this.items[index]; }
+            get { return items[index]; }
             set { throw new NotSupportedException(); }
         }
 
 
         public override int Count
         {
-            get { return this.items.Count; }
+            get { return items.Count; }
         }
 
         public bool IsReadOnly
@@ -109,25 +108,25 @@ namespace Pomona.Queries
 
         public bool Contains(T item)
         {
-            return this.items.Contains(item);
+            return items.Contains(item);
         }
 
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            this.items.CopyTo(array, arrayIndex);
+            items.CopyTo(array, arrayIndex);
         }
 
 
         public IEnumerator<T> GetEnumerator()
         {
-            return this.items.GetEnumerator();
+            return items.GetEnumerator();
         }
 
 
         public int IndexOf(T item)
         {
-            return this.items.IndexOf(item);
+            return items.IndexOf(item);
         }
 
 
@@ -151,14 +150,14 @@ namespace Pomona.Queries
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.items.GetEnumerator();
+            return items.GetEnumerator();
         }
 
         #endregion
 
         public override bool TryGetPage(int offset, out Uri pageUri)
         {
-            var newSkip = Math.Max(Skip + (Count * offset), 0);
+            var newSkip = Math.Max(Skip + (Count*offset), 0);
             var uriBuilder = new UriBuilder(Url);
 
             if (Skip == newSkip || newSkip >= TotalCount)

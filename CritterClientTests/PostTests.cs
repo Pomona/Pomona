@@ -27,9 +27,7 @@
 #endregion
 
 using System;
-
 using Critters.Client;
-
 using NUnit.Framework;
 
 namespace CritterClientTests
@@ -46,12 +44,12 @@ namespace CritterClientTests
 
             const string critterName = "Super critter";
 
-            var critter = (ICritter)this.client.Post<ICritter>(
+            var critter = (ICritter) client.Post<ICritter>(
                 x =>
-                {
-                    x.Hat = hat;
-                    x.Name = critterName;
-                });
+                    {
+                        x.Hat = hat;
+                        x.Name = critterName;
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -64,12 +62,12 @@ namespace CritterClientTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = (ICritter)this.client.Post<ICritter>(
+            var critter = (ICritter) client.Post<ICritter>(
                 x =>
-                {
-                    x.Hat = new HatForm() { HatType = hatType };
-                    x.Name = critterName;
-                });
+                    {
+                        x.Hat = new HatForm() {HatType = hatType};
+                        x.Name = critterName;
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -79,7 +77,7 @@ namespace CritterClientTests
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
         {
-            var response = (IDictionaryContainer)this.client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
+            var response = (IDictionaryContainer) client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
             Assert.That(response.Map.ContainsKey("cow"));
             Assert.That(response.Map["cow"] == "moo");
         }
@@ -88,7 +86,7 @@ namespace CritterClientTests
         [Test]
         public void PostHasCustomEnum()
         {
-            var response = this.client.HasCustomEnums.Post(
+            var response = client.HasCustomEnums.Post(
                 x => { x.TheEnumValue = CustomEnum.Tock; });
 
             Assert.That(response.TheEnumValue, Is.EqualTo(CustomEnum.Tock));
@@ -98,7 +96,7 @@ namespace CritterClientTests
         [Test]
         public void PostHasNullableCustomEnum_WithNonNullValue()
         {
-            var response = this.client.HasCustomNullableEnums.Post(
+            var response = client.HasCustomNullableEnums.Post(
                 x => { x.TheEnumValue = CustomEnum.Tock; });
             Assert.That(response.TheEnumValue.HasValue, Is.True);
             Assert.That(response.TheEnumValue.Value, Is.EqualTo(CustomEnum.Tock));
@@ -108,7 +106,7 @@ namespace CritterClientTests
         [Test]
         public void PostHasNullableCustomEnum_WithNull()
         {
-            var response = this.client.HasCustomNullableEnums.Post(
+            var response = client.HasCustomNullableEnums.Post(
                 x => { x.TheEnumValue = null; });
             Assert.That(response.TheEnumValue.HasValue, Is.False);
         }
@@ -120,7 +118,7 @@ namespace CritterClientTests
             var propval = "Jalla jalla";
             var junk =
                 (IJunkWithRenamedProperty)
-                this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
+                client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
@@ -132,14 +130,14 @@ namespace CritterClientTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = (IMusicalCritter)this.client.Post<IMusicalCritter>(
+            var critter = (IMusicalCritter) client.Post<IMusicalCritter>(
                 x =>
-                {
-                    x.Hat = new HatForm() { HatType = hatType };
-                    x.Name = critterName;
-                    x.BandName = "banana";
-                    x.Instrument = new InstrumentForm() { Type = "helo" };
-                });
+                    {
+                        x.Hat = new HatForm() {HatType = hatType};
+                        x.Name = critterName;
+                        x.BandName = "banana";
+                        x.Instrument = new InstrumentForm() {Type = "helo"};
+                    });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
@@ -150,7 +148,7 @@ namespace CritterClientTests
         [Test]
         public void PostOrder_ReturnsOrderResponse()
         {
-            var response = this.client.Orders.Post(x => x.Description = "Blob");
+            var response = client.Orders.Post(x => x.Description = "Blob");
             Assert.That(response, Is.InstanceOf<IOrderResponse>());
             Assert.That(response.Order, Is.Not.Null);
             Assert.That(response.Order, Is.TypeOf<OrderResource>());
@@ -162,7 +160,7 @@ namespace CritterClientTests
         public void PostThingWithNullableDateTime_WithNonNullValue()
         {
             DateTime? maybeDateTime = new DateTime(2011, 10, 22, 1, 33, 22);
-            var response = this.client.ThingWithNullableDateTimes.Post(
+            var response = client.ThingWithNullableDateTimes.Post(
                 x => { x.MaybeDateTime = maybeDateTime; });
 
             Assert.That(response.MaybeDateTime.HasValue, Is.True);
@@ -173,7 +171,7 @@ namespace CritterClientTests
         [Test]
         public void PostThingWithNullableDateTime_WithNullValue()
         {
-            var response = this.client.ThingWithNullableDateTimes.Post(
+            var response = client.ThingWithNullableDateTimes.Post(
                 x => { x.MaybeDateTime = null; });
 
             Assert.That(response.MaybeDateTime.HasValue, Is.False);
@@ -184,7 +182,7 @@ namespace CritterClientTests
         public void PostThingWithPropertyNamedUri()
         {
             var uri = new Uri("http://bahaha");
-            var response = this.client.ThingWithPropertyNamedUris.Post(
+            var response = client.ThingWithPropertyNamedUris.Post(
                 x => { x.Uri = uri; });
 
             Assert.That(response.Uri, Is.EqualTo(uri));

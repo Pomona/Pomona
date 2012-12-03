@@ -43,7 +43,7 @@ namespace Pomona.Queries
 
         public T Value
         {
-            get { return this.value; }
+            get { return value; }
         }
     }
 }

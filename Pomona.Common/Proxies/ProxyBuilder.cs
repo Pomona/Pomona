@@ -29,11 +29,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
@@ -73,13 +71,13 @@ namespace Pomona.Common.Proxies
 
         public virtual ModuleDefinition Module
         {
-            get { return this.module; }
+            get { return module; }
         }
 
         public virtual string ProxyNameFormat
         {
-            get { return this.proxyNameFormat; }
-            protected set { this.proxyNameFormat = value; }
+            get { return proxyNameFormat; }
+            protected set { proxyNameFormat = value; }
         }
 
 
@@ -88,25 +86,25 @@ namespace Pomona.Common.Proxies
             IEnumerable<TypeDefinition> interfacesToImplement)
         {
             MethodReference proxyBaseCtor =
-                this.proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+                proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
             proxyBaseCtor = Module.Import(proxyBaseCtor);
 
-            var proxyTypeName = string.Format(this.proxyNameFormat, nameBase);
+            var proxyTypeName = string.Format(proxyNameFormat, nameBase);
 
-            var typeAttributes = this.isPublic
+            var typeAttributes = isPublic
                                      ? TypeAttributes.Public
                                      : TypeAttributes.NotPublic;
 
             var proxyType =
                 new TypeDefinition(
-                    this.proxyNamespace,
+                    proxyNamespace,
                     proxyTypeName,
                     typeAttributes,
-                    this.module.Import(this.proxyBaseTypeDef));
+                    module.Import(proxyBaseTypeDef));
             Module.Types.Add(proxyType);
 
             foreach (var interfaceDef in interfacesToImplement)
-                proxyType.Interfaces.Add(this.module.Import(interfaceDef));
+                proxyType.Interfaces.Add(module.Import(interfaceDef));
 
             // Empty public constructor
             var ctor = new MethodDefinition(
@@ -127,12 +125,12 @@ namespace Pomona.Common.Proxies
 
             foreach (var targetProp in interfaces.SelectMany(x => x.Properties))
             {
-                var proxyPropDef = AddProperty(proxyType, targetProp.Name, this.module.Import(targetProp.PropertyType));
+                var proxyPropDef = AddProperty(proxyType, targetProp.Name, module.Import(targetProp.PropertyType));
                 OnGeneratePropertyMethods(
                     targetProp,
                     proxyPropDef,
-                    this.proxyBaseTypeDef,
-                    this.module.Import(targetProp.DeclaringType),
+                    proxyBaseTypeDef,
+                    module.Import(targetProp.DeclaringType),
                     interfacesToImplement.First());
             }
 
@@ -147,13 +145,13 @@ namespace Pomona.Common.Proxies
             TypeReference proxyTargetType,
             TypeReference rootProxyTargetType)
         {
-            if (this.onGeneratePropertyMethodsFunc == null)
+            if (onGeneratePropertyMethodsFunc == null)
             {
                 throw new InvalidOperationException(
                     "Either onGenerateMethodsFunc must be provided in argument, or OnGenerateMethods must be overrided");
             }
 
-            this.onGeneratePropertyMethodsFunc(targetProp, proxyProp, proxyBaseType, proxyTargetType);
+            onGeneratePropertyMethodsFunc(targetProp, proxyProp, proxyBaseType, proxyTargetType);
         }
 
 

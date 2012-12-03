@@ -28,9 +28,7 @@
 
 using System;
 using System.Globalization;
-
 using Nancy;
-
 using Pomona.Common;
 using Pomona.Queries;
 
@@ -77,13 +75,13 @@ namespace Pomona
                 skip = int.Parse(request.Query["$skip"]);
 
             if (request.Query["$filter"].HasValue)
-                filter = (string)request.Query["$filter"];
+                filter = (string) request.Query["$filter"];
 
             if (request.Query["$select"].HasValue)
-                select = (string)request.Query["$select"];
+                select = (string) request.Query["$select"];
 
             if (request.Query["$orderby"].HasValue)
-                ParseOrderBy(query, (string)request.Query["$orderby"]);
+                ParseOrderBy(query, (string) request.Query["$orderby"]);
 
             ParseFilterExpression(query, filter);
 
@@ -93,7 +91,7 @@ namespace Pomona
             if (request.Query["$expand"].HasValue)
             {
                 // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string)request.Query["$expand"]);
+                query.ExpandedPaths = ((string) request.Query["$expand"]);
             }
             else
                 query.ExpandedPaths = string.Empty;
@@ -108,7 +106,7 @@ namespace Pomona
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = this.filterParser.Parse(query.TargetType.MappedType, filter);
+            query.FilterExpression = filterParser.Parse(query.TargetType.MappedType, filter);
         }
 
 
@@ -129,7 +127,7 @@ namespace Pomona
             else
                 query.SortOrder = SortOrder.Ascending;
 
-            query.OrderByExpression = this.filterParser.Parse(query.TargetType.MappedType, orderby);
+            query.OrderByExpression = filterParser.Parse(query.TargetType.MappedType, orderby);
         }
     }
 }

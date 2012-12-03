@@ -41,14 +41,14 @@ namespace Pomona.Common.Proxies
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             if (property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget))
-                return property.Getter((TOwner)ProxyTarget);
+                return property.Getter((TOwner) ProxyTarget);
 
-            if (typeof(TPropType) != typeof(string))
+            if (typeof (TPropType) != typeof (string))
                 throw new NotImplementedException("Only supports wrapping of string properties");
 
-            var dict = (IDictionary<string, string>)AttributesProperty.GetValue(ProxyTarget, null);
+            var dict = (IDictionary<string, string>) AttributesProperty.GetValue(ProxyTarget, null);
 
-            return (TPropType)((object)dict[property.PropertyInfo.Name]);
+            return (TPropType) ((object) dict[property.PropertyInfo.Name]);
         }
 
 

@@ -33,5 +33,6 @@ namespace Pomona.Common.TypeSystem
     public interface ITypeMapper
     {
         IMappedType GetClassMapping(Type type);
+        IMappedType GetClassMapping(string typeName);
     }
 }

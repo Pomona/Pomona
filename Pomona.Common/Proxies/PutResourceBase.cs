@@ -29,10 +29,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Proxies
@@ -46,48 +44,56 @@ namespace Pomona.Common.Proxies
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             object value;
-            if (!this.propMap.TryGetValue(property.Name, out value))
+            if (!propMap.TryGetValue(property.Name, out value))
             {
                 var propertyType = property.PropertyInfo.PropertyType;
-                if (propertyType.IsGenericInstanceOf(typeof(IDictionary<,>)))
+                if (propertyType.IsGenericInstanceOf(typeof (IDictionary<,>)))
                 {
-                    var newDictType = typeof(Dictionary<,>).MakeGenericType(propertyType.GetGenericArguments());
-                    var newDict = Activator.CreateInstance(newDictType);
-                    this.propMap[property.Name] = newDict;
-                    return (TPropType)newDict;
+                    var newDictType =
+                        typeof (PostResourceDictionary<,>).MakeGenericType(propertyType.GetGenericArguments());
+                    var newDict = Activator.CreateInstance(newDictType,
+                                                           BindingFlags.Instance | BindingFlags.NonPublic |
+                                                           BindingFlags.CreateInstance, null,
+                                                           new object[] {this, property.Name}, null);
+                    propMap[property.Name] = newDict;
+                    return (TPropType) newDict;
                 }
-                if (propertyType.IsGenericInstanceOf(typeof(ICollection<>), typeof(IList<>)))
+                if (propertyType.IsGenericInstanceOf(typeof (ICollection<>), typeof (IList<>)))
                 {
-                    var newListType = typeof(PostResourceList<>).MakeGenericType(propertyType.GetGenericArguments());
-                    var newList = Activator.CreateInstance(newListType, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.CreateInstance, null, new object[] { this, property.Name }, null);
-                    this.propMap[property.Name] = newList;
-                    return (TPropType)newList;
+                    var newListType = typeof (PostResourceList<>).MakeGenericType(propertyType.GetGenericArguments());
+                    var newList = Activator.CreateInstance(newListType,
+                                                           BindingFlags.Instance | BindingFlags.NonPublic |
+                                                           BindingFlags.CreateInstance, null,
+                                                           new object[] {this, property.Name}, null);
+                    propMap[property.Name] = newList;
+                    return (TPropType) newList;
                 }
                 throw new InvalidOperationException("Update value for " + property.Name + " has not been set");
             }
 
-            return (TPropType)value;
+            return (TPropType) value;
         }
 
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
-            this.propMap[property.Name] = value;
-            this.dirtyMap[property.Name] = true;
+            propMap[property.Name] = value;
+            dirtyMap[property.Name] = true;
         }
 
 
         internal void SetDirty(string propertyName)
         {
-            this.dirtyMap[propertyName] = true;
+            dirtyMap[propertyName] = true;
         }
 
 
+        [Obsolete("Wil be removed once serialization refactoring is complete", true)]
         internal JObject ToJson(JsonSerializer jsonSerializer)
         {
             var jObject = new JObject();
 
-            foreach (var kvp in this.propMap)
+            foreach (var kvp in propMap)
             {
                 var jsonName = kvp.Key.LowercaseFirstLetter();
                 var value = kvp.Value;
@@ -132,7 +138,7 @@ namespace Pomona.Common.Proxies
 
         bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
         {
-            return this.dirtyMap.GetValueOrDefault(propertyName);
+            return dirtyMap.GetValueOrDefault(propertyName);
         }
 
         #endregion

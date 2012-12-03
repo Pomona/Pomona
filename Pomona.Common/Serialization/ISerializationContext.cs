@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -38,5 +37,9 @@ namespace Pomona.Common.Serialization
         string GetUri(object value);
         string GetUri(IPropertyInfo property, object value);
         bool PathToBeExpanded(string expandPath);
+
+
+        void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
+            where TWriter : ISerializerWriter;
     }
 }

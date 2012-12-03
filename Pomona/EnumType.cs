@@ -28,10 +28,8 @@
 
 using System;
 using System.Collections.Generic;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -62,6 +60,12 @@ namespace Pomona
         }
 
         #region IMappedType Members
+
+        public object Create(IDictionary<IPropertyInfo, object> args)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public IMappedType BaseType
         {
@@ -122,12 +126,12 @@ namespace Pomona
 
         public Type MappedTypeInstance
         {
-            get { return this.mappedType; }
+            get { return mappedType; }
         }
 
         public string Name
         {
-            get { return this.mappedType.Name; }
+            get { return mappedType.Name; }
         }
 
         public IPropertyInfo PrimaryId
@@ -157,7 +161,7 @@ namespace Pomona
 
         IList<IPropertyInfo> IMappedType.Properties
         {
-            get { return new IPropertyInfo[] { }; }
+            get { return new IPropertyInfo[] {}; }
         }
 
         TypeSerializationMode IMappedType.SerializationMode
@@ -169,12 +173,12 @@ namespace Pomona
 
         public Dictionary<string, int> EnumValues
         {
-            get { return this.enumValues; }
+            get { return enumValues; }
         }
 
         public Type MappedType
         {
-            get { return this.mappedType; }
+            get { return mappedType; }
         }
     }
 }

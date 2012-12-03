@@ -52,7 +52,7 @@ namespace Pomona.Common
         public static string ConvertCamelCaseToUri(string word)
         {
             var parts = GetCamelCaseParts(word).ToArray();
-            return string.Join((string)"-", (IEnumerable<string>)parts.Select(x => x.ToLower()));
+            return string.Join((string) "-", (IEnumerable<string>) parts.Select(x => x.ToLower()));
         }
 
 

@@ -29,7 +29,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -73,16 +72,8 @@ namespace Pomona
 
 
         public PropertyAccessMode AccessMode { get; set; }
-        public bool AlwaysExpand { get; set; }
 
         public int ConstructorArgIndex { get; set; }
-
-        public PropertyCreateMode CreateMode { get; set; }
-
-        public IMappedType DeclaringType
-        {
-            get { return this.declaringType; }
-        }
 
         /// <summary>
         /// For one-to-many collection properties this defines which property on the
@@ -92,12 +83,31 @@ namespace Pomona
         /// </summary>
         public PropertyMapping ElementForeignKey { get; set; }
 
-        public Func<object, object> Getter { get; set; }
-
         public bool IsOneToManyCollection
         {
-            get { return this.propertyType.IsCollection; }
+            get { return propertyType.IsCollection; }
         }
+
+        public PropertyInfo PropertyInfo
+        {
+            get { return propertyInfo; }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return declaringType.TypeMapper; }
+        }
+
+        public bool AlwaysExpand { get; set; }
+
+        public PropertyCreateMode CreateMode { get; set; }
+
+        public IMappedType DeclaringType
+        {
+            get { return declaringType; }
+        }
+
+        public Func<object, object> Getter { get; set; }
 
         public Expression CreateGetterExpression(Expression instance)
         {
@@ -115,17 +125,12 @@ namespace Pomona
 
         public string Name
         {
-            get { return this.name; }
-        }
-
-        public PropertyInfo PropertyInfo
-        {
-            get { return this.propertyInfo; }
+            get { return name; }
         }
 
         public IMappedType PropertyType
         {
-            get { return this.propertyType; }
+            get { return propertyType; }
         }
 
         public Action<object, object> Setter { get; set; }
@@ -133,11 +138,6 @@ namespace Pomona
         public bool IsPrimaryKey
         {
             get { return DeclaringType.PrimaryId == this; }
-        }
-
-        public TypeMapper TypeMapper
-        {
-            get { return this.declaringType.TypeMapper; }
         }
     }
 }

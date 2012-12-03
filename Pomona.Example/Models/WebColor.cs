@@ -44,7 +44,7 @@ namespace Pomona.Example.Models
 
             for (var i = 0; i < 3; i++)
             {
-                var colorComponentValue = Convert.ToInt32(color.Substring(1 + (i * 2), 2), 16);
+                var colorComponentValue = Convert.ToInt32(color.Substring(1 + (i*2), 2), 16);
                 if (i == 0)
                     Red = colorComponentValue;
                 if (i == 1)

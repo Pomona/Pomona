@@ -29,9 +29,7 @@
 using System;
 using System.IO;
 using System.Linq;
-
 using Nancy;
-
 using Pomona.CodeGen;
 using Pomona.Queries;
 using Pomona.Schemas;
@@ -71,7 +69,7 @@ namespace Pomona
             }
             this.queryTransformer = queryTransformer;
 
-            this.session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri);
+            session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri);
 
             Console.WriteLine("Registering routes..");
             foreach (var transformedType in this.typeMapper.TransformedTypes.Select(x => x.UriBaseType).Distinct())
@@ -87,7 +85,7 @@ namespace Pomona
 
         public IPomonaDataSource DataSource
         {
-            get { return this.dataSource; }
+            get { return dataSource; }
         }
 
 
@@ -98,7 +96,7 @@ namespace Pomona
             if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
             {
                 HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(
-                    res, this.htmlLinks, json, Context.Request.Url.BasePath);
+                    res, htmlLinks, json, Context.Request.Url.BasePath);
             }
             else
             {
@@ -113,7 +111,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            var json = this.session.GetAsJson(transformedType, id, expand);
+            var json = session.GetAsJson(transformedType, id, expand);
 
             FillJsonResponse(res, json);
 
@@ -137,22 +135,23 @@ namespace Pomona
             // TODO: Fix that this only works if primary key is named Id [KNS]
 
             // Fetch entity first to see if entity with id actually exists.
-            this.session.GetAsJson((TransformedType)key.PropertyType, id, null);
+            session.GetAsJson((TransformedType) key.PropertyType, id, null);
 
             if (Request.Query["$filter"].HasValue)
             {
                 Request.Query["$filter"] = string.Format(
-                    "{0}.{1} eq {2} and ({3})", key.JsonName, key.PropertyType.PrimaryId.JsonName, id, Request.Query["$filter"]);
+                    "{0}.{1} eq {2} and ({3})", key.JsonName, key.PropertyType.PrimaryId.JsonName, id,
+                    Request.Query["$filter"]);
             }
             else
                 Request.Query["$filter"] = string.Format("{0}.id eq {1}", key.JsonName, id);
 
-            var query = (PomonaQuery)this.queryTransformer.TransformRequest(Request, Context, type);
+            var query = (PomonaQuery) queryTransformer.TransformRequest(Request, Context, type);
 
             string jsonStr;
             using (var strWriter = new StringWriter())
             {
-                this.session.Query(query, strWriter);
+                session.Query(query, strWriter);
                 jsonStr = strWriter.ToString();
             }
 
@@ -167,7 +166,7 @@ namespace Pomona
         {
             var response = new Response();
 
-            response.Contents = stream => this.session.WriteClientLibrary(stream);
+            response.Contents = stream => session.WriteClientLibrary(stream);
             response.ContentType = "binary/octet-stream";
 
             return response;
@@ -178,16 +177,16 @@ namespace Pomona
         {
             var response = new Response();
 
-            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            var packageBuilder = new ClientNugetPackageBuilder(typeMapper);
             response.Contents = stream =>
-            {
-                using (var memstream = new MemoryStream())
                 {
-                    packageBuilder.BuildPackage(memstream);
-                    var bytes = memstream.ToArray();
-                    stream.Write(bytes, 0, bytes.Length);
-                }
-            };
+                    using (var memstream = new MemoryStream())
+                    {
+                        packageBuilder.BuildPackage(memstream);
+                        var bytes = memstream.ToArray();
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                };
             response.ContentType = "binary/octet-stream";
 
             return response;
@@ -215,7 +214,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            FillJsonResponse(res, this.session.GetPropertyAsJson(transformedType, id, propname, expand));
+            FillJsonResponse(res, session.GetPropertyAsJson(transformedType, id, propname, expand));
 
             return res;
         }
@@ -225,7 +224,7 @@ namespace Pomona
         {
             var res = new Response();
 
-            var schemas = new JsonSchemaGenerator(this.typeMapper).GenerateAllSchemas().ToString();
+            var schemas = new JsonSchemaGenerator(typeMapper).GenerateAllSchemas().ToString();
             res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 
@@ -239,7 +238,7 @@ namespace Pomona
 
             var res = new Response();
 
-            var responseBodyText = this.session.PostJson(transformedType, new StreamReader(req.Body));
+            var responseBodyText = session.PostJson(transformedType, new StreamReader(req.Body));
             res.ContentsFromString(responseBodyText);
 
             // TODO: Set correct encoding [KNS]
@@ -251,12 +250,12 @@ namespace Pomona
 
         private Response QueryAsJson(TransformedType transformedType)
         {
-            var query = this.queryTransformer.TransformRequest(Request, Context, transformedType);
+            var query = queryTransformer.TransformRequest(Request, Context, transformedType);
 
             string jsonStr;
             using (var strWriter = new StringWriter())
             {
-                this.session.Query(query, strWriter);
+                session.Query(query, strWriter);
                 jsonStr = strWriter.ToString();
             }
 
@@ -269,7 +268,7 @@ namespace Pomona
 
         private void RegisterClientNugetPackageRoute()
         {
-            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            var packageBuilder = new ClientNugetPackageBuilder(typeMapper);
             Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
         }
 
@@ -278,8 +277,8 @@ namespace Pomona
         {
             var path = "/" + type.UriRelativePath;
             //Console.WriteLine("Registering path " + path);
-            this.htmlLinks = this.htmlLinks
-                             + string.Format("<li><a href=\"{0}\">{1}</a></li>", path, type.Name);
+            htmlLinks = htmlLinks
+                        + string.Format("<li><a href=\"{0}\">{1}</a></li>", path, type.Name);
 
             Get[path + "/{id}"] = x => GetAsJson(type, x.id);
 
@@ -289,7 +288,7 @@ namespace Pomona
                 if (transformedProp != null && transformedProp.IsOneToManyCollection
                     && transformedProp.ElementForeignKey != null)
                 {
-                    var collectionElementType = (TransformedType)prop.PropertyType.ElementType;
+                    var collectionElementType = (TransformedType) prop.PropertyType.ElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;
 
                     Get[path + "/{id}/" + prop.JsonName] =
@@ -321,7 +320,7 @@ namespace Pomona
             var res = new Response();
             res.Contents =
                 stream =>
-                this.session.UpdateFromJson(transformedType, id, new StreamReader(req.Body), new StreamWriter(stream));
+                session.UpdateFromJson(transformedType, id, new StreamReader(req.Body), new StreamWriter(stream));
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;

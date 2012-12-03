@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-
 using Pomona.Example;
 
 namespace Pomona

@@ -38,11 +38,11 @@ namespace Pomona.Common.Proxies
         {
             var reference = new MethodReference(
                 self.Name, self.ReturnType, self.DeclaringType.MakeGenericInstanceType(arguments))
-            {
-                HasThis = self.HasThis,
-                ExplicitThis = self.ExplicitThis,
-                CallingConvention = self.CallingConvention
-            };
+                {
+                    HasThis = self.HasThis,
+                    ExplicitThis = self.ExplicitThis,
+                    CallingConvention = self.CallingConvention
+                };
 
             foreach (var parameter in self.Parameters)
                 reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));

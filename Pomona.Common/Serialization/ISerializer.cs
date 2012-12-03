@@ -27,6 +27,7 @@
 #endregion
 
 using System.IO;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
@@ -43,5 +44,27 @@ namespace Pomona.Common.Serialization
         new TWriter CreateWriter(TextWriter textWriter);
         void SerializeNode(ISerializerNode node, TWriter writer);
         void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer);
+    }
+
+    public interface ISerializerReader
+    {
+    }
+
+    public interface IDeserializer
+    {
+        ISerializerReader CreateReader(TextReader textReader);
+        object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context);
+        void DeserializeNode(IDeserializerNode node, ISerializerReader reader);
+
+        void DeserializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,
+                                    ISerializerReader reader);
+    }
+
+    public interface IDeserializer<TReader> : IDeserializer
+        where TReader : ISerializerReader
+    {
+        new TReader CreateReader(TextReader textReader);
+        void DeserializeNode(IDeserializerNode node, TReader reader);
+        void DeserializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TReader reader);
     }
 }

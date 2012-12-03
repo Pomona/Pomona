@@ -32,10 +32,10 @@ namespace Pomona.Common.Serialization
 {
     public interface ISerializerNode
     {
+        ISerializationContext Context { get; }
         string ExpandPath { get; }
         IMappedType ExpectedBaseType { get; }
-        ISerializationContext FetchContext { get; }
-        bool SerializeAsReference { get; }
+        bool SerializeAsReference { get; set; }
         string Uri { get; }
         object Value { get; }
         IMappedType ValueType { get; }

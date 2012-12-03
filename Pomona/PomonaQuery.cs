@@ -28,7 +28,6 @@
 
 using System;
 using System.Linq.Expressions;
-
 using Pomona.Common;
 
 namespace Pomona
@@ -63,7 +62,7 @@ namespace Pomona
 
         public TransformedType TargetType
         {
-            get { return this.targetType; }
+            get { return targetType; }
         }
 
         public string Url { get; set; }

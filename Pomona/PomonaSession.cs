@@ -31,14 +31,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using Pomona.CodeGen;
+using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
-using Pomona.Common.Serialization;
 
 namespace Pomona
 {
@@ -62,10 +61,10 @@ namespace Pomona
         {
             postGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<PomonaSession>(dst => dst.PostGeneric<object>(null)).
-                    GetGenericMethodDefinition();
+                                 GetGenericMethodDefinition();
             queryGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<PomonaSession>(dst => dst.QueryGeneric<object>(null, null)).
-                    GetGenericMethodDefinition();
+                                 GetGenericMethodDefinition();
             getByIdMethod = new GenericMethodCaller<IPomonaDataSource, object, object>(
                 ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null)));
         }
@@ -88,13 +87,13 @@ namespace Pomona
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
             this.baseUriGetter = baseUriGetter;
-            this.serializer = typeMapper.SerializerFactory.GetSerialier();
+            serializer = typeMapper.SerializerFactory.GetSerialier();
         }
 
 
         public TypeMapper TypeMapper
         {
-            get { return this.typeMapper; }
+            get { return typeMapper; }
         }
 
 
@@ -112,7 +111,7 @@ namespace Pomona
         public void GetAsJson(TransformedType transformedType, object id, string expand, TextWriter textWriter)
         {
             var o = GetById(transformedType, id);
-            var mappedType = this.typeMapper.GetClassMapping(o.GetType());
+            var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var context = new FetchContext(string.Format("{0},{1}", rootPath, expand), false, this);
 
@@ -122,13 +121,13 @@ namespace Pomona
                 try
                 {
                     writer = serializer.CreateWriter(textWriter);
-                    this.serializer.SerializeNode(
+                    serializer.SerializeNode(
                         new ItemValueSerializerNode(o, transformedType, string.Empty, context), writer);
                 }
                 finally
                 {
                     if (writer != null && writer is IDisposable)
-                        ((IDisposable)writer).Dispose();
+                        ((IDisposable) writer).Dispose();
                 }
             }
             else
@@ -157,7 +156,7 @@ namespace Pomona
             propertyName = propertyName.ToLower();
 
             var o = GetById(transformedType, id);
-            var mappedType = (TransformedType)this.typeMapper.GetClassMapping(o.GetType());
+            var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
 
             var property = mappedType.Properties.First(x => x.Name.ToLower() == propertyName);
 
@@ -182,11 +181,11 @@ namespace Pomona
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
-            var transformedType = (TransformedType)TypeMapper.GetClassMapping(entity.GetType());
+            var transformedType = (TransformedType) TypeMapper.GetClassMapping(entity.GetType());
 
             return
                 new Uri(
-                    this.baseUriGetter(), "/" + transformedType.UriRelativePath + "/" + transformedType.GetId(entity)).
+                    baseUriGetter(), "/" + transformedType.UriRelativePath + "/" + transformedType.GetId(entity)).
                     ToString();
         }
 
@@ -216,7 +215,7 @@ namespace Pomona
                 // TODO: Check if specified type inherits from transformedType [KNS]
 
                 subclassType =
-                    this.typeMapper.TransformedTypes.First(x => x.Name == (string)((JValue)typePropertyToken).Value);
+                    typeMapper.TransformedTypes.First(x => x.Name == (string) ((JValue) typePropertyToken).Value);
             }
 
             // A posted JSON object can either contain references to existing objects or
@@ -236,7 +235,7 @@ namespace Pomona
             //var elementType = query.TargetType;
             var o = queryGenericMethod
                 .MakeGenericMethod(query.TargetType.MappedType)
-                .Invoke(this, new object[] { query, writer });
+                .Invoke(this, new object[] {query, writer});
         }
 
 
@@ -244,7 +243,7 @@ namespace Pomona
             TransformedType transformedType, object id, TextReader textReader, TextWriter textWriter)
         {
             var o = GetById(transformedType, id);
-            var mappedType = this.typeMapper.GetClassMapping(o.GetType());
+            var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var context = new FetchContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
@@ -255,7 +254,7 @@ namespace Pomona
 
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
-            var clientLibGenerator = new ClientLibGenerator(this.typeMapper);
+            var clientLibGenerator = new ClientLibGenerator(typeMapper);
             clientLibGenerator.PomonaClientEmbeddingEnabled = embedPomonaClient;
             clientLibGenerator.CreateClientDll(stream);
         }
@@ -275,14 +274,14 @@ namespace Pomona
                 propValueToSet = propertyType.JsonConverter.ReadJson(
                     jsonReader, propertyType.MappedTypeInstance, null, null);
             }
-            else if (propSharedType != null && propSharedType.MappedType == typeof(Nullable<>))
+            else if (propSharedType != null && propSharedType.MappedType == typeof (Nullable<>))
             {
                 if (propertyValue.Type == JTokenType.Null || propertyValue.Type == JTokenType.Undefined)
                     propValueToSet = null;
                 else
                     propValueToSet = DeserializeToken(propSharedType.GenericArguments[0], propertyValue, propertyName);
             }
-            else if (propSharedType != null && propSharedType.MappedType == typeof(Uri))
+            else if (propSharedType != null && propSharedType.MappedType == typeof (Uri))
                 propValueToSet = new Uri(propertyValue.ToString());
             else if (propTransformedType != null)
             {
@@ -302,7 +301,7 @@ namespace Pomona
                     if (!(refUriToken is JValue))
                         throw new PomonaSerializationException("_ref JSON property must be a string with valid URI");
 
-                    var refUri = (string)((JValue)refUriToken).Value;
+                    var refUri = (string) ((JValue) refUriToken).Value;
 
                     // HMMM How are we supposed to resolve the URI here?? It seems the URI routing stuff needs to go a bit deeper in the architecture..
                     // HACK HACK HACK For now assume that the URL ends with {entityname}/{id}
@@ -317,10 +316,10 @@ namespace Pomona
             else if (propEnumType != null)
             {
                 // TODO: Proper enum handling (check whether value is string etc..)
-                propValueToSet = Enum.Parse(propEnumType.MappedType, (string)((JValue)propertyValue).Value, true);
+                propValueToSet = Enum.Parse(propEnumType.MappedType, (string) ((JValue) propertyValue).Value, true);
             }
             else if (propertyType.IsBasicWireType)
-                propValueToSet = ((JValue)propertyValue).Value;
+                propValueToSet = ((JValue) propertyValue).Value;
             else
                 throw new PomonaSerializationException("Don't know how to deserialize JSON property " + propertyName);
 
@@ -332,7 +331,7 @@ namespace Pomona
         {
             // TODO: Maybe cache method instance?
 
-            return getByIdMethod.Call(transformedType.MappedType, this.dataSource, id);
+            return getByIdMethod.Call(transformedType.MappedType, dataSource, id);
         }
 
 
@@ -356,13 +355,13 @@ namespace Pomona
                     "Don't know how to fetch TrasnformedType that has no SourceType set");
             }
 
-            return this.dataSource.GetById(sourceType, id);
+            return dataSource.GetById(sourceType, id);
         }
 
 
         private object PostGeneric<T>(T objectToPost)
         {
-            return this.dataSource.Post(objectToPost);
+            return dataSource.Post(objectToPost);
         }
 
 
@@ -393,17 +392,17 @@ namespace Pomona
             if (mappedType.MappedAsValueObject)
                 return newInstance;
 
-            return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] { newInstance });
+            return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] {newInstance});
         }
 
 
         private object QueryGeneric<T>(IPomonaQuery query, TextWriter writer)
         {
-            var queryResult = this.dataSource.List<T>(query);
+            var queryResult = dataSource.List<T>(query);
 
             var context = new FetchContext(query.ExpandedPaths, false, this);
-            var state = new PomonaJsonSerializerWriter(writer);
-            this.serializer.SerializeQueryResult(queryResult, context, state);
+            var state = new PomonaJsonSerializer.Writer(writer);
+            serializer.SerializeQueryResult(queryResult, context, state);
             return null;
         }
     }

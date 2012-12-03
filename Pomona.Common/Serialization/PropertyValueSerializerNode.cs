@@ -27,33 +27,32 @@
 #endregion
 
 using System;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
     public class PropertyValueSerializerNode : ISerializerNode
     {
-        private readonly ISerializationContext fetchContext;
+        private readonly ISerializationContext context;
         private string expandPath;
         private ISerializerNode parentNode;
+        private IPropertyInfo property;
         private bool propertyIsLoaded;
-        private IPropertyInfo propertyMapping;
         private object propertyValue;
         private IMappedType propertyValueType;
 
         #region Implementation of ISerializerNode
 
         public PropertyValueSerializerNode(
-            ISerializerNode parentNode, IPropertyInfo propertyMapping)
+            ISerializerNode parentNode, IPropertyInfo property)
         {
             if (parentNode == null)
                 throw new ArgumentNullException("parentNode");
-            if (propertyMapping == null)
+            if (property == null)
                 throw new ArgumentNullException("propertyMapping");
             this.parentNode = parentNode;
-            this.propertyMapping = propertyMapping;
-            this.fetchContext = parentNode.FetchContext;
+            this.property = property;
+            context = parentNode.Context;
         }
 
 
@@ -61,49 +60,36 @@ namespace Pomona.Common.Serialization
         {
             get
             {
-                if (this.expandPath == null)
+                if (expandPath == null)
                 {
-                    if (string.IsNullOrEmpty(this.parentNode.ExpandPath))
-                        return this.propertyMapping.LowerCaseName;
+                    if (string.IsNullOrEmpty(parentNode.ExpandPath))
+                        return property.LowerCaseName;
 
-                    this.expandPath = string.Concat(this.parentNode.ExpandPath, ".", this.propertyMapping.LowerCaseName);
+                    expandPath = string.Concat(parentNode.ExpandPath, ".", property.LowerCaseName);
                 }
-                return this.expandPath;
+                return expandPath;
             }
         }
 
         public IMappedType ExpectedBaseType
         {
-            get { return this.propertyMapping.PropertyType; }
+            get { return property.PropertyType; }
         }
 
-        public ISerializationContext FetchContext
+        public ISerializationContext Context
         {
-            get { return this.fetchContext; }
+            get { return context; }
         }
 
-        public bool SerializeAsReference
-        {
-            get
-            {
-                if (ExpectedBaseType.IsAlwaysExpanded)
-                    return false;
-                if (FetchContext.PathToBeExpanded(ExpandPath))
-                    return false;
-                if (ExpectedBaseType.IsCollection && FetchContext.PathToBeExpanded(ExpandPath + "!"))
-                    return false;
-
-                return true;
-            }
-        }
+        public bool SerializeAsReference { get; set; }
 
         public string Uri
         {
             get
             {
-                if (this.propertyMapping.PropertyType.SerializationMode == TypeSerializationMode.Complex)
-                    return FetchContext.GetUri(Value);
-                return FetchContext.GetUri(this.propertyMapping, this.parentNode.Value);
+                if (property.PropertyType.SerializationMode == TypeSerializationMode.Complex)
+                    return Context.GetUri(Value);
+                return Context.GetUri(property, parentNode.Value);
             }
         }
 
@@ -111,12 +97,12 @@ namespace Pomona.Common.Serialization
         {
             get
             {
-                if (!this.propertyIsLoaded)
+                if (!propertyIsLoaded)
                 {
-                    this.propertyValue = this.propertyMapping.Getter(this.parentNode.Value);
-                    this.propertyIsLoaded = true;
+                    propertyValue = property.Getter(parentNode.Value);
+                    propertyIsLoaded = true;
                 }
-                return this.propertyValue;
+                return propertyValue;
             }
         }
 
@@ -124,13 +110,13 @@ namespace Pomona.Common.Serialization
         {
             get
             {
-                if (this.propertyValueType == null)
+                if (propertyValueType == null)
                 {
-                    this.propertyValueType = Value != null
-                                                 ? FetchContext.GetClassMapping(Value.GetType())
-                                                 : ExpectedBaseType;
+                    propertyValueType = Value != null
+                                            ? Context.GetClassMapping(Value.GetType())
+                                            : ExpectedBaseType;
                 }
-                return this.propertyValueType;
+                return propertyValueType;
             }
         }
 

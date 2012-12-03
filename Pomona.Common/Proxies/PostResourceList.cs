@@ -6,11 +6,9 @@ namespace Pomona.Common.Proxies
 {
     internal class PostResourceList<T> : IList<T>
     {
-        private PutResourceBase owner;
         private readonly string propertyName;
+        private PutResourceBase owner;
         private List<T> wrapped = new List<T>();
-
-        #region Implementation of IEnumerable
 
         internal PostResourceList(PutResourceBase owner, string propertyName)
         {
@@ -20,6 +18,7 @@ namespace Pomona.Common.Proxies
             this.propertyName = propertyName;
         }
 
+        #region Implementation of IEnumerable
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -34,18 +33,17 @@ namespace Pomona.Common.Proxies
 
         #endregion
 
+        private void SetDirty()
+        {
+            owner.SetDirty(propertyName);
+        }
+
         #region Implementation of ICollection<T>
 
         public void Add(T item)
         {
             wrapped.Add(item);
             SetDirty();
-        }
-
-
-        private void SetDirty()
-        {
-            this.owner.SetDirty(this.propertyName);
         }
 
 

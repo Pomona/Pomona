@@ -7,21 +7,21 @@ namespace Pomona.FluentMapping
     {
         private readonly PropertyInfo propertyInfo;
 
-        public PropertyInfo PropertyInfo
-        {
-            get { return this.propertyInfo; }
-        }
-
-        public int? ConstructorArgIndex { get; set; }
-
         public PropertyMappingOptions(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
             this.propertyInfo = propertyInfo;
 
-            this.Name = propertyInfo.Name;
+            Name = propertyInfo.Name;
         }
+
+        public PropertyInfo PropertyInfo
+        {
+            get { return propertyInfo; }
+        }
+
+        public int? ConstructorArgIndex { get; set; }
 
 
         public PropertyInclusionMode InclusionMode { get; internal set; }

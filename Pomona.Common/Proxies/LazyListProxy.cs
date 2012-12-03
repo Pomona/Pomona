@@ -49,7 +49,7 @@ namespace Pomona.Common.Proxies
 
         internal static object CreateForType(Type elementType, string uri, ClientBase clientBase)
         {
-            return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
+            return Activator.CreateInstance(typeof (LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
         }
     }
 
@@ -67,9 +67,9 @@ namespace Pomona.Common.Proxies
         {
             get
             {
-                if (this.dontTouchwrappedList == null)
-                    this.dontTouchwrappedList = this.clientBase.GetUri<IList<T>>(this.uri);
-                return this.dontTouchwrappedList;
+                if (dontTouchwrappedList == null)
+                    dontTouchwrappedList = clientBase.GetUri<IList<T>>(uri);
+                return dontTouchwrappedList;
             }
         }
 

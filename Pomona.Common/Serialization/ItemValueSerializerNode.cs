@@ -32,61 +32,59 @@ namespace Pomona.Common.Serialization
 {
     public class ItemValueSerializerNode : ISerializerNode
     {
+        private ISerializationContext context;
         private string expandPath;
         private IMappedType expectedBaseType;
-        private ISerializationContext fetchContext;
         private object value;
         private IMappedType valueType;
 
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext fetchContext)
+            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext context)
         {
             this.value = value;
             this.expectedBaseType = expectedBaseType;
             this.expandPath = expandPath;
-            this.fetchContext = fetchContext;
+            this.context = context;
         }
 
 
+        public ISerializationContext Context
+        {
+            get { return context; }
+        }
+
         public string ExpandPath
         {
-            get { return this.expandPath; }
+            get { return expandPath; }
         }
 
         public IMappedType ExpectedBaseType
         {
-            get { return this.expectedBaseType; }
+            get { return expectedBaseType; }
         }
 
-        public ISerializationContext FetchContext
-        {
-            get { return this.fetchContext; }
-        }
-
-        public bool SerializeAsReference
-        {
-            get { return !(this.expectedBaseType.IsAlwaysExpanded || this.fetchContext.PathToBeExpanded(this.expandPath)); }
+        public bool SerializeAsReference { get; set; //get { return !(this.expectedBaseType.IsAlwaysExpanded || this.context.PathToBeExpanded(this.expandPath)); }
         }
 
         public string Uri
         {
-            get { return FetchContext.GetUri(Value); }
+            get { return Context.GetUri(Value); }
         }
 
         public object Value
         {
-            get { return this.value; }
+            get { return value; }
         }
 
         public IMappedType ValueType
         {
             get
             {
-                if (this.valueType == null)
-                    this.valueType = this.fetchContext.GetClassMapping(Value.GetType());
-                return this.valueType;
+                if (valueType == null)
+                    valueType = context.GetClassMapping(Value.GetType());
+                return valueType;
             }
         }
 

@@ -50,14 +50,14 @@ namespace Pomona.Queries
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
             //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
-            var type = (TransformedType)this.typeMapper.GetClassMapping(rootInstance.Type);
+            var type = (TransformedType) typeMapper.GetClassMapping(rootInstance.Type);
             return type.CreateExpressionForExternalPropertyPath(rootInstance, propertyPath);
         }
 
 
         public Type ResolveType(string typeName)
         {
-            return this.typeMapper.TransformedTypes.First(x => x.Name == typeName).MappedType;
+            return typeMapper.TransformedTypes.First(x => x.Name == typeName).MappedType;
         }
 
         #endregion

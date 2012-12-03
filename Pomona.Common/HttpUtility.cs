@@ -109,7 +109,7 @@ namespace Pomona.Common
 
         private static char[] GetChars(MemoryStream b, Encoding e)
         {
-            return e.GetChars(b.GetBuffer(), 0, (int)b.Length);
+            return e.GetChars(b.GetBuffer(), 0, (int) b.Length);
         }
 
 
@@ -117,11 +117,11 @@ namespace Pomona.Common
         {
             if (ch > 255)
             {
-                foreach (var b in e.GetBytes(new char[] { ch }))
+                foreach (var b in e.GetBytes(new char[] {ch}))
                     buf.Add(b);
             }
             else
-                buf.Add((byte)ch);
+                buf.Add((byte) ch);
         }
 
 
@@ -152,7 +152,7 @@ namespace Pomona.Common
                         xchar = GetChar(s, i + 2, 4);
                         if (xchar != -1)
                         {
-                            WriteCharBytes(bytes, (char)xchar, e);
+                            WriteCharBytes(bytes, (char) xchar, e);
                             i += 5;
                         }
                         else
@@ -160,7 +160,7 @@ namespace Pomona.Common
                     }
                     else if ((xchar = GetChar(s, i + 1, 2)) != -1)
                     {
-                        WriteCharBytes(bytes, (char)xchar, e);
+                        WriteCharBytes(bytes, (char) xchar, e);
                         i += 2;
                     }
                     else
@@ -191,7 +191,7 @@ namespace Pomona.Common
 
         private static int GetInt(byte b)
         {
-            var c = (char)b;
+            var c = (char) b;
             if (c >= '0' && c <= '9')
                 return c - '0';
 
@@ -231,7 +231,7 @@ namespace Pomona.Common
                 if (c > 127)
                     return -1;
 
-                var current = GetInt((byte)c);
+                var current = GetInt((byte) c);
                 if (current == -1)
                     return -1;
                 val = (val << 4) + current;
@@ -266,7 +266,7 @@ namespace Pomona.Common
             {
                 if (bytes[i] == '%' && i + 2 < count && bytes[i + 1] != '%')
                 {
-                    if (bytes[i + 1] == (byte)'u' && i + 5 < end)
+                    if (bytes[i + 1] == (byte) 'u' && i + 5 < end)
                     {
                         if (acc.Length > 0)
                         {
@@ -276,14 +276,14 @@ namespace Pomona.Common
                         xchar = GetChar(bytes, i + 2, 4);
                         if (xchar != -1)
                         {
-                            output.Append((char)xchar);
+                            output.Append((char) xchar);
                             i += 5;
                             continue;
                         }
                     }
                     else if ((xchar = GetChar(bytes, i + 1, 2)) != -1)
                     {
-                        acc.WriteByte((byte)xchar);
+                        acc.WriteByte((byte) xchar);
                         i += 2;
                         continue;
                     }
@@ -298,7 +298,7 @@ namespace Pomona.Common
                 if (bytes[i] == '+')
                     output.Append(' ');
                 else
-                    output.Append((char)bytes[i]);
+                    output.Append((char) bytes[i]);
             }
 
             if (acc.Length > 0)
@@ -354,7 +354,7 @@ namespace Pomona.Common
             var end = offset + count;
             for (var i = offset; i < end; i++)
             {
-                var c = (char)bytes[i];
+                var c = (char) bytes[i];
                 if (c == '+')
                     c = ' ';
                 else if (c == '%' && i < end - 2)
@@ -362,11 +362,11 @@ namespace Pomona.Common
                     var xchar = GetChar(bytes, i + 1, 2);
                     if (xchar != -1)
                     {
-                        c = (char)xchar;
+                        c = (char) xchar;
                         i += 2;
                     }
                 }
-                result.WriteByte((byte)c);
+                result.WriteByte((byte) c);
             }
 
             return result.ToArray();

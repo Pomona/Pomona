@@ -27,38 +27,34 @@
 #endregion
 
 using System;
-using System.IO;
 
-using Newtonsoft.Json;
-
-namespace Pomona.Common.Serialization
+namespace Pomona.Common
 {
-    public class PomonaJsonSerializerWriter : ISerializerWriter, IDisposable
+    public class PomonaSerializationException : Exception
     {
-        private readonly JsonTextWriter jsonWriter;
-
-
-        public PomonaJsonSerializerWriter(TextWriter textWriter)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Pomona.Common.PomonaSerializationException"/> class.
+        /// </summary>
+        public PomonaSerializationException()
         {
-            if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
-            this.jsonWriter = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
         }
 
 
-        public JsonWriter JsonWriter
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Pomona.Common.PomonaSerializationException"/> class with a specified error message.
+        /// </summary>
+        /// <param name="message">The message that describes the error. </param>
+        public PomonaSerializationException(string message) : base(message)
         {
-            get { return this.jsonWriter; }
         }
 
-        #region Implementation of IDisposable
 
-        public void Dispose()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Pomona.Common.PomonaSerializationException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
+        /// </summary>
+        /// <param name="message">The error message that explains the reason for the exception. </param><param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified. </param>
+        public PomonaSerializationException(string message, Exception innerException) : base(message, innerException)
         {
-            // NOTE: Not sure if this is correct
-            this.jsonWriter.Flush();
         }
-
-        #endregion
     }
 }

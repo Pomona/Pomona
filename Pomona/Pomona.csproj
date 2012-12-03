@@ -106,6 +106,7 @@
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />
+    <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="PomonaErrorHandler.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />
@@ -119,7 +120,6 @@
     <Compile Include="PomonaModule.cs" />
     <Compile Include="PomonaQuery.cs" />
     <Compile Include="PomonaQueryTransformer.cs" />
-    <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="PomonaSession.cs" />
     <Compile Include="Queries\BinaryOperator.cs" />
     <Compile Include="Queries\DateTimeNode.cs" />

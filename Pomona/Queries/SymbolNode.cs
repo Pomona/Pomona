@@ -59,20 +59,20 @@ namespace Pomona.Queries
 
         public string Name
         {
-            get { return this.name; }
+            get { return name; }
         }
 
 
         public override string ToString()
         {
             if (Children.Count == 0)
-                return String.Format("{0} {1}", base.ToString(), this.name);
+                return String.Format("{0} {1}", base.ToString(), name);
             else
             {
                 return String.Format(
                     "{0} {1}({2})",
                     base.ToString(),
-                    this.name,
+                    name,
                     string.Join(", ", Children.Select(x => x.ToString())));
             }
         }
