@@ -47,6 +47,9 @@ namespace Pomona.Example
 
         private bool notificationsEnabled = false;
         private object syncLock = new object();
+        private readonly static MethodInfo saveCollectionMethod;
+        private readonly static MethodInfo saveDictionaryMethod;
+        private static MethodInfo saveMethod;
 
 
         public CritterDataSource()
@@ -190,16 +193,71 @@ namespace Pomona.Example
             notificationsEnabled = true;
         }
 
+        static CritterDataSource()
+        {
+            saveCollectionMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveCollection((ICollection<EntityBase>)null));
+            saveDictionaryMethod =
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                    x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
+            saveMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Save<EntityBase>(null));
+        }
+
+        private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
+            where TValue : EntityBase
+        {
+            SaveCollection(dictionary.Values);
+            return dictionary;
+        }
+
+        private object SaveCollection<T>(ICollection<T> collection)
+            where T : EntityBase
+        {
+            foreach (var item in collection)
+            {
+                Save(item);
+            }
+            return collection;
+        }
 
         public T Save<T>(T entity)
         {
             var entityCast = (EntityBase) ((object) entity);
 
             if (entityCast.Id != 0)
-                throw new InvalidOperationException("Trying to save entity with id 0");
+                return entity;
             entityCast.Id = idCounter++;
             if (notificationsEnabled)
                 Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
+
+            foreach (var prop in typeof(T).GetProperties())
+            {
+                Type[] genericArguments;
+                Type propType = prop.PropertyType;
+                if (typeof (EntityBase).IsAssignableFrom(propType))
+                {
+                    var value = prop.GetValue(entity, null);
+                    if (value != null)
+                        saveMethod.MakeGenericMethod(propType).Invoke(this, new object[]{value});
+                }
+                else if (TypeUtils.TryGetTypeArguments(propType, typeof(ICollection<>), out genericArguments))
+                {
+                    if (typeof (EntityBase).IsAssignableFrom(genericArguments[0]))
+                    {
+                        var value = prop.GetValue(entity, null);
+                        if (value != null)
+                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] {value});
+                    }
+                }
+                else if (TypeUtils.TryGetTypeArguments(propType, typeof (IDictionary<,>), out genericArguments))
+                {
+                    if (typeof (EntityBase).IsAssignableFrom(genericArguments[1]))
+                    {
+                        var value = prop.GetValue(entity, null);
+                        if (value != null)
+                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] {value});
+                    }
+                }
+            }
 
             GetEntityList<T>().Add(entity);
             return entity;

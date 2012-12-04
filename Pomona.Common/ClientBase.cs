@@ -205,14 +205,14 @@ namespace Pomona.Common
 
         public override object GetUri(string uri, Type type)
         {
-            return Deserialize(type, GetUri(uri));
+            return Deserialize(GetUri(uri), type);
         }
 
 
         public override T GetUri<T>(string uri)
         {
             Log("Fetching uri {0}", uri);
-            return (T) Deserialize(typeof (T), GetUri(uri));
+            return (T) Deserialize(GetUri(uri), typeof (T));
         }
 
 
@@ -258,7 +258,7 @@ namespace Pomona.Common
             // Put the json!
             var responseJson = UploadToUri(
                 ((IHasResourceUri) target).Uri, updateProxy, typeof (T), "PUT");
-            return (T) Deserialize(type, responseJson);
+            return (T) Deserialize(responseJson, null);
         }
 
 
@@ -352,7 +352,7 @@ namespace Pomona.Common
             // Post the json!
             var response = UploadToUri(uri, newProxy, type, "POST");
 
-            return Deserialize(type, response);
+            return Deserialize(response, null);
         }
 
 
@@ -529,7 +529,7 @@ namespace Pomona.Common
         }
 
 
-        private object Deserialize(Type expectedType, string jsonString)
+        private object Deserialize(string jsonString, Type expectedType)
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jToken = JToken.Parse(jsonString);
@@ -544,15 +544,15 @@ namespace Pomona.Common
                         JToken itemsToken;
                         if (!jObject.TryGetValue("items", out itemsToken))
                             throw new InvalidOperationException("Got result object, but lacking items");
-                        return Deserialize(expectedType, itemsToken.ToString());
+                        return Deserialize(itemsToken.ToString(), expectedType);
                     }
                 }
             }
 
             var deserializer = serializerFactory.GetDeserializer();
             var context = new ClientDeserializationContext(typeMapper, this);
-            return deserializer.Deserialize(new StringReader(jsonString), typeMapper.GetClassMapping(expectedType),
-                                            context);
+            object deserialized = deserializer.Deserialize(new StringReader(jsonString),expectedType != null ? typeMapper.GetClassMapping(expectedType) : null, context);
+            return deserialized;
             /* TODO: Remove code below, old deserialization stuff!
             var jArray = jToken as JArray;
             if (jArray != null)

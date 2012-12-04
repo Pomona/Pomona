@@ -29,8 +29,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Proxies
@@ -85,53 +83,6 @@ namespace Pomona.Common.Proxies
         internal void SetDirty(string propertyName)
         {
             dirtyMap[propertyName] = true;
-        }
-
-
-        [Obsolete("Wil be removed once serialization refactoring is complete", true)]
-        internal JObject ToJson(JsonSerializer jsonSerializer)
-        {
-            var jObject = new JObject();
-
-            foreach (var kvp in propMap)
-            {
-                var jsonName = kvp.Key.LowercaseFirstLetter();
-                var value = kvp.Value;
-
-                var putValue = value as PutResourceBase;
-                var hasResourceUri = value as IHasResourceUri;
-
-                if (value == null)
-                    jObject.Add(jsonName, null);
-                else if (putValue != null)
-                {
-                    // Recursive put
-                    jObject.Add(jsonName, putValue.ToJson(jsonSerializer));
-                }
-                else if (hasResourceUri != null)
-                {
-                    // Adding this as a reference
-                    var propRefJObject = new JObject();
-                    propRefJObject.Add("_ref", hasResourceUri.Uri);
-                    jObject.Add(jsonName, propRefJObject);
-                }
-                else
-                {
-                    var valueType = value.GetType();
-                    var typeCode = Type.GetTypeCode(valueType);
-
-                    if (valueType.IsEnum || typeCode == TypeCode.Object)
-                    {
-                        var tokenWriter = new JTokenWriter();
-                        jsonSerializer.Serialize(tokenWriter, value);
-                        jObject.Add(jsonName, tokenWriter.Token);
-                    }
-                    else
-                        jObject.Add(jsonName, new JValue(value));
-                }
-            }
-
-            return jObject;
         }
 
         #region Implementation of IPomonaSerializable

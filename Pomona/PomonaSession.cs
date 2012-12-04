@@ -55,6 +55,7 @@ namespace Pomona
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
         private ISerializer serializer;
+        private IDeserializer deserializer;
 
 
         static PomonaSession()
@@ -88,6 +89,7 @@ namespace Pomona
             this.typeMapper = typeMapper;
             this.baseUriGetter = baseUriGetter;
             serializer = typeMapper.SerializerFactory.GetSerialier();
+            deserializer = typeMapper.SerializerFactory.GetDeserializer();
         }
 
 
@@ -122,7 +124,7 @@ namespace Pomona
                 {
                     writer = serializer.CreateWriter(textWriter);
                     serializer.SerializeNode(
-                        new ItemValueSerializerNode(o, transformedType, string.Empty, context), writer);
+                        new ItemValueSerializerNode(o, null /*transformedType*/, string.Empty, context), writer);
                 }
                 finally
                 {
@@ -199,8 +201,20 @@ namespace Pomona
             }
         }
 
-
         public void PostJson(TransformedType transformedType, TextReader textReader, TextWriter textWriter)
+        {
+            var deserializationContext = new ServerDeserializationContext(this);
+            var postResource = deserializer.Deserialize(textReader, transformedType, deserializationContext);
+            var postResponse = postGenericMethod.MakeGenericMethod(postResource.GetType())
+                                                .Invoke(this, new[] {postResource});
+            var serializationContext = new ServerSerializationContext("", false, this);
+            var writer = serializer.CreateWriter(textWriter);
+            var node = new ItemValueSerializerNode(postResponse, /* transformedType.PostReturnType */ null, "",
+                                                   serializationContext);
+            serializer.SerializeNode(node, writer);
+        }
+
+        public void PostJsonOld(TransformedType transformedType, TextReader textReader, TextWriter textWriter)
         {
             var jObject = JObject.Load(new JsonTextReader(textReader));
 
@@ -335,7 +349,7 @@ namespace Pomona
         }
 
 
-        private object GetObjectFromUri(string refUri)
+        internal object GetObjectFromUri(string refUri)
         {
             // HACK! This is not good enough for final solution of how we map urls..
             var uri = new Uri(refUri);

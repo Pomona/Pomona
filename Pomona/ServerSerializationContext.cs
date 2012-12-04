@@ -105,21 +105,25 @@ namespace Pomona
         public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
             where TWriter : ISerializerWriter
         {
-            //    if (ExpectedBaseType.IsAlwaysExpanded)
-            //        return false;
-            //    if (this.Context.PathToBeExpanded(ExpandPath))
-            //        return false;
-            //    if (ExpectedBaseType.IsCollection && this.Context.PathToBeExpanded(ExpandPath + "!"))
-            //        return false;
-
-            //    return true;
-
-            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded || PathToBeExpanded(node.ExpandPath) ||
-                             (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"));
+            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded ||
+                             PathToBeExpanded(node.ExpandPath) ||
+                             (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!")) ||
+                             IsAlwaysExpandedPropertyNode(node);
 
             node.SerializeAsReference = !isExpanded;
 
             serializer.SerializeNode(node, writer);
+        }
+
+        private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
+        {
+            var propNode = node as PropertyValueSerializerNode;
+            if (propNode == null)
+                return false;
+            var propMapping = propNode.Property as PropertyMapping;
+            if (propMapping == null)
+                return false;
+            return propMapping.AlwaysExpand;
         }
 
         public ObjectWrapper CreateWrapperFor(object target, string path, IMappedType expectedBaseType)

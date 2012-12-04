@@ -72,7 +72,9 @@ namespace Pomona.Common.Serialization
                 writer.JsonWriter.WriteNull();
                 return;
             }
-            switch (node.ExpectedBaseType.SerializationMode)
+
+            IMappedType mappedType = node.ExpectedBaseType ?? node.ValueType;
+            switch (mappedType.SerializationMode)
             {
                 case TypeSerializationMode.Dictionary:
                     SerializeDictionary(node, writer);

@@ -1,3 +1,5 @@
+using System;
+using Newtonsoft.Json.Linq;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -7,6 +9,7 @@ namespace Pomona.Common.Serialization
         private IDeserializationContext context;
         private IMappedType expectedBaseType;
         public IMappedType valueType;
+        private object value;
 
         #region Implementation of IDeserializerNode
 
@@ -30,7 +33,16 @@ namespace Pomona.Common.Serialization
 
         public string Uri { get; set; }
 
-        public object Value { get; set; }
+        public object Value
+        {
+            get { return value; }
+            set
+            {
+                if (value is JToken)
+                    throw new InvalidOperationException("Fuck you!");
+                this.value = value;
+            }
+        }
 
         public IMappedType ValueType
         {

@@ -37,6 +37,7 @@ namespace Pomona.Common.Serialization
         private string expandPath;
         private ISerializerNode parentNode;
         private IPropertyInfo property;
+
         private bool propertyIsLoaded;
         private object propertyValue;
         private IMappedType propertyValueType;
@@ -121,5 +122,10 @@ namespace Pomona.Common.Serialization
         }
 
         #endregion
+
+        public IPropertyInfo Property
+        {
+            get { return property; }
+        }
     }
 }

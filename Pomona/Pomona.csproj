@@ -140,6 +140,7 @@
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="Schemas\JsonSchemaGenerator.cs" />
+    <Compile Include="ServerDeserializationContext.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TypeMapper.cs" />
     <Compile Include="TransformedType.cs" />

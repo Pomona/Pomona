@@ -70,7 +70,20 @@ namespace Pomona.Common.Serialization
                 return;
             }
 
-            switch (node.ExpectedBaseType.SerializationMode)
+            IMappedType mappedType;
+            if (node.ExpectedBaseType != null)
+                mappedType = node.ExpectedBaseType;
+            else
+            {
+                if (!SetNodeValueType(node, reader.Token as JObject))
+                {
+                    throw new PomonaSerializationException(
+                        "No expected type to deserialize to provided, and unable to get type from incoming JSON.");
+                }
+                mappedType = node.ValueType;
+            }
+
+            switch (mappedType.SerializationMode)
             {
                 case TypeSerializationMode.Complex:
                     DeserializeComplexNode(node, reader);
@@ -86,7 +99,7 @@ namespace Pomona.Common.Serialization
                     break;
                 default:
                     throw new NotImplementedException("Don't know how to deserialize node with mode " +
-                                                      node.ExpectedBaseType.SerializationMode);
+                                                      mappedType.SerializationMode);
             }
         }
 
@@ -211,16 +224,7 @@ namespace Pomona.Common.Serialization
                 throw new PomonaSerializationException(
                     "Trying to deserialize to complex type, expected a JSON object type but got " + reader.Token.Type);
 
-            JToken explicitTypeSpec;
-            if (jobj.TryGetValue("_type", out explicitTypeSpec))
-            {
-                if (explicitTypeSpec.Type != JTokenType.String)
-                    throw new PomonaSerializationException(
-                        "Found _type property on JSON object and expected this to be string, but got " +
-                        explicitTypeSpec.Type);
-
-                node.SetValueType(explicitTypeSpec.Value<string>());
-            }
+            SetNodeValueType(node, jobj);
 
             IDictionary<IPropertyInfo, object> ctorArgs = new Dictionary<IPropertyInfo, object>();
 
@@ -245,6 +249,22 @@ namespace Pomona.Common.Serialization
             }
 
             node.Value = node.ValueType.Create(ctorArgs);
+        }
+
+        private bool SetNodeValueType(IDeserializerNode node, JObject jobj)
+        {
+            JToken explicitTypeSpec;
+            if (jobj.TryGetValue("_type", out explicitTypeSpec))
+            {
+                if (explicitTypeSpec.Type != JTokenType.String)
+                    throw new PomonaSerializationException(
+                        "Found _type property on JSON object and expected this to be string, but got " +
+                        explicitTypeSpec.Type);
+
+                node.SetValueType(explicitTypeSpec.Value<string>());
+                return true;
+            }
+            return false;
         }
 
         #endregion
