@@ -72,6 +72,11 @@
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
+    <Compile Include="IPomonaClient.cs" />
+    <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
+    <Compile Include="Linq\RestQuery.cs" />
+    <Compile Include="Linq\RestQueryableTreeParser.cs" />
+    <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="NameUtils.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />

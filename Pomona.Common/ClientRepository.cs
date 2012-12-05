@@ -37,6 +37,7 @@ namespace Pomona.Common
         where TPostResponseResource : IClientResource
     {
         private readonly ClientBase client;
+
         private readonly string uri;
 
 
@@ -51,27 +52,45 @@ namespace Pomona.Common
 
         public string Uri
         {
-            get { return uri; }
+            get { return this.uri; }
+        }
+
+        internal ClientBase Client
+        {
+            get { return this.client; }
         }
 
 
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
             where TSubResource : TResource
         {
-            return client.Put(resource, patchAction);
+            return this.client.Put(resource, patchAction);
         }
 
 
         public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : TResource
         {
-            return (TPostResponseResource) client.Post(Uri, postAction);
+            return (TPostResponseResource)this.client.Post(Uri, postAction);
         }
 
 
         public TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource) client.Post(Uri, postAction);
+            return (TPostResponseResource)this.client.Post(Uri, postAction);
+        }
+
+
+        public IList<TSubResource> Query<TSubResource>(
+            Expression<Func<TSubResource, bool>> predicate,
+            Expression<Func<TSubResource, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null)
+            where TSubResource : TResource
+        {
+            return this.client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
 
 
@@ -83,7 +102,7 @@ namespace Pomona.Common
             int? skip = null,
             string expand = null)
         {
-            return client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return this.client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
     }
 }

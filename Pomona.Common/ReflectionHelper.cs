@@ -36,7 +36,13 @@ namespace Pomona.Internals
     {
         public static MethodInfo GetGenericMethodDefinition<TInstance>(Expression<Func<TInstance, object>> expr)
         {
-            var callExpressionBody = expr.Body as MethodCallExpression;
+            var body = expr.Body;
+            while(body.NodeType == ExpressionType.Convert)
+            {
+                body = ((UnaryExpression)body).Operand;
+            }
+
+            var callExpressionBody = body as MethodCallExpression;
             if (callExpressionBody == null)
                 throw new ArgumentException("Needs node of type Call, was " + expr.Body.NodeType);
 

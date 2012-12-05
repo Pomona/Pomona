@@ -45,7 +45,7 @@ using Pomona.Internals;
 
 namespace Pomona.Common
 {
-    public abstract class ClientBase
+    public abstract class ClientBase : IPomonaClient
     {
         internal ClientBase()
         {
@@ -553,20 +553,6 @@ namespace Pomona.Common
             var context = new ClientDeserializationContext(typeMapper, this);
             object deserialized = deserializer.Deserialize(new StringReader(jsonString),expectedType != null ? typeMapper.GetClassMapping(expectedType) : null, context);
             return deserialized;
-            /* TODO: Remove code below, old deserialization stuff!
-            var jArray = jToken as JArray;
-            if (jArray != null)
-            {
-                Type listElementType;
-                if (!TryGetCollectionElementType(expectedType, out listElementType))
-                    throw new SerializationException("Don't know how to serialize JArray to " + expectedType.FullName);
-
-                return CreateListOfType(listElementType, jArray.Children().Select(x => Deserialize(listElementType, x)));
-            }
-
-            var jValue = (JValue)jToken;
-            return this.jsonSerializer.Deserialize(jValue.CreateReader(), expectedType);
-             */
         }
 
 
