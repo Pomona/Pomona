@@ -22,6 +22,7 @@ tokens {
    SUB_OP;
    MOD_OP;
    DOT_OP;
+   AS_OP;
    DATETIME_LITERAL;
    GUID_LITERAL;
    METHOD_CALL;
@@ -71,7 +72,11 @@ public parse
 	;
 
 exp
-	:	lambda_expression
+	:	as_expression
+	;
+
+as_expression
+	: lambda_expression ( 'as' lambda_expression )? -> ^(AS_OP lambda_expression+)
 	;
 
 lambda_expression

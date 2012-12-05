@@ -39,6 +39,10 @@ namespace Pomona.Queries
                 throw new ArgumentException("A binary operator always need to have 2 child nodes", "children");
         }
 
+        public override string ToString()
+        {
+            return string.Format("({0} {1} {2})", Left, NodeType, Right);
+        }
 
         public NodeBase Left
         {

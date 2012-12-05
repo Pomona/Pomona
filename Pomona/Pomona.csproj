@@ -119,7 +119,7 @@
     <Compile Include="PomonaMappingException.cs" />
     <Compile Include="PomonaModule.cs" />
     <Compile Include="PomonaQuery.cs" />
-    <Compile Include="PomonaQueryTransformer.cs" />
+    <Compile Include="PomonaHttpQueryTransformer.cs" />
     <Compile Include="PomonaSession.cs" />
     <Compile Include="Queries\BinaryOperator.cs" />
     <Compile Include="Queries\DateTimeNode.cs" />
@@ -133,7 +133,7 @@
     <Compile Include="Queries\PomonaQueryLexer.cs" />
     <Compile Include="Queries\PomonaQueryParser.cs" />
     <Compile Include="Queries\QueryTypeResolver.cs" />
-    <Compile Include="Queries\QueryFilterExpressionParser.cs" />
+    <Compile Include="Queries\QueryExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />
     <Compile Include="Queries\QueryResult.cs" />
     <Compile Include="Queries\StringNode.cs" />

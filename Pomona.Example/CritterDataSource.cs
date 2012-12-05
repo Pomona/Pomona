@@ -41,15 +41,29 @@ namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
     {
+        private static readonly MethodInfo saveCollectionMethod;
+        private static readonly MethodInfo saveDictionaryMethod;
+        private static MethodInfo saveMethod;
+        private static readonly MethodInfo queryMethod;
         private Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
 
         private bool notificationsEnabled = false;
         private object syncLock = new object();
-        private readonly static MethodInfo saveCollectionMethod;
-        private readonly static MethodInfo saveDictionaryMethod;
-        private static MethodInfo saveMethod;
+
+        static CritterDataSource()
+        {
+            queryMethod =
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
+            saveCollectionMethod =
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                    x => x.SaveCollection((ICollection<EntityBase>) null));
+            saveDictionaryMethod =
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                    x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
+            saveMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Save<EntityBase>(null));
+        }
 
 
         public CritterDataSource()
@@ -94,31 +108,6 @@ namespace Pomona.Example
             }
         }
 
-
-        public QueryResult<T> List<T>(IPomonaQuery query)
-        {
-            lock (syncLock)
-            {
-                var pq = (PomonaQuery) query;
-                var expr = (Expression<Func<T, bool>>) pq.FilterExpression;
-
-                var visitor = new MakeDictAccessesSafeVisitor();
-                expr = (Expression<Func<T, bool>>) visitor.Visit(expr);
-
-                var compiledExpr = expr.Compile();
-                var count = GetEntityList<T>().Count(compiledExpr);
-                var result = GetEntityList<T>().Where(compiledExpr);
-
-                if (pq.OrderByExpression != null)
-                    result = OrderByCompiledExpression(result, pq.OrderByExpression, pq.SortOrder);
-
-                result = result.Skip(pq.Skip).Take(pq.Top);
-
-                return new QueryResult<T>(result, pq.Skip, count, pq.Url);
-            }
-        }
-
-
         public object Post<T>(T newObject)
         {
             lock (syncLock)
@@ -129,6 +118,50 @@ namespace Pomona.Example
                     return new OrderResponse(order);
 
                 return newObject;
+            }
+        }
+
+        private QueryResult<TSelect> Query<TEntity, TSelect>(PomonaQuery pq)
+        {
+            var expr = (Expression<Func<TEntity, bool>>) pq.FilterExpression;
+
+            var visitor = new MakeDictAccessesSafeVisitor();
+            expr = (Expression<Func<TEntity, bool>>) visitor.Visit(expr);
+
+            var compiledExpr = expr.Compile();
+            var count = GetEntityList<TEntity>().Count(compiledExpr);
+            var result = GetEntityList<TEntity>().Where(compiledExpr);
+
+            if (pq.OrderByExpression != null)
+                result = OrderByCompiledExpression(result, pq.OrderByExpression, pq.SortOrder);
+
+
+            IEnumerable<TSelect> selectedResult = null;
+            if (pq.SelectExpression != null)
+            {
+                var selectFunc = ((Expression<Func<TEntity, TSelect>>) pq.SelectExpression).Compile();
+                selectedResult = result.Select(selectFunc);
+            }
+            else
+            {
+                selectedResult = (IEnumerable<TSelect>) result;
+            }
+
+            selectedResult = selectedResult.Skip(pq.Skip).Take(pq.Top);
+
+            return new QueryResult<TSelect>(selectedResult, pq.Skip, count, pq.Url);
+        }
+
+        public QueryResult Query(IPomonaQuery query)
+        {
+            lock (syncLock)
+            {
+                var pq = (PomonaQuery) query;
+                var entityType = pq.TargetType.MappedTypeInstance;
+                var selectType = pq.SelectExpression != null ? pq.SelectExpression.ReturnType : entityType;
+
+                return
+                    (QueryResult) queryMethod.MakeGenericMethod(entityType, selectType).Invoke(this, new object[] {pq});
             }
         }
 
@@ -193,15 +226,6 @@ namespace Pomona.Example
             notificationsEnabled = true;
         }
 
-        static CritterDataSource()
-        {
-            saveCollectionMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveCollection((ICollection<EntityBase>)null));
-            saveDictionaryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
-                    x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
-            saveMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Save<EntityBase>(null));
-        }
-
         private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
             where TValue : EntityBase
         {
@@ -229,17 +253,17 @@ namespace Pomona.Example
             if (notificationsEnabled)
                 Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
 
-            foreach (var prop in typeof(T).GetProperties())
+            foreach (var prop in typeof (T).GetProperties())
             {
                 Type[] genericArguments;
-                Type propType = prop.PropertyType;
+                var propType = prop.PropertyType;
                 if (typeof (EntityBase).IsAssignableFrom(propType))
                 {
                     var value = prop.GetValue(entity, null);
                     if (value != null)
-                        saveMethod.MakeGenericMethod(propType).Invoke(this, new object[]{value});
+                        saveMethod.MakeGenericMethod(propType).Invoke(this, new object[] {value});
                 }
-                else if (TypeUtils.TryGetTypeArguments(propType, typeof(ICollection<>), out genericArguments))
+                else if (TypeUtils.TryGetTypeArguments(propType, typeof (ICollection<>), out genericArguments))
                 {
                     if (typeof (EntityBase).IsAssignableFrom(genericArguments[0]))
                     {

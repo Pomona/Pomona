@@ -192,7 +192,7 @@ namespace Pomona
 
         public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            return false;
+            return TypeIsAnonymous(propertyInfo.DeclaringType);
         }
 
 
@@ -228,7 +228,13 @@ namespace Pomona
         {
             return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
                    IsNativelySupportedType(type)
-                   || TypeIsMappedAsCollection(type);
+                   || TypeIsMappedAsCollection(type)
+                   || TypeIsAnonymous(type);
+        }
+
+        private bool TypeIsAnonymous(Type type)
+        {
+            return type.Name.StartsWith("<>f__AnonymousType");
         }
 
 
@@ -247,13 +253,13 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsTransformedType(Type type)
         {
-            return SourceTypes.Contains(type);
+            return SourceTypes.Contains(type) || TypeIsAnonymous(type);
         }
 
 
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
-            return false;
+            return TypeIsAnonymous(type);
         }
 
 

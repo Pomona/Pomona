@@ -66,12 +66,11 @@ namespace Pomona.Queries
         public override string ToString()
         {
             if (Children.Count == 0)
-                return String.Format("{0} {1}", base.ToString(), name);
+                return String.Format("{0}", name);
             else
             {
                 return String.Format(
-                    "{0} {1}({2})",
-                    base.ToString(),
+                    "{0}({1})",
                     name,
                     string.Join(", ", Children.Select(x => x.ToString())));
             }

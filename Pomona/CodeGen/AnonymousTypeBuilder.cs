@@ -27,17 +27,24 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Pomona.Common;
+using FieldAttributes = Mono.Cecil.FieldAttributes;
+using MethodAttributes = Mono.Cecil.MethodAttributes;
+using ParameterAttributes = Mono.Cecil.ParameterAttributes;
+using PropertyAttributes = Mono.Cecil.PropertyAttributes;
 
 namespace Pomona.CodeGen
 {
@@ -52,11 +59,11 @@ namespace Pomona.CodeGen
     {
         private static readonly TypeDefinition templateDef;
         private static int anonTypeNumber = 100;
+        private static ConcurrentDictionary<string, Type> anonTypeCache = new ConcurrentDictionary<string, Type>();
         private TypeDefinition definition;
         private GenericInstanceType ilFieldDeclaringType;
         private ModuleDefinition module;
         private IList<Property> properties;
-
 
         static AnonymousTypeBuilder()
         {
@@ -78,20 +85,54 @@ namespace Pomona.CodeGen
             get { return properties.Count; }
         }
 
+        public static void ScanAssemblyForExistingAnonymousTypes(Assembly assembly)
+        {
+            var anonTypes = assembly.GetTypes().Where(x => x.Name.StartsWith("<>f__AnonymousType")).ToList();
 
-        public static Expression CreateFromDict(Dictionary<string, Expression> map, out Type anonTypeInstance)
+            foreach (var anonType in anonTypes)
+            {
+                var typeKey = GetAnonTypeKey(anonType.GetConstructors().Single().GetParameters().Select(x => x.Name));
+                anonTypeCache[typeKey] = anonType;
+            }
+        }
+
+        private static string GetAnonTypeKey(IEnumerable<string> propNames)
+        {
+            return string.Join(",", propNames);
+        }
+
+        public static Expression CreateNewExpression(IEnumerable<KeyValuePair<string, Expression>> map,
+                                                     out Type anonTypeInstance)
         {
             var kvpList = map.ToList();
-            var atb = new AnonymousTypeBuilder(kvpList.Select(x => x.Key));
-            var typedef = atb.BuildAnonymousType();
-            var memStream = new MemoryStream();
-            typedef.Module.Assembly.Write(memStream);
-            var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
-            var loadedType = loadedAsm.GetTypes().First(x => x.Name == typedef.Name);
+
+            var propNames = kvpList.Select(x => x.Key);
+
+            var anonType = GetAnonymousType(propNames);
+
             var typeArguments = kvpList.Select(x => x.Value.Type).ToArray();
-            anonTypeInstance = loadedType.MakeGenericType(typeArguments);
+            anonTypeInstance = anonType.MakeGenericType(typeArguments);
+            var constructorInfo = anonTypeInstance.GetConstructor(typeArguments);
+
+            if (constructorInfo == null)
+                throw new InvalidOperationException("Did not find expected constructor on anonymous type.");
+
             return Expression.New(
-                anonTypeInstance.GetConstructor(typeArguments), kvpList.Select(x => x.Value));
+                constructorInfo, kvpList.Select(x => x.Value));
+        }
+
+        private static Type GetAnonymousType(IEnumerable<string> propNames)
+        {
+            var anonType = anonTypeCache.GetOrCreate(GetAnonTypeKey(propNames), () =>
+                {
+                    var atb = new AnonymousTypeBuilder(propNames);
+                    var typedef = atb.BuildAnonymousType();
+                    var memStream = new MemoryStream();
+                    typedef.Module.Assembly.Write(memStream);
+                    var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
+                    return loadedAsm.GetTypes().First(x => x.Name == typedef.Name);
+                });
+            return anonType;
         }
 
 

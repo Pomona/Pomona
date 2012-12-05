@@ -107,6 +107,28 @@ namespace Pomona.TestHelpers
                     return;
                 }
 
+                var actualNewExpr = actual as NewExpression;
+                if (actualNewExpr != null)
+                {
+                    var expectedNewExpr = (NewExpression) expected;
+                    Assert.That(
+                        actualNewExpr.Type, Is.EqualTo(expectedNewExpr.Type), "NewExpression was not of expected type.");
+                    Assert.That(actualNewExpr.Constructor, Is.EqualTo(expectedNewExpr.Constructor), "NewExpression didn't have expected constructor.");
+                    
+                    // Recursively check arguments
+                    expectedNewExpr
+                        .Arguments
+                        .Zip(
+                            actualNewExpr.Arguments,
+                            (ex, ac) =>
+                            {
+                                AssertEquals(ac, ex);
+                                return true;
+                            }).ToList();
+
+                    return;
+                }
+
                 throw new NotImplementedException(
                     "Don't know how to compare expression node " + actual + " of nodetype " + actual.NodeType);
             }

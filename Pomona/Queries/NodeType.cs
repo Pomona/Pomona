@@ -53,6 +53,7 @@ namespace Pomona.Queries
         NotEqual,
         MethodCall,
         IndexerAccess,
-        Lambda
+        Lambda,
+        As
     }
 }

@@ -34,20 +34,20 @@ using Pomona.Queries;
 
 namespace Pomona
 {
-    public class PomonaQueryTransformer : IHttpQueryTransformer
+    public class PomonaHttpQueryTransformer : IHttpQueryTransformer
     {
-        private readonly QueryFilterExpressionParser filterParser;
+        private readonly QueryExpressionParser parser;
         private readonly TypeMapper typeMapper;
 
 
-        public PomonaQueryTransformer(TypeMapper typeMapper, QueryFilterExpressionParser filterParser)
+        public PomonaHttpQueryTransformer(TypeMapper typeMapper, QueryExpressionParser parser)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            if (filterParser == null)
-                throw new ArgumentNullException("filterParser");
+            if (parser == null)
+                throw new ArgumentNullException("parser");
             this.typeMapper = typeMapper;
-            this.filterParser = filterParser;
+            this.parser = parser;
         }
 
         #region IHttpQueryTransformer Members
@@ -78,7 +78,10 @@ namespace Pomona
                 filter = (string) request.Query["$filter"];
 
             if (request.Query["$select"].HasValue)
+            {
                 select = (string) request.Query["$select"];
+                ParseSelect(query, select);
+            }
 
             if (request.Query["$orderby"].HasValue)
                 ParseOrderBy(query, (string) request.Query["$orderby"]);
@@ -101,12 +104,17 @@ namespace Pomona
             return query;
         }
 
+        private void ParseSelect(PomonaQuery query, string select)
+        {
+            query.SelectExpression = parser.ParseSelectList(query.TargetType.MappedTypeInstance, select);
+        }
+
         #endregion
 
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = filterParser.Parse(query.TargetType.MappedType, filter);
+            query.FilterExpression = parser.Parse(query.TargetType.MappedTypeInstance, filter);
         }
 
 
@@ -127,7 +135,7 @@ namespace Pomona
             else
                 query.SortOrder = SortOrder.Ascending;
 
-            query.OrderByExpression = filterParser.Parse(query.TargetType.MappedType, orderby);
+            query.OrderByExpression = parser.Parse(query.TargetType.MappedType, orderby);
         }
     }
 }

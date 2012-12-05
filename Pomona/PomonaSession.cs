@@ -47,24 +47,19 @@ namespace Pomona
     /// </summary>
     public class PomonaSession
     {
-        public const bool UseNewSerializer = true;
         private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
-        private static readonly MethodInfo queryGenericMethod;
         private readonly Func<Uri> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
-        private ISerializer serializer;
         private IDeserializer deserializer;
+        private ISerializer serializer;
 
 
         static PomonaSession()
         {
             postGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<PomonaSession>(dst => dst.PostGeneric<object>(null)).
-                                 GetGenericMethodDefinition();
-            queryGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<PomonaSession>(dst => dst.QueryGeneric<object>(null, null)).
                                  GetGenericMethodDefinition();
             getByIdMethod = new GenericMethodCaller<IPomonaDataSource, object, object>(
                 ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null)));
@@ -117,25 +112,17 @@ namespace Pomona
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var context = new ServerSerializationContext(string.Format("{0},{1}", rootPath, expand), false, this);
 
-            if (UseNewSerializer)
+            ISerializerWriter writer = null;
+            try
             {
-                ISerializerWriter writer = null;
-                try
-                {
-                    writer = serializer.CreateWriter(textWriter);
-                    serializer.SerializeNode(
-                        new ItemValueSerializerNode(o, null /*transformedType*/, string.Empty, context), writer);
-                }
-                finally
-                {
-                    if (writer != null && writer is IDisposable)
-                        ((IDisposable) writer).Dispose();
-                }
+                writer = serializer.CreateWriter(textWriter);
+                serializer.SerializeNode(
+                    new ItemValueSerializerNode(o, null /*transformedType*/, string.Empty, context), writer);
             }
-            else
+            finally
             {
-                var wrapper = new ObjectWrapper(o, string.Empty, context, transformedType);
-                wrapper.ToJson(textWriter);
+                if (writer != null && writer is IDisposable)
+                    ((IDisposable) writer).Dispose();
             }
         }
 
@@ -247,9 +234,11 @@ namespace Pomona
         public void Query(IPomonaQuery query, TextWriter writer)
         {
             //var elementType = query.TargetType;
-            var o = queryGenericMethod
-                .MakeGenericMethod(query.TargetType.MappedType)
-                .Invoke(this, new object[] {query, writer});
+            var queryResult = dataSource.Query(query);
+
+            var context = new ServerSerializationContext(query.ExpandedPaths, false, this);
+            var state = new PomonaJsonSerializer.Writer(writer);
+            serializer.SerializeQueryResult(queryResult, context, state);
         }
 
 
@@ -407,17 +396,6 @@ namespace Pomona
                 return newInstance;
 
             return postGenericMethod.MakeGenericMethod(newInstance.GetType()).Invoke(this, new[] {newInstance});
-        }
-
-
-        private object QueryGeneric<T>(IPomonaQuery query, TextWriter writer)
-        {
-            var queryResult = dataSource.List<T>(query);
-
-            var context = new ServerSerializationContext(query.ExpandedPaths, false, this);
-            var state = new PomonaJsonSerializer.Writer(writer);
-            serializer.SerializeQueryResult(queryResult, context, state);
-            return null;
         }
     }
 }

@@ -54,6 +54,14 @@ namespace Pomona.Common
 
         public abstract string BaseUri { get; }
 
+        public abstract IList<T> Query<T>(
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> orderBy = null,
+            SortOrder sortOrder = SortOrder.Ascending,
+            int? top = null,
+            int? skip = null,
+            string expand = null);
+
         public abstract T GetUri<T>(string uri);
         public abstract object GetUri(string uri, Type type);
 
@@ -68,15 +76,6 @@ namespace Pomona.Common
 
         public abstract T Put<T>(T target, Action<T> updateAction)
             where T : IClientResource;
-
-
-        public abstract IList<T> Query<T>(
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null);
 
 
         public abstract IList<T> Query<T>(
@@ -504,31 +503,6 @@ namespace Pomona.Common
             return new List<TElementType>(elements.Cast<TElementType>());
         }
 
-
-        private object CreateProxyFor(string uri, Type expectedType)
-        {
-            // Check if this is a proxy for a collection or not
-            Type elementType;
-            if (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof (ClientRepository<,>))
-                return Activator.CreateInstance(expectedType, this, uri);
-            if (TryGetCollectionElementType(expectedType, out elementType))
-            {
-                var proxy = LazyListProxy.CreateForType(elementType, uri, this);
-                return proxy;
-            }
-            else
-            {
-                var resourceInfo = GetResourceInfoForType(expectedType);
-                var proxy = (LazyProxyBase) Activator.CreateInstance(resourceInfo.LazyProxyType);
-                var proxyHasResourceUri = (IHasResourceUri) proxy;
-                proxyHasResourceUri.Uri = uri;
-                proxy.ProxyTargetType = resourceInfo.PocoType;
-                proxy.Client = this;
-                return proxy;
-            }
-        }
-
-
         private object Deserialize(string jsonString, Type expectedType)
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
@@ -551,7 +525,10 @@ namespace Pomona.Common
 
             var deserializer = serializerFactory.GetDeserializer();
             var context = new ClientDeserializationContext(typeMapper, this);
-            object deserialized = deserializer.Deserialize(new StringReader(jsonString),expectedType != null ? typeMapper.GetClassMapping(expectedType) : null, context);
+            var deserialized = deserializer.Deserialize(new StringReader(jsonString),
+                                                        expectedType != null
+                                                            ? typeMapper.GetClassMapping(expectedType)
+                                                            : null, context);
             return deserialized;
         }
 

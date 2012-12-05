@@ -57,7 +57,8 @@ namespace Pomona.Queries
                     NodeType.LessThanOrEqual,
                     NodeType.Equal,
                     NodeType.NotEqual,
-                    NodeType.Dot
+                    NodeType.Dot,
+                    NodeType.As
                 };
             nodeTypeDict = new Dictionary<int, NodeType>
                 {
@@ -75,6 +76,7 @@ namespace Pomona.Queries
                     {PomonaQueryParser.DIV_OP, NodeType.Div},
                     {PomonaQueryParser.MOD_OP, NodeType.Modulo},
                     {PomonaQueryParser.DOT_OP, NodeType.Dot},
+                    {PomonaQueryParser.AS_OP,NodeType.As},
                     {PomonaQueryParser.STRING, NodeType.StringLiteral}
                 };
         }
@@ -160,6 +162,7 @@ namespace Pomona.Queries
         {
             switch (type)
             {
+                case PomonaQueryParser.AS_OP:
                 case PomonaQueryParser.LAMBDA_OP:
                 case PomonaQueryParser.AND_OP:
                 case PomonaQueryParser.OR_OP:

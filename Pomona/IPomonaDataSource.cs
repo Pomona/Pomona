@@ -27,6 +27,7 @@
 #endregion
 
 using System.Collections.Generic;
+using Pomona.Common;
 using Pomona.Queries;
 
 namespace Pomona
@@ -35,7 +36,7 @@ namespace Pomona
     {
         T GetById<T>(object id);
         ICollection<T> List<T>();
-        QueryResult<T> List<T>(IPomonaQuery query);
+        QueryResult Query(IPomonaQuery query);
         object Post<T>(T newObject);
     }
 }
