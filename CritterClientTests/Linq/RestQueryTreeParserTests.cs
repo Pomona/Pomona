@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Linq;
-
 using Critters.Client;
-
 using NSubstitute;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.TestHelpers;
@@ -28,16 +24,16 @@ namespace CritterClientTests.Linq
 
 
         [Test]
-        public void QueryWithMultipleSkips_ThrowsSomeException()
+        public void QueryWithMultipleSkips_ThrowsNotSupportedException()
         {
-            Assert.Fail("Test not written, behaviour uncertain (what kind of exception, and when?)");
+            Assert.That(() => Parse<ICritter>(x => x.Skip(10).Skip(10)), Throws.TypeOf<NotSupportedException>());
         }
 
 
         [Test]
-        public void QueryWithMultipleTakes_ThrowsSomeException()
+        public void QueryWithMultipleTakes_ThrowsNotSupportedException()
         {
-            Assert.Fail("Test not written, behaviour uncertain (what kind of exception, and when?)");
+            Assert.That(() => Parse<ICritter>(x => x.Take(10).Take(10)), Throws.TypeOf<NotSupportedException>());
         }
 
 
@@ -59,16 +55,18 @@ namespace CritterClientTests.Linq
 
 
         [Test]
-        public void QueryWithSkipBeforeOrderBy_ThrowsSomeException()
+        public void QueryWithSkipBeforeOrderBy_ThrowsNotSupportedException()
         {
-            Assert.Fail("Test not written, behaviour uncertain (what kind of exception, and when?)");
+            Assert.That(() => Parse<ICritter>(x => x.Skip(10).OrderBy(y => y.CreatedOn)),
+                        Throws.TypeOf<NotSupportedException>());
         }
 
 
         [Test]
-        public void QueryWithTakeBeforeOrderBy_ThrowsSomeException()
+        public void QueryWithTakeBeforeOrderBy_ThrowsNotSupportedException()
         {
-            Assert.Fail("Test not written, behaviour uncertain (what kind of exception, and when?)");
+            Assert.That(() => Parse<ICritter>(x => x.Take(10).OrderBy(y => y.CreatedOn)),
+                        Throws.TypeOf<NotSupportedException>());
         }
     }
 }

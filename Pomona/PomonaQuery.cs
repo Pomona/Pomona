@@ -47,6 +47,9 @@ namespace Pomona
             this.targetType = targetType;
         }
 
+
+        public LambdaExpression GroupByExpression { get; set; }
+
         public LambdaExpression SelectExpression { get; set; }
 
         public LambdaExpression FilterExpression { get; set; }

@@ -94,6 +94,7 @@
     <Compile Include="Proxies\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="QueryPredicateBuilder.cs" />
     <Compile Include="QueryResult.cs" />
+    <Compile Include="QuerySelectBuilder.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ResourceBase.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
+    <Compile Include="UriQueryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

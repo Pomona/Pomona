@@ -62,8 +62,8 @@ namespace Pomona.Common
             int? skip = null,
             string expand = null);
 
-        public abstract T GetUri<T>(string uri);
-        public abstract object GetUri(string uri, Type type);
+        public abstract T Get<T>(string uri);
+        public abstract object DownloadString(string uri, Type type);
 
 
         public abstract IList<T> List<T>(string expand = null)
@@ -94,6 +94,9 @@ namespace Pomona.Common
 
         internal abstract T Put<T>(string uri, T target, Action<T> updateAction)
             where T : IClientResource;
+
+
+        public abstract string GetUriOfType(Type type);
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -202,16 +205,16 @@ namespace Pomona.Common
         }
 
 
-        public override object GetUri(string uri, Type type)
+        public override object DownloadString(string uri, Type type)
         {
-            return Deserialize(GetUri(uri), type);
+            return Deserialize(GetString(uri), type);
         }
 
 
-        public override T GetUri<T>(string uri)
+        public override T Get<T>(string uri)
         {
             Log("Fetching uri {0}", uri);
-            return (T) Deserialize(GetUri(uri), typeof (T));
+            return (T) Deserialize(GetString(uri), typeof (T));
         }
 
 
@@ -227,7 +230,7 @@ namespace Pomona.Common
                 if (expand != null)
                     uri = uri + "?expand=" + expand;
 
-                return GetUri<IList<T>>(uri);
+                return Get<IList<T>>(uri);
             }
             else
                 throw new NotImplementedException("We expect an interface as Type parameter!");
@@ -236,7 +239,7 @@ namespace Pomona.Common
 
         public override object Post<T>(Action<T> postAction)
         {
-            return Post<T>(GetUri(typeof (T)), postAction);
+            return Post<T>(DownloadString(typeof (T)), postAction);
         }
 
 
@@ -285,10 +288,11 @@ namespace Pomona.Common
         {
             ResourceInfoAttribute resourceInfo;
 
-            if (!TryGetResourceInfoForType(typeof (T), out resourceInfo))
+            Type type = typeof (T);
+            if (!TryGetResourceInfoForType(type, out resourceInfo))
                 return QueryInheritedCustomType(uri, predicate, orderBy, sortOrder, top, skip, expand);
 
-            resourceInfo = GetResourceInfoForType(typeof (T));
+            resourceInfo = GetResourceInfoForType(type);
             if (!resourceInfo.IsUriBaseType)
             {
                 // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
@@ -299,34 +303,33 @@ namespace Pomona.Common
                 return new List<T>(results.OfType<T>());
             }
 
-            var queryPart = string.Empty;
+            var uriQueryBuilder = new UriQueryBuilder();
 
-            queryPart = AddExpressionParameterToUri(queryPart, "$filter", predicate);
+            uriQueryBuilder.AppendExpressionParameter("$filter", predicate);
             if (orderBy != null)
             {
-                queryPart = AddExpressionParameterToUri(
-                    queryPart,
+                uriQueryBuilder.AppendExpressionParameter(
                     "$orderby",
                     RemoveCastOfResult(orderBy),
                     x => sortOrder == SortOrder.Descending ? x + " desc" : x);
             }
 
             if (expand != null)
-                queryPart = queryPart + "&$expand=" + expand;
+                uriQueryBuilder.AppendParameter("$expand", expand);
 
             if (top.HasValue)
-                queryPart = queryPart + "&$top=" + top.Value;
+                uriQueryBuilder.AppendParameter("$top", top.Value);
 
             if (skip.HasValue)
-                queryPart = queryPart + "&$skip=" + skip.Value;
+                uriQueryBuilder.AppendParameter("$skip", skip.Value);
 
-            uri = uri + "?" + queryPart;
+            uri = uri + "?" + uriQueryBuilder;
 
-            return GetUri<IList<T>>(uri);
+            return Get<IList<T>>(uri);
         }
 
 
-        public string GetUri(Type type)
+        public string DownloadString(Type type)
         {
             return BaseUri + GetRelativeUriForType(type);
         }
@@ -361,23 +364,6 @@ namespace Pomona.Common
         }
 
 
-        private static string AddExpressionParameterToUri(
-            string queryToAppendTo, string queryKey, LambdaExpression predicate, Func<string, string> transform = null)
-        {
-            var filterString = new QueryPredicateBuilder(predicate).ToString();
-
-            if (transform != null)
-                filterString = transform(filterString);
-
-            var encodedFilterExpression = EncodeUriQueryParameter(filterString);
-            if (queryToAppendTo != string.Empty)
-                queryToAppendTo = queryToAppendTo + "&";
-
-            queryToAppendTo = string.Format("{0}{1}={2}", queryToAppendTo, queryKey, encodedFilterExpression);
-            return queryToAppendTo;
-        }
-
-
         private static Expression ChangeExpressionArgumentToType(LambdaExpression lambdaExpr, Type newArgType)
         {
             if (lambdaExpr == null)
@@ -395,27 +381,6 @@ namespace Pomona.Common
             return
                 Expression.Lambda(Expression.AndAlso(Expression.TypeIs(newParam, origParam.Type), newBody), newParam);
         }
-
-
-        private static string EncodeUriQueryParameter(string text)
-        {
-            var bytes = Encoding.UTF8.GetBytes(text);
-            var sb = new StringBuilder();
-
-            foreach (var b in bytes)
-            {
-                if (b < 128
-                    &&
-                    (char.IsLetterOrDigit((char) b) || b == '\'' || b == '.' || b == '~' || b == '-' || b == '_'
-                     || b == ')' || b == '(' || b == ' '))
-                    sb.Append((char) b);
-                else
-                    sb.AppendFormat("%{0:X2}", b);
-            }
-
-            return sb.ToString();
-        }
-
 
         private static ResourceInfoAttribute GetLeafResourceInfo(Type sourceType)
         {
@@ -492,12 +457,6 @@ namespace Pomona.Common
         }
 
 
-        private object CreateListOfType(Type elementType, IEnumerable elements)
-        {
-            return createListOfTypeMethod.Call(elementType, this, elements);
-        }
-
-
         private object CreateListOfTypeGeneric<TElementType>(IEnumerable elements)
         {
             return new List<TElementType>(elements.Cast<TElementType>());
@@ -533,7 +492,7 @@ namespace Pomona.Common
         }
 
 
-        private string GetUri(string uri)
+        private string GetString(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
             var jsonString = Encoding.UTF8.GetString(webClient.DownloadData(uri));
@@ -542,7 +501,7 @@ namespace Pomona.Common
         }
 
 
-        private string GetUriOfType(Type type)
+        public override string GetUriOfType(Type type)
         {
             return BaseUri + GetResourceInfoForType(type).UrlRelativePath;
         }

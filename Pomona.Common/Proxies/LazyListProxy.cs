@@ -68,7 +68,7 @@ namespace Pomona.Common.Proxies
             get
             {
                 if (dontTouchwrappedList == null)
-                    dontTouchwrappedList = clientBase.GetUri<IList<T>>(uri);
+                    dontTouchwrappedList = clientBase.Get<IList<T>>(uri);
                 return dontTouchwrappedList;
             }
         }

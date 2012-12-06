@@ -55,7 +55,7 @@ namespace Pomona.Example
         static CritterDataSource()
         {
             queryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object, object, object>(null));
             saveCollectionMethod =
                 ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
                     x => x.SaveCollection((ICollection<EntityBase>) null));
@@ -121,7 +121,7 @@ namespace Pomona.Example
             }
         }
 
-        private QueryResult<TSelect> Query<TEntity, TSelect>(PomonaQuery pq)
+        private QueryResult<TSelect> Query<TEntity, TSelect, TGroupByKey>(PomonaQuery pq)
         {
             var expr = (Expression<Func<TEntity, bool>>) pq.FilterExpression;
 
@@ -132,19 +132,37 @@ namespace Pomona.Example
             var count = GetEntityList<TEntity>().Count(compiledExpr);
             var result = GetEntityList<TEntity>().Where(compiledExpr);
 
-            if (pq.OrderByExpression != null)
-                result = OrderByCompiledExpression(result, pq.OrderByExpression, pq.SortOrder);
-
-
+            // TODO: Orderby should be after groupby
             IEnumerable<TSelect> selectedResult = null;
-            if (pq.SelectExpression != null)
+            if (pq.GroupByExpression != null)
             {
-                var selectFunc = ((Expression<Func<TEntity, TSelect>>) pq.SelectExpression).Compile();
-                selectedResult = result.Select(selectFunc);
+                if (pq.SelectExpression == null)
+                    throw new PomonaExpressionSyntaxException("Need select after groupby");
+                var groupByFunc = ((Expression<Func<TEntity, TGroupByKey>>)pq.GroupByExpression).Compile();
+                var selectFunc =
+                    ((Expression<Func<IGrouping<TGroupByKey, TEntity>, TSelect>>)pq.SelectExpression).Compile();
+                selectedResult = result.GroupBy(groupByFunc).Select(selectFunc);
+                if (pq.OrderByExpression != null)
+                {
+                    selectedResult = OrderByCompiledExpression(selectedResult, pq.OrderByExpression, pq.SortOrder);
+                }
             }
             else
             {
-                selectedResult = (IEnumerable<TSelect>) result;
+                if (pq.OrderByExpression != null)
+                {
+                    result = OrderByCompiledExpression(result, pq.OrderByExpression, pq.SortOrder);
+                }
+
+                if (pq.SelectExpression != null)
+                {
+                    var selectFunc = ((Expression<Func<TEntity, TSelect>>)pq.SelectExpression).Compile();
+                    selectedResult = result.Select(selectFunc);
+                }
+                else
+                {
+                    selectedResult = (IEnumerable<TSelect>)result;
+                }
             }
 
             selectedResult = selectedResult.Skip(pq.Skip).Take(pq.Top);
@@ -158,10 +176,16 @@ namespace Pomona.Example
             {
                 var pq = (PomonaQuery) query;
                 var entityType = pq.TargetType.MappedTypeInstance;
-                var selectType = pq.SelectExpression != null ? pq.SelectExpression.ReturnType : entityType;
+                var selectReturnType = pq.SelectExpression != null ? pq.SelectExpression.ReturnType : entityType;
+                var groupByKeyType = typeof(object);
+
+                if (pq.GroupByExpression != null)
+                {
+                    groupByKeyType = pq.GroupByExpression.ReturnType;
+                }
 
                 return
-                    (QueryResult) queryMethod.MakeGenericMethod(entityType, selectType).Invoke(this, new object[] {pq});
+                    (QueryResult) queryMethod.MakeGenericMethod(entityType, selectReturnType, groupByKeyType).Invoke(this, new object[] {pq});
             }
         }
 

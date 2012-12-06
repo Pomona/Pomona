@@ -27,8 +27,12 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+
 using Nancy;
+
 using Pomona.Common;
 using Pomona.Queries;
 
@@ -75,18 +79,28 @@ namespace Pomona
                 skip = int.Parse(request.Query["$skip"]);
 
             if (request.Query["$filter"].HasValue)
-                filter = (string) request.Query["$filter"];
+                filter = (string)request.Query["$filter"];
+
+            ParseFilterExpression(query, filter);
+            var selectSourceType = query.TargetType.MappedTypeInstance;
+
+            if (request.Query["$groupby"].HasValue)
+            {
+                var groupby = (string)request.Query["$groupby"];
+                ParseGroupByExpression(query, groupby);
+                selectSourceType =
+                    typeof(IGrouping<,>).MakeGenericType(
+                            query.GroupByExpression.ReturnType, selectSourceType);
+            }
 
             if (request.Query["$select"].HasValue)
             {
-                select = (string) request.Query["$select"];
-                ParseSelect(query, select);
+                select = (string)request.Query["$select"];
+                ParseSelect(query, select, selectSourceType);
             }
 
             if (request.Query["$orderby"].HasValue)
-                ParseOrderBy(query, (string) request.Query["$orderby"]);
-
-            ParseFilterExpression(query, filter);
+                ParseOrderBy(query, (string)request.Query["$orderby"]);
 
             query.Top = top;
             query.Skip = skip;
@@ -94,7 +108,7 @@ namespace Pomona
             if (request.Query["$expand"].HasValue)
             {
                 // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string) request.Query["$expand"]);
+                query.ExpandedPaths = ((string)request.Query["$expand"]);
             }
             else
                 query.ExpandedPaths = string.Empty;
@@ -104,9 +118,10 @@ namespace Pomona
             return query;
         }
 
-        private void ParseSelect(PomonaQuery query, string select)
+
+        private void ParseSelect(PomonaQuery query, string select, Type thisType)
         {
-            query.SelectExpression = parser.ParseSelectList(query.TargetType.MappedTypeInstance, select);
+            query.SelectExpression = this.parser.ParseSelectList(thisType, select);
         }
 
         #endregion
@@ -114,7 +129,13 @@ namespace Pomona
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = parser.Parse(query.TargetType.MappedTypeInstance, filter);
+            query.FilterExpression = this.parser.Parse(query.TargetType.MappedTypeInstance, filter);
+        }
+
+
+        private void ParseGroupByExpression(PomonaQuery query, string groupby)
+        {
+            query.GroupByExpression = this.parser.Parse(query.TargetType.MappedTypeInstance, groupby);
         }
 
 
@@ -135,7 +156,18 @@ namespace Pomona
             else
                 query.SortOrder = SortOrder.Ascending;
 
-            query.OrderByExpression = parser.Parse(query.TargetType.MappedType, orderby);
+            Type orderedType;
+            if (query.GroupByExpression != null)
+            {
+                // When groupby is added to query, ordering will occur AFTER select, not before.
+                orderedType = query.SelectExpression.ReturnType;
+            }
+            else
+            {
+                orderedType = query.TargetType.MappedTypeInstance;
+            }
+
+            query.OrderByExpression = this.parser.Parse(orderedType, orderby);
         }
     }
 }

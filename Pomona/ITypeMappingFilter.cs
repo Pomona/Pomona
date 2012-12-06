@@ -29,12 +29,14 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using Newtonsoft.Json;
 
 namespace Pomona
 {
     public interface ITypeMappingFilter
     {
+        string ApiVersion { get; }
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();
         Type GetClientLibraryType(Type type);
@@ -47,7 +49,6 @@ namespace Pomona
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);
 
-        bool PropertyIsPrimaryId(PropertyInfo propertyInfo);
 
         /// <summary>
         /// Gets a list of all types to CONSIDER for inclusion.
@@ -74,6 +75,7 @@ namespace Pomona
         bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo);
 
         bool PropertyIsIncluded(PropertyInfo propertyInfo);
+        bool PropertyIsPrimaryId(PropertyInfo propertyInfo);
         Type ResolveRealTypeForProxy(Type type);
         bool TypeIsMapped(Type type);
         bool TypeIsMappedAsCollection(Type type);

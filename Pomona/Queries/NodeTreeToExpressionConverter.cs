@@ -35,7 +35,7 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Queries
 {
-    public class NodeTreeToExpressionConverter
+    internal class NodeTreeToExpressionConverter
     {
         private readonly IQueryTypeResolver propertyResolver;
         private Dictionary<string, ParameterExpression> parameters;
@@ -299,6 +299,8 @@ namespace Pomona.Queries
                 throw new ArgumentNullException("memberExpression");
             if (memberExpression == thisParam)
             {
+                if (node.Name == "this")
+                    return thisParam;
                 if (node.Name == "true")
                     return Expression.Constant(true);
                 if (node.Name == "false")

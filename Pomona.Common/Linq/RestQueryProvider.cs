@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -30,9 +31,10 @@ namespace Pomona.Common.Linq
 
         public virtual object Execute(Expression expression)
         {
+            var elementType = GetElementType(expression.Type);
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
-            return executeGenericMethod.MakeGenericMethod(queryTreeParser.ElementType).Invoke(
+            return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
                 this, new object[] { queryTreeParser });
         }
 
@@ -46,7 +48,7 @@ namespace Pomona.Common.Linq
         private static Type GetElementType(Type type)
         {
             if (type.MetadataToken != typeof(IQueryable<>).MetadataToken)
-                throw new NotSupportedException("Don't know how to get element type from " + type.FullName);
+                return type;
 
             return type.GetGenericArguments()[0];
         }
@@ -87,29 +89,41 @@ namespace Pomona.Common.Linq
             return Execute(expression);
         }
 
+        private string BuildUri(RestQueryableTreeParser parser)
+        {
+            var builder = new UriQueryBuilder();
+
+            // TODO: Support expand
+
+            if (parser.WherePredicate != null)
+            {
+                builder.AppendExpressionParameter("$filter", parser.WherePredicate);
+            }
+            if (parser.OrderKeySelector != null)
+            {
+                var sortOrder = parser.SortOrder;
+                builder.AppendExpressionParameter("$orderby", parser.OrderKeySelector, x => sortOrder == SortOrder.Descending ? x + " desc" : x);
+            }
+            if (parser.GroupByKeySelector != null)
+            {
+                builder.AppendExpressionParameter("$groupby", parser.GroupByKeySelector);
+            }
+            if (parser.SelectExpression != null)
+            {
+                var selectBuilder = new QuerySelectBuilder(parser.SelectExpression);
+                builder.AppendParameter("$select", selectBuilder);
+            }
+            if (parser.SkipCount.HasValue)
+                builder.AppendParameter("$skip", parser.SkipCount.Value);
+            if (parser.TakeCount.HasValue)
+                builder.AppendParameter("$top", parser.TakeCount.Value);
+
+            return client.GetUriOfType(parser.ElementType) + "?" + builder;
+        }
 
         private object Execute<T>(RestQueryableTreeParser parser)
         {
-            var wherePredicate = (Expression<Func<T, bool>>)parser.WherePredicate;
-
-            var orderKeySelector = parser.OrderKeySelector;
-            if (orderKeySelector != null)
-            {
-                if (orderKeySelector.Type != typeof(Expression<Func<T, object>>))
-                {
-                    // Must convert to object to work with Query method of function
-                    orderKeySelector =
-                        Expression.Lambda<Func<T, object>>(
-                            Expression.Convert(orderKeySelector.Body, typeof(object)), orderKeySelector.Parameters);
-                }
-            }
-
-            var results = this.client.Query<T>(
-                wherePredicate,
-                (Expression<Func<T, object>>)orderKeySelector,
-                parser.SortOrder,
-                parser.TakeCount,
-                parser.SkipCount);
+            var results = this.client.Get<IList<T>>(BuildUri(parser));
 
             switch (parser.Projection)
             {

@@ -27,14 +27,16 @@ namespace Pomona.Common.Linq
 
         private static readonly MethodInfo visitQueryConstantValueMethod;
         private Type elementType;
+        private LambdaExpression groupByKeySelector;
 
         private LambdaExpression orderKeySelector;
 
         private QueryProjection projection = QueryProjection.Enumerable;
+        private LambdaExpression selectExpression;
 
-        private int skipCount = 0;
+        private int? skipCount;
         private SortOrder sortOrder = SortOrder.Ascending;
-        private int takeCount = int.MaxValue;
+        private int? takeCount;
         private IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
         private LambdaExpression wherePredicate;
 
@@ -55,12 +57,28 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(x => x.FirstOrDefault(y => false));
             MapQueryableFunction(x => x.Any(null));
             MapQueryableFunction(x => x.Select(y => 0));
+            MapQueryableFunction(x => x.GroupBy(y => 0));
         }
 
 
         public Type ElementType
         {
             get { return this.elementType; }
+        }
+
+        public Type SelectReturnType
+        {
+            get
+            {
+                if (this.selectExpression == null)
+                    return this.elementType;
+                return this.selectExpression.ReturnType;
+            }
+        }
+
+        public LambdaExpression GroupByKeySelector
+        {
+            get { return this.groupByKeySelector; }
         }
 
         public LambdaExpression OrderKeySelector
@@ -73,7 +91,12 @@ namespace Pomona.Common.Linq
             get { return this.projection; }
         }
 
-        public int SkipCount
+        public LambdaExpression SelectExpression
+        {
+            get { return this.selectExpression; }
+        }
+
+        public int? SkipCount
         {
             get { return this.skipCount; }
         }
@@ -83,7 +106,7 @@ namespace Pomona.Common.Linq
             get { return this.sortOrder; }
         }
 
-        public int TakeCount
+        public int? TakeCount
         {
             get { return this.takeCount; }
         }
@@ -115,11 +138,19 @@ namespace Pomona.Common.Linq
             Visit(node.Arguments[0]);
             var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.MetadataToken];
             var visitMethodInstance = visitMethod.MakeGenericMethod(node.Method.GetGenericArguments());
-            visitMethodInstance.Invoke(
-                this,
-                node.Arguments.Skip(1)
-                    .Select(ExtractArgumentFromExpression)
-                    .ToArray());
+
+            try
+            {
+                visitMethodInstance.Invoke(
+                    this,
+                    node.Arguments.Skip(1)
+                        .Select(ExtractArgumentFromExpression)
+                        .ToArray());
+            }
+            catch (TargetInvocationException targetInvocationException)
+            {
+                throw targetInvocationException.InnerException ?? targetInvocationException;
+            }
 
             return node;
         }
@@ -151,7 +182,7 @@ namespace Pomona.Common.Linq
         internal void QFirstOrDefault<TSource>()
         {
             this.takeCount = 1;
-            this.projection = QueryProjection.First;
+            this.projection = QueryProjection.FirstOrDefault;
         }
 
 
@@ -162,40 +193,71 @@ namespace Pomona.Common.Linq
         }
 
 
+        internal void QGroupBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
+        {
+            if (SkipCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Skip() before GroupBy()");
+            if (TakeCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before GroupBy()");
+            if (this.groupByKeySelector != null)
+                throw new NotSupportedException("Pomona LINQ provider does not support multiple chained GroupBy()");
+            this.groupByKeySelector = keySelector;
+        }
+
+
         internal void QOrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
+            OrderBy(keySelector, SortOrder.Ascending);
+        }
+
+        private void OrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector, SortOrder sortOrder)
+        {
+            if (SkipCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Skip() before OrderBy/OrderByDescending");
+            if (TakeCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
             this.orderKeySelector = keySelector;
-            this.sortOrder = SortOrder.Ascending;
+            this.sortOrder = sortOrder;
         }
 
 
         internal void QOrderByDescending<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
-            this.orderKeySelector = keySelector;
-            this.sortOrder = SortOrder.Descending;
+            OrderBy(keySelector, SortOrder.Descending);
         }
 
 
         internal void QSelect<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
         {
-            throw new NotImplementedException();
+            this.selectExpression = selector;
         }
 
 
         internal void QSkip<TSource>(int skipCount)
         {
+            if (TakeCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before Skip().");
+            if (SkipCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support multiple calls to Skip()");
             this.skipCount = skipCount;
         }
 
 
         internal void QTake<TSource>(int takeCount)
         {
+            if (TakeCount.HasValue)
+                throw new NotSupportedException("Pomona LINQ provider does not support multiple calls to Take()");
             this.takeCount = takeCount;
         }
 
 
         internal void QWhere<TSource>(Expression<Func<TSource, bool>> predicate)
         {
+            if (SelectExpression != null)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Where() after Select()");
+            if (GroupByKeySelector != null)
+                throw new NotSupportedException("Pomona LINQ provider does not support calling Where() after GroupBy()");
+
             this.whereExpressions.Add(predicate);
             if (this.wherePredicate == null)
                 this.wherePredicate = predicate;

@@ -31,9 +31,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Common.Logging;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+
 using Pomona.Common.Internals;
 
 namespace Pomona
@@ -41,48 +44,47 @@ namespace Pomona
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
-        private ILog log = LogManager.GetLogger(typeof (TypeMappingFilterBase));
+        private ILog log = LogManager.GetLogger(typeof(TypeMappingFilterBase));
         private HashSet<Type> sourceTypesCached;
 
 
         static TypeMappingFilterBase()
         {
             jsonSupportedNativeTypes = new HashSet<Type>()
-                {
-                    typeof (string),
-                    typeof (int),
-                    typeof (long),
-                    typeof (double),
-                    typeof (float),
-                    typeof (decimal),
-                    typeof (DateTime),
-                    typeof (object),
-                    typeof (bool),
-                    typeof (Guid),
-                    typeof (Uri)
-                };
+            {
+                typeof(string),
+                typeof(int),
+                typeof(long),
+                typeof(double),
+                typeof(float),
+                typeof(decimal),
+                typeof(DateTime),
+                typeof(object),
+                typeof(bool),
+                typeof(Guid),
+                typeof(Uri)
+            };
         }
 
+
+        public virtual string ApiVersion
+        {
+            get { return "0.1.0"; }
+        }
 
         private HashSet<Type> SourceTypes
         {
             get
             {
-                if (sourceTypesCached == null)
-                    sourceTypesCached = new HashSet<Type>(GetSourceTypes());
-                return sourceTypesCached;
+                if (this.sourceTypesCached == null)
+                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
+                return this.sourceTypesCached;
             }
         }
 
         #region ITypeMappingFilter Members
 
         public abstract object GetIdFor(object entity);
-
-        public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
-        {
-            return propertyInfo.Name.ToLower() == "id";
-        }
-
 
         public abstract IEnumerable<Type> GetSourceTypes();
 
@@ -121,14 +123,14 @@ namespace Pomona
 
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            var selfParam = Expression.Parameter(typeof (object), "x");
+            var selfParam = Expression.Parameter(typeof(object), "x");
             var expr = Expression.Lambda<Func<object, object>>(
                 Expression.Convert(
                     Expression.MakeMemberAccess(
                         Expression.Convert(selfParam, propertyInfo.DeclaringType),
                         propertyInfo
                         ),
-                    typeof (object)
+                    typeof(object)
                     ),
                 selfParam
                 );
@@ -148,14 +150,14 @@ namespace Pomona
             if (!propertyInfo.CanWrite)
             {
                 return (obj, value) =>
-                    {
-                        throw new InvalidOperationException(
-                            "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
-                    };
+                {
+                    throw new InvalidOperationException(
+                        "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
+                };
             }
 
-            var selfParam = Expression.Parameter(typeof (object), "x");
-            var valueParam = Expression.Parameter(typeof (object), "value");
+            var selfParam = Expression.Parameter(typeof(object), "x");
+            var valueParam = Expression.Parameter(typeof(object), "value");
             var expr = Expression.Lambda<Action<object, object>>(
                 Expression.Assign(
                     Expression.Property(
@@ -214,10 +216,10 @@ namespace Pomona
             //
 
             // Lets just try this for now:
-            if (sourceTypesCached.Contains(type))
+            if (this.sourceTypesCached.Contains(type))
                 return type;
 
-            if (type.BaseType != null && sourceTypesCached.Contains(type.BaseType))
+            if (type.BaseType != null && this.sourceTypesCached.Contains(type.BaseType))
                 return type.BaseType;
 
             return type;
@@ -229,19 +231,15 @@ namespace Pomona
             return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
                    IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type)
-                   || TypeIsAnonymous(type);
-        }
-
-        private bool TypeIsAnonymous(Type type)
-        {
-            return type.Name.StartsWith("<>f__AnonymousType");
+                   || TypeIsAnonymous(type)
+                   || TypeIsIGrouping(type);
         }
 
 
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
+                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
         }
 
 
@@ -253,7 +251,7 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsTransformedType(Type type)
         {
-            return SourceTypes.Contains(type) || TypeIsAnonymous(type);
+            return SourceTypes.Contains(type) || TypeIsAnonymous(type) || TypeIsIGrouping(type);
         }
 
 
@@ -268,7 +266,7 @@ namespace Pomona
             Type[] genericArguments;
             if (
                 !TypeUtils.TryGetTypeArguments(
-                    collectionProperty.PropertyType, typeof (IEnumerable<>), out genericArguments))
+                    collectionProperty.PropertyType, typeof(IEnumerable<>), out genericArguments))
                 return null;
 
             var elementType = genericArguments[0];
@@ -277,7 +275,7 @@ namespace Pomona
                 elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
             if (foreignPropCandicates.Count > 1)
             {
-                log.Warn(
+                this.log.Warn(
                     "Not mapping foreign key relation of one-to-many collection property " + collectionProperty.Name
                     + " of type "
                     + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
@@ -287,12 +285,30 @@ namespace Pomona
             return foreignPropCandicates.Count == 1 ? foreignPropCandicates[0] : null;
         }
 
+
+        public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        {
+            return propertyInfo.Name.ToLower() == "id";
+        }
+
+
+        private bool TypeIsAnonymous(Type type)
+        {
+            return type.Name.StartsWith("<>f__AnonymousType");
+        }
+
+
+        private bool TypeIsIGrouping(Type type)
+        {
+            return type.MetadataToken == typeof(IGrouping<,>).MetadataToken;
+        }
+
         #endregion
 
         private static bool IsNullableType(Type type)
         {
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof (Nullable<>));
+                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
         }
 
 

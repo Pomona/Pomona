@@ -224,7 +224,7 @@ namespace Pomona
         {
             var res = new Response();
 
-            var schemas = new JsonSchemaGenerator(typeMapper).GenerateAllSchemas().ToString();
+            var schemas = new SchemaGenerator(typeMapper).Generate().ToJson();
             res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 

@@ -62,7 +62,13 @@ namespace Pomona.Queries
             // lambda expression.
             var symbolTree = ParseSymbolTree(string.Format("select({0})", selectListExpression));
             ParameterExpression thisParam = Expression.Parameter(thisType, "_this");
-            var selectParts = symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam));
+            var selectParts = symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam)).ToList();
+
+            if (selectParts.Count == 1 && selectParts[0].Key.ToLower() == "this")
+            {
+                // This is a way to select a list of one property, without encapsulating it inside anon objects..
+                return Expression.Lambda(selectParts[0].Value, thisParam);
+            }
 
             Type anonTypeInstance;
             var expr = AnonymousTypeBuilder.CreateNewExpression(selectParts, out anonTypeInstance);

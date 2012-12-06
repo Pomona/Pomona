@@ -213,7 +213,11 @@ namespace Pomona.Common
 
             var parameterExpression = expr as ParameterExpression;
             if (parameterExpression != null)
+            {
+                if (parameterExpression == thisParameter)
+                    return "this";
                 return parameterExpression.Name;
+            }
 
             throw new NotImplementedException("NodeType " + expr.NodeType + " not yet handled.");
         }

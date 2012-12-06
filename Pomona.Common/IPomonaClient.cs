@@ -13,5 +13,8 @@ namespace Pomona.Common
             int? top = null,
             int? skip = null,
             string expand = null);
+
+        T Get<T>(string uri);
+        string GetUriOfType(Type type);
     }
 }

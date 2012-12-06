@@ -123,7 +123,7 @@ namespace CritterClientTests
         {
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = client.GetUri<ICritter>(critterHost.BaseUri + "critters/" + musicalCritterId);
+            var musicalCritter = client.Get<ICritter>(critterHost.BaseUri + "critters/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }

@@ -27,27 +27,144 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
 {
-#if false
     // TODO: Implement serialization to and from Json schema
 
-    public class JsonSchemaProperty
+    public class Schema
+    {
+        public IList<SchemaTypeEntry> Types { get; set; }
+        public string Version { get; set; }
+
+
+        public Schema FromJson(string jsonString)
+        {
+            var serializer = GetSerializer();
+            var stringReader = new StringReader(jsonString);
+            var schema = (Schema)serializer.Deserialize(stringReader, typeof(Schema));
+            // Fix property names (they're not serialized as this would be redundant)..
+            foreach (var propKvp in schema.Types.SelectMany(x => x.Properties))
+                propKvp.Value.Name = propKvp.Key;
+            return schema;
+        }
+
+
+        public string ToJson()
+        {
+            var serializer = GetSerializer();
+            var stringWriter = new StringWriter();
+            serializer.Serialize(stringWriter, this);
+            return stringWriter.ToString();
+        }
+
+
+        private static JsonSerializer GetSerializer()
+        {
+            var serializer =
+                JsonSerializer.Create(
+                    new JsonSerializerSettings()
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
+                    });
+            serializer.Formatting = Formatting.Indented;
+            return serializer;
+        }
+    }
+
+    public class SchemaArrayItem
     {
         public string Type { get; set; }
-        public bool Generated { get; set; }
-        public bool ReadOnly { get; set; }
     }
-    public class JsonSchemaType
+
+    public class SchemaPropertyEntry
+    {
+        public bool Generated { get; set; }
+        public IList<SchemaArrayItem> Items { get; set; }
+
+        [JsonIgnore]
+        public string Name { get; set; }
+
+        public bool ReadOnly { get; set; }
+        public string Type { get; set; }
+    }
+
+    public class SchemaTypeEntry
     {
         public string Name { get; set; }
-        public IDictionary<string, JsonSchemaProperty> Properties { get; set; }
+        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
     }
-#endif
+
+    public class SchemaGenerator
+    {
+        private readonly TypeMapper typeMapper;
+
+
+        public SchemaGenerator(TypeMapper typeMapper)
+        {
+            this.typeMapper = typeMapper;
+        }
+
+
+        public Schema Generate()
+        {
+            var typeSchemas =
+                this.typeMapper.SourceTypes.Select(this.typeMapper.GetClassMapping).OfType<TransformedType>().Select(
+                    GenerateForType);
+            return new Schema()
+            {
+                Types = typeSchemas.ToList(),
+                Version = this.typeMapper.Filter.ApiVersion
+            };
+        }
+
+
+        private SchemaPropertyEntry GenerateForProperty(IPropertyInfo propertyInfo)
+        {
+            var propType = propertyInfo.PropertyType;
+
+            var propEntryType = propType.IsCollection ? "array" : propType.Name;
+            var propEntry = new SchemaPropertyEntry()
+            {
+                Name = propertyInfo.Name,
+                Generated = propertyInfo.CreateMode == PropertyCreateMode.Excluded,
+                ReadOnly = !propertyInfo.IsWriteable,
+                Type = propEntryType
+            };
+
+            if (propType.IsCollection)
+            {
+                propEntry.Items = new List<SchemaArrayItem>()
+                { new SchemaArrayItem() { Type = propType.ElementType.Name } };
+            }
+
+            return propEntry;
+        }
+
+
+        private SchemaTypeEntry GenerateForType(TransformedType transformedType)
+        {
+            var typeName = transformedType.Name;
+            var properties = transformedType.Properties.Select(GenerateForProperty);
+
+            return new SchemaTypeEntry()
+            {
+                Name = typeName,
+                Properties = properties.ToDictionary(x => x.Name, x => x)
+            };
+        }
+    }
 
     public class JsonSchemaGenerator
     {
@@ -64,7 +181,7 @@ namespace Pomona.Schemas
 
         public JArray GenerateAllSchemas()
         {
-            return new JArray(typeMapper.TransformedTypes.Select(GenerateSchemaFor));
+            return new JArray(this.typeMapper.TransformedTypes.Select(GenerateSchemaFor));
         }
 
 

@@ -33,6 +33,80 @@ namespace CritterClientTests.Linq
 
 
         [Test]
+        public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()
+        {
+            // Just take some random critter
+            // Search by its name
+            var expected =
+                CritterEntities
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Name.Substring(0, 1))
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .OrderByDescending(x => x.Count)
+                    .Take(10)
+                    .ToList();
+
+            var actual =
+                this.client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Name.Substring(0, 1))
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .OrderByDescending(x => x.Count)
+                    .Take(10)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
+        {
+            // Just take some random critter
+            // Search by its name
+            var expected =
+                CritterEntities
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Farm.Id)
+                    .Select(
+                        x => new
+                        {
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .Take(1)
+                    .ToList();
+
+            var actual =
+                this.client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Farm.Id)
+                    .Select(
+                        x => new
+                        {
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .Take(1)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
         public void QueryCritter_WhereFirst_ReturnsCorrectCritter()
         {
             // Just take some random critter
@@ -45,13 +119,35 @@ namespace CritterClientTests.Linq
 
 
         [Test]
+        public void QueryCritter_WhereThenSelectAnonymousClass_ReturnsCorrectValues()
+        {
+            var expected = CritterEntities
+                .Where(x => x.Id % 2 == 0)
+                .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
+                .OrderBy(x => x.Name)
+                .Take(10)
+                .ToList();
+            var actual =
+                this.client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
+                    .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
+                    .OrderBy(x => x.Name)
+                    .Take(10)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
         public void QueryCritter_WhereThenSelectSingleProperty_ReturnsCorrectValues()
         {
             // Just take some random critter
             // Search by its name
-            var critterNames =
-                this.client.Query<ICritter>().Where(x => x.Id % 2 == 0).Select(x => x.Name).ToList();
-            Assert.Fail("Assert not written for test");
+            var expected = CritterEntities.OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList();
+            var actual =
+                this.client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
+            Assert.That(actual, Is.EqualTo(expected));
         }
     }
 }

@@ -99,17 +99,22 @@ namespace Pomona.Common.Internals
             Add<decimal>(x => decimal.Ceiling(x), "ceiling({0})");
 
             // Custom functions, not odata standard
-            Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(
                 x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
+            Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
 
             Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<float>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<decimal>>(x => x.Sum(), "sum({0})");
+
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10m), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10.0), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10f), "sum({0},{1})", MethodCallStyle.Chained);
 
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.Contains(null, null), "contains({0},{1})", MethodCallStyle.Chained);

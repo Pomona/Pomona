@@ -70,7 +70,7 @@ namespace Pomona.Common.Proxies
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             if (proxyTarget == null)
-                proxyTarget = client.GetUri(uri, proxyTargetType);
+                proxyTarget = client.DownloadString(uri, proxyTargetType);
 
             return property.Getter((TOwner) proxyTarget);
         }
@@ -79,7 +79,7 @@ namespace Pomona.Common.Proxies
         protected object OnPropertyGet(string propertyName)
         {
             if (proxyTarget == null)
-                proxyTarget = client.GetUri(uri, proxyTargetType);
+                proxyTarget = client.DownloadString(uri, proxyTargetType);
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
             return proxyTargetType.GetProperty(propertyName).GetValue(proxyTarget, null);
