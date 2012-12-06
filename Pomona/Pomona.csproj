@@ -90,7 +90,6 @@
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="EnumType.cs" />
-    <Compile Include="ExpressionExtensions.cs" />
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
     <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />

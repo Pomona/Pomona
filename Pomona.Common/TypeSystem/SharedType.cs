@@ -200,6 +200,12 @@ namespace Pomona.Common.TypeSystem
 
         public virtual object Create(IDictionary<IPropertyInfo, object> args)
         {
+            if (MappedTypeInstance.IsAnonymous())
+            {
+                var ctor = mappedTypeInstance.GetConstructors().Single();
+                var ctorArgs = ctor.GetParameters().Select(x => args.First(y => y.Key.Name == x.Name).Value).ToArray();
+                return ctor.Invoke(ctorArgs);
+            }
             throw new NotImplementedException();
         }
 

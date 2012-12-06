@@ -472,7 +472,6 @@ namespace Pomona.Common
         private bool TryMapKnownOdataFunction(
             MemberInfo member, IEnumerable<Expression> arguments, out string odataExpression)
         {
-            string odataFunctionFormat;
             OdataFunctionMapping.MemberMapping memberMapping;
             if (!OdataFunctionMapping.TryGetMemberMapping(member, out memberMapping))
             {

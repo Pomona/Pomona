@@ -38,6 +38,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 using Pomona.Common.Internals;
+using Pomona.Common;
 
 namespace Pomona
 {
@@ -194,7 +195,7 @@ namespace Pomona
 
         public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            return TypeIsAnonymous(propertyInfo.DeclaringType);
+            return propertyInfo.DeclaringType.IsAnonymous();
         }
 
 
@@ -231,7 +232,7 @@ namespace Pomona
             return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
                    IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type)
-                   || TypeIsAnonymous(type)
+                   || type.IsAnonymous()
                    || TypeIsIGrouping(type);
         }
 
@@ -251,13 +252,13 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsTransformedType(Type type)
         {
-            return SourceTypes.Contains(type) || TypeIsAnonymous(type) || TypeIsIGrouping(type);
+            return SourceTypes.Contains(type) || type.IsAnonymous() || TypeIsIGrouping(type);
         }
 
 
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
-            return TypeIsAnonymous(type);
+            return type.IsAnonymous();
         }
 
 
@@ -291,11 +292,6 @@ namespace Pomona
             return propertyInfo.Name.ToLower() == "id";
         }
 
-
-        private bool TypeIsAnonymous(Type type)
-        {
-            return type.Name.StartsWith("<>f__AnonymousType");
-        }
 
 
         private bool TypeIsIGrouping(Type type)

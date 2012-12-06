@@ -6,6 +6,12 @@ namespace Pomona.Common
 {
     public static class TypeExtensions
     {
+        public static bool IsAnonymous(this Type type)
+        {
+            return type.Name.StartsWith("<>f__AnonymousType");
+        }
+
+
         /// <summary>
         /// Here we check that a, which can be an open type with generic parameters
         /// is equivalent to b.

@@ -24,7 +24,7 @@ namespace Pomona.Common
                         else
                             sharedType = new SharedType(type, this);
 
-                        if (sharedType.MappedType == typeof (ClientRepository<,>))
+                        if (sharedType.MappedType == typeof (ClientRepository<,>) || sharedType.MappedTypeInstance.IsAnonymous())
                             sharedType.SerializationMode = TypeSerializationMode.Complex;
 
                         return sharedType;

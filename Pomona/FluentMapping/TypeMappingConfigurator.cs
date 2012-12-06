@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common;
+using Pomona.Common.Internals;
 
 namespace Pomona.FluentMapping
 {

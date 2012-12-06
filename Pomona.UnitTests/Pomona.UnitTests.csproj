@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
+    <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="JsonSchemaGeneratorTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />

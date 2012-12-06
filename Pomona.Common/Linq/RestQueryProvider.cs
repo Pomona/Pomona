@@ -118,6 +118,12 @@ namespace Pomona.Common.Linq
             if (parser.TakeCount.HasValue)
                 builder.AppendParameter("$top", parser.TakeCount.Value);
 
+            var expandedPaths = parser.ExpandedPaths;
+            if (!string.IsNullOrEmpty(expandedPaths))
+            {
+                builder.AppendParameter("$expand", expandedPaths);
+            }
+
             return client.GetUriOfType(parser.ElementType) + "?" + builder;
         }
 
