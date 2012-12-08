@@ -47,11 +47,13 @@ namespace Pomona.Common
 
             foreach (var b in bytes)
             {
-                if (b < 128
-                    &&
-                    (char.IsLetterOrDigit((char)b) || b == '\'' || b == '.' || b == '~' || b == '-' || b == '_'
-                     || b == ')' || b == '(' || b == ' ' || b == '$'))
-                    sb.Append((char)b);
+                if (b == ' ')
+                    sb.Append('+');
+                else if (b < 128
+                         &&
+                         (char.IsLetterOrDigit((char) b) || b == '\'' || b == '.' || b == '~' || b == '-' || b == '_'
+                          || b == ')' || b == '(' || b == ' ' || b == '$'))
+                    sb.Append((char) b);
                 else
                     sb.AppendFormat("%{0:X2}", b);
             }

@@ -30,9 +30,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -65,189 +67,62 @@ namespace Pomona.CodeGen
 
         private TypeReference StringTypeRef
         {
-            get { return module.Import(typeof (string)); }
+            get { return this.module.Import(typeof(string)); }
         }
 
         private TypeReference VoidTypeRef
         {
-            get { return module.Import(typeof (void)); }
+            get { return this.module.Import(typeof(void)); }
         }
 
 
         public void CreateClientDll(Stream stream)
         {
-            var transformedTypes = typeMapper.TransformedTypes.ToList();
+            var transformedTypes = this.typeMapper.TransformedTypes.ToList();
 
             // Use Pomona.Client lib as starting point!
             AssemblyDefinition assembly;
 
-            assemblyName = typeMapper.Filter.GetClientAssemblyName();
+            this.assemblyName = this.typeMapper.Filter.GetClientAssemblyName();
 
             if (PomonaClientEmbeddingEnabled)
-                assembly = AssemblyDefinition.ReadAssembly(typeof (ResourceBase).Assembly.Location);
+                assembly = AssemblyDefinition.ReadAssembly(typeof(ResourceBase).Assembly.Location);
             else
             {
                 assembly =
                     AssemblyDefinition.CreateAssembly(
-                        new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0)),
-                        assemblyName,
+                        new AssemblyNameDefinition(this.assemblyName, new Version(1, 0, 0, 0)),
+                        this.assemblyName,
                         ModuleKind.Dll);
             }
 
-            assembly.Name = new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0));
+            assembly.Name = new AssemblyNameDefinition(this.assemblyName, new Version(1, 0, 0, 0));
 
             //var assembly =
             //    AssemblyDefinition.CreateAssembly(
             //        new AssemblyNameDefinition("Critter", new Version(1, 0, 0, 134)), "Critter", ModuleKind.Dll);
 
-            module = assembly.MainModule;
-            module.Name = assemblyName + ".dll";
+            this.module = assembly.MainModule;
+            this.module.Name = this.assemblyName + ".dll";
 
             if (PomonaClientEmbeddingEnabled)
             {
-                foreach (var clientHelperType in module.Types.Where(x => x.Namespace == "Pomona.Common"))
-                    clientHelperType.Namespace = assemblyName;
+                foreach (var clientHelperType in this.module.Types.Where(x => x.Namespace == "Pomona.Common"))
+                    clientHelperType.Namespace = this.assemblyName;
             }
 
-            clientTypeInfoDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
-            enumClientTypeDict = new Dictionary<EnumType, TypeDefinition>();
+            this.clientTypeInfoDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
+            this.enumClientTypeDict = new Dictionary<EnumType, TypeDefinition>();
 
-            TypeReference resourceBaseRef;
-            TypeReference resourceInterfaceRef;
-            if (PomonaClientEmbeddingEnabled)
-            {
-                resourceBaseRef = module.GetType("Pomona.Common.ResourceBase");
-                resourceInterfaceRef = module.GetType("Pomona.Common.IClientResource");
-            }
-            else
-            {
-                resourceBaseRef = module.Import(typeof (ResourceBase));
-                resourceInterfaceRef = module.Import(typeof (IClientResource));
-            }
-
-            var resourceBaseCtor =
-                module.Import(
-                    resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
-            var msObjectTypeRef = module.Import(typeof (object));
+            var msObjectTypeRef = this.module.Import(typeof(object));
             var msObjectCtor =
-                module.Import(
+                this.module.Import(
                     msObjectTypeRef.Resolve().Methods.First(
                         x => x.Name == ".ctor" && x.IsConstructor && x.Parameters.Count == 0));
 
-            var voidTypeRef = VoidTypeRef;
-
             BuildEnumTypes();
 
-            foreach (var transformedType in transformedTypes)
-            {
-                var typeInfo = new TypeCodeGenInfo();
-                clientTypeInfoDict[transformedType] = typeInfo;
-
-                typeInfo.TransformedType = (TransformedType) transformedType;
-
-                var interfaceDef = new TypeDefinition(
-                    assemblyName,
-                    "I" + transformedType.Name,
-                    TypeAttributes.Interface | TypeAttributes.Public |
-                    TypeAttributes.Abstract);
-
-                typeInfo.InterfaceType = interfaceDef;
-
-                var pocoDef = new TypeDefinition(
-                    assemblyName, transformedType.Name + "Resource", TypeAttributes.Public);
-
-                typeInfo.PocoType = pocoDef;
-
-                // Empty public constructor
-                var ctor = new MethodDefinition(
-                    ".ctor",
-                    MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
-                    | MethodAttributes.Public,
-                    voidTypeRef);
-
-                typeInfo.EmptyPocoCtor = ctor;
-                pocoDef.Methods.Add(ctor);
-
-                module.Types.Add(interfaceDef);
-                module.Types.Add(pocoDef);
-            }
-
-            foreach (var kvp in clientTypeInfoDict)
-            {
-                var type = (TransformedType) kvp.Key;
-                var typeInfo = kvp.Value;
-                var pocoDef = typeInfo.PocoType;
-                var interfaceDef = typeInfo.InterfaceType;
-                var classMapping = type;
-
-                // Implement interfaces
-
-                pocoDef.Interfaces.Add(interfaceDef);
-
-                // Inherit correct base class
-
-                MethodReference baseCtorReference;
-
-                if (type.BaseType != null && clientTypeInfoDict.ContainsKey(type.BaseType))
-                {
-                    var baseTypeInfo = clientTypeInfoDict[type.BaseType];
-                    pocoDef.BaseType = baseTypeInfo.PocoType;
-
-                    baseCtorReference = baseTypeInfo.PocoType.GetConstructors().First(x => x.Parameters.Count == 0);
-
-                    interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
-
-                    typeInfo.UriBaseType = clientTypeInfoDict[type.UriBaseType].InterfaceType;
-                }
-                else
-                {
-                    interfaceDef.Interfaces.Add(resourceInterfaceRef);
-                    pocoDef.BaseType = resourceBaseRef;
-                    typeInfo.UriBaseType = typeInfo.InterfaceType;
-                    baseCtorReference = resourceBaseCtor;
-                }
-
-                var ctor = typeInfo.EmptyPocoCtor;
-                ctor.Body.MaxStackSize = 8;
-                var ctorIlProcessor = ctor.Body.GetILProcessor();
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
-
-                foreach (
-                    var prop in
-                        classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
-                {
-                    var propTypeRef = GetPropertyTypeReference(prop);
-
-                    // For interface getters and setters
-                    var interfacePropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
-                    var interfaceGetMethod = new MethodDefinition(
-                        "get_" + prop.Name,
-                        MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                        MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
-                        propTypeRef);
-                    var interfaceSetMethod = new MethodDefinition(
-                        "set_" + prop.Name,
-                        MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                        MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
-                        voidTypeRef);
-                    interfaceSetMethod.Parameters.Add(
-                        new ParameterDefinition(
-                            "value",
-                            ParameterAttributes.None,
-                            propTypeRef));
-
-                    interfacePropDef.GetMethod = interfaceGetMethod;
-                    interfacePropDef.SetMethod = interfaceSetMethod;
-
-                    interfaceDef.Methods.Add(interfaceGetMethod);
-                    interfaceDef.Methods.Add(interfaceSetMethod);
-                    interfaceDef.Properties.Add(interfacePropDef);
-
-                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
-                }
-            }
+            BuildInterfacesAndPocoTypes(transformedTypes);
 
             // Add attribute with resource info
 
@@ -255,7 +130,7 @@ namespace Pomona.CodeGen
 
             CreateProxies(
                 new ProxyBuilder(
-                    module,
+                    this.module,
                     "{0}OldProxy",
                     GetProxyType("LazyProxyBase"),
                     MakeProxyTypesPublic,
@@ -264,9 +139,9 @@ namespace Pomona.CodeGen
 
             CreateProxies(
                 new WrappedPropertyProxyBuilder(
-                    module,
+                    this.module,
                     GetProxyType("LazyProxyBase"),
-                    GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve()),
+                    GetClientTypeReference(typeof(PropertyWrapper<,>)).Resolve()),
                 (info, def) => { info.LazyProxyType = def; });
 
             CreateProxies(
@@ -279,7 +154,7 @@ namespace Pomona.CodeGen
 
             CreateClientType("Client");
 
-            foreach (var typeInfo in clientTypeInfoDict.Values)
+            foreach (var typeInfo in this.clientTypeInfoDict.Values)
                 AddResourceInfoAttribute(typeInfo);
 
             // Copy types from running assembly
@@ -359,14 +234,14 @@ namespace Pomona.CodeGen
 
         private void AddRepositoryPropertiesToClientType(TypeDefinition clientTypeDefinition)
         {
-            foreach (var resourceTypeInfo in clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType)
+            foreach (var resourceTypeInfo in this.clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType)
                 )
             {
                 var transformedType = resourceTypeInfo.TransformedType;
                 var repoPropName = transformedType.PluralName;
-                var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
+                var postReturnTypeRef = this.clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
                 var repoPropType =
-                    GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
+                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
                         resourceTypeInfo.InterfaceType, postReturnTypeRef);
                 var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
                 repoProp.SetMethod.IsPublic = false;
@@ -378,17 +253,17 @@ namespace Pomona.CodeGen
         {
             var interfaceDef = typeInfo.InterfaceType;
             var type = typeInfo.TransformedType;
-            var attr = module.Import(typeof (ResourceInfoAttribute));
+            var attr = this.module.Import(typeof(ResourceInfoAttribute));
             var methodDefinition =
-                module.Import(attr.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+                this.module.Import(attr.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
             var custAttr =
                 new CustomAttribute(methodDefinition);
-            var stringTypeReference = module.TypeSystem.String;
+            var stringTypeReference = this.module.TypeSystem.String;
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
                     "UrlRelativePath", new CustomAttributeArgument(stringTypeReference, type.UriRelativePath)));
 
-            var typeTypeReference = module.Import(typeof (Type));
+            var typeTypeReference = this.module.Import(typeof(Type));
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
                     "PocoType", new CustomAttributeArgument(typeTypeReference, typeInfo.PocoType)));
@@ -420,19 +295,19 @@ namespace Pomona.CodeGen
 
         private void BuildEnumTypes()
         {
-            foreach (var enumType in typeMapper.EnumTypes)
+            foreach (var enumType in this.typeMapper.EnumTypes)
             {
                 var typeDef = new TypeDefinition(
-                    assemblyName,
+                    this.assemblyName,
                     enumType.Name,
                     TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.Sealed | TypeAttributes.Public,
-                    module.Import(typeof (Enum)));
+                    this.module.Import(typeof(Enum)));
 
                 var fieldDef = new FieldDefinition(
                     "value__",
                     FieldAttributes.FamANDAssem | FieldAttributes.Family
                     | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName,
-                    module.Import(module.TypeSystem.Int32));
+                    this.module.Import(this.module.TypeSystem.Int32));
 
                 typeDef.Fields.Add(fieldDef);
 
@@ -446,26 +321,147 @@ namespace Pomona.CodeGen
                         FieldAttributes.FamANDAssem | FieldAttributes.Family
                         | FieldAttributes.Static | FieldAttributes.Literal
                         | FieldAttributes.HasDefault,
-                        module.TypeSystem.Int32);
+                        this.module.TypeSystem.Int32);
 
                     memberFieldDef.Constant = value;
 
                     typeDef.Fields.Add(memberFieldDef);
                 }
 
-                enumClientTypeDict[enumType] = typeDef;
+                this.enumClientTypeDict[enumType] = typeDef;
 
-                module.Types.Add(typeDef);
+                this.module.Types.Add(typeDef);
+            }
+        }
+
+
+        private void BuildInterfacesAndPocoTypes(IEnumerable<TransformedType> transformedTypes)
+        {
+            var resourceBaseRef = GetClientTypeReference(typeof(ResourceBase));
+            var resourceInterfaceRef = GetClientTypeReference(typeof(IClientResource));
+
+            var resourceBaseCtor =
+                this.module.Import(
+                    resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
+            foreach (var transformedType in transformedTypes)
+            {
+                var typeInfo = new TypeCodeGenInfo();
+                this.clientTypeInfoDict[transformedType] = typeInfo;
+
+                typeInfo.TransformedType = (TransformedType)transformedType;
+
+                var interfaceDef = new TypeDefinition(
+                    this.assemblyName,
+                    "I" + transformedType.Name,
+                    TypeAttributes.Interface | TypeAttributes.Public |
+                    TypeAttributes.Abstract);
+
+                typeInfo.InterfaceType = interfaceDef;
+
+                var pocoDef = new TypeDefinition(
+                    this.assemblyName, transformedType.Name + "Resource", TypeAttributes.Public);
+
+                typeInfo.PocoType = pocoDef;
+
+                // Empty public constructor
+                var ctor = new MethodDefinition(
+                    ".ctor",
+                    MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
+                    | MethodAttributes.Public,
+                    this.module.TypeSystem.Void);
+
+                typeInfo.EmptyPocoCtor = ctor;
+                pocoDef.Methods.Add(ctor);
+
+                this.module.Types.Add(interfaceDef);
+                this.module.Types.Add(pocoDef);
+            }
+
+            foreach (var kvp in this.clientTypeInfoDict)
+            {
+                var type = (TransformedType)kvp.Key;
+                var typeInfo = kvp.Value;
+                var pocoDef = typeInfo.PocoType;
+                var interfaceDef = typeInfo.InterfaceType;
+                var classMapping = type;
+
+                // Implement interfaces
+
+                pocoDef.Interfaces.Add(interfaceDef);
+
+                // Inherit correct base class
+
+                MethodReference baseCtorReference;
+
+                if (type.BaseType != null && this.clientTypeInfoDict.ContainsKey(type.BaseType))
+                {
+                    var baseTypeInfo = this.clientTypeInfoDict[type.BaseType];
+                    pocoDef.BaseType = baseTypeInfo.PocoType;
+
+                    baseCtorReference = baseTypeInfo.PocoType.GetConstructors().First(x => x.Parameters.Count == 0);
+
+                    interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
+
+                    typeInfo.UriBaseType = this.clientTypeInfoDict[type.UriBaseType].InterfaceType;
+                }
+                else
+                {
+                    interfaceDef.Interfaces.Add(resourceInterfaceRef);
+                    pocoDef.BaseType = resourceBaseRef;
+                    typeInfo.UriBaseType = typeInfo.InterfaceType;
+                    baseCtorReference = resourceBaseCtor;
+                }
+
+                var ctor = typeInfo.EmptyPocoCtor;
+                ctor.Body.MaxStackSize = 8;
+                var ctorIlProcessor = ctor.Body.GetILProcessor();
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+
+                foreach (
+                    var prop in
+                        classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
+                {
+                    var propTypeRef = GetPropertyTypeReference(prop);
+
+                    // For interface getters and setters
+                    var interfacePropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
+                    var interfaceGetMethod = new MethodDefinition(
+                        "get_" + prop.Name,
+                        MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+                        MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
+                        propTypeRef);
+                    var interfaceSetMethod = new MethodDefinition(
+                        "set_" + prop.Name,
+                        MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+                        MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
+                        this.module.TypeSystem.Void);
+                    interfaceSetMethod.Parameters.Add(
+                        new ParameterDefinition(
+                            "value",
+                            ParameterAttributes.None,
+                            propTypeRef));
+
+                    interfacePropDef.GetMethod = interfaceGetMethod;
+                    interfacePropDef.SetMethod = interfaceSetMethod;
+
+                    interfaceDef.Methods.Add(interfaceGetMethod);
+                    interfaceDef.Methods.Add(interfaceSetMethod);
+                    interfaceDef.Properties.Add(interfacePropDef);
+
+                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
+                }
             }
         }
 
 
         private void CreateClientType(string clientTypeName)
         {
-            var clientBaseTypeRef = GetClientTypeReference(typeof (ClientBase<>));
+            var clientBaseTypeRef = GetClientTypeReference(typeof(ClientBase<>));
 
             var clientTypeDefinition = new TypeDefinition(
-                assemblyName, clientTypeName, TypeAttributes.Public);
+                this.assemblyName, clientTypeName, TypeAttributes.Public);
 
             var clientBaseTypeGenericInstance = clientBaseTypeRef.MakeGenericInstanceType(clientTypeDefinition);
             clientTypeDefinition.BaseType = clientBaseTypeGenericInstance;
@@ -479,7 +475,7 @@ namespace Pomona.CodeGen
             ctor.Parameters.Add(new ParameterDefinition("uri", ParameterAttributes.None, StringTypeRef));
 
             var clientBaseTypeCtor =
-                module.Import(
+                this.module.Import(
                     clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 1));
             clientBaseTypeCtor.DeclaringType =
                 clientBaseTypeCtor.DeclaringType.MakeGenericInstanceType(clientTypeDefinition);
@@ -495,7 +491,7 @@ namespace Pomona.CodeGen
 
             AddRepositoryPropertiesToClientType(clientTypeDefinition);
 
-            module.Types.Add(clientTypeDefinition);
+            this.module.Types.Add(clientTypeDefinition);
         }
 
 
@@ -503,7 +499,7 @@ namespace Pomona.CodeGen
             ProxyBuilder proxyBuilder,
             Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated)
         {
-            foreach (var typeInfo in clientTypeInfoDict.Values)
+            foreach (var typeInfo in this.clientTypeInfoDict.Values)
             {
                 var targetType = typeInfo.TransformedType;
                 var name = targetType.Name;
@@ -523,9 +519,9 @@ namespace Pomona.CodeGen
             TypeReference proxyTargetType)
         {
             var proxyOnPropertyGetMethod =
-                module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
+                this.module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
             var proxyOnPropertySetMethod =
-                module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
+                this.module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
 
             var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
             getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
@@ -554,10 +550,10 @@ namespace Pomona.CodeGen
             if (PomonaClientEmbeddingEnabled)
             {
                 // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
-                typeReference = module.GetType(type.FullName);
+                typeReference = this.module.GetType(type.FullName);
             }
             else
-                typeReference = module.Import(type);
+                typeReference = this.module.Import(type);
             return typeReference;
         }
 
@@ -568,7 +564,7 @@ namespace Pomona.CodeGen
             reflectedInterface = reflectedInterface ?? propertyDefinition.DeclaringType;
 
             return
-                clientTypeInfoDict
+                this.clientTypeInfoDict
                     .Values
                     .First(x => x.InterfaceType == reflectedInterface)
                     .TransformedType.Properties.Cast<PropertyMapping>()
@@ -580,11 +576,11 @@ namespace Pomona.CodeGen
         {
             TypeReference propTypeRef;
             if (prop.IsOneToManyCollection
-                && typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
+                && this.typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
             {
                 var elementTypeReference = GetTypeReference(prop.PropertyType.ElementType);
                 propTypeRef =
-                    GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
+                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
                         elementTypeReference, elementTypeReference);
             }
             else
@@ -596,9 +592,9 @@ namespace Pomona.CodeGen
         private TypeReference GetProxyType(string proxyTypeName)
         {
             if (PomonaClientEmbeddingEnabled)
-                return module.Types.First(x => x.Name == proxyTypeName);
+                return this.module.Types.First(x => x.Name == proxyTypeName);
             else
-                return module.Import(typeof (ClientBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
+                return this.module.Import(typeof(ClientBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
         }
 
 
@@ -612,12 +608,12 @@ namespace Pomona.CodeGen
             TypeReference typeRef = null;
 
             if (type.CustomClientLibraryType != null)
-                typeRef = module.Import(type.CustomClientLibraryType);
+                typeRef = this.module.Import(type.CustomClientLibraryType);
             else if (enumType != null)
-                typeRef = enumClientTypeDict[enumType];
+                typeRef = this.enumClientTypeDict[enumType];
             else if (sharedType != null)
             {
-                typeRef = module.Import(sharedType.MappedType);
+                typeRef = this.module.Import(sharedType.MappedType);
 
                 if (sharedType.IsGenericType)
                 {
@@ -632,7 +628,7 @@ namespace Pomona.CodeGen
                 }
             }
             else if (transformedType != null)
-                typeRef = clientTypeInfoDict[transformedType].InterfaceType;
+                typeRef = this.clientTypeInfoDict[transformedType].InterfaceType;
 
             if (typeRef == null)
                 throw new InvalidOperationException("Unable to get TypeReference for IMappedType");
@@ -651,7 +647,7 @@ namespace Pomona.CodeGen
                 : base(
                     owner.module,
                     owner.GetProxyType("PutResourceBase"),
-                    owner.GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve(),
+                    owner.GetClientTypeReference(typeof(PropertyWrapper<,>)).Resolve(),
                     isPublic)
             {
                 this.owner = owner;
@@ -666,7 +662,7 @@ namespace Pomona.CodeGen
                 TypeReference proxyTargetType,
                 TypeReference rootProxyTargetType)
             {
-                var propertyMapping = owner.GetPropertyMapping(targetProp, rootProxyTargetType);
+                var propertyMapping = this.owner.GetPropertyMapping(targetProp, rootProxyTargetType);
 
                 if (propertyMapping.CreateMode == PropertyCreateMode.Required ||
                     propertyMapping.CreateMode == PropertyCreateMode.Optional)
@@ -677,13 +673,13 @@ namespace Pomona.CodeGen
                 else
                 {
                     var invalidOperationStrCtor =
-                        typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                        typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
                     var getMethod = proxyProp.GetMethod;
                     var setMethod = proxyProp.SetMethod;
 
-                    foreach (var method in new[] {getMethod, setMethod})
+                    foreach (var method in new[] { getMethod, setMethod })
                     {
                         var ilproc = method.Body.GetILProcessor();
                         ilproc.Append(
@@ -739,7 +735,7 @@ namespace Pomona.CodeGen
                 : base(
                     owner.module,
                     owner.GetProxyType("PutResourceBase"),
-                    owner.GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve(),
+                    owner.GetClientTypeReference(typeof(PropertyWrapper<,>)).Resolve(),
                     isPublic)
             {
                 this.owner = owner;
@@ -754,7 +750,7 @@ namespace Pomona.CodeGen
                 TypeReference proxyTargetType,
                 TypeReference rootProxyTargetType)
             {
-                var propertyMapping = owner.GetPropertyMapping(targetProp);
+                var propertyMapping = this.owner.GetPropertyMapping(targetProp);
                 if (propertyMapping.IsWriteable)
                 {
                     base.OnGeneratePropertyMethods(
@@ -763,10 +759,10 @@ namespace Pomona.CodeGen
                 else
                 {
                     var invalidOperationStrCtor =
-                        typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                        typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
-                    foreach (var method in new[] {proxyProp.GetMethod, proxyProp.SetMethod})
+                    foreach (var method in new[] { proxyProp.GetMethod, proxyProp.SetMethod })
                     {
                         var ilproc = method.Body.GetILProcessor();
                         ilproc.Append(

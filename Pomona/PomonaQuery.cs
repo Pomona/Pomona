@@ -27,8 +27,11 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
+
 using Pomona.Common;
+using Pomona.Common.Internals;
 
 namespace Pomona
 {
@@ -48,13 +51,11 @@ namespace Pomona
         }
 
 
+        public LambdaExpression FilterExpression { get; set; }
         public LambdaExpression GroupByExpression { get; set; }
 
-        public LambdaExpression SelectExpression { get; set; }
-
-        public LambdaExpression FilterExpression { get; set; }
-
         public LambdaExpression OrderByExpression { get; set; }
+        public LambdaExpression SelectExpression { get; set; }
 
         public int Skip { get; set; }
         public SortOrder SortOrder { get; set; }
@@ -66,11 +67,91 @@ namespace Pomona
 
         public TransformedType TargetType
         {
-            get { return targetType; }
+            get { return this.targetType; }
         }
 
         public string Url { get; set; }
 
         #endregion
+
+        public QueryResult ApplyAndExecute(IQueryable queryable)
+        {
+            var totalQueryable = ApplyExpressions(queryable);
+            var totalCount = (int)QueryableMethods.Count.MakeGenericMethod(totalQueryable.ElementType).Invoke(
+                null, new object[] { totalQueryable });
+            var limitedQueryable = ApplySkipAndTake(totalQueryable);
+            return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+        }
+
+
+        public IQueryable ApplyExpressions(IQueryable queryable)
+        {
+            queryable =
+                (IQueryable)
+                QueryableMethods.Where.MakeGenericMethod(queryable.ElementType).Invoke(
+                    null, new object[] { queryable, FilterExpression });
+
+            if (GroupByExpression == null)
+            {
+                // OrderBy is applied BEFORE select if GroupBy has not been specified.
+                queryable = ApplyOrderByExpression(queryable);
+            }
+            else
+            {
+                queryable = (IQueryable)QueryableMethods.GroupBy
+                                            .MakeGenericMethod(queryable.ElementType, GroupByExpression.ReturnType)
+                                            .Invoke(null, new object[] { queryable, GroupByExpression });
+            }
+
+            if (SelectExpression != null)
+            {
+                queryable = (IQueryable)QueryableMethods.Select
+                                            .MakeGenericMethod(queryable.ElementType, SelectExpression.ReturnType)
+                                            .Invoke(null, new object[] { queryable, SelectExpression });
+
+                // OrderBy is applied AFTER select if GroupBy has been specified.
+                if (GroupByExpression != null)
+                    queryable = ApplyOrderByExpression(queryable);
+            }
+            else if (GroupByExpression != null)
+            {
+                throw new PomonaExpressionSyntaxException(
+                    "Query error: $groupby has to be combined with a $select query parameter.");
+            }
+
+            return queryable;
+        }
+
+
+        public IQueryable ApplySkipAndTake(IQueryable queryable)
+        {
+            if (Skip > 0)
+            {
+                queryable = (IQueryable)
+                            QueryableMethods.Skip.MakeGenericMethod(queryable.ElementType).Invoke(
+                                null, new object[] { queryable, Skip });
+            }
+
+            queryable = (IQueryable)
+                        QueryableMethods.Take.MakeGenericMethod(queryable.ElementType)
+                            .Invoke(null, new object[] { queryable, Top });
+            return queryable;
+        }
+
+
+        private IQueryable ApplyOrderByExpression(IQueryable queryable)
+        {
+            if (OrderByExpression != null)
+            {
+                var orderMethod = SortOrder == SortOrder.Descending
+                                      ? QueryableMethods.OrderByDescending
+                                      : QueryableMethods.OrderBy;
+
+                queryable = (IQueryable)orderMethod
+                                            .MakeGenericMethod(queryable.ElementType, OrderByExpression.ReturnType)
+                                            .Invoke(null, new object[] { queryable, OrderByExpression });
+            }
+            return queryable;
+        }
     }
 }

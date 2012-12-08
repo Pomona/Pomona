@@ -59,6 +59,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
     <Compile Include="ClientTypeMapper.cs" />
@@ -75,6 +78,7 @@
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
+    <Compile Include="Internals\QueryableMethods.cs" />
     <Compile Include="Linq\RestQuery.cs" />
     <Compile Include="Linq\RestQueryableTreeParser.cs" />
     <Compile Include="Linq\RestQueryExtensions.cs" />

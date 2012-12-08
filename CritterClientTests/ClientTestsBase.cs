@@ -38,6 +38,8 @@ using Pomona.Common;
 using Pomona.Example;
 using Pomona.Example.Models;
 
+using Pomona.Common.Linq;
+
 namespace CritterClientTests
 {
     public class ClientTestsBase
@@ -113,7 +115,7 @@ namespace CritterClientTests
             var allEntities = critterHost.DataSource.List<TEntity>();
             var entities =
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
-            var fetchedResources = client.Query(resourcePredicate, top: 1024*1024);
+            var fetchedResources = client.Query<TResource>().Where(resourcePredicate).Take(1024 * 1024).ToList();
             Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
             return fetchedResources;
         }
