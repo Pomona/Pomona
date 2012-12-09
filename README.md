@@ -61,8 +61,8 @@ Look at the Critter example in the source code for details.
 If you fire up the Pomona.Example.ServerApp exe, it expose the critters on port 2211.
 When ServerApp is running go here with a web browser to see what Pomona is all about:
 
-* http://localhost:2211/critter
-* http://localhost:2211/critter?expand=critter.hat
+* http://localhost:2211/critters
+* http://localhost:2211/critters?$expand=critter.hat
 * http://localhost:2211/Critters.Client.dll <-- this generates a client dll on-the-fly
 * http://localhost:2211/Critters.Client.1.0.0.0.nupkg <-- this generates a nupkg for client on-the-fly
 * http://localhost:2211/schemas <-- this returns the JSON schema for the transformed data model
@@ -87,13 +87,8 @@ Features:
 * Implement proper PATCH functionality.
 * ETags and versioning
 
-Issues to be fixed:
-* (De)serialization of dictionaries incomplete.
-* (De)serialization of lists/arrays of native JSON types incomplete (int, strings etc..)
-
 ## Future tasks
 
-* Refactoring of serialization layer. (it currently looks like a mess)
 * Implement JS client lib. Maybe two types, one based on KnockoutJs? That would be cool.
 * Implement html media type for friendly browseing.
 * Implement batch fetching on client side
