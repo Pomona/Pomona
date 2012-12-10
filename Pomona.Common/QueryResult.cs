@@ -34,6 +34,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
+using Pomona.Common.Internals;
 using Pomona.Internals;
 
 namespace Pomona.Common
@@ -57,11 +58,26 @@ namespace Pomona.Common
         public abstract bool TryGetPage(int offset, out Uri pageUri);
 
 
-        public static QueryResult Create(IQueryable source, int skip, int totalCount, string url)
+        public static QueryResult Create(IEnumerable source, int skip, int totalCount, string url)
         {
+            Type elementType;
+            Type[] genargs;
+            if (!TypeUtils.TryGetTypeArguments(source.GetType(), typeof(IEnumerable<>), out genargs))
+            {
+                var asQueryable = source as IQueryable;
+                if (asQueryable == null)
+                {
+                    throw new ArgumentException("source needs to implement IQuerable or IEnumerable<>");
+                }
+                elementType = asQueryable.ElementType;
+            }
+            else
+            {
+                elementType = genargs[0];
+            }
             return
                 (QueryResult)
-                createMethod.MakeGenericMethod(source.ElementType).Invoke(
+                createMethod.MakeGenericMethod(elementType).Invoke(
                     null, new object[] { source, skip, totalCount, url });
         }
 

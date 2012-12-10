@@ -26,16 +26,13 @@
 
 #endregion
 
-using System.Collections.Generic;
 using Pomona.Common;
-using Pomona.Queries;
 
 namespace Pomona
 {
     public interface IPomonaDataSource
     {
         T GetById<T>(object id);
-        ICollection<T> List<T>();
         QueryResult Query(IPomonaQuery query);
         object Post<T>(T newObject);
     }

@@ -27,11 +27,14 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-
+using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Internals;
 
 namespace Pomona
 {
@@ -40,7 +43,15 @@ namespace Pomona
     /// </summary>
     public class PomonaQuery : IPomonaQuery
     {
+        private static readonly MethodInfo applyAndExecuteMethod;
         private readonly TransformedType targetType;
+
+
+        static PomonaQuery()
+        {
+            applyAndExecuteMethod =
+                ReflectionHelper.GetGenericMethodDefinition<PomonaQuery>(x => x.ApplyAndExecute<object>(null, false));
+        }
 
 
         public PomonaQuery(TransformedType targetType)
@@ -67,20 +78,18 @@ namespace Pomona
 
         public TransformedType TargetType
         {
-            get { return this.targetType; }
+            get { return targetType; }
         }
 
         public string Url { get; set; }
 
         #endregion
 
-        public QueryResult ApplyAndExecute(IQueryable queryable)
+        public QueryResult ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
             var totalQueryable = ApplyExpressions(queryable);
-            var totalCount = (int)QueryableMethods.Count.MakeGenericMethod(totalQueryable.ElementType).Invoke(
-                null, new object[] { totalQueryable });
-            var limitedQueryable = ApplySkipAndTake(totalQueryable);
-            return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+            return (QueryResult) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
+                this, new object[] {totalQueryable, skipAndTakeAfterExecute});
         }
 
 
@@ -89,7 +98,7 @@ namespace Pomona
             queryable =
                 (IQueryable)
                 QueryableMethods.Where.MakeGenericMethod(queryable.ElementType).Invoke(
-                    null, new object[] { queryable, FilterExpression });
+                    null, new object[] {queryable, FilterExpression});
 
             if (GroupByExpression == null)
             {
@@ -98,16 +107,18 @@ namespace Pomona
             }
             else
             {
-                queryable = (IQueryable)QueryableMethods.GroupBy
-                                            .MakeGenericMethod(queryable.ElementType, GroupByExpression.ReturnType)
-                                            .Invoke(null, new object[] { queryable, GroupByExpression });
+                queryable = (IQueryable) QueryableMethods.GroupBy
+                                                         .MakeGenericMethod(queryable.ElementType,
+                                                                            GroupByExpression.ReturnType)
+                                                         .Invoke(null, new object[] {queryable, GroupByExpression});
             }
 
             if (SelectExpression != null)
             {
-                queryable = (IQueryable)QueryableMethods.Select
-                                            .MakeGenericMethod(queryable.ElementType, SelectExpression.ReturnType)
-                                            .Invoke(null, new object[] { queryable, SelectExpression });
+                queryable = (IQueryable) QueryableMethods.Select
+                                                         .MakeGenericMethod(queryable.ElementType,
+                                                                            SelectExpression.ReturnType)
+                                                         .Invoke(null, new object[] {queryable, SelectExpression});
 
                 // OrderBy is applied AFTER select if GroupBy has been specified.
                 if (GroupByExpression != null)
@@ -129,13 +140,28 @@ namespace Pomona
             {
                 queryable = (IQueryable)
                             QueryableMethods.Skip.MakeGenericMethod(queryable.ElementType).Invoke(
-                                null, new object[] { queryable, Skip });
+                                null, new object[] {queryable, Skip});
             }
 
             queryable = (IQueryable)
                         QueryableMethods.Take.MakeGenericMethod(queryable.ElementType)
-                            .Invoke(null, new object[] { queryable, Top });
+                                        .Invoke(null, new object[] {queryable, Top});
             return queryable;
+        }
+
+
+        private QueryResult ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
+        {
+            var totalCount = (int) QueryableMethods.Count.MakeGenericMethod(totalQueryable.ElementType).Invoke(
+                null, new object[] {totalQueryable});
+
+            IEnumerable limitedQueryable;
+            if (skipAndTakeAfterExecute)
+                limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top);
+            else
+                limitedQueryable = ApplySkipAndTake(totalQueryable);
+
+            return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
         }
 
 
@@ -147,9 +173,9 @@ namespace Pomona
                                       ? QueryableMethods.OrderByDescending
                                       : QueryableMethods.OrderBy;
 
-                queryable = (IQueryable)orderMethod
-                                            .MakeGenericMethod(queryable.ElementType, OrderByExpression.ReturnType)
-                                            .Invoke(null, new object[] { queryable, OrderByExpression });
+                queryable = (IQueryable) orderMethod
+                                             .MakeGenericMethod(queryable.ElementType, OrderByExpression.ReturnType)
+                                             .Invoke(null, new object[] {queryable, OrderByExpression});
             }
             return queryable;
         }
