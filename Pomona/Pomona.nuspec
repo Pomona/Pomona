@@ -18,4 +18,7 @@
       <dependency id="Pomona.Common" version="$version$" />
     </dependencies>
   </metadata>
+  <files>
+    <file src="bin\Debug\Antlr3.Runtime.dll" target="lib\net40-Client" />
+  </files>
 </package>

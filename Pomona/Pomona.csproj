@@ -158,6 +158,7 @@
     <Antlr3 Include="Queries\PomonaQuery.g">
       <Generator>MSBuild:Compile</Generator>
     </Antlr3>
+    <None Include="Pomona.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
