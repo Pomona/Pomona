@@ -91,9 +91,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CascadeAllConvention.cs" />
     <Compile Include="Models\PurchaseOrder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestAutomappingConfiguration.cs" />
+    <Compile Include="TestPomonaBootstrapper.cs" />
+    <Compile Include="TestPomonaConfiguration.cs" />
+    <Compile Include="TestPomonaDataSource.cs" />
+    <Compile Include="TestPomonaHost.cs" />
+    <Compile Include="TestPomonaModule.cs" />
+    <Compile Include="TestPomonaTypeMappingFilter.cs" />
     <Compile Include="Words.cs" />
   </ItemGroup>
   <ItemGroup>
