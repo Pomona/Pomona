@@ -92,6 +92,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CascadeAllConvention.cs" />
+    <Compile Include="Models\Customer.cs" />
+    <Compile Include="Models\EntityAttribute.cs" />
+    <Compile Include="Models\EntityBase.cs" />
+    <Compile Include="Models\Item.cs" />
+    <Compile Include="Models\Product.cs" />
     <Compile Include="Models\PurchaseOrder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,7 +1,5 @@
 using System;
-
 using NHibernate;
-
 using Nancy.Hosting.Self;
 
 namespace PomonaNHibernateTest
@@ -21,26 +19,26 @@ namespace PomonaNHibernateTest
 
         public Uri BaseUri
         {
-            get { return this.baseUri; }
+            get { return baseUri; }
         }
 
         public NancyHost Host
         {
-            get { return this.host; }
+            get { return host; }
         }
 
 
         public void Start()
         {
-            this.host = new NancyHost(this.baseUri, new TestPomonaBootstrapper(this.sessionFactory));
-            this.host.Start();
+            host = new NancyHost(baseUri, new TestPomonaBootstrapper(sessionFactory));
+            host.Start();
         }
 
 
         public void Stop()
         {
-            this.host.Stop();
-            this.host = null;
+            host.Stop();
+            host = null;
         }
     }
 }

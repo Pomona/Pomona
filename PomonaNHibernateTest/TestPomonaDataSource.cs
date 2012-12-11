@@ -1,15 +1,11 @@
 using System;
 using System.Linq;
 using System.Reflection;
-
 using NHibernate;
 using NHibernate.Linq;
-
 using Pomona;
 using Pomona.Common;
-
 using PomonaNHibernateTest.Models;
-
 using ReflectionHelper = Pomona.Internals.ReflectionHelper;
 
 namespace PomonaNHibernateTest
@@ -30,14 +26,15 @@ namespace PomonaNHibernateTest
 
         public TestPomonaDataSource(ISessionFactory sessionFactory)
         {
-            this.session = sessionFactory.OpenSession();
+            session = sessionFactory.OpenSession();
         }
 
         #region Implementation of IPomonaDataSource
 
         public T GetById<T>(object id)
         {
-            return (T) getEntityByIdMethod.MakeGenericMethod(typeof (T)).Invoke(this, new object[] {Convert.ToInt32(id)});
+            return
+                (T) getEntityByIdMethod.MakeGenericMethod(typeof (T)).Invoke(this, new object[] {Convert.ToInt32(id)});
         }
 
 
@@ -57,13 +54,13 @@ namespace PomonaNHibernateTest
         public T GetEntityById<T>(int id)
             where T : EntityBase
         {
-            return LinqExtensionMethods.Query<T>(this.session).First(x => x.Id == id);
+            return LinqExtensionMethods.Query<T>(session).First(x => x.Id == id);
         }
 
         private QueryResult Query<T>(IPomonaQuery query)
         {
             var pq = (PomonaQuery) query;
-            return pq.ApplyAndExecute(LinqExtensionMethods.Query<T>(this.session));
+            return pq.ApplyAndExecute(LinqExtensionMethods.Query<T>(session));
         }
 
         #endregion
@@ -72,7 +69,7 @@ namespace PomonaNHibernateTest
 
         public void Dispose()
         {
-            this.session.Dispose();
+            session.Dispose();
         }
 
         #endregion
