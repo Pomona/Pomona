@@ -117,8 +117,9 @@ namespace Pomona.CodeGen
             if (constructorInfo == null)
                 throw new InvalidOperationException("Did not find expected constructor on anonymous type.");
 
+            var anonTypeLocal = anonTypeInstance;
             return Expression.New(
-                constructorInfo, kvpList.Select(x => x.Value));
+                constructorInfo, kvpList.Select(x => x.Value), kvpList.Select(x => anonTypeLocal.GetProperty(x.Key)));
         }
 
         private static Type GetAnonymousType(IEnumerable<string> propNames)
