@@ -39,7 +39,7 @@ namespace Pomona.UnitTests
         [SetUp]
         public void SetUp()
         {
-            propNames = new[] {"Number", "Text"};
+            propNames = new[] {"Foo", "Bar"};
             builder = new AnonymousTypeBuilder(propNames);
         }
 
@@ -47,11 +47,11 @@ namespace Pomona.UnitTests
         private AnonymousTypeBuilder builder;
 
 
-        private object CreateAnonObject(int number, string text)
+        private object CreateAnonObject<TFoo, TBar>(TFoo foo, TBar bar)
         {
             var type = BuildTypeAndLoad();
-            var typeInstance = type.MakeGenericType(typeof (int), typeof (string));
-            var obj = Activator.CreateInstance(typeInstance, number, text);
+            var typeInstance = type.MakeGenericType(typeof (TFoo), typeof (TBar));
+            var obj = Activator.CreateInstance(typeInstance, foo, bar);
             return obj;
         }
 
@@ -87,8 +87,8 @@ namespace Pomona.UnitTests
         {
             var obj = CreateAnonObject(1337, "hello");
 
-            AssertObjectHasPropWithValue(obj, "Number", 1337);
-            AssertObjectHasPropWithValue(obj, "Text", "hello");
+            AssertObjectHasPropWithValue(obj, "Foo", 1337);
+            AssertObjectHasPropWithValue(obj, "Bar", "hello");
         }
 
 
@@ -124,9 +124,9 @@ namespace Pomona.UnitTests
             const string unexpectedHashCodeFromSystemTypesMessage =
                 "This test won't make sense, it seems like a GetHashCode() implementation for system type has changed.";
             Assert.That(1337.GetHashCode(), Is.EqualTo(1337), unexpectedHashCodeFromSystemTypesMessage);
-            Assert.That("hello".GetHashCode(), Is.EqualTo(-695839), unexpectedHashCodeFromSystemTypesMessage);
-            var runtimeGenerated = CreateAnonObject(1337, "hello");
-            Assert.That(runtimeGenerated.GetHashCode(), Is.EqualTo(276722368));
+            Assert.That(0xdead.GetHashCode(), Is.EqualTo(0xdead), unexpectedHashCodeFromSystemTypesMessage);
+            var runtimeGenerated = CreateAnonObject(1337, 0xdead);
+            Assert.That(runtimeGenerated.GetHashCode(), Is.EqualTo(1026086765));
         }
 
 
@@ -135,7 +135,7 @@ namespace Pomona.UnitTests
         {
             var obj = CreateAnonObject(1337, "hello");
             var str = obj.ToString();
-            Assert.That(str, Is.EqualTo("{ Number = 1337, Text = hello }"));
+            Assert.That(str, Is.EqualTo("{ Foo = 1337, Bar = hello }"));
         }
 
 

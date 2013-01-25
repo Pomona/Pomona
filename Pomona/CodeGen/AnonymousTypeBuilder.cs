@@ -319,17 +319,18 @@ namespace Pomona.CodeGen
                 MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.Virtual
                 | MethodAttributes.HideBySig,
                 module.TypeSystem.Boolean);
-            method.Body.MaxStackSize = 3;
+            method.Body.MaxStackSize = 5;
             method.Body.InitLocals = true;
 
-            var otherArg = new ParameterDefinition("obj", ParameterAttributes.None, module.TypeSystem.Object);
+            var otherArg = new ParameterDefinition("value", ParameterAttributes.None, module.TypeSystem.Object);
             method.Parameters.Add(otherArg);
-            var otherVar = new VariableDefinition(definition);
+            var otherVar = new VariableDefinition(ilFieldDeclaringType);
             method.Body.Variables.Add(otherVar);
             var isEqualVar = new VariableDefinition(module.TypeSystem.Int32);
             method.Body.Variables.Add(isEqualVar);
 
             var il = method.Body.GetILProcessor();
+
             var setToFalseInstruction = Instruction.Create(OpCodes.Ldc_I4_0);
             //IL_0000: ldarg.1
             il.Emit(OpCodes.Ldarg, otherArg);
@@ -380,7 +381,6 @@ namespace Pomona.CodeGen
 
             //IL_003f: ret
             il.Emit(OpCodes.Ret);
-
             definition.Methods.Add(method);
         }
 
