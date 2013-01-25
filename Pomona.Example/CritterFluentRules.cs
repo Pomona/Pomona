@@ -33,15 +33,15 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.CrazyValue)
-                .Include(x => x.CreatedOn);
+               .Include(x => x.CrazyValue)
+               .Include(x => x.CreatedOn);
         }
 
 
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
             map.ConstructedUsing(x => new Gun(x.Critter, x.Model))
-                .Include(x => x.ExplosionFactor);
+               .Include(x => x.ExplosionFactor);
         }
     }
 }

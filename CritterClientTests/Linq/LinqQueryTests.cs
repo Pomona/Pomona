@@ -12,6 +12,12 @@ namespace CritterClientTests.Linq
     [TestFixture]
     public class LinqQueryTests : ClientTestsBase
     {
+        public interface ICustomCritter : ICritter
+        {
+            string CustomString { get; set; }
+        }
+
+
         [Test]
         public void QueryCritter_AnyWithExistingName_ReturnsTrue()
         {
@@ -31,18 +37,6 @@ namespace CritterClientTests.Linq
             Assert.That(hasCritterWithGuid, Is.False);
         }
 
-        public interface ICustomCritter : ICritter
-        {
-            string CustomString { get; set; }
-        }
-
-        [Category("TODO")]
-        [Test]
-        public void QueryUserCustomizedCritters_ReturnsCustomizedCritters()
-        {
-            var customCritter = client.Query<ICustomCritter>().Where(x => x.CustomString == "Lalala").ToList();
-            Assert.Fail("Test not written yet.");
-        }
 
         [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()
@@ -177,7 +171,7 @@ namespace CritterClientTests.Linq
         {
             var result =
                 this.client.Critters.Query().Select(x => new { TheHat = x.Hat, x.Name }).Expand(x => x.TheHat).Take(1).
-                    First();
+                     First();
             Assert.That(result.TheHat, Is.TypeOf<HatResource>());
         }
 
@@ -187,6 +181,15 @@ namespace CritterClientTests.Linq
         {
             var result = this.client.Critters.Query().Expand(x => x.Hat).Take(1).First();
             Assert.That(result.Hat, Is.TypeOf<HatResource>());
+        }
+
+
+        [Category("TODO")]
+        [Test(Description = "Fails because it's not implemented yet.")]
+        public void QueryUserCustomizedCritters_ReturnsCustomizedCritters()
+        {
+            var customCritter = this.client.Query<ICustomCritter>().Where(x => x.CustomString == "Lalala").ToList();
+            Assert.Fail("Test not written yet.");
         }
     }
 }
