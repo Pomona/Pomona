@@ -47,8 +47,9 @@ namespace TestNs
 
             foreach (var t in typesSet)
             {
-                sb.AppendFormat("        public void Map(ITypeMappingConfigurator<{0}> map)\r\n        {{\r\n",
-                                t.FullName);
+                sb.AppendFormat(
+                    "        public void Map(ITypeMappingConfigurator<{0}> map)\r\n        {{\r\n",
+                    t.FullName);
                 foreach (var p in t.GetProperties())
                 {
                     if (p.DeclaringType == t || !typesSet.Contains(p.DeclaringType))
@@ -78,6 +79,12 @@ namespace TestNs
         public Type GetClientLibraryType(Type type)
         {
             return this.wrappedFilter.GetClientLibraryType(type);
+        }
+
+
+        public DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
+        {
+            return this.wrappedFilter.GetDefaultPropertyInclusionMode();
         }
 
 
@@ -166,7 +173,7 @@ namespace TestNs
 
             if (propertyOptions.InclusionMode == PropertyInclusionMode.Excluded)
                 return false;
-            
+
             if (propertyOptions.InclusionMode == PropertyInclusionMode.Included)
                 return true;
 
@@ -175,7 +182,7 @@ namespace TestNs
                 if (typeMapping.DefaultPropertyInclusionMode ==
                     DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault)
                     return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
-                
+
                 if (typeMapping.DefaultPropertyInclusionMode ==
                     DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping)
                 {
@@ -237,6 +244,22 @@ namespace TestNs
         }
 
 
+        internal TypeMappingConfigurator GetTypeMapping(Type type)
+        {
+            TypeMappingConfigurator typeMapping;
+            if (!this.typeMappingDict.TryGetValue(type.FullName, out typeMapping))
+            {
+                var typeMappingConfiguratorType =
+                    typeof(TypeMappingConfigurator<>).MakeGenericType(type);
+                typeMapping = (TypeMappingConfigurator)Activator.CreateInstance(typeMappingConfiguratorType);
+                typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
+                this.typeMappingDict[type.FullName] = typeMapping;
+            }
+
+            return typeMapping;
+        }
+
+
         private static bool IsRuleMethod(MethodInfo method)
         {
             var parameters = method.GetParameters();
@@ -258,15 +281,15 @@ namespace TestNs
             var ruleMethods = ruleContainers
                 .SelectMany(
                     x => x.GetType()
-                          .GetMethods()
-                          .Where(IsRuleMethod)
-                          .Select(
-                              m => new
-                              {
-                                  Method = m,
-                                  Instance = x,
-                                  AppliesToType = m.GetParameters()[0].ParameterType.GetGenericArguments()[0]
-                              }));
+                             .GetMethods()
+                             .Where(IsRuleMethod)
+                             .Select(
+                                 m => new
+                                 {
+                                     Method = m,
+                                     Instance = x,
+                                     AppliesToType = m.GetParameters()[0].ParameterType.GetGenericArguments()[0]
+                                 }));
 
             // NOTE: We need to order the properties in ascending order by how
             //       specific their declaring types are so we get the most
@@ -275,14 +298,7 @@ namespace TestNs
 
             foreach (var ruleMethod in ruleMethods)
             {
-                TypeMappingConfigurator typeMapping;
-                if (!this.typeMappingDict.TryGetValue(ruleMethod.AppliesToType.FullName, out typeMapping))
-                {
-                    var typeMappingConfiguratorType =
-                        typeof(TypeMappingConfigurator<>).MakeGenericType(ruleMethod.AppliesToType);
-                    typeMapping = (TypeMappingConfigurator)Activator.CreateInstance(typeMappingConfiguratorType);
-                    this.typeMappingDict[ruleMethod.AppliesToType.FullName] = typeMapping;
-                }
+                var typeMapping = GetTypeMapping(ruleMethod.AppliesToType);
                 ruleMethod.Method.Invoke(ruleMethod.Instance, new object[] { typeMapping });
             }
         }
@@ -343,11 +359,9 @@ namespace TestNs
             out TypeMappingConfigurator typeMapping,
             out PropertyMappingOptions propertyOptions)
         {
-            propertyOptions = null;
-            if (this.typeMappingDict.TryGetValue(propertyInfo.DeclaringType.FullName, out typeMapping))
-                propertyOptions = typeMapping.GetPropertyOptions(propertyInfo.Name);
-
-            return propertyOptions != null;
+            typeMapping = GetTypeMapping(propertyInfo.DeclaringType);
+            propertyOptions = typeMapping.GetPropertyOptions(propertyInfo.Name);
+            return true;
         }
 
         #region Nested type: SubclassComparer

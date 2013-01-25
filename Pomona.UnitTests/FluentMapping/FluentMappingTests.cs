@@ -68,7 +68,22 @@ namespace Pomona.UnitTests.FluentMapping
 
         public class TestTypeMappingFilter : TypeMappingFilterBase
         {
-            #region Overrides of TypeMappingFilterBase
+            private readonly DefaultPropertyInclusionMode? defaultPropertyInclusion;
+
+
+            public TestTypeMappingFilter(DefaultPropertyInclusionMode? defaultPropertyInclusion = null)
+            {
+                this.defaultPropertyInclusion = defaultPropertyInclusion;
+            }
+
+
+            public override DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
+            {
+                return this.defaultPropertyInclusion.HasValue
+                           ? this.defaultPropertyInclusion.Value
+                           : base.GetDefaultPropertyInclusionMode();
+            }
+
 
             public override object GetIdFor(object entity)
             {
@@ -84,8 +99,6 @@ namespace Pomona.UnitTests.FluentMapping
                 return typeof(FluentMappingTests).GetNestedTypes().Where(
                     x => typeof(TestEntityBase).IsAssignableFrom(x)).ToList();
             }
-
-            #endregion
         }
 
 
@@ -109,11 +122,21 @@ namespace Pomona.UnitTests.FluentMapping
         }
 
 
-        private static FluentTypeMappingFilter GetMappingFilter(DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null)
+        private static FluentTypeMappingFilter GetMappingFilter(
+            DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null)
         {
-            var typeMappingFilter = new TestTypeMappingFilter();
-            var fluentMappingFilter = new FluentTypeMappingFilter(typeMappingFilter, new FluentRules(defaultPropertyInclusionMode));
+            var typeMappingFilter = new TestTypeMappingFilter(defaultPropertyInclusionMode);
+            var fluentMappingFilter = new FluentTypeMappingFilter(
+                typeMappingFilter, new FluentRules(defaultPropertyInclusionMode));
             return fluentMappingFilter;
+        }
+
+
+        [Test]
+        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
+        {
+            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
         }
 
 
@@ -124,12 +147,6 @@ namespace Pomona.UnitTests.FluentMapping
             Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.True);
         }
 
-        [Test]
-        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
-        {
-            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
-        }
 
         [Test]
         public void RenameRule_GivesPropertyANewName()
@@ -150,6 +167,7 @@ namespace Pomona.UnitTests.FluentMapping
         }
 
 
+        [Category("TODO")]
         [Test]
         public void Stuff_Not_Yet_Covered_By_Tests()
         {

@@ -32,10 +32,13 @@ using System.Reflection;
 
 using Newtonsoft.Json;
 
+using Pomona.FluentMapping;
+
 namespace Pomona
 {
     public interface ITypeMappingFilter
     {
+        DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
         string ApiVersion { get; }
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();

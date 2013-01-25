@@ -39,6 +39,7 @@ using Newtonsoft.Json.Converters;
 
 using Pomona.Common.Internals;
 using Pomona.Common;
+using Pomona.FluentMapping;
 
 namespace Pomona
 {
@@ -65,6 +66,12 @@ namespace Pomona
                 typeof(Guid),
                 typeof(Uri)
             };
+        }
+
+
+        public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
+        {
+            return DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
         }
 
 
