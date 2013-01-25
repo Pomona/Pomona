@@ -1,4 +1,32 @@
-﻿using System.Collections.Generic;
+﻿#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2013 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
+using System.Collections.Generic;
 using System.Linq;
 
 using Pomona.Common.TypeSystem;
@@ -7,22 +35,18 @@ namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonSerializerFactory : ISerializerFactory
     {
-        private Dictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache;
+        private readonly Dictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache;
 
-        public PomonaJsonSerializerFactory() : this(Enumerable.Empty<IMappedType>())
+
+        public PomonaJsonSerializerFactory()
+            : this(Enumerable.Empty<IMappedType>())
         {
         }
+
 
         public PomonaJsonSerializerFactory(IEnumerable<IMappedType> cachedTypes)
         {
             this.typeCache = cachedTypes.ToDictionary(x => x, x => new PomonaJsonSerializerTypeEntry(x));
-        }
-
-        #region Implementation of ISerializerFactory
-
-        public ISerializer GetSerialier()
-        {
-            return new PomonaJsonSerializer(this.typeCache);
         }
 
 
@@ -31,6 +55,10 @@ namespace Pomona.Common.Serialization.Json
             return new PomonaJsonDeserializer();
         }
 
-        #endregion
+
+        public ISerializer GetSerialier()
+        {
+            return new PomonaJsonSerializer(this.typeCache);
+        }
     }
 }
