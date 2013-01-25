@@ -5,10 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona", "Pomona\Pomona.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Common", "Pomona.Common\Pomona.Common.csproj", "{94E7B042-6595-46F8-9400-897058E76E91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.SystemTests", "CritterClientTests\Pomona.SystemTests.csproj", "{D38E1728-EC41-4780-843E-5F9D6C35C641}"
-	ProjectSection(ProjectDependencies) = postProject
-		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1} = {9D098F08-B3CA-4122-A7F6-3090F8A17CA1}
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.SystemTests", "Pomona.SystemTests\Pomona.SystemTests.csproj", "{D38E1728-EC41-4780-843E-5F9D6C35C641}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5EFFC358-961C-47E3-9735-8061DCB3BE75}"
 	ProjectSection(SolutionItems) = preProject
@@ -72,16 +69,6 @@ Global
 		{94E7B042-6595-46F8-9400-897058E76E91}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{94E7B042-6595-46F8-9400-897058E76E91}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{94E7B042-6595-46F8-9400-897058E76E91}.Release|x86.ActiveCfg = Release|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|x86.ActiveCfg = Release|Any CPU
 		{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -158,6 +145,16 @@ Global
 		{AA3FB78C-ABBC-4490-8726-3B4A2AADA699}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{AA3FB78C-ABBC-4490-8726-3B4A2AADA699}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{AA3FB78C-ABBC-4490-8726-3B4A2AADA699}.Release|x86.ActiveCfg = Release|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{D38E1728-EC41-4780-843E-5F9D6C35C641}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

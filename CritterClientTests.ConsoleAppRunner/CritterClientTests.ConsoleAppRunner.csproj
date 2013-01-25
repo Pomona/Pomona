@@ -79,11 +79,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CritterClientTests\Pomona.SystemTests.csproj">
+    <ProjectReference Include="..\Pomona.SystemTests\Pomona.SystemTests.csproj">
       <Project>{D38E1728-EC41-4780-843E-5F9D6C35C641}</Project>
       <Name>Pomona.SystemTests</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
+    </ProjectReference>    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
     </ProjectReference>
