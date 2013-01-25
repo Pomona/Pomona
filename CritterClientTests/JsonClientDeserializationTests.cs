@@ -3,6 +3,7 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Serialization;
+using Pomona.Common.Serialization.Json;
 
 namespace CritterClientTests
 {

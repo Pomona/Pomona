@@ -36,6 +36,7 @@ using Newtonsoft.Json.Linq;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Serialization;
+using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 

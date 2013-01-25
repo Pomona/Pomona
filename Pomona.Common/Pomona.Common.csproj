@@ -119,10 +119,10 @@
     <Compile Include="Serialization\ISerializerWriter.cs" />
     <Compile Include="Serialization\ItemValueDeserializerNode.cs" />
     <Compile Include="Serialization\ItemValueSerializerNode.cs" />
-    <Compile Include="Serialization\PomonaJsonDeserializer.cs" />
-    <Compile Include="Serialization\PomonaJsonSerializer.cs" />
-    <Compile Include="Serialization\PomonaJsonSerializerFactory.cs" />
-    <Compile Include="Serialization\PomonaJsonSerializerTypeEntry.cs" />
+    <Compile Include="Serialization\Json\PomonaJsonDeserializer.cs" />
+    <Compile Include="Serialization\Json\PomonaJsonSerializer.cs" />
+    <Compile Include="Serialization\Json\PomonaJsonSerializerFactory.cs" />
+    <Compile Include="Serialization\Json\PomonaJsonSerializerTypeEntry.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
     <Compile Include="Serialization\SerializerNodeExtensions.cs" />
@@ -141,7 +141,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Serialization\Xml\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

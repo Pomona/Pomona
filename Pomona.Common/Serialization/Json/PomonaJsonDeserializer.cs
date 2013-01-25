@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
-namespace Pomona.Common.Serialization
+namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>
     {

@@ -41,6 +41,7 @@ using Newtonsoft.Json.Linq;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
+using Pomona.Common.Serialization.Json;
 using Pomona.Internals;
 
 namespace Pomona.Common

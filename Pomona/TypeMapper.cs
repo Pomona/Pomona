@@ -29,7 +29,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Common.Logging;
+
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -39,38 +41,46 @@ namespace Pomona
 {
     public class TypeMapper : ITypeMapper
     {
-        private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
+        private readonly ISerializerFactory serializerFactory;
         private readonly HashSet<Type> sourceTypes;
-        private ILog log = LogManager.GetLogger(typeof (TypeMapper));
-        private ISerializerFactory serializerFactory;
+        private ILog log = LogManager.GetLogger(typeof(TypeMapper));
 
 
         public TypeMapper(PomonaConfigurationBase configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException("configuration");
-            this.configuration = configuration;
 
-            filter = configuration.TypeMappingFilter;
+            this.filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
             if (fluentRuleObjects.Length > 0)
-                filter = new FluentTypeMappingFilter(filter, fluentRuleObjects);
+                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects);
 
-
-            if (filter == null)
+            if (this.filter == null)
                 throw new ArgumentNullException("filter");
 
-            sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
+            this.sourceTypes = new HashSet<Type>(this.filter.GetSourceTypes().Where(this.filter.TypeIsMapped));
 
-            foreach (var sourceType in sourceTypes)
+            foreach (var sourceType in this.sourceTypes)
             {
                 GetClassMapping(sourceType);
                 MapForeignKeys();
             }
 
-            serializerFactory = new PomonaJsonSerializerFactory(TransformedTypes);
+            this.serializerFactory = configuration.SerializerFactory;
+        }
+
+
+        public IEnumerable<EnumType> EnumTypes
+        {
+            get { return this.mappings.Values.OfType<EnumType>(); }
+        }
+
+        public ITypeMappingFilter Filter
+        {
+            get { return this.filter; }
         }
 
         /// <summary>
@@ -79,37 +89,34 @@ namespace Pomona
         /// </summary>
         public ISerializerFactory SerializerFactory
         {
-            get { return serializerFactory; }
-        }
-
-
-        public IEnumerable<EnumType> EnumTypes
-        {
-            get { return mappings.Values.OfType<EnumType>(); }
-        }
-
-        public ITypeMappingFilter Filter
-        {
-            get { return filter; }
+            get { return this.serializerFactory; }
         }
 
         public ICollection<Type> SourceTypes
         {
-            get { return sourceTypes; }
+            get { return this.sourceTypes; }
         }
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return mappings.Values.OfType<TransformedType>(); }
+            get { return this.mappings.Values.OfType<TransformedType>(); }
+        }
+
+
+        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
+        {
+            if (rootType == null)
+                throw new ArgumentNullException("rootType");
+            return rootType.ConvertToInternalPropertyPath(externalPath);
         }
 
 
         public IMappedType GetClassMapping(Type type)
         {
-            type = filter.ResolveRealTypeForProxy(type);
+            type = this.filter.ResolveRealTypeForProxy(type);
 
             IMappedType mappedType;
-            if (!mappings.TryGetValue(type, out mappedType))
+            if (!this.mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
 
             return mappedType;
@@ -122,17 +129,10 @@ namespace Pomona
             return TransformedTypes.First(x => x.Name == typeName);
         }
 
-        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
-        {
-            if (rootType == null)
-                throw new ArgumentNullException("rootType");
-            return rootType.ConvertToInternalPropertyPath(externalPath);
-        }
-
 
         public IMappedType GetClassMapping<T>()
         {
-            var type = typeof (T);
+            var type = typeof(T);
 
             return GetClassMapping(type);
         }
@@ -187,49 +187,48 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (!filter.TypeIsMapped(type))
+            if (!this.filter.TypeIsMapped(type))
                 throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
 
             if (type.IsEnum)
             {
-                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int) x);
+                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int)x);
                 var newEnumType = new EnumType(type, this, values);
-                mappings[type] = newEnumType;
+                this.mappings[type] = newEnumType;
                 return newEnumType;
             }
 
-            if (filter.TypeIsMappedAsSharedType(type))
+            if (this.filter.TypeIsMappedAsSharedType(type))
             {
                 var newSharedType = new SharedType(type, this);
 
+                newSharedType.JsonConverter = this.filter.GetJsonConverterForType(type);
+                newSharedType.CustomClientLibraryType = this.filter.GetClientLibraryType(type);
 
-                newSharedType.JsonConverter = filter.GetJsonConverterForType(type);
-                newSharedType.CustomClientLibraryType = filter.GetClientLibraryType(type);
-
-                mappings[type] = newSharedType;
+                this.mappings[type] = newSharedType;
                 return newSharedType;
             }
 
-            if (filter.TypeIsMappedAsTransformedType(type))
+            if (this.filter.TypeIsMappedAsTransformedType(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                mappings[type] = classDefinition;
+                this.mappings[type] = classDefinition;
 
-                if (filter.TypeIsMappedAsValueObject(type))
+                if (this.filter.TypeIsMappedAsValueObject(type))
                     classDefinition.MappedAsValueObject = true;
 
-                var uriBaseType = filter.GetUriBaseType(type);
+                var uriBaseType = this.filter.GetUriBaseType(type);
                 if (uriBaseType != type)
-                    classDefinition.UriBaseType = (TransformedType) GetClassMapping(uriBaseType);
+                    classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
                 else
                     classDefinition.UriBaseType = classDefinition;
 
                 classDefinition.UriRelativePath = NameUtils.ConvertCamelCaseToUri(
                     classDefinition.UriBaseType.PluralName);
 
-                classDefinition.PostReturnType = (TransformedType) GetClassMapping(filter.GetPostReturnType(type));
+                classDefinition.PostReturnType = (TransformedType)GetClassMapping(this.filter.GetPostReturnType(type));
 
                 classDefinition.ScanProperties(type);
 
@@ -252,7 +251,7 @@ namespace Pomona
 
             foreach (var prop in collectionProperties.OfType<PropertyMapping>().Where(x => x.PropertyInfo != null))
             {
-                var foreignKeyProp = filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
+                var foreignKeyProp = this.filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
 
                 if (foreignKeyProp != null)
                 {

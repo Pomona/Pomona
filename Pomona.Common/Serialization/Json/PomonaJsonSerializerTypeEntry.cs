@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Newtonsoft.Json;
+
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Common.Serialization
+namespace Pomona.Common.Serialization.Json
 {
     /// <summary>
     /// This class contains code-gen func to write out JSON faster!
@@ -31,12 +33,12 @@ namespace Pomona.Common.Serialization
 
         public IEnumerable<IPropertyInfo> ManuallyWrittenProperties
         {
-            get { return manuallyWrittenProperties; }
+            get { return this.manuallyWrittenProperties; }
         }
 
         public Action<JsonWriter, object> WritePropertiesFunc
         {
-            get { return writePropertiesFunc; }
+            get { return this.writePropertiesFunc; }
         }
 
 
@@ -63,12 +65,12 @@ namespace Pomona.Common.Serialization
             var expressions = new List<Expression>();
             var jsonWriterParam = Expression.Parameter(typeof (JsonWriter));
             var objValueParam = Expression.Parameter(typeof (object));
-            var valueVariable = Expression.Variable(type.MappedTypeInstance);
+            var valueVariable = Expression.Variable(this.type.MappedTypeInstance);
 
             expressions.Add(
-                Expression.Assign(valueVariable, Expression.Convert(objValueParam, type.MappedTypeInstance)));
+                Expression.Assign(valueVariable, Expression.Convert(objValueParam, this.type.MappedTypeInstance)));
 
-            foreach (var prop in type.Properties)
+            foreach (var prop in this.type.Properties)
             {
                 MethodInfo method;
                 if (TryGetJsonWriterMethodForWritingType(prop.PropertyType, out method))
@@ -80,15 +82,15 @@ namespace Pomona.Common.Serialization
                         Expression.Call(jsonWriterParam, method, prop.CreateGetterExpression(valueVariable)));
                 }
                 else
-                    manuallyWrittenProperties.Add(prop);
+                    this.manuallyWrittenProperties.Add(prop);
             }
 
-            writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object>>(
+            this.writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object>>(
                 Expression.Block(new[] {valueVariable}, expressions), jsonWriterParam, objValueParam);
 
-            writePropertiesFunc = writePropertiesExpression.Compile();
+            this.writePropertiesFunc = this.writePropertiesExpression.Compile();
 
-            manuallyWrittenProperties.Capacity = manuallyWrittenProperties.Count;
+            this.manuallyWrittenProperties.Capacity = this.manuallyWrittenProperties.Count;
         }
     }
 }

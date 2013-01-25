@@ -32,10 +32,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Newtonsoft.Json;
+
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Common.Serialization
+namespace Pomona.Common.Serialization.Json
 {
     // Provides custom rules for serialization
 
@@ -251,7 +253,7 @@ namespace Pomona.Common.Serialization
 
             PomonaJsonSerializerTypeEntry cacheTypeEntry;
             IEnumerable<IPropertyInfo> propertiesToSerialize = null;
-            if (typeCache.TryGetValue(node.ValueType, out cacheTypeEntry))
+            if (this.typeCache.TryGetValue(node.ValueType, out cacheTypeEntry))
             {
                 cacheTypeEntry.WritePropertiesFunc(jsonWriter, node.Value);
                 propertiesToSerialize = cacheTypeEntry.ManuallyWrittenProperties;
@@ -294,13 +296,13 @@ namespace Pomona.Common.Serialization
             {
                 if (textWriter == null)
                     throw new ArgumentNullException("textWriter");
-                jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
+                this.jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
             }
 
 
             public JsonWriter JsonWriter
             {
-                get { return jsonWriter; }
+                get { return this.jsonWriter; }
             }
 
             #region Implementation of IDisposable
@@ -308,7 +310,7 @@ namespace Pomona.Common.Serialization
             public void Dispose()
             {
                 // NOTE: Not sure if this is correct
-                jsonWriter.Flush();
+                this.jsonWriter.Flush();
             }
 
             #endregion
