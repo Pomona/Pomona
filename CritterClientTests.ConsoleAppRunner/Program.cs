@@ -30,6 +30,8 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 
+using Pomona.SystemTests;
+
 namespace CritterClientTests.ConsoleAppRunner
 {
     /// <summary>

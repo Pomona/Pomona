@@ -26,10 +26,9 @@
 
 #endregion
 
-using Pomona;
 using Pomona.Example;
 
-namespace CritterClientTests
+namespace Pomona.SystemTests
 {
     public class CritterModuleInternal : CritterModule
     {

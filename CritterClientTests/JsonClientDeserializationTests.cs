@@ -1,11 +1,14 @@
 using System.IO;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 
-namespace CritterClientTests
+namespace Pomona.SystemTests
 {
     [TestFixture]
     public class JsonClientDeserializationTests
@@ -13,7 +16,7 @@ namespace CritterClientTests
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new ClientTypeMapper(Client.ResourceTypes);
+            this.typeMapper = new ClientTypeMapper(Client.ResourceTypes);
         }
 
         private ClientTypeMapper typeMapper;
@@ -54,8 +57,8 @@ namespace CritterClientTests
 
             var jsonDeserializer = new PomonaJsonDeserializer();
             var reader = jsonDeserializer.CreateReader(new StringReader(jsonString));
-            var context = new ClientDeserializationContext(typeMapper);
-            var node = new ItemValueDeserializerNode(typeMapper.GetClassMapping(typeof (ICritter)), context);
+            var context = new ClientDeserializationContext(this.typeMapper);
+            var node = new ItemValueDeserializerNode(this.typeMapper.GetClassMapping(typeof (ICritter)), context);
             jsonDeserializer.DeserializeNode(node, reader);
             var critter = (ICritter) node.Value;
             Assert.That(critter.Name, Is.EqualTo("Excellent Bear"));

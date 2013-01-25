@@ -32,15 +32,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Example;
 using Pomona.Example.Models;
-
 using Pomona.Common.Linq;
 
-namespace CritterClientTests
+namespace Pomona.SystemTests
 {
     public class ClientTestsBase
     {
@@ -50,12 +52,12 @@ namespace CritterClientTests
 
         public CritterDataSource DataSource
         {
-            get { return critterHost.DataSource; }
+            get { return this.critterHost.DataSource; }
         }
 
         protected ICollection<Critter> CritterEntities
         {
-            get { return critterHost.DataSource.List<Critter>(); }
+            get { return this.critterHost.DataSource.List<Critter>(); }
         }
 
 
@@ -79,25 +81,25 @@ namespace CritterClientTests
         public void FixtureSetUp()
         {
             var rng = new Random();
-            baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
-            Console.WriteLine("Starting CritterHost on " + baseUri);
-            critterHost = new CritterHost(new Uri(baseUri));
-            critterHost.Start();
-            client = new Client(baseUri);
+            this.baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
+            Console.WriteLine("Starting CritterHost on " + this.baseUri);
+            this.critterHost = new CritterHost(new Uri(this.baseUri));
+            this.critterHost.Start();
+            this.client = new Client(this.baseUri);
         }
 
 
         [TestFixtureTearDown()]
         public void FixtureTearDown()
         {
-            critterHost.Stop();
+            this.critterHost.Stop();
         }
 
 
         [SetUp]
         public void SetUp()
         {
-            critterHost.DataSource.ResetTestData();
+            this.critterHost.DataSource.ResetTestData();
         }
 
 
@@ -112,10 +114,10 @@ namespace CritterClientTests
             var callingMethod = callingStackFrame.GetMethod();
             Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof (TEntity).Name));
 
-            var allEntities = critterHost.DataSource.List<TEntity>();
+            var allEntities = this.critterHost.DataSource.List<TEntity>();
             var entities =
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
-            var fetchedResources = client.Query<TResource>().Where(resourcePredicate).Take(1024 * 1024).ToList();
+            var fetchedResources = this.client.Query<TResource>().Where(resourcePredicate).Take(1024 * 1024).ToList();
             Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
             return fetchedResources;
         }
@@ -129,7 +131,7 @@ namespace CritterClientTests
 
         protected IHat PostAHat(string hatType)
         {
-            var hat = client.Post<IHat>(
+            var hat = this.client.Post<IHat>(
                 x => { x.HatType = hatType; });
             return (IHat) hat;
         }

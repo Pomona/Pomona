@@ -40,7 +40,7 @@ using Pomona.Example.Models;
 
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
-namespace CritterClientTests
+namespace Pomona.SystemTests
 {
     [TestFixture]
     public class QueryTests : ClientTestsBase
@@ -63,13 +63,13 @@ namespace CritterClientTests
         [Test]
         public void QueryClientSideInheritedResource_ReturnsCorrectResults()
         {
-            DataSource.Post(
+            this.DataSource.Post(
                 new DictionaryContainer() { Map = new Dictionary<string, string>() { { "Lulu", "booja" } } });
-            DataSource.Post(
+            this.DataSource.Post(
                 new DictionaryContainer() { Map = new Dictionary<string, string>() { { "WrappedAttribute", "booja" } } });
-            DataSource.Post(
+            this.DataSource.Post(
                 new DictionaryContainer() { Map = new Dictionary<string, string>() { { "WrappedAttribute", "hooha" } } });
-            DataSource.Post(
+            this.DataSource.Post(
                 new DictionaryContainer()
                 { Map = new Dictionary<string, string>() { { "WrappedAttribute", "halala" } } });
 
@@ -86,7 +86,7 @@ namespace CritterClientTests
         public void QueryCritter_CastToMusicalCritterWithEqualsOperator_ReturnsCorrectMusicalCritter()
         {
             var firstMusicalCritter =
-                CritterEntities.OfType<MusicalCritter>().First();
+                this.CritterEntities.OfType<MusicalCritter>().First();
             var bandName = firstMusicalCritter.BandName;
 
             TestQuery<ICritter, Critter>(
@@ -204,7 +204,7 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
-            var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
+            var orderedCritters = this.CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
                 ToList();
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
@@ -226,7 +226,7 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_WithNameEqualsOrNameEqualsSomethingElse_ReturnsCorrectResult()
         {
-            var nameOfFirstCritter = CritterEntities.First().Name;
+            var nameOfFirstCritter = this.CritterEntities.First().Name;
             var nameOfSecondCritter =
                 this.critterHost.DataSource.List<Critter>().Skip(1).First().Name;
 
@@ -241,7 +241,7 @@ namespace CritterClientTests
         [Test]
         public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
         {
-            var nameOfFirstCritter = CritterEntities.First().Name;
+            var nameOfFirstCritter = this.CritterEntities.First().Name;
             var fetchedCritters = this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
             Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
         }
@@ -316,12 +316,12 @@ namespace CritterClientTests
         [Test]
         public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
         {
-            var matching = (DictionaryContainer)DataSource.Post(
+            var matching = (DictionaryContainer)this.DataSource.Post(
                 new DictionaryContainer()
                 {
                     Map = new Dictionary<string, string>() { { "fubu", "bar" } }
                 });
-            var notMatching = (DictionaryContainer)DataSource.Post(
+            var notMatching = (DictionaryContainer)this.DataSource.Post(
                 new DictionaryContainer()
                 {
                     Map = new Dictionary<string, string>() { { "fubu", "nope" } }
@@ -338,8 +338,8 @@ namespace CritterClientTests
         [Test]
         public void QueryHasCustomEnum_ReturnsCorrectItems()
         {
-            DataSource.Post(new HasCustomEnum() { TheEnumValue = CustomEnum.Tack });
-            DataSource.Post(new HasCustomEnum() { TheEnumValue = CustomEnum.Tick });
+            this.DataSource.Post(new HasCustomEnum() { TheEnumValue = CustomEnum.Tack });
+            this.DataSource.Post(new HasCustomEnum() { TheEnumValue = CustomEnum.Tick });
             TestQuery<IHasCustomEnum, HasCustomEnum>(
                 x => x.TheEnumValue == Critters.Client.CustomEnum.Tack, x => x.TheEnumValue == CustomEnum.Tack);
         }
@@ -348,7 +348,7 @@ namespace CritterClientTests
         [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
-            var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
+            var musicalCritter = this.CritterEntities.OfType<MusicalCritter>().Skip(1).First();
             var bandName = musicalCritter.BandName;
             var critters =
                 this.client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);

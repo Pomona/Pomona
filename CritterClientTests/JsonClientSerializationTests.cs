@@ -1,15 +1,19 @@
 ﻿using System;
 using System.IO;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Newtonsoft.Json.Linq;
+
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.TestHelpers;
 
-namespace CritterClientTests
+namespace Pomona.SystemTests
 {
     [TestFixture]
     public class JsonClientSerializationTests
@@ -17,7 +21,7 @@ namespace CritterClientTests
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new ClientTypeMapper(Client.ResourceTypes);
+            this.typeMapper = new ClientTypeMapper(Client.ResourceTypes);
         }
 
         private ClientTypeMapper typeMapper;
@@ -42,13 +46,13 @@ namespace CritterClientTests
 
         private ISerializationContext GetFetchContext()
         {
-            return new ClientSerializationContext(typeMapper);
+            return new ClientSerializationContext(this.typeMapper);
         }
 
 
         private IMappedType GetClassMapping(Type type)
         {
-            return typeMapper.GetClassMapping(type);
+            return this.typeMapper.GetClassMapping(type);
         }
 
         [Test]

@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Linq;
+
 using Critters.Client;
+
 using NSubstitute;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.TestHelpers;
 
-namespace CritterClientTests.Linq
+namespace Pomona.SystemTests.Linq
 {
     [TestFixture]
     public class RestQueryTreeParserTests

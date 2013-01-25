@@ -40,4 +40,4 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
 [assembly : Guid("74ed614e-29e9-42c5-87b3-8f6268a1ec74")]
-[assembly : InternalsVisibleTo("CritterClientTests")]
+[assembly : InternalsVisibleTo("Pomona.SystemTests")]
