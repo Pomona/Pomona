@@ -39,14 +39,14 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             var session = new PomonaSession(
                 new CritterDataSource(), new TypeMapper(new CritterPomonaConfiguration()), UriResolver);
 
-            using (var file = new FileStream(@"..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
+            using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
                 session.WriteClientLibrary(file, embedPomonaClient: false);
             }
 
             using (
                 var file = new FileStream(
-                    @"..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
+                    @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
             {
                 session.WriteClientLibrary(file, embedPomonaClient: true);
             }
