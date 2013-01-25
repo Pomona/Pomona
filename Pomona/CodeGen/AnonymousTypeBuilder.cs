@@ -143,7 +143,14 @@ namespace Pomona.CodeGen
             var dynamicAssembly =
                 AssemblyDefinition.CreateAssembly(
                     new AssemblyNameDefinition(assemblyName, new Version(1, 0)), assemblyName, ModuleKind.Dll);
+
+            
             module = dynamicAssembly.MainModule;
+            module.Architecture = TargetArchitecture.I386;
+            module.Attributes = ModuleAttributes.ILOnly;
+
+            AddAssemblyAttributes();
+
             definition = new TypeDefinition(
                 "",
                 string.Format("<>f__AnonymousType{0}`{1}", AllocateUniqueAnonymousClassNumber(), PropCount),
@@ -166,6 +173,39 @@ namespace Pomona.CodeGen
             AddDebuggerBrowseableAttributesToFields();
 
             return definition;
+        }
+
+
+        private void AddAssemblyAttributes()
+        {
+            AddRuntimeCompabilityAttributeToAssembly();
+            AddCompilationRelaxationsAttributeToAssembly();
+        }
+
+        private void AddCompilationRelaxationsAttributeToAssembly()
+        {
+            var attrType = this.module.Import(typeof(CompilationRelaxationsAttribute));
+            var methodDefinition =
+                this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
+            var attr =
+                new CustomAttribute(methodDefinition);
+
+            attr.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.Int32, 8));
+            this.module.Assembly.CustomAttributes.Add(attr);
+        }
+
+        private void AddRuntimeCompabilityAttributeToAssembly()
+        {
+            var attrType = this.module.Import(typeof(RuntimeCompatibilityAttribute));
+            var methodDefinition =
+                this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+            var attr =
+                new CustomAttribute(methodDefinition);
+
+            attr.Properties.Add(
+                new Mono.Cecil.CustomAttributeNamedArgument(
+                    "WrapNonExceptionThrows", new CustomAttributeArgument(this.module.TypeSystem.Boolean, true)));
+            this.module.Assembly.CustomAttributes.Add(attr);
         }
 
 

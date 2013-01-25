@@ -12,6 +12,7 @@ namespace Pomona.FluentMapping
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
             this.propertyInfo = propertyInfo;
+            InclusionMode = PropertyInclusionMode.Default;
 
             Name = propertyInfo.Name;
         }

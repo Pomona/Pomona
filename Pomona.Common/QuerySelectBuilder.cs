@@ -27,7 +27,7 @@ namespace Pomona.Common
                 foreach (
                     var arg in
                         newExprBody.Arguments.Zip(
-                            newExprBody.Constructor.GetParameters(), (e, p) => new { p.Name, Expr = e }))
+                            newExprBody.Members, (e, p) => new { p.Name, Expr = e }))
                 {
                     if (sb.Length > 0)
                         sb.Append(',');

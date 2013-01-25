@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 
@@ -25,54 +26,54 @@ namespace Pomona.FluentMapping
 
         public override ConstructorInfo Constructor
         {
-            get { return constructor; }
+            get { return this.constructor; }
         }
 
         public override DefaultPropertyInclusionMode DefaultPropertyInclusionMode
         {
-            get { return defaultPropertyInclusionMode; }
-            set { defaultPropertyInclusionMode = value; }
+            get { return this.defaultPropertyInclusionMode; }
+            set { this.defaultPropertyInclusionMode = value; }
         }
 
         public override bool? IsUriBaseType
         {
-            get { return isUriBaseType; }
+            get { return this.isUriBaseType; }
         }
 
         public override bool? IsValueObject
         {
-            get { return isValueObject; }
+            get { return this.isValueObject; }
         }
 
         public override Type PostResponseType
         {
-            get { return postResponseType; }
+            get { return this.postResponseType; }
         }
 
         public override IDictionary<string, PropertyMappingOptions> PropertyOptions
         {
-            get { return propertyOptions; }
+            get { return this.propertyOptions; }
         }
 
         #region Implementation of ITypeMappingConfigurator<TDeclaringType>
 
         public ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreExcludedByDefault()
         {
-            defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault;
+            this.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault;
             return this;
         }
 
 
         public ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault()
         {
-            defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
+            this.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
             return this;
         }
 
 
         public ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping()
         {
-            defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping;
+            this.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping;
             return this;
         }
 
@@ -85,14 +86,14 @@ namespace Pomona.FluentMapping
 
         public ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
         {
-            isUriBaseType = true;
+            this.isUriBaseType = true;
             return this;
         }
 
 
         public ITypeMappingConfigurator<TDeclaringType> AsValueObject()
         {
-            isValueObject = true;
+            this.isValueObject = true;
             return this;
         }
 
@@ -125,7 +126,7 @@ namespace Pomona.FluentMapping
                 }
             }
 
-            constructor = constructExpr.Constructor;
+            this.constructor = constructExpr.Constructor;
 
             return this;
         }
@@ -158,14 +159,27 @@ namespace Pomona.FluentMapping
 
         public ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>()
         {
-            return PostReturns(typeof (TPostResponseType));
+            return PostReturns(typeof(TPostResponseType));
         }
 
 
         public ITypeMappingConfigurator<TDeclaringType> PostReturns(Type type)
         {
-            postResponseType = type;
+            this.postResponseType = type;
             return this;
+        }
+
+
+        internal override PropertyMappingOptions GetPropertyOptions(string name)
+        {
+            var propInfo = typeof(TDeclaringType).GetProperty(name);
+            if (propInfo == null)
+            {
+                throw new InvalidOperationException(
+                    "No property with name " + name + " found on type " + typeof(TDeclaringType).FullName);
+            }
+
+            return this.propertyOptions.GetOrCreate(propInfo.Name, () => new PropertyMappingOptions(propInfo));
         }
 
 
@@ -180,7 +194,7 @@ namespace Pomona.FluentMapping
         {
             if (property == null)
                 throw new ArgumentNullException("property");
-            return GetPropertyOptions((Expression) property);
+            return GetPropertyOptions((Expression)property);
         }
 
 
@@ -189,7 +203,8 @@ namespace Pomona.FluentMapping
             if (propertyExpr == null)
                 throw new ArgumentNullException("propertyExpr");
             var propInfo = propertyExpr.ExtractPropertyInfo();
-            var propOptions = propertyOptions.GetOrCreate(propInfo.Name, () => new PropertyMappingOptions(propInfo));
+            var propOptions = this.propertyOptions.GetOrCreate(
+                propInfo.Name, () => new PropertyMappingOptions(propInfo));
             return propOptions;
         }
 
@@ -204,5 +219,6 @@ namespace Pomona.FluentMapping
         public abstract bool? IsValueObject { get; }
         public abstract Type PostResponseType { get; }
         public abstract IDictionary<string, PropertyMappingOptions> PropertyOptions { get; }
+        internal abstract PropertyMappingOptions GetPropertyOptions(string name);
     }
 }

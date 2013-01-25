@@ -12,6 +12,7 @@ namespace PomonaNHibernateTest.Models
             items = new List<Item>();
         }
 
+        public virtual EntityBase RelatedEntity { get; set; }
 
         public virtual Customer Customer { get; set; }
 

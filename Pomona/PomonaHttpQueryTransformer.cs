@@ -67,7 +67,6 @@ namespace Pomona
 
             var query = new PomonaQuery(rootType);
 
-            string select = null;
             string filter = null;
             var top = 10;
             var skip = 0;
@@ -95,7 +94,7 @@ namespace Pomona
 
             if (request.Query["$select"].HasValue)
             {
-                select = (string)request.Query["$select"];
+                string select = (string)request.Query["$select"];
                 ParseSelect(query, select, selectSourceType);
             }
 

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 [assembly : AssemblyCompany("Karsten N. Strand")]
 [assembly : AssemblyProduct("Pomona")]
-[assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2012")]
+[assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2013")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
-[assembly: AssemblyInformationalVersion("0.1.0-alpha5")]
+[assembly: AssemblyFileVersion("0.1.0.6")]
+[assembly: AssemblyInformationalVersion("0.1.0-alpha6")]
 
 [assembly : ComVisible(false)]

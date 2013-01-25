@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
+using System.Text;
 using Newtonsoft.Json;
 
 namespace Pomona.FluentMapping
@@ -32,7 +32,7 @@ namespace Pomona.FluentMapping
             var paramType = parameters[0].ParameterType;
 
             // Metadata token is the same across all generic type instances and generic type definition
-            return paramType.MetadataToken == typeof(ITypeMappingConfigurator<>).MetadataToken;
+            return paramType.MetadataToken == typeof (ITypeMappingConfigurator<>).MetadataToken;
         }
 
 
@@ -45,15 +45,15 @@ namespace Pomona.FluentMapping
             var ruleMethods = ruleContainers
                 .SelectMany(
                     x => x.GetType()
-                             .GetMethods()
-                             .Where(IsRuleMethod)
-                             .Select(
-                                 m => new
-                                 {
-                                     Method = m,
-                                     Instance = x,
-                                     AppliesToType = m.GetParameters()[0].ParameterType.GetGenericArguments()[0]
-                                 }));
+                          .GetMethods()
+                          .Where(IsRuleMethod)
+                          .Select(
+                              m => new
+                                  {
+                                      Method = m,
+                                      Instance = x,
+                                      AppliesToType = m.GetParameters()[0].ParameterType.GetGenericArguments()[0]
+                                  }));
 
             // NOTE: We need to order the properties in ascending order by how
             //       specific their declaring types are so we get the most
@@ -63,58 +63,89 @@ namespace Pomona.FluentMapping
             foreach (var ruleMethod in ruleMethods)
             {
                 TypeMappingConfigurator typeMapping;
-                if (!this.typeMappingDict.TryGetValue(ruleMethod.AppliesToType.FullName, out typeMapping))
+                if (!typeMappingDict.TryGetValue(ruleMethod.AppliesToType.FullName, out typeMapping))
                 {
                     var typeMappingConfiguratorType =
-                        typeof(TypeMappingConfigurator<>).MakeGenericType(ruleMethod.AppliesToType);
-                    typeMapping = (TypeMappingConfigurator)Activator.CreateInstance(typeMappingConfiguratorType);
-                    this.typeMappingDict[ruleMethod.AppliesToType.FullName] = typeMapping;
+                        typeof (TypeMappingConfigurator<>).MakeGenericType(ruleMethod.AppliesToType);
+                    typeMapping = (TypeMappingConfigurator) Activator.CreateInstance(typeMappingConfiguratorType);
+                    typeMappingDict[ruleMethod.AppliesToType.FullName] = typeMapping;
                 }
-                ruleMethod.Method.Invoke(ruleMethod.Instance, new object[] { typeMapping });
+                ruleMethod.Method.Invoke(ruleMethod.Instance, new object[] {typeMapping});
             }
+        }
+
+        public static string BuildPropertyMappingTemplate(IEnumerable<Type> types)
+        {
+            var typesSet = new HashSet<Type>(types);
+            var sb = new StringBuilder();
+            sb.Append(
+                @"using Pomona.Example.Models;
+using Pomona.FluentMapping;
+
+namespace TestNs
+{
+    public class SomeFluentRules
+    {
+");
+
+            foreach (var t in typesSet)
+            {
+                sb.AppendFormat("        public void Map(ITypeMappingConfigurator<{0}> map)\r\n        {{\r\n",
+                                t.FullName);
+                foreach (var p in t.GetProperties())
+                {
+                    if (p.DeclaringType == t || !typesSet.Contains(p.DeclaringType))
+                        sb.AppendFormat("            map.Exclude(x => x.{0});\r\n", p.Name);
+                }
+                sb.Append("        }\r\n\r\n");
+            }
+
+            sb.Append("    }\r\n}\r\n");
+
+            return sb.ToString();
         }
 
         #region Implementation of ITypeMappingFilter
 
         public string ApiVersion
         {
-            get { return this.wrappedFilter.ApiVersion; }
+            get { return wrappedFilter.ApiVersion; }
         }
 
 
         public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo);
+            return wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo);
         }
 
 
         public string GetClientAssemblyName()
         {
-            return this.wrappedFilter.GetClientAssemblyName();
+            return wrappedFilter.GetClientAssemblyName();
         }
 
 
         public Type GetClientLibraryType(Type type)
         {
-            return this.wrappedFilter.GetClientLibraryType(type);
+            return wrappedFilter.GetClientLibraryType(type);
         }
 
 
         public object GetIdFor(object entity)
         {
-            return this.wrappedFilter.GetIdFor(entity);
+            return wrappedFilter.GetIdFor(entity);
         }
 
 
         public JsonConverter GetJsonConverterForType(Type type)
         {
-            return this.wrappedFilter.GetJsonConverterForType(type);
+            return wrappedFilter.GetJsonConverterForType(type);
         }
 
 
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
-            return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
+            return wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
         }
 
 
@@ -122,57 +153,57 @@ namespace Pomona.FluentMapping
         {
             return FromMappingOrDefault(
                 type,
-                x => x.PostResponseType ?? this.wrappedFilter.GetPostReturnType(type),
-                () => this.wrappedFilter.GetPostReturnType(type));
+                x => x.PostResponseType ?? wrappedFilter.GetPostReturnType(type),
+                () => wrappedFilter.GetPostReturnType(type));
         }
 
 
         public Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyGetter(propertyInfo);
+            return wrappedFilter.GetPropertyGetter(propertyInfo);
         }
 
 
         public string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
-                propertyInfo, x => x.Name, () => this.wrappedFilter.GetPropertyMappedName(propertyInfo));
+                propertyInfo, x => x.Name, () => wrappedFilter.GetPropertyMappedName(propertyInfo));
         }
 
 
         public Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertySetter(propertyInfo);
+            return wrappedFilter.GetPropertySetter(propertyInfo);
         }
 
 
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyType(propertyInfo);
+            return wrappedFilter.GetPropertyType(propertyInfo);
         }
 
 
         public IEnumerable<Type> GetSourceTypes()
         {
-            return this.wrappedFilter.GetSourceTypes();
+            return wrappedFilter.GetSourceTypes();
         }
 
 
         public ConstructorInfo GetTypeConstructor(Type type)
         {
-            return FromMappingOrDefault(type, x => x.Constructor, () => this.wrappedFilter.GetTypeConstructor(type));
+            return FromMappingOrDefault(type, x => x.Constructor, () => wrappedFilter.GetTypeConstructor(type));
         }
 
 
         public Type GetUriBaseType(Type type)
         {
-            return this.wrappedFilter.GetUriBaseType(type);
+            return wrappedFilter.GetUriBaseType(type);
         }
 
 
         public bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo);
+            return wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo);
         }
 
 
@@ -181,17 +212,29 @@ namespace Pomona.FluentMapping
             TypeMappingConfigurator typeMapping;
             PropertyMappingOptions propertyOptions;
             if (!TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMapping, out propertyOptions))
-                return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
+                return wrappedFilter.PropertyIsIncluded(propertyInfo);
 
             if (propertyOptions.InclusionMode == PropertyInclusionMode.Excluded)
                 return false;
             if (propertyOptions.InclusionMode == PropertyInclusionMode.Included)
                 return true;
 
-            if (propertyOptions.InclusionMode == PropertyInclusionMode.Default &&
-                typeMapping.DefaultPropertyInclusionMode
-                == DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault)
-                return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
+            if (propertyOptions.InclusionMode == PropertyInclusionMode.Default)
+            {
+                if (typeMapping.DefaultPropertyInclusionMode ==
+                    DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault)
+                {
+                    return wrappedFilter.PropertyIsIncluded(propertyInfo);
+                }
+                else if (typeMapping.DefaultPropertyInclusionMode ==
+                         DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping)
+                {
+                    throw new PomonaMappingException(
+                        string.Format(
+                            "All properties are required to be explicitly included or excluded from mapping, but {0} of {1} is neither.",
+                            propertyInfo.Name, propertyInfo.DeclaringType.FullName));
+                }
+            }
 
             return false;
         }
@@ -202,51 +245,51 @@ namespace Pomona.FluentMapping
             return FromMappingOrDefault(
                 propertyInfo,
                 x => x.IsPrimaryKey,
-                () => this.wrappedFilter.PropertyIsPrimaryId(propertyInfo));
+                () => wrappedFilter.PropertyIsPrimaryId(propertyInfo));
         }
 
 
         public Type ResolveRealTypeForProxy(Type type)
         {
-            return this.wrappedFilter.ResolveRealTypeForProxy(type);
+            return wrappedFilter.ResolveRealTypeForProxy(type);
         }
 
 
         public bool TypeIsMapped(Type type)
         {
-            return this.wrappedFilter.TypeIsMapped(type);
+            return wrappedFilter.TypeIsMapped(type);
         }
 
 
         public bool TypeIsMappedAsCollection(Type type)
         {
-            return this.wrappedFilter.TypeIsMappedAsCollection(type);
+            return wrappedFilter.TypeIsMappedAsCollection(type);
         }
 
 
         public bool TypeIsMappedAsSharedType(Type type)
         {
-            return this.wrappedFilter.TypeIsMappedAsSharedType(type);
+            return wrappedFilter.TypeIsMappedAsSharedType(type);
         }
 
 
         public bool TypeIsMappedAsTransformedType(Type type)
         {
-            return this.wrappedFilter.TypeIsMappedAsTransformedType(type);
+            return wrappedFilter.TypeIsMappedAsTransformedType(type);
         }
 
 
         public bool TypeIsMappedAsValueObject(Type type)
         {
             return FromMappingOrDefault(
-                type, x => x.IsValueObject, () => this.wrappedFilter.TypeIsMappedAsValueObject(type));
+                type, x => x.IsValueObject, () => wrappedFilter.TypeIsMappedAsValueObject(type));
         }
 
 
         private bool FromMappingOrDefault(
             Type type, Func<TypeMappingConfigurator, bool?> ifMappingExist, Func<bool> ifMappingMissing)
         {
-            var result = FromMappingOrDefault(type, ifMappingExist, () => (bool?)ifMappingMissing());
+            var result = FromMappingOrDefault(type, ifMappingExist, () => (bool?) ifMappingMissing());
             if (!result.HasValue)
                 throw new InvalidOperationException("Expected a non-null value here.");
             return result.Value;
@@ -258,18 +301,18 @@ namespace Pomona.FluentMapping
         {
             TypeMappingConfigurator typeMappingConfigurator;
             object result = null;
-            if (this.typeMappingDict.TryGetValue(type.FullName, out typeMappingConfigurator))
+            if (typeMappingDict.TryGetValue(type.FullName, out typeMappingConfigurator))
                 result = ifMappingExist(typeMappingConfigurator);
             if (result == null)
                 return ifMappingMissing();
-            return (T)result;
+            return (T) result;
         }
 
 
         private bool FromMappingOrDefault(
             PropertyInfo propertyInfo, Func<PropertyMappingOptions, bool?> ifMappingExist, Func<bool> ifMappingMissing)
         {
-            var result = FromMappingOrDefault(propertyInfo, ifMappingExist, () => (bool?)ifMappingMissing());
+            var result = FromMappingOrDefault(propertyInfo, ifMappingExist, () => (bool?) ifMappingMissing());
             if (!result.HasValue)
                 throw new InvalidOperationException("Expected a non-null value here.");
             return result.Value;
@@ -289,7 +332,7 @@ namespace Pomona.FluentMapping
             if (result == null)
                 return ifMappingMissing();
 
-            return (T)result;
+            return (T) result;
         }
 
 
@@ -299,8 +342,12 @@ namespace Pomona.FluentMapping
             out PropertyMappingOptions propertyOptions)
         {
             propertyOptions = null;
-            return this.typeMappingDict.TryGetValue(propertyInfo.ReflectedType.FullName, out typeMapping) &&
-                   typeMapping.PropertyOptions.TryGetValue(propertyInfo.Name, out propertyOptions);
+            if (typeMappingDict.TryGetValue(propertyInfo.DeclaringType.FullName, out typeMapping))
+            {
+                propertyOptions = typeMapping.GetPropertyOptions(propertyInfo.Name);
+            }
+
+            return propertyOptions != null;
         }
 
         #endregion

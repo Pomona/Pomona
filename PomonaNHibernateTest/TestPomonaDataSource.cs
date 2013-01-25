@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NHibernate;
 using NHibernate.Linq;
 using Pomona;
+using Pomona.CodeGen;
 using Pomona.Common;
 using PomonaNHibernateTest.Models;
 using ReflectionHelper = Pomona.Internals.ReflectionHelper;
@@ -19,6 +21,11 @@ namespace PomonaNHibernateTest
 
         static TestPomonaDataSource()
         {
+            // REMOVE CODE BELOW!!
+            var testAnonTypes = Enumerable.Range(0, 4).Select(x => new {key = x, count = x}).ToList();
+            Console.Write(testAnonTypes.ToString());
+            AnonymousTypeBuilder.ScanAssemblyForExistingAnonymousTypes(typeof(TestPomonaDataSource).Assembly);
+
             getEntityByIdMethod =
                 ReflectionHelper.GetGenericMethodDefinition<TestPomonaDataSource>(x => x.GetEntityById<EntityBase>(0));
             queryMethod = ReflectionHelper.GetGenericMethodDefinition<TestPomonaDataSource>(x => x.Query<object>(null));

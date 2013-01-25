@@ -152,14 +152,15 @@ namespace Pomona
 
         private QueryResult ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
         {
-            var totalCount = (int) QueryableMethods.Count.MakeGenericMethod(totalQueryable.ElementType).Invoke(
+            var totalCount = 1234;
+/*            var totalCount = (int) QueryableMethods.Count.MakeGenericMethod(totalQueryable.ElementType).Invoke(
                 null, new object[] {totalQueryable});
-
+            */
             IEnumerable limitedQueryable;
             if (skipAndTakeAfterExecute)
                 limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top);
             else
-                limitedQueryable = ApplySkipAndTake(totalQueryable);
+                limitedQueryable = ((IQueryable<T>)ApplySkipAndTake(totalQueryable)).ToList();
 
             return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
         }

@@ -13,6 +13,7 @@ using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Tool.hbm2ddl;
 using PomonaNHibernateTest.Models;
+using NHibernate.Linq;
 
 namespace PomonaNHibernateTest
 {
@@ -154,7 +155,15 @@ namespace PomonaNHibernateTest
                                m =>
                                m.AutoMappings.Add(
                                    AutoMap.AssemblyOf<EntityBase>(cfg)
-                                          .Conventions.AddFromAssemblyOf<CascadeAllConvention>))
+                                          .Conventions.AddFromAssemblyOf<CascadeAllConvention>()
+                                          // The stuff below is just for testing the Any mapping, not related to Pomona
+                                          .Override<PurchaseOrder>(o => o
+                                              .ReferencesAny(x => x.RelatedEntity)
+                                              .IdentityType(x => x.Id)
+                                              .EntityTypeColumn("RelatedEntityType")
+                                              .EntityIdentifierColumn("RelatedEntityId")
+                                              .AddMetaValue<Customer>("Customer")
+                                              )))
                            .ExposeConfiguration(BuildSchema)
                            .BuildSessionFactory();
         }
