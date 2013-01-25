@@ -1,12 +1,12 @@
-# Pomona. The DTO-free way to REST for lazy people!
+﻿# Pōmōna. The DTO-free way to REST for lazy people!
 
-Pomona is all about exposing your domain model as a REST API. With less pain.
+Pōmōna is all about exposing your domain model as a REST API. With less pain.
 
 It was born out of my personal experience with being bored from manually implementing
 a whole new layer of DTO and mapping. With the feeling that I was repeating myself over
 and over.
 
-So the goal is that Pomona will offer a way to do this mapping and (de)serialization
+So the goal is that Pōmōna will offer a way to do this mapping and (de)serialization
 by convention, and remove the need for DTO's all together. This shall be achieved by:
 
 * Supporting custom conventions, with a good set of default ways to do things.
@@ -23,12 +23,12 @@ Additionally I also want it to be able to:
 * Semi-automatic management of REST API versioning by inspection of changes in JSON schema. (TODO)
 
 Oh, by the way, for all nitpickers out there. I use the REST definition freely. I believe
-it will be possible to expose a somewhat RESTful API through Pomona someday, but oh course
+it will be possible to expose a somewhat RESTful API through Pōmōna someday, but oh course
 it all depends on the domain model mapped.
 
 ## State of the project
 
-Although usable for simple scenarios, Pomona should be considered early work-in-progress stuff.
+Although usable for simple scenarios, Pōmōna should be considered early work-in-progress stuff.
 It will change. A lot. It's for the adventurous and the rebels! ;)
 
 My personal goal is to release a version 1.0 before christmas. But no promises, yet.
@@ -38,7 +38,7 @@ My personal goal is to release a version 1.0 before christmas. But no promises, 
 * JSON.NET for serialization stuff. http://james.newtonking.com/projects/json-net.aspx
 * Nancy for hosting the web service. http://nancyfx.org/
   I really love Nancy! I can't overstate how good I think it is! <3 <3 <3
-  One day I hope Pomona will offer a Super-Duper-Happy path just like it.
+  One day I hope Pōmōna will offer a Super-Duper-Happy path just like it.
 * NUnit for testing. http://www.nunit.org/
 * Cecil for generation of Client dll. http://www.mono-project.com/Cecil
 * google-code-prettify for presenting JSON as HTML. http://code.google.com/p/google-code-prettify/ 
@@ -49,17 +49,17 @@ A huge "thank you" to all the authors of these projects.
 
 So if you really want to check this stuff out, here's how you get started.
 
-1. Implement your own IPomonaDataSource
+1. Implement your own IPōmōnaDataSource
 2. Inherit from TypeMappingFilterBase, and at a minimum implement GetSourceTypes() and GetIdFor().
    They're abstract, so you can't miss them.
    GetSourceTypes() must return the list of what Types to expose to web service.
-3. Inherit PomonaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
+3. Inherit PōmōnaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
    Which could mean zero configuration. Just because Nancy is THAT awesome!
 
 Look at the Critter example in the source code for details.
 
-If you fire up the Pomona.Example.ServerApp exe, it expose the critters on port 2211.
-When ServerApp is running go here with a web browser to see what Pomona is all about:
+If you fire up the Pōmōna.Example.ServerApp exe, it expose the critters on port 2211.
+When ServerApp is running go here with a web browser to see what Pōmōna is all about:
 
 * http://localhost:2211/critters
 * http://localhost:2211/critters?$expand=critter.hat
@@ -75,8 +75,8 @@ Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
 
 Features:
 * Add tests for serialization and deserialization on client DONE
-* Create IPomonaDataSource, for retrieval of data. DONE
-* Create PomonaSession and PomonaSessionFactory that will bind everything together.
+* Create IPōmōnaDataSource, for retrieval of data. DONE
+* Create PōmōnaSession and PōmōnaSessionFactory that will bind everything together.
 * Write correct metadata for generated client dll (AssemblyInfo etc..)
 * Implement support for value types (which is always expanded, and don't have URI). 90% DONE.
 * Implement simple query mechanism (Linq? relinq? something simpler?) 90% DONE.
@@ -106,9 +106,9 @@ Features:
 
 * Special handling for nullable types in JSON schema generation needs to be added.
 
-* IPomonaDataSource needs to be improved.
+* IPōmōnaDataSource needs to be improved.
   Maybe also remove generics stuff here? Don't know if there's really any advantage to having generics..
-  Maybe there should be multiple IPomonaDataSource (like repositories).
+  Maybe there should be multiple IPōmōnaDataSource (like repositories).
 
 
 
@@ -128,7 +128,7 @@ Features:
 The classic N+1 problem will appear when looping through a list, where we at each step
 access a reference to another object, which will then be loaded.
 
-Although pomona supports sending a list of expanded paths to deal with these problems,
+Although Pōmōna supports sending a list of expanded paths to deal with these problems,
 it would be sorta cool if this could be detected runtime and fixed.
 
 This is one way to do it (by example):
