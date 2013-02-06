@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,20 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 using Pomona.Common.Proxies;
 using Pomona.Example.Models;
-
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -48,7 +40,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
-            var farms = this.client.Farms.Query(x => true).ToList();
+            var farms = client.Farms.Query(x => true).ToList();
             Assert.That(farms.Count, Is.GreaterThanOrEqualTo(2));
             var firstFarm = farms[0];
             var secondFarm = farms[1];
@@ -59,22 +51,20 @@ namespace Pomona.SystemTests
             Assert.That(noCritters, Has.Count.EqualTo(0));
         }
 
-
         [Test]
         public void QueryClientSideInheritedResource_ReturnsCorrectResults()
         {
-            this.DataSource.Post(
-                new DictionaryContainer() { Map = new Dictionary<string, string>() { { "Lulu", "booja" } } });
-            this.DataSource.Post(
-                new DictionaryContainer() { Map = new Dictionary<string, string>() { { "WrappedAttribute", "booja" } } });
-            this.DataSource.Post(
-                new DictionaryContainer() { Map = new Dictionary<string, string>() { { "WrappedAttribute", "hooha" } } });
-            this.DataSource.Post(
-                new DictionaryContainer()
-                { Map = new Dictionary<string, string>() { { "WrappedAttribute", "halala" } } });
+            DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booja"}}});
+            DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "booja"}}});
+            DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "hooha"}}});
+            DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "halala"}}});
 
-            var critters = this.client.Query<IHasCustomAttributes>(
-                this.client.BaseUri + "dictionary-containers", x => x.WrappedAttribute.StartsWith("h"));
+            var critters = client.Query<IHasCustomAttributes>(
+                client.BaseUri + "dictionary-containers", x => x.WrappedAttribute.StartsWith("h"));
 
             Assert.That(critters.Any(x => x.WrappedAttribute == "hooha"), Is.True);
             Assert.That(critters.Any(x => x.WrappedAttribute == "booja"), Is.False);
@@ -86,12 +76,12 @@ namespace Pomona.SystemTests
         public void QueryCritter_CastToMusicalCritterWithEqualsOperator_ReturnsCorrectMusicalCritter()
         {
             var firstMusicalCritter =
-                this.CritterEntities.OfType<MusicalCritter>().First();
+                CritterEntities.OfType<MusicalCritter>().First();
             var bandName = firstMusicalCritter.BandName;
 
             TestQuery<ICritter, Critter>(
-                x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
-                x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
+                x => x is IMusicalCritter && ((IMusicalCritter) x).BandName == bandName,
+                x => x is MusicalCritter && ((MusicalCritter) x).BandName == bandName);
         }
 
 
@@ -120,7 +110,7 @@ namespace Pomona.SystemTests
         public void QueryCritter_NameEqualsStringWithEncodedSingleQuote_ReturnsCorrectCritters()
         {
             var name = "bah'bah''" + Guid.NewGuid();
-            this.client.Critters.Post(x => { x.Name = name; });
+            client.Critters.Post(x => { x.Name = name; });
             var results = TestQuery<ICritter, Critter>(
                 x => x.Name == name, x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
@@ -131,7 +121,7 @@ namespace Pomona.SystemTests
         public void QueryCritter_NameEqualsStringWithNonAsciiCharacter_ReturnsCorrectCritters()
         {
             var name = "MøllÆÅØΔδ" + Guid.NewGuid();
-            this.client.Critters.Post(x => { x.Name = name; });
+            client.Critters.Post(x => { x.Name = name; });
             var results = TestQuery<ICritter, Critter>(x => x.Name == name, x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
         }
@@ -140,7 +130,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_ReturnsExpandedProperties()
         {
-            var critter = this.client.Query<ICritter>(x => true, expand : "hat,weapons").First();
+            var critter = client.Query<ICritter>(x => true, expand: "hat,weapons").First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
@@ -174,7 +164,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithCreatedDayMod3Equals0_ReturnsCorrectCritters()
         {
-            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day % 3 == 0, x => x.CreatedOn.Day % 3 == 0);
+            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day%3 == 0, x => x.CreatedOn.Day%3 == 0);
         }
 
 
@@ -192,9 +182,9 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = this.critterHost.DataSource.List<Critter>().First();
+            var firstCritter = critterHost.DataSource.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
-            var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn);
+            var fetchedCritter = client.Query<ICritter>(x => x.CreatedOn == createdOn);
 
             Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
             Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
@@ -204,12 +194,12 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
-            var orderedCritters = this.CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
-                ToList();
+            var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
+                                                  ToList();
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
 
-            var critters = this.client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
+            var critters = client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
 
             Assert.That(
                 critters.OrderBy(x => x.Id).Select(x => x.Id), Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
@@ -226,12 +216,12 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithNameEqualsOrNameEqualsSomethingElse_ReturnsCorrectResult()
         {
-            var nameOfFirstCritter = this.CritterEntities.First().Name;
+            var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                this.critterHost.DataSource.List<Critter>().Skip(1).First().Name;
+                critterHost.DataSource.List<Critter>().Skip(1).First().Name;
 
             var critters =
-                this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
+                client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
 
             Assert.That(critters.Any(x => x.Name == nameOfFirstCritter));
             Assert.That(critters.Any(x => x.Name == nameOfSecondCritter));
@@ -241,8 +231,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
         {
-            var nameOfFirstCritter = this.CritterEntities.First().Name;
-            var fetchedCritters = this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
+            var nameOfFirstCritter = CritterEntities.First().Name;
+            var fetchedCritters = client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
             Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
         }
 
@@ -257,8 +247,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByIntDesc_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(
-                x => true, orderBy : x => x.Id, sortOrder : SortOrder.Descending, top : 1000);
+            var fetchedCritters = client.Critters.Query(
+                x => true, orderBy: x => x.Id, sortOrder: SortOrder.Descending, top: 1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Descending);
         }
 
@@ -266,7 +256,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByInt_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(x => true, orderBy : x => x.Id, top : 1000);
+            var fetchedCritters = client.Critters.Query(x => true, orderBy: x => x.Id, top: 1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Ascending);
         }
 
@@ -274,8 +264,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(
-                x => true, orderBy : x => x.Name, sortOrder : SortOrder.Descending, top : 1000);
+            var fetchedCritters = client.Critters.Query(
+                x => true, orderBy: x => x.Name, sortOrder: SortOrder.Descending, top: 1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
         }
 
@@ -283,7 +273,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByString_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(x => true, orderBy : x => x.Name, top : 1000);
+            var fetchedCritters = client.Critters.Query(x => true, orderBy: x => x.Name, top: 1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Ascending);
         }
 
@@ -312,20 +302,40 @@ namespace Pomona.SystemTests
             TestQuery<ICritter, Critter>(x => x.Weapons.Count > 7, x => x.Weapons.Count > 7);
         }
 
+        [Test]
+        public void QueryDictionaryContainer_WhereAttributeContainsValueAndKey_ReturnsCorrectResults()
+        {
+            var includedFirst = (DictionaryContainer) DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booFirst"}}});
+            DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "naaja"}}});
+            var includedSecond = (DictionaryContainer) DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booAgain"}}});
+            DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Other", "booAgain"}}});
+
+            var results = TestQuery<IDictionaryContainer, DictionaryContainer>(
+                x => x.Map.Contains("Lulu", y => y.StartsWith("boo")),
+                x => x.Map.Contains("Lulu", y => y.StartsWith("boo")));
+
+            Assert.That(results.Count, Is.EqualTo(2));
+            Assert.That(results.Select(x => x.Id), Is.EquivalentTo(new[] {includedFirst.Id, includedSecond.Id}));
+        }
+
 
         [Test]
         public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
         {
-            var matching = (DictionaryContainer)this.DataSource.Post(
-                new DictionaryContainer()
-                {
-                    Map = new Dictionary<string, string>() { { "fubu", "bar" } }
-                });
-            var notMatching = (DictionaryContainer)this.DataSource.Post(
-                new DictionaryContainer()
-                {
-                    Map = new Dictionary<string, string>() { { "fubu", "nope" } }
-                });
+            var matching = (DictionaryContainer) DataSource.Post(
+                new DictionaryContainer
+                    {
+                        Map = new Dictionary<string, string> {{"fubu", "bar"}}
+                    });
+            var notMatching = (DictionaryContainer) DataSource.Post(
+                new DictionaryContainer
+                    {
+                        Map = new Dictionary<string, string> {{"fubu", "nope"}}
+                    });
 
             var resultIds = TestQuery<IDictionaryContainer, DictionaryContainer>(
                 x => x.Map["fubu"] == "bar", x => x.Map["fubu"] == "bar").Select(x => x.Id);
@@ -338,8 +348,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryHasCustomEnum_ReturnsCorrectItems()
         {
-            this.DataSource.Post(new HasCustomEnum() { TheEnumValue = CustomEnum.Tack });
-            this.DataSource.Post(new HasCustomEnum() { TheEnumValue = CustomEnum.Tick });
+            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tack});
+            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tick});
             TestQuery<IHasCustomEnum, HasCustomEnum>(
                 x => x.TheEnumValue == Critters.Client.CustomEnum.Tack, x => x.TheEnumValue == CustomEnum.Tack);
         }
@@ -348,10 +358,10 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
-            var musicalCritter = this.CritterEntities.OfType<MusicalCritter>().Skip(1).First();
+            var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
             var bandName = musicalCritter.BandName;
             var critters =
-                this.client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
+                client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
         }
 
@@ -359,7 +369,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
         {
-            var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
+            var musicalCritter = client.Query<IMusicalCritter>(x => true, expand: "instrument").First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
         }
