@@ -83,6 +83,7 @@
     <Compile Include="Linq\RestQueryableTreeParser.cs" />
     <Compile Include="Linq\RestQueryExtensions.cs" />
     <Compile Include="Linq\RestQueryProvider.cs" />
+    <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="NameUtils.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />

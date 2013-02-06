@@ -41,7 +41,7 @@ namespace Pomona.Common.Linq
 
         public string GetQueryText(Expression expression)
         {
-            throw new NotImplementedException();
+            return expression.ToString();
         }
 
 

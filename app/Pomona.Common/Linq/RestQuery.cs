@@ -65,9 +65,18 @@ namespace Pomona.Common.Linq
             return ((IEnumerable) provider.Execute(expression)).GetEnumerator();
         }
 
+
         public override string ToString()
         {
-            return provider.GetQueryText(expression);
+            if (this.expression.NodeType == ExpressionType.Constant &&
+                ((ConstantExpression)this.expression).Value == this)
+            {
+                return "Query(" + typeof(T) + ")";
+            }
+            else
+            {
+                return this.expression.ToString();
+            }
         }
     }
 }

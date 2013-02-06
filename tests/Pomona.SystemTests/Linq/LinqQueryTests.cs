@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Linq;
-
+using System.Reflection;
 using Critters.Client;
 
 using NUnit.Framework;
 
 using Pomona.Common.Linq;
+using Pomona.Internals;
 
 namespace Pomona.SystemTests.Linq
 {
     [TestFixture]
     public class LinqQueryTests : ClientTestsBase
     {
-        public interface ICustomCritter : ICritter
+        public interface ICustomCritter : IDictionaryContainer
         {
             string CustomString { get; set; }
+            string OtherCustom { get; set; }
         }
 
 
@@ -188,7 +190,21 @@ namespace Pomona.SystemTests.Linq
         [Test(Description = "Fails because it's not implemented yet.")]
         public void QueryUserCustomizedCritters_ReturnsCustomizedCritters()
         {
-            var customCritter = this.client.Query<ICustomCritter>().Where(x => x.CustomString == "Lalala").ToList();
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomCritter), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            var cust2 = client.Query<ICustomCritter>()
+                              .Where(x => x.CustomString == "Lalalala")
+                              .Where(x => x.OtherCustom == "Blob rob")
+                              .Select(x => x.OtherCustom);
+
+            var cust2mod = visitor.Visit(cust2.Expression);
+            var cust2modString = cust2mod.ToString();
+
+
+            IQueryable<ICustomCritter> customCrittersQuery =
+                this.client.Query<ICustomCritter>()
+                .Where(x => x.CustomString == "Lalala");
+            var modifiedQUery = visitor.Visit(customCrittersQuery.Expression);
+            var customCritter = customCrittersQuery.ToList();
             Assert.Fail("Test not written yet.");
         }
     }
