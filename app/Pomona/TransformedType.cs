@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Newtonsoft.Json;
+
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
@@ -65,14 +67,29 @@ namespace Pomona
 
         public ConstructorInfo ConstructorInfo { get; set; }
 
+        public bool HasUri
+        {
+            get { return !MappedAsValueObject; }
+        }
+
+        public bool IsUriBaseType
+        {
+            get { return UriBaseType == this; }
+        }
+
         public bool MappedAsValueObject { get; set; }
+
+        public Type MappedType
+        {
+            get { return this.mappedType; }
+        }
 
         /// <summary>
         /// Other types having the same URI as this type. (in same inheritance chain)
         /// </summary>
         public IEnumerable<TransformedType> MergedTypes
         {
-            get { return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
+            get { return this.typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
         }
 
         public string PluralName { get; set; }
@@ -88,9 +105,21 @@ namespace Pomona
         /// </summary>
         public TransformedType PostReturnType { get; set; }
 
+        public IPropertyInfo PrimaryId { get; set; }
+
+        public IList<IPropertyInfo> Properties
+        {
+            get { return new CastingListWrapper<IPropertyInfo>(this.properties); }
+        }
+
+        public TypeSerializationMode SerializationMode
+        {
+            get { return TypeSerializationMode.Complex; }
+        }
+
         public TypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
 
         public TransformedType UriBaseType { get; set; }
@@ -99,50 +128,7 @@ namespace Pomona
 
         #region IMappedType Members
 
-        public object Create(IDictionary<IPropertyInfo, object> args)
-        {
-            var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
-            var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
-
-            var ctorArgs = new object[ConstructorInfo.GetParameters().Length];
-
-            foreach (var kvp in args)
-            {
-                var propMapping = (PropertyMapping) kvp.Key;
-                if (propMapping.ConstructorArgIndex == -1)
-                    propValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
-                else
-                {
-                    ctorValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
-                }
-            }
-
-            foreach (var kvp in ctorValues)
-            {
-                ctorArgs[kvp.Key.ConstructorArgIndex] = kvp.Value;
-            }
-
-            var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
-
-            foreach (var kvp in propValues)
-            {
-                kvp.Key.Setter(instance, kvp.Value);
-            }
-
-            return instance;
-        }
-
-
         public IMappedType BaseType { get; set; }
-
-        public IMappedType ElementType
-        {
-            get
-            {
-                throw new InvalidOperationException(
-                    "TransformedType is never a collection, so it won't have a element type.");
-            }
-        }
 
         public Type CustomClientLibraryType
         {
@@ -164,9 +150,18 @@ namespace Pomona
             get { throw new NotSupportedException(); }
         }
 
+        public IMappedType ElementType
+        {
+            get
+            {
+                throw new InvalidOperationException(
+                    "TransformedType is never a collection, so it won't have a element type.");
+            }
+        }
+
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] {}; }
+            get { return new IMappedType[] { }; }
         }
 
         public bool IsAlwaysExpanded
@@ -211,37 +206,43 @@ namespace Pomona
 
         public Type MappedTypeInstance
         {
-            get { return mappedType; }
+            get { return this.mappedType; }
         }
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
+        }
+
+
+        public object Create(IDictionary<IPropertyInfo, object> args)
+        {
+            var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
+            var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
+
+            var ctorArgs = new object[ConstructorInfo.GetParameters().Length];
+
+            foreach (var kvp in args)
+            {
+                var propMapping = (PropertyMapping)kvp.Key;
+                if (propMapping.ConstructorArgIndex == -1)
+                    propValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
+                else
+                    ctorValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
+            }
+
+            foreach (var kvp in ctorValues)
+                ctorArgs[kvp.Key.ConstructorArgIndex] = kvp.Value;
+
+            var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
+
+            foreach (var kvp in propValues)
+                kvp.Key.Setter(instance, kvp.Value);
+
+            return instance;
         }
 
         #endregion
-
-        public bool HasUri
-        {
-            get { return !MappedAsValueObject; }
-        }
-
-        public Type MappedType
-        {
-            get { return mappedType; }
-        }
-
-        public IPropertyInfo PrimaryId { get; set; }
-
-        public IList<IPropertyInfo> Properties
-        {
-            get { return new CastingListWrapper<IPropertyInfo>(properties); }
-        }
-
-        public TypeSerializationMode SerializationMode
-        {
-            get { return TypeSerializationMode.Complex; }
-        }
 
         public string ConvertToInternalPropertyPath(string externalPath)
         {
@@ -272,7 +273,7 @@ namespace Pomona
                 if (pathType.IsCollection)
                     pathType = pathType.ElementType;
 
-                var nextType = (TransformedType) pathType;
+                var nextType = (TransformedType)pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;
@@ -330,14 +331,14 @@ namespace Pomona
 
         public object GetId(object entity)
         {
-            return typeMapper.Filter.GetIdFor(entity);
+            return this.typeMapper.Filter.GetIdFor(entity);
         }
 
 
         public PropertyMapping GetPropertyByJsonName(string jsonPropertyName)
         {
             // TODO: Create a dictionary for this if suboptimal.
-            return properties.First(x => x.JsonName == jsonPropertyName);
+            return this.properties.First(x => x.JsonName == jsonPropertyName);
         }
 
 
@@ -347,7 +348,7 @@ namespace Pomona
                 propertyName = propertyName.ToLower();
 
             // TODO: Possible to optimize here by putting property names in a dictionary
-            return properties.First(x => x.Name == propertyName);
+            return this.properties.First(x => x.Name == propertyName);
         }
 
 
@@ -366,19 +367,19 @@ namespace Pomona
 
             foreach (
                 var ctorProp in
-                    properties.Where(
+                    this.properties.Where(
                         x => x.CreateMode == PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
             {
                 // TODO: Proper validation here!
                 var value = initValues[ctorProp.Name.ToLower()];
 
                 if (ctorProp.PropertyType.IsBasicWireType)
-                    value = Convert.ChangeType(value, ((SharedType) ctorProp.PropertyType).MappedType);
+                    value = Convert.ChangeType(value, ((SharedType)ctorProp.PropertyType).MappedType);
 
                 ctorArgs[ctorProp.ConstructorArgIndex] = value;
             }
 
-            var newInstance = Activator.CreateInstance(mappedType, ctorArgs);
+            var newInstance = Activator.CreateInstance(this.mappedType, ctorArgs);
 
             foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyCreateMode.Optional))
             {
@@ -409,7 +410,7 @@ namespace Pomona
 
         internal void ScanProperties(Type type)
         {
-            var filter = typeMapper.Filter;
+            var filter = this.typeMapper.Filter;
 
             var scannedProperties = GetPropertiesToScanOrderedByName(type).ToList();
 
@@ -420,8 +421,8 @@ namespace Pomona
 
                 IMappedType declaringType;
 
-                if (typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
-                    declaringType = typeMapper.GetClassMapping(propInfo.DeclaringType);
+                if (this.typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
+                    declaringType = this.typeMapper.GetClassMapping(propInfo.DeclaringType);
                 else
                 {
                     // TODO: Find lowest base type with this property
@@ -432,11 +433,11 @@ namespace Pomona
                 var getter = filter.GetPropertyGetter(propInfo);
                 var setter = filter.GetPropertySetter(propInfo);
                 var propertyType = filter.GetPropertyType(propInfo);
-                var propertyTypeMapped = typeMapper.GetClassMapping(propertyType);
+                var propertyTypeMapped = this.typeMapper.GetClassMapping(propertyType);
 
                 var propDef = new PropertyMapping(
-                    typeMapper.Filter.GetPropertyMappedName(propInfo),
-                    (TransformedType) declaringType,
+                    this.typeMapper.Filter.GetPropertyMappedName(propInfo),
+                    (TransformedType)declaringType,
                     propertyTypeMapped,
                     propInfo);
 
@@ -445,6 +446,7 @@ namespace Pomona
                 propDef.AlwaysExpand = filter.PropertyIsAlwaysExpanded(propInfo);
                 if (filter.PropertyIsPrimaryId(propInfo))
                     PrimaryId = propDef;
+                propDef.IsAttributesProperty = filter.PropertyIsAttributes(propInfo);
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 // TODO: This should rather be configured by filter.
@@ -459,15 +461,15 @@ namespace Pomona
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
 
-                properties.Add(propDef);
+                this.properties.Add(propDef);
             }
 
             // TODO: Support not including the whole type hierarchy. Remember that base type might be allowed to be a shared type.
             if (type.BaseType != null)
-                BaseType = typeMapper.GetClassMapping(type.BaseType);
+                BaseType = this.typeMapper.GetClassMapping(type.BaseType);
 
             // Find longest (most specific) public constructor
-            var constructor = typeMapper.Filter.GetTypeConstructor(type);
+            var constructor = this.typeMapper.Filter.GetTypeConstructor(type);
             ConstructorInfo = constructor;
 
             if (constructor != null)
@@ -476,7 +478,7 @@ namespace Pomona
                 foreach (var ctorParam in constructor.GetParameters())
                 {
                     var matchingProperty =
-                        properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name.ToLower());
+                        this.properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name.ToLower());
                     if (matchingProperty != null)
                     {
                         matchingProperty.CreateMode = PropertyCreateMode.Required;

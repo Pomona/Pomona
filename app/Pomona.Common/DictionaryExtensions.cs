@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -52,8 +52,11 @@ namespace Pomona.Common
             return ret;
         }
 
-        public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key,
-                                                       Func<TValue> creator)
+
+        public static TValue GetOrCreate<TKey, TValue>(
+            this IDictionary<TKey, TValue> dictionary,
+            TKey key,
+            Func<TValue> creator)
         {
             TValue ret;
             if (!dictionary.TryGetValue(key, out ret))
@@ -65,7 +68,7 @@ namespace Pomona.Common
         }
 
 
-        public static TValue GetValueOrDefault<TKey, TValue>(
+        public static TValue SafeGet<TKey, TValue>(
             this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> getDefaultFunc)
         {
             if (dictionary == null)
@@ -79,7 +82,7 @@ namespace Pomona.Common
         }
 
 
-        public static TValue GetValueOrDefault<TKey, TValue>(
+        public static TValue SafeGet<TKey, TValue>(
             this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
         {
             if (dictionary == null)
@@ -91,7 +94,7 @@ namespace Pomona.Common
         }
 
 
-        public static TValue GetValueOrDefault<TKey, TValue>(
+        public static TValue SafeGet<TKey, TValue>(
             this IDictionary<TKey, TValue> dictionary, TKey key)
         {
             if (dictionary == null)
@@ -103,7 +106,7 @@ namespace Pomona.Common
         }
 
 
-        public static TValue GetValueOrDefault<TKey, TValue>(
+        public static TValue SafeGet<TKey, TValue>(
             this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> getDefaultFunc)
         {
             if (dictionary == null)

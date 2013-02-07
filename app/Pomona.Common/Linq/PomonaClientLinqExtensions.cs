@@ -6,7 +6,7 @@ namespace Pomona.Common.Linq
     {
         public static IQueryable<T> Query<T>(this IPomonaClient client)
         {
-            return new RestQuery<T>(new RestQueryProvider(client));
+            return new RestQuery<T>(new RestQueryProvider(client, typeof(T)));
         }
 
 
@@ -15,7 +15,7 @@ namespace Pomona.Common.Linq
             where TResource : IClientResource
             where TPostResponseResource : IClientResource
         {
-            return new RestQuery<TResource>(new RestQueryProvider(repository.Client));
+            return new RestQuery<TResource>(new RestQueryProvider(repository.Client, typeof(TResource)));
         }
     }
 }

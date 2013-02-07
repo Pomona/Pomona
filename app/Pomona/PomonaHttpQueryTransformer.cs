@@ -65,6 +65,11 @@ namespace Pomona
             if (rootType == null)
                 throw new ArgumentNullException("rootType");
 
+            if (request.Query["$oftype"].HasValue)
+            {
+                rootType = (TransformedType)typeMapper.GetClassMapping((string)request.Query["$oftype"]);
+            }
+
             var query = new PomonaQuery(rootType);
 
             string filter = null;

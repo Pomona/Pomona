@@ -70,6 +70,7 @@
     <Compile Include="FluentMappingTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
     <Compile Include="JsonSchemaGeneratorTests.cs" />
+    <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="PomonaSession\GetAsJsonTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />

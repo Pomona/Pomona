@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -44,11 +44,11 @@ namespace Pomona.CodeGen
 {
     public class ClientLibGenerator
     {
+        private readonly TypeMapper typeMapper;
         private string assemblyName;
         private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumType, TypeDefinition> enumClientTypeDict;
         private ModuleDefinition module;
-        private TypeMapper typeMapper;
 
 
         public ClientLibGenerator(TypeMapper typeMapper)
@@ -249,6 +249,18 @@ namespace Pomona.CodeGen
         }
 
 
+        private void AddResourceAttributesPropertyAttribute(PropertyDefinition interfacePropDef)
+        {
+            var attr = GetClientTypeReference(typeof(ResourceAttributesPropertyAttribute));
+            var ctor =
+                this.module.Import(attr.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+            var custAttr =
+                new CustomAttribute(ctor);
+
+            interfacePropDef.CustomAttributes.Add(custAttr);
+        }
+
+
         private void AddResourceInfoAttribute(TypeCodeGenInfo typeInfo)
         {
             var interfaceDef = typeInfo.InterfaceType;
@@ -348,7 +360,7 @@ namespace Pomona.CodeGen
                 var typeInfo = new TypeCodeGenInfo();
                 this.clientTypeInfoDict[transformedType] = typeInfo;
 
-                typeInfo.TransformedType = (TransformedType)transformedType;
+                typeInfo.TransformedType = transformedType;
 
                 var interfaceDef = new TypeDefinition(
                     this.assemblyName,
@@ -450,6 +462,8 @@ namespace Pomona.CodeGen
                     interfaceDef.Methods.Add(interfaceSetMethod);
                     interfaceDef.Properties.Add(interfacePropDef);
 
+                    if (prop.IsAttributesProperty)
+                        AddResourceAttributesPropertyAttribute(interfacePropDef);
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
                 }
             }

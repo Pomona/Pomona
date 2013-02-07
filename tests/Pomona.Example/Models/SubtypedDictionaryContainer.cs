@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,35 +26,10 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-
-namespace Pomona.Common.Proxies
+namespace Pomona.Example.Models
 {
-    public class ClientSideResourceProxyBase
+    public class SubtypedDictionaryContainer : DictionaryContainer
     {
-        public object ProxyTarget { get; internal set; }
-        internal PropertyInfo AttributesProperty { get; set; }
-
-
-        protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
-        {
-            if (property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget))
-                return property.Getter((TOwner) ProxyTarget);
-
-            if (typeof (TPropType) != typeof (string))
-                throw new NotImplementedException("Only supports wrapping of string properties");
-
-            var dict = (IDictionary<string, string>) AttributesProperty.GetValue(ProxyTarget, null);
-
-            return (TPropType) ((object) dict.SafeGet(property.PropertyInfo.Name));
-        }
-
-
-        protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
-        {
-            throw new NotImplementedException();
-        }
+        public string SomethingExtra { get; set; }
     }
 }

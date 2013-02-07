@@ -86,6 +86,8 @@ namespace Pomona.Example
                 return typeof (Weapon);
             if (type == typeof (MusicalCritter))
                 return typeof (Critter);
+            if (typeof(DictionaryContainer).IsAssignableFrom(type))
+                return typeof(DictionaryContainer);
 
             return base.GetUriBaseType(type);
         }

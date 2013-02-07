@@ -55,7 +55,7 @@ namespace Pomona.Example
         static CritterDataSource()
         {
             queryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object>(null));
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
             saveCollectionMethod =
                 ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
                     x => x.SaveCollection((ICollection<EntityBase>) null));
@@ -121,12 +121,12 @@ namespace Pomona.Example
             }
         }
 
-        private QueryResult Query<TEntity>(PomonaQuery pq)
+        private QueryResult Query<TEntityBase, TEntity>(PomonaQuery pq)
         {
             var visitor = new MakeDictAccessesSafeVisitor();
             pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
 
-            return pq.ApplyAndExecute(new EnumerableQuery<TEntity>(GetEntityList<TEntity>()));
+            return pq.ApplyAndExecute(new EnumerableQuery<TEntity>(GetEntityList<TEntityBase>().OfType<TEntity>()));
 
         }
 
@@ -136,9 +136,10 @@ namespace Pomona.Example
             {
                 var pq = (PomonaQuery) query;
                 var entityType = pq.TargetType.MappedTypeInstance;
+                var entityUriBaseType = pq.TargetType.UriBaseType.MappedTypeInstance;
 
                 return
-                    (QueryResult) queryMethod.MakeGenericMethod(entityType).Invoke(this, new object[] {pq});
+                    (QueryResult) queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {pq});
             }
         }
 

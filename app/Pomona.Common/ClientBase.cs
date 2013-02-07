@@ -97,6 +97,9 @@ namespace Pomona.Common
             where T : IClientResource;
 
 
+        public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
+
+
         public abstract string GetUriOfType(Type type);
     }
 
@@ -181,26 +184,15 @@ namespace Pomona.Common
         }
 
 
-        public static string GetRelativeUriForType(Type type)
+        public string GetRelativeUriForType(Type type)
         {
-            var resourceInfo = GetResourceInfoForType(type);
+            var resourceInfo = this.GetResourceInfoForType(type);
             return resourceInfo.UrlRelativePath;
         }
 
 
-        public static ResourceInfoAttribute GetResourceInfoForType(Type type)
-        {
-            ResourceInfoAttribute resourceInfoAttribute;
-            if (!TryGetResourceInfoForType(type, out resourceInfoAttribute))
-            {
-                throw new InvalidOperationException(
-                    "Unable to find ResourceInfoAttribute for type " + type.FullName);
-            }
-            return resourceInfoAttribute;
-        }
 
-
-        public static bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        public override bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
             return interfaceToResourceInfoDict.TryGetValue(type, out resourceInfo);
         }
@@ -293,7 +285,7 @@ namespace Pomona.Common
             if (!TryGetResourceInfoForType(type, out resourceInfo))
                 return QueryInheritedCustomType(uri, predicate, orderBy, sortOrder, top, skip, expand);
 
-            resourceInfo = GetResourceInfoForType(type);
+            resourceInfo = this.GetResourceInfoForType(type);
             if (!resourceInfo.IsUriBaseType)
             {
                 // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
@@ -343,7 +335,7 @@ namespace Pomona.Common
             if (!type.IsInterface)
                 throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
 
-            var resourceInfo = GetResourceInfoForType(type);
+            var resourceInfo = this.GetResourceInfoForType(type);
 
             var newType = resourceInfo.PostFormType;
             var newProxy = Activator.CreateInstance(newType);
@@ -383,7 +375,7 @@ namespace Pomona.Common
                 Expression.Lambda(Expression.AndAlso(Expression.TypeIs(newParam, origParam.Type), newBody), newParam);
         }
 
-        private static ResourceInfoAttribute GetLeafResourceInfo(Type sourceType)
+        private ResourceInfoAttribute GetLeafResourceInfo(Type sourceType)
         {
             var allResourceInfos = sourceType.GetInterfaces().Select(
                 x =>
@@ -404,21 +396,9 @@ namespace Pomona.Common
         }
 
 
-        private static Type GetNewProxyForInterface(Type expectedType)
+        private Type GetUpdateProxyForInterface(Type expectedType)
         {
-            return GetResourceInfoForType(expectedType).PostFormType;
-        }
-
-
-        private static Type GetPocoForInterface(Type expectedType)
-        {
-            return GetResourceInfoForType(expectedType).PocoType;
-        }
-
-
-        private static Type GetUpdateProxyForInterface(Type expectedType)
-        {
-            return GetResourceInfoForType(expectedType).PutFormType;
+            return this.GetResourceInfoForType(expectedType).PutFormType;
         }
 
 
@@ -432,30 +412,6 @@ namespace Pomona.Common
             return lambda;
         }
 
-
-        private static bool TryGetCollectionElementType(Type type, out Type elementType, bool searchInterfaces = true)
-        {
-            elementType = null;
-
-            // First look if we're dealing directly with a known collection type
-            if (type.IsGenericType)
-            {
-                var genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (knownGenericCollectionTypes.Contains(genericTypeDefinition))
-                    elementType = type.GetGenericArguments()[0];
-            }
-
-            if (elementType == null && searchInterfaces)
-            {
-                foreach (var interfaceType in type.GetInterfaces())
-                {
-                    if (TryGetCollectionElementType(interfaceType, out elementType, false))
-                        break;
-                }
-            }
-
-            return elementType != null;
-        }
 
 
         private object CreateListOfTypeGeneric<TElementType>(IEnumerable elements)
@@ -504,7 +460,7 @@ namespace Pomona.Common
 
         public override string GetUriOfType(Type type)
         {
-            return BaseUri + GetResourceInfoForType(type).UrlRelativePath;
+            return BaseUri + this.GetResourceInfoForType(type).UrlRelativePath;
         }
 
 

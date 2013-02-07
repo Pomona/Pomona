@@ -89,7 +89,7 @@ namespace Pomona.Common.Proxies
 
         bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
         {
-            return dirtyMap.GetValueOrDefault(propertyName);
+            return dirtyMap.SafeGet(propertyName);
         }
 
         #endregion

@@ -1,19 +1,53 @@
-﻿using System;
+﻿#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2013 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
+using System;
 using System.Linq;
-using System.Reflection;
+
 using Critters.Client;
 
 using NUnit.Framework;
 
 using Pomona.Common.Linq;
-using Pomona.Internals;
+using Pomona.Example.Models;
 
 namespace Pomona.SystemTests.Linq
 {
     [TestFixture]
     public class LinqQueryTests : ClientTestsBase
     {
-        public interface ICustomCritter : IDictionaryContainer
+        public interface ICustomTestEntity : IDictionaryContainer
+        {
+            string CustomString { get; set; }
+            string OtherCustom { get; set; }
+        }
+
+        public interface ICustomTestEntity2 : ISubtypedDictionaryContainer
         {
             string CustomString { get; set; }
             string OtherCustom { get; set; }
@@ -24,7 +58,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_AnyWithExistingName_ReturnsTrue()
         {
             // Just take some random critter
-            var critter = this.CritterEntities.Skip(6).Take(1).First();
+            var critter = CritterEntities.Skip(6).Take(1).First();
             var hasCritterWithGuid =
                 this.client.Critters.Query().Any(x => x.Name == critter.Name);
             Assert.That(hasCritterWithGuid, Is.True);
@@ -46,7 +80,7 @@ namespace Pomona.SystemTests.Linq
             // Just take some random critter
             // Search by its name
             var expected =
-                this.CritterEntities
+                CritterEntities
                     .Where(x => x.Id % 2 == 0)
                     .GroupBy(x => x.Name.Substring(0, 1))
                     .Select(
@@ -85,7 +119,7 @@ namespace Pomona.SystemTests.Linq
             // Just take some random critter
             // Search by its name
             var expected =
-                this.CritterEntities
+                CritterEntities
                     .Where(x => x.Id % 2 == 0)
                     .GroupBy(x => x.Farm.Id)
                     .Select(
@@ -118,7 +152,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WhereFirst_ReturnsCorrectCritter()
         {
             // Just take some random critter
-            var critter = this.CritterEntities.Skip(6).Take(1).First();
+            var critter = CritterEntities.Skip(6).Take(1).First();
             // Search by its name
             var critterResource =
                 this.client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
@@ -129,7 +163,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WhereThenSelectAnonymousClass_ReturnsCorrectValues()
         {
-            var expected = this.CritterEntities
+            var expected = CritterEntities
                 .Where(x => x.Id % 2 == 0)
                 .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
                 .OrderBy(x => x.Name)
@@ -152,7 +186,7 @@ namespace Pomona.SystemTests.Linq
         {
             // Just take some random critter
             // Search by its name
-            var expected = this.CritterEntities.OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList();
+            var expected = CritterEntities.OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList();
             var actual =
                 this.client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
             Assert.That(actual, Is.EqualTo(expected));
@@ -173,7 +207,7 @@ namespace Pomona.SystemTests.Linq
         {
             var result =
                 this.client.Critters.Query().Select(x => new { TheHat = x.Hat, x.Name }).Expand(x => x.TheHat).Take(1).
-                     First();
+                    First();
             Assert.That(result.TheHat, Is.TypeOf<HatResource>());
         }
 
@@ -186,26 +220,75 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "Fails because it's not implemented yet.")]
-        public void QueryUserCustomizedCritters_ReturnsCustomizedCritters()
+        [Test]
+        public void QueryCustomTestEntity2_WhereDictIsOnBaseInterface_ReturnsCustomTestEntity2()
         {
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomCritter), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
-            var cust2 = client.Query<ICustomCritter>()
-                              .Where(x => x.CustomString == "Lalalala")
-                              .Where(x => x.OtherCustom == "Blob rob")
-                              .Select(x => x.OtherCustom);
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            var subtypedDictionaryContainer = new SubtypedDictionaryContainer
+            {
+                Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
+                SomethingExtra = "Hahahohohihi"
+            };
+            this.critterHost.DataSource.Save<DictionaryContainer>(
+                subtypedDictionaryContainer);
 
-            var cust2mod = visitor.Visit(cust2.Expression);
-            var cust2modString = cust2mod.ToString();
+            // Post does not yet work on subtypes
+            //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
+            //    x =>
+            //    {
+            //        x.Map.Add("CustomString", "Lalalala");
+            //        x.Map.Add("OtherCustom", "Blob rob");
+            //        x.SomethingExtra = "Hahahohohihi";
+            //    });
+
+            var results = this.client.Query<ICustomTestEntity2>()
+                .Where(
+                    x =>
+                    x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" && x.SomethingExtra == "Hahahohohihi")
+                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+
+            Assert.That(result.Id, Is.EqualTo(subtypedDictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(subtypedDictionaryContainer.Map["CustomString"]));
+        }
 
 
-            IQueryable<ICustomCritter> customCrittersQuery =
-                this.client.Query<ICustomCritter>()
-                .Where(x => x.CustomString == "Lalala");
-            var modifiedQUery = visitor.Visit(customCrittersQuery.Expression);
-            var customCritter = customCrittersQuery.ToList();
-            Assert.Fail("Test not written yet.");
+        [Test]
+        public void QueryCustomTestEntity_ReturnsCustomTestEntity()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+
+            var dictionaryContainer = this.client.DictionaryContainers.Post(
+                x =>
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
+
+            var results = this.client.Query<ICustomTestEntity>()
+                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+
+            Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+
+        [Test]
+        public void QuerySubclassedMusicalCritter_WhereFirst_ReturnsCorrectMusicalCritter()
+        {
+            // Just take some random critter
+            var critter = CritterEntities.OfType<MusicalCritter>().Skip(6).Take(1).First();
+            // Search by its name
+            var critterResource =
+                this.client.Query<IMusicalCritter>().First(
+                    x => x.Name == critter.Name && x.Guid == critter.Guid && x.BandName == critter.BandName);
+            Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
     }
 }

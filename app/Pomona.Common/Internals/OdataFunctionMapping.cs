@@ -119,13 +119,15 @@ namespace Pomona.Common.Internals
 
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.Contains(null, null), "contains({0},{1},{2})", MethodCallStyle.Chained);
+            Add<IDictionary<WildcardType, WildcardType>>(
+                x => x.SafeGet(null), "safeget({0},{1})", MethodCallStyle.Chained);
         }
 
 
         public static IEnumerable<MemberMapping> GetMemberCandidates(
             string odataFunctionName, int argCount)
         {
-            return nameToMemberMappingDict.GetValueOrDefault(odataFunctionName + argCount)
+            return nameToMemberMappingDict.SafeGet(odataFunctionName + argCount)
                    ?? Enumerable.Empty<MemberMapping>();
         }
 

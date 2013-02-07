@@ -129,6 +129,12 @@ namespace Pomona.UnitTests.Queries
             Assert.That(rightAddInt, Is.EqualTo(3));
         }
 
+        [Test]
+        public void Parse_Null_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("Text eq null");
+            AssertExpressionEquals(expr, _this => _this.Text == null);
+        }
 
         [Test]
         public void Parse_PropertyEqualsStringExpression_CreatesCorrectExpression()

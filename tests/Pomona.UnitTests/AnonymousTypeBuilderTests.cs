@@ -119,7 +119,6 @@ namespace Pomona.UnitTests
 
 
         [Test(Description = "This test needs to be revisited.")]
-        [Category("TODO")]
         public void GetHashCodeReturnsExpectedValue()
         {
             const string unexpectedHashCodeFromSystemTypesMessage =

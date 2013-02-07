@@ -42,6 +42,7 @@ namespace Pomona.Common.Linq
         private int? takeCount;
         private IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
         private LambdaExpression wherePredicate;
+        private string ofType;
 
 
         static RestQueryableTreeParser()
@@ -108,6 +109,11 @@ namespace Pomona.Common.Linq
         public int? SkipCount
         {
             get { return this.skipCount; }
+        }
+
+        public string OfType
+        {
+            get { return this.ofType; }
         }
 
         public SortOrder SortOrder

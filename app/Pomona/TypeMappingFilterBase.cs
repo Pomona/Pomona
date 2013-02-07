@@ -269,6 +269,12 @@ namespace Pomona
         }
 
 
+        public bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        {
+            return false;
+        }
+
+
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
             Type[] genericArguments;

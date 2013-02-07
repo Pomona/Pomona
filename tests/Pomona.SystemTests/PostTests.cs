@@ -27,10 +27,15 @@
 #endregion
 
 using System;
+using System.Linq;
 
 using Critters.Client;
 
 using NUnit.Framework;
+
+using Pomona.Example.Models;
+
+using CustomEnum = Critters.Client.CustomEnum;
 
 namespace Pomona.SystemTests
 {
@@ -125,7 +130,7 @@ namespace Pomona.SystemTests
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
 
-
+        [Category("TODO")]
         [Test]
         public void PostMusicalCritter()
         {
@@ -144,6 +149,8 @@ namespace Pomona.SystemTests
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
+
+            Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter), "This is known to fail, does not yet save subtyped resources correctly in CritterDataSource");
         }
 
 

@@ -74,6 +74,7 @@
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
+    <Compile Include="Internals\PomonaClientExtensions.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPomonaClient.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="QuerySelectBuilder.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="ReflectionHelper.cs" />
+    <Compile Include="ResourceAttributesPropertyAttribute.cs" />
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PutResourceBase.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />

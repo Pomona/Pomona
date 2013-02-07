@@ -85,5 +85,6 @@ namespace Pomona
         bool TypeIsMappedAsSharedType(Type type);
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
+        bool PropertyIsAttributes(PropertyInfo propertyInfo);
     }
 }

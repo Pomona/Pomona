@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -73,7 +74,15 @@ namespace Pomona
 
         public PropertyAccessMode AccessMode { get; set; }
 
+        public bool AlwaysExpand { get; set; }
         public int ConstructorArgIndex { get; set; }
+
+        public PropertyCreateMode CreateMode { get; set; }
+
+        public IMappedType DeclaringType
+        {
+            get { return this.declaringType; }
+        }
 
         /// <summary>
         /// For one-to-many collection properties this defines which property on the
@@ -83,37 +92,18 @@ namespace Pomona
         /// </summary>
         public PropertyMapping ElementForeignKey { get; set; }
 
+        public Func<object, object> Getter { get; set; }
+        public bool IsAttributesProperty { get; set; }
+
         public bool IsOneToManyCollection
         {
-            get { return propertyType.IsCollection; }
+            get { return this.propertyType.IsCollection; }
         }
 
-        public PropertyInfo PropertyInfo
+        public bool IsPrimaryKey
         {
-            get { return propertyInfo; }
+            get { return DeclaringType.PrimaryId == this; }
         }
-
-        public TypeMapper TypeMapper
-        {
-            get { return declaringType.TypeMapper; }
-        }
-
-        public bool AlwaysExpand { get; set; }
-
-        public PropertyCreateMode CreateMode { get; set; }
-
-        public IMappedType DeclaringType
-        {
-            get { return declaringType; }
-        }
-
-        public Func<object, object> Getter { get; set; }
-
-        public Expression CreateGetterExpression(Expression instance)
-        {
-            return Expression.MakeMemberAccess(instance, PropertyInfo);
-        }
-
 
         public bool IsWriteable
         {
@@ -125,19 +115,30 @@ namespace Pomona
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
+        }
+
+        public PropertyInfo PropertyInfo
+        {
+            get { return this.propertyInfo; }
         }
 
         public IMappedType PropertyType
         {
-            get { return propertyType; }
+            get { return this.propertyType; }
         }
 
         public Action<object, object> Setter { get; set; }
 
-        public bool IsPrimaryKey
+        public TypeMapper TypeMapper
         {
-            get { return DeclaringType.PrimaryId == this; }
+            get { return this.declaringType.TypeMapper; }
+        }
+
+
+        public Expression CreateGetterExpression(Expression instance)
+        {
+            return Expression.MakeMemberAccess(instance, PropertyInfo);
         }
     }
 }

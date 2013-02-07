@@ -57,7 +57,10 @@ namespace Pomona.TestHelpers
                             ", but got " + actualConstExpr.Type);
                     }
 
-                    if (!actualConstExpr.Value.Equals(expectedConstExpr.Value))
+                    if (actualConstExpr.Value == null && expectedConstExpr.Value == null)
+                        return;
+
+                    if (actualConstExpr.Value == null || !actualConstExpr.Value.Equals(expectedConstExpr.Value))
                         Assert.Fail("Constant expression was not of expected value " + expectedConstExpr.Value);
                     return;
                 }

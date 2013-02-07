@@ -30,6 +30,13 @@ namespace Pomona.FluentMapping
             return this;
         }
 
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
+        {
+            propertyMappingOptions.IsAttributesProperty = true;
+            return this;
+        }
+
         #endregion
     }
 }
