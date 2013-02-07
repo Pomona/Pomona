@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 
 namespace Pomona.UnitTests.Client
@@ -62,9 +64,9 @@ namespace Pomona.UnitTests.Client
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
             public double Precise { get; set; }
+            public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
             public TimeSpan TimeSpan { get; set; }
-            public TestEnum SomeEnum { get; set; }
         }
 
         public class Container
@@ -83,10 +85,11 @@ namespace Pomona.UnitTests.Client
 
         private static string BuildQueryString<T>(Expression<Func<TestResource, T>> predicate)
         {
-            var builder = QueryPredicateBuilder.Create<TestResource, T>(predicate);
+            var builder = QueryPredicateBuilder.Create(predicate);
             var queryString = builder.ToString();
             return queryString;
         }
+
 
         public static class SomeStaticClass
         {
@@ -103,6 +106,16 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.SomeList.Any(y => y.SomeString == "lalala"), "someList.any(y:y.someString eq 'lalala')");
         }
 
+
+        [Category("TODO")]
+        [Test(Description = "Don't support casting of value types yet.")]
+        public void BuildCastToIntExpression_ReturnsCorrectString()
+        {
+            // TODO: Remember to write system tests for this too [KNS]
+            AssertBuild(x => (int)x.Precise, "cast(precise,'Int32')");
+        }
+
+
         [Test]
         public void BuildComparisonWithEnum_ReturnsCorrectString()
         {
@@ -110,11 +123,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => TestEnum.Tick == x.SomeEnum, "'Tick' eq someEnum");
         }
 
+
         [Test]
         public void BuildComparisonWithStaticMethodToBeTurnedToConstant_ReturnsCorrectString()
         {
-            AssertBuild(x => x.Birthday == SomeStaticClass.SomeDate.AddDays(1),
-                        "birthday eq datetime'2222-11-02T01:01:01Z'");
+            AssertBuild(
+                x => x.Birthday == SomeStaticClass.SomeDate.AddDays(1),
+                "birthday eq datetime'2222-11-02T01:01:01Z'");
         }
 
 
@@ -130,7 +145,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
         {
-            var container = new Container() {Junk = "Kirk"};
+            var container = new Container { Junk = "Kirk" };
             var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == container.Junk);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("jalla eq 'Kirk'"));
@@ -142,6 +157,7 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.SomeList.Count == 4, "count(someList) eq 4");
         }
+
 
         [Test]
         public void BuildDateComponentExtractExpressions_ReturnsCorrectString()
@@ -358,6 +374,7 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.Jalla.Trim(), "trim(jalla)");
         }
+
 
         [Test]
         public void BuildTrue_ReturnsCorrectString()
