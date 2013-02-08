@@ -50,6 +50,7 @@ namespace Pomona.Common.Internals
         #endregion
 
         public static readonly MethodInfo DictGetMethod;
+        public static readonly MethodInfo EnumerableContainsMethod;
 
         private static readonly Dictionary<int, MemberMapping> metadataTokenToMemberMappingDict =
             new Dictionary<int, MemberMapping>();
@@ -61,6 +62,8 @@ namespace Pomona.Common.Internals
         static OdataFunctionMapping()
         {
             DictGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
+            EnumerableContainsMethod =
+                ReflectionHelper.GetGenericMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
 
             Add<string>(x => x.Length, "length({0})");
             Add<string>(x => x.StartsWith(null), "startswith({0},{1})");

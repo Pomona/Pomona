@@ -61,6 +61,7 @@ namespace Pomona.UnitTests.Client
             public dynamic Boo { get; set; }
             public decimal CashAmount { get; set; }
             public Guid Guid { get; set; }
+            public int Id { get; set; }
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
             public double Precise { get; set; }
@@ -139,6 +140,14 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
+        }
+
+
+        [Test]
+        public void BuildConstantArrayOfSimpleValuesContains_ReturnsCorrectString()
+        {
+            var array = new[] { 3, 2, 4 };
+            AssertBuild(x => array.Contains(x.Id), "id in [3,2,4]");
         }
 
 
@@ -266,6 +275,13 @@ namespace Pomona.UnitTests.Client
         public void BuildLengthExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla.Length == 1, "length(jalla) eq 1");
+        }
+
+
+        [Test]
+        public void BuildNewArrayOfSimpleValuesContains_ReturnsCorrectString()
+        {
+            AssertBuild(x => (new[] { 3, 2, 4 }).Contains(x.Id), "id in [3,2,4]");
         }
 
 

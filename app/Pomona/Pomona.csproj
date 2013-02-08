@@ -130,6 +130,7 @@
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="PomonaErrorHandler.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
+    <Compile Include="Queries\ArrayNode.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />
     <Compile Include="Queries\LambdaNode.cs" />
     <Compile Include="Queries\MethodCallNode.cs" />

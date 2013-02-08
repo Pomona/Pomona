@@ -58,7 +58,8 @@ namespace Pomona.Queries
                     NodeType.Equal,
                     NodeType.NotEqual,
                     NodeType.Dot,
-                    NodeType.As
+                    NodeType.As,
+                    NodeType.In
                 };
             nodeTypeDict = new Dictionary<int, NodeType>
                 {
@@ -77,7 +78,8 @@ namespace Pomona.Queries
                     {PomonaQueryParser.MOD_OP, NodeType.Modulo},
                     {PomonaQueryParser.DOT_OP, NodeType.Dot},
                     {PomonaQueryParser.AS_OP,NodeType.As},
-                    {PomonaQueryParser.STRING, NodeType.StringLiteral}
+                    {PomonaQueryParser.STRING, NodeType.StringLiteral},
+                    {PomonaQueryParser.IN_OP, NodeType.In}
                 };
         }
 
@@ -126,6 +128,8 @@ namespace Pomona.Queries
                     return ParseTree(tree.GetChild(0), depth);
                 case PomonaQueryParser.LAMBDA_OP:
                     return new LambdaNode(ParseChildren(tree, depth));
+                case PomonaQueryParser.ARRAY_LITERAL:
+                    return new ArrayNode(ParseChildren(tree, depth));
             }
 
             NodeType nodeType;

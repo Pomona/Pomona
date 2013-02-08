@@ -33,6 +33,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.Internals;
+using Pomona.Internals;
 
 namespace Pomona.Queries
 {
@@ -62,6 +63,9 @@ namespace Pomona.Queries
         {
             if (memberExpression == null)
                 memberExpression = this.thisParam;
+
+            if (node.NodeType == NodeType.ArrayLiteral)
+                return ParseArrayLiteral((ArrayNode)node, memberExpression);
 
             if (node.NodeType == NodeType.MethodCall)
                 return ParseMethodCallNode((MethodCallNode)node, memberExpression);
@@ -108,6 +112,32 @@ namespace Pomona.Queries
             }
 
             throw new NotImplementedException();
+        }
+
+
+        private Expression ParseArrayLiteral(ArrayNode node, Expression memberExpression)
+        {
+            var arrayElements = node.Children.Select(x => ParseExpression(x, thisParam, null)).ToList();
+
+            if (arrayElements.Count == 0)
+                throw new NotSupportedException("Does not support empty arrays.");
+
+            Type elementType = arrayElements[0].Type;
+
+            // TODO: Check that all array members are of same type
+
+            if (arrayElements.All(x => x is ConstantExpression))
+            {
+                var array = Array.CreateInstance(elementType, arrayElements.Count);
+                int index = 0;
+                foreach (var elementValue in arrayElements.OfType<ConstantExpression>().Select(x => x.Value))
+                {
+                    array.SetValue(elementValue, index++);
+                }
+                return Expression.Constant(array);
+            }
+
+            return Expression.NewArrayInit(elementType, arrayElements);
         }
 
 
@@ -202,10 +232,25 @@ namespace Pomona.Queries
                     return Expression.GreaterThanOrEqual(leftChild, rightChild);
                 case NodeType.LessThanOrEqual:
                     return Expression.LessThanOrEqual(leftChild, rightChild);
+                case NodeType.In:
+                    return ParseInOperator(leftChild, rightChild);
                 default:
                     throw new NotImplementedException(
                         "Don't know how to handle node type " + binaryOperatorNode.NodeType);
             }
+        }
+
+
+        private Expression ParseInOperator(Expression leftChild, Expression rightChild)
+        {
+            if (!rightChild.Type.IsArray)
+                throw new QueryParseException("in operator requires array on right side.");
+
+            var arrayElementType = rightChild.Type.GetElementType();
+            if (leftChild.Type != arrayElementType)
+                throw new QueryParseException("Left and right side of in operator does not have matching types.");
+
+            return Expression.Call(OdataFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(arrayElementType), rightChild, leftChild);
         }
 
 

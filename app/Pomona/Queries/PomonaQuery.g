@@ -23,11 +23,13 @@ tokens {
    MOD_OP;
    DOT_OP;
    AS_OP;
+   IN_OP;
    DATETIME_LITERAL;
    GUID_LITERAL;
    METHOD_CALL;
    INDEXER_ACCESS;
    LAMBDA_OP;
+   ARRAY_LITERAL;
 }    
 
 
@@ -104,6 +106,7 @@ relational_operator
 	| 'ge' -> GE_OP
 	| 'le' -> LE_OP
 	| 'ne' -> NE_OP
+	| 'in' -> IN_OP
 	;
 /*
 relational_operator 
@@ -164,6 +167,7 @@ postfix_expr
 	| STRING
 	| INT
 	| '('! exp ')'!
+	| '[' arglist_expr ']' -> ^(ARRAY_LITERAL arglist_expr)
 	| PREFIXED_STRING
 	;
 

@@ -54,6 +54,8 @@ namespace Pomona.Queries
         MethodCall,
         IndexerAccess,
         Lambda,
-        As
+        As,
+        In,
+        ArrayLiteral
     }
 }

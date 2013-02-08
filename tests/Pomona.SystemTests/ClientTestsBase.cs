@@ -106,7 +106,8 @@ namespace Pomona.SystemTests
         public IList<TResource> TestQuery<TResource, TEntity>(
             Expression<Func<TResource, bool>> resourcePredicate,
             Func<TEntity, bool> entityPredicate,
-            string message = null)
+            string message = null,
+            int? expectedResultCount = null)
             where TResource : IEntityBase
             where TEntity : EntityBase
         {
@@ -119,6 +120,12 @@ namespace Pomona.SystemTests
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
             var fetchedResources = this.client.Query<TResource>().Where(resourcePredicate).Take(1024 * 1024).ToList();
             Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
+
+            if (expectedResultCount.HasValue)
+            {
+                Assert.That(fetchedResources.Count, Is.EqualTo(expectedResultCount.Value), "Expected result count wrong.");
+            }
+
             return fetchedResources;
         }
 

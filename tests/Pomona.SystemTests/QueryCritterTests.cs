@@ -125,6 +125,21 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void QueryCritter_IdInList_ReturnsCorrectCritters()
+        {
+            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
+            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount : 5);
+        }
+
+        [Test]
+        public void QueryCritter_NameInList_ReturnsCorrectCritters()
+        {
+            var names = CritterEntities.Skip(4).Select(x => x.Name).Take(5).ToArray();
+            TestQuery<ICritter, Critter>(x => names.Contains(x.Name), x => names.Contains(x.Name));
+        }
+
+
+        [Test]
         public void QueryCritter_TolowerNameContainsString_ReturnsCorrectCritters()
         {
             TestQuery<ICritter, Critter>(x => x.Name.ToLower().Contains("bear"), x => x.Name.ToLower().Contains("bear"));

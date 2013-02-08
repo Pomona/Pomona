@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,14 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+
 using Pomona.Common.Internals;
 
 namespace Pomona.Common
@@ -41,31 +43,31 @@ namespace Pomona.Common
     {
         protected static readonly ReadOnlyDictionary<ExpressionType, string> binaryExpressionNodeDict;
 
-        private static HashSet<char> validSymbolCharacters =
+        private static readonly HashSet<char> validSymbolCharacters =
             new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 
         private readonly LambdaExpression lambda;
-        private ParameterExpression thisParameter;
+        private readonly ParameterExpression thisParameter;
 
 
         static QueryPredicateBuilder()
         {
-            var binExprDict = new Dictionary<ExpressionType, string>()
-                {
-                    {ExpressionType.AndAlso, "and"},
-                    {ExpressionType.OrElse, "or"},
-                    {ExpressionType.Equal, "eq"},
-                    {ExpressionType.NotEqual, "ne"},
-                    {ExpressionType.GreaterThan, "gt"},
-                    {ExpressionType.GreaterThanOrEqual, "ge"},
-                    {ExpressionType.LessThan, "lt"},
-                    {ExpressionType.LessThanOrEqual, "le"},
-                    {ExpressionType.Subtract, "sub"},
-                    {ExpressionType.Add, "add"},
-                    {ExpressionType.Multiply, "mul"},
-                    {ExpressionType.Divide, "div"},
-                    {ExpressionType.Modulo, "mod"}
-                };
+            var binExprDict = new Dictionary<ExpressionType, string>
+            {
+                { ExpressionType.AndAlso, "and" },
+                { ExpressionType.OrElse, "or" },
+                { ExpressionType.Equal, "eq" },
+                { ExpressionType.NotEqual, "ne" },
+                { ExpressionType.GreaterThan, "gt" },
+                { ExpressionType.GreaterThanOrEqual, "ge" },
+                { ExpressionType.LessThan, "lt" },
+                { ExpressionType.LessThanOrEqual, "le" },
+                { ExpressionType.Subtract, "sub" },
+                { ExpressionType.Add, "add" },
+                { ExpressionType.Multiply, "mul" },
+                { ExpressionType.Divide, "div" },
+                { ExpressionType.Modulo, "mod" }
+            };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);
         }
@@ -96,7 +98,7 @@ namespace Pomona.Common
         {
             // Strip away redundant parens around query
             var visitor = new PreBuildVisitor();
-            var preprocessedBody = visitor.Visit(lambda.Body);
+            var preprocessedBody = visitor.Visit(this.lambda.Body);
             var queryFilterString = Build(preprocessedBody);
             if (queryFilterString.Length > 1 && queryFilterString[0] == '('
                 && queryFilterString[queryFilterString.Length - 1] == ')')
@@ -140,17 +142,20 @@ namespace Pomona.Common
             // We must always include . to make sure number gets interpreted as double and not int.
             // Yeah, there's probably a more elegant way to do this, but don't care about finding it out right now.
             // This should work.
-            return value != (long) value
+            return value != (long)value
                        ? value.ToString("R", CultureInfo.InvariantCulture)
-                       : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long) value);
+                       : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
         }
 
 
         private static string GetJsonTypeName(Type typeOperand)
         {
+            if (typeOperand == typeof(int))
+                return "Int32";
+
             var resourceInfoAttribute =
-                typeOperand.GetCustomAttributes(typeof (ResourceInfoAttribute), false).
-                            OfType<ResourceInfoAttribute>().First();
+                typeOperand.GetCustomAttributes(typeof(ResourceInfoAttribute), false).
+                    OfType<ResourceInfoAttribute>().First();
             var jsonTypeName = resourceInfoAttribute.JsonTypeName;
             return jsonTypeName;
         }
@@ -214,10 +219,14 @@ namespace Pomona.Common
             var parameterExpression = expr as ParameterExpression;
             if (parameterExpression != null)
             {
-                if (parameterExpression == thisParameter)
+                if (parameterExpression == this.thisParameter)
                     return "this";
                 return parameterExpression.Name;
             }
+
+            var newArrayExpression = expr as NewArrayExpression;
+            if (newArrayExpression != null)
+                return BuildFromNewArrayExpression(newArrayExpression);
 
             throw new NotImplementedException("NodeType " + expr.NodeType + " not yet handled.");
         }
@@ -243,26 +252,6 @@ namespace Pomona.Common
         }
 
 
-        private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
-        {
-            var unaryLeft = left as UnaryExpression;
-            if (left.Type == typeof (Int32) && unaryLeft != null && left.NodeType == ExpressionType.Convert &&
-                unaryLeft.Operand.Type.IsEnum)
-            {
-                if (right.Type == typeof (Int32) && right.NodeType == ExpressionType.Constant)
-                {
-                    var rightConstant = (ConstantExpression) right;
-                    left = unaryLeft.Operand;
-                    right = Expression.Constant(Enum.ToObject(left.Type, (int) rightConstant.Value), left.Type);
-                    return;
-                }
-            }
-
-            if (tryAgainSwapped)
-                TryDetectAndConvertEnumComparison(ref right, ref left, false);
-        }
-
-
         private string BuildFromConstantExpression(ConstantExpression constantExpr)
         {
             var valueType = constantExpr.Type;
@@ -277,7 +266,7 @@ namespace Pomona.Common
                 throw new NotImplementedException("Only supports one parameter in lambda expression for now.");
 
             var param = lambdaExpression.Parameters[0];
-            var predicateBuilder = new QueryPredicateBuilder(lambdaExpression, thisParameter);
+            var predicateBuilder = new QueryPredicateBuilder(lambdaExpression, this.thisParameter);
             return string.Format("{0}:{1}", param.Name, predicateBuilder.ToString());
         }
 
@@ -296,7 +285,7 @@ namespace Pomona.Common
             if (IsClosureMemberAccess(memberExpr, out value))
                 return GetEncodedConstant(value.GetType(), value);
 
-            if (memberExpr.Expression != thisParameter)
+            if (memberExpr.Expression != this.thisParameter)
                 return string.Format("{0}.{1}", Build(memberExpr.Expression), GetMemberName(memberExpr.Member));
             return GetMemberName(memberExpr.Member);
         }
@@ -304,6 +293,9 @@ namespace Pomona.Common
 
         private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
         {
+            if (callExpr.Method.MetadataToken == OdataFunctionMapping.EnumerableContainsMethod.MetadataToken)
+                return Build(callExpr.Arguments[1]) + " in " + Build(callExpr.Arguments[0]);
+
             if (callExpr.Method.MetadataToken == OdataFunctionMapping.DictGetMethod.MetadataToken)
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
@@ -333,19 +325,25 @@ namespace Pomona.Common
         }
 
 
+        private string BuildFromNewArrayExpression(NewArrayExpression newArrayExpression)
+        {
+            return string.Format("[{0}]", string.Join(",", newArrayExpression.Expressions.Select(Build)));
+        }
+
+
         private string BuildFromTypeBinaryExpression(TypeBinaryExpression typeBinaryExpression)
         {
             switch (typeBinaryExpression.NodeType)
             {
                 case ExpressionType.TypeIs:
                     var typeOperand = typeBinaryExpression.TypeOperand;
-                    if (!typeOperand.IsInterface || !typeof (IClientResource).IsAssignableFrom(typeOperand))
+                    if (!typeOperand.IsInterface || !typeof(IClientResource).IsAssignableFrom(typeOperand))
                     {
                         throw new InvalidOperationException(
                             typeOperand.FullName
                             + " is not an interface and/or does not implement type IClientResource.");
                     }
-                    if (typeBinaryExpression.Expression != thisParameter)
+                    if (typeBinaryExpression.Expression != this.thisParameter)
                     {
                         throw new NotImplementedException(
                             "Only know how to do TypeIs when target is instance parameter for now..");
@@ -370,10 +368,16 @@ namespace Pomona.Common
                     if (unaryExpression.Operand.Type.IsEnum)
                         return Build(unaryExpression.Operand);
 
-                    if (unaryExpression.Operand != thisParameter)
-                        throw new NotImplementedException("Only know how to cast `this` to something else");
+                    if (unaryExpression.Operand == this.thisParameter)
+                    {
+                        return string.Format("cast({0})", GetJsonTypeName(unaryExpression.Type));
+                        // throw new NotImplementedException("Only know how to cast `this` to something else");
+                    }
+                    else
+                    {
+                        return string.Format("cast({0},{1})", Build(unaryExpression.Operand), GetJsonTypeName(unaryExpression.Type));
+                    }
 
-                    return "cast(" + GetJsonTypeName(unaryExpression.Type) + ")";
                 default:
                     throw new NotImplementedException(
                         "NodeType " + unaryExpression.NodeType + " in UnaryExpression not yet handled.");
@@ -402,35 +406,47 @@ namespace Pomona.Common
 
         private string GetEncodedConstant(Type valueType, object value)
         {
-            if (valueType.IsEnum)
+            Type enumerableElementType;
+            if (valueType != typeof(string) && valueType.TryGetCollectionElementType(out enumerableElementType))
             {
-                return EncodeString(value.ToString());
+                // This handles arrays in constant expressions
+                string elements = string
+                    .Join(
+                        ",",
+                        ((IEnumerable)value)
+                            .Cast<object>()
+                            .Select(x => GetEncodedConstant(enumerableElementType, x)));
+
+                return string.Format( "[{0}]", elements);
             }
+
+            if (valueType.IsEnum)
+                return EncodeString(value.ToString());
             switch (Type.GetTypeCode(valueType))
             {
                 case TypeCode.Char:
                     // Note: char will be interpreted as string on other end.
                     return EncodeString(value.ToString());
                 case TypeCode.String:
-                    return EncodeString((string) value);
+                    return EncodeString((string)value);
                 case TypeCode.Int32:
                     return value.ToString();
                 case TypeCode.DateTime:
-                    return string.Format("datetime'{0}'", DateTimeToString((DateTime) value));
+                    return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
                 case TypeCode.Double:
-                    return DoubleToString((double) value);
+                    return DoubleToString((double)value);
                 case TypeCode.Single:
-                    return ((float) value).ToString("R", CultureInfo.InvariantCulture) + "f";
+                    return ((float)value).ToString("R", CultureInfo.InvariantCulture) + "f";
                 case TypeCode.Decimal:
-                    return ((decimal) value).ToString(CultureInfo.InvariantCulture) + "m";
+                    return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
                     if (value == null)
                         return "null";
                     if (value is Guid)
-                        return "guid'" + ((Guid) value).ToString() + "'";
+                        return "guid'" + ((Guid)value).ToString() + "'";
                     break;
                 case TypeCode.Boolean:
-                    return ((bool) value) ? "true" : "false";
+                    return ((bool)value) ? "true" : "false";
                 default:
                     break;
             }
@@ -445,8 +461,8 @@ namespace Pomona.Common
             var member = memberExpression.Member;
             if (member.DeclaringType.Name.StartsWith("<>c__") && member.MemberType == MemberTypes.Field)
             {
-                var field = (FieldInfo) member;
-                var obj = ((ConstantExpression) memberExpression.Expression).Value;
+                var field = (FieldInfo)member;
+                var obj = ((ConstantExpression)memberExpression.Expression).Value;
 
                 //Add the value to the extraction list
                 value = field.GetValue(obj);
@@ -466,6 +482,26 @@ namespace Pomona.Common
             }
 
             return false;
+        }
+
+
+        private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
+        {
+            var unaryLeft = left as UnaryExpression;
+            if (left.Type == typeof(Int32) && unaryLeft != null && left.NodeType == ExpressionType.Convert &&
+                unaryLeft.Operand.Type.IsEnum)
+            {
+                if (right.Type == typeof(Int32) && right.NodeType == ExpressionType.Constant)
+                {
+                    var rightConstant = (ConstantExpression)right;
+                    left = unaryLeft.Operand;
+                    right = Expression.Constant(Enum.ToObject(left.Type, (int)rightConstant.Value), left.Type);
+                    return;
+                }
+            }
+
+            if (tryAgainSwapped)
+                TryDetectAndConvertEnumComparison(ref right, ref left, false);
         }
 
 
@@ -494,10 +530,36 @@ namespace Pomona.Common
         {
             private static readonly MethodInfo concatMethod;
 
+
             static PreBuildVisitor()
             {
-                concatMethod = typeof (string).GetMethod("Concat", new[] {typeof (string), typeof (string)});
+                concatMethod = typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) });
             }
+
+
+            protected override Expression VisitBinary(BinaryExpression node)
+            {
+                if (node.NodeType == ExpressionType.Add && node.Left.Type == typeof(string)
+                    && node.Right.Type == typeof(string))
+                    return Expression.Call(concatMethod, Visit(node.Left), Visit(node.Right));
+                return base.VisitBinary(node);
+            }
+
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Expression == null)
+                {
+                    var propInfo = node.Member as PropertyInfo;
+                    if (propInfo != null)
+                        return Expression.Constant(propInfo.GetValue(null, null), node.Type);
+                    var fieldInfo = node.Member as FieldInfo;
+                    if (fieldInfo != null)
+                        return Expression.Constant(fieldInfo.GetValue(null), node.Type);
+                }
+                return base.VisitMember(node);
+            }
+
 
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
@@ -524,33 +586,6 @@ namespace Pomona.Common
                 }
 
                 return baseNode;
-            }
-
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                if (node.Expression == null)
-                {
-                    var propInfo = node.Member as PropertyInfo;
-                    if (propInfo != null)
-                    {
-                        return Expression.Constant(propInfo.GetValue(null, null), node.Type);
-                    }
-                    var fieldInfo = node.Member as FieldInfo;
-                    if (fieldInfo != null)
-                    {
-                        return Expression.Constant(fieldInfo.GetValue(null), node.Type);
-                    }
-                }
-                return base.VisitMember(node);
-            }
-
-
-            protected override Expression VisitBinary(BinaryExpression node)
-            {
-                if (node.NodeType == ExpressionType.Add && node.Left.Type == typeof (string)
-                    && node.Right.Type == typeof (string))
-                    return Expression.Call(concatMethod, Visit(node.Left), Visit(node.Right));
-                return base.VisitBinary(node);
             }
         }
 
