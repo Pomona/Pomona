@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,12 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-
 using NUnit.Framework;
 
 namespace Pomona.TestHelpers
@@ -38,7 +33,7 @@ namespace Pomona.TestHelpers
     {
         public static void AssertEquals<TDelegate>(this Expression actual, Expression<TDelegate> expected)
         {
-            AssertEquals(actual, (Expression)expected);
+            AssertEquals(actual, (Expression) expected);
         }
 
 
@@ -59,7 +54,7 @@ namespace Pomona.TestHelpers
                 var actualLambdaExpr = actual as LambdaExpression;
                 if (actualLambdaExpr != null)
                 {
-                    var expectedLambdaExpr = (LambdaExpression)expected;
+                    var expectedLambdaExpr = (LambdaExpression) expected;
                     AssertEquals(actualLambdaExpr.Body, expectedLambdaExpr.Body);
                     return;
                 }
@@ -67,7 +62,7 @@ namespace Pomona.TestHelpers
                 var actualBinExpr = actual as BinaryExpression;
                 if (actualBinExpr != null)
                 {
-                    var expectedBinExpr = (BinaryExpression)expected;
+                    var expectedBinExpr = (BinaryExpression) expected;
 
                     AssertEquals(actualBinExpr.Left, expectedBinExpr.Left);
                     AssertEquals(actualBinExpr.Right, expectedBinExpr.Right);
@@ -77,7 +72,7 @@ namespace Pomona.TestHelpers
                 var actualConstExpr = actual as ConstantExpression;
                 if (actualConstExpr != null)
                 {
-                    var expectedConstExpr = (ConstantExpression)expected;
+                    var expectedConstExpr = (ConstantExpression) expected;
                     if (actualConstExpr.Type != expectedConstExpr.Type)
                     {
                         Assert.Fail(
@@ -85,18 +80,18 @@ namespace Pomona.TestHelpers
                             ", but got " + actualConstExpr.Type);
                     }
 
-                    if (actualConstExpr.Value == null && expectedConstExpr.Value == null)
-                        return;
+                    var actualValue = actualConstExpr.Value;
+                    var expectedValue = expectedConstExpr.Value;
 
-                    if (actualConstExpr.Value == null || !actualConstExpr.Value.Equals(expectedConstExpr.Value))
-                        Assert.Fail("Constant expression was not of expected value " + expectedConstExpr.Value);
+                    if (!IsEqualOrArrayContentEqual(actualValue, expectedValue, actualConstExpr.Type))
+                        Assert.Fail("Constant expression was not of expected value " + expectedValue);
                     return;
                 }
 
                 var actualMemberExpr = actual as MemberExpression;
                 if (actualMemberExpr != null)
                 {
-                    var expectedMemberExpr = (MemberExpression)expected;
+                    var expectedMemberExpr = (MemberExpression) expected;
                     if (actualMemberExpr.Member != expectedMemberExpr.Member)
                         Assert.Fail("Wrong member on memberexpression when comparing expressions..");
                     AssertEquals(actualMemberExpr.Expression, expectedMemberExpr.Expression);
@@ -106,7 +101,7 @@ namespace Pomona.TestHelpers
                 var actualCallExpr = actual as MethodCallExpression;
                 if (actualCallExpr != null)
                 {
-                    var expectedCallExpr = (MethodCallExpression)expected;
+                    var expectedCallExpr = (MethodCallExpression) expected;
                     if (actualCallExpr.Method != expectedCallExpr.Method)
                         Assert.Fail("Wrong method on methodexpression when comparing expressions..");
 
@@ -118,17 +113,17 @@ namespace Pomona.TestHelpers
                         .Zip(
                             actualCallExpr.Arguments,
                             (ex, ac) =>
-                            {
-                                AssertEquals(ac, ex);
-                                return true;
-                            }).ToList();
+                                {
+                                    AssertEquals(ac, ex);
+                                    return true;
+                                }).ToList();
                     return;
                 }
 
                 var actualParamExpr = actual as ParameterExpression;
                 if (actualParamExpr != null)
                 {
-                    var expectedParamExpr = (ParameterExpression)expected;
+                    var expectedParamExpr = (ParameterExpression) expected;
                     Assert.That(
                         actualParamExpr.Type, Is.EqualTo(expectedParamExpr.Type), "Parameter was not of expected type.");
                     Assert.That(
@@ -141,7 +136,7 @@ namespace Pomona.TestHelpers
                 var actualNewExpr = actual as NewExpression;
                 if (actualNewExpr != null)
                 {
-                    var expectedNewExpr = (NewExpression)expected;
+                    var expectedNewExpr = (NewExpression) expected;
                     Assert.That(
                         actualNewExpr.Type, Is.EqualTo(expectedNewExpr.Type), "NewExpression was not of expected type.");
                     Assert.That(
@@ -155,10 +150,10 @@ namespace Pomona.TestHelpers
                         .Zip(
                             actualNewExpr.Arguments,
                             (ex, ac) =>
-                            {
-                                AssertEquals(ac, ex);
-                                return true;
-                            }).ToList();
+                                {
+                                    AssertEquals(ac, ex);
+                                    return true;
+                                }).ToList();
 
                     return;
                 }
@@ -166,7 +161,7 @@ namespace Pomona.TestHelpers
                 var actualNewArrayExpr = actual as NewArrayExpression;
                 if (actualNewArrayExpr != null)
                 {
-                    var expectedNewArrayExpr = (NewArrayExpression)expected;
+                    var expectedNewArrayExpr = (NewArrayExpression) expected;
                     Assert.That(
                         actualNewArrayExpr.Type,
                         Is.EqualTo(expectedNewArrayExpr.Type),
@@ -178,10 +173,10 @@ namespace Pomona.TestHelpers
                         .Zip(
                             actualNewArrayExpr.Expressions,
                             (ex, ac) =>
-                            {
-                                AssertEquals(ac, ex);
-                                return true;
-                            }).ToList();
+                                {
+                                    AssertEquals(ac, ex);
+                                    return true;
+                                }).ToList();
 
                     return;
                 }
@@ -194,6 +189,30 @@ namespace Pomona.TestHelpers
                 Console.WriteLine("Expected expression: " + expected + "\r\nActual expression:" + actual);
                 throw;
             }
+        }
+
+        private static bool IsEqualOrArrayContentEqual(object actual, object expected, Type type)
+        {
+            if (expected == null || actual == null)
+            {
+                return actual == null && expected == null;
+            }
+
+            if (type.IsArray)
+            {
+                var elementType = type.GetElementType();
+                var actualArray = (Array) actual;
+                var expectedArray = (Array) expected;
+                if (actualArray.Length != expectedArray.Length)
+                    return false;
+
+                return actualArray.Cast<object>()
+                                  .Zip(expectedArray.Cast<object>(),
+                                       (a, b) => IsEqualOrArrayContentEqual(a, b, elementType))
+                                  .All(x => x);
+            }
+
+            return actual.Equals(expected);
         }
     }
 }

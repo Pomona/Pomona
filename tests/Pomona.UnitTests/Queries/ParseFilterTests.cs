@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,15 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using NUnit.Framework;
-
 using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.Queries
@@ -43,8 +37,8 @@ namespace Pomona.UnitTests.Queries
         private T AssertIsConstant<T>(Expression expr)
         {
             var constExpr = AssertCast<ConstantExpression>(expr);
-            Assert.That(constExpr.Type, Is.EqualTo(typeof(T)));
-            return (T)constExpr.Value;
+            Assert.That(constExpr.Type, Is.EqualTo(typeof (T)));
+            return (T) constExpr.Value;
         }
 
 
@@ -53,7 +47,7 @@ namespace Pomona.UnitTests.Queries
         {
             var objAsT = obj as T;
             if (objAsT == null)
-                Assert.Fail("Failed to cast object to " + typeof(T).Name + ", was of type" + obj.GetType().Name);
+                Assert.Fail("Failed to cast object to " + typeof (T).Name + ", was of type" + obj.GetType().Name);
             return objAsT;
         }
 
@@ -61,7 +55,7 @@ namespace Pomona.UnitTests.Queries
         private void AssertExpressionEquals<T, TReturn>(
             Expression<Func<T, TReturn>> actual, Expression<Func<T, TReturn>> expected)
         {
-            AssertExpressionEquals(actual, (Expression)expected);
+            AssertExpressionEquals(actual, (Expression) expected);
         }
 
 
@@ -73,7 +67,7 @@ namespace Pomona.UnitTests.Queries
 
         public void Parse_CastExpression_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("cast()");
+            var expr = parser.Parse<Dummy>("cast()");
         }
 
 
@@ -83,7 +77,7 @@ namespace Pomona.UnitTests.Queries
             {
                 if (node.Expression.NodeType == ExpressionType.Constant)
                 {
-                    var target = ((ConstantExpression)node.Expression).Value;
+                    var target = ((ConstantExpression) node.Expression).Value;
 
                     var propInfo = node.Member as PropertyInfo;
                     if (propInfo != null)
@@ -100,7 +94,7 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_AnyExpressionWithLambda_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("any(Children,x:x.Number eq 5 and any(x.SomeStrings,y:y eq x.Text))");
+            var expr = parser.Parse<Dummy>("any(Children,x:x.Number eq 5 and any(x.SomeStrings,y:y eq x.Text))");
             AssertExpressionEquals(
                 expr, _this => _this.Children.Any(x => x.Number == 5 && x.SomeStrings.Any(y => y == x.Text)));
         }
@@ -109,25 +103,24 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_ArrayWithExpressionOfSimpleValuesContains_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("Number in [3,Number,4]");
+            var expr = parser.Parse<Dummy>("Number in [3,Number,4]");
 
             // TODO: Array of constants should be a ConstantExpression maybe? [KNS]
-            AssertExpressionEquals(expr, _this => (new[] { 3, _this.Number, 4 }).Contains(_this.Number));
+            AssertExpressionEquals(expr, _this => (new[] {3, _this.Number, 4}).Contains(_this.Number));
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "Test not yet working, must fix comparison of arrays in AssertExpressionEquals.")]
+        [Test]
         public void Parse_ConstantArrayOfSimpleValuesContains_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("Number in [3,2,4]");
+            var expr = parser.Parse<Dummy>("Number in [3,2,4]");
 
             // TODO: Array of constants should be a ConstantExpression maybe? [KNS]
-            var ints = new[] { 3, 2, 4 };
+            var ints = new[] {3, 2, 4};
             var evaluateClosureVisitor = new EvaluateClosureMemberVisitor();
             Expression<Func<Dummy, bool>> expected = _this => ints.Contains(_this.Number);
             // We need to evaluate closure display class field accesses to get the same expression
-            expected = (Expression<Func<Dummy, bool>>)evaluateClosureVisitor.Visit(expected);
+            expected = (Expression<Func<Dummy, bool>>) evaluateClosureVisitor.Visit(expected);
             AssertExpressionEquals(expr, expected);
         }
 
@@ -137,7 +130,7 @@ namespace Pomona.UnitTests.Queries
         {
             var dateTimeString = "2000-12-12T12:00";
             var expectedTime = DateTime.Parse(dateTimeString);
-            var expr = this.parser.Parse<Dummy>(string.Format("Time eq datetime'{0}'", dateTimeString));
+            var expr = parser.Parse<Dummy>(string.Format("Time eq datetime'{0}'", dateTimeString));
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftTimeConstant = AssertIsConstant<DateTime>(binExpr.Right);
             Assert.That(leftTimeConstant, Is.EqualTo(expectedTime));
@@ -147,8 +140,15 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_DictAccess_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("attributes['foo'] eq 'bar'");
+            var expr = parser.Parse<Dummy>("attributes['foo'] eq 'bar'");
             AssertExpressionEquals(expr, _this => _this.Attributes["foo"] == "bar");
+        }
+
+        [Test]
+        public void Parse_EscapedPropertyNameSameAsOperator_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("@and and @and");
+            AssertExpressionEquals(expr, _this => _this.and && _this.and);
         }
 
 
@@ -156,7 +156,7 @@ namespace Pomona.UnitTests.Queries
         public void Parse_GuidConstant_CreatesCorrectExpression()
         {
             var guid = Guid.NewGuid();
-            var expr = this.parser.Parse<Dummy>(string.Format("Guid eq guid'{0}'", guid));
+            var expr = parser.Parse<Dummy>(string.Format("Guid eq guid'{0}'", guid));
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftGuidConstant = AssertIsConstant<Guid>(binExpr.Right);
             Assert.That(leftGuidConstant, Is.EqualTo(guid));
@@ -166,7 +166,7 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_Null_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("Text eq null");
+            var expr = parser.Parse<Dummy>("Text eq null");
             AssertExpressionEquals(expr, _this => _this.Text == null);
         }
 
@@ -174,12 +174,12 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_PropertyEqualsIntegerAddedToInteger_ReturnsCorrectResult()
         {
-            var lambda = this.parser.Parse<Dummy>("Number eq 2 add 3");
+            var lambda = parser.Parse<Dummy>("Number eq 2 add 3");
             var binExpr = AssertCast<BinaryExpression>(lambda.Body);
             AssertCast<MemberExpression>(binExpr.Left);
             var addExpr = AssertCast<BinaryExpression>(binExpr.Right);
             Assert.That(addExpr.NodeType, Is.EqualTo(ExpressionType.Add));
-            Assert.That(addExpr.Type, Is.EqualTo(typeof(int)));
+            Assert.That(addExpr.Type, Is.EqualTo(typeof (int)));
             var leftAddInt = AssertIsConstant<int>(addExpr.Left);
             Assert.That(leftAddInt, Is.EqualTo(2));
             var rightAddInt = AssertIsConstant<int>(addExpr.Right);
@@ -190,7 +190,7 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_PropertyEqualsStringExpression_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("Text eq 'Jalla'");
+            var expr = parser.Parse<Dummy>("Text eq 'Jalla'");
 
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             AssertCast<MemberExpression>(binExpr.Left);
@@ -202,10 +202,10 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_PropertyEqualsStringExpression_ReturnsCorrectResult()
         {
-            var lambda = this.parser.Parse<Dummy>("Text eq 'Jalla'").Compile();
+            var lambda = parser.Parse<Dummy>("Text eq 'Jalla'").Compile();
 
-            var jallaDummy = new Dummy { Text = "Jalla" };
-            var negativeDummy = new Dummy { Text = "Boooo" };
+            var jallaDummy = new Dummy {Text = "Jalla"};
+            var negativeDummy = new Dummy {Text = "Boooo"};
 
             Assert.That(lambda(jallaDummy), Is.True);
             Assert.That(lambda(negativeDummy), Is.False);
@@ -215,33 +215,31 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_PropertyEqualsStringOrPropertyEqualString_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("Text eq 'Jalla' or Text eq 'Mohahaa'");
+            var expr = parser.Parse<Dummy>("Text eq 'Jalla' or Text eq 'Mohahaa'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.OrElse));
-        }
-
-
-        [Category("TODO")]
-        [Test(Description = "Should be possible to somehow escape reserved keywords.")]
-        public void Parse_PropertyHasSameNameAsOperator_CreatesCorrectExpression()
-        {
-            var expr = this.parser.Parse<Dummy>("and and and");
-            AssertExpressionEquals(expr, _this => _this.and && _this.and);
         }
 
 
         [Test]
         public void Parse_RecursiveDotting_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("parent.parent.friend.text eq 'whoot'");
+            var expr = parser.Parse<Dummy>("parent.parent.friend.text eq 'whoot'");
             AssertExpressionEquals(expr, _this => _this.Parent.Parent.Friend.Text == "whoot");
         }
 
 
         [Test]
+        public void Parse_SubSelectExpressionChained_CreatesCorrectExpression()
+        {
+            var exprChained = parser.Parse<Dummy>("sum(Children.select(x:x.Number)) gt 10");
+            AssertExpressionEquals(exprChained, _this => _this.Children.Select(x => x.Number).Sum() > 10);
+        }
+
+        [Test]
         public void Parse_SubSelectExpression_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("sum(select(Children,x:x.Number)) gt 10");
+            var expr = parser.Parse<Dummy>("sum(select(Children,x:x.Number)) gt 10");
             AssertExpressionEquals(expr, _this => _this.Children.Select(x => x.Number).Sum() > 10);
         }
 
@@ -251,7 +249,7 @@ namespace Pomona.UnitTests.Queries
         {
             Expression<Func<Dummy, bool>> expected =
                 _this => _this.Number == 4 || _this.Number == 66 || _this.Number == 2;
-            var expr = this.parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
+            var expr = parser.Parse<Dummy>("Number eq 4 or Number eq 66 or Number eq 2");
 
             AssertExpressionEquals(expr, expected);
         }
@@ -260,10 +258,10 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_ToStringWithExtensionMethodCallStyle_CreatesCorrectExpression()
         {
-            var expr = this.parser.Parse<Dummy>("text.tolower().substring(0,3) eq 'whoot'");
+            var expr = parser.Parse<Dummy>("text.tolower().substring(0,3) eq 'whoot'");
             AssertExpressionEquals(expr, _this => _this.Text.ToLower().Substring(0, 3) == "whoot");
 
-            var expr2 = this.parser.Parse<Dummy>("text.substring(2,5).substringof(parent.text)");
+            var expr2 = parser.Parse<Dummy>("text.substring(2,5).substringof(parent.text)");
             // Note that Contains is the .NET "inverted" version of substringof,
             // so in C# this looks different (which is correct).
             AssertExpressionEquals(expr2, _this => _this.Parent.Text.Contains(_this.Text.Substring(2, 5)));
@@ -273,13 +271,13 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_WithProperty_ResolvesToCorrectProperty()
         {
-            var expr = this.parser.Parse<Dummy>("Text eq 'Jalla'");
+            var expr = parser.Parse<Dummy>("Text eq 'Jalla'");
 
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var memberExpr = AssertCast<MemberExpression>(binExpr.Left);
             var prop = memberExpr.Member as PropertyInfo;
             Assert.That(prop, Is.Not.Null, "Member expression expected to be of type PropertyInfo");
-            Assert.That(prop.DeclaringType, Is.EqualTo(typeof(Dummy)));
+            Assert.That(prop.DeclaringType, Is.EqualTo(typeof (Dummy)));
             Assert.That(prop.Name, Is.EqualTo("Text"));
         }
     }

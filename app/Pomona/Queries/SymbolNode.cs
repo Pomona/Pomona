@@ -37,18 +37,21 @@ namespace Pomona.Queries
         private readonly string name;
 
 
-        public SymbolNode(string name, IEnumerable<NodeBase> children) : base(NodeType.Symbol, children)
+        public SymbolNode(string name, IEnumerable<NodeBase> children) : this(NodeType.Symbol, name, children)
         {
-            if (name != null)
-                this.name = name;
         }
 
 
         protected SymbolNode(NodeType nodeType, string name, IEnumerable<NodeBase> children)
             : base(nodeType, children)
         {
+            if (!string.IsNullOrEmpty(name) && name[0] == '@')
+                name = name.Substring(1);
+
             if (name != null)
+            {
                 this.name = name;
+            }
         }
 
 
