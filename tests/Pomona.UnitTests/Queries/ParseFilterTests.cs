@@ -181,6 +181,16 @@ name eo 'blah'".Replace("\r", "")));
             Assert.That(leftGuidConstant, Is.EqualTo(guid));
         }
 
+        [Test]
+        public void Parse_MultiLineExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
+        {
+            var exception = Assert.Throws<QueryParseException>(() => parser.Parse<Dummy>("name  \r\n  eo 'blah'"));
+            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+                @"Error on line 2 character 2 of query:
+  |/
+  eo 'blah'".Replace("\r", "")));
+        }
+
 
         [Test]
         public void Parse_Null_CreatesCorrectExpression()

@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using Antlr.Runtime.Tree;
@@ -49,6 +50,12 @@ namespace Pomona.Queries
         {
         }
 
+        private static string GetLineOfString(string text, int linenumber)
+        {
+            return text.Replace("\r", "").Split('\n').Skip(linenumber - 1).FirstOrDefault() ??
+                   "(WTF, unable to find line!!)";
+        }
+
         internal static QueryParseException Create(ITree parserNode, string message, string parsedString,
                                                    Exception innerException)
         {
@@ -57,8 +64,8 @@ namespace Pomona.Queries
                 var sb = new StringBuilder();
                 sb.AppendLine(message);
                 var commonErrorNode = parserNode as CommonErrorNode;
-                int line = parserNode.Line;
-                int charPositionInLine = parserNode.CharPositionInLine;
+                var line = parserNode.Line;
+                var charPositionInLine = parserNode.CharPositionInLine;
                 if (commonErrorNode != null)
                 {
                     line = commonErrorNode.trappedException.Line;
@@ -70,7 +77,7 @@ namespace Pomona.Queries
                                 charPositionInLine);
                 sb.Append(' ', charPositionInLine);
                 sb.AppendLine("|/");
-                sb.AppendLine(parsedString);
+                sb.AppendLine(GetLineOfString(parsedString, line));
                 message = sb.ToString();
             }
 
