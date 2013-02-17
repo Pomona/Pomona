@@ -164,10 +164,10 @@ namespace Pomona.UnitTests.Queries
         public void Parse_ExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => parser.Parse<Dummy>("name eo 'blah'"));
-            Assert.That(exception.Message, Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
                 @"Error on line 1 character 5 of query:
      |/
-name eo 'blah'"));
+name eo 'blah'".Replace("\r", "")));
         }
 
 

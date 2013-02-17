@@ -512,13 +512,8 @@ namespace Pomona.Queries
                 var methodParameters = method.GetParameters();
                 if (methodParameters.Length != reorderedArgs.Count - argArrayOffset)
                 {
-                    throw new PomonaExpressionSyntaxException(
-                        string.Format(
-                            "Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})",
-                            methodParameters.Length,
-                            method.DeclaringType.FullName,
-                            method.Name,
-                            (reorderedArgs.Count - argArrayOffset)));
+                    string message = string.Format("Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})", methodParameters.Length, method.DeclaringType.FullName, method.Name, (reorderedArgs.Count - argArrayOffset));
+                    throw CreateParseException(node, message);
                 }
 
                 var argExprArray = new Expression[methodParameters.Length];
@@ -593,8 +588,7 @@ namespace Pomona.Queries
                 case "cast":
                     //var 
                     if (node.Children.Count > 2 || node.Children.Count < 1)
-                        throw new PomonaExpressionSyntaxException(
-                            "Only one or two arguments to cast operator is allowed.");
+                        throw CreateParseException(node, "Only one or two arguments to cast operator is allowed.");
                     NodeBase castTypeArg;
                     Expression operand;
 
@@ -620,8 +614,8 @@ namespace Pomona.Queries
                     }
                     else
                     {
-                        throw new PomonaExpressionSyntaxException("Did not expect node type " +
-                                                                  castTypeArg.GetType().Name);
+                        throw CreateParseException(castTypeArg, "Did not expect node type " +
+                                                          castTypeArg.GetType().Name);
                     }
 
                     var castToType = propertyResolver.ResolveType(typeName);
