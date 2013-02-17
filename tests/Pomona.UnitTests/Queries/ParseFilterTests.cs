@@ -27,6 +27,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using NUnit.Framework;
+using Pomona.Queries;
 using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.Queries
@@ -109,6 +110,14 @@ namespace Pomona.UnitTests.Queries
             AssertExpressionEquals(expr, _this => (new[] {3, _this.Number, 4}).Contains(_this.Number));
         }
 
+        [Test]
+        public void Parse_CastToInt32_CreatesCorrectExpression()
+        {
+            // TODO: Also create system tests for this!
+            var expr = parser.Parse<Dummy>("cast(precise,'Int32') eq number");
+            AssertExpressionEquals(expr, _this => (int) _this.Precise == _this.Number);
+        }
+
 
         [Test]
         public void Parse_ConstantArrayOfSimpleValuesContains_CreatesCorrectExpression()
@@ -149,6 +158,16 @@ namespace Pomona.UnitTests.Queries
         {
             var expr = parser.Parse<Dummy>("@and and @and");
             AssertExpressionEquals(expr, _this => _this.and && _this.and);
+        }
+
+        [Test]
+        public void Parse_ExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
+        {
+            var exception = Assert.Throws<QueryParseException>(() => parser.Parse<Dummy>("name eo 'blah'"));
+            Assert.That(exception.Message, Is.StringContaining(
+                @"Error on line 1 character 5 of query:
+     |/
+name eo 'blah'"));
         }
 
 
@@ -218,14 +237,6 @@ namespace Pomona.UnitTests.Queries
             var expr = parser.Parse<Dummy>("Text eq 'Jalla' or Text eq 'Mohahaa'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.OrElse));
-        }
-
-        [Test]
-        public void Parse_CastToInt32_CreatesCorrectExpression()
-        {
-            // TODO: Also create system tests for this!
-            var expr = parser.Parse<Dummy>("cast(precise,'Int32') eq number");
-            AssertExpressionEquals(expr, _this => (int)_this.Precise == _this.Number);
         }
 
         [Test]

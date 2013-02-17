@@ -179,6 +179,8 @@ namespace Pomona
             get { return false; }
         }
 
+        public bool IsNullable { get { return false; } }
+
         public bool IsDictionary
         {
             get { return false; }

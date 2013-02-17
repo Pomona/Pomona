@@ -62,7 +62,7 @@ namespace Pomona.Queries
             // lambda expression.
             var symbolTree = ParseSymbolTree(string.Format("select({0})", selectListExpression));
             ParameterExpression thisParam = Expression.Parameter(thisType, "_this");
-            var selectParts = symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam)).ToList();
+            var selectParts = symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam, selectListExpression)).ToList();
 
             if (selectParts.Count == 1 && selectParts[0].Key.ToLower() == "this")
             {
@@ -75,7 +75,7 @@ namespace Pomona.Queries
             return Expression.Lambda(expr, thisParam);
         }
 
-        private KeyValuePair<string, Expression> ParseSelectPart(Type thisType, NodeBase node, ParameterExpression thisParam)
+        private KeyValuePair<string, Expression> ParseSelectPart(Type thisType, NodeBase node, ParameterExpression thisParam, string parsedString)
         {
             string propertyName = null;
             if (node.NodeType == NodeType.As)
@@ -96,7 +96,7 @@ namespace Pomona.Queries
                         string.Format("Unable to infer property name of select expression ({0})", node));
             }
 
-            var exprParser = new NodeTreeToExpressionConverter(queryPropertyResolver);
+            var exprParser = new NodeTreeToExpressionConverter(queryPropertyResolver, parsedString);
             var lambdaExpression = exprParser.ToLambdaExpression(thisParam, thisParam.WrapAsEnumerable(),
                                                                  Enumerable.Empty<ParameterExpression>(), node);
 
@@ -120,7 +120,7 @@ namespace Pomona.Queries
         {
             var tempTree = ParseSymbolTree(odataExpression);
 
-            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(queryPropertyResolver);
+            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(queryPropertyResolver, odataExpression);
 
             var lambdaExpression = nodeTreeToExpressionConverter.ToLambdaExpression(thisType, tempTree);
             return lambdaExpression;
@@ -138,7 +138,7 @@ namespace Pomona.Queries
             var parseReturn = parser.parse();
             var tree = (CommonTree) parseReturn.Tree;
 
-            var tempTree = PomonaQueryTreeParser.ParseTree(tree, 0);
+            var tempTree = PomonaQueryTreeParser.ParseTree(tree, 0, odataExpression);
             return tempTree;
         }
     }

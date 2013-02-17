@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,10 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Runtime.Serialization;
+using System.Text;
+using Antlr.Runtime.Tree;
 
 namespace Pomona.Queries
 {
@@ -47,9 +45,36 @@ namespace Pomona.Queries
         {
         }
 
-
         protected QueryParseException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
+        }
+
+        internal static QueryParseException Create(ITree parserNode, string message, string parsedString,
+                                                   Exception innerException)
+        {
+            if (parserNode != null && parsedString != null)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine(message);
+                var commonErrorNode = parserNode as CommonErrorNode;
+                int line = parserNode.Line;
+                int charPositionInLine = parserNode.CharPositionInLine;
+                if (commonErrorNode != null)
+                {
+                    line = commonErrorNode.trappedException.Line;
+                    charPositionInLine = commonErrorNode.trappedException.CharPositionInLine;
+                    sb.AppendFormat("({0})\r\n", commonErrorNode.trappedException.Message);
+                }
+
+                sb.AppendFormat("Error on line {0} character {1} of query:\r\n", line,
+                                charPositionInLine);
+                sb.Append(' ', charPositionInLine);
+                sb.AppendLine("|/");
+                sb.AppendLine(parsedString);
+                message = sb.ToString();
+            }
+
+            return new QueryParseException(message, innerException);
         }
     }
 }

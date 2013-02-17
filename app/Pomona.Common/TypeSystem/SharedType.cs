@@ -142,7 +142,7 @@ namespace Pomona.Common.TypeSystem
         {
             get
             {
-                if (!isCollection)
+                if (!isCollection && !IsNullable)
                     throw new InvalidOperationException("Type is not a collection, so it doesn't have an element type.");
 
                 if (MappedType.IsArray)
@@ -173,6 +173,11 @@ namespace Pomona.Common.TypeSystem
         public bool IsCollection
         {
             get { return isCollection; }
+        }
+
+        public bool IsNullable
+        {
+            get { return Nullable.GetUnderlyingType(mappedTypeInstance) != null; }
         }
 
         public bool IsGenericType

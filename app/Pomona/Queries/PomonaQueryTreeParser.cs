@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -42,7 +38,7 @@ namespace Pomona.Queries
 
         static PomonaQueryTreeParser()
         {
-            binaryNodeTypes = new HashSet<NodeType>()
+            binaryNodeTypes = new HashSet<NodeType>
                 {
                     NodeType.AndAlso,
                     NodeType.OrElse,
@@ -77,16 +73,26 @@ namespace Pomona.Queries
                     {PomonaQueryParser.DIV_OP, NodeType.Div},
                     {PomonaQueryParser.MOD_OP, NodeType.Modulo},
                     {PomonaQueryParser.DOT_OP, NodeType.Dot},
-                    {PomonaQueryParser.AS_OP,NodeType.As},
+                    {PomonaQueryParser.AS_OP, NodeType.As},
                     {PomonaQueryParser.STRING, NodeType.StringLiteral},
                     {PomonaQueryParser.IN_OP, NodeType.In}
                 };
         }
 
 
-        public static NodeBase ParseTree(ITree tree, int depth)
+        public static NodeBase ParseTree(ITree tree, int depth, string parsedString)
+        {
+            var node = ParseTreeInner(tree, depth, parsedString);
+            node.ParserNode = tree;
+            return node;
+        }
+
+        private static NodeBase ParseTreeInner(ITree tree, int depth, string parsedString)
         {
             depth++;
+
+            if (tree.Type == 0)
+                throw QueryParseException.Create(tree, "Parse error", parsedString, null);
 
             if (tree.Type == PomonaQueryParser.PREFIXED_STRING)
             {
@@ -110,32 +116,32 @@ namespace Pomona.Queries
             }
 
             if (IsReduceableBinaryOperator(tree.Type) && tree.ChildCount == 1)
-                return ParseTree(tree.GetChild(0), depth);
+                return ParseTree(tree.GetChild(0), depth, parsedString);
 
             switch (tree.Type)
             {
                 case PomonaQueryParser.METHOD_CALL:
-                    return new MethodCallNode(tree.GetChild(0).Text, ParseChildren(tree, depth, 1));
+                    return new MethodCallNode(tree.GetChild(0).Text, ParseChildren(tree, depth, parsedString, 1));
                 case PomonaQueryParser.INDEXER_ACCESS:
-                    return new IndexerAccessNode(tree.GetChild(0).Text, ParseChildren(tree, depth, 1));
+                    return new IndexerAccessNode(tree.GetChild(0).Text, ParseChildren(tree, depth, parsedString, 1));
                 case PomonaQueryParser.INT:
                     return new NumberNode(tree.Text);
                 case PomonaQueryParser.STRING:
                     return new StringNode(tree.Text);
                 case PomonaQueryParser.ID:
-                    return new SymbolNode(tree.Text, ParseChildren(tree, depth));
+                    return new SymbolNode(tree.Text, ParseChildren(tree, depth, parsedString));
                 case PomonaQueryParser.ROOT:
-                    return ParseTree(tree.GetChild(0), depth);
+                    return ParseTree(tree.GetChild(0), depth, parsedString);
                 case PomonaQueryParser.LAMBDA_OP:
-                    return new LambdaNode(ParseChildren(tree, depth));
+                    return new LambdaNode(ParseChildren(tree, depth, parsedString));
                 case PomonaQueryParser.ARRAY_LITERAL:
-                    return new ArrayNode(ParseChildren(tree, depth));
+                    return new ArrayNode(ParseChildren(tree, depth, parsedString));
             }
 
             NodeType nodeType;
             if (IsBinaryOperator(tree.Type, out nodeType))
             {
-                var childNodes = new Queue<NodeBase>(ParseChildren(tree, depth));
+                var childNodes = new Queue<NodeBase>(ParseChildren(tree, depth, parsedString));
 
                 var expr = childNodes.Dequeue();
                 while (childNodes.Count > 0)
@@ -177,9 +183,9 @@ namespace Pomona.Queries
         }
 
 
-        private static IEnumerable<NodeBase> ParseChildren(ITree tree, int depth, int skip = 0)
+        private static IEnumerable<NodeBase> ParseChildren(ITree tree, int depth, string parsedString, int skip = 0)
         {
-            return GetChildren(tree).Skip(skip).Select(x => ParseTree(x, depth + 1));
+            return GetChildren(tree).Skip(skip).Select(x => ParseTree(x, depth + 1, parsedString));
         }
 
 

@@ -52,6 +52,9 @@ namespace Pomona
             if (mappedType.IsCollection)
                 return "array";
 
+            if (mappedType.IsNullable)
+                return GetSchemaTypeName(mappedType.ElementType);
+
             var sharedType = mappedType as SharedType;
             if (sharedType != null && sharedType.IsBasicWireType)
             {
@@ -68,6 +71,9 @@ namespace Pomona
 
                 if (targetType == typeof (bool))
                     return "boolean";
+
+                if (targetType == typeof (decimal))
+                    return "decimal";
 
                 if (targetType == typeof (object))
                     return "any";

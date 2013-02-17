@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,17 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -51,7 +43,7 @@ namespace Pomona.Schemas
         {
             var serializer = GetSerializer();
             var stringReader = new StringReader(jsonString);
-            var schema = (Schema)serializer.Deserialize(stringReader, typeof(Schema));
+            var schema = (Schema) serializer.Deserialize(stringReader, typeof (Schema));
             // Fix property names (they're not serialized as this would be redundant)..
             foreach (var propKvp in schema.Types.SelectMany(x => x.Properties))
                 propKvp.Value.Name = propKvp.Key;
@@ -72,12 +64,12 @@ namespace Pomona.Schemas
         {
             var serializer =
                 JsonSerializer.Create(
-                    new JsonSerializerSettings()
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
-                    });
+                    new JsonSerializerSettings
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                            NullValueHandling = NullValueHandling.Ignore,
+                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
+                        });
             serializer.Formatting = Formatting.Indented;
             return serializer;
         }
@@ -96,13 +88,17 @@ namespace Pomona.Schemas
         [JsonIgnore]
         public string Name { get; set; }
 
+        public bool Required { get; set; }
+
         public bool ReadOnly { get; set; }
         public string Type { get; set; }
     }
 
     public class SchemaTypeEntry
     {
+        public string Uri { get; set; }
         public string Name { get; set; }
+        public string Extends { get; set; }
         public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
     }
 
@@ -120,33 +116,31 @@ namespace Pomona.Schemas
         public Schema Generate()
         {
             var typeSchemas =
-                this.typeMapper.SourceTypes.Select(this.typeMapper.GetClassMapping).OfType<TransformedType>().Select(
+                typeMapper.SourceTypes.Select(typeMapper.GetClassMapping).OfType<TransformedType>().Select(
                     GenerateForType);
-            return new Schema()
-            {
-                Types = typeSchemas.ToList(),
-                Version = this.typeMapper.Filter.ApiVersion
-            };
+            return new Schema
+                {
+                    Types = typeSchemas.ToList(),
+                    Version = typeMapper.Filter.ApiVersion
+                };
         }
-
 
         private SchemaPropertyEntry GenerateForProperty(IPropertyInfo propertyInfo)
         {
             var propType = propertyInfo.PropertyType;
 
-            var propEntryType = propType.IsCollection ? "array" : propType.Name;
-            var propEntry = new SchemaPropertyEntry()
-            {
-                Name = propertyInfo.Name,
-                Generated = propertyInfo.CreateMode == PropertyCreateMode.Excluded,
-                ReadOnly = !propertyInfo.IsWriteable,
-                Type = propEntryType
-            };
+            var propEntry = new SchemaPropertyEntry
+                {
+                    Required = propertyInfo.CreateMode == PropertyCreateMode.Required,
+                    Name = propertyInfo.Name,
+                    Generated = propertyInfo.CreateMode == PropertyCreateMode.Excluded,
+                    ReadOnly = !propertyInfo.IsWriteable,
+                    Type = propType.GetSchemaTypeName()
+                };
 
             if (propType.IsCollection)
             {
-                propEntry.Items = new List<SchemaArrayItem>()
-                { new SchemaArrayItem() { Type = propType.ElementType.Name } };
+                propEntry.Items = new List<SchemaArrayItem> {new SchemaArrayItem {Type = propType.ElementType.GetSchemaTypeName()}};
             }
 
             return propEntry;
@@ -155,83 +149,24 @@ namespace Pomona.Schemas
 
         private SchemaTypeEntry GenerateForType(TransformedType transformedType)
         {
-            var typeName = transformedType.Name;
-            var properties = transformedType.Properties.Select(GenerateForProperty);
-
-            return new SchemaTypeEntry()
+            string extends = null;
+            IEnumerable<IPropertyInfo> properties = transformedType.Properties;
+            if (!transformedType.IsUriBaseType)
             {
-                Name = typeName,
-                Properties = properties.ToDictionary(x => x.Name, x => x)
-            };
-        }
-    }
-
-    public class JsonSchemaGenerator
-    {
-        private readonly TypeMapper typeMapper;
-
-
-        public JsonSchemaGenerator(TypeMapper typeMapper)
-        {
-            if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
-            this.typeMapper = typeMapper;
-        }
-
-
-        public JArray GenerateAllSchemas()
-        {
-            return new JArray(this.typeMapper.TransformedTypes.Select(GenerateSchemaFor));
-        }
-
-
-        public JObject GenerateSchemaFor(TransformedType type)
-        {
-            var schema = new JObject();
-            schema.Add("name", type.Name);
-
-            var properties = new JObject();
-
-            foreach (var prop in type.Properties)
-                properties.Add(prop.JsonName, GetPropertyDefinition(prop));
-
-            schema.Add("properties", properties);
-
-            return schema;
-        }
-
-
-        private JToken GetPropertyDefinition(IPropertyInfo prop)
-        {
-            var propType = prop.PropertyType;
-
-            var jsonSchemaTypeName = propType.GetSchemaTypeName();
-
-            var propDef = new JObject();
-            propDef.Add("type", jsonSchemaTypeName);
-
-            if (prop.CreateMode == PropertyCreateMode.Required)
-                propDef.Add("required", true);
-            else if (prop.CreateMode == PropertyCreateMode.Excluded)
-                propDef.Add("generated", true);
-
-            if (!prop.IsWriteable)
-                propDef.Add("readonly", true);
-
-            if (jsonSchemaTypeName == "array")
-            {
-                if (!propType.IsCollection)
-                {
-                    throw new InvalidOperationException(
-                        "Property presented itself as JSON type array, but type is not a collection. WTF?");
-                }
-
-                // hackity hack hack attack. silly code but should work for now.
-                propDef.Add(
-                    "items", new JObject(new JProperty("type", propType.ElementType.GetSchemaTypeName())));
+                extends = transformedType.BaseType.Name;
+                var propsOfBaseType = new HashSet<string>(transformedType.BaseType.Properties.Select(x => x.Name));
+                properties = properties.Where(x => !propsOfBaseType.Contains(x.Name));
             }
 
-            return propDef;
+            var typeName = transformedType.Name;
+
+            return new SchemaTypeEntry
+                {
+                    Uri = "/" + transformedType.UriRelativePath,
+                    Extends = extends,
+                    Name = typeName,
+                    Properties = properties.Select(GenerateForProperty).ToDictionary(x => x.Name, x => x)
+                };
         }
     }
 }
