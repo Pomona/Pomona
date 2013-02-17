@@ -147,11 +147,20 @@ namespace Pomona.Common
                        : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
         }
 
+        private static HashSet<Type> nativeTypes = new HashSet<Type>()
+            {
+                typeof (int),
+                typeof (string),
+                typeof (decimal),
+                typeof (double),
+                typeof (float),
+                typeof (Guid)
+            }; 
 
         private static string GetJsonTypeName(Type typeOperand)
         {
-            if (typeOperand == typeof(int))
-                return "Int32";
+            if (nativeTypes.Contains(typeOperand))
+                return string.Format("'{0}'", typeOperand.Name);
 
             var resourceInfoAttribute =
                 typeOperand.GetCustomAttributes(typeof(ResourceInfoAttribute), false).

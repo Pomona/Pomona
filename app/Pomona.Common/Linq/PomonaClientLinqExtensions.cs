@@ -12,7 +12,7 @@ namespace Pomona.Common.Linq
 
         public static IQueryable<TResource> Query<TResource, TPostResponseResource>(
             this ClientRepository<TResource, TPostResponseResource> repository)
-            where TResource : IClientResource
+            where TResource : class, IClientResource
             where TPostResponseResource : IClientResource
         {
             return new RestQuery<TResource>(new RestQueryProvider(repository.Client, typeof(TResource)));

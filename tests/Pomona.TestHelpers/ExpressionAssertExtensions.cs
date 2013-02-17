@@ -120,6 +120,16 @@ namespace Pomona.TestHelpers
                     return;
                 }
 
+                var actualUnaryExpr = actual as UnaryExpression;
+                if (actualUnaryExpr != null)
+                {
+                    var expectedUnaryExpr = (UnaryExpression) expected;
+                    Assert.That(
+                        actualUnaryExpr.Type, Is.EqualTo(expectedUnaryExpr.Type), "Unary expr was not of expected type.");
+                    AssertEquals(actualUnaryExpr.Operand, expectedUnaryExpr.Operand);
+                    return;
+                }
+
                 var actualParamExpr = actual as ParameterExpression;
                 if (actualParamExpr != null)
                 {

@@ -206,7 +206,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithExpandedPropertyOfAnonymousClass_HasPropertyExpanded()
         {
             var result =
-                this.client.Critters.Query().Select(x => new { TheHat = x.Hat, x.Name }).Expand(x => x.TheHat).Take(1).
+                this.client.Critters.Query().Select(x => new { TheHat = x.Hat, x.Name }).OrderBy(x => x.Name).Expand(x => x.TheHat).Take(1).
                     First();
             Assert.That(result.TheHat, Is.TypeOf<HatResource>());
         }

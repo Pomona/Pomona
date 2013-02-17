@@ -567,8 +567,38 @@ namespace Pomona.Queries
                     return true;
                 case "cast":
                     //var 
-                    var castToType = this.propertyResolver.ResolveType(((SymbolNode)node.Children[0]).Name);
-                    expression = Expression.Convert(this.thisParam, castToType);
+                    if (node.Children.Count > 2 || node.Children.Count < 1)
+                        throw new PomonaExpressionSyntaxException("Only one or two arguments to cast operator is allowed.");
+                    NodeBase castTypeArg;
+                    Expression operand;
+
+                    if (node.Children.Count == 1)
+                    {
+                        castTypeArg = node.Children[0];
+                        operand = this.thisParam;
+                    }
+                    else
+                    {
+                        operand = ParseExpression(node.Children[0]);
+                        castTypeArg = node.Children[1];
+                    }
+
+                    string typeName;
+                    if (castTypeArg is SymbolNode)
+                    {
+                        typeName = ((SymbolNode) castTypeArg).Name;
+                    }
+                    else if (castTypeArg is StringNode)
+                    {
+                        typeName = ((StringNode) castTypeArg).Value;
+                    }
+                    else
+                    {
+                        throw new PomonaExpressionSyntaxException("Did not expect node type " + castTypeArg.GetType().Name);
+                    }
+
+                    var castToType = this.propertyResolver.ResolveType(typeName);
+                    expression = Expression.Convert(operand, castToType);
                     return true;
             }
 

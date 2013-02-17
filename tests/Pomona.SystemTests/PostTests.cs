@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,17 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Example.Models;
-
 using CustomEnum = Critters.Client.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -51,7 +43,7 @@ namespace Pomona.SystemTests
 
             const string critterName = "Super critter";
 
-            var critter = (ICritter) this.client.Post<ICritter>(
+            var critter = (ICritter) client.Post<ICritter>(
                 x =>
                     {
                         x.Hat = hat;
@@ -62,17 +54,16 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
-
         [Test]
         public void PostCritterWithHatForm()
         {
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = (ICritter) this.client.Post<ICritter>(
+            var critter = (ICritter) client.Post<ICritter>(
                 x =>
                     {
-                        x.Hat = new HatForm() {HatType = hatType};
+                        x.Hat = new HatForm {HatType = hatType};
                         x.Name = critterName;
                     });
 
@@ -84,7 +75,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
         {
-            var response = (IDictionaryContainer) this.client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
+            var response = (IDictionaryContainer) client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
             Assert.That(response.Map.ContainsKey("cow"));
             Assert.That(response.Map["cow"] == "moo");
         }
@@ -93,7 +84,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostHasCustomEnum()
         {
-            var response = this.client.HasCustomEnums.Post(
+            var response = client.HasCustomEnums.Post(
                 x => { x.TheEnumValue = CustomEnum.Tock; });
 
             Assert.That(response.TheEnumValue, Is.EqualTo(CustomEnum.Tock));
@@ -103,7 +94,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostHasNullableCustomEnum_WithNonNullValue()
         {
-            var response = this.client.HasCustomNullableEnums.Post(
+            var response = client.HasCustomNullableEnums.Post(
                 x => { x.TheEnumValue = CustomEnum.Tock; });
             Assert.That(response.TheEnumValue.HasValue, Is.True);
             Assert.That(response.TheEnumValue.Value, Is.EqualTo(CustomEnum.Tock));
@@ -113,7 +104,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostHasNullableCustomEnum_WithNull()
         {
-            var response = this.client.HasCustomNullableEnums.Post(
+            var response = client.HasCustomNullableEnums.Post(
                 x => { x.TheEnumValue = null; });
             Assert.That(response.TheEnumValue.HasValue, Is.False);
         }
@@ -125,7 +116,7 @@ namespace Pomona.SystemTests
             var propval = "Jalla jalla";
             var junk =
                 (IJunkWithRenamedProperty)
-                this.client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
+                client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
@@ -137,27 +128,28 @@ namespace Pomona.SystemTests
             const string critterName = "Nooob critter";
             const string hatType = "Bolalalala";
 
-            var critter = (IMusicalCritter) this.client.Post<IMusicalCritter>(
+            var critter = (IMusicalCritter) client.Post<IMusicalCritter>(
                 x =>
                     {
-                        x.Hat = new HatForm() {HatType = hatType};
+                        x.Hat = new HatForm {HatType = hatType};
                         x.Name = critterName;
                         x.BandName = "banana";
-                        x.Instrument = new InstrumentForm() {Type = "helo"};
+                        x.Instrument = new InstrumentForm {Type = "helo"};
                     });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter), "This is known to fail, does not yet save subtyped resources correctly in CritterDataSource");
+            Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter),
+                        "This is known to fail, does not yet save subtyped resources correctly in CritterDataSource");
         }
 
 
         [Test]
         public void PostOrder_ReturnsOrderResponse()
         {
-            var response = this.client.Orders.Post(x => x.Description = "Blob");
+            var response = client.Orders.Post(x => x.Description = "Blob");
             Assert.That(response, Is.InstanceOf<IOrderResponse>());
             Assert.That(response.Order, Is.Not.Null);
             Assert.That(response.Order, Is.TypeOf<OrderResource>());
@@ -169,7 +161,7 @@ namespace Pomona.SystemTests
         public void PostThingWithNullableDateTime_WithNonNullValue()
         {
             DateTime? maybeDateTime = new DateTime(2011, 10, 22, 1, 33, 22);
-            var response = this.client.ThingWithNullableDateTimes.Post(
+            var response = client.ThingWithNullableDateTimes.Post(
                 x => { x.MaybeDateTime = maybeDateTime; });
 
             Assert.That(response.MaybeDateTime.HasValue, Is.True);
@@ -180,7 +172,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostThingWithNullableDateTime_WithNullValue()
         {
-            var response = this.client.ThingWithNullableDateTimes.Post(
+            var response = client.ThingWithNullableDateTimes.Post(
                 x => { x.MaybeDateTime = null; });
 
             Assert.That(response.MaybeDateTime.HasValue, Is.False);
@@ -191,10 +183,23 @@ namespace Pomona.SystemTests
         public void PostThingWithPropertyNamedUri()
         {
             var uri = new Uri("http://bahaha");
-            var response = this.client.ThingWithPropertyNamedUris.Post(
+            var response = client.ThingWithPropertyNamedUris.Post(
                 x => { x.Uri = uri; });
 
             Assert.That(response.Uri, Is.EqualTo(uri));
+        }
+
+        [Test]
+        public void PostUsingOverloadTakingFormObject()
+        {
+            const string critterName = "Lonely critter boy";
+            var critterForm = new CritterForm
+                {
+                    Name = critterName
+                };
+
+            var critterResource = client.Critters.Post(critterForm);
+            Assert.That(critterResource.Name, Is.EqualTo(critterName));
         }
     }
 }

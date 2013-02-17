@@ -592,7 +592,8 @@ namespace Pomona.CodeGen
             if (prop.IsOneToManyCollection
                 && this.typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
             {
-                var elementTypeReference = GetTypeReference(prop.PropertyType.ElementType);
+                var resourceInfo = clientTypeInfoDict[prop.PropertyType.ElementType];
+                var elementTypeReference = resourceInfo.InterfaceType;
                 propTypeRef =
                     GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
                         elementTypeReference, elementTypeReference);

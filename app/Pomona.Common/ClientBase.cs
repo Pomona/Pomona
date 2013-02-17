@@ -67,7 +67,7 @@ namespace Pomona.Common
 
 
         public abstract object Post<T>(Action<T> postAction)
-            where T : IClientResource;
+            where T : class, IClientResource;
 
 
         public abstract T Put<T>(T target, Action<T> updateAction)
@@ -97,11 +97,13 @@ namespace Pomona.Common
 
 
         internal abstract object Post<T>(string uri, Action<T> postAction)
-            where T : IClientResource;
+            where T : class, IClientResource;
 
+        internal abstract object Post<T>(string uri, T postForm)
+            where T : class, IClientResource;
 
         internal abstract T Put<T>(string uri, T target, Action<T> updateAction)
-            where T : IClientResource;
+            where T : class, IClientResource;
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -336,6 +338,13 @@ namespace Pomona.Common
 
         internal override object Post<T>(string uri, Action<T> postAction)
         {
+            return Post(uri, null, postAction);
+        }
+
+
+        private object Post<T>(string uri, T form, Action<T> postAction)
+            where T : class
+        {
             var type = typeof(T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
             if (!type.IsInterface)
@@ -344,16 +353,26 @@ namespace Pomona.Common
             var resourceInfo = this.GetResourceInfoForType(type);
 
             var newType = resourceInfo.PostFormType;
-            var newProxy = Activator.CreateInstance(newType);
 
-            postAction((T)newProxy);
+            if (form == null)
+                form = (T)Activator.CreateInstance(newType);
+
+            if (postAction != null)
+            {
+                postAction(form);
+            }
 
             // TODO: Implement baseuri property or something.
 
             // Post the json!
-            var response = UploadToUri(uri, newProxy, type, "POST");
+            var response = UploadToUri(uri, form, type, "POST");
 
             return Deserialize(response, null);
+        }
+
+        internal override object Post<T>(string uri, T postForm)
+        {
+            return Post(uri, postForm, null);
         }
 
 

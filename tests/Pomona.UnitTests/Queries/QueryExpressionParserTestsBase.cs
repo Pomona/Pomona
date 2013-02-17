@@ -31,6 +31,8 @@ namespace Pomona.UnitTests.Queries
 
             public Type ResolveType(string typeName)
             {
+                if (typeName == "Int32")
+                    return typeof (int);
                 throw new NotImplementedException();
             }
 
@@ -44,6 +46,7 @@ namespace Pomona.UnitTests.Queries
             public IEnumerable<Dummy> Children { get; set; }
             public Dummy Friend { get; set; }
             public Guid Guid { get; set; }
+            public double Precise { get; set; }
             public int Number { get; set; }
             public Dummy Parent { get; set; }
             public IEnumerable<string> SomeStrings { get; set; }

@@ -29,11 +29,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
     public class ClientRepository<TResource, TPostResponseResource>
-        where TResource : IClientResource
+        where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
         private readonly ClientBase client;
@@ -67,9 +68,14 @@ namespace Pomona.Common
             return this.client.Put(resource, patchAction);
         }
 
+        public TPostResponseResource Post<TPostForm>(TPostForm form)
+            where TPostForm : PutResourceBase, TResource
+        {
+            return (TPostResponseResource)this.client.Post<TResource>(Uri, form);
+        }
 
         public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
-            where TSubResource : TResource
+            where TSubResource : class, TResource
         {
             return (TPostResponseResource)this.client.Post(Uri, postAction);
         }
