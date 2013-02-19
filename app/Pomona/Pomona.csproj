@@ -136,7 +136,6 @@
     <Compile Include="Queries\MethodCallNode.cs" />
     <Compile Include="Queries\QueryParseException.cs" />
     <Compile Include="ResourceNotFoundException.cs" />
-    <Compile Include="PomonaBootstrapper.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaMappingException.cs" />
     <Compile Include="PomonaModule.cs" />

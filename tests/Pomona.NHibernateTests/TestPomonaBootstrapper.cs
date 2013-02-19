@@ -1,10 +1,11 @@
 using NHibernate;
+using Nancy;
 using Nancy.TinyIoc;
 using Pomona;
 
 namespace PomonaNHibernateTest
 {
-    public class TestPomonaBootstrapper : PomonaBootstrapper
+    public class TestPomonaBootstrapper : DefaultNancyBootstrapper
     {
         private readonly ISessionFactory sessionFactory;
         private readonly TypeMapper typeMapper;

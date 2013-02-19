@@ -26,11 +26,12 @@
 
 #endregion
 
+using Nancy;
 using Nancy.TinyIoc;
 
 namespace Pomona.Example
 {
-    public class CritterBootstrapper : PomonaBootstrapper
+    public class CritterBootstrapper : DefaultNancyBootstrapper
     {
         private readonly CritterDataSource dataSource;
         private readonly TypeMapper typeMapper;
