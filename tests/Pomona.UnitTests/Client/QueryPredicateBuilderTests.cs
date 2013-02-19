@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,15 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 
 namespace Pomona.UnitTests.Client
@@ -113,7 +107,7 @@ namespace Pomona.UnitTests.Client
         public void BuildCastToIntExpression_ReturnsCorrectString()
         {
             // TODO: Remember to write system tests for this too [KNS]
-            AssertBuild(x => (int)x.Precise, "cast(precise,'Int32')");
+            AssertBuild(x => (int) x.Precise, "cast(precise,'Int32')");
         }
 
 
@@ -142,11 +136,10 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
         }
 
-
         [Test]
         public void BuildConstantArrayOfSimpleValuesContains_ReturnsCorrectString()
         {
-            var array = new[] { 3, 2, 4 };
+            var array = new[] {3, 2, 4};
             AssertBuild(x => array.Contains(x.Id), "id in [3,2,4]");
         }
 
@@ -154,7 +147,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
         {
-            var container = new Container { Junk = "Kirk" };
+            var container = new Container {Junk = "Kirk"};
             var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == container.Junk);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("jalla eq 'Kirk'"));
@@ -230,6 +223,12 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("jalla eq 'What'"));
         }
 
+        [Test]
+        public void BuildExpressionWithNotEqualOperator_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Id != 823, "id ne 823");
+        }
+
 
         [Test]
         public void BuildFalse_ReturnsCorrectString()
@@ -281,7 +280,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildNewArrayOfSimpleValuesContains_ReturnsCorrectString()
         {
-            AssertBuild(x => (new[] { 3, 2, 4 }).Contains(x.Id), "id in [3,2,4]");
+            AssertBuild(x => (new[] {3, 2, 4}).Contains(x.Id), "id in [3,2,4]");
         }
 
 

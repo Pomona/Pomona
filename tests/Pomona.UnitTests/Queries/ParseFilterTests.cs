@@ -191,6 +191,13 @@ name eo 'blah'".Replace("\r", "")));
   eo 'blah'".Replace("\r", "")));
         }
 
+        [Test]
+        public void Parse_NotEqualOperator_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("Number ne 8");
+            AssertExpressionEquals(expr, _this => _this.Number != 8);
+        }
+
 
         [Test]
         public void Parse_Null_CreatesCorrectExpression()
