@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using NUnit.Framework;
 
@@ -34,6 +30,12 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class SingularToPluralTranslatorTests
     {
+        [Test]
+        public void ToPlural_AddressBecomesAddresses()
+        {
+            Assert.That(SingularToPluralTranslator.ToPlural("address"), Is.EqualTo("addresses"));
+        }
+
         [Test]
         public void ToPlural_CheckRules()
         {

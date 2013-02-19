@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -224,7 +220,7 @@ copy	copies";
             IrregularNouns = CreateDictionaryFromText(irregularNounsText);
 
             consonants = new HashSet<char>("bcdfghjklmnpqrstvxz".ToCharArray());
-            sibilantEndings = new HashSet<string>() {"s,sh,ch,x,z"};
+            sibilantEndings = new HashSet<string> {"s", "sh", "ch", "x", "z"};
         }
 
 
@@ -233,7 +229,7 @@ copy	copies";
             // step 1: split up into words
             var parts = NameUtils.GetCamelCaseParts(camelCaseWord).ToArray();
             // step 2: change last word to plural
-            parts[parts.Length - 1] = NameUtils.CapitalizeFirstLetter(ToPlural(parts[parts.Length - 1]));
+            parts[parts.Length - 1] = ToPlural(parts[parts.Length - 1]).CapitalizeFirstLetter();
             // step 3: rejoin
             return string.Concat(parts);
         }
@@ -278,7 +274,7 @@ copy	copies";
         {
             return text
                 .Replace("\r", "")
-                .Split(new char[] {'\n'}, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Split("\t ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 .Where(x => x.Length == 2)
                 .ToDictionary(x => x[0], x => x[1]);

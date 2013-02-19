@@ -89,14 +89,14 @@ namespace Pomona
         }
 
 
-        private void FillJsonResponse(Response res, string json)
+        private void FillJsonResponse(Response res, string json, TransformedType transformedType)
         {
             // Very simple content negotiation. Ainnt need noo fancy thing here.
 
             if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
             {
                 HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(
-                    res, htmlLinks, json, Context.Request.Url.BasePath);
+                    res, htmlLinks, json, GetAppVirtualPath() + transformedType.UriRelativePath);
             }
             else
             {
@@ -113,19 +113,20 @@ namespace Pomona
 
             var json = session.GetAsJson(transformedType, id, expand);
 
-            FillJsonResponse(res, json);
+            FillJsonResponse(res, json, transformedType);
 
             return res;
         }
 
 
-        private Uri GetBaseUri()
+        protected virtual Uri GetBaseUri()
         {
-            return new Uri(
-                string.Format(
-                    "http://{0}:{1}/",
-                    Request.Url.HostName,
-                    Request.Url.Port));
+
+            var appUrl = GetAppVirtualPath();
+            string uriString = string.Format("{0}://{1}:{2}{3}{4}", Request.Url.Scheme, Request.Url.HostName,
+                                             Request.Url.Port, appUrl, appUrl.EndsWith("/") ? string.Empty : "/");
+
+            return new Uri(uriString);
         }
 
 
@@ -156,7 +157,7 @@ namespace Pomona
             }
 
             var response = new Response();
-            FillJsonResponse(response, jsonStr);
+            FillJsonResponse(response, jsonStr, type);
 
             return response;
         }
@@ -214,7 +215,7 @@ namespace Pomona
             var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            FillJsonResponse(res, session.GetPropertyAsJson(transformedType, id, propname, expand));
+            FillJsonResponse(res, session.GetPropertyAsJson(transformedType, id, propname, expand), transformedType);
 
             return res;
         }
@@ -260,7 +261,7 @@ namespace Pomona
             }
 
             var response = new Response();
-            FillJsonResponse(response, jsonStr);
+            FillJsonResponse(response, jsonStr, transformedType);
 
             return response;
         }
@@ -273,12 +274,20 @@ namespace Pomona
         }
 
 
+        protected virtual string GetAppVirtualPath()
+        {
+            return "/";
+        }
+
         private void RegisterRoutesFor(TransformedType type)
         {
+            string appVirtualPath = GetAppVirtualPath();
+            var absLinkPath = string.Format("{0}{1}{2}", appVirtualPath, appVirtualPath.EndsWith("/") ? string.Empty : "/", type.UriRelativePath);
+
             var path = "/" + type.UriRelativePath;
             //Console.WriteLine("Registering path " + path);
             htmlLinks = htmlLinks
-                        + string.Format("<li><a href=\"{0}\">{1}</a></li>", path, type.Name);
+                        + string.Format("<li><a href=\"{0}\">{1}</a></li>", absLinkPath, type.Name);
 
             Get[path + "/{id}"] = x => GetAsJson(type, x.id);
 

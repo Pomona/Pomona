@@ -175,7 +175,7 @@ namespace Pomona
 
             return
                 new Uri(
-                    baseUriGetter(), "/" + transformedType.UriRelativePath + "/" + transformedType.GetId(entity)).
+                    string.Format("{0}{1}/{2}", baseUriGetter(), transformedType.UriRelativePath, transformedType.GetId(entity))).
                     ToString();
         }
 

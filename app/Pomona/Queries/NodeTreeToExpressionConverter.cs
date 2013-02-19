@@ -249,6 +249,8 @@ namespace Pomona.Queries
                     return Expression.GreaterThanOrEqual(leftChild, rightChild);
                 case NodeType.LessThanOrEqual:
                     return Expression.LessThanOrEqual(leftChild, rightChild);
+                case NodeType.NotEqual:
+                    return Expression.NotEqual(leftChild, rightChild);
                 case NodeType.In:
                     return ParseInOperator(leftChild, rightChild);
                 default:
