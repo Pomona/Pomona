@@ -76,6 +76,9 @@ namespace Pomona
             var top = 10;
             var skip = 0;
 
+            if (request.Query["$totalcount"].HasValue && ((string) request.Query["$totalcount"]).ToLower() == "true")
+                query.IncludeTotalCount = true;
+
             if (request.Query["$top"].HasValue)
                 top = int.Parse(request.Query["$top"]);
 

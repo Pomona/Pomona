@@ -212,7 +212,7 @@ namespace Pomona.Common
             var newSkip = Math.Max(Skip + (Count * offset), 0);
             var uriBuilder = new UriBuilder(Url);
 
-            if (Skip == newSkip || newSkip >= TotalCount)
+            if (Skip == newSkip || (TotalCount != -1 && newSkip >= TotalCount))
             {
                 pageUri = null;
                 return false;

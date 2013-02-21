@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
@@ -67,15 +63,16 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.CrazyValue)
-                .Include(x => x.CreatedOn);
+               .Include(x => x.CrazyValue)
+               .Include(x => x.CreatedOn)
+               .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
+               .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula());
         }
-
 
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
             map.ConstructedUsing(x => new Gun(x.Critter, x.Model))
-                .Include(x => x.ExplosionFactor);
+               .Include(x => x.ExplosionFactor);
         }
     }
 }

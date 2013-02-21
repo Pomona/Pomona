@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections;
@@ -71,6 +67,8 @@ namespace Pomona
         public int Skip { get; set; }
         public SortOrder SortOrder { get; set; }
         public int Top { get; set; }
+
+        public bool IncludeTotalCount { get; set; }
 
         #region IPomonaQuery Members
 
@@ -152,15 +150,14 @@ namespace Pomona
 
         private QueryResult ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
         {
-            var totalCount = 1234;
-/*            var totalCount = (int) QueryableMethods.Count.MakeGenericMethod(totalQueryable.ElementType).Invoke(
-                null, new object[] {totalQueryable});
-            */
             IEnumerable limitedQueryable;
+            var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
             if (skipAndTakeAfterExecute)
+            {
                 limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top);
+            }
             else
-                limitedQueryable = ((IQueryable<T>)ApplySkipAndTake(totalQueryable)).ToList();
+                limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
 
             return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
         }

@@ -120,6 +120,8 @@ namespace Pomona.Queries
 
             switch (tree.Type)
             {
+                case PomonaQueryParser.NOT_OP:
+                    return new NotNode(ParseChildren(tree, depth, parsedString));
                 case PomonaQueryParser.METHOD_CALL:
                     return new MethodCallNode(tree.GetChild(0).Text, ParseChildren(tree, depth, parsedString, 1));
                 case PomonaQueryParser.INDEXER_ACCESS:

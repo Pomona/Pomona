@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,14 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
-    public class Critter : EntityBase
+    public class Critter : EntityBase, IHiddenInterface
     {
         public Critter()
         {
@@ -40,10 +36,10 @@ namespace Pomona.Example.Models
             Weapons = new List<Weapon>();
             Subscriptions = new List<Subscription>();
 
-            SimpleAttributes = new List<SimpleAttribute>()
+            SimpleAttributes = new List<SimpleAttribute>
                 {
-                    new SimpleAttribute() {Key = "MeaningOfLife", Value = "42"},
-                    new SimpleAttribute() {Key = "IsCat", Value = "maybe"}
+                    new SimpleAttribute {Key = "MeaningOfLife", Value = "42"},
+                    new SimpleAttribute {Key = "IsCat", Value = "maybe"}
                 };
 
             Hat = new Hat();
@@ -59,11 +55,33 @@ namespace Pomona.Example.Models
         public Guid Guid { get; set; }
         public Hat Hat { get; set; }
 
+        [NotKnownToDataSource]
+        public string UnhandledGeneratedProperty
+        {
+            get { return Hat != null ? Hat.HatType : null; }
+        }
+
+
+        public int DecompiledGeneratedProperty
+        {
+            get { return Id + 100; }
+        }
+
+        public int HandledGeneratedProperty
+        {
+            get { return Id%6; }
+        }
+
         public string Name { get; set; }
 
         public IList<SimpleAttribute> SimpleAttributes { get; set; }
 
         public IList<Subscription> Subscriptions { get; set; }
         public IList<Weapon> Weapons { get; set; }
+
+        /// <summary>
+        /// To check that property scanning works properly on entities having explicit prop implementations.
+        /// </summary>
+        int IHiddenInterface.Foo { get; set; }
     }
 }

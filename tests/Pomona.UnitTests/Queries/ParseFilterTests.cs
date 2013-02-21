@@ -198,6 +198,13 @@ name eo 'blah'".Replace("\r", "")));
             AssertExpressionEquals(expr, _this => _this.Number != 8);
         }
 
+        [Test]
+        public void Parse_NotOperator_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("not OnOrOff");
+            AssertExpressionEquals(expr, _this => !_this.OnOrOff);
+        }
+
 
         [Test]
         public void Parse_Null_CreatesCorrectExpression()

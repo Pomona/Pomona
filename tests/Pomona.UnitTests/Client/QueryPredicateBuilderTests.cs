@@ -49,6 +49,7 @@ namespace Pomona.UnitTests.Client
 
         public class TestResource : IClientResource
         {
+            public bool OnOrOff { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
@@ -134,6 +135,12 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
+        }
+
+        [Test]
+        public void BuildExpressionWithNotOperator_ReturnsCorrectString()
+        {
+            AssertBuild(x => !x.OnOrOff, "not (onOrOff)");
         }
 
         [Test]

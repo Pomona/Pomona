@@ -433,7 +433,11 @@ namespace Pomona.Common
                         JToken itemsToken;
                         if (!jObject.TryGetValue("items", out itemsToken))
                             throw new InvalidOperationException("Got result object, but lacking items");
-                        return Deserialize(itemsToken.ToString(), expectedType);
+
+                        var totalCount = (int)jObject.GetValue("totalCount");
+
+                        var deserializedItems = Deserialize(itemsToken.ToString(), expectedType);
+                        return QueryResult.Create((IEnumerable)deserializedItems, /* TODO */ 0, totalCount, "http://todo");
                     }
                 }
             }

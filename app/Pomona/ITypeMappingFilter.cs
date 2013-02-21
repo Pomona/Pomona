@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 
 using Newtonsoft.Json;
@@ -86,5 +87,8 @@ namespace Pomona
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
         bool PropertyIsAttributes(PropertyInfo propertyInfo);
+        LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo);
+        bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);
+        LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
     }
 }

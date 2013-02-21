@@ -123,6 +123,12 @@ namespace Pomona.Queries
                 return ParseLambda(lambdaNode, memberExpression, expectedType);
             }
 
+            if (node.NodeType == NodeType.Not)
+            {
+                var notNode = (NotNode) node;
+                return Expression.Not(ParseExpression(notNode.Children[0]));
+            }
+
             throw new NotImplementedException();
         }
 

@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,13 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Pomona.Common.TypeSystem;
+using Pomona.Visitors;
 
 namespace Pomona
 {
@@ -74,15 +70,7 @@ namespace Pomona
 
         public PropertyAccessMode AccessMode { get; set; }
 
-        public bool AlwaysExpand { get; set; }
         public int ConstructorArgIndex { get; set; }
-
-        public PropertyCreateMode CreateMode { get; set; }
-
-        public IMappedType DeclaringType
-        {
-            get { return this.declaringType; }
-        }
 
         /// <summary>
         /// For one-to-many collection properties this defines which property on the
@@ -92,13 +80,34 @@ namespace Pomona
         /// </summary>
         public PropertyMapping ElementForeignKey { get; set; }
 
-        public Func<object, object> Getter { get; set; }
         public bool IsAttributesProperty { get; set; }
 
         public bool IsOneToManyCollection
         {
-            get { return this.propertyType.IsCollection; }
+            get { return propertyType.IsCollection; }
         }
+
+        public PropertyInfo PropertyInfo
+        {
+            get { return propertyInfo; }
+        }
+
+        public LambdaExpression Formula { get; set; }
+
+        public TypeMapper TypeMapper
+        {
+            get { return declaringType.TypeMapper; }
+        }
+
+        public bool AlwaysExpand { get; set; }
+        public PropertyCreateMode CreateMode { get; set; }
+
+        public IMappedType DeclaringType
+        {
+            get { return declaringType; }
+        }
+
+        public Func<object, object> Getter { get; set; }
 
         public bool IsPrimaryKey
         {
@@ -115,30 +124,24 @@ namespace Pomona
 
         public string Name
         {
-            get { return this.name; }
-        }
-
-        public PropertyInfo PropertyInfo
-        {
-            get { return this.propertyInfo; }
+            get { return name; }
         }
 
         public IMappedType PropertyType
         {
-            get { return this.propertyType; }
+            get { return propertyType; }
         }
 
         public Action<object, object> Setter { get; set; }
 
-        public TypeMapper TypeMapper
-        {
-            get { return this.declaringType.TypeMapper; }
-        }
-
 
         public Expression CreateGetterExpression(Expression instance)
         {
-            return Expression.MakeMemberAccess(instance, PropertyInfo);
+            if (Formula == null)
+                return Expression.MakeMemberAccess(instance, PropertyInfo);
+
+            // TODO: Make some assertions here..
+            return FindAndReplaceVisitor.Replace(Formula.Body, Formula.Parameters[0], instance);
         }
     }
 }

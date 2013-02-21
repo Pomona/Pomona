@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,21 +22,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Common.Logging;
-
+using DelegateDecompiler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-
-using Pomona.Common.Internals;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.FluentMapping;
 
 namespace Pomona
@@ -46,47 +40,35 @@ namespace Pomona
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
-        private ILog log = LogManager.GetLogger(typeof(TypeMappingFilterBase));
+        private readonly ILog log = LogManager.GetLogger(typeof (TypeMappingFilterBase));
         private HashSet<Type> sourceTypesCached;
 
 
         static TypeMappingFilterBase()
         {
-            jsonSupportedNativeTypes = new HashSet<Type>()
-            {
-                typeof(string),
-                typeof(int),
-                typeof(long),
-                typeof(double),
-                typeof(float),
-                typeof(decimal),
-                typeof(DateTime),
-                typeof(object),
-                typeof(bool),
-                typeof(Guid),
-                typeof(Uri)
-            };
-        }
-
-
-        public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
-        {
-            return DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
-        }
-
-
-        public virtual string ApiVersion
-        {
-            get { return "0.1.0"; }
+            jsonSupportedNativeTypes = new HashSet<Type>
+                {
+                    typeof (string),
+                    typeof (int),
+                    typeof (long),
+                    typeof (double),
+                    typeof (float),
+                    typeof (decimal),
+                    typeof (DateTime),
+                    typeof (object),
+                    typeof (bool),
+                    typeof (Guid),
+                    typeof (Uri)
+                };
         }
 
         private HashSet<Type> SourceTypes
         {
             get
             {
-                if (this.sourceTypesCached == null)
-                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
-                return this.sourceTypesCached;
+                if (sourceTypesCached == null)
+                    sourceTypesCached = new HashSet<Type>(GetSourceTypes());
+                return sourceTypesCached;
             }
         }
 
@@ -131,14 +113,14 @@ namespace Pomona
 
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            var selfParam = Expression.Parameter(typeof(object), "x");
+            var selfParam = Expression.Parameter(typeof (object), "x");
             var expr = Expression.Lambda<Func<object, object>>(
                 Expression.Convert(
                     Expression.MakeMemberAccess(
                         Expression.Convert(selfParam, propertyInfo.DeclaringType),
                         propertyInfo
                         ),
-                    typeof(object)
+                    typeof (object)
                     ),
                 selfParam
                 );
@@ -158,14 +140,14 @@ namespace Pomona
             if (!propertyInfo.CanWrite)
             {
                 return (obj, value) =>
-                {
-                    throw new InvalidOperationException(
-                        "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
-                };
+                    {
+                        throw new InvalidOperationException(
+                            "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
+                    };
             }
 
-            var selfParam = Expression.Parameter(typeof(object), "x");
-            var valueParam = Expression.Parameter(typeof(object), "value");
+            var selfParam = Expression.Parameter(typeof (object), "x");
+            var valueParam = Expression.Parameter(typeof (object), "value");
             var expr = Expression.Lambda<Action<object, object>>(
                 Expression.Assign(
                     Expression.Property(
@@ -224,10 +206,10 @@ namespace Pomona
             //
 
             // Lets just try this for now:
-            if (this.sourceTypesCached.Contains(type))
+            if (sourceTypesCached.Contains(type))
                 return type;
 
-            if (type.BaseType != null && this.sourceTypesCached.Contains(type.BaseType))
+            if (type.BaseType != null && sourceTypesCached.Contains(type.BaseType))
                 return type.BaseType;
 
             return type;
@@ -247,7 +229,7 @@ namespace Pomona
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
         }
 
 
@@ -274,13 +256,30 @@ namespace Pomona
             return false;
         }
 
+        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
+        {
+            return false;
+        }
+
+        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        {
+            var getMethod = propertyInfo.GetGetMethod(true);
+            var decompiled = getMethod.Decompile();
+            return decompiled;
+        }
+
+        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        {
+            return null;
+        }
+
 
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
             Type[] genericArguments;
             if (
                 !TypeUtils.TryGetTypeArguments(
-                    collectionProperty.PropertyType, typeof(IEnumerable<>), out genericArguments))
+                    collectionProperty.PropertyType, typeof (IEnumerable<>), out genericArguments))
                 return null;
 
             var elementType = genericArguments[0];
@@ -289,7 +288,7 @@ namespace Pomona
                 elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
             if (foreignPropCandicates.Count > 1)
             {
-                this.log.Warn(
+                log.Warn(
                     "Not mapping foreign key relation of one-to-many collection property " + collectionProperty.Name
                     + " of type "
                     + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
@@ -306,18 +305,28 @@ namespace Pomona
         }
 
 
-
         private bool TypeIsIGrouping(Type type)
         {
-            return type.MetadataToken == typeof(IGrouping<,>).MetadataToken;
+            return type.MetadataToken == typeof (IGrouping<,>).MetadataToken;
         }
 
         #endregion
 
+        public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
+        {
+            return DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
+        }
+
+
+        public virtual string ApiVersion
+        {
+            get { return "0.1.0"; }
+        }
+
         private static bool IsNullableType(Type type)
         {
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
+                   type.GetGenericTypeDefinition().Equals(typeof (Nullable<>));
         }
 
 

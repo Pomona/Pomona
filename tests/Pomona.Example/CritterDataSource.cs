@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +31,6 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Example.Models;
 using Pomona.Internals;
-using Pomona.Queries;
 
 namespace Pomona.Example
 {
@@ -43,14 +38,16 @@ namespace Pomona.Example
     {
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
-        private static MethodInfo saveMethod;
+        private static readonly MethodInfo saveMethod;
         private static readonly MethodInfo queryMethod;
+
+        private readonly List<PomonaQuery> queryLog = new List<PomonaQuery>();
+        private readonly object syncLock = new object();
         private Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
 
-        private bool notificationsEnabled = false;
-        private object syncLock = new object();
+        private bool notificationsEnabled;
 
         static CritterDataSource()
         {
@@ -100,14 +97,6 @@ namespace Pomona.Example
         }
 
 
-        public ICollection<T> List<T>()
-        {
-            lock (syncLock)
-            {
-                return GetEntityList<T>();
-            }
-        }
-
         public object Post<T>(T newObject)
         {
             lock (syncLock)
@@ -121,15 +110,6 @@ namespace Pomona.Example
             }
         }
 
-        private QueryResult Query<TEntityBase, TEntity>(PomonaQuery pq)
-        {
-            var visitor = new MakeDictAccessesSafeVisitor();
-            pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
-
-            return pq.ApplyAndExecute(new EnumerableQuery<TEntity>(GetEntityList<TEntityBase>().OfType<TEntity>()));
-
-        }
-
         public QueryResult Query(IPomonaQuery query)
         {
             lock (syncLock)
@@ -139,8 +119,30 @@ namespace Pomona.Example
                 var entityUriBaseType = pq.TargetType.UriBaseType.MappedTypeInstance;
 
                 return
-                    (QueryResult) queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {pq});
+                    (QueryResult)
+                    queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {pq});
             }
+        }
+
+        public ICollection<T> List<T>()
+        {
+            lock (syncLock)
+            {
+                return GetEntityList<T>();
+            }
+        }
+
+        private QueryResult Query<TEntityBase, TEntity>(PomonaQuery pq)
+        {
+            queryLog.Add(pq);
+
+            var visitor = new MakeDictAccessesSafeVisitor();
+            pq.FilterExpression = (LambdaExpression) visitor.Visit(pq.FilterExpression);
+
+            var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
+            throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
+
+            return pq.ApplyAndExecute(new EnumerableQuery<TEntity>(GetEntityList<TEntityBase>().OfType<TEntity>()));
         }
 
 
@@ -169,6 +171,11 @@ namespace Pomona.Example
 
         #endregion
 
+        public List<PomonaQuery> QueryLog
+        {
+            get { lock (syncLock) return queryLog; }
+        }
+
         public static IEnumerable<Type> GetEntityTypes()
         {
             return typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
@@ -177,11 +184,15 @@ namespace Pomona.Example
 
         public void ResetTestData()
         {
-            idCounter = 1;
-            entityLists = new Dictionary<Type, object>();
-            notificationsEnabled = false;
-            CreateObjectModel();
-            notificationsEnabled = true;
+            lock (syncLock)
+            {
+                idCounter = 1;
+                entityLists = new Dictionary<Type, object>();
+                notificationsEnabled = false;
+                CreateObjectModel();
+                notificationsEnabled = true;
+                queryLog.Clear();
+            }
         }
 
         private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
@@ -219,7 +230,7 @@ namespace Pomona.Example
                 {
                     var value = prop.GetValue(entity, null);
                     if (value != null)
-                        saveMethod.MakeGenericMethod(propType).Invoke(this, new object[] {value});
+                        saveMethod.MakeGenericMethod(propType).Invoke(this, new[] {value});
                 }
                 else if (TypeUtils.TryGetTypeArguments(propType, typeof (ICollection<>), out genericArguments))
                 {
@@ -255,8 +266,8 @@ namespace Pomona.Example
 
         private void CreateJunkWithNullables()
         {
-            Save(new JunkWithNullableInt() {Maybe = 1337, MentalState = "I'm happy, I have value!"});
-            Save(new JunkWithNullableInt() {Maybe = null, MentalState = "I got nothing in life. So sad.."});
+            Save(new JunkWithNullableInt {Maybe = 1337, MentalState = "I'm happy, I have value!"});
+            Save(new JunkWithNullableInt {Maybe = null, MentalState = "I got nothing in life. So sad.."});
         }
 
 
@@ -265,7 +276,7 @@ namespace Pomona.Example
             var rng = new Random(23576758);
 
             for (var i = 0; i < 70; i++)
-                Save(new WeaponModel() {Name = Words.GetSpecialWeapon(rng)});
+                Save(new WeaponModel {Name = Words.GetSpecialWeapon(rng)});
 
             CreateFarms();
 
@@ -290,7 +301,7 @@ namespace Pomona.Example
                 var musicalCritter = new MusicalCritter
                     {
                         BandName = Words.GetBandName(rng),
-                        Instrument = Save(new Instrument() {Type = Words.GetCoolInstrument(rng)})
+                        Instrument = Save(new Instrument {Type = Words.GetCoolInstrument(rng)})
                     };
                 critter = musicalCritter;
             }
@@ -301,8 +312,7 @@ namespace Pomona.Example
 
             critter.Name = Words.GetAnimalWithPersonality(rng);
 
-            critter.CrazyValue = new CrazyValueObject()
-                {Sickness = Words.GetCritterHealthDiagnosis(rng, critter.Name)};
+            critter.CrazyValue = new CrazyValueObject {Sickness = Words.GetCritterHealthDiagnosis(rng, critter.Name)};
 
             CreateWeapons(rng, critter, 24);
             CreateSubscriptions(rng, critter, 3);

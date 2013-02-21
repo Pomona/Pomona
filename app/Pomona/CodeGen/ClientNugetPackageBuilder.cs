@@ -71,9 +71,9 @@ namespace Pomona.CodeGen
         }
 
 
-        private static string GetVersionString()
+        private string GetVersionString()
         {
-            return "1.0.0.0";
+            return typeMapper.Filter.ApiVersion;
         }
 
 

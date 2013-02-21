@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,9 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Pomona.FluentMapping
@@ -46,6 +43,9 @@ namespace Pomona.FluentMapping
             Name = propertyInfo.Name;
         }
 
+        public LambdaExpression Formula { get; set; }
+
+        public bool? PropertyFormulaIsDecompiled { get; set; }
 
         public int? ConstructorArgIndex { get; set; }
 
@@ -57,7 +57,7 @@ namespace Pomona.FluentMapping
 
         public PropertyInfo PropertyInfo
         {
-            get { return this.propertyInfo; }
+            get { return propertyInfo; }
         }
     }
 }

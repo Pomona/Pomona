@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -41,10 +37,12 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Pomona.Common;
+using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 using PropertyAttributes = Mono.Cecil.PropertyAttributes;
+using TypeAttributes = Mono.Cecil.TypeAttributes;
 
 namespace Pomona.CodeGen
 {
@@ -57,26 +55,21 @@ namespace Pomona.CodeGen
     /// </summary>
     public class AnonymousTypeBuilder
     {
-        private static readonly TypeDefinition templateDef;
         private static int anonTypeNumber = 100;
-        private static ConcurrentDictionary<string, Type> anonTypeCache = new ConcurrentDictionary<string, Type>();
+
+        private static readonly ConcurrentDictionary<string, Type> anonTypeCache =
+            new ConcurrentDictionary<string, Type>();
+
+        private readonly IList<Property> properties;
+
         private TypeDefinition definition;
         private GenericInstanceType ilFieldDeclaringType;
         private ModuleDefinition module;
-        private IList<Property> properties;
-
-        static AnonymousTypeBuilder()
-        {
-            var anonTemplateType =
-                Enumerable.Range(0, 1).Select(x => new {Arg0 = x}).First().GetType().GetGenericTypeDefinition();
-            var module = AssemblyDefinition.ReadAssembly(anonTemplateType.Assembly.Location).MainModule;
-            templateDef = module.Import(anonTemplateType).Resolve();
-        }
 
 
         public AnonymousTypeBuilder(IEnumerable<string> propNames)
         {
-            properties = propNames.Select((x, i) => new Property() {Index = i, Name = x}).ToList();
+            properties = propNames.Select((x, i) => new Property {Index = i, Name = x}).ToList();
         }
 
 
@@ -144,7 +137,7 @@ namespace Pomona.CodeGen
                 AssemblyDefinition.CreateAssembly(
                     new AssemblyNameDefinition(assemblyName, new Version(1, 0)), assemblyName, ModuleKind.Dll);
 
-            
+
             module = dynamicAssembly.MainModule;
             module.Architecture = TargetArchitecture.I386;
             module.Attributes = ModuleAttributes.ILOnly;
@@ -154,7 +147,7 @@ namespace Pomona.CodeGen
             definition = new TypeDefinition(
                 "",
                 string.Format("<>f__AnonymousType{0}`{1}", AllocateUniqueAnonymousClassNumber(), PropCount),
-                templateDef.Attributes,
+                TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                 module.TypeSystem.Object);
 
             AddGenericParams();
@@ -184,28 +177,28 @@ namespace Pomona.CodeGen
 
         private void AddCompilationRelaxationsAttributeToAssembly()
         {
-            var attrType = this.module.Import(typeof(CompilationRelaxationsAttribute));
+            var attrType = module.Import(typeof (CompilationRelaxationsAttribute));
             var methodDefinition =
-                this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
+                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
             var attr =
                 new CustomAttribute(methodDefinition);
 
             attr.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.Int32, 8));
-            this.module.Assembly.CustomAttributes.Add(attr);
+            module.Assembly.CustomAttributes.Add(attr);
         }
 
         private void AddRuntimeCompabilityAttributeToAssembly()
         {
-            var attrType = this.module.Import(typeof(RuntimeCompatibilityAttribute));
+            var attrType = module.Import(typeof (RuntimeCompatibilityAttribute));
             var methodDefinition =
-                this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
             var attr =
                 new CustomAttribute(methodDefinition);
 
             attr.Properties.Add(
-                new Mono.Cecil.CustomAttributeNamedArgument(
-                    "WrapNonExceptionThrows", new CustomAttributeArgument(this.module.TypeSystem.Boolean, true)));
-            this.module.Assembly.CustomAttributes.Add(attr);
+                new CustomAttributeNamedArgument(
+                    "WrapNonExceptionThrows", new CustomAttributeArgument(module.TypeSystem.Boolean, true)));
+            module.Assembly.CustomAttributes.Add(attr);
         }
 
 
@@ -253,8 +246,11 @@ namespace Pomona.CodeGen
         private void AddConstructor()
         {
             var baseCtor = module.Import(module.TypeSystem.Object.Resolve().GetConstructors().First());
+            const MethodAttributes methodAttributes =
+                MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.HideBySig |
+                MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
             var ctor = new MethodDefinition(
-                ".ctor", templateDef.Methods.First(x => x.Name == ".ctor").Attributes, module.TypeSystem.Void);
+                ".ctor", methodAttributes, module.TypeSystem.Void);
 
             foreach (var prop in properties)
             {

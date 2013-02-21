@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,39 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System.Collections.Generic;
 
 namespace Pomona.Queries
 {
-    public enum NodeType
+    internal class NotNode : NodeBase
     {
-        Unhandled,
-        AndAlso,
-        OrElse,
-        Add,
-        Subtract,
-        Multiply,
-        Div,
-        NumberLiteral,
-        LessThan,
-        Equal,
-        Root,
-        Symbol,
-        GreaterThan,
-        StringLiteral,
-        GuidLiteral,
-        GreaterThanOrEqual,
-        LessThanOrEqual,
-        DateTimeLiteral,
-        Dot,
-        Modulo,
-        NotEqual,
-        MethodCall,
-        IndexerAccess,
-        Lambda,
-        As,
-        In,
-        ArrayLiteral,
-        Not
+        public NotNode(IEnumerable<NodeBase> children) : base(NodeType.Not, children)
+        {
+        }
     }
 }

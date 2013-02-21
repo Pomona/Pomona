@@ -138,6 +138,9 @@ namespace Pomona.Common.Linq
             if (!string.IsNullOrEmpty(expandedPaths))
                 builder.AppendParameter("$expand", expandedPaths);
 
+            if (parser.IncludeTotalCount)
+                builder.AppendParameter("$totalcount", "true");
+
             return this.client.GetUriOfType(parser.ElementType) + "?" + builder;
         }
 

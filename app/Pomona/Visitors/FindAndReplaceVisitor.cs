@@ -1,9 +1,7 @@
-#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,39 +22,31 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System.Linq.Expressions;
 
-namespace Pomona.Queries
+namespace Pomona.Visitors
 {
-    public enum NodeType
+    internal class FindAndReplaceVisitor : ExpressionVisitor
     {
-        Unhandled,
-        AndAlso,
-        OrElse,
-        Add,
-        Subtract,
-        Multiply,
-        Div,
-        NumberLiteral,
-        LessThan,
-        Equal,
-        Root,
-        Symbol,
-        GreaterThan,
-        StringLiteral,
-        GuidLiteral,
-        GreaterThanOrEqual,
-        LessThanOrEqual,
-        DateTimeLiteral,
-        Dot,
-        Modulo,
-        NotEqual,
-        MethodCall,
-        IndexerAccess,
-        Lambda,
-        As,
-        In,
-        ArrayLiteral,
-        Not
+        private readonly Expression expressionToReplace;
+        private readonly Expression replacementExpression;
+
+        public FindAndReplaceVisitor(Expression expressionToReplace, Expression replacementExpression)
+        {
+            this.expressionToReplace = expressionToReplace;
+            this.replacementExpression = replacementExpression;
+        }
+
+        public static Expression Replace(Expression searchedExpression, Expression expressionToReplace,
+                                         Expression replacementExpression)
+        {
+            var visitor = new FindAndReplaceVisitor(expressionToReplace, replacementExpression);
+            return visitor.Visit(searchedExpression);
+        }
+
+        public override Expression Visit(Expression node)
+        {
+            return node == expressionToReplace ? replacementExpression : base.Visit(node);
+        }
     }
 }

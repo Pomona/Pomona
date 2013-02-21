@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,15 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-
 using Pomona.Common.Internals;
 using Pomona.Internals;
 
@@ -60,6 +55,7 @@ namespace Pomona.Common.Linq
         private readonly IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
         private Type elementType;
         private LambdaExpression groupByKeySelector;
+        private bool includeTotalCount;
 
         private LambdaExpression orderKeySelector;
 
@@ -90,67 +86,74 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(QueryableMethods.Select);
             MapQueryableFunction(QueryableMethods.GroupBy);
             MapQueryableFunction(QueryableMethods.Expand);
+            MapQueryableFunction(QueryableMethods.SumIntWithSelector);
+            MapQueryableFunction(QueryableMethods.IncludeTotalCount);
+        }
+
+        public bool IncludeTotalCount
+        {
+            get { return includeTotalCount; }
         }
 
 
         public Type ElementType
         {
-            get { return this.elementType; }
+            get { return elementType; }
         }
 
         public string ExpandedPaths
         {
-            get { return this.expandedPaths.ToString(); }
+            get { return expandedPaths.ToString(); }
         }
 
         public LambdaExpression GroupByKeySelector
         {
-            get { return this.groupByKeySelector; }
+            get { return groupByKeySelector; }
         }
 
         public LambdaExpression OrderKeySelector
         {
-            get { return this.orderKeySelector; }
+            get { return orderKeySelector; }
         }
 
         public QueryProjection Projection
         {
-            get { return this.projection; }
+            get { return projection; }
         }
 
         public LambdaExpression SelectExpression
         {
-            get { return this.selectExpression; }
+            get { return selectExpression; }
         }
 
         public Type SelectReturnType
         {
             get
             {
-                if (this.selectExpression == null)
-                    return this.elementType;
-                return this.selectExpression.ReturnType;
+                if (selectExpression == null)
+                    return elementType;
+                return selectExpression.ReturnType;
             }
         }
 
         public int? SkipCount
         {
-            get { return this.skipCount; }
+            get { return skipCount; }
         }
 
         public SortOrder SortOrder
         {
-            get { return this.sortOrder; }
+            get { return sortOrder; }
         }
 
         public int? TakeCount
         {
-            get { return this.takeCount; }
+            get { return takeCount; }
         }
 
         public LambdaExpression WherePredicate
         {
-            get { return this.wherePredicate; }
+            get { return wherePredicate; }
         }
 
 
@@ -158,10 +161,10 @@ namespace Pomona.Common.Linq
         {
             // Using chained (extension method) calling style this will be the source of the query.
             // source.Where(...) etc..
-            if (node.Type.MetadataToken == typeof(RestQuery<>).MetadataToken)
+            if (node.Type.MetadataToken == typeof (RestQuery<>).MetadataToken)
             {
                 visitQueryConstantValueMethod.MakeGenericMethod(node.Type.GetGenericArguments()).Invoke(
-                    this, new[] { node.Value });
+                    this, new[] {node.Value});
                 return node;
             }
 
@@ -197,23 +200,27 @@ namespace Pomona.Common.Linq
         {
             // TODO: When count is supported it will work better..
             QWhere(predicate);
-            this.takeCount = 1;
-            this.projection = QueryProjection.Any;
+            takeCount = 1;
+            projection = QueryProjection.Any;
         }
 
+        internal void QSum<TSource>(Expression<Func<TSource, int>> propertySelector)
+        {
+            throw new NotImplementedException();
+        }
 
         internal void QExpand<TSource, TProperty>(Expression<Func<TSource, TProperty>> propertySelector)
         {
-            if (this.expandedPaths.Length > 0)
-                this.expandedPaths.Append(',');
-            this.expandedPaths.Append(propertySelector.GetPropertyPath(true));
+            if (expandedPaths.Length > 0)
+                expandedPaths.Append(',');
+            expandedPaths.Append(propertySelector.GetPropertyPath(true));
         }
 
 
         internal void QFirst<TSource>()
         {
-            this.takeCount = 1;
-            this.projection = QueryProjection.First;
+            takeCount = 1;
+            projection = QueryProjection.First;
         }
 
 
@@ -223,11 +230,15 @@ namespace Pomona.Common.Linq
             QFirst<TSource>();
         }
 
+        internal void QIncludeTotalCount<TSource>()
+        {
+            includeTotalCount = true;
+        }
 
         internal void QFirstOrDefault<TSource>()
         {
-            this.takeCount = 1;
-            this.projection = QueryProjection.FirstOrDefault;
+            takeCount = 1;
+            projection = QueryProjection.FirstOrDefault;
         }
 
 
@@ -244,9 +255,9 @@ namespace Pomona.Common.Linq
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Skip() before GroupBy()");
             if (TakeCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before GroupBy()");
-            if (this.groupByKeySelector != null)
+            if (groupByKeySelector != null)
                 throw new NotSupportedException("Pomona LINQ provider does not support multiple chained GroupBy()");
-            this.groupByKeySelector = keySelector;
+            groupByKeySelector = keySelector;
         }
 
 
@@ -264,14 +275,14 @@ namespace Pomona.Common.Linq
 
         internal void QSelect<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
         {
-            if (this.selectExpression != null)
+            if (selectExpression != null)
             {
                 throw new NotSupportedException(
                     "Pomona LINQ provider does not support calling Select() multiple times.");
             }
-            if (this.expandedPaths.Length > 0)
+            if (expandedPaths.Length > 0)
                 throw new NotSupportedException("Pomona LINQ provider does not support using Expand() before Select()");
-            this.selectExpression = selector;
+            selectExpression = selector;
         }
 
 
@@ -300,17 +311,17 @@ namespace Pomona.Common.Linq
             if (GroupByKeySelector != null)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Where() after GroupBy()");
 
-            this.whereExpressions.Add(predicate);
-            if (this.wherePredicate == null)
-                this.wherePredicate = predicate;
+            whereExpressions.Add(predicate);
+            if (wherePredicate == null)
+                wherePredicate = predicate;
             else
             {
-                var replacer = new LamdbaParameterReplacer(predicate.Parameters[0], this.wherePredicate.Parameters[0]);
+                var replacer = new LamdbaParameterReplacer(predicate.Parameters[0], wherePredicate.Parameters[0]);
                 var rewrittenPredicateBody = replacer.Visit(predicate.Body);
-                this.wherePredicate = Expression.Lambda(
-                    this.wherePredicate.Type,
-                    Expression.AndAlso(this.wherePredicate.Body, rewrittenPredicateBody),
-                    this.wherePredicate.Parameters);
+                wherePredicate = Expression.Lambda(
+                    wherePredicate.Type,
+                    Expression.AndAlso(wherePredicate.Body, rewrittenPredicateBody),
+                    wherePredicate.Parameters);
             }
         }
 
@@ -323,9 +334,13 @@ namespace Pomona.Common.Linq
 
         private static void MapQueryableFunction(MethodInfo method)
         {
-            var visitMethod = typeof(RestQueryableTreeParser)
+            var visitMethod = typeof (RestQueryableTreeParser)
                 .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                 .FirstOrDefault(x => VisitMethodMatches(x, method));
+
+            if (visitMethod == null)
+                throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
+
             queryableMethodToVisitMethodDictionary.Add(method.MetadataToken, visitMethod);
         }
 
@@ -351,11 +366,11 @@ namespace Pomona.Common.Linq
         private object ExtractArgumentFromExpression(Expression expression)
         {
             if (expression.NodeType == ExpressionType.Quote)
-                return ((UnaryExpression)expression).Operand;
+                return ((UnaryExpression) expression).Operand;
             if (expression.NodeType == ExpressionType.Lambda)
                 return expression;
             if (expression.NodeType == ExpressionType.Constant)
-                return ((ConstantExpression)expression).Value;
+                return ((ConstantExpression) expression).Value;
             throw new NotSupportedException("Does not know how to unwrap " + expression.NodeType);
         }
 
@@ -372,14 +387,14 @@ namespace Pomona.Common.Linq
                 throw new NotSupportedException(
                     "Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
             }
-            this.orderKeySelector = keySelector;
+            orderKeySelector = keySelector;
             this.sortOrder = sortOrder;
         }
 
 
         private object VisitQueryConstantValue<T>(RestQuery<T> restQuery)
         {
-            this.elementType = ((IQueryable)restQuery).ElementType;
+            elementType = ((IQueryable) restQuery).ElementType;
             return null;
         }
 
@@ -400,8 +415,8 @@ namespace Pomona.Common.Linq
 
             protected override Expression VisitParameter(ParameterExpression node)
             {
-                if (node == this.searchParam)
-                    return this.replaceParam;
+                if (node == searchParam)
+                    return replaceParam;
                 return base.VisitParameter(node);
             }
         }

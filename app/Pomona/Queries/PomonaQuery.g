@@ -24,6 +24,7 @@ tokens {
    DOT_OP;
    AS_OP;
    IN_OP;
+   NOT_OP;
    DATETIME_LITERAL;
    GUID_LITERAL;
    METHOD_CALL;
@@ -141,7 +142,7 @@ multiplicative_expr
 	;
 
 unary_operator 
-	:	'not'
+	:	'not' -> NOT_OP
 	;
 
 dot_operator
@@ -150,7 +151,7 @@ dot_operator
 
 
 unary_expr 
-	: unary_operator unary_expr
+	: unary_operator^ unary_expr
 	| primary_expr
 	;
 

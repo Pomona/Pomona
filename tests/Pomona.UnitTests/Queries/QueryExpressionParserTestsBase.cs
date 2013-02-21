@@ -41,6 +41,7 @@ namespace Pomona.UnitTests.Queries
 
         public class Dummy
         {
+            public bool OnOrOff { get; set; }
             public bool and { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
             public IEnumerable<Dummy> Children { get; set; }

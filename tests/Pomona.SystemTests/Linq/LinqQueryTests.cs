@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,17 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
-
+using System.Linq.Expressions;
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
+using Pomona.TestHelpers;
 
 namespace Pomona.SystemTests.Linq
 {
@@ -60,7 +55,7 @@ namespace Pomona.SystemTests.Linq
             // Just take some random critter
             var critter = CritterEntities.Skip(6).Take(1).First();
             var hasCritterWithGuid =
-                this.client.Critters.Query().Any(x => x.Name == critter.Name);
+                client.Critters.Query().Any(x => x.Name == critter.Name);
             Assert.That(hasCritterWithGuid, Is.True);
         }
 
@@ -69,8 +64,17 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_AnyWithNameEqualToRandomGuid_ReturnsFalse()
         {
             var hasCritterWithGuid =
-                this.client.Query<ICritter>().Any(x => x.Name == Guid.NewGuid().ToString());
+                client.Query<ICritter>().Any(x => x.Name == Guid.NewGuid().ToString());
             Assert.That(hasCritterWithGuid, Is.False);
+        }
+
+        [Category("TODO")]
+        [Test(Description = "Need to implement custom projections to make sum possible")]
+        public void QueryCritter_GetSumOfIntProperty()
+        {
+            var expected = CritterEntities.Where(x => x.Name.StartsWith("B")).Sum(x => x.Name.Length);
+            var actual = client.Query<ICritter>().Where(x => x.Name.StartsWith("B")).Sum(x => x.Name.Length);
+            Assert.That(actual, Is.EqualTo(expected));
         }
 
 
@@ -81,37 +85,36 @@ namespace Pomona.SystemTests.Linq
             // Search by its name
             var expected =
                 CritterEntities
-                    .Where(x => x.Id % 2 == 0)
+                    .Where(x => x.Id%2 == 0)
                     .GroupBy(x => x.Name.Substring(0, 1))
                     .Select(
                         x => new
-                        {
-                            x.Key,
-                            Count = x.Count(),
-                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                        })
+                            {
+                                x.Key,
+                                Count = x.Count(),
+                                WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                            })
                     .OrderByDescending(x => x.Count)
                     .Take(10)
                     .ToList();
 
             var actual =
-                this.client.Query<ICritter>()
-                    .Where(x => x.Id % 2 == 0)
-                    .GroupBy(x => x.Name.Substring(0, 1))
-                    .Select(
-                        x => new
-                        {
-                            x.Key,
-                            Count = x.Count(),
-                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                        })
-                    .OrderByDescending(x => x.Count)
-                    .Take(10)
-                    .ToList();
+                client.Query<ICritter>()
+                      .Where(x => x.Id%2 == 0)
+                      .GroupBy(x => x.Name.Substring(0, 1))
+                      .Select(
+                          x => new
+                              {
+                                  x.Key,
+                                  Count = x.Count(),
+                                  WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                              })
+                      .OrderByDescending(x => x.Count)
+                      .Take(10)
+                      .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
         }
-
 
         [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
@@ -120,29 +123,29 @@ namespace Pomona.SystemTests.Linq
             // Search by its name
             var expected =
                 CritterEntities
-                    .Where(x => x.Id % 2 == 0)
+                    .Where(x => x.Id%2 == 0)
                     .GroupBy(x => x.Farm.Id)
                     .Select(
                         x => new
-                        {
-                            Count = x.Count(),
-                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                        })
+                            {
+                                Count = x.Count(),
+                                WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                            })
                     .Take(1)
                     .ToList();
 
             var actual =
-                this.client.Query<ICritter>()
-                    .Where(x => x.Id % 2 == 0)
-                    .GroupBy(x => x.Farm.Id)
-                    .Select(
-                        x => new
-                        {
-                            Count = x.Count(),
-                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                        })
-                    .Take(1)
-                    .ToList();
+                client.Query<ICritter>()
+                      .Where(x => x.Id%2 == 0)
+                      .GroupBy(x => x.Farm.Id)
+                      .Select(
+                          x => new
+                              {
+                                  Count = x.Count(),
+                                  WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                              })
+                      .Take(1)
+                      .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
         }
@@ -155,7 +158,7 @@ namespace Pomona.SystemTests.Linq
             var critter = CritterEntities.Skip(6).Take(1).First();
             // Search by its name
             var critterResource =
-                this.client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
+                client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
 
@@ -164,22 +167,21 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WhereThenSelectAnonymousClass_ReturnsCorrectValues()
         {
             var expected = CritterEntities
-                .Where(x => x.Id % 2 == 0)
-                .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
+                .Where(x => x.Id%2 == 0)
+                .Select(x => new {x.Name, Crazy = x.CrazyValue.Sickness})
                 .OrderBy(x => x.Name)
                 .Take(10)
                 .ToList();
             var actual =
-                this.client.Query<ICritter>()
-                    .Where(x => x.Id % 2 == 0)
-                    .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
-                    .OrderBy(x => x.Name)
-                    .Take(10)
-                    .ToList();
+                client.Query<ICritter>()
+                      .Where(x => x.Id%2 == 0)
+                      .Select(x => new {x.Name, Crazy = x.CrazyValue.Sickness})
+                      .OrderBy(x => x.Name)
+                      .Take(10)
+                      .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
         }
-
 
         [Test]
         public void QueryCritter_WhereThenSelectSingleProperty_ReturnsCorrectValues()
@@ -188,7 +190,7 @@ namespace Pomona.SystemTests.Linq
             // Search by its name
             var expected = CritterEntities.OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList();
             var actual =
-                this.client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
+                client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
             Assert.That(actual, Is.EqualTo(expected));
         }
 
@@ -197,8 +199,17 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithAttributeEquals_ReturnsCorrectCritter()
         {
             var critter =
-                this.client.Critters.Query().Where(
+                client.Critters.Query().Where(
                     x => x.SimpleAttributes.Any(y => y.Key == "AttrKey" && y.Value == "dde")).ToList();
+        }
+
+        [Test]
+        public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
+        {
+            client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
+            var query = DataSource.QueryLog.Last();
+            Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;
+            query.FilterExpression.AssertEquals(expectedFilter);
         }
 
 
@@ -206,8 +217,12 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithExpandedPropertyOfAnonymousClass_HasPropertyExpanded()
         {
             var result =
-                this.client.Critters.Query().Select(x => new { TheHat = x.Hat, x.Name }).OrderBy(x => x.Name).Expand(x => x.TheHat).Take(1).
-                    First();
+                client.Critters.Query()
+                      .Select(x => new {TheHat = x.Hat, x.Name})
+                      .OrderBy(x => x.Name)
+                      .Expand(x => x.TheHat)
+                      .Take(1)
+                      .First();
             Assert.That(result.TheHat, Is.TypeOf<HatResource>());
         }
 
@@ -215,8 +230,37 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WithExpandedProperty_HasPropertyExpanded()
         {
-            var result = this.client.Critters.Query().Expand(x => x.Hat).Take(1).First();
+            var result = client.Critters.Query().Expand(x => x.Hat).Take(1).First();
             Assert.That(result.Hat, Is.TypeOf<HatResource>());
+        }
+
+        [Test]
+        public void QueryCritter_WithHandledGeneratedProperty_UsesPropertyFormula()
+        {
+            client.Critters.Query(x => x.HandledGeneratedProperty == 3).ToList();
+            var query = DataSource.QueryLog.Last();
+            Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id%6) == 3;
+            query.FilterExpression.AssertEquals(expectedFilter);
+        }
+
+        [Test]
+        public void QueryCritter_WithIncludeTotalCount_IncludesTotalCount()
+        {
+            var expectedTotalCount = CritterEntities.Count(x => x.Id%3 == 0);
+            var results = client
+                .Critters
+                .Query()
+                .Where(x => x.Id%3 == 0)
+                .IncludeTotalCount()
+                .ToQueryResult();
+            Assert.That(results.TotalCount, Is.EqualTo(expectedTotalCount));
+        }
+
+        [Test]
+        public void QueryCritter_WithUnhandledGeneratedProperty_ThrowsExceptionUsingCritterDataSource()
+        {
+            Assert.That(() => client.Critters.Query(x => x.UnhandledGeneratedProperty == "nono").ToList(),
+                        Throws.Exception);
         }
 
 
@@ -225,11 +269,11 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
             var subtypedDictionaryContainer = new SubtypedDictionaryContainer
-            {
-                Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
-                SomethingExtra = "Hahahohohihi"
-            };
-            this.critterHost.DataSource.Save<DictionaryContainer>(
+                {
+                    Map = {{"CustomString", "Lalalala"}, {"OtherCustom", "Blob rob"}},
+                    SomethingExtra = "Hahahohohihi"
+                };
+            critterHost.DataSource.Save<DictionaryContainer>(
                 subtypedDictionaryContainer);
 
             // Post does not yet work on subtypes
@@ -241,11 +285,12 @@ namespace Pomona.SystemTests.Linq
             //        x.SomethingExtra = "Hahahohohihi";
             //    });
 
-            var results = this.client.Query<ICustomTestEntity2>()
-                .Where(
-                    x =>
-                    x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" && x.SomethingExtra == "Hahahohohihi")
-                .ToList();
+            var results = client.Query<ICustomTestEntity2>()
+                                .Where(
+                                    x =>
+                                    x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
+                                    x.SomethingExtra == "Hahahohohihi")
+                                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
@@ -260,16 +305,16 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = this.client.DictionaryContainers.Post(
+            var dictionaryContainer = client.DictionaryContainers.Post(
                 x =>
-                {
-                    x.Map.Add("CustomString", "Lalalala");
-                    x.Map.Add("OtherCustom", "Blob rob");
-                });
+                    {
+                        x.Map.Add("CustomString", "Lalalala");
+                        x.Map.Add("OtherCustom", "Blob rob");
+                    });
 
-            var results = this.client.Query<ICustomTestEntity>()
-                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
-                .ToList();
+            var results = client.Query<ICustomTestEntity>()
+                                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
@@ -286,7 +331,7 @@ namespace Pomona.SystemTests.Linq
             var critter = CritterEntities.OfType<MusicalCritter>().Skip(6).Take(1).First();
             // Search by its name
             var critterResource =
-                this.client.Query<IMusicalCritter>().First(
+                client.Query<IMusicalCritter>().First(
                     x => x.Name == critter.Name && x.Guid == critter.Guid && x.BandName == critter.BandName);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }

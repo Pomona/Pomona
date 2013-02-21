@@ -307,13 +307,7 @@ namespace Pomona
             var prop =
                 Properties.OfType<PropertyMapping>().First(x => x.Name.ToLower() == externalPropertyName.ToLower());
 
-            if (prop.PropertyInfo == null)
-            {
-                throw new NotImplementedException(
-                    "Can only make expression paths for PropertyMappings to a specific internal property (with PropertyInfo)");
-            }
-
-            var propertyAccessExpression = Expression.Property(instance, prop.PropertyInfo);
+            var propertyAccessExpression = prop.CreateGetterExpression(instance);
 
             if (remainingExternalPath != null)
             {
@@ -462,6 +456,14 @@ namespace Pomona
                     propDef.CreateMode = PropertyCreateMode.Excluded;
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
+
+                var formula = filter.GetPropertyFormula(propInfo);
+
+                if (formula == null && filter.PropertyFormulaIsDecompiled(propInfo))
+                {
+                    formula = filter.GetDecompiledPropertyFormula(propInfo);
+                }
+                propDef.Formula = formula;
 
                 this.properties.Add(propDef);
             }

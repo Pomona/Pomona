@@ -172,7 +172,7 @@ namespace Pomona.FluentMapping
 
         internal override PropertyMappingOptions GetPropertyOptions(string name)
         {
-            var propInfo = typeof(TDeclaringType).GetProperty(name);
+            var propInfo = typeof(TDeclaringType).GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (propInfo == null)
             {
                 throw new InvalidOperationException(

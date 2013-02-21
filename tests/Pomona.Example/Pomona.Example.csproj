@@ -63,6 +63,7 @@
     <Compile Include="CritterPomonaConfiguration.cs" />
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
+    <Compile Include="IHiddenInterface.cs" />
     <Compile Include="Models\ColorfulThing.cs" />
     <Compile Include="Models\CrazyValueObject.cs" />
     <Compile Include="Models\Critter.cs" />
@@ -96,7 +97,9 @@
     <Compile Include="Models\Weapon.cs" />
     <Compile Include="Models\WeaponModel.cs" />
     <Compile Include="Models\WebColor.cs" />
+    <Compile Include="NotKnownToDataSourceAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThrowOnCalculatedPropertyVisitor.cs" />
     <Compile Include="WebColorConverter.cs" />
     <Compile Include="Words.cs" />
   </ItemGroup>

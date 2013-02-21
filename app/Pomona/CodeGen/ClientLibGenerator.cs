@@ -85,15 +85,25 @@ namespace Pomona.CodeGen
 
             this.assemblyName = this.typeMapper.Filter.GetClientAssemblyName();
 
+            var assemblyResolver = GetAssemblyResolver();
+
             if (PomonaClientEmbeddingEnabled)
-                assembly = AssemblyDefinition.ReadAssembly(typeof(ResourceBase).Assembly.Location);
+            {
+                var readerParameters = new ReaderParameters {AssemblyResolver = assemblyResolver};
+                assembly = AssemblyDefinition.ReadAssembly(typeof (ResourceBase).Assembly.Location, readerParameters);
+            }
             else
             {
+                var moduleParameters = new ModuleParameters()
+                    {
+                        Kind = ModuleKind.Dll,
+                        AssemblyResolver = assemblyResolver
+                    };
                 assembly =
                     AssemblyDefinition.CreateAssembly(
                         new AssemblyNameDefinition(this.assemblyName, new Version(1, 0, 0, 0)),
                         this.assemblyName,
-                        ModuleKind.Dll);
+                        moduleParameters);
             }
 
             assembly.Name = new AssemblyNameDefinition(this.assemblyName, new Version(1, 0, 0, 0));
@@ -167,6 +177,16 @@ namespace Pomona.CodeGen
             stream.Write(array, 0, array.Length);
 
             //assembly.Write(stream);
+        }
+
+        private DefaultAssemblyResolver GetAssemblyResolver()
+        {
+            var assemblyResolver = new DefaultAssemblyResolver();
+
+            // Fix for having path to bin directory when running ASP.NET app.
+            string extraSearchDir = Path.GetDirectoryName(new Uri(GetType().Assembly.CodeBase).AbsolutePath);
+            assemblyResolver.AddSearchDirectory(extraSearchDir);
+            return assemblyResolver;
         }
 
 
