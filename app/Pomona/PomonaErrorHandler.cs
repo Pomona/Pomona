@@ -74,11 +74,13 @@ namespace Pomona
                         {
                             streamWriter.WriteLine("Exception:");
                             streamWriter.WriteLine(exception);
+                            Console.WriteLine(exception);
                         }
                         if (errorTrace != null)
                         {
                             streamWriter.WriteLine("Trace:");
                             streamWriter.WriteLine(errorTrace);
+                            Console.WriteLine(errorTrace);
                         }
                         streamWriter.WriteLine("Ey.. Got an exception there matey!!");
                     }
