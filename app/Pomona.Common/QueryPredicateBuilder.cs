@@ -559,6 +559,8 @@ namespace Pomona.Common
                 return false;
             }
 
+            Console.WriteLine("BLAH REMOVEME {0}:{1}:{2}  {3}:{4}:{5}",member.DeclaringType.Name, member.Name, member.MetadataToken,  memberMapping.Member.DeclaringType.Name, memberMapping.Member.Name, memberMapping.Member.MetadataToken);
+
             var odataArguments = arguments.Select(Build).Cast<object>().ToArray();
             var callFormat = memberMapping.PreferredCallStyle == OdataFunctionMapping.MethodCallStyle.Chained
                                  ? memberMapping.ChainedCallFormat
