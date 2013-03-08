@@ -134,7 +134,7 @@
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
-    <Compile Include="PomonaErrorHandler.cs" />
+    <Compile Include="ErrorHandler.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="Queries\ArrayNode.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />

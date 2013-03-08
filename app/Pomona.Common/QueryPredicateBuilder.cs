@@ -190,13 +190,6 @@ namespace Pomona.Common
 
         private string Build(Expression expr)
         {
-            var result = Build2(expr);
-            Console.WriteLine("\"{0}\" => \"{1}\"", expr, result);
-            return result;
-        }
-
-        private string Build2(Expression expr)
-        {
             var binaryExpr = expr as BinaryExpression;
             if (binaryExpr != null)
                 return BuildFromBinaryExpression(binaryExpr);
@@ -558,8 +551,6 @@ namespace Pomona.Common
                 odataExpression = null;
                 return false;
             }
-
-            Console.WriteLine("BLAH REMOVEME {0}:{1}:{2}  {3}:{4}:{5}",member.DeclaringType.Name, member.Name, member.UniqueToken(),  memberMapping.Member.DeclaringType.Name, memberMapping.Member.Name, memberMapping.Member.UniqueToken());
 
             var odataArguments = arguments.Select(Build).Cast<object>().ToArray();
             var callFormat = memberMapping.PreferredCallStyle == OdataFunctionMapping.MethodCallStyle.Chained
