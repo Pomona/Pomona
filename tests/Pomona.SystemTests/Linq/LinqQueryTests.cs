@@ -27,10 +27,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using Critters.Client;
 using NUnit.Framework;
+using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
-using Pomona.Common;
 
 namespace Pomona.SystemTests.Linq
 {
@@ -47,6 +47,13 @@ namespace Pomona.SystemTests.Linq
         {
             string CustomString { get; set; }
             string OtherCustom { get; set; }
+        }
+
+        public interface ICustomTestEntity3 : IStringToObjectDictionaryContainer
+        {
+            string Text { get; set; }
+            int? Number { get; set; }
+            DateTime? Time { get; set; }
         }
 
 
@@ -202,22 +209,6 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
-        public void QueryHasStringToObjectDictionary_ReturnsCorrectValues()
-        {
-            for (int i = 1; i <= 8; i++)
-            {
-                DataSource.Save(new StringToObjectDictionaryContainer() {Map = {{"square", i*i}}});
-            }
-
-            // Should get 36, 49 and 64
-            var results = client.Query<IStringToObjectDictionaryContainer>()
-                                .Where(x => x.Map.SafeGet("square") as int? > 26)
-                                .ToList();
-
-            Assert.That(results, Has.Count.EqualTo(3));
-        }
-
-        [Test]
         public void QueryCritter_WhereThenSelectSingleProperty_ReturnsCorrectValues()
         {
             // Just take some random critter
@@ -297,7 +288,6 @@ namespace Pomona.SystemTests.Linq
                         Throws.Exception);
         }
 
-
         [Test]
         public void QueryCustomTestEntity2_WhereDictIsOnBaseInterface_ReturnsCustomTestEntity2()
         {
@@ -333,6 +323,27 @@ namespace Pomona.SystemTests.Linq
             Assert.That(result.CustomString, Is.EqualTo(subtypedDictionaryContainer.Map["CustomString"]));
         }
 
+        [Test]
+        public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
+        {
+            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
+            var dictContainer = DataSource.Save(new StringToObjectDictionaryContainer
+                {
+                    Map = {{"Text", "foobar"}, {"Number", 32}, {"Time", timeValue}}
+                });
+
+            var results = client.Query<ICustomTestEntity3>()
+                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                                .ToList();
+
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Number, Is.EqualTo(32));
+            Assert.That(result.Text, Is.EqualTo("foobar"));
+            Assert.That(result.Time, Is.EqualTo(timeValue));
+            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+        }
+
 
         [Test]
         public void QueryCustomTestEntity_ReturnsCustomTestEntity()
@@ -355,6 +366,22 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
             Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+        [Test]
+        public void QueryHasStringToObjectDictionary_ReturnsCorrectValues()
+        {
+            for (var i = 1; i <= 8; i++)
+            {
+                DataSource.Save(new StringToObjectDictionaryContainer {Map = {{"square", i*i}}});
+            }
+
+            // Should get 36, 49 and 64
+            var results = client.Query<IStringToObjectDictionaryContainer>()
+                                .Where(x => x.Map.SafeGet("square") as int? > 26)
+                                .ToList();
+
+            Assert.That(results, Has.Count.EqualTo(3));
         }
 
 

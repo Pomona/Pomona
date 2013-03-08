@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,14 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Pomona.Internals;
 
 namespace Pomona.Common.Linq
@@ -86,16 +81,16 @@ namespace Pomona.Common.Linq
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            if (node.Type.MetadataToken == typeof(RestQuery<>).MetadataToken &&
-                node.Type.GetGenericArguments()[0] == this.userType)
+            if (node.Type.MetadataToken == typeof (RestQuery<>).MetadataToken &&
+                node.Type.GetGenericArguments()[0] == userType)
             {
                 var queryable = node.Value as IQueryable;
                 if (queryable != null)
                 {
-                    var provider = (RestQueryProvider)queryable.Provider;
-                    var restQueryOfTargetType = typeof(RestQuery<>).MakeGenericType(this.targetType);
+                    var provider = (RestQueryProvider) queryable.Provider;
+                    var restQueryOfTargetType = typeof (RestQuery<>).MakeGenericType(targetType);
                     var modifiedSourceQueryable = Activator.CreateInstance(
-                        restQueryOfTargetType, new RestQueryProvider(provider.Client, this.targetType));
+                        restQueryOfTargetType, new RestQueryProvider(provider.Client, targetType));
                     return Expression.Constant(modifiedSourceQueryable, restQueryOfTargetType);
                 }
             }
@@ -109,13 +104,13 @@ namespace Pomona.Common.Linq
             var replacementParams = new List<ParameterExpression>(node.Parameters.Count);
             foreach (var param in node.Parameters)
             {
-                if (param.Type == this.userType)
+                if (param.Type == userType)
                 {
-                    var replacementParam = Expression.Parameter(this.targetType, param.Name);
+                    var replacementParam = Expression.Parameter(targetType, param.Name);
                     var visitor = new TransformAdditionalPropertiesToAttributesVisitor(
-                        this.userType,
-                        this.targetType,
-                        this.targetDictProperty,
+                        userType,
+                        targetType,
+                        targetDictProperty,
                         param,
                         replacementParam);
                     replacementParams.Add(replacementParam);
@@ -131,26 +126,23 @@ namespace Pomona.Common.Linq
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (this.origParam != null)
+            if (origParam != null)
             {
                 var member = node.Member;
-                if (member.DeclaringType == this.userType)
+                if (member.DeclaringType == userType)
                 {
                     var propInfo = member as PropertyInfo;
                     if (propInfo == null)
                         throw new InvalidOperationException(
                             "Only properties can be defined on custom user types, not methods or fields.");
 
-                    if (propInfo.PropertyType != typeof(string))
-                        throw new NotSupportedException("Only supports string properties for now..");
-
                     Type targetDictInterface;
-                    var idictionaryMetadataToken = typeof(IDictionary<,>).MetadataToken;
-                    if (this.targetDictProperty.PropertyType.MetadataToken == idictionaryMetadataToken)
-                        targetDictInterface = this.targetDictProperty.PropertyType;
+                    var idictionaryMetadataToken = typeof (IDictionary<,>).MetadataToken;
+                    if (targetDictProperty.PropertyType.MetadataToken == idictionaryMetadataToken)
+                        targetDictInterface = targetDictProperty.PropertyType;
                     else
                     {
-                        targetDictInterface = this.targetDictProperty
+                        targetDictInterface = targetDictProperty
                             .PropertyType
                             .GetInterfaces()
                             .FirstOrDefault(x => x.MetadataToken == idictionaryMetadataToken);
@@ -159,15 +151,20 @@ namespace Pomona.Common.Linq
                         {
                             throw new InvalidOperationException(
                                 "Unable to find IDictionary interface in type "
-                                + this.targetDictProperty.PropertyType.FullName);
+                                + targetDictProperty.PropertyType.FullName);
                         }
                     }
 
-                    return
+                    Expression attrAccessExpression =
                         Expression.Call(
                             dictionarySafeGetMethod.MakeGenericMethod(targetDictInterface.GetGenericArguments()),
-                            Expression.Property(Visit(node.Expression), this.targetDictProperty),
+                            Expression.Property(Visit(node.Expression), targetDictProperty),
                             Expression.Constant(propInfo.Name));
+
+                    if (attrAccessExpression.Type != propInfo.PropertyType)
+                        attrAccessExpression = Expression.TypeAs(attrAccessExpression, propInfo.PropertyType);
+
+                    return attrAccessExpression;
 
                     //return Expression.Call(Expression.Property(Visit(node.Expression), targetDictProperty), OdataFunctionMapping.DictGetMethod,
                     //                       Expression.Constant(propInfo.Name));
@@ -181,15 +178,15 @@ namespace Pomona.Common.Linq
         {
             return Expression.Call(
                 node.Object != null ? Visit(node.Object) : null,
-                ReplaceInGenericMethod(node.Method, this.userType, this.targetType),
+                ReplaceInGenericMethod(node.Method, userType, targetType),
                 node.Arguments.Select(Visit));
         }
 
 
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            if (node == this.origParam)
-                return this.newParam;
+            if (node == origParam)
+                return newParam;
             return base.VisitParameter(node);
         }
 

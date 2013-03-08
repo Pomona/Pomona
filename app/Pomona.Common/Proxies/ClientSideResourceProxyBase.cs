@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,11 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
 {
@@ -43,12 +41,13 @@ namespace Pomona.Common.Proxies
             if (property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget))
                 return property.Getter((TOwner) ProxyTarget);
 
-            if (typeof (TPropType) != typeof (string))
-                throw new NotImplementedException("Only supports wrapping of string properties");
-
-            var dict = (IDictionary<string, string>) AttributesProperty.GetValue(ProxyTarget, null);
-
-            return (TPropType) ((object) dict.SafeGet(property.PropertyInfo.Name));
+            var dictTypeInstance =
+                AttributesProperty.PropertyType.GetInterfacesOfGeneric(typeof (IDictionary<,>)).First();
+            var dict = AttributesProperty.GetValue(ProxyTarget, null);
+            var attrKey = property.PropertyInfo.Name;
+            return (TPropType)
+                   OdataFunctionMapping.SafeGetMethod.MakeGenericMethod(dictTypeInstance.GetGenericArguments())
+                                       .Invoke(null, new[] {dict, attrKey});
         }
 
 
