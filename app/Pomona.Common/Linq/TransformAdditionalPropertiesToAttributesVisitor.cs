@@ -81,7 +81,7 @@ namespace Pomona.Common.Linq
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            if (node.Type.MetadataToken == typeof (RestQuery<>).MetadataToken &&
+            if (node.Type.UniqueToken() == typeof (RestQuery<>).UniqueToken() &&
                 node.Type.GetGenericArguments()[0] == userType)
             {
                 var queryable = node.Value as IQueryable;
@@ -137,15 +137,15 @@ namespace Pomona.Common.Linq
                             "Only properties can be defined on custom user types, not methods or fields.");
 
                     Type targetDictInterface;
-                    var idictionaryMetadataToken = typeof (IDictionary<,>).MetadataToken;
-                    if (targetDictProperty.PropertyType.MetadataToken == idictionaryMetadataToken)
+                    var idictionaryMetadataToken = typeof (IDictionary<,>).UniqueToken();
+                    if (targetDictProperty.PropertyType.UniqueToken() == idictionaryMetadataToken)
                         targetDictInterface = targetDictProperty.PropertyType;
                     else
                     {
                         targetDictInterface = targetDictProperty
                             .PropertyType
                             .GetInterfaces()
-                            .FirstOrDefault(x => x.MetadataToken == idictionaryMetadataToken);
+                            .FirstOrDefault(x => x.UniqueToken() == idictionaryMetadataToken);
 
                         if (targetDictInterface == null)
                         {

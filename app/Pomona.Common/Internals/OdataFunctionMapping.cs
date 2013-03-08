@@ -53,8 +53,8 @@ namespace Pomona.Common.Internals
         public static readonly MethodInfo EnumerableContainsMethod;
         public static readonly MethodInfo SafeGetMethod;
 
-        private static readonly Dictionary<int, MemberMapping> metadataTokenToMemberMappingDict =
-            new Dictionary<int, MemberMapping>();
+        private static readonly Dictionary<long, MemberMapping> metadataTokenToMemberMappingDict =
+            new Dictionary<long, MemberMapping>();
 
         private static readonly Dictionary<string, List<MemberMapping>> nameToMemberMappingDict =
             new Dictionary<string, List<MemberMapping>>();
@@ -142,7 +142,7 @@ namespace Pomona.Common.Internals
 
         public static bool TryGetMemberMapping(MemberInfo member, out MemberMapping memberMapping)
         {
-            return metadataTokenToMemberMappingDict.TryGetValue(member.MetadataToken, out memberMapping);
+            return metadataTokenToMemberMappingDict.TryGetValue(member.UniqueToken(), out memberMapping);
         }
 
 
@@ -155,7 +155,7 @@ namespace Pomona.Common.Internals
 
             var memberMapping = MemberMapping.Parse(memberInfo, functionFormat, preferredCallStyle);
             nameToMemberMappingDict.GetOrCreate(memberMapping.Name + memberMapping.ArgumentCount).Add(memberMapping);
-            metadataTokenToMemberMappingDict[memberMapping.Member.MetadataToken] = memberMapping;
+            metadataTokenToMemberMappingDict[memberMapping.Member.UniqueToken()] = memberMapping;
         }
 
 
@@ -263,7 +263,7 @@ namespace Pomona.Common.Internals
                     var memberLocal = member;
                     member =
                         member.DeclaringType.GetGenericTypeDefinition().GetMembers()
-                              .First(x => x.MetadataToken == memberLocal.MetadataToken);
+                              .First(x => x.UniqueToken() == memberLocal.UniqueToken());
                 }
 
                 var argOrderArray = argOrder.ToArray();

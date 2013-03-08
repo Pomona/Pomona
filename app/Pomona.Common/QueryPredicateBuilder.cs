@@ -147,7 +147,7 @@ namespace Pomona.Common
         private static string GetJsonTypeName(Type typeOperand)
         {
             var postfixSymbol = string.Empty;
-            if (typeOperand.MetadataToken == typeof (Nullable<>).MetadataToken)
+            if (typeOperand.UniqueToken() == typeof (Nullable<>).UniqueToken())
             {
                 typeOperand = Nullable.GetUnderlyingType(typeOperand);
                 postfixSymbol = "?";
@@ -319,10 +319,10 @@ namespace Pomona.Common
 
         private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
         {
-            if (callExpr.Method.MetadataToken == OdataFunctionMapping.EnumerableContainsMethod.MetadataToken)
+            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
                 return Build(callExpr.Arguments[1]) + " in " + Build(callExpr.Arguments[0]);
 
-            if (callExpr.Method.MetadataToken == OdataFunctionMapping.DictStringStringGetMethod.MetadataToken)
+            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.DictStringStringGetMethod.UniqueToken())
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
                 var key = DecodeQuotedString(quotedKey);
@@ -331,7 +331,7 @@ namespace Pomona.Common
                     return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
                 return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);
             }
-            if (callExpr.Method.MetadataToken == OdataFunctionMapping.SafeGetMethod.MetadataToken)
+            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.SafeGetMethod.UniqueToken())
             {
                 var constantKeyExpr = callExpr.Arguments[1] as ConstantExpression;
                 if (constantKeyExpr != null && constantKeyExpr.Type == typeof (string) &&
@@ -559,7 +559,7 @@ namespace Pomona.Common
                 return false;
             }
 
-            Console.WriteLine("BLAH REMOVEME {0}:{1}:{2}  {3}:{4}:{5}",member.DeclaringType.Name, member.Name, member.MetadataToken,  memberMapping.Member.DeclaringType.Name, memberMapping.Member.Name, memberMapping.Member.MetadataToken);
+            Console.WriteLine("BLAH REMOVEME {0}:{1}:{2}  {3}:{4}:{5}",member.DeclaringType.Name, member.Name, member.UniqueToken(),  memberMapping.Member.DeclaringType.Name, memberMapping.Member.Name, memberMapping.Member.UniqueToken());
 
             var odataArguments = arguments.Select(Build).Cast<object>().ToArray();
             var callFormat = memberMapping.PreferredCallStyle == OdataFunctionMapping.MethodCallStyle.Chained

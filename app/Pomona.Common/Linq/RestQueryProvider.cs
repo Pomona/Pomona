@@ -96,7 +96,7 @@ namespace Pomona.Common.Linq
 
         private static Type GetElementType(Type type)
         {
-            if (type.MetadataToken != typeof(IQueryable<>).MetadataToken)
+            if (type.UniqueToken() != typeof(IQueryable<>).UniqueToken())
                 return type;
 
             return type.GetGenericArguments()[0];

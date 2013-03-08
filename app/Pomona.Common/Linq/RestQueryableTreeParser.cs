@@ -47,8 +47,8 @@ namespace Pomona.Common.Linq
 
         #endregion
 
-        private static readonly Dictionary<int, MethodInfo> queryableMethodToVisitMethodDictionary =
-            new Dictionary<int, MethodInfo>();
+        private static readonly Dictionary<long, MethodInfo> queryableMethodToVisitMethodDictionary =
+            new Dictionary<long, MethodInfo>();
 
         private static readonly MethodInfo visitQueryConstantValueMethod;
         private readonly StringBuilder expandedPaths = new StringBuilder();
@@ -161,7 +161,7 @@ namespace Pomona.Common.Linq
         {
             // Using chained (extension method) calling style this will be the source of the query.
             // source.Where(...) etc..
-            if (node.Type.MetadataToken == typeof (RestQuery<>).MetadataToken)
+            if (node.Type.UniqueToken() == typeof (RestQuery<>).UniqueToken())
             {
                 visitQueryConstantValueMethod.MakeGenericMethod(node.Type.GetGenericArguments()).Invoke(
                     this, new[] {node.Value});
@@ -176,7 +176,7 @@ namespace Pomona.Common.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Visit(node.Arguments[0]);
-            var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.MetadataToken];
+            var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.UniqueToken()];
             var visitMethodInstance = visitMethod.MakeGenericMethod(node.Method.GetGenericArguments());
 
             try
@@ -341,7 +341,7 @@ namespace Pomona.Common.Linq
             if (visitMethod == null)
                 throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
 
-            queryableMethodToVisitMethodDictionary.Add(method.MetadataToken, visitMethod);
+            queryableMethodToVisitMethodDictionary.Add(method.UniqueToken(), visitMethod);
         }
 
 

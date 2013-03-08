@@ -25,7 +25,7 @@ namespace Pomona.Common.Internals
             if (memberExpr == null)
             {
                 var methodCallExpr = expr as MethodCallExpression;
-                if (methodCallExpr != null && methodCallExpr.Method.MetadataToken == enumerableExpandMethod.MetadataToken)
+                if (methodCallExpr != null && methodCallExpr.Method.UniqueToken() == enumerableExpandMethod.UniqueToken())
                 {
                     GetPropertyPath(methodCallExpr.Arguments[0], thisParam, sb, jsonNameStyle);
                     var innerLambda = (LambdaExpression) methodCallExpr.Arguments[1];

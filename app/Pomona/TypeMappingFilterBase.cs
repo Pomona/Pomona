@@ -294,7 +294,7 @@ namespace Pomona
 
         private bool TypeIsIGrouping(Type type)
         {
-            return type.MetadataToken == typeof (IGrouping<,>).MetadataToken;
+            return type.UniqueToken() == typeof (IGrouping<,>).UniqueToken();
         }
 
         #endregion

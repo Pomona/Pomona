@@ -32,6 +32,10 @@ namespace Pomona.Common
 {
     public static class TypeExtensions
     {
+        public static long UniqueToken(this MemberInfo member)
+        {
+            return (long)((ulong)member.Module.MetadataToken | ((ulong) member.MetadataToken) << 32);
+        }
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)
         {
             return
@@ -51,7 +55,7 @@ namespace Pomona.Common
 
         public static bool IsGenericInstanceOf(this Type type, params Type[] genericTypeDefinitions)
         {
-            return genericTypeDefinitions.Any(x => x.MetadataToken == type.MetadataToken);
+            return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
         }
 
 
@@ -81,7 +85,7 @@ namespace Pomona.Common
                 }
             }
 
-            if (a.MetadataToken != b.MetadataToken)
+            if (a.UniqueToken() != b.UniqueToken())
                 return false;
 
             if (a.IsGenericType)
@@ -99,17 +103,17 @@ namespace Pomona.Common
 
         public static bool IsNullable(this Type type)
         {
-            return type.MetadataToken == typeof (Nullable<>).MetadataToken;
+            return type.UniqueToken() == typeof (Nullable<>).UniqueToken();
         }
 
         public static IEnumerable<Type> GetInterfacesOfGeneric(this Type type, Type genericTypeDefinition)
         {
-            var metadataToken = genericTypeDefinition.MetadataToken;
+            var metadataToken = genericTypeDefinition.UniqueToken();
             return
                 type
                     .WrapAsEnumerable()
                     .Concat(type.GetInterfaces())
-                    .Where(t => t.MetadataToken == metadataToken);
+                    .Where(t => t.UniqueToken() == metadataToken);
         }
 
         public static bool TryGetCollectionElementType(this Type type, out Type elementType)

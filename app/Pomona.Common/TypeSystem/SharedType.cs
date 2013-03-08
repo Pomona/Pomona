@@ -69,18 +69,18 @@ namespace Pomona.Common.TypeSystem
                              : mappedTypeInstance;
             this.typeMapper = typeMapper;
 
-            var dictMetadataToken = typeof (IDictionary<,>).MetadataToken;
-            isDictionary = mappedTypeInstance.MetadataToken == dictMetadataToken ||
-                           mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == dictMetadataToken);
+            var dictMetadataToken = typeof (IDictionary<,>).UniqueToken();
+            isDictionary = mappedTypeInstance.UniqueToken() == dictMetadataToken ||
+                           mappedTypeInstance.GetInterfaces().Any(x => x.UniqueToken() == dictMetadataToken);
 
             if (!isDictionary)
             {
                 if (mappedType != typeof (string))
                 {
-                    var collectionMetadataToken = typeof (ICollection<>).MetadataToken;
+                    var collectionMetadataToken = typeof (ICollection<>).UniqueToken();
                     isCollection =
-                        mappedTypeInstance.MetadataToken == collectionMetadataToken ||
-                        mappedTypeInstance.GetInterfaces().Any(x => x.MetadataToken == collectionMetadataToken);
+                        mappedTypeInstance.UniqueToken() == collectionMetadataToken ||
+                        mappedTypeInstance.GetInterfaces().Any(x => x.UniqueToken() == collectionMetadataToken);
                 }
             }
 
@@ -122,14 +122,14 @@ namespace Pomona.Common.TypeSystem
                 if (!isDictionary)
                     throw new InvalidOperationException("Type does not implement IDictionary<,>");
 
-                var dictMetadataToken = typeof (IDictionary<,>).MetadataToken;
+                var dictMetadataToken = typeof (IDictionary<,>).UniqueToken();
 
-                if (mappedTypeInstance.MetadataToken == dictMetadataToken)
+                if (mappedTypeInstance.UniqueToken() == dictMetadataToken)
                     return this;
 
                 return
                     typeMapper.GetClassMapping(
-                        mappedTypeInstance.GetInterfaces().First(x => x.MetadataToken == dictMetadataToken));
+                        mappedTypeInstance.GetInterfaces().First(x => x.UniqueToken() == dictMetadataToken));
             }
         }
 

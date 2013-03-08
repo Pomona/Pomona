@@ -29,6 +29,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
+using Pomona.Common;
 
 namespace Pomona.FluentMapping
 {
@@ -315,7 +316,7 @@ namespace TestNs
             var paramType = parameters[0].ParameterType;
 
             // Metadata token is the same across all generic type instances and generic type definition
-            return paramType.MetadataToken == typeof (ITypeMappingConfigurator<>).MetadataToken;
+            return paramType.UniqueToken() == typeof (ITypeMappingConfigurator<>).UniqueToken();
         }
 
 

@@ -348,7 +348,7 @@ namespace Pomona.Queries
 
         private Expression ParseLambda(LambdaNode lambdaNode, Expression memberExpression, Type expectedType)
         {
-            if (expectedType.MetadataToken == typeof (Expression<>).MetadataToken)
+            if (expectedType.UniqueToken() == typeof (Expression<>).UniqueToken())
             {
                 // Quote if expression
                 return Expression.Quote(
@@ -360,7 +360,7 @@ namespace Pomona.Queries
             // TODO: Check that we don't already have a arg with same name.
 
             // TODO: Proper check that we have a func here
-            if (expectedType.MetadataToken != typeof (Func<,>).MetadataToken)
+            if (expectedType.UniqueToken() != typeof (Func<,>).UniqueToken())
                 throw new QueryParseException("Can't parse lambda to expected type that is not a Func delegate..");
 
             if (expectedType.GetGenericArguments()[0].IsGenericParameter)
@@ -532,7 +532,7 @@ namespace Pomona.Queries
                         .MakeGenericType(typeArgs)
                         .GetMember(memberLocal.Name)
                         .OfType<TMemberInfo>()
-                        .Single(x => x.MetadataToken == memberLocal.MetadataToken);
+                        .Single(x => x.UniqueToken() == memberLocal.UniqueToken());
                 }
                 else
                 {
