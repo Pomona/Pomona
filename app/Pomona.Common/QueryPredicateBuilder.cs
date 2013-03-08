@@ -188,8 +188,14 @@ namespace Pomona.Common
             throw new InvalidOperationException("Don't know how to get value from member of type " + member.GetType());
         }
 
-
         private string Build(Expression expr)
+        {
+            var result = Build2(expr);
+            Console.WriteLine("\"{0}\" => \"{1}\"", expr, result);
+            return result;
+        }
+
+        private string Build2(Expression expr)
         {
             var binaryExpr = expr as BinaryExpression;
             if (binaryExpr != null)
