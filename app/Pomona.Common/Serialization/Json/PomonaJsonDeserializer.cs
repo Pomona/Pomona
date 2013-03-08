@@ -1,14 +1,36 @@
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2013 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
-
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
@@ -30,8 +52,8 @@ namespace Pomona.Common.Serialization.Json
 
         public PomonaJsonDeserializer()
         {
-            this.jsonSerializer = new JsonSerializer();
-            this.jsonSerializer.Converters.Add(new StringEnumConverter());
+            jsonSerializer = new JsonSerializer();
+            jsonSerializer.Converters.Add(new StringEnumConverter());
         }
 
 
@@ -94,7 +116,7 @@ namespace Pomona.Common.Serialization.Json
 
         public void DeserializeNode(IDeserializerNode node, ISerializerReader reader)
         {
-            DeserializeNode(node, (Reader)reader);
+            DeserializeNode(node, (Reader) reader);
         }
 
 
@@ -112,6 +134,11 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
+        ISerializerReader IDeserializer.CreateReader(TextReader textReader)
+        {
+            return CreateReader(textReader);
+        }
+
         private static bool TryDeserializeAsReference(IDeserializerNode node, Reader reader)
         {
             var jobj = reader.Token as JObject;
@@ -121,16 +148,10 @@ namespace Pomona.Common.Serialization.Json
             if (!jobj.TryGetValue("_ref", out refStringToken) || refStringToken.Type != JTokenType.String)
                 return false;
 
-            var refString = (string)((JValue)refStringToken).Value;
+            var refString = (string) ((JValue) refStringToken).Value;
             node.Uri = refString;
             node.Value = node.Context.CreateReference(node.ExpectedBaseType, refString);
             return true;
-        }
-
-
-        ISerializerReader IDeserializer.CreateReader(TextReader textReader)
-        {
-            return CreateReader(textReader);
         }
 
 
@@ -145,7 +166,7 @@ namespace Pomona.Common.Serialization.Json
 
             var elementType = node.ExpectedBaseType.ElementType;
             var instance =
-                (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType.MappedTypeInstance));
+                (IList) Activator.CreateInstance(typeof (List<>).MakeGenericType(elementType.MappedTypeInstance));
             foreach (var jitem in jarr)
             {
                 var itemNode = new ItemValueDeserializerNode(elementType, node.Context);
@@ -181,7 +202,7 @@ namespace Pomona.Common.Serialization.Json
                 {
                     if (jprop.Value.Type != JTokenType.String)
                         throw new PomonaSerializationException("_uri property is expected to be of JSON type string");
-                    node.Uri = (string)((JValue)jprop.Value).Value;
+                    node.Uri = (string) ((JValue) jprop.Value).Value;
                     continue;
                 }
                 var name = jprop.Name;
@@ -207,7 +228,7 @@ namespace Pomona.Common.Serialization.Json
 
             deserializeDictionaryGenericMethod
                 .MakeGenericMethod(keyType.MappedTypeInstance, valueType.MappedTypeInstance)
-                .Invoke(this, new object[] { node, reader });
+                .Invoke(this, new object[] {node, reader});
         }
 
 
@@ -229,7 +250,7 @@ namespace Pomona.Common.Serialization.Json
                 var itemNode = new ItemValueDeserializerNode(valueType, node.Context);
                 itemNode.Deserialize(this, new Reader(jprop.Value));
                 object key = jprop.Name;
-                dict.Add((TKey)key, (TValue)itemNode.Value);
+                dict.Add((TKey) key, (TValue) itemNode.Value);
             }
 
             node.Value = dict;
@@ -239,7 +260,29 @@ namespace Pomona.Common.Serialization.Json
 
         private void DeserializeValueNode(IDeserializerNode node, Reader reader)
         {
-            node.Value = reader.Token.ToObject(node.ExpectedBaseType.MappedTypeInstance, this.jsonSerializer);
+            if (reader.Token.Type == JTokenType.Object)
+            {
+                var jobj = reader.Token as JObject;
+                JToken typeNameToken;
+                if (!jobj.TryGetValue("_type", out typeNameToken))
+                    throw new PomonaSerializationException(
+                        "Trying to deserialize boxed value, but lacks _type property.");
+
+                JToken valueToken;
+                if (!jobj.TryGetValue("value", out valueToken))
+                {
+                    throw new PomonaSerializationException(
+                        "Trying to deserialize boxed value, but lacks value property.");
+                }
+
+                var typeName = typeNameToken.ToString();
+                node.SetValueType(typeName);
+                node.Value = valueToken.ToObject(node.ValueType.MappedTypeInstance, jsonSerializer);
+            }
+            else
+            {
+                node.Value = reader.Token.ToObject(node.ValueType.MappedTypeInstance, jsonSerializer);
+            }
         }
 
 
@@ -276,7 +319,7 @@ namespace Pomona.Common.Serialization.Json
 
             public JToken Token
             {
-                get { return this.token; }
+                get { return token; }
             }
         }
 

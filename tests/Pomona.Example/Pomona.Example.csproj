@@ -73,10 +73,13 @@
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\FooBarRequest.cs" />
+    <Compile Include="Models\GenericBaseClass.cs" />
     <Compile Include="Models\Gun.cs" />
     <Compile Include="Models\HasCustomEnum.cs" />
     <Compile Include="Models\HasCustomNullableEnum.cs" />
+    <Compile Include="Models\HasObjectProperty.cs" />
     <Compile Include="Models\Hat.cs" />
+    <Compile Include="Models\InheritsFromGenericBaseClass.cs" />
     <Compile Include="Models\Instrument.cs" />
     <Compile Include="Models\IntListContainer.cs" />
     <Compile Include="Models\JunkWithNullableInt.cs" />
@@ -87,6 +90,7 @@
     <Compile Include="Models\OrderResponse.cs" />
     <Compile Include="Models\SimpleAttribute.cs" />
     <Compile Include="Models\StringListContainer.cs" />
+    <Compile Include="Models\StringToObjectDictionaryContainer.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\SubtypedDictionaryContainer.cs" />
     <Compile Include="Models\ThingWithCustomIList.cs" />

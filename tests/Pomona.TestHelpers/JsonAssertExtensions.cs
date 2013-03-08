@@ -81,6 +81,15 @@ namespace Pomona.TestHelpers
             return TryConvertToObjectAndGetProperty<JObject>(jtoken, propertyName);
         }
 
+        public static void AssertHasPropertyWithValue(this JToken jtoken, string propertyName, string value)
+        {
+            Assert.That(jtoken.AssertHasPropertyWithString(propertyName), Is.EqualTo(value));
+        }
+
+        public static void AssertHasPropertyWithValue(this JToken jtoken, string propertyName, int value)
+        {
+            Assert.That(jtoken.AssertHasPropertyWithInteger(propertyName), Is.EqualTo(value));
+        }
 
         public static string AssertHasPropertyWithString(this JToken jtoken, string propertyName)
         {

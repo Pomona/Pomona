@@ -22,18 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace Pomona.Example.Models
 {
-    public class DictionaryContainer : EntityBase
+    public abstract class GenericBaseClass<T> : EntityBase
     {
-        public DictionaryContainer()
-        {
-            Map = new Dictionary<string, string>();
-        }
-
-
-        public IDictionary<string, string> Map { get; set; }
+        public T FooBar { get; set; }
     }
 }

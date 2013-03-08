@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,13 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
 using Pomona.Common.Internals;
 
 namespace Pomona.Common
@@ -95,22 +90,31 @@ namespace Pomona.Common
                     return false;
                 return
                     a.GetGenericArguments()
-                        .Zip(b.GetGenericArguments(), IsGenericallyEquivalentTo)
-                        .All(x => x);
+                     .Zip(b.GetGenericArguments(), IsGenericallyEquivalentTo)
+                     .All(x => x);
             }
 
             return true;
         }
 
-
-        public static bool TryGetCollectionElementType(this Type type, out Type elementType)
+        public static bool IsNullable(this Type type)
         {
-            var enumerableMetadataToken = typeof(IEnumerable<>).MetadataToken;
-            var enumerableInterface =
+            return type.MetadataToken == typeof (Nullable<>).MetadataToken;
+        }
+
+        public static IEnumerable<Type> GetInterfacesOfGeneric(this Type type, Type genericTypeDefinition)
+        {
+            var metadataToken = genericTypeDefinition.MetadataToken;
+            return
                 type
                     .WrapAsEnumerable()
                     .Concat(type.GetInterfaces())
-                    .FirstOrDefault(t => t.MetadataToken == enumerableMetadataToken);
+                    .Where(t => t.MetadataToken == metadataToken);
+        }
+
+        public static bool TryGetCollectionElementType(this Type type, out Type elementType)
+        {
+            var enumerableInterface = type.GetInterfacesOfGeneric(typeof (IEnumerable<>)).FirstOrDefault();
 
             if (enumerableInterface != null)
                 elementType = enumerableInterface.GetGenericArguments()[0];

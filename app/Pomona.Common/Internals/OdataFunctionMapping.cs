@@ -49,8 +49,9 @@ namespace Pomona.Common.Internals
 
         #endregion
 
-        public static readonly MethodInfo DictGetMethod;
+        public static readonly MethodInfo DictStringStringGetMethod;
         public static readonly MethodInfo EnumerableContainsMethod;
+        public static readonly MethodInfo SafeGetMethod;
 
         private static readonly Dictionary<int, MemberMapping> metadataTokenToMemberMappingDict =
             new Dictionary<int, MemberMapping>();
@@ -61,9 +62,11 @@ namespace Pomona.Common.Internals
 
         static OdataFunctionMapping()
         {
-            DictGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
+            DictStringStringGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
             EnumerableContainsMethod =
                 ReflectionHelper.GetGenericMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
+            SafeGetMethod =
+                ReflectionHelper.GetGenericMethodDefinition<IDictionary<object, object>>(x => x.SafeGet(null));
 
             Add<string>(x => x.Length, "length({0})");
             Add<string>(x => x.StartsWith(null), "startswith({0},{1})");
@@ -109,6 +112,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>) null), "many({0},{1})", MethodCallStyle.Chained);
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
+            Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");

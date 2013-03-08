@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +30,27 @@ namespace Pomona.Common.Internals
 {
     public static class TypeUtils
     {
+        private static readonly HashSet<Type> jsonSupportedNativeTypes = new HashSet<Type>
+            {
+                typeof (string),
+                typeof (int),
+                typeof (long),
+                typeof (double),
+                typeof (float),
+                typeof (decimal),
+                typeof (DateTime),
+                typeof (object),
+                typeof (bool),
+                typeof (Guid),
+                typeof (Uri)
+            };
+
+        public static IEnumerable<Type> GetNativeTypes()
+        {
+            return jsonSupportedNativeTypes;
+        }
+
+
         public static IEnumerable<Type> AllBaseTypesAndInterfaces(Type type)
         {
             var baseType = type;

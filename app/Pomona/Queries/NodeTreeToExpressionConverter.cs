@@ -28,6 +28,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common.Internals;
+using Pomona.Common;
 
 namespace Pomona.Queries
 {
@@ -86,7 +87,15 @@ namespace Pomona.Queries
                 return ParseIndexerAccessNode((IndexerAccessNode) node, memberExpression);
 
             if (node.NodeType == NodeType.Symbol)
+            {
+                var dictionaryInterface = memberExpression.Type.GetInterfacesOfGeneric(typeof (IDictionary<,>)).FirstOrDefault();
+                if (node.Children.Count == 0 && dictionaryInterface != null)
+                {
+                    return ResolveDictionaryAccess((SymbolNode) node, memberExpression, dictionaryInterface);
+                }
+
                 return ResolveSymbolNode((SymbolNode) node, memberExpression);
+            }
 
             var binaryOperatorNode = node as BinaryOperator;
 
@@ -130,6 +139,15 @@ namespace Pomona.Queries
             }
 
             throw new NotImplementedException();
+        }
+
+        private Expression ResolveDictionaryAccess(SymbolNode node, Expression memberExpression, Type dictionaryType)
+        {
+            var key = node.Name;
+
+            var method = OdataFunctionMapping.SafeGetMethod.MakeGenericMethod(dictionaryType.GetGenericArguments());
+
+            return Expression.Call(method, memberExpression, Expression.Constant(key));
         }
 
 
@@ -229,6 +247,8 @@ namespace Pomona.Queries
             var leftChild = ParseExpression(binaryOperatorNode.Left);
             var rightChild = ParseExpression(binaryOperatorNode.Right);
 
+            FixBinaryOperatorConversion(ref leftChild, ref rightChild);
+
             switch (binaryOperatorNode.NodeType)
             {
                 case NodeType.AndAlso:
@@ -265,6 +285,33 @@ namespace Pomona.Queries
             }
         }
 
+        private void FixBinaryOperatorConversion(ref Expression left, ref Expression right, bool callSwappedRecursively = true)
+        {
+            Type leftType = left.Type;
+
+            if (leftType.IsNullable() && Nullable.GetUnderlyingType(leftType) == right.Type)
+            {
+                right = Expression.Convert(right, leftType);
+            }
+            else if (leftType == typeof (object) && right.Type != typeof (object))
+            {
+                var newType = right.Type;
+                if (newType.IsValueType && !newType.IsNullable())
+                {
+                    newType = typeof (Nullable<>).MakeGenericType(newType);
+                    right = Expression.Convert(right, newType);
+                }
+                if (left.NodeType != ExpressionType.Constant || ((ConstantExpression) left).Value != null)
+                {
+                    left = Expression.TypeAs(left, newType);
+                }
+            }
+            else if (callSwappedRecursively)
+            {
+                FixBinaryOperatorConversion(ref right, ref left, callSwappedRecursively: false);
+            }
+        }
+
 
         private Expression ParseInOperator(Expression leftChild, Expression rightChild)
         {
@@ -293,7 +340,7 @@ namespace Pomona.Queries
             if (typeof (IDictionary<string, string>).IsAssignableFrom(property.Type))
             {
                 return Expression.Call(
-                    property, OdataFunctionMapping.DictGetMethod, ParseExpression(node.Children[0]));
+                    property, OdataFunctionMapping.DictStringStringGetMethod, ParseExpression(node.Children[0]));
             }
             throw new NotImplementedException();
         }
@@ -520,7 +567,11 @@ namespace Pomona.Queries
                 var methodParameters = method.GetParameters();
                 if (methodParameters.Length != reorderedArgs.Count - argArrayOffset)
                 {
-                    string message = string.Format("Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})", methodParameters.Length, method.DeclaringType.FullName, method.Name, (reorderedArgs.Count - argArrayOffset));
+                    var message =
+                        string.Format(
+                            "Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})",
+                            methodParameters.Length, method.DeclaringType.FullName, method.Name,
+                            (reorderedArgs.Count - argArrayOffset));
                     throw CreateParseException(node, message);
                 }
 
@@ -594,6 +645,7 @@ namespace Pomona.Queries
                     expression = Expression.TypeIs(thisParam, checkType);
                     return true;
                 case "cast":
+                case "as":
                     //var 
                     if (node.Children.Count > 2 || node.Children.Count < 1)
                         throw CreateParseException(node, "Only one or two arguments to cast operator is allowed.");
@@ -623,11 +675,14 @@ namespace Pomona.Queries
                     else
                     {
                         throw CreateParseException(castTypeArg, "Did not expect node type " +
-                                                          castTypeArg.GetType().Name);
+                                                                castTypeArg.GetType().Name);
                     }
 
                     var castToType = propertyResolver.ResolveType(typeName);
-                    expression = Expression.Convert(operand, castToType);
+                    if (node.Name == "cast")
+                        expression = Expression.Convert(operand, castToType);
+                    else
+                        expression = Expression.TypeAs(operand, castToType);
                     return true;
             }
 

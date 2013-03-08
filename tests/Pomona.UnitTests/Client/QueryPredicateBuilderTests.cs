@@ -63,6 +63,7 @@ namespace Pomona.UnitTests.Client
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
             public TimeSpan TimeSpan { get; set; }
+            public object UnknownProperty { get; set; }
         }
 
         public class Container
@@ -94,7 +95,6 @@ namespace Pomona.UnitTests.Client
                 get { return new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc); }
             }
         }
-
 
         [Test]
         public void BuildAnyLambdaExpression_ReturnsCorrectString()
@@ -135,12 +135,6 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
-        }
-
-        [Test]
-        public void BuildExpressionWithNotOperator_ReturnsCorrectString()
-        {
-            AssertBuild(x => !x.OnOrOff, "not (onOrOff)");
         }
 
         [Test]
@@ -236,6 +230,12 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Id != 823, "id ne 823");
         }
 
+        [Test]
+        public void BuildExpressionWithNotOperator_ReturnsCorrectString()
+        {
+            AssertBuild(x => !x.OnOrOff, "not (onOrOff)");
+        }
+
 
         [Test]
         public void BuildFalse_ReturnsCorrectString()
@@ -304,6 +304,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla == null, "jalla eq null");
         }
 
+        [Test]
+        public void BuildObjectEqualsString_ReturnsCorrectString()
+        {
+            // Implicit as for comparison with object and other types
+            AssertBuild(x => x.UnknownProperty as int? > 1234, "unknownProperty gt 1234");
+        }
+
 
         [Test]
         public void BuildPropEqDouble_ReturnsCorrectString()
@@ -346,6 +353,18 @@ namespace Pomona.UnitTests.Client
         public void BuildReplaceExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla.Replace("a", "e") == "crezy", "replace(jalla,'a','e') eq 'crezy'");
+        }
+
+        [Test]
+        public void BuildSafeGetExpression_UsingKeyValidForShortHandSafeGetSyntax_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Attributes.SafeGet("ka") == "boom", "attributes.ka eq 'boom'");
+        }
+
+        [Test]
+        public void BuildSafeGetExpression_UsingKeyWithNonSymbolCharacters_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Attributes.SafeGet("ka blo bla") == "boom", "attributes.safeget('ka blo bla') eq 'boom'");
         }
 
 

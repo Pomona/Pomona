@@ -27,6 +27,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using NUnit.Framework;
+using Pomona.Common;
 using Pomona.Queries;
 using Pomona.TestHelpers;
 
@@ -118,6 +119,18 @@ namespace Pomona.UnitTests.Queries
             AssertExpressionEquals(expr, _this => (int) _this.Precise == _this.Number);
         }
 
+        [Test]
+        public void Parse_ComparisonBetweenObjectPropertyAndNullableConstant_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("unknownProperty gt 44");
+            AssertExpressionEquals(expr, _this => _this.UnknownProperty as int? > 44);
+            var expr2 = parser.Parse<Dummy>("44 lt unknownProperty");
+            AssertExpressionEquals(expr2, _this => 44 < (_this.UnknownProperty as int?));
+            var expr3 = parser.Parse<Dummy>("44 sub unknownProperty lt unknownProperty add 447");
+            AssertExpressionEquals(expr3,
+                                   _this => 44 - (_this.UnknownProperty as int?) < (_this.UnknownProperty as int?) + 447);
+        }
+
 
         [Test]
         public void Parse_ConstantArrayOfSimpleValuesContains_CreatesCorrectExpression()
@@ -144,7 +157,6 @@ namespace Pomona.UnitTests.Queries
             var leftTimeConstant = AssertIsConstant<DateTime>(binExpr.Right);
             Assert.That(leftTimeConstant, Is.EqualTo(expectedTime));
         }
-
 
         [Test]
         public void Parse_DictAccess_CreatesCorrectExpression()
@@ -268,6 +280,22 @@ name eo 'blah'".Replace("\r", "")));
         {
             var expr = parser.Parse<Dummy>("parent.parent.friend.text eq 'whoot'");
             AssertExpressionEquals(expr, _this => _this.Parent.Parent.Friend.Text == "whoot");
+        }
+
+        [Test]
+        public void Parse_ShortHandComparisonBetweenObjectDictMemberAndInteger_CreatesCorrectExpression()
+        {
+            var expr2 = parser.Parse<Dummy>("5 lt (objectAttributes.jalla add 55)");
+            AssertExpressionEquals(expr2, _this => 5 < (_this.ObjectAttributes.SafeGet("jalla") as int?) + 55);
+            var expr = parser.Parse<Dummy>("objectAttributes.jalla gt 5");
+            AssertExpressionEquals(expr, _this => _this.ObjectAttributes.SafeGet("jalla") as int? > 5);
+        }
+
+        [Test]
+        public void Parse_ShortHandComparisonBetweenObjectDictMemberAndString_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("objectAttributes.jalla eq 'bloborob'");
+            AssertExpressionEquals(expr, _this => _this.ObjectAttributes.SafeGet("jalla") as string == "bloborob");
         }
 
 

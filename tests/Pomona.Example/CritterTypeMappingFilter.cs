@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Newtonsoft.Json;
 using Pomona.Example.Models;
+using System.Linq;
 
 namespace Pomona.Example
 {
@@ -76,7 +77,7 @@ namespace Pomona.Example
 
         public override IEnumerable<Type> GetSourceTypes()
         {
-            return CritterDataSource.GetEntityTypes();
+            return CritterDataSource.GetEntityTypes().Concat(new [] {typeof(GenericBaseClass<int>)});
         }
 
 

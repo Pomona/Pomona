@@ -143,6 +143,20 @@ namespace Pomona.SystemTests
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
         }
 
+        [Test]
+        public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
+        {
+            var entity = this.DataSource.Save(new StringToObjectDictionaryContainer() {Map = {{"foo", 1234}, {"bar", "hoho"}}});
+
+            var resource = this.client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
+
+            Assert.IsNotNull(resource);
+            Assert.That(resource.Map, Has.Count.EqualTo(2));
+            Assert.IsTrue(resource.Map.ContainsKey("foo"));
+            Assert.IsTrue(resource.Map.ContainsKey("bar"));
+            Assert.That(resource.Map["foo"],Is.EqualTo(1234));
+            Assert.That(resource.Map["bar"], Is.EqualTo("hoho"));
+        }
 
         [Test]
         public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()

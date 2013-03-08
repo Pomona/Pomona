@@ -685,7 +685,7 @@ namespace Pomona.Common
 
                 return Expression.Call(
                     Expression.Property(this.targetParameter, this.attributesProperty),
-                    OdataFunctionMapping.DictGetMethod,
+                    OdataFunctionMapping.DictStringStringGetMethod,
                     Expression.Constant(attrName));
 
                 throw new NotImplementedException();

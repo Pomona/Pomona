@@ -157,7 +157,7 @@ namespace Pomona.Example
         {
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
-                if (node.Method == OdataFunctionMapping.DictGetMethod)
+                if (node.Method == OdataFunctionMapping.DictStringStringGetMethod)
                 {
                     return
                         Expression.Call(
@@ -178,7 +178,7 @@ namespace Pomona.Example
 
         public static IEnumerable<Type> GetEntityTypes()
         {
-            return typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models");
+            return typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models" && !x.IsGenericTypeDefinition);
         }
 
 

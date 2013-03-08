@@ -30,6 +30,7 @@ using NUnit.Framework;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
+using Pomona.Common;
 
 namespace Pomona.SystemTests.Linq
 {
@@ -58,7 +59,6 @@ namespace Pomona.SystemTests.Linq
                 client.Critters.Query().Any(x => x.Name == critter.Name);
             Assert.That(hasCritterWithGuid, Is.True);
         }
-
 
         [Test]
         public void QueryCritter_AnyWithNameEqualToRandomGuid_ReturnsFalse()
@@ -150,6 +150,24 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual.SequenceEqual(expected));
         }
 
+        [Test]
+        public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues()
+        {
+            var expected =
+                CritterEntities.Where(
+                    x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
+                               .Take(5)
+                               .ToList();
+            var actual =
+                client.Query<ICritter>()
+                      .Where(x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
+                      .Expand(x => x.Weapons)
+                      .Take(5)
+                      .ToList();
+
+            Assert.That(actual.Select(x => x.Id), Is.EquivalentTo(expected.Select(x => x.Id)));
+        }
+
 
         [Test]
         public void QueryCritter_WhereFirst_ReturnsCorrectCritter()
@@ -181,6 +199,22 @@ namespace Pomona.SystemTests.Linq
                       .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
+        }
+
+        [Test]
+        public void QueryHasStringToObjectDictionary_ReturnsCorrectValues()
+        {
+            for (int i = 1; i <= 8; i++)
+            {
+                DataSource.Save(new StringToObjectDictionaryContainer() {Map = {{"square", i*i}}});
+            }
+
+            // Should get 36, 49 and 64
+            var results = client.Query<IStringToObjectDictionaryContainer>()
+                                .Where(x => x.Map.SafeGet("square") as int? > 26)
+                                .ToList();
+
+            Assert.That(results, Has.Count.EqualTo(3));
         }
 
         [Test]

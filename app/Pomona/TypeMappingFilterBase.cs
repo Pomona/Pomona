@@ -46,20 +46,7 @@ namespace Pomona
 
         static TypeMappingFilterBase()
         {
-            jsonSupportedNativeTypes = new HashSet<Type>
-                {
-                    typeof (string),
-                    typeof (int),
-                    typeof (long),
-                    typeof (double),
-                    typeof (float),
-                    typeof (decimal),
-                    typeof (DateTime),
-                    typeof (object),
-                    typeof (bool),
-                    typeof (Guid),
-                    typeof (Uri)
-                };
+            jsonSupportedNativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
         }
 
         private HashSet<Type> SourceTypes

@@ -1,9 +1,30 @@
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2013 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
 using System.IO;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
@@ -16,10 +37,53 @@ namespace Pomona.SystemTests
         [SetUp]
         public void SetUp()
         {
-            this.typeMapper = new ClientTypeMapper(Client.ResourceTypes);
+            typeMapper = new ClientTypeMapper(Client.ResourceTypes);
         }
 
         private ClientTypeMapper typeMapper;
+
+        private T Deserialize<T>(string jsonString)
+        {
+            var jsonDeserializer = new PomonaJsonDeserializer();
+            var reader = jsonDeserializer.CreateReader(new StringReader(jsonString));
+            var context = new ClientDeserializationContext(typeMapper);
+            var node = new ItemValueDeserializerNode(typeMapper.GetClassMapping(typeof (T)), context);
+            jsonDeserializer.DeserializeNode(node, reader);
+            var critter = (T) node.Value;
+            return critter;
+        }
+
+        [Test]
+        public void DeserializeClassWithObjectProperty_PropertyGotBoxedIntValue_ReturnsDeserializedObject()
+        {
+            var jsonString = @"{
+  ""fooBar"": {
+    ""_type"": ""Int32"",
+    ""value"": 1337
+  }
+}
+";
+
+
+            var deserialized = Deserialize<IHasObjectProperty>(jsonString);
+            Assert.That(deserialized.FooBar, Is.EqualTo(1337));
+        }
+
+        [Test]
+        public void DeserializeClassWithObjectProperty_PropertyGotBoxedStringValue_ReturnsDeserializedObject()
+        {
+            var jsonString = @"{
+  ""fooBar"": {
+    ""_type"": ""String"",
+    ""value"": ""blabla""
+  }
+}
+";
+
+
+            var deserialized = Deserialize<IHasObjectProperty>(jsonString);
+            Assert.That(deserialized.FooBar, Is.EqualTo("blabla"));
+        }
 
         [Test]
         public void DeserializeCritter_AndCheckSomeProperties()
@@ -55,13 +119,33 @@ namespace Pomona.SystemTests
       }
     }";
 
-            var jsonDeserializer = new PomonaJsonDeserializer();
-            var reader = jsonDeserializer.CreateReader(new StringReader(jsonString));
-            var context = new ClientDeserializationContext(this.typeMapper);
-            var node = new ItemValueDeserializerNode(this.typeMapper.GetClassMapping(typeof (ICritter)), context);
-            jsonDeserializer.DeserializeNode(node, reader);
-            var critter = (ICritter) node.Value;
+            var critter = Deserialize<ICritter>(jsonString);
             Assert.That(critter.Name, Is.EqualTo("Excellent Bear"));
+        }
+
+        [Test]
+        public void DeserializeStringToObjectDictionary_ReturnsDeserializedObject()
+        {
+            var jsonString = @"{
+  ""map"": {
+    ""foo"": {
+      ""_type"": ""Int32"",
+      ""value"": 1234
+    },
+    ""bar"": {
+      ""_type"": ""String"",
+      ""value"": ""hoho""
+    }
+  }
+}";
+            var deserialized = Deserialize<IStringToObjectDictionaryContainer>(jsonString);
+
+            Assert.That(deserialized.Map, Is.Not.Null);
+            Assert.That(deserialized.Map.Count, Is.EqualTo(2));
+            Assert.IsTrue(deserialized.Map.ContainsKey("foo"));
+            Assert.IsTrue(deserialized.Map.ContainsKey("bar"));
+            Assert.That(deserialized.Map["foo"], Is.EqualTo(1234));
+            Assert.That(deserialized.Map["bar"], Is.EqualTo("hoho"));
         }
     }
 }

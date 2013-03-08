@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -80,7 +76,6 @@ namespace Pomona.Common
                 return getDefaultFunc();
             return value;
         }
-
 
         public static TValue SafeGet<TKey, TValue>(
             this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)

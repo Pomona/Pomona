@@ -41,15 +41,7 @@ namespace Pomona.Common
         private static readonly HashSet<char> validSymbolCharacters =
             new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 
-        private static readonly HashSet<Type> nativeTypes = new HashSet<Type>
-            {
-                typeof (int),
-                typeof (string),
-                typeof (decimal),
-                typeof (double),
-                typeof (float),
-                typeof (Guid)
-            };
+        private static readonly HashSet<Type> nativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
 
         private readonly LambdaExpression lambda;
         private readonly ParameterExpression thisParameter;
@@ -112,10 +104,10 @@ namespace Pomona.Common
         }
 
 
-        private static bool ContainsOnlyValidSymbolCharacters(string text)
+        private static bool IsValidSymbolString(string text)
         {
             var containsOnlyValidSymbolCharacters = text.All(x => validSymbolCharacters.Contains(x));
-            return containsOnlyValidSymbolCharacters;
+            return text.Length > 0 && (!char.IsNumber(text[0])) && containsOnlyValidSymbolCharacters;
         }
 
 
@@ -154,8 +146,15 @@ namespace Pomona.Common
 
         private static string GetJsonTypeName(Type typeOperand)
         {
+            var postfixSymbol = string.Empty;
+            if (typeOperand.MetadataToken == typeof (Nullable<>).MetadataToken)
+            {
+                typeOperand = Nullable.GetUnderlyingType(typeOperand);
+                postfixSymbol = "?";
+            }
+
             if (nativeTypes.Contains(typeOperand))
-                return string.Format("'{0}'", typeOperand.Name);
+                return string.Format("'{0}{1}'", typeOperand.Name, postfixSymbol);
 
             var resourceInfoAttribute =
                 typeOperand.GetCustomAttributes(typeof (ResourceInfoAttribute), false).
@@ -250,9 +249,26 @@ namespace Pomona.Common
             var left = binaryExpr.Left;
             var right = binaryExpr.Right;
 
+            left = FixBinaryComparisonConversion(left);
+            right = FixBinaryComparisonConversion(right);
+
             TryDetectAndConvertEnumComparison(ref left, ref right, true);
 
             return string.Format("({0} {1} {2})", Build(left), opString, Build(right));
+        }
+
+        private Expression FixBinaryComparisonConversion(Expression expr)
+        {
+            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression) expr).Operand.Type == typeof (object))
+            {
+                return ((UnaryExpression) expr).Operand;
+            }
+            else if (expr.NodeType == ExpressionType.Convert && expr.Type.IsNullable() &&
+                     Nullable.GetUnderlyingType(expr.Type) == ((UnaryExpression) expr).Operand.Type)
+            {
+                return ((UnaryExpression) expr).Operand;
+            }
+            return expr;
         }
 
 
@@ -300,7 +316,7 @@ namespace Pomona.Common
             if (callExpr.Method.MetadataToken == OdataFunctionMapping.EnumerableContainsMethod.MetadataToken)
                 return Build(callExpr.Arguments[1]) + " in " + Build(callExpr.Arguments[0]);
 
-            if (callExpr.Method.MetadataToken == OdataFunctionMapping.DictGetMethod.MetadataToken)
+            if (callExpr.Method.MetadataToken == OdataFunctionMapping.DictStringStringGetMethod.MetadataToken)
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
                 var key = DecodeQuotedString(quotedKey);
@@ -308,6 +324,15 @@ namespace Pomona.Common
                 if (ContainsOnlyValidSymbolCharacters(key))
                     return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
                 return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);
+            }
+            if (callExpr.Method.MetadataToken == OdataFunctionMapping.SafeGetMethod.MetadataToken)
+            {
+                var constantKeyExpr = callExpr.Arguments[1] as ConstantExpression;
+                if (constantKeyExpr != null && constantKeyExpr.Type == typeof (string) &&
+                    IsValidSymbolString((string) constantKeyExpr.Value))
+                {
+                    return string.Format("{0}.{1}", Build(callExpr.Arguments[0]), constantKeyExpr.Value);
+                }
             }
 
             string odataExpression;
@@ -371,18 +396,23 @@ namespace Pomona.Common
                 case ExpressionType.Not:
                     return string.Format("not ({0})", Build(unaryExpression.Operand));
 
+                case ExpressionType.TypeAs:
                 case ExpressionType.Convert:
                     if (unaryExpression.Operand.Type.IsEnum)
                         return Build(unaryExpression.Operand);
 
+                    var operatorName = "cast";
+                    if (unaryExpression.NodeType == ExpressionType.TypeAs)
+                        operatorName = "as";
+
                     if (unaryExpression.Operand == thisParameter)
                     {
-                        return string.Format("cast({0})", GetJsonTypeName(unaryExpression.Type));
+                        return string.Format("{0}({1})", operatorName, GetJsonTypeName(unaryExpression.Type));
                         // throw new NotImplementedException("Only know how to cast `this` to something else");
                     }
                     else
                     {
-                        return string.Format("cast({0},{1})", Build(unaryExpression.Operand),
+                        return string.Format("{0}({1},{2})", operatorName, Build(unaryExpression.Operand),
                                              GetJsonTypeName(unaryExpression.Type));
                     }
 

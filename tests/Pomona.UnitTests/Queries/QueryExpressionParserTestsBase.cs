@@ -41,8 +41,10 @@ namespace Pomona.UnitTests.Queries
 
         public class Dummy
         {
+            public object UnknownProperty { get; set; }
             public bool OnOrOff { get; set; }
             public bool and { get; set; }
+            public IDictionary<string, object> ObjectAttributes { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
             public IEnumerable<Dummy> Children { get; set; }
             public Dummy Friend { get; set; }
@@ -53,6 +55,7 @@ namespace Pomona.UnitTests.Queries
             public IEnumerable<string> SomeStrings { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
+
         }
     }
 }

@@ -26,14 +26,14 @@ using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
-    public class DictionaryContainer : EntityBase
+    public class StringToObjectDictionaryContainer : EntityBase
     {
-        public DictionaryContainer()
+        public StringToObjectDictionaryContainer()
         {
-            Map = new Dictionary<string, string>();
+            Map = new Dictionary<string, object>();
         }
 
 
-        public IDictionary<string, string> Map { get; set; }
+        public IDictionary<string, object> Map { get; set; }
     }
 }
