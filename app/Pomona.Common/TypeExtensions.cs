@@ -32,10 +32,11 @@ namespace Pomona.Common
 {
     public static class TypeExtensions
     {
-        public static long UniqueToken(this MemberInfo member)
+        public static UniqueMemberToken UniqueToken(this MemberInfo member)
         {
-            return (long)((ulong)member.Module.MetadataToken | ((ulong) member.MetadataToken) << 32);
+            return UniqueMemberToken.FromMemberInfo(member);
         }
+
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)
         {
             return
@@ -125,6 +126,56 @@ namespace Pomona.Common
             else
                 elementType = null;
             return elementType != null;
+        }
+
+        public struct UniqueMemberToken
+        {
+            private readonly int metadataToken;
+            private readonly ModuleHandle moduleHandle;
+
+            public UniqueMemberToken(int metadataToken, ModuleHandle moduleHandle)
+            {
+                this.metadataToken = metadataToken;
+                this.moduleHandle = moduleHandle;
+            }
+
+            public int MetadataToken
+            {
+                get { return metadataToken; }
+            }
+
+            public ModuleHandle ModuleHandle
+            {
+                get { return moduleHandle; }
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is UniqueMemberToken)
+                    return ((UniqueMemberToken) obj) == this;
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return metadataToken.GetHashCode() ^ moduleHandle.GetHashCode();
+            }
+
+            public static bool operator ==(UniqueMemberToken a, UniqueMemberToken b)
+            {
+                return a.metadataToken == b.metadataToken && a.moduleHandle == b.moduleHandle;
+            }
+
+            public static bool operator !=(UniqueMemberToken a, UniqueMemberToken b)
+            {
+                return !(a == b);
+            }
+
+            public static UniqueMemberToken FromMemberInfo(MemberInfo member)
+            {
+                return new UniqueMemberToken(member.MetadataToken, member.Module.ModuleHandle);
+            }
         }
     }
 }
