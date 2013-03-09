@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using Nancy;
 using Nancy.TinyIoc;
 
@@ -34,13 +30,24 @@ namespace Pomona.Example
     public class CritterBootstrapper : DefaultNancyBootstrapper
     {
         private readonly CritterDataSource dataSource;
+
         private readonly TypeMapper typeMapper;
 
 
         public CritterBootstrapper(CritterDataSource dataSource = null)
         {
-            this.dataSource = dataSource ?? new CritterDataSource();
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.dataSource = dataSource ?? new CritterDataSource(typeMapper);
+        }
+
+        public CritterDataSource DataSource
+        {
+            get { return dataSource; }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return typeMapper; }
         }
 
 

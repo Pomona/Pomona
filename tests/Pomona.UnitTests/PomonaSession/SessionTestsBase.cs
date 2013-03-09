@@ -80,8 +80,8 @@ namespace Pomona.UnitTests.PomonaSession
         [SetUp]
         public void SetUp()
         {
-            dataSource = new CritterDataSource();
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            dataSource = new CritterDataSource(typeMapper);
             session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver);
             firstCritter = dataSource.List<Critter>().First();
         }

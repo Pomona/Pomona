@@ -121,7 +121,6 @@ namespace Pomona.SystemTests
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
 
-        [Category("TODO")]
         [Test]
         public void PostMusicalCritter()
         {
@@ -141,8 +140,7 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter),
-                        "This is known to fail, does not yet save subtyped resources correctly in CritterDataSource");
+            Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
         }
 
 

@@ -36,8 +36,9 @@ namespace Pomona.UnitTests.GenerateClientDllApp
     {
         private static void Main(string[] args)
         {
+            var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             var session = new PomonaSession(
-                new CritterDataSource(), new TypeMapper(new CritterPomonaConfiguration()), UriResolver);
+                new CritterDataSource(typeMapper), typeMapper, UriResolver);
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {

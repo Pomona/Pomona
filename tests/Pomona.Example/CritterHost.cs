@@ -39,7 +39,6 @@ namespace Pomona.Example
 
         public CritterHost(Uri baseUri)
         {
-            DataSource = new CritterDataSource();
             this.baseUri = baseUri;
         }
 
@@ -59,7 +58,9 @@ namespace Pomona.Example
 
         public void Start()
         {
-            host = new NancyHost(baseUri, new CritterBootstrapper(DataSource));
+            var bootstrapper = new CritterBootstrapper();
+            DataSource = bootstrapper.DataSource;
+            host = new NancyHost(baseUri, bootstrapper);
             host.Start();
         }
 

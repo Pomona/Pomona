@@ -36,9 +36,10 @@ namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
     {
+        private readonly TypeMapper typeMapper;
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
-        private static readonly MethodInfo saveMethod;
+        private static readonly MethodInfo saveInternalMethod;
         private static readonly MethodInfo queryMethod;
 
         private readonly List<PomonaQuery> queryLog = new List<PomonaQuery>();
@@ -59,12 +60,14 @@ namespace Pomona.Example
             saveDictionaryMethod =
                 ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
                     x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
-            saveMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Save<EntityBase>(null));
+            saveInternalMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
         }
 
 
-        public CritterDataSource()
+        public CritterDataSource(TypeMapper typeMapper)
         {
+            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
+            this.typeMapper = typeMapper;
             ResetTestData();
             notificationsEnabled = true;
         }
@@ -204,7 +207,7 @@ namespace Pomona.Example
 
         private object SaveCollection<T>(ICollection<T> collection)
             where T : EntityBase
-        {
+        { 
             foreach (var item in collection)
             {
                 Save(item);
@@ -214,6 +217,14 @@ namespace Pomona.Example
 
         public T Save<T>(T entity)
         {
+            var transformedType = (TransformedType)typeMapper.GetClassMapping<T>();
+            var saveMethodInstance = saveInternalMethod.MakeGenericMethod(transformedType.UriBaseType.MappedTypeInstance);
+            return (T)saveMethodInstance.Invoke(this, new object[] {entity});
+            return entity;
+        }
+
+        public T SaveInternal<T>(T entity)
+        {
             var entityCast = (EntityBase) ((object) entity);
 
             if (entityCast.Id != 0)
@@ -222,7 +233,7 @@ namespace Pomona.Example
             if (notificationsEnabled)
                 Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
 
-            foreach (var prop in typeof (T).GetProperties())
+            foreach (var prop in entity.GetType().GetProperties())
             {
                 Type[] genericArguments;
                 var propType = prop.PropertyType;
@@ -230,7 +241,7 @@ namespace Pomona.Example
                 {
                     var value = prop.GetValue(entity, null);
                     if (value != null)
-                        saveMethod.MakeGenericMethod(propType).Invoke(this, new[] {value});
+                        saveInternalMethod.MakeGenericMethod(propType).Invoke(this, new[] {value});
                 }
                 else if (TypeUtils.TryGetTypeArguments(propType, typeof (ICollection<>), out genericArguments))
                 {
@@ -256,6 +267,10 @@ namespace Pomona.Example
             return entity;
         }
 
+        public void AddToEntityList<T>(T entity)
+        {
+            
+        }
 
         private void CreateFarms()
         {
