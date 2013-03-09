@@ -140,6 +140,7 @@
     <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
+    <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>

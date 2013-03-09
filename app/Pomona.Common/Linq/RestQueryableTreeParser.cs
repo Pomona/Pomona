@@ -47,8 +47,8 @@ namespace Pomona.Common.Linq
 
         #endregion
 
-        private static readonly Dictionary<TypeExtensions.UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary =
-            new Dictionary<TypeExtensions.UniqueMemberToken, MethodInfo>();
+        private static readonly Dictionary<UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary =
+            new Dictionary<UniqueMemberToken, MethodInfo>();
 
         private static readonly MethodInfo visitQueryConstantValueMethod;
         private readonly StringBuilder expandedPaths = new StringBuilder();

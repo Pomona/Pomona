@@ -53,8 +53,8 @@ namespace Pomona.Common.Internals
         public static readonly MethodInfo EnumerableContainsMethod;
         public static readonly MethodInfo SafeGetMethod;
 
-        private static readonly Dictionary<TypeExtensions.UniqueMemberToken, MemberMapping> metadataTokenToMemberMappingDict =
-            new Dictionary<TypeExtensions.UniqueMemberToken, MemberMapping>();
+        private static readonly Dictionary<UniqueMemberToken, MemberMapping> metadataTokenToMemberMappingDict =
+            new Dictionary<UniqueMemberToken, MemberMapping>();
 
         private static readonly Dictionary<string, List<MemberMapping>> nameToMemberMappingDict =
             new Dictionary<string, List<MemberMapping>>();
