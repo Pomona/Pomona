@@ -202,22 +202,6 @@ namespace Pomona.Common.Linq
         }
 
 
-        private PropertyInfo GetAttributesDictionaryPropertyFromResource(Type serverKnownType)
-        {
-            var attrProp =
-                serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
-                    x => x.GetCustomAttributes(typeof(ResourceAttributesPropertyAttribute), true).Any());
-
-            if (attrProp == null)
-            {
-                throw new InvalidOperationException(
-                    "Unable to find property with ResourceAttributesPropertyAttribute attached to it on type "
-                    + serverKnownType.FullName);
-            }
-
-            return attrProp;
-        }
-
 
         private object MapToCustomUserTypeResult<TCustomClientType>(
             object result, Type serverKnownType, PropertyInfo dictProp, Expression transformedExpression)
@@ -248,24 +232,22 @@ namespace Pomona.Common.Linq
 
         private bool TryQueryCustomUserTypeIfRequired(Expression expression, Type customClientType, out object result)
         {
-            var serverKnownType = this.client.GetMostInheritedResourceInterface(customClientType);
-            if (customClientType == serverKnownType)
+            CustomUserTypeInfo info;
+            if (!CustomUserTypeInfo.TryGetCustomUserTypeInfo(customClientType, client, out info))
             {
                 result = null;
                 return false;
             }
 
-            var dictProp = GetAttributesDictionaryPropertyFromResource(serverKnownType);
-
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(
-                customClientType, serverKnownType, dictProp);
+                customClientType, info.ServerType, info.DictProperty);
             var transformedExpression = visitor.Visit(expression);
 
-            var nestedQueryProvider = new RestQueryProvider(this.client, serverKnownType);
+            var nestedQueryProvider = new RestQueryProvider(this.client, info.ServerType);
             result = nestedQueryProvider.Execute(transformedExpression);
 
             result = mapToCustomUserTypeResultMethod.MakeGenericMethod(customClientType).Invoke(
-                this, new[] { result, serverKnownType, dictProp, transformedExpression });
+                this, new[] { result, info.ServerType, info.DictProperty, transformedExpression });
 
             return true;
         }

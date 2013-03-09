@@ -71,6 +71,7 @@
     <Compile Include="HttpUtility.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
+    <Compile Include="Internals\CustomUserTypeInfo.cs" />
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />

@@ -27,6 +27,7 @@ using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Example.Models;
+using Pomona.SystemTests.Linq;
 using CustomEnum = Critters.Client.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -119,6 +120,19 @@ namespace Pomona.SystemTests
                 client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
+        }
+
+        [Test]
+        public void PostCustomTestEntity()
+        {
+            client.Post<LinqQueryTests.ICustomTestEntity3>(x =>
+                {
+                    x.Number = 123;
+                    x.Text = "foobar";
+                    x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
+                });
+
+
         }
 
         [Test]
