@@ -108,7 +108,7 @@ namespace Pomona.UnitTests.Queries
         public void Parse_CastToInt32_CreatesCorrectExpression()
         {
             // TODO: Also create system tests for this!
-            var expr = parser.Parse<Dummy>("cast(precise,'Int32') eq number");
+            var expr = parser.Parse<Dummy>("cast(precise,t'Int32') eq number");
             AssertExpressionEquals(expr, _this => (int) _this.Precise == _this.Number);
         }
 
