@@ -67,12 +67,6 @@ namespace Pomona.UnitTests.Queries
         }
 
 
-        public void Parse_CastExpression_CreatesCorrectExpression()
-        {
-            var expr = parser.Parse<Dummy>("cast()");
-        }
-
-
         public class EvaluateClosureMemberVisitor : ExpressionVisitor
         {
             protected override Expression VisitMember(MemberExpression node)
@@ -91,7 +85,6 @@ namespace Pomona.UnitTests.Queries
                 return base.VisitMember(node);
             }
         }
-
 
         [Test]
         public void Parse_AnyExpressionWithLambda_CreatesCorrectExpression()

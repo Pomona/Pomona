@@ -65,7 +65,7 @@ namespace Pomona.Common
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
             where TSubResource : TResource
         {
-            return this.client.Put(resource, patchAction);
+            return this.client.Patch(resource, patchAction);
         }
 
         public TPostResponseResource Post<TPostForm>(TPostForm form)

@@ -315,7 +315,7 @@ namespace Pomona
 
             Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson(type, x.id, x.propname);
 
-            Put[path + "/{id}"] = x => UpdateFromJson(type, x.id);
+            Patch[path + "/{id}"] = x => UpdateFromJson(type, x.id);
             Post[path] = x => PostFromJson(type);
 
             Get[path] = x => QueryAsJson(type);

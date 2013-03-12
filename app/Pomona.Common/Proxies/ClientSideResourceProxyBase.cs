@@ -27,9 +27,73 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pomona.Common.Internals;
+using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {
+    public class ClientSideFormProxyBase : PutResourceBase
+    {
+        private static readonly MethodInfo onGetAttributeMethod;
+        private static readonly MethodInfo onSetAttributeMethod;
+
+        static ClientSideFormProxyBase()
+        {
+            onGetAttributeMethod =
+                ReflectionHelper.GetGenericMethodDefinition<ClientSideFormProxyBase>(
+                    x => x.OnGetAttribute<object, object, object>(null));
+            onSetAttributeMethod =
+                ReflectionHelper.GetGenericMethodDefinition<ClientSideFormProxyBase>(
+                    x => x.OnSetAttribute<object, object, object>(null, null));
+        }
+
+        public Type ProxyTargetType { get; internal set; }
+        internal PropertyInfo AttributesProperty { get; set; }
+
+        protected override TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            if (IsServerKnownProperty(property))
+                return base.OnGet(property);
+
+            var dictValueType = AttributesProperty.PropertyType.GetGenericArguments()[0];
+            return
+                (TPropType)
+                onGetAttributeMethod.MakeGenericMethod(typeof (TOwner), typeof (TPropType), dictValueType)
+                                    .Invoke(this, new object[] {property});
+        }
+
+        private TPropType OnGetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            var dict = (IDictionary<string, TDictValue>) AttributesProperty.GetValue(this, null);
+            return (TPropType) ((object) dict[property.Name]);
+        }
+
+        private bool OnSetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property,
+                                                                   TPropType value)
+        {
+            var dict = (IDictionary<string, TDictValue>) AttributesProperty.GetValue(this, null);
+            dict[property.Name] = (TDictValue) ((object) value);
+            return false;
+        }
+
+        private bool IsServerKnownProperty<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            return property.PropertyInfo.DeclaringType.IsDefined(typeof (ResourceInfoAttribute), false);
+        }
+
+        protected override void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
+        {
+            if (IsServerKnownProperty(property))
+            {
+                base.OnSet(property, value);
+                return;
+            }
+
+            var dictValueType = AttributesProperty.PropertyType.GetGenericArguments()[0];
+            onSetAttributeMethod.MakeGenericMethod(typeof (TOwner), typeof (TPropType), dictValueType)
+                                .Invoke(this, new object[] {property, value});
+        }
+    }
+
     public class ClientSideResourceProxyBase
     {
         public object ProxyTarget { get; internal set; }

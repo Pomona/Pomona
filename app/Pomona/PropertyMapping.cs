@@ -25,6 +25,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Visitors;
 
@@ -47,6 +48,7 @@ namespace Pomona
         private readonly string name;
         private readonly PropertyInfo propertyInfo;
         private readonly IMappedType propertyType;
+        private PropertyInfo normalizedPropertyInfo;
 
 
         public PropertyMapping(
@@ -99,6 +101,20 @@ namespace Pomona
             get { return declaringType.TypeMapper; }
         }
 
+        private PropertyInfo NormalizedPropertyInfo
+        {
+            get
+            {
+                if (propertyInfo == null)
+                    return null;
+
+                if (normalizedPropertyInfo == null)
+                    normalizedPropertyInfo = propertyInfo.NormalizeReflectedType();
+
+                return normalizedPropertyInfo;
+            }
+        }
+
         public bool AlwaysExpand { get; set; }
         public PropertyCreateMode CreateMode { get; set; }
 
@@ -138,7 +154,7 @@ namespace Pomona
         public Expression CreateGetterExpression(Expression instance)
         {
             if (Formula == null)
-                return Expression.MakeMemberAccess(instance, PropertyInfo);
+                return Expression.MakeMemberAccess(instance, NormalizedPropertyInfo);
 
             // TODO: Make some assertions here..
             return FindAndReplaceVisitor.Replace(Formula.Body, Formula.Parameters[0], instance);

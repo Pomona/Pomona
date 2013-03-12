@@ -37,6 +37,23 @@ namespace Pomona.Common
             return UniqueMemberToken.FromMemberInfo(member);
         }
 
+        /// <summary>
+        /// Gets version of member where reflected type is same as declaring type.
+        /// </summary>
+        /// <returns>Normalized member.</returns>
+        public static TMemberInfo NormalizeReflectedType<TMemberInfo>(this TMemberInfo memberInfo)
+            where TMemberInfo : MemberInfo
+        {
+            if (memberInfo.DeclaringType == null || memberInfo.DeclaringType == memberInfo.ReflectedType)
+                return memberInfo;
+
+            return
+                (TMemberInfo) memberInfo.DeclaringType.GetMember(memberInfo.Name,
+                                                                 BindingFlags.Instance | BindingFlags.NonPublic |
+                                                                 BindingFlags.Public)
+                                        .First(x => x.MetadataToken == memberInfo.MetadataToken);
+        }
+
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)
         {
             return

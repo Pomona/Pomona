@@ -339,7 +339,7 @@ namespace Pomona.Example
             chosenFarm.Critters.Add(critter);
             critter.Farm = chosenFarm;
 
-            // Put on a random hat
+            // Patch on a random hat
             Save(critter.Hat);
             Save(critter);
         }

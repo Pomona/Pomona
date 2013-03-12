@@ -35,11 +35,11 @@ namespace Pomona.Common.Proxies
 {
     public class PutResourceBase : IPomonaSerializable
     {
-        private Dictionary<string, bool> dirtyMap = new Dictionary<string, bool>();
-        private Dictionary<string, object> propMap = new Dictionary<string, object>();
+        protected Dictionary<string, bool> dirtyMap = new Dictionary<string, bool>();
+        protected Dictionary<string, object> propMap = new Dictionary<string, object>();
 
 
-        protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        protected virtual TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             object value;
             if (!propMap.TryGetValue(property.Name, out value))
@@ -73,7 +73,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
+        protected virtual void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
             propMap[property.Name] = value;
             dirtyMap[property.Name] = true;

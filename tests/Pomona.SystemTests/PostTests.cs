@@ -72,6 +72,22 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
+        [Category("TODO")]
+        [Test(Description =
+            "Patching of dictionary properties not yet implemented, required for supporting posting of custom user client-side resources."
+            )]
+        public void PostCustomTestEntity()
+        {
+            client.Post<LinqQueryTests.ICustomTestEntity3>(x =>
+                {
+                    x.Number = 123;
+                    x.Text = "foobar";
+                    x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
+                });
+
+            Assert.Fail("TEST NOT FINISHED");
+        }
+
 
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
@@ -120,19 +136,6 @@ namespace Pomona.SystemTests
                 client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
-        }
-
-        [Test]
-        public void PostCustomTestEntity()
-        {
-            client.Post<LinqQueryTests.ICustomTestEntity3>(x =>
-                {
-                    x.Number = 123;
-                    x.Text = "foobar";
-                    x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
-                });
-
-
         }
 
         [Test]

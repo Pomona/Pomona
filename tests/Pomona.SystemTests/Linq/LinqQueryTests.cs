@@ -229,6 +229,23 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_QueryingPropertyOfBaseClass_ReflectedTypeOfPropertyInPomonaQueryIsCorrect()
+        {
+            // Fix: We don't want the parsed expression trees to give us members with "ReflectedType" set to inherited type, but same as DeclaringType.
+            
+            // Result of below query not important..
+            client.Critters.Query().Where(x => x.Id == 666).ToList();
+
+            var query = DataSource.QueryLog.Last();
+            var binExpr = query.FilterExpression.Body as BinaryExpression;
+            Assert.That(binExpr, Is.Not.Null);
+            Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.Equal));
+            var propExpr = binExpr.Left as MemberExpression;
+            Assert.That(propExpr, Is.Not.Null);
+            Assert.That(propExpr.Member.ReflectedType, Is.EqualTo(propExpr.Member.DeclaringType));
+        }
+
+        [Test]
         public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
         {
             client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
