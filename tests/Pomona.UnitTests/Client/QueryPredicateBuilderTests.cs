@@ -51,6 +51,7 @@ namespace Pomona.UnitTests.Client
         {
             public bool OnOrOff { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
+            public IDictionary<string, object> StringObjectAttributes { get; set; }
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
             public dynamic Boo { get; set; }
@@ -103,12 +104,10 @@ namespace Pomona.UnitTests.Client
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "Don't support casting of value types yet.")]
+        [Test]
         public void BuildCastToIntExpression_ReturnsCorrectString()
         {
-            // TODO: Remember to write system tests for this too [KNS]
-            AssertBuild(x => (int) x.Precise, "cast(precise,'Int32')");
+            AssertBuild(x => (int) x.Precise, "cast(precise,t'Int32')");
         }
 
 
@@ -365,6 +364,13 @@ namespace Pomona.UnitTests.Client
         public void BuildSafeGetExpression_UsingKeyWithNonSymbolCharacters_ReturnsCorrectString()
         {
             AssertBuild(x => x.Attributes.SafeGet("ka blo bla") == "boom", "attributes.safeget('ka blo bla') eq 'boom'");
+        }
+
+        [Test]
+        public void BuildSafeGetFromObjectDictAsString_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
+                        "stringObjectAttributes.Hei as t'String'");
         }
 
 

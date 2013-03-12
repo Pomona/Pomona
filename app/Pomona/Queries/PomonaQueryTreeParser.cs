@@ -106,6 +106,8 @@ namespace Pomona.Queries
 
                 switch (prefix)
                 {
+                    case "t":
+                        return new TypeNameNode(value);
                     case "guid":
                         return new GuidNode(Guid.Parse(value));
                     case "datetime":

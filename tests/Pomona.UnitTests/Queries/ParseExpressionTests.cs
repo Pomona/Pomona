@@ -1,9 +1,7 @@
-#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,40 +22,24 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using NUnit.Framework;
+using Pomona.Common;
 
-namespace Pomona.Queries
+namespace Pomona.UnitTests.Queries
 {
-    public enum NodeType
+    [TestFixture]
+    public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
-        Unhandled,
-        AndAlso,
-        OrElse,
-        Add,
-        Subtract,
-        Multiply,
-        Div,
-        NumberLiteral,
-        LessThan,
-        Equal,
-        Root,
-        Symbol,
-        GreaterThan,
-        StringLiteral,
-        GuidLiteral,
-        GreaterThanOrEqual,
-        LessThanOrEqual,
-        DateTimeLiteral,
-        Dot,
-        Modulo,
-        NotEqual,
-        MethodCall,
-        IndexerAccess,
-        Lambda,
-        As,
-        In,
-        ArrayLiteral,
-        Not,
-        TypeNameLiteral
+        [Test]
+        public void ParseTypeNameLiteralExpression_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("t'Int32'", _this => typeof(int));
+        }
+
+        [Test]
+        public void ParseSafeGetFromObjectDictionaryAsStringExpression_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("objectAttributes.Hei as t'String'", _this => _this.ObjectAttributes.SafeGet("Hei") as string);
+        }
     }
 }

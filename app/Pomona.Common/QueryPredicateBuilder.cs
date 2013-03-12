@@ -144,7 +144,7 @@ namespace Pomona.Common
                        : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long) value);
         }
 
-        private static string GetJsonTypeName(Type typeOperand)
+        private string GetExternalTypeName(Type typeOperand)
         {
             var postfixSymbol = string.Empty;
             if (typeOperand.UniqueToken() == typeof (Nullable<>).UniqueToken())
@@ -153,14 +153,18 @@ namespace Pomona.Common
                 postfixSymbol = "?";
             }
 
-            if (nativeTypes.Contains(typeOperand))
-                return string.Format("'{0}{1}'", typeOperand.Name, postfixSymbol);
+            string typeName;
 
-            var resourceInfoAttribute =
-                typeOperand.GetCustomAttributes(typeof (ResourceInfoAttribute), false).
-                            OfType<ResourceInfoAttribute>().First();
-            var jsonTypeName = resourceInfoAttribute.JsonTypeName;
-            return jsonTypeName;
+            if (nativeTypes.Contains(typeOperand))
+                typeName = string.Format("{0}{1}", typeOperand.Name, postfixSymbol);
+            else
+            {
+                var resourceInfoAttribute =
+                    typeOperand.GetCustomAttributes(typeof (ResourceInfoAttribute), false).
+                                OfType<ResourceInfoAttribute>().First();
+                typeName = resourceInfoAttribute.JsonTypeName;
+            }
+            return EncodeString(typeName, "t");
         }
 
 
@@ -379,7 +383,7 @@ namespace Pomona.Common
 
                     // TODO: Proper typename resolving
 
-                    var jsonTypeName = GetJsonTypeName(typeOperand);
+                    var jsonTypeName = GetExternalTypeName(typeOperand);
                     return string.Format("isof({0})", jsonTypeName);
                 default:
                     throw new NotImplementedException(
@@ -396,23 +400,22 @@ namespace Pomona.Common
                     return string.Format("not ({0})", Build(unaryExpression.Operand));
 
                 case ExpressionType.TypeAs:
+                    return string.Format("({0} as {1})", Build(unaryExpression.Operand),
+                                         GetExternalTypeName(unaryExpression.Type));
+
                 case ExpressionType.Convert:
                     if (unaryExpression.Operand.Type.IsEnum)
                         return Build(unaryExpression.Operand);
 
-                    var operatorName = "cast";
-                    if (unaryExpression.NodeType == ExpressionType.TypeAs)
-                        operatorName = "as";
-
                     if (unaryExpression.Operand == thisParameter)
                     {
-                        return string.Format("{0}({1})", operatorName, GetJsonTypeName(unaryExpression.Type));
+                        return string.Format("cast({0})", GetExternalTypeName(unaryExpression.Type));
                         // throw new NotImplementedException("Only know how to cast `this` to something else");
                     }
                     else
                     {
-                        return string.Format("{0}({1},{2})", operatorName, Build(unaryExpression.Operand),
-                                             GetJsonTypeName(unaryExpression.Type));
+                        return string.Format("cast({0},{1})", Build(unaryExpression.Operand),
+                                             GetExternalTypeName(unaryExpression.Type));
                     }
 
                 default:
@@ -422,10 +425,11 @@ namespace Pomona.Common
         }
 
 
-        private string EncodeString(string text)
+        private string EncodeString(string text, string prefix = "")
         {
             // TODO: IMPORTANT! Proper encoding!!
             var sb = new StringBuilder();
+            sb.Append(prefix);
             sb.Append('\'');
 
             foreach (var c in text)

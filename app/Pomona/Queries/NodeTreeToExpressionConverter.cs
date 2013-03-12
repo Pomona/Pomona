@@ -28,8 +28,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Pomona.Common.Internals;
 using Pomona.Common;
+using Pomona.Common.Internals;
 
 namespace Pomona.Queries
 {
@@ -89,7 +89,8 @@ namespace Pomona.Queries
 
             if (node.NodeType == NodeType.Symbol)
             {
-                var dictionaryInterface = memberExpression.Type.GetInterfacesOfGeneric(typeof (IDictionary<,>)).FirstOrDefault();
+                var dictionaryInterface =
+                    memberExpression.Type.GetInterfacesOfGeneric(typeof (IDictionary<,>)).FirstOrDefault();
                 if (node.Children.Count == 0 && dictionaryInterface != null)
                 {
                     return ResolveDictionaryAccess((SymbolNode) node, memberExpression, dictionaryInterface);
@@ -127,6 +128,12 @@ namespace Pomona.Queries
                 return Expression.Constant(intNode.Parse());
             }
 
+            if (node.NodeType == NodeType.TypeNameLiteral)
+            {
+                var typeNameNode = (TypeNameNode) node;
+                return Expression.Constant(ResolveType(typeNameNode), typeof (Type));
+            }
+
             if (node.NodeType == NodeType.Lambda)
             {
                 var lambdaNode = (LambdaNode) node;
@@ -140,6 +147,11 @@ namespace Pomona.Queries
             }
 
             throw new NotImplementedException();
+        }
+
+        private Type ResolveType(TypeNameNode typeNameNode)
+        {
+            return propertyResolver.ResolveType(typeNameNode.Value);
         }
 
         private Expression ResolveDictionaryAccess(SymbolNode node, Expression memberExpression, Type dictionaryType)
@@ -226,26 +238,37 @@ namespace Pomona.Queries
 
         private Expression ParseBinaryOperator(BinaryOperator binaryOperatorNode, Expression memberExpression)
         {
+            var rightNode = binaryOperatorNode.Right;
+            var leftNode = binaryOperatorNode.Left;
+
             if (binaryOperatorNode.NodeType == NodeType.Dot)
             {
-                if (binaryOperatorNode.Right.NodeType == NodeType.MethodCall)
+                if (rightNode.NodeType == NodeType.MethodCall)
                 {
-                    var origCallNode = (MethodCallNode) binaryOperatorNode.Right;
+                    var origCallNode = (MethodCallNode) rightNode;
                     // Rewrite extension method call to static method call of tree:
                     // We do this by taking inserting the first node before arg nodes of extension method call.
-                    var staticMethodArgs = binaryOperatorNode
-                        .Left.WrapAsEnumerable()
-                        .Concat(binaryOperatorNode.Right.Children);
+                    var staticMethodArgs = leftNode.WrapAsEnumerable()
+                                                   .Concat(rightNode.Children);
                     var staticMethodCall = new MethodCallNode(origCallNode.Name, staticMethodArgs);
 
                     return ParseExpression(staticMethodCall);
                 }
-                var left = ParseExpression(binaryOperatorNode.Left);
-                return ParseExpression(binaryOperatorNode.Right, left, null);
+                var left = ParseExpression(leftNode);
+                return ParseExpression(rightNode, left, null);
             }
 
-            var leftChild = ParseExpression(binaryOperatorNode.Left);
-            var rightChild = ParseExpression(binaryOperatorNode.Right);
+            if (binaryOperatorNode.NodeType == NodeType.As)
+            {
+                if (rightNode.NodeType != NodeType.TypeNameLiteral)
+                    throw new QueryParseException("Right side of as operator is required to be a type literal.");
+
+                return Expression.TypeAs(ParseExpression(leftNode),
+                                         ResolveType((TypeNameNode) rightNode));
+            }
+
+            var leftChild = ParseExpression(leftNode);
+            var rightChild = ParseExpression(rightNode);
 
             if (binaryOperatorNode.NodeType == NodeType.In)
             {
@@ -288,9 +311,10 @@ namespace Pomona.Queries
             }
         }
 
-        private void FixBinaryOperatorConversion(ref Expression left, ref Expression right, bool callSwappedRecursively = true)
+        private void FixBinaryOperatorConversion(ref Expression left, ref Expression right,
+                                                 bool callSwappedRecursively = true)
         {
-            Type leftType = left.Type;
+            var leftType = left.Type;
 
             if (leftType.IsNullable() && Nullable.GetUnderlyingType(leftType) == right.Type)
             {
@@ -333,9 +357,10 @@ namespace Pomona.Queries
                         if (rightChild.NodeType == ExpressionType.Constant)
                         {
                             // Recreate array with nullable type..
-                            var sourceArray = ((IEnumerable)((ConstantExpression) rightChild).Value).Cast<object>().ToArray();
+                            var sourceArray =
+                                ((IEnumerable) ((ConstantExpression) rightChild).Value).Cast<object>().ToArray();
                             var destArray = Array.CreateInstance(compareType, sourceArray.Length);
-                            for (int i = 0; i < sourceArray.Length; i++)
+                            for (var i = 0; i < sourceArray.Length; i++)
                             {
                                 destArray.SetValue(sourceArray[i], i);
                             }
@@ -351,7 +376,8 @@ namespace Pomona.Queries
                         else
                         {
                             // Have no idea how to do this
-                            throw new QueryParseException("Using in only works for constant arrays when left side is of type object.");
+                            throw new QueryParseException(
+                                "Using in only works for constant arrays when left side is of type object.");
                         }
                     }
 
@@ -682,48 +708,34 @@ namespace Pomona.Queries
             switch (node.Name)
             {
                 case "isof":
-                    var checkType = propertyResolver.ResolveType(((SymbolNode) node.Children[0]).Name);
-                    expression = Expression.TypeIs(thisParam, checkType);
+                    var typeNameChildNode = node.Children[0] as TypeNameNode;
+                    if (typeNameChildNode == null)
+                        throw new QueryParseException("Argument to isof is required to be a type literal.");
+
+                    expression = Expression.TypeIs(thisParam, ResolveType(typeNameChildNode));
                     return true;
                 case "cast":
-                case "as":
                     //var 
                     if (node.Children.Count > 2 || node.Children.Count < 1)
                         throw CreateParseException(node, "Only one or two arguments to cast operator is allowed.");
-                    NodeBase castTypeArg;
+                    TypeNameNode castTypeArg;
                     Expression operand;
 
                     if (node.Children.Count == 1)
                     {
-                        castTypeArg = node.Children[0];
+                        castTypeArg = node.Children[0] as TypeNameNode;
                         operand = thisParam;
                     }
                     else
                     {
                         operand = ParseExpression(node.Children[0]);
-                        castTypeArg = node.Children[1];
+                        castTypeArg = node.Children[1] as TypeNameNode;
                     }
 
-                    string typeName;
-                    if (castTypeArg is SymbolNode)
-                    {
-                        typeName = ((SymbolNode) castTypeArg).Name;
-                    }
-                    else if (castTypeArg is StringNode)
-                    {
-                        typeName = ((StringNode) castTypeArg).Value;
-                    }
-                    else
-                    {
-                        throw CreateParseException(castTypeArg, "Did not expect node type " +
-                                                                castTypeArg.GetType().Name);
-                    }
+                    if (castTypeArg == null)
+                        throw new QueryParseException("Argument to cast is required to be a type literal.");
 
-                    var castToType = propertyResolver.ResolveType(typeName);
-                    if (node.Name == "cast")
-                        expression = Expression.Convert(operand, castToType);
-                    else
-                        expression = Expression.TypeAs(operand, castToType);
+                    expression = Expression.Convert(operand, ResolveType(castTypeArg));
                     return true;
             }
 
