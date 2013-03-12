@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -243,9 +244,13 @@ namespace Pomona.Queries
                 return ParseExpression(binaryOperatorNode.Right, left, null);
             }
 
-            // Break dot chain
             var leftChild = ParseExpression(binaryOperatorNode.Left);
             var rightChild = ParseExpression(binaryOperatorNode.Right);
+
+            if (binaryOperatorNode.NodeType == NodeType.In)
+            {
+                return ParseInOperator(leftChild, rightChild);
+            }
 
             FixBinaryOperatorConversion(ref leftChild, ref rightChild);
 
@@ -277,8 +282,6 @@ namespace Pomona.Queries
                     return Expression.LessThanOrEqual(leftChild, rightChild);
                 case NodeType.NotEqual:
                     return Expression.NotEqual(leftChild, rightChild);
-                case NodeType.In:
-                    return ParseInOperator(leftChild, rightChild);
                 default:
                     throw new NotImplementedException(
                         "Don't know how to handle node type " + binaryOperatorNode.NodeType);
@@ -319,10 +322,48 @@ namespace Pomona.Queries
                 throw new QueryParseException("in operator requires array on right side.");
 
             var arrayElementType = rightChild.Type.GetElementType();
+            var compareType = arrayElementType;
             if (leftChild.Type != arrayElementType)
-                throw new QueryParseException("Left and right side of in operator does not have matching types.");
+            {
+                if (leftChild.Type == typeof (object))
+                {
+                    if (compareType.IsValueType && !compareType.IsNullable())
+                    {
+                        compareType = typeof (Nullable<>).MakeGenericType(arrayElementType);
+                        if (rightChild.NodeType == ExpressionType.Constant)
+                        {
+                            // Recreate array with nullable type..
+                            var sourceArray = ((IEnumerable)((ConstantExpression) rightChild).Value).Cast<object>().ToArray();
+                            var destArray = Array.CreateInstance(compareType, sourceArray.Length);
+                            for (int i = 0; i < sourceArray.Length; i++)
+                            {
+                                destArray.SetValue(sourceArray[i], i);
+                            }
+                            rightChild = Expression.Constant(destArray);
+                        }
+                        else if (rightChild.NodeType == ExpressionType.NewArrayInit)
+                        {
+                            // Recreate array using Convert
+                            rightChild = Expression.NewArrayInit(compareType,
+                                                                 ((NewArrayExpression) rightChild).Expressions.Select(
+                                                                     x => Expression.Convert(x, compareType)));
+                        }
+                        else
+                        {
+                            // Have no idea how to do this
+                            throw new QueryParseException("Using in only works for constant arrays when left side is of type object.");
+                        }
+                    }
 
-            return Expression.Call(OdataFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(arrayElementType),
+                    leftChild = Expression.TypeAs(leftChild, compareType);
+                }
+                else
+                {
+                    throw new QueryParseException("Left and right side of in operator does not have matching types.");
+                }
+            }
+
+            return Expression.Call(OdataFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(compareType),
                                    rightChild, leftChild);
         }
 

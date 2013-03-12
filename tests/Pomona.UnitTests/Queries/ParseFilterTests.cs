@@ -284,11 +284,32 @@ name eo 'blah'".Replace("\r", "")));
             AssertExpressionEquals(expr, _this => _this.ObjectAttributes.SafeGet("jalla") as int? > 5);
         }
 
+
         [Test]
         public void Parse_ShortHandComparisonBetweenObjectDictMemberAndString_CreatesCorrectExpression()
         {
             var expr = parser.Parse<Dummy>("objectAttributes.jalla eq 'bloborob'");
             AssertExpressionEquals(expr, _this => _this.ObjectAttributes.SafeGet("jalla") as string == "bloborob");
+        }
+
+        [Test]
+        public void Parse_ShortHandObjectDictMemberAsIntInArray_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("objectAttributes.jalla in [5,4,number,3]");
+            AssertExpressionEquals(expr,
+                                   _this =>
+                                   (new int?[] {5, 4, _this.Number, 3}).Contains(
+                                       _this.ObjectAttributes.SafeGet("jalla") as int?));
+        }
+
+        [Test]
+        public void Parse_ShortHandObjectDictMemberAsStringInArray_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("objectAttributes.jalla in ['a','b',text]");
+            AssertExpressionEquals(expr,
+                                   _this =>
+                                   (new[] {"a", "b", _this.Text}).Contains(
+                                       _this.ObjectAttributes.SafeGet("jalla") as string));
         }
 
 
