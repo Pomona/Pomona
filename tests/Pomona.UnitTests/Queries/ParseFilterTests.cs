@@ -141,6 +141,21 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void Parse_ConstantArrayOfEnumValuesContains_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("AnEnumValue in ['Moo','Foo']");
+
+            // TODO: Array of constants should be a ConstantExpression maybe? [KNS]
+            var testEnums = new[] {TestEnum.Moo, TestEnum.Foo};
+            var evaluateClosureVisitor = new EvaluateClosureMemberVisitor();
+            Expression<Func<Dummy, bool>> expected = _this => testEnums.Contains(_this.AnEnumValue);
+            // We need to evaluate closure display class field accesses to get the same expression
+            expected = (Expression<Func<Dummy, bool>>)evaluateClosureVisitor.Visit(expected);
+            AssertExpressionEquals(expr, expected);
+        }
+
+
+        [Test]
         public void Parse_DateTimeConstant_CreatesCorrectExpression()
         {
             var dateTimeString = "2000-12-12T12:00";

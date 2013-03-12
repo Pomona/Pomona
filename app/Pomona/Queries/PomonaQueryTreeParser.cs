@@ -149,7 +149,7 @@ namespace Pomona.Queries
 
                 var expr = childNodes.Dequeue();
                 while (childNodes.Count > 0)
-                    expr = new BinaryOperator(nodeType, new[] {expr, childNodes.Dequeue()});
+                    expr = new BinaryOperatorNode(nodeType, new[] {expr, childNodes.Dequeue()});
                 return expr;
             }
 

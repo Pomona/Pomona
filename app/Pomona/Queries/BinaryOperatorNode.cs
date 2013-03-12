@@ -31,9 +31,9 @@ using System.Collections.Generic;
 
 namespace Pomona.Queries
 {
-    internal class BinaryOperator : NodeBase
+    internal class BinaryOperatorNode : NodeBase
     {
-        public BinaryOperator(NodeType nodeType, IEnumerable<NodeBase> children) : base(nodeType, children)
+        public BinaryOperatorNode(NodeType nodeType, IEnumerable<NodeBase> children) : base(nodeType, children)
         {
             if (Children.Count != 2)
                 throw new ArgumentException("A binary operator always need to have 2 child nodes", "children");

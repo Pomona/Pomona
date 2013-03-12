@@ -80,7 +80,7 @@ namespace Pomona.Queries
             string propertyName = null;
             if (node.NodeType == NodeType.As)
             {
-                var asNode = (BinaryOperator) node;
+                var asNode = (BinaryOperatorNode) node;
                 if (asNode.Right.NodeType != NodeType.Symbol)
                 {
                     throw new PomonaExpressionSyntaxException(
@@ -107,7 +107,7 @@ namespace Pomona.Queries
         {
             propertyName = null;
             while (node.NodeType == NodeType.Dot)
-                node = ((BinaryOperator) node).Right;
+                node = ((BinaryOperatorNode) node).Right;
 
             if (node.NodeType != NodeType.Symbol)
                 return false;

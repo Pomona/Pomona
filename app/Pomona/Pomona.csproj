@@ -151,7 +151,7 @@
     <Compile Include="PomonaQuery.cs" />
     <Compile Include="PomonaHttpQueryTransformer.cs" />
     <Compile Include="PomonaSession.cs" />
-    <Compile Include="Queries\BinaryOperator.cs" />
+    <Compile Include="Queries\BinaryOperatorNode.cs" />
     <Compile Include="Queries\DateTimeNode.cs" />
     <Compile Include="Queries\GuidNode.cs" />
     <Compile Include="Queries\IntNode.cs" />

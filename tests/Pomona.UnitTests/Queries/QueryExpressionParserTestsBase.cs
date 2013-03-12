@@ -34,6 +34,14 @@ namespace Pomona.UnitTests.Queries
 {
     public class QueryExpressionParserTestsBase
     {
+        public enum TestEnum
+        {
+            Fi,
+            Fa,
+            Foo,
+            Moo
+        }
+
         protected QueryExpressionParser parser;
 
         [SetUp]
@@ -65,6 +73,7 @@ namespace Pomona.UnitTests.Queries
             public IEnumerable<string> SomeStrings { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
+            public TestEnum AnEnumValue { get; set; }
         }
 
         public class SimpleQueryPropertyResolver : IQueryTypeResolver

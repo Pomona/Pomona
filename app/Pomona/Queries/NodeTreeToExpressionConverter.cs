@@ -79,7 +79,7 @@ namespace Pomona.Queries
                 memberExpression = thisParam;
 
             if (node.NodeType == NodeType.ArrayLiteral)
-                return ParseArrayLiteral((ArrayNode) node, memberExpression);
+                return ParseArrayLiteral((ArrayNode) node);
 
             if (node.NodeType == NodeType.MethodCall)
                 return ParseMethodCallNode((MethodCallNode) node, memberExpression);
@@ -99,7 +99,7 @@ namespace Pomona.Queries
                 return ResolveSymbolNode((SymbolNode) node, memberExpression);
             }
 
-            var binaryOperatorNode = node as BinaryOperator;
+            var binaryOperatorNode = node as BinaryOperatorNode;
 
             if (binaryOperatorNode != null)
                 return ParseBinaryOperator(binaryOperatorNode, memberExpression);
@@ -119,6 +119,15 @@ namespace Pomona.Queries
             if (node.NodeType == NodeType.StringLiteral)
             {
                 var stringNode = (StringNode) node;
+
+                if (expectedType != null && expectedType != typeof(string))
+                {
+                    if (expectedType.IsEnum)
+                    {
+                        return Expression.Constant(Enum.Parse(expectedType, stringNode.Value, true));
+                    }
+                    throw CreateParseException(stringNode, "Don't know what to do with string node when expected type is " + expectedType.FullName);
+                }
                 return Expression.Constant(stringNode.Value);
             }
 
@@ -164,11 +173,11 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseArrayLiteral(ArrayNode node, Expression memberExpression)
+        private Expression ParseArrayLiteral(ArrayNode node, Type expectedElementType = null)
         {
-            var arrayElements = node.Children.Select(x => ParseExpression(x, thisParam, null)).ToList();
+            var arrayElements = node.Children.Select(x => ParseExpression(x, thisParam, expectedElementType)).ToList();
 
-            if (arrayElements.Count == 0)
+            if (arrayElements.Count == 0 && expectedElementType == null)
                 throw new NotSupportedException("Does not support empty arrays.");
 
             var elementType = arrayElements[0].Type;
@@ -236,7 +245,7 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseBinaryOperator(BinaryOperator binaryOperatorNode, Expression memberExpression)
+        private Expression ParseBinaryOperator(BinaryOperatorNode binaryOperatorNode, Expression memberExpression)
         {
             var rightNode = binaryOperatorNode.Right;
             var leftNode = binaryOperatorNode.Left;
@@ -266,14 +275,14 @@ namespace Pomona.Queries
                 return Expression.TypeAs(ParseExpression(leftNode),
                                          ResolveType((TypeNameNode) rightNode));
             }
+            if (binaryOperatorNode.NodeType == NodeType.In)
+            {
+                return ParseInOperator(binaryOperatorNode);
+            }
 
             var leftChild = ParseExpression(leftNode);
             var rightChild = ParseExpression(rightNode);
 
-            if (binaryOperatorNode.NodeType == NodeType.In)
-            {
-                return ParseInOperator(leftChild, rightChild);
-            }
 
             FixBinaryOperatorConversion(ref leftChild, ref rightChild);
 
@@ -340,16 +349,21 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseInOperator(Expression leftChild, Expression rightChild)
+        private Expression ParseInOperator(BinaryOperatorNode node)
         {
-            if (!rightChild.Type.IsArray)
+            var leftExpr = ParseExpression(node.Left);
+
+            var arrayNode = node.Right as ArrayNode;
+            if (arrayNode == null)
                 throw new QueryParseException("in operator requires array on right side.");
+
+            var rightChild = ParseArrayLiteral(arrayNode, leftExpr.Type != typeof(object) ? leftExpr.Type : null);
 
             var arrayElementType = rightChild.Type.GetElementType();
             var compareType = arrayElementType;
-            if (leftChild.Type != arrayElementType)
+            if (leftExpr.Type != arrayElementType)
             {
-                if (leftChild.Type == typeof (object))
+                if (leftExpr.Type == typeof (object))
                 {
                     if (compareType.IsValueType && !compareType.IsNullable())
                     {
@@ -381,7 +395,7 @@ namespace Pomona.Queries
                         }
                     }
 
-                    leftChild = Expression.TypeAs(leftChild, compareType);
+                    leftExpr = Expression.TypeAs(leftExpr, compareType);
                 }
                 else
                 {
@@ -390,7 +404,7 @@ namespace Pomona.Queries
             }
 
             return Expression.Call(OdataFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(compareType),
-                                   rightChild, leftChild);
+                                   rightChild, leftExpr);
         }
 
 
