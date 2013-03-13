@@ -113,6 +113,11 @@ namespace Pomona.Example
             }
         }
 
+        public object Update<T>(T updatedObject)
+        {
+            return updatedObject;
+        }
+
         public QueryResult Query(IPomonaQuery query)
         {
             lock (syncLock)

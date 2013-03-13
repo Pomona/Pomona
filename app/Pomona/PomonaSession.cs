@@ -46,6 +46,7 @@ namespace Pomona
     {
         private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
+        private static readonly MethodInfo updateMethod;
         private readonly Func<Uri> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
@@ -60,6 +61,8 @@ namespace Pomona
                                  GetGenericMethodDefinition();
             getByIdMethod = new GenericMethodCaller<IPomonaDataSource, object, object>(
                 ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null)));
+            updateMethod =
+                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Update((object) null));
         }
 
 
@@ -105,6 +108,11 @@ namespace Pomona
         public void GetAsJson(TransformedType transformedType, object id, string expand, TextWriter textWriter)
         {
             var o = GetById(transformedType, id);
+            SerializeSingleObject(expand, textWriter, o);
+        }
+
+        private void SerializeSingleObject(string expand, TextWriter textWriter, object o)
+        {
             var mappedType = typeMapper.GetClassMapping(o.GetType());
             var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
             var context = new ServerSerializationContext(string.Format("{0},{1}", rootPath, expand), false, this);
@@ -249,7 +257,10 @@ namespace Pomona
             var context = new ServerSerializationContext(rootPath, false, this);
             var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
             wrapper.UpdateFromJson(textReader);
-            wrapper.ToJson(textWriter);
+
+            updateMethod.MakeGenericMethod(mappedType.MappedTypeInstance).Invoke(dataSource, new[] {o});
+
+            SerializeSingleObject("", textWriter, o);
         }
 
 

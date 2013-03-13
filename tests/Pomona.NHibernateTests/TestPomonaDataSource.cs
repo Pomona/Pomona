@@ -58,6 +58,12 @@ namespace PomonaNHibernateTest
             throw new NotImplementedException();
         }
 
+        public object Update<T>(T updatedObject)
+        {
+            session.SaveOrUpdate(updatedObject);
+            return updatedObject;
+        }
+
         public T GetEntityById<T>(int id)
             where T : EntityBase
         {
