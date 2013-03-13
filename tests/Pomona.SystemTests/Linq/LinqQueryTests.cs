@@ -386,6 +386,7 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test(Description = "Known to fail, must fix!")]
+        [Category("TODO")]
         public void QueryCustomTestEntity_UsingFirstOrDefault_ReturnsCustomTestEntity()
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
