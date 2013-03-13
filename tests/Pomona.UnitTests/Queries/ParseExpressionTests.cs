@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using NUnit.Framework;
 using Pomona.Common;
 
@@ -31,20 +32,27 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
-        public void ParseTypeNameLiteralExpression_WithInt32_ReturnsCorrectExpression()
+        public void ParseConvertToIntExpression_ReturnsCorrectExpression()
         {
-            ParseAndAssert("t'Int32'", _this => typeof(int));
-        }
-        [Test]
-        public void ParseTypeNameLiteralExpression_WithNullableInt32_ReturnsCorrectExpression()
-        {
-            ParseAndAssert("t'Int32?'", _this => typeof(int?));
+            ParseAndAssert("convert(text,t'Int32')", _this => Convert.ChangeType(_this.Text, typeof (int)));
         }
 
         [Test]
         public void ParseSafeGetFromObjectDictionaryAsStringExpression_ReturnsCorrectExpression()
         {
             ParseAndAssert("objectAttributes.Hei as t'String'", _this => _this.ObjectAttributes.SafeGet("Hei") as string);
+        }
+
+        [Test]
+        public void ParseTypeNameLiteralExpression_WithInt32_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("t'Int32'", _this => typeof (int));
+        }
+
+        [Test]
+        public void ParseTypeNameLiteralExpression_WithNullableInt32_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("t'Int32?'", _this => typeof (int?));
         }
     }
 }
