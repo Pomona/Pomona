@@ -31,9 +31,14 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
-        public void ParseTypeNameLiteralExpression_ReturnsCorrectExpression()
+        public void ParseTypeNameLiteralExpression_WithInt32_ReturnsCorrectExpression()
         {
             ParseAndAssert("t'Int32'", _this => typeof(int));
+        }
+        [Test]
+        public void ParseTypeNameLiteralExpression_WithNullableInt32_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("t'Int32?'", _this => typeof(int?));
         }
 
         [Test]

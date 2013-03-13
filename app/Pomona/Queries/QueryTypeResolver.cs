@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,20 +22,23 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Queries
 {
     public class QueryTypeResolver : IQueryTypeResolver
     {
-        private readonly TypeMapper typeMapper;
+        private static readonly Dictionary<string, Type> nativeTypes =
+            TypeUtils.GetNativeTypes().ToDictionary(x => x.Name.ToLower(), x => x);
 
+        private readonly ITypeMapper typeMapper;
 
-        public QueryTypeResolver(TypeMapper typeMapper)
+        public QueryTypeResolver(ITypeMapper typeMapper)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -57,7 +58,15 @@ namespace Pomona.Queries
 
         public Type ResolveType(string typeName)
         {
-            return typeMapper.TransformedTypes.First(x => x.Name == typeName).MappedType;
+            Type type;
+
+            if (typeName.EndsWith("?"))
+                return typeof (Nullable<>).MakeGenericType(ResolveType(typeName.Substring(0, typeName.Length - 1)));
+
+            if (nativeTypes.TryGetValue(typeName.ToLower(), out type))
+                return type;
+
+            return typeMapper.GetClassMapping(typeName).MappedType;
         }
 
         #endregion

@@ -484,7 +484,9 @@ namespace Pomona.Common
                     if (value == null)
                         return "null";
                     if (value is Guid)
-                        return "guid'" + ((Guid) value).ToString() + "'";
+                        return string.Format("guid'{0}'", ((Guid) value));
+                    if (value is Type)
+                        return GetExternalTypeName((Type) value);
                     break;
                 case TypeCode.Boolean:
                     return ((bool) value) ? "true" : "false";

@@ -153,6 +153,24 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("jalla eq 'Kirk'"));
         }
 
+        [Test]
+        public void BuildConvertChangeType_FromObjectToString_ReturnsCorrectString()
+        {
+            AssertBuild(x => Convert.ChangeType(x.UnknownProperty, typeof (string)),
+                        "convert(unknownProperty,t'String')");
+        }
+
+        [Test]
+        public void BuildConvertChangeType_FromStringToInt32_ReturnsCorrectString()
+        {
+            AssertBuild(x => Convert.ChangeType(x.Bonga, typeof (int)), "convert(bonga,t'Int32')");
+        }
+
+        [Test]
+        public void BuildConvertChangeType_FromStringToNullableInt32_ReturnsCorrectString()
+        {
+            AssertBuild(x => Convert.ChangeType(x.Bonga, typeof (int?)), "convert(bonga,t'Int32?')");
+        }
 
         [Test]
         public void BuildCountOfList_ReturnsCorrectString()
@@ -301,6 +319,12 @@ namespace Pomona.UnitTests.Client
         public void BuildNull_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla == null, "jalla eq null");
+        }
+
+        [Test]
+        public void BuildNullableIntTypeLiteral_ReturnsCorrectString()
+        {
+            AssertBuild(x => typeof (int?), "t'Int32?'");
         }
 
         [Test]

@@ -129,6 +129,8 @@ namespace Pomona.Common.Internals
                 x => x.Contains(null, null), "contains({0},{1},{2})", MethodCallStyle.Chained);
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.SafeGet(null), "safeget({0},{1})", MethodCallStyle.Chained);
+
+            Add<WildcardType>(x => Convert.ChangeType(x, null), "convert({0},{1})");
         }
 
 
