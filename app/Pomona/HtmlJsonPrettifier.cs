@@ -44,6 +44,7 @@ namespace Pomona
             var htmlPageTemplate =
                 @"<!DOCTYPE HTML>
 <head>
+  <meta charset='utf-8'> 
   <style type=""text/css"">
 ul
 {{

@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -52,9 +48,9 @@ namespace Pomona
         private static readonly MethodInfo postGenericMethod;
         private readonly Func<Uri> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
+        private readonly IDeserializer deserializer;
+        private readonly ISerializer serializer;
         private readonly TypeMapper typeMapper;
-        private IDeserializer deserializer;
-        private ISerializer serializer;
 
 
         static PomonaSession()
@@ -175,7 +171,8 @@ namespace Pomona
 
             return
                 new Uri(
-                    string.Format("{0}{1}/{2}", baseUriGetter(), transformedType.UriRelativePath, transformedType.GetId(entity))).
+                    string.Format("{0}{1}/{2}", baseUriGetter(), transformedType.UriRelativePath,
+                                  transformedType.GetId(entity))).
                     ToString();
         }
 

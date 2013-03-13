@@ -158,6 +158,23 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_QueryingPropertyOfBaseClass_ReflectedTypeOfPropertyInPomonaQueryIsCorrect()
+        {
+            // Fix: We don't want the parsed expression trees to give us members with "ReflectedType" set to inherited type, but same as DeclaringType.
+
+            // Result of below query not important..
+            client.Critters.Query().Where(x => x.Id == 666).ToList();
+
+            var query = DataSource.QueryLog.Last();
+            var binExpr = query.FilterExpression.Body as BinaryExpression;
+            Assert.That(binExpr, Is.Not.Null);
+            Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.Equal));
+            var propExpr = binExpr.Left as MemberExpression;
+            Assert.That(propExpr, Is.Not.Null);
+            Assert.That(propExpr.Member.ReflectedType, Is.EqualTo(propExpr.Member.DeclaringType));
+        }
+
+        [Test]
         public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues()
         {
             var expected =
@@ -226,23 +243,6 @@ namespace Pomona.SystemTests.Linq
             var critter =
                 client.Critters.Query().Where(
                     x => x.SimpleAttributes.Any(y => y.Key == "AttrKey" && y.Value == "dde")).ToList();
-        }
-
-        [Test]
-        public void QueryCritter_QueryingPropertyOfBaseClass_ReflectedTypeOfPropertyInPomonaQueryIsCorrect()
-        {
-            // Fix: We don't want the parsed expression trees to give us members with "ReflectedType" set to inherited type, but same as DeclaringType.
-            
-            // Result of below query not important..
-            client.Critters.Query().Where(x => x.Id == 666).ToList();
-
-            var query = DataSource.QueryLog.Last();
-            var binExpr = query.FilterExpression.Body as BinaryExpression;
-            Assert.That(binExpr, Is.Not.Null);
-            Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.Equal));
-            var propExpr = binExpr.Left as MemberExpression;
-            Assert.That(propExpr, Is.Not.Null);
-            Assert.That(propExpr.Member.ReflectedType, Is.EqualTo(propExpr.Member.DeclaringType));
         }
 
         [Test]
@@ -380,6 +380,26 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
+
+            Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+        [Test(Description = "Known to fail, must fix!")]
+        public void QueryCustomTestEntity_UsingFirstOrDefault_ReturnsCustomTestEntity()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+
+            var dictionaryContainer = client.DictionaryContainers.Post(
+                x =>
+                    {
+                        x.Map.Add("CustomString", "Lalalala");
+                        x.Map.Add("OtherCustom", "Blob rob");
+                    });
+
+            var result =
+                client.Query<ICustomTestEntity>()
+                      .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
             Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));

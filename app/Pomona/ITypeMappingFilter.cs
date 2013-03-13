@@ -86,6 +86,7 @@ namespace Pomona
         bool TypeIsMappedAsSharedType(Type type);
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
+        bool TypeIsExposedAsRepository(Type type);
         bool PropertyIsAttributes(PropertyInfo propertyInfo);
         LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);

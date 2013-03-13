@@ -37,6 +37,7 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault();
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping();
         ITypeMappingConfigurator<TDeclaringType> AsEntity();
+        ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository();
         ITypeMappingConfigurator<TDeclaringType> AsUriBaseType();
         ITypeMappingConfigurator<TDeclaringType> AsValueObject();
 

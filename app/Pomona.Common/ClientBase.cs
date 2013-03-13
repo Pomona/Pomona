@@ -239,8 +239,8 @@ namespace Pomona.Common
 
             // Patch the json!
             var responseJson = UploadToUri(
-                ((IHasResourceUri) target).Uri, updateProxy, typeof (T), "PATCH");
-            return (T) Deserialize(responseJson, null);
+                ((IHasResourceUri) target).Uri, updateProxy, updateType, "PATCH");
+            return (T) Deserialize(responseJson, typeof(T));
         }
 
 

@@ -699,6 +699,7 @@ namespace Pomona.Queries
                 }
 
                 expression = Expression.Call(instance, method, argExprArray);
+                expression = memberMapping.PostResolveHook(expression);
                 return true;
             }
             if (property != null)
@@ -708,6 +709,7 @@ namespace Pomona.Queries
                     return false;
 
                 expression = Expression.MakeMemberAccess(instance, property);
+                expression = memberMapping.PostResolveHook(expression);
                 return true;
             }
             return false;

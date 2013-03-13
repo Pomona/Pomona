@@ -183,6 +183,7 @@ namespace Pomona.Common.Linq
 
         private object Execute<T>(RestQueryableTreeParser parser)
         {
+
             var results = this.client.Get<IList<T>>(BuildUri(parser));
 
             switch (parser.Projection)
@@ -207,6 +208,7 @@ namespace Pomona.Common.Linq
             object result, Type serverKnownType, PropertyInfo dictProp, Expression transformedExpression)
         {
             Type elementType;
+
             if (transformedExpression.Type.TryGetCollectionElementType(out elementType)
                 && elementType == serverKnownType)
             {

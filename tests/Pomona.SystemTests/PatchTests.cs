@@ -53,7 +53,6 @@ namespace Pomona.SystemTests
             Assert.Fail("TEST NOT FINISHED");
         }
 
-        [Category("TODO")]
         [Test]
         public void PatchCritter_UpdateProperty()
         {
@@ -64,6 +63,18 @@ namespace Pomona.SystemTests
                          x.Name = "NewName");
 
             Assert.That(critter.Name, Is.EqualTo("NewName"));
+        }
+
+        [Test]
+        public void PatchMusicalInheritedCritter_UpdateProperty()
+        {
+            var critter = Save(new MusicalCritter());
+            var resource = client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
+            client.Patch(resource,
+                         x =>
+                         x.BandName = "The Patched Sheeps");
+
+            Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
         }
     }
 }

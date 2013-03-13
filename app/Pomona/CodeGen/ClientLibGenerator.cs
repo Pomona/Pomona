@@ -254,14 +254,16 @@ namespace Pomona.CodeGen
 
         private void AddRepositoryPropertiesToClientType(TypeDefinition clientTypeDefinition)
         {
-            foreach (var resourceTypeInfo in this.clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType)
-                )
+            foreach (
+                var resourceTypeInfo in
+                    clientTypeInfoDict.Values.Where(
+                        x => x.UriBaseType == x.InterfaceType && x.TransformedType.IsExposedAsRepository))
             {
                 var transformedType = resourceTypeInfo.TransformedType;
                 var repoPropName = transformedType.PluralName;
-                var postReturnTypeRef = this.clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
+                var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
                 var repoPropType =
-                    GetClientTypeReference(typeof(ClientRepository<,>)).MakeGenericInstanceType(
+                    GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
                         resourceTypeInfo.InterfaceType, postReturnTypeRef);
                 var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
                 repoProp.SetMethod.IsPublic = false;

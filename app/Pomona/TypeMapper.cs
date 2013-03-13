@@ -229,6 +229,7 @@ namespace Pomona
                     classDefinition.UriBaseType.PluralName);
 
                 classDefinition.PostReturnType = (TransformedType)GetClassMapping(this.filter.GetPostReturnType(type));
+                classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
 
                 classDefinition.ScanProperties(type);
 

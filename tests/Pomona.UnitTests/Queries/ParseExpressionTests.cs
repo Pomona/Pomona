@@ -34,7 +34,7 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void ParseConvertToIntExpression_ReturnsCorrectExpression()
         {
-            ParseAndAssert("convert(text,t'Int32')", _this => Convert.ChangeType(_this.Text, typeof (int)));
+            ParseAndAssert("convert(text,t'Int32')", _this => (int)Convert.ChangeType(_this.Text, typeof (int)));
         }
 
         [Test]

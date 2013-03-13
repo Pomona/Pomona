@@ -23,6 +23,7 @@ namespace Pomona.FluentMapping
         private bool? isValueObject;
 
         private Type postResponseType;
+        private bool? isExposedAsRepository;
 
         public override ConstructorInfo Constructor
         {
@@ -43,6 +44,11 @@ namespace Pomona.FluentMapping
         public override bool? IsValueObject
         {
             get { return this.isValueObject; }
+        }
+
+        public override bool? IsExposedAsRepository
+        {
+            get { return this.isExposedAsRepository; }
         }
 
         public override Type PostResponseType
@@ -81,6 +87,12 @@ namespace Pomona.FluentMapping
         public ITypeMappingConfigurator<TDeclaringType> AsEntity()
         {
             throw new NotImplementedException();
+        }
+
+        public ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository()
+        {
+            this.isExposedAsRepository = true;
+            return this;
         }
 
 
@@ -217,6 +229,7 @@ namespace Pomona.FluentMapping
         public abstract DefaultPropertyInclusionMode DefaultPropertyInclusionMode { get; set; }
         public abstract bool? IsUriBaseType { get; }
         public abstract bool? IsValueObject { get; }
+        public abstract bool? IsExposedAsRepository { get; }
         public abstract Type PostResponseType { get; }
         public abstract IDictionary<string, PropertyMappingOptions> PropertyOptions { get; }
         internal abstract PropertyMappingOptions GetPropertyOptions(string name);

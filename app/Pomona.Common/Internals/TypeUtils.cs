@@ -45,6 +45,47 @@ namespace Pomona.Common.Internals
                 typeof (Uri)
             };
 
+        public static Type[] GetTypes<T1>()
+        {
+            return new[] {typeof (T1)};
+        }
+
+        public static Type[] GetTypes<T1, T2>()
+        {
+            return new[] {typeof (T1), typeof (T2)};
+        }
+
+        public static Type[] GetTypes<T1, T2, T3>()
+        {
+            return new[] {typeof (T1), typeof (T2), typeof (T3)};
+        }
+
+        public static Type[] GetTypes<T1, T2, T3, T4>()
+        {
+            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4)};
+        }
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5>()
+        {
+            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5)};
+        }
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6>()
+        {
+            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5), typeof (T6)};
+        }
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6, T7>()
+        {
+            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5), typeof (T6), typeof (T7)};
+        }
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6, T7, T8>()
+        {
+            return new[]
+                {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5), typeof (T6), typeof (T7), typeof (T8)};
+        }
+
         public static IEnumerable<Type> GetNativeTypes()
         {
             return jsonSupportedNativeTypes;

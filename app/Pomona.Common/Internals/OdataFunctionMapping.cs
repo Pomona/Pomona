@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections;
@@ -110,7 +106,8 @@ namespace Pomona.Common.Internals
                 x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
-            Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>) null), "many({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>) null), "many({0},{1})",
+                                           MethodCallStyle.Chained);
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
@@ -130,7 +127,26 @@ namespace Pomona.Common.Internals
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.SafeGet(null), "safeget({0},{1})", MethodCallStyle.Chained);
 
-            Add<WildcardType>(x => Convert.ChangeType(x, null), "convert({0},{1})");
+            Add<WildcardType>(x => Convert.ChangeType(x, null), "convert({0},{1})",
+                              postResolveHook: FixChangeTypeReturnValue);
+        }
+
+        /// <summary>
+        /// This function converts result value of Convert.ChangeType to if type argument is a constant.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        private static Expression FixChangeTypeReturnValue(Expression expr)
+        {
+            var callExpr = (MethodCallExpression) expr;
+
+            var typeArgExpr = callExpr.Arguments[1] as ConstantExpression;
+            if (typeArgExpr == null || typeArgExpr.Value == null)
+                return expr;
+
+            var convertToType = (Type)typeArgExpr.Value;
+
+            return Expression.Convert(expr, convertToType);
         }
 
 
@@ -151,11 +167,12 @@ namespace Pomona.Common.Internals
         private static void Add<T>(
             Expression<Func<T, object>> expr,
             string functionFormat,
-            MethodCallStyle preferredCallStyle = MethodCallStyle.Static)
+            MethodCallStyle preferredCallStyle = MethodCallStyle.Static,
+            Func<Expression, Expression> postResolveHook = null)
         {
             var memberInfo = ReflectionHelper.GetInstanceMemberInfo(expr);
 
-            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat, preferredCallStyle);
+            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat, preferredCallStyle, postResolveHook);
             nameToMemberMappingDict.GetOrCreate(memberMapping.Name + memberMapping.ArgumentCount).Add(memberMapping);
             metadataTokenToMemberMappingDict[memberMapping.Member.UniqueToken()] = memberMapping;
         }
@@ -189,6 +206,7 @@ namespace Pomona.Common.Internals
             private readonly MemberInfo member;
 
             private readonly string name;
+            private readonly Func<Expression, Expression> postResolveHookFunction;
             private readonly MethodCallStyle preferredCallStyle;
             private readonly string staticCallFormat;
 
@@ -199,7 +217,8 @@ namespace Pomona.Common.Internals
                 IList<int> argumentOrder,
                 string staticCallFormat,
                 string chainedCallFormat,
-                MethodCallStyle preferredCallStyle)
+                MethodCallStyle preferredCallStyle,
+                Func<Expression, Expression> postResolveHookFunction)
             {
                 this.member = member;
                 this.name = name;
@@ -207,6 +226,7 @@ namespace Pomona.Common.Internals
                 this.staticCallFormat = staticCallFormat;
                 this.chainedCallFormat = chainedCallFormat;
                 this.preferredCallStyle = preferredCallStyle;
+                this.postResolveHookFunction = postResolveHookFunction;
             }
 
 
@@ -245,9 +265,15 @@ namespace Pomona.Common.Internals
                 get { return staticCallFormat; }
             }
 
+            public Expression PostResolveHook(Expression expression)
+            {
+                return postResolveHookFunction != null ? postResolveHookFunction(expression) : expression;
+            }
+
 
             public static MemberMapping Parse(
-                MemberInfo member, string odataMethodFormat, MethodCallStyle preferredCallStyle)
+                MemberInfo member, string odataMethodFormat, MethodCallStyle preferredCallStyle,
+                Func<Expression, Expression> postResolveHookFunction)
             {
                 var name = odataMethodFormat.Split('(').First();
                 var argOrder = GetArgumentOrder(odataMethodFormat);
@@ -271,7 +297,8 @@ namespace Pomona.Common.Internals
                 var argOrderArray = argOrder.ToArray();
                 var extensionMethodFormatString = CreateChainedCallFormatString(name, argOrderArray);
                 return new MemberMapping(
-                    member, name, argOrderArray, odataMethodFormat, extensionMethodFormatString, preferredCallStyle);
+                    member, name, argOrderArray, odataMethodFormat, extensionMethodFormatString, preferredCallStyle,
+                    postResolveHookFunction);
             }
 
 
@@ -327,8 +354,8 @@ namespace Pomona.Common.Internals
 
         private class ReorderedList<T> : IList<T>
         {
-            private IList<int> order;
-            private IList<T> targetList;
+            private readonly IList<int> order;
+            private readonly IList<T> targetList;
 
 
             public ReorderedList(IList<T> targetList, IList<int> order)

@@ -237,6 +237,11 @@ namespace Pomona
             return type.IsAnonymous();
         }
 
+        public virtual bool TypeIsExposedAsRepository(Type type)
+        {
+            return true;
+        }
+
 
         public bool PropertyIsAttributes(PropertyInfo propertyInfo)
         {

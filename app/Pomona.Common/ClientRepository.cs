@@ -28,8 +28,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Pomona.Common.Proxies;
+using Pomona.Common.Linq;
 
 namespace Pomona.Common
 {
@@ -80,6 +82,11 @@ namespace Pomona.Common
             return (TPostResponseResource)this.client.Post(Uri, postAction);
         }
 
+        public IQueryable<TSubResource> Query<TSubResource>()
+            where TSubResource : TResource
+        {
+            return this.client.Query<TSubResource>();
+        }
 
         public TPostResponseResource Post(Action<TResource> postAction)
         {
