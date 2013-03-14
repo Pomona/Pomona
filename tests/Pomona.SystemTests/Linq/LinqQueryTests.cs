@@ -175,6 +175,13 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_ToUri_ReturnsUriForQuery()
+        {
+            var uri = client.Query<ICritter>().Where(x => x.Name == "holahola").ToUri();
+            Assert.That(uri.PathAndQuery, Is.EqualTo("/critters?$filter=name+eq+'holahola'"));
+        }
+
+        [Test]
         public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues()
         {
             var expected =

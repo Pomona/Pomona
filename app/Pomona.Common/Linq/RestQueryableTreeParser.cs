@@ -42,7 +42,8 @@ namespace Pomona.Common.Linq
             Enumerable,
             First,
             FirstOrDefault,
-            Any
+            Any,
+            ToUri
         }
 
         #endregion
@@ -88,6 +89,7 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(QueryableMethods.Expand);
             MapQueryableFunction(QueryableMethods.SumIntWithSelector);
             MapQueryableFunction(QueryableMethods.IncludeTotalCount);
+            MapQueryableFunction(QueryableMethods.ToUri);
         }
 
         public bool IncludeTotalCount
@@ -193,6 +195,11 @@ namespace Pomona.Common.Linq
             }
 
             return node;
+        }
+
+        internal void QToUri<TSource>()
+        {
+            projection = QueryProjection.ToUri;
         }
 
 

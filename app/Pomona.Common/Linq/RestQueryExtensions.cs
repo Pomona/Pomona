@@ -37,6 +37,16 @@ namespace Pomona.Common.Linq
             return (QueryResult<TSource>) source.Provider.Execute(source.Expression);
         }
 
+        public static Uri ToUri<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            var methodCallExpression =
+                Expression.Call(null,
+                                ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] {typeof (TSource)}),
+                                new[] {source.Expression});
+            return source.Provider.Execute<Uri>(methodCallExpression);
+        }
+
         public static IQueryable<TSource> IncludeTotalCount<TSource>(this IQueryable<TSource> source)
         {
             if (source == null) throw new ArgumentNullException("source");

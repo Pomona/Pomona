@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,15 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Internals;
@@ -71,20 +66,55 @@ namespace Pomona.Common.Linq
 
         internal IPomonaClient Client
         {
-            get { return this.client; }
+            get { return client; }
         }
 
+
+        IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
+        {
+            return new RestQuery<S>(this, expression);
+        }
+
+
+        IQueryable IQueryProvider.CreateQuery(Expression expression)
+        {
+            var elementType = GetElementType(expression.Type);
+            try
+            {
+                return
+                    (IQueryable)
+                    Activator.CreateInstance(
+                        typeof (RestQuery<>).MakeGenericType(elementType),
+                        new object[] {this, expression});
+            }
+            catch (TargetInvocationException tie)
+            {
+                throw tie.InnerException;
+            }
+        }
+
+
+        S IQueryProvider.Execute<S>(Expression expression)
+        {
+            return (S) Execute(expression);
+        }
+
+
+        object IQueryProvider.Execute(Expression expression)
+        {
+            return Execute(expression);
+        }
 
         public virtual object Execute(Expression expression)
         {
             object result;
-            if (TryQueryCustomUserTypeIfRequired(expression, this.sourceType, out result))
+            if (TryQueryCustomUserTypeIfRequired(expression, sourceType, out result))
                 return result;
 
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
             return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
-                this, new object[] { queryTreeParser });
+                this, new object[] {queryTreeParser});
         }
 
 
@@ -96,7 +126,7 @@ namespace Pomona.Common.Linq
 
         private static Type GetElementType(Type type)
         {
-            if (type.UniqueToken() != typeof(IQueryable<>).UniqueToken())
+            if (type.UniqueToken() != typeof (IQueryable<>).UniqueToken())
                 return type;
 
             return type.GetGenericArguments()[0];
@@ -141,50 +171,18 @@ namespace Pomona.Common.Linq
             if (parser.IncludeTotalCount)
                 builder.AppendParameter("$totalcount", "true");
 
-            return this.client.GetUriOfType(parser.ElementType) + "?" + builder;
-        }
-
-
-        IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
-        {
-            return new RestQuery<S>(this, expression);
-        }
-
-
-        IQueryable IQueryProvider.CreateQuery(Expression expression)
-        {
-            var elementType = GetElementType(expression.Type);
-            try
-            {
-                return
-                    (IQueryable)
-                    Activator.CreateInstance(
-                        typeof(RestQuery<>).MakeGenericType(elementType),
-                        new object[] { this, expression });
-            }
-            catch (TargetInvocationException tie)
-            {
-                throw tie.InnerException;
-            }
-        }
-
-
-        S IQueryProvider.Execute<S>(Expression expression)
-        {
-            return (S)Execute(expression);
-        }
-
-
-        object IQueryProvider.Execute(Expression expression)
-        {
-            return Execute(expression);
+            return client.GetUriOfType(parser.ElementType) + "?" + builder;
         }
 
 
         private object Execute<T>(RestQueryableTreeParser parser)
         {
+            var uri = BuildUri(parser);
 
-            var results = this.client.Get<IList<T>>(BuildUri(parser));
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
+                return new Uri(uri);
+
+            var results = client.Get<IList<T>>(uri);
 
             switch (parser.Projection)
             {
@@ -203,7 +201,6 @@ namespace Pomona.Common.Linq
         }
 
 
-
         private object MapToCustomUserTypeResult<TCustomClientType>(
             object result, Type serverKnownType, PropertyInfo dictProp, Expression transformedExpression)
         {
@@ -216,14 +213,15 @@ namespace Pomona.Common.Linq
                 var resultsWrapper =
                     (result as IEnumerable).Cast<object>().Select(
                         x =>
-                        {
-                            var proxy =
-                                (ClientSideResourceProxyBase)
-                                ((object)RuntimeProxyFactory<ClientSideResourceProxyBase, TCustomClientType>.Create());
-                            proxy.AttributesProperty = dictProp;
-                            proxy.ProxyTarget = x;
-                            return (TCustomClientType)((object)proxy);
-                        }).ToList();
+                            {
+                                var proxy =
+                                    (ClientSideResourceProxyBase)
+                                    ((object)
+                                     RuntimeProxyFactory<ClientSideResourceProxyBase, TCustomClientType>.Create());
+                                proxy.AttributesProperty = dictProp;
+                                proxy.ProxyTarget = x;
+                                return (TCustomClientType) ((object) proxy);
+                            }).ToList();
 
                 return resultsWrapper;
             }
@@ -245,11 +243,11 @@ namespace Pomona.Common.Linq
                 customClientType, info.ServerType, info.DictProperty);
             var transformedExpression = visitor.Visit(expression);
 
-            var nestedQueryProvider = new RestQueryProvider(this.client, info.ServerType);
+            var nestedQueryProvider = new RestQueryProvider(client, info.ServerType);
             result = nestedQueryProvider.Execute(transformedExpression);
 
             result = mapToCustomUserTypeResultMethod.MakeGenericMethod(customClientType).Invoke(
-                this, new[] { result, info.ServerType, info.DictProperty, transformedExpression });
+                this, new[] {result, info.ServerType, info.DictProperty, transformedExpression});
 
             return true;
         }

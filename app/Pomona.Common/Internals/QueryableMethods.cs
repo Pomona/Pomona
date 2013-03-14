@@ -33,6 +33,8 @@ namespace Pomona.Common.Internals
 {
     public static class QueryableMethods
     {
+        private static readonly MethodInfo toUri;
+
         private static readonly MethodInfo anyWithPredicate;
         private static readonly MethodInfo count;
         private static readonly MethodInfo expand;
@@ -70,6 +72,12 @@ namespace Pomona.Common.Internals
 
             expand = GetMethodInfo(x => x.Expand(y => 0));
             includeTotalCount = GetMethodInfo(x => x.IncludeTotalCount());
+            toUri = GetMethodInfo(x => x.ToUri());
+        }
+
+        public static MethodInfo ToUri
+        {
+            get { return toUri; }
         }
 
         public static MethodInfo IncludeTotalCount
