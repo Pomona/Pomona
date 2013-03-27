@@ -17,7 +17,7 @@ namespace Pomona
 
         public object CreateReference(IMappedType type, string uri)
         {
-            return pomonaSession.GetObjectFromUri(uri);
+            return pomonaSession.GetResultByUri(uri);
         }
 
         public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader) where TReader : ISerializerReader

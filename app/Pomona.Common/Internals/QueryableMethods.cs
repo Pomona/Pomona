@@ -51,6 +51,7 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo where;
         private static readonly MethodInfo sumIntWithSelector;
         private static readonly MethodInfo includeTotalCount;
+        private static readonly MethodInfo firstLazy;
 
 
         static QueryableMethods()
@@ -73,6 +74,12 @@ namespace Pomona.Common.Internals
             expand = GetMethodInfo(x => x.Expand(y => 0));
             includeTotalCount = GetMethodInfo(x => x.IncludeTotalCount());
             toUri = GetMethodInfo(x => x.ToUri());
+            firstLazy = GetMethodInfo(x => x.FirstLazy());
+        }
+
+        public static MethodInfo FirstLazy
+        {
+            get { return firstLazy; }
         }
 
         public static MethodInfo ToUri

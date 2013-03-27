@@ -41,6 +41,7 @@ namespace Pomona.Common.Linq
         {
             Enumerable,
             First,
+            FirstLazy,
             FirstOrDefault,
             Any,
             ToUri
@@ -90,6 +91,7 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(QueryableMethods.SumIntWithSelector);
             MapQueryableFunction(QueryableMethods.IncludeTotalCount);
             MapQueryableFunction(QueryableMethods.ToUri);
+            MapQueryableFunction(QueryableMethods.FirstLazy);
         }
 
         public bool IncludeTotalCount
@@ -226,7 +228,6 @@ namespace Pomona.Common.Linq
 
         internal void QFirst<TSource>()
         {
-            takeCount = 1;
             projection = QueryProjection.First;
         }
 
@@ -246,6 +247,12 @@ namespace Pomona.Common.Linq
         {
             takeCount = 1;
             projection = QueryProjection.FirstOrDefault;
+        }
+
+        internal void QFirstLazy<TSource>()
+        {
+            takeCount = 1;
+            projection = QueryProjection.FirstLazy;
         }
 
 

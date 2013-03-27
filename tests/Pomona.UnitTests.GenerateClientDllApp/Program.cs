@@ -34,11 +34,19 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 {
     internal class Program
     {
+        private class NoopUriResolver : IPomonaUriResolver
+        {
+            public object GetResultByUri(string uri)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private static void Main(string[] args)
         {
             var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             var session = new PomonaSession(
-                new CritterDataSource(typeMapper), typeMapper, UriResolver);
+                new CritterDataSource(typeMapper), typeMapper, UriResolver, new NoopUriResolver());
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {

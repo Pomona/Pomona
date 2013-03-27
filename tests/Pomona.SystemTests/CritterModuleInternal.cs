@@ -26,13 +26,14 @@
 
 #endregion
 
+using Nancy.TinyIoc;
 using Pomona.Example;
 
 namespace Pomona.SystemTests
 {
     public class CritterModuleInternal : CritterModule
     {
-        public CritterModuleInternal(CritterDataSource dataSource, TypeMapper typeMapper) : base(dataSource, typeMapper)
+        public CritterModuleInternal(CritterDataSource dataSource, TypeMapper typeMapper, TinyIoCContainer container) : base(dataSource, typeMapper, container)
         {
         }
     }

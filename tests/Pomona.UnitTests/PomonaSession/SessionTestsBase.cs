@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq;
+using NSubstitute;
 using NUnit.Framework;
 using Pomona.Example;
 using Pomona.Example.Models;
@@ -82,7 +83,7 @@ namespace Pomona.UnitTests.PomonaSession
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             dataSource = new CritterDataSource(typeMapper);
-            session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver);
+            session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver, Substitute.For<IPomonaUriResolver>());
             firstCritter = dataSource.List<Critter>().First();
         }
 

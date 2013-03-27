@@ -100,6 +100,15 @@ namespace Pomona
                             query.GroupByExpression.ReturnType, selectSourceType);
             }
 
+            if (request.Query["$projection"].HasValue)
+            {
+                var projectionString = (string) request.Query["$projection"];
+                PomonaQuery.ProjectionType projection;
+                if (!Enum.TryParse(projectionString, true, out projection))
+                    throw new QueryParseException("\"" + projectionString + "\" is not a valid value for query parameter $projection");
+                query.Projection = projection;
+            }
+
             if (request.Query["$select"].HasValue)
             {
                 string select = (string)request.Query["$select"];

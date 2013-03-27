@@ -53,8 +53,22 @@ namespace Pomona.SystemTests
             Assert.Fail("TEST NOT FINISHED");
         }
 
+        [Category("TODO")]
+        [Test(Description = "Must refactor PATCH functionality to support this..")]
+        public void PatchCritter_UpdateReferenceProperty_UsingValueFromFirstLazyMethod()
+        {
+            var hat = Save(new Hat {Style = "Gangnam Style 1234"});
+            var critter = Save(new Critter());
+            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
+            client.Patch(resource,
+                         x =>
+                         x.Hat = client.Query<IHat>().Where(y => y.Style == "Gangnam Style 1234").FirstLazy());
+
+            Assert.That(critter.Hat, Is.EqualTo(hat));
+        }
+
         [Test]
-        public void PatchCritter_UpdateProperty()
+        public void PatchCritter_UpdateStringProperty()
         {
             var critter = Save(new Critter());
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);

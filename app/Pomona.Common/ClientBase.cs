@@ -117,7 +117,7 @@ namespace Pomona.Common
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
-        private readonly WebClient webClient = new WebClient();
+        private readonly WebClient webClient;
 
 
         static ClientBase()
@@ -157,6 +157,8 @@ namespace Pomona.Common
         {
             jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new StringEnumConverter());
+
+            webClient = new WebClient();
 
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
@@ -488,7 +490,9 @@ namespace Pomona.Common
         private string GetString(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            var jsonString = Encoding.UTF8.GetString(webClient.DownloadData(uri));
+            webClient.Headers.Add("Accept", "application/json");
+            byte[] downloadData = webClient.DownloadData(uri);
+            var jsonString = Encoding.UTF8.GetString(downloadData);
             Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
             return jsonString;
         }

@@ -37,7 +37,7 @@ namespace Pomona
     /// This was just hacked together as fast as possible.
     /// Just something simple to get more HTML friendly..
     /// </summary>
-    internal class HtmlJsonPrettifier
+    internal static class HtmlJsonPrettifier
     {
         public static void CreatePrettifiedHtmlJsonResponse(Response res, string htmlLinks, string json, string baseUri)
         {

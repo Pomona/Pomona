@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,22 +22,20 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 
 namespace Pomona.Common.Proxies
 {
     public class LazyProxyBase : IHasResourceUri
     {
-        private ClientBase client;
+        private IPomonaClient client;
 
         private object proxyTarget;
         private Type proxyTargetType;
 
         private string uri;
 
-        public ClientBase Client
+        public IPomonaClient Client
         {
             get { return client; }
             internal set { client = value; }
@@ -59,7 +55,7 @@ namespace Pomona.Common.Proxies
 
         #region IHasResourceUri Members
 
-        string IHasResourceUri.Uri
+        public string Uri
         {
             get { return uri; }
             set { uri = value; }
@@ -69,8 +65,7 @@ namespace Pomona.Common.Proxies
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (proxyTarget == null)
-                proxyTarget = client.DownloadString(uri, proxyTargetType);
+            Fetch();
 
             return property.Getter((TOwner) proxyTarget);
         }
@@ -78,11 +73,23 @@ namespace Pomona.Common.Proxies
 
         protected object OnPropertyGet(string propertyName)
         {
-            if (proxyTarget == null)
-                proxyTarget = client.DownloadString(uri, proxyTargetType);
+            Fetch();
 
             // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
             return proxyTargetType.GetProperty(propertyName).GetValue(proxyTarget, null);
+        }
+
+        private void Fetch()
+        {
+            if (proxyTarget == null)
+            {
+                proxyTarget = client.DownloadString(uri, proxyTargetType);
+                var hasResourceUri = proxyTarget as IHasResourceUri;
+                if (hasResourceUri != null)
+                {
+                    Uri = hasResourceUri.Uri;
+                }
+            }
         }
 
 

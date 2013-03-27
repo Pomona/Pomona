@@ -26,11 +26,13 @@
 
 #endregion
 
+using Nancy.TinyIoc;
+
 namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper) : base(dataSource, typeMapper)
+        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, TinyIoCContainer container) : base(dataSource, typeMapper, container)
         {
         }
 

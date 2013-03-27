@@ -131,12 +131,15 @@
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaQuery.cs" />
+    <Compile Include="IPomonaUriResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="ErrorHandler.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
+    <Compile Include="PomonaResponse.cs" />
+    <Compile Include="PomonaJsonResponseProcessor.cs" />
     <Compile Include="Queries\ArrayNode.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />
     <Compile Include="Queries\LambdaNode.cs" />

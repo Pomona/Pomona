@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,30 +22,38 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 
-namespace Pomona.Common
+namespace Pomona
 {
-    public interface IPomonaClient
+    public class PomonaResponse
     {
-        T Get<T>(string uri);
-        string GetUriOfType(Type type);
+        private readonly IPomonaQuery query;
+        private readonly object entity;
+        private readonly PomonaSession session;
 
+        public PomonaResponse(IPomonaQuery query, object entity, PomonaSession session)
+        {
+            if (query == null) throw new ArgumentNullException("query");
+            if (session == null) throw new ArgumentNullException("session");
+            this.query = query;
+            this.entity = entity;
+            this.session = session;
+        }
 
-        IList<T> Query<T>(
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null);
+        public IPomonaQuery Query
+        {
+            get { return query; }
+        }
 
+        public object Entity
+        {
+            get { return entity; }
+        }
 
-        bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
-        object DownloadString(string uri, Type type);
+        public PomonaSession Session
+        {
+            get { return session; }
+        }
     }
 }

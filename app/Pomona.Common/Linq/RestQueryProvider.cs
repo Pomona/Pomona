@@ -144,6 +144,11 @@ namespace Pomona.Common.Linq
             if (!resourceInfo.IsUriBaseType)
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
 
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
+            {
+                builder.AppendParameter("$projection", "first");
+            }
+
             if (parser.WherePredicate != null)
                 builder.AppendExpressionParameter("$filter", parser.WherePredicate);
             if (parser.OrderKeySelector != null)
@@ -181,6 +186,15 @@ namespace Pomona.Common.Linq
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
                 return new Uri(uri);
+
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
+            {
+                var resourceInfo = client.GetResourceInfoForType(typeof (T));
+                var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
+                proxy.Uri = uri;
+                proxy.Client = client;
+                return proxy;
+            }
 
             var results = client.Get<IList<T>>(uri);
 

@@ -39,6 +39,12 @@ namespace Pomona
     /// </summary>
     public class PomonaQuery : IPomonaQuery
     {
+        public enum ProjectionType
+        {
+            Default,
+            First
+        }
+
         private static readonly MethodInfo applyAndExecuteMethod;
         private readonly TransformedType targetType;
 
@@ -64,6 +70,7 @@ namespace Pomona
         public LambdaExpression OrderByExpression { get; set; }
         public LambdaExpression SelectExpression { get; set; }
 
+        public ProjectionType Projection { get; set; }
         public int Skip { get; set; }
         public SortOrder SortOrder { get; set; }
         public int Top { get; set; }

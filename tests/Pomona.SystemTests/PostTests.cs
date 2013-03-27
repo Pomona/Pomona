@@ -26,6 +26,7 @@ using System;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
+using Pomona.Common.Linq;
 using Pomona.Example.Models;
 using Pomona.SystemTests.Linq;
 using CustomEnum = Critters.Client.CustomEnum;
@@ -48,6 +49,46 @@ namespace Pomona.SystemTests
                 x =>
                     {
                         x.Hat = hat;
+                        x.Name = critterName;
+                    });
+
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
+        }
+
+        [Category("TODO")]
+        [Test(Description = "Need to implement sending in references to other entities with search.")]
+        public void PostCritterWithExistingHat_UsingFirstLazyMethod()
+        {
+            const string hatType = "BoomShakeRoom";
+            PostAHat(hatType);
+
+            const string critterName = "Super critter";
+
+            var critter = (ICritter) client.Post<ICritter>(
+                x =>
+                    {
+                        x.Hat = client.Query<IHat>().Where(y => y.HatType == hatType).FirstLazy();
+                        x.Name = critterName;
+                    });
+
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
+        }
+
+        [Test]
+        public void PostCritterWithExistingHat_UsingFirstLazyQuery()
+        {
+            const string hatType = "Special hat";
+
+            var hat = PostAHat(hatType);
+
+            const string critterName = "Super critter";
+
+            var critter = (ICritter) client.Post<ICritter>(
+                x =>
+                    {
+                        x.Hat = client.Hats.Query().Where(y => y.HatType.StartsWith("Special")).FirstLazy();
                         x.Name = critterName;
                     });
 

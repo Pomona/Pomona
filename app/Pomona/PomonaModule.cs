@@ -30,24 +30,27 @@ using System;
 using System.IO;
 using System.Linq;
 using Nancy;
+using Nancy.Routing;
+using Nancy.TinyIoc;
 using Pomona.CodeGen;
 using Pomona.Queries;
 using Pomona.Schemas;
 
 namespace Pomona
 {
-    public abstract class PomonaModule : NancyModule
+    public abstract class PomonaModule : NancyModule, IPomonaUriResolver
     {
         private readonly IHttpQueryTransformer queryTransformer;
         private readonly PomonaSession session;
         private readonly TypeMapper typeMapper;
+        private readonly TinyIoCContainer container;
         private IPomonaDataSource dataSource;
 
         private string htmlLinks = string.Empty;
 
 
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
-            : this(dataSource, typeMapper, null)
+        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, TinyIoCContainer container)
+            : this(dataSource, typeMapper, container, null)
         {
         }
 
@@ -55,12 +58,14 @@ namespace Pomona
         protected PomonaModule(
             IPomonaDataSource dataSource,
             TypeMapper typeMapper,
+            TinyIoCContainer container,
             IHttpQueryTransformer queryTransformer)
         {
             this.dataSource = dataSource;
 
             // TODO: This is performance hotspot: cache typemapper between each request.
             this.typeMapper = typeMapper;
+            this.container = container;
 
             if (queryTransformer == null)
             {
@@ -69,7 +74,7 @@ namespace Pomona
             }
             this.queryTransformer = queryTransformer;
 
-            session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri);
+            session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri, this);
 
             Console.WriteLine("Registering routes..");
             foreach (var transformedType in this.typeMapper.TransformedTypes.Select(x => x.UriBaseType).Distinct())
@@ -106,16 +111,11 @@ namespace Pomona
         }
 
 
-        private Response GetAsJson(TransformedType transformedType, object id)
+        private PomonaResponse GetAsJson(TransformedType transformedType, object id)
         {
-            var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            var json = session.GetAsJson(transformedType, id, expand);
-
-            FillJsonResponse(res, json, transformedType);
-
-            return res;
+            return session.GetAsJson(transformedType, id, expand);
         }
 
 
@@ -248,22 +248,11 @@ namespace Pomona
             return res;
         }
 
-
-        private Response QueryAsJson(TransformedType transformedType)
+        private object Query(TransformedType transformedType)
         {
             var query = queryTransformer.TransformRequest(Request, Context, transformedType);
 
-            string jsonStr;
-            using (var strWriter = new StringWriter())
-            {
-                session.Query(query, strWriter);
-                jsonStr = strWriter.ToString();
-            }
-
-            var response = new Response();
-            FillJsonResponse(response, jsonStr, transformedType);
-
-            return response;
+            return session.Query(query);
         }
 
 
@@ -318,7 +307,7 @@ namespace Pomona
             Patch[path + "/{id}"] = x => UpdateFromJson(type, x.id);
             Post[path] = x => PostFromJson(type);
 
-            Get[path] = x => QueryAsJson(type);
+            Get[path] = x => Query(type);
         }
 
 
@@ -333,6 +322,37 @@ namespace Pomona
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
+        }
+
+        object IPomonaUriResolver.GetResultByUri(string uriString)
+        {
+            var routeResolver = container.Resolve<IRouteResolver>();
+            var uri = new Uri(uriString, UriKind.Absolute);
+
+            string modulePath = uri.AbsolutePath;
+            string basePath = Request.Url.BasePath ?? string.Empty;
+            if (modulePath.StartsWith(basePath))
+                modulePath = modulePath.Substring(basePath.Length);
+
+            Url url = Request.Url.Clone();
+            url.Path = modulePath;
+            url.Query = uri.Query;
+
+            var innerRequest = new Request("GET", url);
+            var innerContext = new NancyContext()
+                {
+                    Culture = Context.Culture,
+                    CurrentUser = Context.CurrentUser,
+                    Request = innerRequest
+                };
+            
+            var routeMatch = routeResolver.Resolve(innerContext);
+            Route route = routeMatch.Item1;
+            DynamicDictionary dynamicDict = routeMatch.Item2;
+
+            var pomonaResponse = (PomonaResponse)route.Action((dynamic)dynamicDict);
+
+            return pomonaResponse.Entity;
         }
     }
 }

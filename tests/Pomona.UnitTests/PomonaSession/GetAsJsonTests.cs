@@ -30,8 +30,10 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
+using Pomona.Common.Serialization.Json;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
+using Pomona.Common.Serialization;
 
 namespace Pomona.UnitTests.PomonaSession
 {
@@ -42,7 +44,11 @@ namespace Pomona.UnitTests.PomonaSession
             where T : EntityBase
         {
             var transformedType = (TransformedType) Session.TypeMapper.GetClassMapping<T>();
-            var jsonString = Session.GetAsJson(transformedType, id, expand);
+            var response = Session.GetAsJson(transformedType, id, expand);
+            var serializerFactory = new PomonaJsonSerializerFactory();
+            var serializer = serializerFactory.GetSerialier();
+            var serializationContext = new ServerSerializationContext(expand ?? string.Empty, false, Session);
+            var jsonString = serializer.SerializeToString(serializationContext, response.Entity);
             Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
             return JObject.Parse(jsonString);
         }
