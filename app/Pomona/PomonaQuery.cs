@@ -30,6 +30,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
 namespace Pomona
@@ -79,6 +80,7 @@ namespace Pomona
 
         #region IPomonaQuery Members
 
+        public IMappedType ResultType { get; internal set; }
         public string ExpandedPaths { get; set; }
 
         public TransformedType TargetType

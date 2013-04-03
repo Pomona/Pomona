@@ -52,6 +52,7 @@ namespace Pomona.Common.TypeSystem
         bool IsGenericType { get; }
         bool IsGenericTypeDefinition { get; }
         bool IsValueType { get; }
+        string PluralName { get; }
         JsonConverter JsonConverter { get; }
         Type MappedType { get; }
         Type MappedTypeInstance { get; }

@@ -28,7 +28,6 @@ using NUnit.Framework;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 using Pomona.SystemTests.Linq;
-using Pomona.Common;
 
 namespace Pomona.SystemTests
 {
@@ -36,31 +35,10 @@ namespace Pomona.SystemTests
     public class PatchTests : ClientTestsBase
     {
         [Test]
-        public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
-        {
-            var entity = new StringToObjectDictionaryContainer()
-                {
-                    Map = {{"Text", "testtest"}}
-                };
-            Save(entity);
-
-            var resource = client.Query<LinqQueryTests.ICustomTestEntity3>().First(x => x.Id == entity.Id);
-
-            var patchedResource =
-                client.Patch(resource, x =>
-                    {
-                        x.Text = "UPDATED!";
-                    });
-
-
-            Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
-        }
-
-        [Test]
         public void PatchCritter_AddNewFormToList()
         {
             var critter = new Critter();
-            critter.Weapons.Add(new Gun(critter, new WeaponModel() {Name = "ExistingWeaponModel"}));
+            critter.Weapons.Add(new Gun(critter, new WeaponModel {Name = "ExistingWeaponModel"}));
             Save(critter);
 
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
@@ -98,6 +76,24 @@ namespace Pomona.SystemTests
                          x.Name = "NewName");
 
             Assert.That(critter.Name, Is.EqualTo("NewName"));
+        }
+
+        [Test]
+        public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
+        {
+            var entity = new StringToObjectDictionaryContainer
+                {
+                    Map = {{"Text", "testtest"}}
+                };
+            Save(entity);
+
+            var resource = client.Query<LinqQueryTests.ICustomTestEntity3>().First(x => x.Id == entity.Id);
+
+            var patchedResource =
+                client.Patch(resource, x => { x.Text = "UPDATED!"; });
+
+
+            Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
         }
 
         [Test]

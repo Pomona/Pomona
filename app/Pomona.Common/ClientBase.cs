@@ -240,23 +240,6 @@ namespace Pomona.Common
         public override T Patch<T>(T target, Action<T> updateAction)
         {
             return (T)PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType);
-
-            var type = typeof (T);
-            // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
-            if (!type.IsInterface)
-                throw new InvalidOperationException("updateAction needs to operate on the interface of the entity");
-
-            var updateType = GetUpdateProxyForInterface(type);
-
-            var updateProxy = Activator.CreateInstance(updateType);
-
-            // Run user supplied actions on updateProxy
-            updateAction((T) updateProxy);
-
-            // Patch the json!
-            var responseJson = UploadToUri(
-                ((IHasResourceUri) target).Uri, updateProxy, updateType, "PATCH");
-            return (T) Deserialize(responseJson, typeof(T));
         }
 
 

@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
@@ -64,6 +65,10 @@ namespace Pomona.Common
                     .Distinct();
         }
 
+        public static bool IsAnonymous(this IMappedType type)
+        {
+            return type.Name.StartsWith("<>f__AnonymousType");
+        }
 
         public static bool IsAnonymous(this Type type)
         {

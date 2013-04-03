@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,20 +36,20 @@ namespace Pomona.Common.TypeSystem
     /// </summary>
     public class SharedType : IMappedType
     {
-        private static Type[] basicWireTypes =
+        private static readonly Type[] basicWireTypes =
             {
                 typeof (int), typeof (double), typeof (float), typeof (string),
                 typeof (bool), typeof (decimal), typeof (DateTime), typeof (Uri)
             };
 
+        private readonly bool isCollection;
+        private readonly bool isDictionary;
+
         private readonly Type mappedType;
         private readonly Type mappedTypeInstance;
         private readonly ITypeMapper typeMapper;
 
-        private bool isCollection;
-        private bool isDictionary;
         private IList<IPropertyInfo> properties;
-        private TypeSerializationMode serializationMode;
 
 
         public SharedType(Type mappedTypeInstance, ITypeMapper typeMapper)
@@ -85,11 +81,11 @@ namespace Pomona.Common.TypeSystem
             }
 
             if (isDictionary)
-                serializationMode = TypeSerializationMode.Dictionary;
+                SerializationMode = TypeSerializationMode.Dictionary;
             else if (isCollection)
-                serializationMode = TypeSerializationMode.Array;
+                SerializationMode = TypeSerializationMode.Array;
             else
-                serializationMode = TypeSerializationMode.Value;
+                SerializationMode = TypeSerializationMode.Value;
 
             GenericArguments = new List<IMappedType>();
 
@@ -105,7 +101,7 @@ namespace Pomona.Common.TypeSystem
 
         public IMappedType BaseType
         {
-            get { return (SharedType) typeMapper.GetClassMapping(mappedType.BaseType); }
+            get { return typeMapper.GetClassMapping(mappedType.BaseType); }
         }
 
         public Type CustomClientLibraryType { get; set; }
@@ -195,6 +191,11 @@ namespace Pomona.Common.TypeSystem
             get { return mappedType.IsValueType; }
         }
 
+        public string PluralName
+        {
+            get { return null; }
+        }
+
         public JsonConverter JsonConverter { get; set; }
 
         public virtual string Name
@@ -246,11 +247,7 @@ namespace Pomona.Common.TypeSystem
             get { return GetPropertiesLazy(); }
         }
 
-        public TypeSerializationMode SerializationMode
-        {
-            get { return serializationMode; }
-            set { serializationMode = value; }
-        }
+        public TypeSerializationMode SerializationMode { get; set; }
 
         protected virtual IEnumerable<IPropertyInfo> OnGetProperties()
         {

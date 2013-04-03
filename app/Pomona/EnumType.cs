@@ -120,6 +120,11 @@ namespace Pomona
             get { return false; }
         }
 
+        public string PluralName
+        {
+            get { return null; }
+        }
+
         public JsonConverter JsonConverter
         {
             get { return new StringEnumConverter(); }

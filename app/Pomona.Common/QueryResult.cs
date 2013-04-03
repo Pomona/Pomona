@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,7 +29,6 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-
 using Pomona.Common.Internals;
 using Pomona.Internals;
 
@@ -41,7 +36,7 @@ namespace Pomona.Common
 {
     public abstract class QueryResult
     {
-        private static MethodInfo createMethod;
+        private static readonly MethodInfo createMethod;
 
 
         static QueryResult()
@@ -62,7 +57,7 @@ namespace Pomona.Common
         {
             Type elementType;
             Type[] genargs;
-            if (!TypeUtils.TryGetTypeArguments(source.GetType(), typeof(IEnumerable<>), out genargs))
+            if (!TypeUtils.TryGetTypeArguments(source.GetType(), typeof (IEnumerable<>), out genargs))
             {
                 var asQueryable = source as IQueryable;
                 if (asQueryable == null)
@@ -78,7 +73,7 @@ namespace Pomona.Common
             return
                 (QueryResult)
                 createMethod.MakeGenericMethod(elementType).Invoke(
-                    null, new object[] { source, skip, totalCount, url });
+                    null, new object[] {source, skip, totalCount, url});
         }
 
 
@@ -105,39 +100,38 @@ namespace Pomona.Common
             this.url = url;
         }
 
-
         public override Type ListType
         {
-            get { return typeof(IList<T>); }
+            get { return typeof (IList<T>); }
         }
 
         public override int Skip
         {
-            get { return this.skip; }
+            get { return skip; }
         }
 
         public override int TotalCount
         {
-            get { return this.totalCount; }
+            get { return totalCount; }
         }
 
         public string Url
         {
-            get { return this.url; }
+            get { return url; }
         }
 
         #region IList<T> Members
 
         public T this[int index]
         {
-            get { return this.items[index]; }
+            get { return items[index]; }
             set { throw new NotSupportedException(); }
         }
 
 
         public override int Count
         {
-            get { return this.items.Count; }
+            get { return items.Count; }
         }
 
         public bool IsReadOnly
@@ -160,25 +154,25 @@ namespace Pomona.Common
 
         public bool Contains(T item)
         {
-            return this.items.Contains(item);
+            return items.Contains(item);
         }
 
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            this.items.CopyTo(array, arrayIndex);
+            items.CopyTo(array, arrayIndex);
         }
 
 
         public IEnumerator<T> GetEnumerator()
         {
-            return this.items.GetEnumerator();
+            return items.GetEnumerator();
         }
 
 
         public int IndexOf(T item)
         {
-            return this.items.IndexOf(item);
+            return items.IndexOf(item);
         }
 
 
@@ -202,14 +196,14 @@ namespace Pomona.Common
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.items.GetEnumerator();
+            return items.GetEnumerator();
         }
 
         #endregion
 
         public override bool TryGetPage(int offset, out Uri pageUri)
         {
-            var newSkip = Math.Max(Skip + (Count * offset), 0);
+            var newSkip = Math.Max(Skip + (Count*offset), 0);
             var uriBuilder = new UriBuilder(Url);
 
             if (Skip == newSkip || (TotalCount != -1 && newSkip >= TotalCount))

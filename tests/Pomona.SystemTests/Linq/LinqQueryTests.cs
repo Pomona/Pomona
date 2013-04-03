@@ -75,6 +75,22 @@ namespace Pomona.SystemTests.Linq
             Assert.That(hasCritterWithGuid, Is.False);
         }
 
+        [Test]
+        public void QueryCritter_FirstLazy_ReturnsLazyCritter()
+        {
+            var expected = CritterEntities.First(x => x.Id%3 == 0);
+            var lazyCritter = client.Query<ICritter>().Where(x => x.Id%3 == 0).FirstLazy();
+            var beforeLoadUri = ((IHasResourceUri) lazyCritter).Uri;
+            Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+3)+eq+0"));
+            Console.WriteLine(beforeLoadUri);
+            // Should load uri when retrieving name
+            var name = lazyCritter.Name;
+            var afterLoadUri = ((IHasResourceUri) lazyCritter).Uri;
+            Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+3)+eq+0"));
+            Console.WriteLine(afterLoadUri);
+            Assert.That(name, Is.EqualTo(expected.Name));
+        }
+
         [Category("TODO")]
         [Test(Description = "Need to implement custom projections to make sum possible")]
         public void QueryCritter_GetSumOfIntProperty()
@@ -183,22 +199,6 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_FirstLazy_ReturnsLazyCritter()
-        {
-            var expected = CritterEntities.First(x => x.Id%3 == 0);
-            var lazyCritter = client.Query<ICritter>().Where(x => x.Id%3 == 0).FirstLazy();
-            var beforeLoadUri = ((IHasResourceUri) lazyCritter).Uri;
-            Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+3)+eq+0"));
-            Console.WriteLine(beforeLoadUri);
-            // Should load uri when retrieving name
-            var name = lazyCritter.Name;
-            var afterLoadUri = ((IHasResourceUri) lazyCritter).Uri;
-            Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+3)+eq+0"));
-            Console.WriteLine(afterLoadUri);
-            Assert.That(name, Is.EqualTo(expected.Name));
-        }
-
-        [Test]
         public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues()
         {
             var expected =
@@ -277,7 +277,6 @@ namespace Pomona.SystemTests.Linq
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
-
 
         [Test]
         public void QueryCritter_WithExpandedPropertyOfAnonymousClass_HasPropertyExpanded()

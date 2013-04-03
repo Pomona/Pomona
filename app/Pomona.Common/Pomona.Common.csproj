@@ -113,6 +113,8 @@
     <Compile Include="ResourceInfoAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
+    <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />
+    <Compile Include="Serialization\Csv\PomonaCsvSerializerFactory.cs" />
     <Compile Include="Serialization\DeserializerNodeExtensions.cs" />
     <Compile Include="Serialization\IDeserializationContext.cs" />
     <Compile Include="Serialization\IDeserializerNode.cs" />
@@ -133,6 +135,8 @@
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\SerializerNodeExtensions.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlDeserializer.cs" />
+    <Compile Include="Serialization\Xml\PomonaXmlSerializer.cs" />
+    <Compile Include="Serialization\Xml\PomonaXmlSerializerFactory.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="TypeSystem\ClientType.cs" />

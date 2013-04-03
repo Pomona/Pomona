@@ -34,6 +34,7 @@ using System.Linq;
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
 namespace Pomona
@@ -131,7 +132,20 @@ namespace Pomona
 
             query.Url = request.Url.ToString();
 
+            UpdateResultType(query);
+
             return query;
+        }
+
+        private void UpdateResultType(PomonaQuery query)
+        {
+            IMappedType elementType = query.TargetType;
+            if (query.SelectExpression != null)
+                elementType = typeMapper.GetClassMapping(query.SelectExpression.ReturnType);
+
+            if (query.Projection == PomonaQuery.ProjectionType.First)
+                query.ResultType = elementType;
+
         }
 
 

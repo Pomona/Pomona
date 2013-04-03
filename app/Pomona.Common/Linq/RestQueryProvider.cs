@@ -144,7 +144,9 @@ namespace Pomona.Common.Linq
             if (!resourceInfo.IsUriBaseType)
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
 
-            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy ||
+                parser.Projection == RestQueryableTreeParser.QueryProjection.First ||
+                parser.Projection == RestQueryableTreeParser.QueryProjection.FirstOrDefault)
             {
                 builder.AppendParameter("$projection", "first");
             }
@@ -196,19 +198,17 @@ namespace Pomona.Common.Linq
                 return proxy;
             }
 
-            var results = client.Get<IList<T>>(uri);
 
             switch (parser.Projection)
             {
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
-                    return results;
+                    return client.Get<IList<T>>(uri);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
-                    return results.FirstOrDefault();
                 case RestQueryableTreeParser.QueryProjection.First:
-                    return results.First();
+                    return client.Get<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..
-                    return results.Count > 0;
+                    return client.Get<IList<T>>(uri).Count > 0;
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + parser.Projection);
             }

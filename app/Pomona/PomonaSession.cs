@@ -98,7 +98,9 @@ namespace Pomona
         public PomonaResponse GetAsJson(TransformedType transformedType, object id, string expand)
         {
             var o = GetById(transformedType, id);
-            return new PomonaResponse(new PomonaQuery(transformedType) {ExpandedPaths = expand}, o, this);
+            return
+                new PomonaResponse(
+                    new PomonaQuery(transformedType) {ExpandedPaths = expand, ResultType = transformedType}, o, this);
         }
 
         internal object GetResultByUri(string uri)
@@ -242,7 +244,7 @@ namespace Pomona
             }
             else
             {
-                serializer.SerializeQueryResult(queryResult, context, state);
+                serializer.SerializeQueryResult(queryResult, context, state, null);
             }
         }
 

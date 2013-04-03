@@ -111,14 +111,14 @@ namespace Pomona.Common.Serialization.Json
 
 
         public void SerializeQueryResult(
-            QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer)
+            QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer, IMappedType elementType)
         {
-            SerializeQueryResult(queryResult, fetchContext, CastWriter(writer));
+            SerializeQueryResult(queryResult, fetchContext, CastWriter(writer), elementType);
         }
 
 
         public void SerializeQueryResult(
-            QueryResult queryResult, ISerializationContext fetchContext, Writer writer)
+            QueryResult queryResult, ISerializationContext fetchContext, Writer writer, IMappedType elementType)
         {
             var jsonWriter = writer.JsonWriter;
             jsonWriter.WriteStartObject();
@@ -257,7 +257,7 @@ namespace Pomona.Common.Serialization.Json
                 jsonWriter.WritePropertyName("_uri");
                 jsonWriter.WriteValue(node.Uri);
             }
-            if (node.ExpectedBaseType != node.ValueType)
+            if (node.ExpectedBaseType != node.ValueType && !node.ValueType.IsAnonymous())
             {
                 jsonWriter.WritePropertyName("_type");
                 jsonWriter.WriteValue(node.ValueType.Name);

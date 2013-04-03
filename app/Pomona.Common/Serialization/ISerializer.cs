@@ -35,7 +35,7 @@ namespace Pomona.Common.Serialization
     {
         ISerializerWriter CreateWriter(TextWriter textWriter);
         void SerializeNode(ISerializerNode node, ISerializerWriter writer);
-        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer);
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer, IMappedType elementType);
     }
 
     public interface ISerializer<TWriter> : ISerializer
@@ -43,7 +43,7 @@ namespace Pomona.Common.Serialization
     {
         new TWriter CreateWriter(TextWriter textWriter);
         void SerializeNode(ISerializerNode node, TWriter writer);
-        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer);
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer, IMappedType elementType);
     }
 
     public interface ISerializerReader

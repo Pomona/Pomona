@@ -24,6 +24,7 @@
 
 using System;
 using System.IO;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
@@ -34,23 +35,23 @@ namespace Pomona.Common.Serialization
         {
             using (var strWriter = new StringWriter())
             {
-                serializer.Serialize(serializationContext, obj, strWriter);
+                serializer.Serialize(serializationContext, obj, strWriter, null);
                 return strWriter.ToString();
             }
         }
 
         public static void Serialize(this ISerializer serializer, ISerializationContext serializationContext, object obj,
-                                     TextWriter textWriter)
+                                     TextWriter textWriter, IMappedType expectedBaseType)
         {
             if (serializer == null) throw new ArgumentNullException("serializer");
             if (textWriter == null) throw new ArgumentNullException("textWriter");
 
             var writer = serializer.CreateWriter(textWriter);
             if (obj is QueryResult)
-                serializer.SerializeQueryResult((QueryResult) obj, serializationContext, writer);
+                serializer.SerializeQueryResult((QueryResult) obj, serializationContext, writer, null);
             else
             {
-                var itemValueNode = new ItemValueSerializerNode(obj, null,
+                var itemValueNode = new ItemValueSerializerNode(obj, expectedBaseType,
                                                                 string.Empty,
                                                                 serializationContext);
                 serializer.SerializeNode(itemValueNode, writer);

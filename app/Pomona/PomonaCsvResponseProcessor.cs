@@ -26,26 +26,27 @@ using System;
 using System.Collections.Generic;
 using Nancy;
 using Nancy.Responses.Negotiation;
-using Pomona.Common.Serialization.Json;
+using Pomona.Common.Serialization.Csv;
 
 namespace Pomona
 {
-    public class PomonaJsonResponseProcessor : PomonaResponseProcessorBase
+    public class PomonaCsvResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
-            new[] {new Tuple<string, MediaRange>("json", MediaRange.FromString("application/json"))};
+            new[] {new Tuple<string, MediaRange>("csv", MediaRange.FromString("text/plain"))};
 
-        public PomonaJsonResponseProcessor() : base(new PomonaJsonSerializerFactory())
+        public PomonaCsvResponseProcessor()
+            : base(new PomonaCsvSerializerFactory())
         {
         }
 
         protected override string ContentType
         {
-            get { return "application/json"; }
+            get { return "text/plain"; }
         }
 
         /// <summary>
-        /// Gets a set of mappings that map a given extension (such as .json)
+        /// Gets a set of mappings that map a given extension (such as .Csv)
         /// to a media range that can be sent to the client in a vary header.
         /// </summary>
         public override IEnumerable<Tuple<string, MediaRange>> ExtensionMappings
@@ -69,28 +70,19 @@ namespace Pomona
                         RequestedContentTypeResult = MatchResult.DontCare
                     };
 
-            if (IsTextHtmlContentType(requestedMediaRange))
-                return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.ExactMatch,
-                        RequestedContentTypeResult = MatchResult.ExactMatch
-                    };
+            //if (IsTextHtmlContentType(requestedMediaRange))
+            //    return new ProcessorMatch
+            //        {
+            //            ModelResult = MatchResult.ExactMatch,
+            //            RequestedContentTypeResult = MatchResult.ExactMatch
+            //        };
 
-            if (IsExactJsonContentType(requestedMediaRange))
+            if (IsExactCsvContentType(requestedMediaRange))
             {
                 return new ProcessorMatch
                     {
                         ModelResult = MatchResult.ExactMatch,
                         RequestedContentTypeResult = MatchResult.ExactMatch
-                    };
-            }
-
-            if (IsWildcardJsonContentType(requestedMediaRange))
-            {
-                return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.ExactMatch,
-                        RequestedContentTypeResult = MatchResult.NonExactMatch
                     };
             }
 
@@ -102,33 +94,14 @@ namespace Pomona
         }
 
 
-        private static bool IsExactJsonContentType(MediaRange requestedContentType)
+        private static bool IsExactCsvContentType(MediaRange requestedContentType)
         {
             if (requestedContentType.Type.IsWildcard && requestedContentType.Subtype.IsWildcard)
             {
                 return true;
             }
 
-            return requestedContentType.Matches("application/json") || requestedContentType.Matches("text/json");
-        }
-
-        private static bool IsWildcardJsonContentType(MediaRange requestedContentType)
-        {
-            if (!requestedContentType.Type.IsWildcard &&
-                !string.Equals("application", requestedContentType.Type, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return false;
-            }
-
-            if (requestedContentType.Subtype.IsWildcard)
-            {
-                return true;
-            }
-
-            var subtypeString = requestedContentType.Subtype.ToString();
-
-            return (subtypeString.StartsWith("vnd", StringComparison.InvariantCultureIgnoreCase) &&
-                    subtypeString.EndsWith("+json", StringComparison.InvariantCultureIgnoreCase));
+            return requestedContentType.Matches("text/plain");
         }
     }
 }
