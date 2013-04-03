@@ -40,8 +40,8 @@ namespace Pomona.Common.Serialization.Xml
             throw new NotImplementedException();
         }
 
-
-        public object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context)
+        public object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context,
+                                  object patchedObject = null)
         {
             throw new NotImplementedException();
         }

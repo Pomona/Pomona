@@ -65,7 +65,7 @@ namespace Pomona.Common
 
 
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
-            where TSubResource : TResource
+            where TSubResource : class, TResource
         {
             return this.client.Patch(resource, patchAction);
         }

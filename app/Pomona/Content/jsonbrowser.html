@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="utf-8" />
+        <title>JSON browser</title>
+    </head>
+      <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+    <script>
+        var currentTags = null;
+
+        $.getJSON("/schemas", function (schemas) {
+            $.each(schemas.types, function (i, v) {
+                if (v.extends)
+                    return;
+
+                var li = $("<li />");
+                var anchor = $("<a />");
+
+                anchor.click(function() {
+                    $.getJSON(v.uri, function (data) {
+                        $("pre").text(JSON.stringify(data, null, 4));
+                    });
+                    currentTags = Object.keys(v.properties);
+                });
+                //anchor.attr("href", v.uri);
+                anchor.text(v.name);
+                li.append(anchor);
+                $("ul").append(li);
+            });
+        });
+
+
+        $(function () {
+            function split(val) {
+                return val.split(/[\. ]\s*/);
+            }
+            function extractLast(term) {
+                return split(term).pop();
+            }
+
+            $("#tags")
+                // don't navigate away from the field on tab when selecting an item
+                .bind("keydown", function (event) {
+                    if (event.keyCode === $.ui.keyCode.TAB &&
+                        $(this).data("ui-autocomplete").menu.active) {
+                        event.preventDefault();
+                    }
+                })
+                .autocomplete({
+                    minLength: 0,
+                    source: function (request, response) {
+                        // delegate back to autocomplete, but extract the last term
+                        response($.ui.autocomplete.filter(
+                            currentTags, extractLast(request.term)));
+                    },
+                    focus: function () {
+                        // prevent value inserted on focus
+                        return false;
+                    },
+                    select: function (event, ui) {
+                        var terms = split(this.value);
+                        // remove the current input
+                        terms.pop();
+                        // add the selected item
+                        terms.push(ui.item.value);
+                        // add placeholder to get the comma-and-space at the end
+                        terms.push("");
+                        this.value = terms.join(" ");
+                        return false;
+                    }
+                });
+        });
+    </script>
+    <body>
+        
+<div class="ui-widget">
+  <label for="tags">Tag programming languages: </label>
+  <input id="tags" size="50" />
+</div>
+        <nav>
+            <ul></ul>
+        </nav>
+        <pre></pre>
+    </body>
+</html>

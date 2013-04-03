@@ -181,19 +181,21 @@ namespace Pomona
         }
 
 
-        public string PostJson(TransformedType transformedType, TextReader textReader)
+        public void PostJson(TransformedType transformedType, Stream readStream, Stream writeStream)
         {
-            using (var textWriter = new StringWriter())
+            using (var textReader = new StreamReader(readStream))
+            using (var textWriter = new StreamWriter(writeStream))
             {
-                PostJson(transformedType, textReader, textWriter);
-                return textWriter.ToString();
+                DeserializePostOrPatch(transformedType, textReader, textWriter);
             }
         }
 
-        public void PostJson(TransformedType transformedType, TextReader textReader, TextWriter textWriter)
+        private void DeserializePostOrPatch(TransformedType transformedType, TextReader textReader,
+                                            TextWriter textWriter, object patchedObject = null)
         {
             var deserializationContext = new ServerDeserializationContext(this);
-            var postResource = deserializer.Deserialize(textReader, transformedType, deserializationContext);
+            var postResource = deserializer.Deserialize(textReader, transformedType, deserializationContext,
+                                                        patchedObject);
             var postResponse = postGenericMethod.MakeGenericMethod(postResource.GetType())
                                                 .Invoke(this, new[] {postResource});
             var serializationContext = new ServerSerializationContext("", false, this);
@@ -246,18 +248,16 @@ namespace Pomona
 
 
         public void UpdateFromJson(
-            TransformedType transformedType, object id, TextReader textReader, TextWriter textWriter)
+            TransformedType transformedType, object id, Stream readStream, Stream writeStream)
         {
             var o = GetById(transformedType, id);
-            var mappedType = typeMapper.GetClassMapping(o.GetType());
-            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new ServerSerializationContext(rootPath, false, this);
-            var wrapper = new ObjectWrapper(o, rootPath, context, mappedType);
-            wrapper.UpdateFromJson(textReader);
 
-            updateMethod.MakeGenericMethod(mappedType.MappedTypeInstance).Invoke(dataSource, new[] {o});
-
-            SerializeSingleObject("", textWriter, o);
+            using (var textReader = new StreamReader(readStream))
+            using (var textWriter = new StreamWriter(writeStream))
+            {
+                var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+                DeserializePostOrPatch(objType, textReader, textWriter, o);
+            }
         }
 
 

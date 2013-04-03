@@ -88,6 +88,7 @@
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="NameUtils.cs" />
     <Compile Include="PomonaSerializationException.cs" />
+    <Compile Include="Proxies\ClientSideFormProxyBase.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />
     <Compile Include="Proxies\PostResourceDictionary.cs" />
     <Compile Include="Proxies\PostResourceList.cs" />

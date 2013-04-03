@@ -53,7 +53,7 @@ namespace Pomona.Common.Serialization
     public interface IDeserializer
     {
         ISerializerReader CreateReader(TextReader textReader);
-        object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context);
+        object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context, object patchedObject = null);
         void DeserializeNode(IDeserializerNode node, ISerializerReader reader);
 
         void DeserializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,

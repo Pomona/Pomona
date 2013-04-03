@@ -245,6 +245,7 @@ namespace Pomona
             get { return TypeSerializationMode.Complex; }
         }
 
+        [Obsolete("It seems like there's no longer any real dependency on this code.")]
         public string ConvertToInternalPropertyPath(string externalPath)
         {
             // TODO: Fix for lists, but first gotta find out how that would work..

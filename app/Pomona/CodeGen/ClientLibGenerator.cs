@@ -435,15 +435,17 @@ namespace Pomona.CodeGen
                     baseCtorReference = baseTypeInfo.PocoType.GetConstructors().First(x => x.Parameters.Count == 0);
 
                     interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
-
-                    typeInfo.UriBaseType = this.clientTypeInfoDict[type.UriBaseType].InterfaceType;
                 }
                 else
                 {
                     interfaceDef.Interfaces.Add(resourceInterfaceRef);
                     pocoDef.BaseType = resourceBaseRef;
-                    typeInfo.UriBaseType = typeInfo.InterfaceType;
                     baseCtorReference = resourceBaseCtor;
+                }
+
+                if (type.UriBaseType != null)
+                {
+                    typeInfo.UriBaseType = this.clientTypeInfoDict[type.UriBaseType].InterfaceType;
                 }
 
                 var ctor = typeInfo.EmptyPocoCtor;

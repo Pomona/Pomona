@@ -75,7 +75,7 @@ namespace Pomona.Common
 
 
         public abstract T Patch<T>(T target, Action<T> updateAction)
-            where T : IClientResource;
+            where T : class, IClientResource;
 
 
         public abstract IList<T> Query<T>(
@@ -221,12 +221,26 @@ namespace Pomona.Common
 
         public override object Post<T>(Action<T> postAction)
         {
-            return Post(DownloadString(typeof (T)), postAction);
+            CustomUserTypeInfo info;
+            string uri;
+            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof(T), this, out info))
+            {
+                uri = GetUriOfType(info.ServerType);
+            }
+            else
+            {
+                uri = GetUriOfType(typeof (T));
+            }
+
+
+            return Post(uri, postAction);
         }
 
 
         public override T Patch<T>(T target, Action<T> updateAction)
         {
+            return (T)PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType);
+
             var type = typeof (T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
             if (!type.IsInterface)
@@ -317,12 +331,6 @@ namespace Pomona.Common
         }
 
 
-        public string DownloadString(Type type)
-        {
-            return BaseUri + GetRelativeUriForType(type);
-        }
-
-
         public string GetRelativeUriForType(Type type)
         {
             var resourceInfo = this.GetResourceInfoForType(type);
@@ -332,17 +340,21 @@ namespace Pomona.Common
 
         internal override object Post<T>(string uri, Action<T> postAction)
         {
-            return Post(uri, null, postAction);
+            return PostOrPatch(uri, null, postAction, "POST", x => x.PostFormType);
         }
 
+        private static readonly MethodInfo postOrPatchMethod =
+            ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(x => x.PostOrPatch("", "", null, "POST", null));
 
-        private object Post<T>(string uri, T form, Action<T> postAction)
+        private object PostOrPatch<T>(string uri, T form, Action<T> postAction, string httpMethod, Func<ResourceInfoAttribute, Type> formTypeGetter)
             where T : class
         {
             var type = typeof (T);
             // TODO: T needs to be an interface, not sure how we fix this, maybe generate one Update method for every entity
             if (!type.IsInterface)
                 throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
+
+            var serverType = type;
 
             CustomUserTypeInfo customUserTypeInfo;
 
@@ -354,18 +366,34 @@ namespace Pomona.Common
                 var proxy =
                     (ClientSideFormProxyBase) ((object) RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
                 proxy.AttributesProperty = customUserTypeInfo.DictProperty;
-                proxy.ProxyTargetType = customUserTypeInfo.ServerType;
 
-                form = (T) ((object) proxy);
+                var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
+
+                var wrappedForm = Activator.CreateInstance(formTypeGetter(resourceInfo));
+
+                proxy.ProxyTarget = wrappedForm;
+                
+                if (postAction != null)
+                {
+                    postAction((T)((object)proxy));
+                }
+                var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
+                                 .Invoke(this, new object[] { uri, wrappedForm, null, httpMethod,formTypeGetter });
+
+                var responseProxy = (ClientSideResourceProxyBase)((object)RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
+                responseProxy.AttributesProperty = customUserTypeInfo.DictProperty;
+                responseProxy.ProxyTarget = innerResponse;
+                return responseProxy;
             }
             else
             {
                 var resourceInfo = this.GetResourceInfoForType(type);
 
-                var newType = resourceInfo.PostFormType;
+                var newType = formTypeGetter(resourceInfo);
 
                 if (form == null)
                     form = (T) Activator.CreateInstance(newType);
+
             }
 
             if (postAction != null)
@@ -373,17 +401,15 @@ namespace Pomona.Common
                 postAction(form);
             }
 
-            // TODO: Implement baseuri property or something.
-
             // Post the json!
-            var response = UploadToUri(uri, form, type, "POST");
+            var response = UploadToUri(uri, form, type, httpMethod);
 
             return Deserialize(response, null);
         }
 
         internal override object Post<T>(string uri, T postForm)
         {
-            return Post(uri, postForm, null);
+            return PostOrPatch(uri, postForm, null, "POST", x => x.PostFormType);
         }
 
 

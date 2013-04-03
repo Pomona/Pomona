@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,11 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Nancy;
 using Nancy.Routing;
 using Nancy.TinyIoc;
@@ -40,11 +37,11 @@ namespace Pomona
 {
     public abstract class PomonaModule : NancyModule, IPomonaUriResolver
     {
+        private readonly TinyIoCContainer container;
+        private readonly IPomonaDataSource dataSource;
         private readonly IHttpQueryTransformer queryTransformer;
         private readonly PomonaSession session;
         private readonly TypeMapper typeMapper;
-        private readonly TinyIoCContainer container;
-        private IPomonaDataSource dataSource;
 
         private string htmlLinks = string.Empty;
 
@@ -77,20 +74,67 @@ namespace Pomona
             session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri, this);
 
             Console.WriteLine("Registering routes..");
-            foreach (var transformedType in this.typeMapper.TransformedTypes.Select(x => x.UriBaseType).Distinct())
+            foreach (var transformedType in this.typeMapper
+                                                .TransformedTypes
+                                                .Select(x => x.UriBaseType)
+                                                .Where(x => x != null)
+                                                .Distinct())
+            {
                 RegisterRoutesFor(transformedType);
+            }
 
             Get["/schemas"] = x => GetSchemas();
 
             Get[string.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName())] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
+
+            Get["/"] = x => GetJsonBrowserHtmlResponse();
         }
 
 
         public IPomonaDataSource DataSource
         {
             get { return dataSource; }
+        }
+
+        object IPomonaUriResolver.GetResultByUri(string uriString)
+        {
+            var routeResolver = container.Resolve<IRouteResolver>();
+            var uri = new Uri(uriString, UriKind.Absolute);
+
+            var modulePath = uri.AbsolutePath;
+            var basePath = Request.Url.BasePath ?? string.Empty;
+            if (modulePath.StartsWith(basePath))
+                modulePath = modulePath.Substring(basePath.Length);
+
+            var url = Request.Url.Clone();
+            url.Path = modulePath;
+            url.Query = uri.Query;
+
+            var innerRequest = new Request("GET", url);
+            var innerContext = new NancyContext
+                {
+                    Culture = Context.Culture,
+                    CurrentUser = Context.CurrentUser,
+                    Request = innerRequest
+                };
+
+            var routeMatch = routeResolver.Resolve(innerContext);
+            var route = routeMatch.Item1;
+            var dynamicDict = routeMatch.Item2;
+
+            var pomonaResponse = (PomonaResponse) route.Action((dynamic) dynamicDict);
+
+            return pomonaResponse.Entity;
+        }
+
+        private object GetJsonBrowserHtmlResponse()
+        {
+            var resourceName = "Pomona.Content.jsonbrowser.html";
+            return
+                Response.FromStream(
+                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName), "text/html");
         }
 
 
@@ -121,10 +165,9 @@ namespace Pomona
 
         protected virtual Uri GetBaseUri()
         {
-
             var appUrl = GetAppVirtualPath();
-            string uriString = string.Format("{0}://{1}:{2}{3}{4}", Request.Url.Scheme, Request.Url.HostName,
-                                             Request.Url.Port, appUrl, appUrl.EndsWith("/") ? string.Empty : "/");
+            var uriString = string.Format("{0}://{1}:{2}{3}{4}", Request.Url.Scheme, Request.Url.HostName,
+                                          Request.Url.Port, appUrl, appUrl.EndsWith("/") ? string.Empty : "/");
 
             return new Uri(uriString);
         }
@@ -237,13 +280,12 @@ namespace Pomona
         {
             var req = Request;
 
-            var res = new Response();
-
-            var responseBodyText = session.PostJson(transformedType, new StreamReader(req.Body));
-            res.ContentsFromString(responseBodyText);
-
-            // TODO: Set correct encoding [KNS]
-            res.ContentType = "text/plain; charset=utf-8";
+            var res = new Response
+                {
+                    Contents = stream =>
+                               session.PostJson(transformedType, req.Body, stream),
+                    ContentType = "text/plain; charset=utf-8"
+                };
 
             return res;
         }
@@ -270,8 +312,9 @@ namespace Pomona
 
         private void RegisterRoutesFor(TransformedType type)
         {
-            string appVirtualPath = GetAppVirtualPath();
-            var absLinkPath = string.Format("{0}{1}{2}", appVirtualPath, appVirtualPath.EndsWith("/") ? string.Empty : "/", type.UriRelativePath);
+            var appVirtualPath = GetAppVirtualPath();
+            var absLinkPath = string.Format("{0}{1}{2}", appVirtualPath,
+                                            appVirtualPath.EndsWith("/") ? string.Empty : "/", type.UriRelativePath);
 
             var path = "/" + type.UriRelativePath;
             //Console.WriteLine("Registering path " + path);
@@ -315,44 +358,14 @@ namespace Pomona
         {
             var req = Request;
 
-            var res = new Response();
-            res.Contents =
-                stream =>
-                session.UpdateFromJson(transformedType, id, new StreamReader(req.Body), new StreamWriter(stream));
-            res.ContentType = "text/plain; charset=utf-8";
+            var res = new Response
+                {
+                    Contents = stream =>
+                               session.UpdateFromJson(transformedType, id, req.Body, stream),
+                    ContentType = "text/plain; charset=utf-8"
+                };
 
             return res;
-        }
-
-        object IPomonaUriResolver.GetResultByUri(string uriString)
-        {
-            var routeResolver = container.Resolve<IRouteResolver>();
-            var uri = new Uri(uriString, UriKind.Absolute);
-
-            string modulePath = uri.AbsolutePath;
-            string basePath = Request.Url.BasePath ?? string.Empty;
-            if (modulePath.StartsWith(basePath))
-                modulePath = modulePath.Substring(basePath.Length);
-
-            Url url = Request.Url.Clone();
-            url.Path = modulePath;
-            url.Query = uri.Query;
-
-            var innerRequest = new Request("GET", url);
-            var innerContext = new NancyContext()
-                {
-                    Culture = Context.Culture,
-                    CurrentUser = Context.CurrentUser,
-                    Request = innerRequest
-                };
-            
-            var routeMatch = routeResolver.Resolve(innerContext);
-            Route route = routeMatch.Item1;
-            DynamicDictionary dynamicDict = routeMatch.Item2;
-
-            var pomonaResponse = (PomonaResponse)route.Action((dynamic)dynamicDict);
-
-            return pomonaResponse.Entity;
         }
     }
 }

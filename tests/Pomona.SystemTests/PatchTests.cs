@@ -27,34 +27,55 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
+using Pomona.SystemTests.Linq;
+using Pomona.Common;
 
 namespace Pomona.SystemTests
 {
     [TestFixture]
     public class PatchTests : ClientTestsBase
     {
-        [Category("TODO")]
-        [Test(Description = "TODO: Implement proper patch functionality.")]
+        [Test]
+        public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
+        {
+            var entity = new StringToObjectDictionaryContainer()
+                {
+                    Map = {{"Text", "testtest"}}
+                };
+            Save(entity);
+
+            var resource = client.Query<LinqQueryTests.ICustomTestEntity3>().First(x => x.Id == entity.Id);
+
+            var patchedResource =
+                client.Patch(resource, x =>
+                    {
+                        x.Text = "UPDATED!";
+                    });
+
+
+            Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
+        }
+
+        [Test]
         public void PatchCritter_AddNewFormToList()
         {
-            var critter = Save(new Critter());
+            var critter = new Critter();
+            critter.Weapons.Add(new Gun(critter, new WeaponModel() {Name = "ExistingWeaponModel"}));
+            Save(critter);
+
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
             client.Patch(resource,
-                         x =>
-                         x.Weapons.Add(new WeaponForm
+                         x => x.Weapons.Add(new WeaponForm
                              {
                                  Price = 3.4m,
                                  Model = new WeaponModelForm {Name = "balala"},
                                  Strength = 3.5
                              }));
 
-            Assert.That(critter.Weapons, Has.Count.EqualTo(1));
-
-            Assert.Fail("TEST NOT FINISHED");
+            Assert.That(critter.Weapons, Has.Count.EqualTo(2));
         }
 
-        [Category("TODO")]
-        [Test(Description = "Must refactor PATCH functionality to support this..")]
+        [Test]
         public void PatchCritter_UpdateReferenceProperty_UsingValueFromFirstLazyMethod()
         {
             var hat = Save(new Hat {Style = "Gangnam Style 1234"});

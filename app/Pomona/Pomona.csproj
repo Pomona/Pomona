@@ -171,7 +171,11 @@
     <Compile Include="Queries\StringNode.cs" />
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />
-    <Compile Include="Schemas\JsonSchemaGenerator.cs" />
+    <Compile Include="Schemas\SchemaGenerator.cs" />
+    <Compile Include="Schemas\Schema.cs" />
+    <Compile Include="Schemas\SchemaArrayItem.cs" />
+    <Compile Include="Schemas\SchemaPropertyEntry.cs" />
+    <Compile Include="Schemas\SchemaTypeEntry.cs" />
     <Compile Include="ServerDeserializationContext.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TypeMapper.cs" />
@@ -201,6 +205,9 @@
   <ItemGroup>
     <Folder Include="CodeGen\XmlDoc\" />
     <Folder Include="TypeSystem\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\jsonbrowser.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

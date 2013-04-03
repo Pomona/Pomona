@@ -113,22 +113,20 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
-        [Category("TODO")]
-        [Test(Description =
-            "Patching of dictionary properties not yet implemented, required for supporting posting of custom user client-side resources."
-            )]
+        [Test]
         public void PostCustomTestEntity()
         {
-            client.Post<LinqQueryTests.ICustomTestEntity3>(x =>
+            var response = (LinqQueryTests.ICustomTestEntity3) client.Post<LinqQueryTests.ICustomTestEntity3>(x =>
                 {
                     x.Number = 123;
                     x.Text = "foobar";
                     x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
                 });
 
-            Assert.Fail("TEST NOT FINISHED");
+            Assert.That(response.Number, Is.EqualTo(123));
+            Assert.That(response.Text, Is.EqualTo("foobar"));
+            Assert.That(response.Time, Is.EqualTo(new DateTime(2030, 3, 4, 5, 3, 2)));
         }
-
 
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
@@ -210,6 +208,20 @@ namespace Pomona.SystemTests
             Assert.That(response.Order, Is.Not.Null);
             Assert.That(response.Order, Is.TypeOf<OrderResource>());
             Assert.That(response.Order.Description, Is.EqualTo("Blob"));
+        }
+
+        [Test]
+        public void PostStringToObjectDictionaryContainer_WithItemSetInDictionary()
+        {
+            var form = new StringToObjectDictionaryContainerForm
+                {
+                    Map = {{"TheString", "hello"}, {"TheInt", 1337}}
+                };
+
+            var resource = client.StringToObjectDictionaryContainers.Post(form);
+
+            Assert.That(resource.Map["TheString"], Is.EqualTo("hello"));
+            Assert.That(resource.Map["TheInt"], Is.EqualTo(1337));
         }
 
 

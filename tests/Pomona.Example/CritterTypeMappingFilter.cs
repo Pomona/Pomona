@@ -90,6 +90,9 @@ namespace Pomona.Example
             if (typeof(DictionaryContainer).IsAssignableFrom(type))
                 return typeof(DictionaryContainer);
 
+            if (type == typeof (EntityBase))
+                return null;
+
             return base.GetUriBaseType(type);
         }
 

@@ -220,27 +220,34 @@ namespace Pomona.Common.Linq
         {
             Type elementType;
 
+            if (transformedExpression.Type == serverKnownType)
+            {
+                return CreateClientSideResourceProxy<TCustomClientType>(dictProp, result);
+            }
+
             if (transformedExpression.Type.TryGetCollectionElementType(out elementType)
                 && elementType == serverKnownType)
             {
                 // Map back to customClientType
                 var resultsWrapper =
                     (result as IEnumerable).Cast<object>().Select(
-                        x =>
-                            {
-                                var proxy =
-                                    (ClientSideResourceProxyBase)
-                                    ((object)
-                                     RuntimeProxyFactory<ClientSideResourceProxyBase, TCustomClientType>.Create());
-                                proxy.AttributesProperty = dictProp;
-                                proxy.ProxyTarget = x;
-                                return (TCustomClientType) ((object) proxy);
-                            }).ToList();
+                        x => CreateClientSideResourceProxy<TCustomClientType>(dictProp, x)).ToList();
 
                 return resultsWrapper;
             }
             // TODO!
             return result;
+        }
+
+        private static TCustomClientType CreateClientSideResourceProxy<TCustomClientType>(PropertyInfo dictProp, object wrappedResource)
+        {
+            var proxy =
+                (ClientSideResourceProxyBase)
+                ((object)
+                 RuntimeProxyFactory<ClientSideResourceProxyBase, TCustomClientType>.Create());
+            proxy.AttributesProperty = dictProp;
+            proxy.ProxyTarget = wrappedResource;
+            return (TCustomClientType) ((object) proxy);
         }
 
 

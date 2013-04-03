@@ -23,7 +23,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,16 +37,15 @@ namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>
     {
-        private static readonly MethodInfo deserializeDictionaryGenericMethod;
+        private static readonly MethodInfo deserializeDictionaryGenericMethod =
+            ReflectionHelper.GetGenericMethodDefinition<PomonaJsonDeserializer>(
+                x => x.DeserializeDictionaryGeneric<object, object>(null, null));
+
+        private static readonly MethodInfo deserializeArrayNodeGenericMethod =
+            ReflectionHelper.GetGenericMethodDefinition<PomonaJsonDeserializer>(
+                x => x.DeserializeArrayNodeGeneric<object>(null, null));
+
         private readonly JsonSerializer jsonSerializer;
-
-
-        static PomonaJsonDeserializer()
-        {
-            deserializeDictionaryGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<PomonaJsonDeserializer>(
-                    x => x.DeserializeDictionaryGeneric<object, object>(null, null));
-        }
 
 
         public PomonaJsonDeserializer()
@@ -63,9 +61,13 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        public object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context)
+        public object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context,
+                                  object patchedObject)
         {
             var node = new ItemValueDeserializerNode(expectedBaseType, context);
+            if (patchedObject != null)
+                node.Value = patchedObject;
+
             var reader = CreateReader(textReader);
             node.Deserialize(this, reader);
             return node.Value;
@@ -160,23 +162,47 @@ namespace Pomona.Common.Serialization.Json
             if (TryDeserializeAsReference(node, reader))
                 return;
 
+            var elementType = node.ExpectedBaseType.ElementType;
+
+            deserializeArrayNodeGenericMethod.MakeGenericMethod(elementType.MappedTypeInstance)
+                                             .Invoke(this, new object[] {node, reader});
+        }
+
+        private object DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
+        {
+            // Return type should be void, but ReflectionHelper.GetGenericMethodDefinition only works with methods with non-void return type.
+
+            if (TryDeserializeAsReference(node, reader))
+                return null;
+
             var jarr = reader.Token as JArray;
             if (jarr == null)
                 throw new PomonaSerializationException("Expected JSON token of type array, but was " + reader.Token.Type);
 
             var elementType = node.ExpectedBaseType.ElementType;
-            var instance =
-                (IList) Activator.CreateInstance(typeof (List<>).MakeGenericType(elementType.MappedTypeInstance));
+
+            ICollection<TElement> collection;
+            if (node.Value == null)
+            {
+                collection = new List<TElement>();
+            }
+            else
+            {
+                collection = (ICollection<TElement>) node.Value;
+            }
+
             foreach (var jitem in jarr)
             {
                 var itemNode = new ItemValueDeserializerNode(elementType, node.Context);
                 itemNode.Deserialize(this, new Reader(jitem));
-                instance.Add(itemNode.Value);
+                collection.Add((TElement) itemNode.Value);
             }
 
-            node.Value = instance;
-        }
+            if (node.Value == null)
+                node.Value = collection;
 
+            return null;
+        }
 
         private void DeserializeComplexNode(IDeserializerNode node, Reader reader)
         {
@@ -192,7 +218,7 @@ namespace Pomona.Common.Serialization.Json
 
             SetNodeValueType(node, jobj);
 
-            IDictionary<IPropertyInfo, object> ctorArgs = new Dictionary<IPropertyInfo, object>();
+            IDictionary<IPropertyInfo, object> propertyValueMap = new Dictionary<IPropertyInfo, object>();
 
             foreach (var jprop in jobj.Properties())
             {
@@ -209,12 +235,26 @@ namespace Pomona.Common.Serialization.Json
                 var prop = node.ValueType.Properties.First(x => x.JsonName == name);
                 var propNode = new PropertyValueDeserializerNode(node, prop);
 
+                if (node.Value != null)
+                {
+                    // If value is set we PATCH an existing object instead of creating a new one.
+                    propNode.Value = prop.Getter(node.Value);
+                }
+
                 propNode.Deserialize(this, new Reader(jprop.Value));
 
-                ctorArgs[prop] = propNode.Value;
+                propertyValueMap[prop] = propNode.Value;
             }
 
-            node.Value = node.ValueType.Create(ctorArgs);
+            if (node.Value == null)
+                node.Value = node.ValueType.Create(propertyValueMap);
+            else
+            {
+                foreach (var entry in propertyValueMap)
+                {
+                    entry.Key.Setter(node.Value, entry.Value);
+                }
+            }
         }
 
 
@@ -234,7 +274,13 @@ namespace Pomona.Common.Serialization.Json
 
         private object DeserializeDictionaryGeneric<TKey, TValue>(IDeserializerNode node, Reader reader)
         {
-            var dict = new Dictionary<TKey, TValue>();
+            IDictionary<TKey, TValue> dict;
+
+            if (node.Value != null)
+                dict = (IDictionary<TKey, TValue>) node.Value;
+            else
+                dict = new Dictionary<TKey, TValue>();
+
             var jobj = reader.Token as JObject;
 
             var valueType = node.ExpectedBaseType.DictionaryValueType;
@@ -250,10 +296,12 @@ namespace Pomona.Common.Serialization.Json
                 var itemNode = new ItemValueDeserializerNode(valueType, node.Context);
                 itemNode.Deserialize(this, new Reader(jprop.Value));
                 object key = jprop.Name;
-                dict.Add((TKey) key, (TValue) itemNode.Value);
+                dict[(TKey) key] = (TValue) itemNode.Value;
             }
 
-            node.Value = dict;
+            if (node.Value == null)
+                node.Value = dict;
+
             return null;
         }
 

@@ -33,6 +33,7 @@ using System.Linq;
 using Common.Logging;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
@@ -46,7 +47,7 @@ namespace Pomona
         private readonly ISerializerFactory serializerFactory;
         private readonly HashSet<Type> sourceTypes;
         private ILog log = LogManager.GetLogger(typeof(TypeMapper));
-
+        private readonly Dictionary<string, IMappedType> typeNameMap;
 
         public TypeMapper(PomonaConfigurationBase configuration)
         {
@@ -63,11 +64,14 @@ namespace Pomona
 
             this.sourceTypes = new HashSet<Type>(this.filter.GetSourceTypes().Where(this.filter.TypeIsMapped));
 
-            foreach (var sourceType in this.sourceTypes)
+            this.typeNameMap = new Dictionary<string, IMappedType>();
+
+            foreach (var sourceType in this.sourceTypes.Concat(TypeUtils.GetNativeTypes()))
             {
-                GetClassMapping(sourceType);
-                MapForeignKeys();
+                var type = GetClassMapping(sourceType);
+                typeNameMap[type.Name.ToLower()] = type;
             }
+            MapForeignKeys();
 
             this.serializerFactory = configuration.SerializerFactory;
         }
@@ -125,8 +129,7 @@ namespace Pomona
 
         public IMappedType GetClassMapping(string typeName)
         {
-            // TODO: Better error handling
-            return TransformedTypes.First(x => x.Name == typeName);
+            return typeNameMap[typeName.ToLower()];
         }
 
 
@@ -220,13 +223,20 @@ namespace Pomona
                     classDefinition.MappedAsValueObject = true;
 
                 var uriBaseType = this.filter.GetUriBaseType(type);
-                if (uriBaseType != type)
-                    classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
+                if (uriBaseType == null)
+                {
+                    classDefinition.UriBaseType = null;
+                }
                 else
-                    classDefinition.UriBaseType = classDefinition;
+                {
+                    if (uriBaseType != type)
+                        classDefinition.UriBaseType = (TransformedType) GetClassMapping(uriBaseType);
+                    else
+                        classDefinition.UriBaseType = classDefinition;
 
-                classDefinition.UriRelativePath = NameUtils.ConvertCamelCaseToUri(
-                    classDefinition.UriBaseType.PluralName);
+                    classDefinition.UriRelativePath = NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
+                }
+
 
                 classDefinition.PostReturnType = (TransformedType)GetClassMapping(this.filter.GetPostReturnType(type));
                 classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);

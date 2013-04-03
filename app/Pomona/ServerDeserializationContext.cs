@@ -27,10 +27,7 @@ namespace Pomona
 
         public IMappedType GetTypeByName(string typeName)
         {
-            TransformedType transformedType = pomonaSession.TypeMapper.TransformedTypes.FirstOrDefault(x => x.Name == typeName);
-            if (transformedType == null)
-                throw new PomonaSerializationException("Can't deserialize object of unrecognized type " + typeName);
-            return transformedType;
+            return pomonaSession.TypeMapper.GetClassMapping(typeName);
         }
     }
 }
