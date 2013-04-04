@@ -126,7 +126,7 @@ namespace Pomona.SystemTests
         {
             var musicalCritterId = this.CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = this.client.Get<ICritter>(this.critterHost.BaseUri + "critters/" + musicalCritterId);
+            var musicalCritter = this.client.Get<ICritter>(this.BaseUri + "critters/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }

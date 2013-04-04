@@ -135,6 +135,7 @@
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />
+    <Compile Include="NoCloseStreamWriter.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="ErrorHandler.cs" />
     <Compile Include="PomonaCsvResponseProcessor.cs" />

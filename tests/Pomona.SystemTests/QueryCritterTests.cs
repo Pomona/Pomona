@@ -167,7 +167,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = this.critterHost.DataSource.List<Critter>().First();
+            var firstCritter = this.DataSource.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
             var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn);
 
@@ -203,7 +203,7 @@ namespace Pomona.SystemTests
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                this.critterHost.DataSource.List<Critter>().Skip(1).First().Name;
+                this.DataSource.List<Critter>().Skip(1).First().Name;
 
             var critters =
                 this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);

@@ -29,7 +29,6 @@ using System.Linq;
 using System.Reflection;
 using Pomona.CodeGen;
 using Pomona.Common.Serialization;
-using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
@@ -44,7 +43,7 @@ namespace Pomona
         private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
         private static readonly MethodInfo updateMethod;
-        private readonly Func<Uri> baseUriGetter;
+        private readonly Func<string, string> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
         private readonly ISerializer serializer;
@@ -71,7 +70,7 @@ namespace Pomona
         /// <param name="typeMapper">Typemapper for session.</param>
         /// <param name="baseUriGetter"> </param>
         /// <param name="uriResolver"></param>
-        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<Uri> baseUriGetter,
+        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<string, string> baseUriGetter,
                              IPomonaUriResolver uriResolver)
         {
             if (dataSource == null)
@@ -108,41 +107,9 @@ namespace Pomona
             return uriResolver.GetResultByUri(uri);
         }
 
-        [Obsolete]
-        private void SerializeSingleObject(string expand, TextWriter textWriter, object o)
-        {
-            var mappedType = typeMapper.GetClassMapping(o.GetType());
-            var rootPath = mappedType.Name.ToLower(); // We want paths to be case insensitive
-            var context = new ServerSerializationContext(string.Format("{0},{1}", rootPath, expand), false, this);
 
-            ISerializerWriter writer = null;
-            try
-            {
-                writer = serializer.CreateWriter(textWriter);
-                serializer.SerializeNode(
-                    new ItemValueSerializerNode(o, null /*transformedType*/, string.Empty, context), writer);
-            }
-            finally
-            {
-                if (writer != null && writer is IDisposable)
-                    ((IDisposable) writer).Dispose();
-            }
-        }
-
-
-        public string GetPropertyAsJson(TransformedType transformedType, object id, string propertyName, string expand)
-        {
-            using (var textWriter = new StringWriter())
-            {
-                GetPropertyAsJson(transformedType, id, propertyName, expand, textWriter);
-                textWriter.Flush();
-                return textWriter.ToString();
-            }
-        }
-
-
-        public void GetPropertyAsJson(
-            TransformedType transformedType, object id, string propertyName, string expand, TextWriter textWriter)
+        public PomonaResponse GetPropertyAsJson(
+            TransformedType transformedType, object id, string propertyName, string expand)
         {
             // Note this is NOT optimized, as we should make the API in a way where it's possible to select by parent id.
             propertyName = propertyName.ToLower();
@@ -155,11 +122,10 @@ namespace Pomona
             var propertyValue = property.Getter(o);
             var propertyType = property.PropertyType;
 
-            var rootPath = propertyName.ToLower(); // We want paths to be case insensitive
-            var context = new ServerSerializationContext(string.Format("{0},{1}", rootPath, expand), false, this);
-
-            var wrapper = context.CreateWrapperFor(propertyValue, rootPath, propertyType);
-            wrapper.ToJson(textWriter);
+            return
+                new PomonaResponse(
+                    new PomonaQuery(transformedType) {ExpandedPaths = expand, ResultType = propertyType}, propertyValue,
+                    this);
         }
 
 
@@ -175,36 +141,35 @@ namespace Pomona
                 throw new ArgumentNullException("entity");
             var transformedType = (TransformedType) TypeMapper.GetClassMapping(entity.GetType());
 
+            //return
+            //    new Uri(
+            //        string.Format("{0}{1}/{2}", baseUriGetter(), transformedType.UriRelativePath,
+            //                      transformedType.GetId(entity))).
+            //        ToString();
             return
-                new Uri(
-                    string.Format("{0}{1}/{2}", baseUriGetter(), transformedType.UriRelativePath,
-                                  transformedType.GetId(entity))).
-                    ToString();
+                baseUriGetter(string.Format("{0}/{1}", transformedType.UriRelativePath, transformedType.GetId(entity)));
         }
 
 
-        public void PostJson(TransformedType transformedType, Stream readStream, Stream writeStream)
+        public PomonaResponse PostJson(TransformedType transformedType, Stream readStream)
         {
             using (var textReader = new StreamReader(readStream))
-            using (var textWriter = new StreamWriter(writeStream))
             {
-                DeserializePostOrPatch(transformedType, textReader, textWriter);
+                return DeserializePostOrPatch(transformedType, textReader);
             }
         }
 
-        private void DeserializePostOrPatch(TransformedType transformedType, TextReader textReader,
-                                            TextWriter textWriter, object patchedObject = null)
+        private PomonaResponse DeserializePostOrPatch(TransformedType transformedType, TextReader textReader,
+                                                      object patchedObject = null)
         {
             var deserializationContext = new ServerDeserializationContext(this);
             var postResource = deserializer.Deserialize(textReader, transformedType, deserializationContext,
                                                         patchedObject);
             var postResponse = postGenericMethod.MakeGenericMethod(postResource.GetType())
                                                 .Invoke(this, new[] {postResource});
-            var serializationContext = new ServerSerializationContext("", false, this);
-            var writer = serializer.CreateWriter(textWriter);
-            var node = new ItemValueSerializerNode(postResponse, /* transformedType.PostReturnType */ null, "",
-                                                   serializationContext);
-            serializer.SerializeNode(node, writer);
+
+            return new PomonaResponse(new PomonaQuery(transformedType) {ExpandedPaths = string.Empty}, postResponse,
+                                      this);
         }
 
         public PomonaResponse Query(IPomonaQuery query)
@@ -223,42 +188,16 @@ namespace Pomona
             return new PomonaResponse(query, queryResult, this);
         }
 
-        [Obsolete("Remove this when serialization has been moved.")]
-        public void Query(IPomonaQuery query, TextWriter writer)
-        {
-            //var elementType = query.TargetType;
-            var queryResult = dataSource.Query(query);
 
-            var context = new ServerSerializationContext(query.ExpandedPaths, false, this);
-            var state = new PomonaJsonSerializer.Writer(writer);
-
-            var pq = (PomonaQuery) query;
-            if (pq.Projection == PomonaQuery.ProjectionType.First)
-            {
-                if (queryResult.Count < 1)
-                    throw new InvalidOperationException("No resources found.");
-
-                var firstResult = ((IEnumerable) queryResult).Cast<object>().First();
-                var node = new ItemValueSerializerNode(firstResult, query.TargetType, query.ExpandedPaths, context);
-                serializer.SerializeNode(node, state);
-            }
-            else
-            {
-                serializer.SerializeQueryResult(queryResult, context, state, null);
-            }
-        }
-
-
-        public void UpdateFromJson(
-            TransformedType transformedType, object id, Stream readStream, Stream writeStream)
+        public PomonaResponse PatchJson(
+            TransformedType transformedType, object id, Stream readStream)
         {
             var o = GetById(transformedType, id);
 
             using (var textReader = new StreamReader(readStream))
-            using (var textWriter = new StreamWriter(writeStream))
             {
                 var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
-                DeserializePostOrPatch(objType, textReader, textWriter, o);
+                return DeserializePostOrPatch(objType, textReader, o);
             }
         }
 

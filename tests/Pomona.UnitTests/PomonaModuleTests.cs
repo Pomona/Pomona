@@ -1,9 +1,7 @@
-#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,29 +22,27 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System;
+using NUnit.Framework;
+using Nancy.Responses.Negotiation;
+using Nancy.Testing;
+using Pomona.Example;
 
-using System.IO;
-using System.Threading;
-using Nancy;
-
-namespace Pomona
+namespace Pomona.UnitTests
 {
-    internal static class NancyExtensions
+    [TestFixture]
+    public class PomonaModuleTests
     {
-        internal static void ContentsFromString(this Response resp, string text)
-        {
-            resp.Contents = stream =>
-                {
-                    using (var writer = new NoCloseStreamWriter(stream))
-                    {
-                        writer.Write(text);
-                        writer.Flush();
-                    }
-                    stream.Flush();
-
-                    Thread.MemoryBarrier();
-                };
-        }
+         [Test]
+         public void TESTTEST()
+         {
+             var bootstrapper = new CritterBootstrapper();
+             var browser = new Browser(bootstrapper);
+             Console.WriteLine(browser.Get("/critters", bc =>
+                 {
+                     bc.HttpRequest();
+                     bc.Accept(MediaRange.FromString("application/xml"));
+                 }).Body.AsString().ToString());
+         }
     }
 }

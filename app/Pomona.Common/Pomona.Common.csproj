@@ -149,6 +149,8 @@
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
+    <Compile Include="Web\IWebClient.cs" />
+    <Compile Include="Web\WrappedWebClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

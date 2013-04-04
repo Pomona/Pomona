@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,18 +22,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using Newtonsoft.Json;
-
 using Pomona.Common.TypeSystem;
+using Pomona.Internals;
 
 namespace Pomona.Common.Serialization.Json
 {
@@ -54,6 +49,10 @@ namespace Pomona.Common.Serialization.Json
         }
 
         #region Implementation of ISerializer<PomonaJsonSerializerState>
+
+        private static readonly MethodInfo serializeDictionaryGenericMethod =
+            ReflectionHelper.GetGenericMethodDefinition<PomonaJsonSerializer>(
+                x => x.SerializeDictionaryGeneric<object, object>(null, null));
 
         public Writer CreateWriter(TextWriter textWriter)
         {
@@ -75,7 +74,7 @@ namespace Pomona.Common.Serialization.Json
                 return;
             }
 
-            IMappedType mappedType = node.ExpectedBaseType ?? node.ValueType;
+            var mappedType = node.ExpectedBaseType ?? node.ValueType;
             switch (mappedType.SerializationMode)
             {
                 case TypeSerializationMode.Dictionary:
@@ -88,7 +87,8 @@ namespace Pomona.Common.Serialization.Json
                     SerializeCollection(node, writer);
                     break;
                 case TypeSerializationMode.Value:
-                    bool boxValueWithTypeSpec = node.ExpectedBaseType != null && node.ExpectedBaseType.MappedTypeInstance == typeof (object);
+                    var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
+                                               node.ExpectedBaseType.MappedTypeInstance == typeof (object);
                     if (boxValueWithTypeSpec)
                     {
                         writer.JsonWriter.WriteStartObject();
@@ -96,7 +96,7 @@ namespace Pomona.Common.Serialization.Json
                         writer.JsonWriter.WriteValue(node.ValueType.Name);
                         writer.JsonWriter.WritePropertyName("value");
                     }
-                    
+
                     var jsonConverter = node.ValueType.JsonConverter;
                     if (jsonConverter != null)
                         jsonConverter.WriteJson(writer.JsonWriter, node.Value, null);
@@ -111,7 +111,8 @@ namespace Pomona.Common.Serialization.Json
 
 
         public void SerializeQueryResult(
-            QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer, IMappedType elementType)
+            QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer,
+            IMappedType elementType)
         {
             SerializeQueryResult(queryResult, fetchContext, CastWriter(writer), elementType);
         }
@@ -221,14 +222,13 @@ namespace Pomona.Common.Serialization.Json
         {
             var keyMappedType = node.ExpectedBaseType.DictionaryKeyType.MappedTypeInstance;
             var valueMappedType = node.ExpectedBaseType.DictionaryValueType.MappedTypeInstance;
-            typeof (PomonaJsonSerializer)
-                .GetMethod("SerializeDictionaryGeneric", BindingFlags.NonPublic | BindingFlags.Instance)
+            serializeDictionaryGenericMethod
                 .MakeGenericMethod(keyMappedType, valueMappedType)
                 .Invoke(this, new object[] {node, writer});
         }
 
 
-        private void SerializeDictionaryGeneric<TKey, TValue>(
+        private object SerializeDictionaryGeneric<TKey, TValue>(
             ISerializerNode node, Writer writer)
         {
             var jsonWriter = writer.JsonWriter;
@@ -244,6 +244,8 @@ namespace Pomona.Common.Serialization.Json
                 itemNode.Serialize(this, writer);
             }
             jsonWriter.WriteEndObject();
+
+            return null;
         }
 
 
@@ -265,7 +267,7 @@ namespace Pomona.Common.Serialization.Json
 
             PomonaJsonSerializerTypeEntry cacheTypeEntry;
             IEnumerable<IPropertyInfo> propertiesToSerialize = null;
-            if (this.typeCache.TryGetValue(node.ValueType, out cacheTypeEntry))
+            if (typeCache.TryGetValue(node.ValueType, out cacheTypeEntry))
             {
                 cacheTypeEntry.WritePropertiesFunc(jsonWriter, node.Value);
                 propertiesToSerialize = cacheTypeEntry.ManuallyWrittenProperties;
@@ -308,13 +310,13 @@ namespace Pomona.Common.Serialization.Json
             {
                 if (textWriter == null)
                     throw new ArgumentNullException("textWriter");
-                this.jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
+                jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
             }
 
 
             public JsonWriter JsonWriter
             {
-                get { return this.jsonWriter; }
+                get { return jsonWriter; }
             }
 
             #region Implementation of IDisposable
@@ -322,7 +324,7 @@ namespace Pomona.Common.Serialization.Json
             public void Dispose()
             {
                 // NOTE: Not sure if this is correct
-                this.jsonWriter.Flush();
+                jsonWriter.Flush();
             }
 
             #endregion

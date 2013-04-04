@@ -88,9 +88,9 @@ namespace Pomona.UnitTests.PomonaSession
         }
 
 
-        private Uri UriResolver()
+        private string UriResolver(string path)
         {
-            return new Uri("http://localhost/");
+            return "http://localhost/" + path;
         }
     }
 }

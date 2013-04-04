@@ -64,9 +64,9 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         }
 
 
-        private static Uri UriResolver()
+        private static string UriResolver(string path)
         {
-            return new Uri("http://localhost:2211/");
+            return "http://localhost/" + path;
         }
     }
 }

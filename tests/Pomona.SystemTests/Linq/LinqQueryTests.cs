@@ -337,8 +337,8 @@ namespace Pomona.SystemTests.Linq
                     Map = {{"CustomString", "Lalalala"}, {"OtherCustom", "Blob rob"}},
                     SomethingExtra = "Hahahohohihi"
                 };
-            critterHost.DataSource.Save<DictionaryContainer>(
-                subtypedDictionaryContainer);
+
+            DataSource.Save<DictionaryContainer>(subtypedDictionaryContainer);
 
             // Post does not yet work on subtypes
             //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(

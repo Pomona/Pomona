@@ -38,6 +38,7 @@ using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
+using Pomona.Common.Web;
 using Pomona.Internals;
 
 namespace Pomona.Common
@@ -96,6 +97,8 @@ namespace Pomona.Common
 
         internal abstract T Patch<T>(string uri, T target, Action<T> updateAction)
             where T : class, IClientResource;
+
+        public abstract IWebClient WebClient { get; set; }
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -117,7 +120,7 @@ namespace Pomona.Common
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
-        private readonly WebClient webClient;
+        private IWebClient webClient;
 
 
         static ClientBase()
@@ -158,7 +161,7 @@ namespace Pomona.Common
             jsonSerializer = new JsonSerializer();
             jsonSerializer.Converters.Add(new StringEnumConverter());
 
-            webClient = new WebClient();
+            webClient = new WrappedWebClient();
 
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
@@ -169,6 +172,11 @@ namespace Pomona.Common
             InstantiateClientRepositories();
         }
 
+        public override IWebClient WebClient
+        {
+            get { return webClient; }
+            set { webClient = value; }
+        }
 
         public static IEnumerable<Type> ResourceTypes
         {
@@ -499,7 +507,7 @@ namespace Pomona.Common
         private string GetString(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            webClient.Headers.Add("Accept", "application/json");
+            webClient.Headers["Accept"] = "application/json";
             byte[] downloadData = webClient.DownloadData(uri);
             var jsonString = Encoding.UTF8.GetString(downloadData);
             Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
@@ -618,6 +626,7 @@ namespace Pomona.Common
             Console.WriteLine(httpMethod + "ting data to " + uri + ":\r\n" + requestString);
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
+            webClient.Headers["Accept"] = "application/json";
             var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
             var responseString = Encoding.UTF8.GetString(responseBytes);
 

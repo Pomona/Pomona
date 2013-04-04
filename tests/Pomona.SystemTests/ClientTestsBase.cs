@@ -30,27 +30,34 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Critters.Client;
 using NUnit.Framework;
+using Nancy.Testing;
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Example;
 using Pomona.Example.Models;
+using Pomona.TestHelpers;
 
 namespace Pomona.SystemTests
 {
     public class ClientTestsBase
     {
-        private string baseUri;
-        protected Client client;
-        protected CritterHost critterHost;
+        public const bool UseSelfHostedHttpServer = false;
 
-        public CritterDataSource DataSource
+        private string baseUri;
+
+        protected Client client;
+        private CritterHost critterHost;
+
+        protected string BaseUri
         {
-            get { return critterHost.DataSource; }
+            get { return baseUri; }
         }
+
+        public CritterDataSource DataSource { get; private set; }
 
         protected ICollection<Critter> CritterEntities
         {
-            get { return critterHost.DataSource.List<Critter>(); }
+            get { return DataSource.List<Critter>(); }
         }
 
         protected T Save<T>(T entity)
@@ -78,26 +85,39 @@ namespace Pomona.SystemTests
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
-            var rng = new Random();
-            baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
-            Console.WriteLine("Starting CritterHost on " + baseUri);
-            critterHost = new CritterHost(new Uri(baseUri));
-            critterHost.Start();
-            client = new Client(baseUri);
+            if (UseSelfHostedHttpServer)
+            {
+                var rng = new Random();
+                baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
+                Console.WriteLine("Starting CritterHost on " + baseUri);
+                critterHost = new CritterHost(new Uri(baseUri));
+                critterHost.Start();
+                client = new Client(baseUri);
+                DataSource = critterHost.DataSource;
+            }
+            else
+            {
+                baseUri = "http://test/";
+                client = new Client(baseUri);
+                var critterBootstrapper = new CritterBootstrapper();
+                DataSource = critterBootstrapper.DataSource;
+                client.WebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
+            }
         }
 
 
         [TestFixtureTearDown]
         public void FixtureTearDown()
         {
-            critterHost.Stop();
+            if (UseSelfHostedHttpServer)
+                critterHost.Stop();
         }
 
 
         [SetUp]
         public void SetUp()
         {
-            critterHost.DataSource.ResetTestData();
+            DataSource.ResetTestData();
         }
 
 
@@ -113,7 +133,7 @@ namespace Pomona.SystemTests
             var callingMethod = callingStackFrame.GetMethod();
             Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof (TEntity).Name));
 
-            var allEntities = critterHost.DataSource.List<TEntity>();
+            var allEntities = DataSource.List<TEntity>();
             var entities =
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
             var fetchedResources = client.Query<TResource>().Where(resourcePredicate).Take(1024*1024).ToList();

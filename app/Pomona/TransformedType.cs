@@ -30,6 +30,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Internals;
 
 namespace Pomona
 {
@@ -38,6 +39,14 @@ namespace Pomona
     /// </summary>
     public class TransformedType : IMappedType
     {
+        private static readonly MethodInfo addItemsToDictionaryMethod =
+            ReflectionHelper.GetGenericMethodDefinition<TransformedType>(
+                x => x.AddItemsToDictionary<object, object>(null, null));
+
+        private static readonly MethodInfo addValuesToCollectionMethod =
+            ReflectionHelper.GetGenericMethodDefinition<TransformedType>(
+                x => x.AddValuesToCollection<object>(null, null));
+
         private readonly Type mappedType;
         private readonly string name;
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
@@ -75,8 +84,6 @@ namespace Pomona
         {
             get { return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
         }
-
-        public string PluralName { get; set; }
 
         public bool PostAllowed
         {
@@ -216,12 +223,64 @@ namespace Pomona
             var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
 
             foreach (var kvp in propValues)
-                kvp.Key.Setter(instance, kvp.Value);
+            {
+                var prop = kvp.Key;
+
+                // Special handling for lists and dictionaries:
+                // In certain circumstances setting collection property is not what we want to do.
+                // If the instance has a pre-initialized collection we instead want to fill it with
+                // values.
+
+                var setPropertyToValue = true;
+
+                if (prop.PropertyType.IsDictionary)
+                {
+                    var dict = prop.Getter(instance);
+                    if (dict != null)
+                    {
+                        addItemsToDictionaryMethod.MakeGenericMethod(
+                            prop.PropertyType.MappedTypeInstance.GetGenericArguments())
+                                                  .Invoke(this, new[] {kvp.Value, dict});
+                    }
+                }
+                else if (prop.PropertyType.IsCollection)
+                {
+                    var collection = prop.Getter(instance);
+                    if (collection != null)
+                    {
+                        addValuesToCollectionMethod
+                            .MakeGenericMethod(prop.PropertyType.ElementType.MappedTypeInstance)
+                            .Invoke(this, new[] {kvp.Value, collection});
+                        setPropertyToValue = false;
+                    }
+                }
+
+
+                if (setPropertyToValue)
+                    prop.Setter(instance, kvp.Value);
+            }
 
             return instance;
         }
 
+        private object AddItemsToDictionary<TKey, TValue>(IDictionary<TKey, TValue> source,
+                                                          IDictionary<TKey, TValue> target)
+        {
+            foreach (var item in source)
+                target.Add(item);
+            return null;
+        }
+
+        private object AddValuesToCollection<TElement>(IEnumerable<TElement> source, ICollection<TElement> target)
+        {
+            foreach (var item in source)
+                target.Add(item);
+            return null;
+        }
+
         #endregion
+
+        public string PluralName { get; set; }
 
         public bool HasUri
         {

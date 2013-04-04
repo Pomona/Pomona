@@ -58,6 +58,17 @@ namespace Pomona
             TinyIoCContainer container,
             IHttpQueryTransformer queryTransformer)
         {
+            // HACK TO SUPPORT NANCY TESTING (set a valid host name)
+            Before += ctx =>
+                {
+                    if (string.IsNullOrEmpty(ctx.Request.Url.HostName))
+                    {
+                        ctx.Request.Url.HostName = "test";
+                    }
+                    return null;
+                };
+
+
             this.dataSource = dataSource;
 
             // TODO: This is performance hotspot: cache typemapper between each request.
@@ -71,7 +82,7 @@ namespace Pomona
             }
             this.queryTransformer = queryTransformer;
 
-            session = new PomonaSession(dataSource, this.typeMapper, GetBaseUri, this);
+            session = new PomonaSession(dataSource, this.typeMapper, RelativeToAbsoluteUri, this);
 
             Console.WriteLine("Registering routes..");
             foreach (var transformedType in this.typeMapper
@@ -163,6 +174,16 @@ namespace Pomona
         }
 
 
+        protected virtual string RelativeToAbsoluteUri(string path)
+        {
+            if (string.IsNullOrEmpty(Request.Url.HostName))
+            {
+                return path;
+            }
+
+            return string.Format("{0}{1}", GetBaseUri(), path);
+        }
+
         protected virtual Uri GetBaseUri()
         {
             var appUrl = GetAppVirtualPath();
@@ -173,7 +194,7 @@ namespace Pomona
         }
 
 
-        private Response GetByForeignKeyPropertyAsJson(TransformedType type, PropertyMapping key, object id)
+        private PomonaResponse GetByForeignKeyPropertyAsJson(TransformedType type, PropertyMapping key, object id)
         {
             // HACK: This is quite hacky, I'll gladly admit that [KNS]
             // TODO: Fix that this only works if primary key is named Id [KNS]
@@ -190,19 +211,7 @@ namespace Pomona
             else
                 Request.Query["$filter"] = string.Format("{0}.id eq {1}", key.JsonName, id);
 
-            var query = (PomonaQuery) queryTransformer.TransformRequest(Request, Context, type);
-
-            string jsonStr;
-            using (var strWriter = new StringWriter())
-            {
-                session.Query(query, strWriter);
-                jsonStr = strWriter.ToString();
-            }
-
-            var response = new Response();
-            FillJsonResponse(response, jsonStr, type);
-
-            return response;
+            return Query(type);
         }
 
 
@@ -253,14 +262,11 @@ namespace Pomona
         }
 
 
-        private Response GetPropertyFromEntityAsJson(TransformedType transformedType, object id, string propname)
+        private PomonaResponse GetPropertyFromEntityAsJson(TransformedType transformedType, object id, string propname)
         {
-            var res = new Response();
             var expand = GetExpandedPaths().ToLower();
 
-            FillJsonResponse(res, session.GetPropertyAsJson(transformedType, id, propname, expand), transformedType);
-
-            return res;
+            return session.GetPropertyAsJson(transformedType, id, propname, expand);
         }
 
 
@@ -276,21 +282,12 @@ namespace Pomona
         }
 
 
-        private Response PostFromJson(TransformedType transformedType)
+        private PomonaResponse PostFromJson(TransformedType transformedType)
         {
-            var req = Request;
-
-            var res = new Response
-                {
-                    Contents = stream =>
-                               session.PostJson(transformedType, req.Body, stream),
-                    ContentType = "text/plain; charset=utf-8"
-                };
-
-            return res;
+            return session.PostJson(transformedType, Request.Body);
         }
 
-        private object Query(TransformedType transformedType)
+        private PomonaResponse Query(TransformedType transformedType)
         {
             var query = queryTransformer.TransformRequest(Request, Context, transformedType);
 
@@ -354,18 +351,9 @@ namespace Pomona
         }
 
 
-        private Response UpdateFromJson(TransformedType transformedType, object id)
+        private PomonaResponse UpdateFromJson(TransformedType transformedType, object id)
         {
-            var req = Request;
-
-            var res = new Response
-                {
-                    Contents = stream =>
-                               session.UpdateFromJson(transformedType, id, req.Body, stream),
-                    ContentType = "text/plain; charset=utf-8"
-                };
-
-            return res;
+            return session.PatchJson(transformedType, id, Request.Body);
         }
     }
 }
