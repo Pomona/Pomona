@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,23 +22,19 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Newtonsoft.Json;
-
 using Pomona.FluentMapping;
 
 namespace Pomona
 {
     public interface ITypeMappingFilter
     {
-        DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
         string ApiVersion { get; }
+        DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();
         Type GetClientLibraryType(Type type);

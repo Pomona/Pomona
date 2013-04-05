@@ -28,8 +28,8 @@ namespace Pomona
 {
     public class PomonaResponse
     {
-        private readonly IPomonaQuery query;
         private readonly object entity;
+        private readonly IPomonaQuery query;
         private readonly PomonaSession session;
 
         public PomonaResponse(IPomonaQuery query, object entity, PomonaSession session)

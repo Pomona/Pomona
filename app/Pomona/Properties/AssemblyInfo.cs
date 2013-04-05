@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -33,9 +29,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("Pomona")]
-[assembly : AssemblyDescription("Core library for exposing a web service through Pomona.")]
+[assembly: AssemblyTitle("Pomona")]
+[assembly: AssemblyDescription("Core library for exposing a web service through Pomona.")]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly : Guid("62597328-c749-46fe-8029-e508e0030034")]
+[assembly: Guid("62597328-c749-46fe-8029-e508e0030034")]

@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,15 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-
 using Nancy;
-
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
@@ -68,7 +61,7 @@ namespace Pomona
 
             if (request.Query["$oftype"].HasValue)
             {
-                rootType = (TransformedType)typeMapper.GetClassMapping((string)request.Query["$oftype"]);
+                rootType = (TransformedType) typeMapper.GetClassMapping((string) request.Query["$oftype"]);
             }
 
             var query = new PomonaQuery(rootType);
@@ -87,18 +80,18 @@ namespace Pomona
                 skip = int.Parse(request.Query["$skip"]);
 
             if (request.Query["$filter"].HasValue)
-                filter = (string)request.Query["$filter"];
+                filter = (string) request.Query["$filter"];
 
             ParseFilterExpression(query, filter);
             var selectSourceType = query.TargetType.MappedTypeInstance;
 
             if (request.Query["$groupby"].HasValue)
             {
-                var groupby = (string)request.Query["$groupby"];
+                var groupby = (string) request.Query["$groupby"];
                 ParseGroupByExpression(query, groupby);
                 selectSourceType =
-                    typeof(IGrouping<,>).MakeGenericType(
-                            query.GroupByExpression.ReturnType, selectSourceType);
+                    typeof (IGrouping<,>).MakeGenericType(
+                        query.GroupByExpression.ReturnType, selectSourceType);
             }
 
             if (request.Query["$projection"].HasValue)
@@ -106,18 +99,19 @@ namespace Pomona
                 var projectionString = (string) request.Query["$projection"];
                 PomonaQuery.ProjectionType projection;
                 if (!Enum.TryParse(projectionString, true, out projection))
-                    throw new QueryParseException("\"" + projectionString + "\" is not a valid value for query parameter $projection");
+                    throw new QueryParseException("\"" + projectionString +
+                                                  "\" is not a valid value for query parameter $projection");
                 query.Projection = projection;
             }
 
             if (request.Query["$select"].HasValue)
             {
-                string select = (string)request.Query["$select"];
+                var select = (string) request.Query["$select"];
                 ParseSelect(query, select, selectSourceType);
             }
 
             if (request.Query["$orderby"].HasValue)
-                ParseOrderBy(query, (string)request.Query["$orderby"]);
+                ParseOrderBy(query, (string) request.Query["$orderby"]);
 
             query.Top = top;
             query.Skip = skip;
@@ -125,7 +119,7 @@ namespace Pomona
             if (request.Query["$expand"].HasValue)
             {
                 // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string)request.Query["$expand"]);
+                query.ExpandedPaths = ((string) request.Query["$expand"]);
             }
             else
                 query.ExpandedPaths = string.Empty;
@@ -145,13 +139,12 @@ namespace Pomona
 
             if (query.Projection == PomonaQuery.ProjectionType.First)
                 query.ResultType = elementType;
-
         }
 
 
         private void ParseSelect(PomonaQuery query, string select, Type thisType)
         {
-            query.SelectExpression = this.parser.ParseSelectList(thisType, select);
+            query.SelectExpression = parser.ParseSelectList(thisType, select);
         }
 
         #endregion
@@ -159,13 +152,13 @@ namespace Pomona
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = this.parser.Parse(query.TargetType.MappedTypeInstance, filter);
+            query.FilterExpression = parser.Parse(query.TargetType.MappedTypeInstance, filter);
         }
 
 
         private void ParseGroupByExpression(PomonaQuery query, string groupby)
         {
-            query.GroupByExpression = this.parser.Parse(query.TargetType.MappedTypeInstance, groupby);
+            query.GroupByExpression = parser.Parse(query.TargetType.MappedTypeInstance, groupby);
         }
 
 
@@ -197,7 +190,7 @@ namespace Pomona
                 orderedType = query.TargetType.MappedTypeInstance;
             }
 
-            query.OrderByExpression = this.parser.Parse(orderedType, orderby);
+            query.OrderByExpression = parser.Parse(orderedType, orderby);
         }
     }
 }

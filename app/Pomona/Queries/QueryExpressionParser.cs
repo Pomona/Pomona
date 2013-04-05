@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -61,8 +57,9 @@ namespace Pomona.Queries
             // as for filter queries, then we convert each part of the select statement to a
             // lambda expression.
             var symbolTree = ParseSymbolTree(string.Format("select({0})", selectListExpression));
-            ParameterExpression thisParam = Expression.Parameter(thisType, "_this");
-            var selectParts = symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam, selectListExpression)).ToList();
+            var thisParam = Expression.Parameter(thisType, "_this");
+            var selectParts =
+                symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam, selectListExpression)).ToList();
 
             if (selectParts.Count == 1 && selectParts[0].Key.ToLower() == "this")
             {
@@ -75,7 +72,8 @@ namespace Pomona.Queries
             return Expression.Lambda(expr, thisParam);
         }
 
-        private KeyValuePair<string, Expression> ParseSelectPart(Type thisType, NodeBase node, ParameterExpression thisParam, string parsedString)
+        private KeyValuePair<string, Expression> ParseSelectPart(Type thisType, NodeBase node,
+                                                                 ParameterExpression thisParam, string parsedString)
         {
             string propertyName = null;
             if (node.NodeType == NodeType.As)

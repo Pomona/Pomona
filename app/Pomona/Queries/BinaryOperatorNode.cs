@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 
@@ -39,11 +35,6 @@ namespace Pomona.Queries
                 throw new ArgumentException("A binary operator always need to have 2 child nodes", "children");
         }
 
-        public override string ToString()
-        {
-            return string.Format("({0} {1} {2})", Left, NodeType, Right);
-        }
-
         public NodeBase Left
         {
             get { return Children[0]; }
@@ -52,6 +43,11 @@ namespace Pomona.Queries
         public NodeBase Right
         {
             get { return Children[1]; }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("({0} {1} {2})", Left, NodeType, Right);
         }
     }
 }

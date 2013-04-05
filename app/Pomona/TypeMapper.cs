@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,14 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Common.Logging;
-
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
@@ -46,45 +40,45 @@ namespace Pomona
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private readonly ISerializerFactory serializerFactory;
         private readonly HashSet<Type> sourceTypes;
-        private ILog log = LogManager.GetLogger(typeof(TypeMapper));
         private readonly Dictionary<string, IMappedType> typeNameMap;
+        private ILog log = LogManager.GetLogger(typeof (TypeMapper));
 
         public TypeMapper(PomonaConfigurationBase configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException("configuration");
 
-            this.filter = configuration.TypeMappingFilter;
+            filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
             if (fluentRuleObjects.Length > 0)
-                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects);
+                filter = new FluentTypeMappingFilter(filter, fluentRuleObjects);
 
-            if (this.filter == null)
+            if (filter == null)
                 throw new ArgumentNullException("filter");
 
-            this.sourceTypes = new HashSet<Type>(this.filter.GetSourceTypes().Where(this.filter.TypeIsMapped));
+            sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
 
-            this.typeNameMap = new Dictionary<string, IMappedType>();
+            typeNameMap = new Dictionary<string, IMappedType>();
 
-            foreach (var sourceType in this.sourceTypes.Concat(TypeUtils.GetNativeTypes()))
+            foreach (var sourceType in sourceTypes.Concat(TypeUtils.GetNativeTypes()))
             {
                 var type = GetClassMapping(sourceType);
                 typeNameMap[type.Name.ToLower()] = type;
             }
             MapForeignKeys();
 
-            this.serializerFactory = configuration.SerializerFactory;
+            serializerFactory = configuration.SerializerFactory;
         }
 
 
         public IEnumerable<EnumType> EnumTypes
         {
-            get { return this.mappings.Values.OfType<EnumType>(); }
+            get { return mappings.Values.OfType<EnumType>(); }
         }
 
         public ITypeMappingFilter Filter
         {
-            get { return this.filter; }
+            get { return filter; }
         }
 
         /// <summary>
@@ -93,34 +87,26 @@ namespace Pomona
         /// </summary>
         public ISerializerFactory SerializerFactory
         {
-            get { return this.serializerFactory; }
+            get { return serializerFactory; }
         }
 
         public ICollection<Type> SourceTypes
         {
-            get { return this.sourceTypes; }
+            get { return sourceTypes; }
         }
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return this.mappings.Values.OfType<TransformedType>(); }
-        }
-
-
-        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
-        {
-            if (rootType == null)
-                throw new ArgumentNullException("rootType");
-            return rootType.ConvertToInternalPropertyPath(externalPath);
+            get { return mappings.Values.OfType<TransformedType>(); }
         }
 
 
         public IMappedType GetClassMapping(Type type)
         {
-            type = this.filter.ResolveRealTypeForProxy(type);
+            type = filter.ResolveRealTypeForProxy(type);
 
             IMappedType mappedType;
-            if (!this.mappings.TryGetValue(type, out mappedType))
+            if (!mappings.TryGetValue(type, out mappedType))
                 mappedType = CreateClassMapping(type);
 
             return mappedType;
@@ -132,10 +118,17 @@ namespace Pomona
             return typeNameMap[typeName.ToLower()];
         }
 
+        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
+        {
+            if (rootType == null)
+                throw new ArgumentNullException("rootType");
+            return rootType.ConvertToInternalPropertyPath(externalPath);
+        }
+
 
         public IMappedType GetClassMapping<T>()
         {
-            var type = typeof(T);
+            var type = typeof (T);
 
             return GetClassMapping(type);
         }
@@ -190,39 +183,39 @@ namespace Pomona
 
         private IMappedType CreateClassMapping(Type type)
         {
-            if (!this.filter.TypeIsMapped(type))
+            if (!filter.TypeIsMapped(type))
                 throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
 
             if (type.IsEnum)
             {
-                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int)x);
+                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int) x);
                 var newEnumType = new EnumType(type, this, values);
-                this.mappings[type] = newEnumType;
+                mappings[type] = newEnumType;
                 return newEnumType;
             }
 
-            if (this.filter.TypeIsMappedAsSharedType(type))
+            if (filter.TypeIsMappedAsSharedType(type))
             {
                 var newSharedType = new SharedType(type, this);
 
-                newSharedType.JsonConverter = this.filter.GetJsonConverterForType(type);
-                newSharedType.CustomClientLibraryType = this.filter.GetClientLibraryType(type);
+                newSharedType.JsonConverter = filter.GetJsonConverterForType(type);
+                newSharedType.CustomClientLibraryType = filter.GetClientLibraryType(type);
 
-                this.mappings[type] = newSharedType;
+                mappings[type] = newSharedType;
                 return newSharedType;
             }
 
-            if (this.filter.TypeIsMappedAsTransformedType(type))
+            if (filter.TypeIsMappedAsTransformedType(type))
             {
                 var classDefinition = new TransformedType(type, type.Name, this);
 
                 // Add to cache before filling out, in case of self-references
-                this.mappings[type] = classDefinition;
+                mappings[type] = classDefinition;
 
-                if (this.filter.TypeIsMappedAsValueObject(type))
+                if (filter.TypeIsMappedAsValueObject(type))
                     classDefinition.MappedAsValueObject = true;
 
-                var uriBaseType = this.filter.GetUriBaseType(type);
+                var uriBaseType = filter.GetUriBaseType(type);
                 if (uriBaseType == null)
                 {
                     classDefinition.UriBaseType = null;
@@ -234,11 +227,12 @@ namespace Pomona
                     else
                         classDefinition.UriBaseType = classDefinition;
 
-                    classDefinition.UriRelativePath = NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
+                    classDefinition.UriRelativePath =
+                        NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
                 }
 
 
-                classDefinition.PostReturnType = (TransformedType)GetClassMapping(this.filter.GetPostReturnType(type));
+                classDefinition.PostReturnType = (TransformedType) GetClassMapping(filter.GetPostReturnType(type));
                 classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
 
                 classDefinition.ScanProperties(type);
@@ -262,7 +256,7 @@ namespace Pomona
 
             foreach (var prop in collectionProperties.OfType<PropertyMapping>().Where(x => x.PropertyInfo != null))
             {
-                var foreignKeyProp = this.filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
+                var foreignKeyProp = filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
 
                 if (foreignKeyProp != null)
                 {

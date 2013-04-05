@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -39,7 +35,7 @@ namespace Pomona.CodeGen
 {
     public class ClientNugetPackageBuilder
     {
-        private TypeMapper typeMapper;
+        private readonly TypeMapper typeMapper;
 
 
         public ClientNugetPackageBuilder(TypeMapper typeMapper)
@@ -84,7 +80,7 @@ namespace Pomona.CodeGen
             var packageBuilder = new PackageBuilder();
 
             // Have no idea what this means, copy paste from http://stackoverflow.com/questions/6808868/howto-create-a-nuget-package-using-nuget-core
-            packageBuilder.PopulateFiles(tempPath, new[] {new ManifestFile() {Source = "**"}});
+            packageBuilder.PopulateFiles(tempPath, new[] {new ManifestFile {Source = "**"}});
 
             packageBuilder.Populate(metadata);
 
@@ -112,7 +108,7 @@ namespace Pomona.CodeGen
 
         private ManifestMetadata GetManifestMetadata()
         {
-            return new ManifestMetadata()
+            return new ManifestMetadata
                 {
                     Authors = "nobody@example.com", // TODO: find a way to configure author in nuget file
                     Version = GetVersionString(), // TODO: API versioning

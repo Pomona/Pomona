@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections;
@@ -52,7 +48,8 @@ namespace Pomona
         private readonly IMappedType targetType;
 
 
-        public ObjectWrapper(object target, string path, ServerSerializationContext context, IMappedType expectedBaseType)
+        public ObjectWrapper(object target, string path, ServerSerializationContext context,
+                             IMappedType expectedBaseType)
         {
             if (target == null)
                 throw new ArgumentNullException("target");
@@ -328,7 +325,7 @@ namespace Pomona
                 {
                     // HACK: Resolving URL like this is not the correct way
                     // Collections are exposed on uri http://host/entity/{id}/collection-name
-                    var propertyName = subPath.Split(new char[] {'.'}, StringSplitOptions.RemoveEmptyEntries).Last();
+                    var propertyName = subPath.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries).Last();
                     writer.WriteValue(context.GetUri(target) + "/" + propertyName);
                 }
                 else

@@ -120,13 +120,15 @@ namespace Pomona.Queries
             {
                 var stringNode = (StringNode) node;
 
-                if (expectedType != null && expectedType != typeof(string))
+                if (expectedType != null && expectedType != typeof (string))
                 {
                     if (expectedType.IsEnum)
                     {
                         return Expression.Constant(Enum.Parse(expectedType, stringNode.Value, true));
                     }
-                    throw CreateParseException(stringNode, "Don't know what to do with string node when expected type is " + expectedType.FullName);
+                    throw CreateParseException(stringNode,
+                                               "Don't know what to do with string node when expected type is " +
+                                               expectedType.FullName);
                 }
                 return Expression.Constant(stringNode.Value);
             }
@@ -357,7 +359,7 @@ namespace Pomona.Queries
             if (arrayNode == null)
                 throw new QueryParseException("in operator requires array on right side.");
 
-            var rightChild = ParseArrayLiteral(arrayNode, leftExpr.Type != typeof(object) ? leftExpr.Type : null);
+            var rightChild = ParseArrayLiteral(arrayNode, leftExpr.Type != typeof (object) ? leftExpr.Type : null);
 
             var arrayElementType = rightChild.Type.GetElementType();
             var compareType = arrayElementType;
