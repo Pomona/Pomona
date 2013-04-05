@@ -36,6 +36,7 @@ using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Proxies;
 using Pomona.Example.Models;
+using Pomona.Common.Linq;
 
 namespace Pomona.SystemTests
 {
@@ -100,7 +101,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_ReturnsExpandedProperties()
         {
-            var critter = this.client.Query<ICritter>(x => true, expand : "hat,weapons").First();
+            var critter = this.client.Query<ICritter>().Expand(x => x.Hat).Expand(x => x.Weapons).First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
@@ -169,7 +170,7 @@ namespace Pomona.SystemTests
         {
             var firstCritter = this.DataSource.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
-            var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn);
+            var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
 
             Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
             Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
@@ -232,8 +233,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByIntDesc_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(
-                x => true, orderBy : x => x.Id, sortOrder : SortOrder.Descending, top : 1000);
+            var fetchedCritters = client.Critters.Query().OrderByDescending(x => x.Id).Take(1000).ToList();
             AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Descending);
         }
 
@@ -241,7 +241,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByInt_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(x => true, orderBy : x => x.Id, top : 1000);
+            var fetchedCritters = this.client.Critters.Query().OrderBy(x => x.Id).Take(1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Ascending);
         }
 
@@ -249,8 +249,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(
-                x => true, orderBy : x => x.Name, sortOrder : SortOrder.Descending, top : 1000);
+            var fetchedCritters = this.client.Critters.Query().OrderByDescending(x => x.Name).Take(1000).ToList();
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
         }
 
@@ -258,7 +257,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByString_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query(x => true, orderBy : x => x.Name, top : 1000);
+            var fetchedCritters = this.client.Critters.Query().OrderBy(x => x.Name).Take(1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Ascending);
         }
 

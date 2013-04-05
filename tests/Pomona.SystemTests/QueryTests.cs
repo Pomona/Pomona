@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,19 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common;
+using Pomona.Common.Linq;
 using Pomona.Example.Models;
-
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -47,14 +40,14 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
-            var farms = this.client.Farms.Query(x => true).ToList();
+            var farms = client.Farms.Query().ToList();
             Assert.That(farms.Count, Is.GreaterThanOrEqualTo(2));
             var firstFarm = farms[0];
             var secondFarm = farms[1];
 
-            var someCritters = firstFarm.Critters.Query(x => x.Farm.Id == firstFarm.Id).ToList();
+            var someCritters = firstFarm.Critters.QueryOLD(x => x.Farm.Id == firstFarm.Id).ToList();
             Assert.That(someCritters, Has.Count.GreaterThanOrEqualTo(1));
-            var noCritters = firstFarm.Critters.Query(x => x.Farm.Id == secondFarm.Id);
+            var noCritters = firstFarm.Critters.QueryOLD(x => x.Farm.Id == secondFarm.Id).ToList();
             Assert.That(noCritters, Has.Count.EqualTo(0));
         }
 
@@ -63,16 +56,17 @@ namespace Pomona.SystemTests
         public void QueryClientSideInheritedResource_ReturnsCorrectResults()
         {
             DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "Lulu", "booja" } } });
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booja"}}});
             DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "WrappedAttribute", "booja" } } });
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "booja"}}});
             DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "WrappedAttribute", "hooha" } } });
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "hooha"}}});
             DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "WrappedAttribute", "halala" } } });
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "halala"}}});
 
-            var critters = this.client.Query<IHasCustomAttributes>(
-                this.client.BaseUri + "dictionary-containers", x => x.WrappedAttribute.StartsWith("h"));
+            var critters =
+                client.Query<IHasCustomAttributes>(x => x.WrappedAttribute != null && x.WrappedAttribute.StartsWith("h"))
+                      .ToList();
 
             Assert.That(critters.Any(x => x.WrappedAttribute == "hooha"), Is.True);
             Assert.That(critters.Any(x => x.WrappedAttribute == "booja"), Is.False);
@@ -83,37 +77,37 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryDictionaryContainer_WhereAttributeContainsValueAndKey_ReturnsCorrectResults()
         {
-            var includedFirst = (DictionaryContainer)DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "Lulu", "booFirst" } } });
+            var includedFirst = (DictionaryContainer) DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booFirst"}}});
             DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "Lulu", "naaja" } } });
-            var includedSecond = (DictionaryContainer)DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "Lulu", "booAgain" } } });
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "naaja"}}});
+            var includedSecond = (DictionaryContainer) DataSource.Post(
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booAgain"}}});
             DataSource.Post(
-                new DictionaryContainer { Map = new Dictionary<string, string> { { "Other", "booAgain" } } });
+                new DictionaryContainer {Map = new Dictionary<string, string> {{"Other", "booAgain"}}});
 
             var results = TestQuery<IDictionaryContainer, DictionaryContainer>(
                 x => x.Map.Contains("Lulu", y => y.StartsWith("boo")),
                 x => x.Map.Contains("Lulu", y => y.StartsWith("boo")));
 
             Assert.That(results.Count, Is.EqualTo(2));
-            Assert.That(results.Select(x => x.Id), Is.EquivalentTo(new[] { includedFirst.Id, includedSecond.Id }));
+            Assert.That(results.Select(x => x.Id), Is.EquivalentTo(new[] {includedFirst.Id, includedSecond.Id}));
         }
 
 
         [Test]
         public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
         {
-            var matching = (DictionaryContainer)DataSource.Post(
+            var matching = (DictionaryContainer) DataSource.Post(
                 new DictionaryContainer
-                {
-                    Map = new Dictionary<string, string> { { "fubu", "bar" } }
-                });
-            var notMatching = (DictionaryContainer)DataSource.Post(
+                    {
+                        Map = new Dictionary<string, string> {{"fubu", "bar"}}
+                    });
+            var notMatching = (DictionaryContainer) DataSource.Post(
                 new DictionaryContainer
-                {
-                    Map = new Dictionary<string, string> { { "fubu", "nope" } }
-                });
+                    {
+                        Map = new Dictionary<string, string> {{"fubu", "nope"}}
+                    });
 
             var resultIds = TestQuery<IDictionaryContainer, DictionaryContainer>(
                 x => x.Map["fubu"] == "bar", x => x.Map["fubu"] == "bar").Select(x => x.Id);
@@ -126,8 +120,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryHasCustomEnum_ReturnsCorrectItems()
         {
-            DataSource.Post(new HasCustomEnum { TheEnumValue = CustomEnum.Tack });
-            DataSource.Post(new HasCustomEnum { TheEnumValue = CustomEnum.Tick });
+            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tack});
+            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tick});
             TestQuery<IHasCustomEnum, HasCustomEnum>(
                 x => x.TheEnumValue == Critters.Client.CustomEnum.Tack, x => x.TheEnumValue == CustomEnum.Tack);
         }
@@ -139,31 +133,31 @@ namespace Pomona.SystemTests
             var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
             var bandName = musicalCritter.BandName;
             var critters =
-                this.client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
+                client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
-        }
-
-        [Test]
-        public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
-        {
-            var entity = this.DataSource.Save(new StringToObjectDictionaryContainer() {Map = {{"foo", 1234}, {"bar", "hoho"}}});
-
-            var resource = this.client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
-
-            Assert.IsNotNull(resource);
-            Assert.That(resource.Map, Has.Count.EqualTo(2));
-            Assert.IsTrue(resource.Map.ContainsKey("foo"));
-            Assert.IsTrue(resource.Map.ContainsKey("bar"));
-            Assert.That(resource.Map["foo"],Is.EqualTo(1234));
-            Assert.That(resource.Map["bar"], Is.EqualTo("hoho"));
         }
 
         [Test]
         public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
         {
-            var musicalCritter = this.client.Query<IMusicalCritter>(x => true, expand : "instrument").First();
+            var musicalCritter = client.Query<IMusicalCritter>().Expand(x => x.Instrument).First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
+        }
+
+        [Test]
+        public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
+        {
+            var entity = DataSource.Save(new StringToObjectDictionaryContainer {Map = {{"foo", 1234}, {"bar", "hoho"}}});
+
+            var resource = client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
+
+            Assert.IsNotNull(resource);
+            Assert.That(resource.Map, Has.Count.EqualTo(2));
+            Assert.IsTrue(resource.Map.ContainsKey("foo"));
+            Assert.IsTrue(resource.Map.ContainsKey("bar"));
+            Assert.That(resource.Map["foo"], Is.EqualTo(1234));
+            Assert.That(resource.Map["bar"], Is.EqualTo("hoho"));
         }
 
 

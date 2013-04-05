@@ -38,15 +38,6 @@ namespace Pomona.Common
         string GetUriOfType(Type type);
 
 
-        IList<T> Query<T>(
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null);
-
-
         bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
         object DownloadString(string uri, Type type);
     }

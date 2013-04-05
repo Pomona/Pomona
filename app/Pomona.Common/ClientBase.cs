@@ -54,7 +54,7 @@ namespace Pomona.Common
         public abstract T Get<T>(string uri);
         public abstract string GetUriOfType(Type type);
 
-        public abstract IList<T> Query<T>(
+        internal abstract IList<T> QueryOLD<T>(
             Expression<Func<T, bool>> predicate,
             Expression<Func<T, object>> orderBy = null,
             SortOrder sortOrder = SortOrder.Ascending,
@@ -87,7 +87,7 @@ namespace Pomona.Common
                 eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString));
         }
 
-        public abstract IList<T> Query<T>(
+        internal abstract IList<T> QueryOLD<T>(
             string uri,
             Expression<Func<T, bool>> predicate,
             Expression<Func<T, object>> orderBy = null,
@@ -119,7 +119,7 @@ namespace Pomona.Common
                 typeof (ICollection<>)
             };
 
-        private static readonly MethodInfo queryWithUriMethod;
+        private static readonly MethodInfo queryWithUriMethodOLD;
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
 
         private static readonly MethodInfo postOrPatchMethod =
@@ -141,9 +141,9 @@ namespace Pomona.Common
                     ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
                         x => x.CreateListOfTypeGeneric<object>(null)));
 
-            queryWithUriMethod =
-                typeof (ClientBase<TClient>).GetMethods().Single(
-                    x => x.Name == "Query" && x.GetParameters().Count() == 7);
+            queryWithUriMethodOLD =
+                typeof (ClientBase<TClient>).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Single(
+                    x => x.Name == "QueryOLD" && x.GetParameters().Count() == 7);
 
             // Preload resource info attributes..
             var resourceTypes =
@@ -262,7 +262,7 @@ namespace Pomona.Common
         }
 
 
-        public override IList<T> Query<T>(
+        internal override IList<T> QueryOLD<T>(
             Expression<Func<T, bool>> predicate,
             Expression<Func<T, object>> orderBy = null,
             SortOrder sortOrder = SortOrder.Ascending,
@@ -271,11 +271,11 @@ namespace Pomona.Common
             string expand = null)
         {
             var uri = BaseUri + GetRelativeUriForType(typeof (T));
-            return Query(uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return QueryOLD(uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
 
 
-        public override IList<T> Query<T>(
+        internal override IList<T> QueryOLD<T>(
             string uri,
             Expression<Func<T, bool>> predicate,
             Expression<Func<T, object>> orderBy = null,
@@ -296,7 +296,7 @@ namespace Pomona.Common
                 // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
                 // TODO: Optimize this by caching MethodInfo or make this method non-generic.
                 var transformedExpression = ChangeExpressionArgumentToType(predicate, resourceInfo.UriBaseType);
-                var results = (IEnumerable) queryWithUriMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
+                var results = (IEnumerable) queryWithUriMethodOLD.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
                     this, new object[] {uri, transformedExpression, orderBy, sortOrder, top, skip, expand});
                 return new List<T>(results.OfType<T>());
             }
@@ -597,7 +597,7 @@ namespace Pomona.Common
 
             var transformedExpression = Expression.Lambda(newBody, newParameter);
 
-            var results = (IEnumerable) queryWithUriMethod.MakeGenericMethod(serverKnownType).Invoke(
+            var results = (IEnumerable) queryWithUriMethodOLD.MakeGenericMethod(serverKnownType).Invoke(
                 this, new object[] {uri, transformedExpression, orderBy, sortOrder, top, skip, expand});
             var resultsWrapper =
                 results.Cast<object>().Select(

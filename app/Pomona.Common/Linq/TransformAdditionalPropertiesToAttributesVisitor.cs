@@ -90,7 +90,7 @@ namespace Pomona.Common.Linq
                     var provider = (RestQueryProvider) queryable.Provider;
                     var restQueryOfTargetType = typeof (RestQuery<>).MakeGenericType(targetType);
                     var modifiedSourceQueryable = Activator.CreateInstance(
-                        restQueryOfTargetType, new RestQueryProvider(provider.Client, targetType));
+                        restQueryOfTargetType, new RestQueryProvider(provider.Client, targetType, provider.Uri));
                     return Expression.Constant(modifiedSourceQueryable, restQueryOfTargetType);
                 }
             }

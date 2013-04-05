@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,17 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 using Pomona.Example.Models;
 
@@ -88,12 +81,12 @@ namespace Pomona.SystemTests
             var errors = new StringBuilder();
             foreach (
                 var prop in
-                    this.client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                    client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                         x.PropertyType.IsGenericType
                         && x.PropertyType.GetGenericTypeDefinition() == typeof (ClientRepository<,>)))
             {
-                var value = prop.GetValue(this.client, null);
+                var value = prop.GetValue(client, null);
                 if (value == null)
                 {
                     foundError = true;
@@ -112,21 +105,11 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void DeserializeCritters()
-        {
-            for (var i = 0; i < 1; i++)
-                this.client.Query<ICritter>(x => true, top: 100, expand: "weapons.model");
-
-            //var allSubscriptions = critters.SelectMany(x => x.Subscriptions).ToList();
-        }
-
-
-        [Test]
         public void GetMusicalCritter()
         {
-            var musicalCritterId = this.CritterEntities.OfType<MusicalCritter>().First().Id;
+            var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = this.client.Get<ICritter>(this.BaseUri + "critters/" + musicalCritterId);
+            var musicalCritter = client.Get<ICritter>(BaseUri + "critters/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
@@ -135,7 +118,7 @@ namespace Pomona.SystemTests
         [Test]
         public void GetWeaponsLazy_FromCritter()
         {
-            var critter = this.client.List<ICritter>().First();
+            var critter = client.List<ICritter>().First();
             var weapons = critter.Weapons.ToList();
         }
     }

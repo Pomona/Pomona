@@ -94,7 +94,7 @@ namespace Pomona.Common
         }
 
 
-        public IList<TSubResource> Query<TSubResource>(
+        public IList<TSubResource> QueryOLD<TSubResource>(
             Expression<Func<TSubResource, bool>> predicate,
             Expression<Func<TSubResource, object>> orderBy = null,
             SortOrder sortOrder = SortOrder.Ascending,
@@ -103,11 +103,11 @@ namespace Pomona.Common
             string expand = null)
             where TSubResource : TResource
         {
-            return this.client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return this.client.QueryOLD(Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
 
 
-        public IList<TResource> Query(
+        public IList<TResource> QueryOLD(
             Expression<Func<TResource, bool>> predicate,
             Expression<Func<TResource, object>> orderBy = null,
             SortOrder sortOrder = SortOrder.Ascending,
@@ -115,7 +115,7 @@ namespace Pomona.Common
             int? skip = null,
             string expand = null)
         {
-            return this.client.Query(Uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return this.client.QueryOLD(Uri, predicate, orderBy, sortOrder, top, skip, expand);
         }
     }
 }

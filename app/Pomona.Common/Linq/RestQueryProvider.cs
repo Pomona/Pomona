@@ -41,6 +41,7 @@ namespace Pomona.Common.Linq
         private readonly IPomonaClient client;
 
         private readonly Type sourceType;
+        private readonly string uri;
 
 
         static RestQueryProvider()
@@ -52,8 +53,7 @@ namespace Pomona.Common.Linq
                     x => x.MapToCustomUserTypeResult<object>(null, null, null, null));
         }
 
-
-        internal RestQueryProvider(IPomonaClient client, Type sourceType)
+        internal RestQueryProvider(IPomonaClient client, Type sourceType, string uri = null)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
@@ -61,6 +61,12 @@ namespace Pomona.Common.Linq
                 throw new ArgumentNullException("sourceType");
             this.client = client;
             this.sourceType = sourceType;
+            this.uri = uri;
+        }
+
+        public string Uri
+        {
+            get { return uri; }
         }
 
 
@@ -178,7 +184,7 @@ namespace Pomona.Common.Linq
             if (parser.IncludeTotalCount)
                 builder.AppendParameter("$totalcount", "true");
 
-            return client.GetUriOfType(parser.ElementType) + "?" + builder;
+            return (uri ?? client.GetUriOfType(parser.ElementType)) + "?" + builder;
         }
 
 
@@ -192,7 +198,7 @@ namespace Pomona.Common.Linq
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
                 var resourceInfo = client.GetResourceInfoForType(typeof (T));
-                var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
+                var proxy = (LazyProxyBase) Activator.CreateInstance(resourceInfo.LazyProxyType);
                 proxy.Uri = uri;
                 proxy.Client = client;
                 return proxy;
@@ -239,7 +245,8 @@ namespace Pomona.Common.Linq
             return result;
         }
 
-        private static TCustomClientType CreateClientSideResourceProxy<TCustomClientType>(PropertyInfo dictProp, object wrappedResource)
+        private static TCustomClientType CreateClientSideResourceProxy<TCustomClientType>(PropertyInfo dictProp,
+                                                                                          object wrappedResource)
         {
             var proxy =
                 (ClientSideResourceProxyBase)
@@ -264,7 +271,7 @@ namespace Pomona.Common.Linq
                 customClientType, info.ServerType, info.DictProperty);
             var transformedExpression = visitor.Visit(expression);
 
-            var nestedQueryProvider = new RestQueryProvider(client, info.ServerType);
+            var nestedQueryProvider = new RestQueryProvider(client, info.ServerType, Uri);
             result = nestedQueryProvider.Execute(transformedExpression);
 
             result = mapToCustomUserTypeResultMethod.MakeGenericMethod(customClientType).Invoke(
