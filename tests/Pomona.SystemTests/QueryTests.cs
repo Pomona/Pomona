@@ -45,9 +45,9 @@ namespace Pomona.SystemTests
             var firstFarm = farms[0];
             var secondFarm = farms[1];
 
-            var someCritters = firstFarm.Critters.QueryOLD(x => x.Farm.Id == firstFarm.Id).ToList();
+            var someCritters = firstFarm.Critters.Query(x => x.Farm.Id == firstFarm.Id).ToList();
             Assert.That(someCritters, Has.Count.GreaterThanOrEqualTo(1));
-            var noCritters = firstFarm.Critters.QueryOLD(x => x.Farm.Id == secondFarm.Id).ToList();
+            var noCritters = firstFarm.Critters.Query(x => x.Farm.Id == secondFarm.Id).ToList();
             Assert.That(noCritters, Has.Count.EqualTo(0));
         }
 

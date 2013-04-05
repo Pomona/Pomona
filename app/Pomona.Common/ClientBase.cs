@@ -27,7 +27,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
@@ -54,14 +53,6 @@ namespace Pomona.Common
         public abstract T Get<T>(string uri);
         public abstract string GetUriOfType(Type type);
 
-        internal abstract IList<T> QueryOLD<T>(
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null);
-
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
         public abstract object DownloadString(string uri, Type type);
 
@@ -87,23 +78,11 @@ namespace Pomona.Common
                 eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString));
         }
 
-        internal abstract IList<T> QueryOLD<T>(
-            string uri,
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null);
-
 
         internal abstract object Post<T>(string uri, Action<T> postAction)
             where T : class, IClientResource;
 
         internal abstract object Post<T>(string uri, T postForm)
-            where T : class, IClientResource;
-
-        internal abstract T Patch<T>(string uri, T target, Action<T> updateAction)
             where T : class, IClientResource;
     }
 
@@ -119,7 +98,6 @@ namespace Pomona.Common
                 typeof (ICollection<>)
             };
 
-        private static readonly MethodInfo queryWithUriMethodOLD;
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
 
         private static readonly MethodInfo postOrPatchMethod =
@@ -140,10 +118,6 @@ namespace Pomona.Common
                 new GenericMethodCaller<ClientBase<TClient>, IEnumerable, object>(
                     ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
                         x => x.CreateListOfTypeGeneric<object>(null)));
-
-            queryWithUriMethodOLD =
-                typeof (ClientBase<TClient>).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Single(
-                    x => x.Name == "QueryOLD" && x.GetParameters().Count() == 7);
 
             // Preload resource info attributes..
             var resourceTypes =
@@ -262,71 +236,6 @@ namespace Pomona.Common
         }
 
 
-        internal override IList<T> QueryOLD<T>(
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null)
-        {
-            var uri = BaseUri + GetRelativeUriForType(typeof (T));
-            return QueryOLD(uri, predicate, orderBy, sortOrder, top, skip, expand);
-        }
-
-
-        internal override IList<T> QueryOLD<T>(
-            string uri,
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null)
-        {
-            ResourceInfoAttribute resourceInfo;
-
-            var type = typeof (T);
-            if (!TryGetResourceInfoForType(type, out resourceInfo))
-                return QueryInheritedCustomType(uri, predicate, orderBy, sortOrder, top, skip, expand);
-
-            resourceInfo = this.GetResourceInfoForType(type);
-            if (!resourceInfo.IsUriBaseType)
-            {
-                // If we get an expression operating on a subclass of the URI base type, we need to modify it (casting)
-                // TODO: Optimize this by caching MethodInfo or make this method non-generic.
-                var transformedExpression = ChangeExpressionArgumentToType(predicate, resourceInfo.UriBaseType);
-                var results = (IEnumerable) queryWithUriMethodOLD.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(
-                    this, new object[] {uri, transformedExpression, orderBy, sortOrder, top, skip, expand});
-                return new List<T>(results.OfType<T>());
-            }
-
-            var uriQueryBuilder = new UriQueryBuilder();
-
-            uriQueryBuilder.AppendExpressionParameter("$filter", predicate);
-            if (orderBy != null)
-            {
-                uriQueryBuilder.AppendExpressionParameter(
-                    "$orderby",
-                    RemoveCastOfResult(orderBy),
-                    x => sortOrder == SortOrder.Descending ? x + " desc" : x);
-            }
-
-            if (expand != null)
-                uriQueryBuilder.AppendParameter("$expand", expand);
-
-            if (top.HasValue)
-                uriQueryBuilder.AppendParameter("$top", top.Value);
-
-            if (skip.HasValue)
-                uriQueryBuilder.AppendParameter("$skip", skip.Value);
-
-            uri = uri + "?" + uriQueryBuilder;
-
-            return Get<IList<T>>(uri);
-        }
-
-
         public override bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
             return interfaceToResourceInfoDict.TryGetValue(type, out resourceInfo);
@@ -412,42 +321,6 @@ namespace Pomona.Common
         internal override object Post<T>(string uri, T postForm)
         {
             return PostOrPatch(uri, postForm, null, "POST", x => x.PostFormType);
-        }
-
-
-        internal override T Patch<T>(string uri, T target, Action<T> updateAction)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        private static Expression ChangeExpressionArgumentToType(LambdaExpression lambdaExpr, Type newArgType)
-        {
-            if (lambdaExpr == null)
-                throw new ArgumentNullException("lambdaExpr");
-            if (newArgType == null)
-                throw new ArgumentNullException("newArgType");
-            if (lambdaExpr.Parameters.Count != 1)
-                throw new InvalidOperationException("Only works using expressions with property count equal to one.");
-
-            var origParam = lambdaExpr.Parameters[0];
-            var body = lambdaExpr.Body;
-            var newParam = Expression.Parameter(newArgType, origParam.Name);
-            var visitor = new ChangeExpressionArgumentVisitor(origParam, newParam);
-            var newBody = visitor.Visit(body);
-            return
-                Expression.Lambda(Expression.AndAlso(Expression.TypeIs(newParam, origParam.Type), newBody), newParam);
-        }
-
-
-        private static LambdaExpression RemoveCastOfResult(LambdaExpression lambda)
-        {
-            if (lambda.Body.NodeType == ExpressionType.Convert)
-            {
-                var convertExpr = (UnaryExpression) lambda.Body;
-                lambda = Expression.Lambda(convertExpr.Operand, lambda.Parameters);
-            }
-            return lambda;
         }
 
 
@@ -552,69 +425,6 @@ namespace Pomona.Common
         }
 
 
-        private IList<T> QueryInheritedCustomType<T>(
-            string uri,
-            Expression<Func<T, bool>> predicate,
-            Expression<Func<T, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null)
-        {
-            var customType = typeof (T);
-
-            if (!customType.IsInterface)
-            {
-                throw new ArgumentException(
-                    "Custom type T is required to be an interface which inherits from a known client resource type.");
-            }
-
-            var serverKnownResourceInfo = GetLeafResourceInfo(customType);
-
-            if (serverKnownResourceInfo == null)
-            {
-                throw new ArgumentException(
-                    "Custom type T is required to be an interface which inherits from a known client resource type.");
-            }
-
-            var serverKnownType = serverKnownResourceInfo.InterfaceType;
-
-            var newParameter = Expression.Parameter(serverKnownType, "x");
-            var sourceParameter = predicate.Parameters.First();
-            var attributesProperty =
-                serverKnownType.GetProperties().First(
-                    x => typeof (IDictionary<string, string>).IsAssignableFrom(x.PropertyType));
-
-            var visitor = new InheritedCustomTypePropertyToAttributeAccessVisitor(
-                sourceParameter, newParameter, attributesProperty);
-
-            var newBody = visitor.Visit(predicate.Body);
-
-            if (string.IsNullOrEmpty(expand))
-                expand = attributesProperty.Name.ToLower();
-            else
-                expand = expand + "," + attributesProperty.Name.ToLower();
-
-            var transformedExpression = Expression.Lambda(newBody, newParameter);
-
-            var results = (IEnumerable) queryWithUriMethodOLD.MakeGenericMethod(serverKnownType).Invoke(
-                this, new object[] {uri, transformedExpression, orderBy, sortOrder, top, skip, expand});
-            var resultsWrapper =
-                results.Cast<object>().Select(
-                    x =>
-                        {
-                            var proxy =
-                                (ClientSideResourceProxyBase)
-                                ((object) RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
-                            proxy.AttributesProperty = attributesProperty;
-                            proxy.ProxyTarget = x;
-                            return (T) ((object) proxy);
-                        }).ToList();
-
-            return resultsWrapper;
-        }
-
-
         private string Serialize(object obj, Type expectedBaseType)
         {
             var stringWriter = new StringWriter();
@@ -638,96 +448,5 @@ namespace Pomona.Common
 
             return responseString;
         }
-
-        #region Nested type: ChangeExpressionArgumentVisitor
-
-        /// <summary>
-        /// This visitor will convert an expression like:
-        ///    MusicalCritter x => x.BandName == "Hi"
-        /// to
-        ///    Critter x => ((MusicalCritter)x).BandName == "Hi"
-        /// </summary>
-        private class ChangeExpressionArgumentVisitor : ExpressionVisitor
-        {
-            private readonly Expression baseclassedArgument;
-            private readonly Expression subclassedArgument;
-
-
-            public ChangeExpressionArgumentVisitor(Expression subclassedArgument, Expression baseclassedArgument)
-            {
-                this.subclassedArgument = subclassedArgument;
-                this.baseclassedArgument = baseclassedArgument;
-            }
-
-
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                if (node.Expression == subclassedArgument)
-                {
-                    if (node.Member.DeclaringType == baseclassedArgument.Type)
-                    {
-                        // Don't need to do cast for accessing properties on base type..
-                        return Expression.MakeMemberAccess(baseclassedArgument, node.Member);
-                    }
-                    return
-                        Expression.MakeMemberAccess(
-                            Expression.Convert(baseclassedArgument, subclassedArgument.Type), node.Member);
-                }
-                return base.VisitMember(node);
-            }
-        }
-
-        #endregion
-
-        #region Nested type: InheritedCustomTypePropertyToAttributeAccessVisitor
-
-        private class InheritedCustomTypePropertyToAttributeAccessVisitor : ExpressionVisitor
-        {
-            private readonly PropertyInfo attributesProperty;
-            private readonly HashSet<Type> serverKnownInterfaces;
-            private readonly ParameterExpression targetParameter;
-            private ParameterExpression sourceParameter;
-
-
-            public InheritedCustomTypePropertyToAttributeAccessVisitor(
-                ParameterExpression sourceParameter,
-                ParameterExpression targetParameter,
-                PropertyInfo attributesProperty)
-            {
-                this.sourceParameter = sourceParameter;
-
-                var targetType = targetParameter.Type;
-                var clientAssembly = typeof (TClient).Assembly;
-                serverKnownInterfaces =
-                    new HashSet<Type>(
-                        targetType.WrapAsEnumerable().Concat(
-                            targetType.GetInterfaces().Where(x => x.Assembly == clientAssembly)));
-
-                this.targetParameter = targetParameter;
-                this.attributesProperty = attributesProperty;
-            }
-
-
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                if (serverKnownInterfaces.Contains(node.Member.DeclaringType))
-                    return base.VisitMember(node);
-
-                var propInfo = node.Member as PropertyInfo;
-
-                // TODO: Support attribute for specifying what name attribute should have in dictionary
-
-                var attrName = propInfo.Name;
-
-                return Expression.Call(
-                    Expression.Property(targetParameter, attributesProperty),
-                    OdataFunctionMapping.DictStringStringGetMethod,
-                    Expression.Constant(attrName));
-
-                throw new NotImplementedException();
-            }
-        }
-
-        #endregion
     }
 }

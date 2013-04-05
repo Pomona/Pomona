@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,14 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using Pomona.Common.Proxies;
 using Pomona.Common.Linq;
+using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
@@ -55,67 +49,42 @@ namespace Pomona.Common
 
         public string Uri
         {
-            get { return this.uri; }
+            get { return uri; }
         }
 
         internal ClientBase Client
         {
-            get { return this.client; }
+            get { return client; }
         }
 
 
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
             where TSubResource : class, TResource
         {
-            return this.client.Patch(resource, patchAction);
+            return client.Patch(resource, patchAction);
         }
 
         public TPostResponseResource Post<TPostForm>(TPostForm form)
             where TPostForm : PutResourceBase, TResource
         {
-            return (TPostResponseResource)this.client.Post<TResource>(Uri, form);
+            return (TPostResponseResource) client.Post<TResource>(Uri, form);
         }
 
         public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction);
+            return (TPostResponseResource) client.Post(Uri, postAction);
         }
 
         public IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource
         {
-            return this.client.Query<TSubResource>();
+            return client.Query<TSubResource>();
         }
 
         public TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction);
-        }
-
-
-        public IList<TSubResource> QueryOLD<TSubResource>(
-            Expression<Func<TSubResource, bool>> predicate,
-            Expression<Func<TSubResource, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null)
-            where TSubResource : TResource
-        {
-            return this.client.QueryOLD(Uri, predicate, orderBy, sortOrder, top, skip, expand);
-        }
-
-
-        public IList<TResource> QueryOLD(
-            Expression<Func<TResource, bool>> predicate,
-            Expression<Func<TResource, object>> orderBy = null,
-            SortOrder sortOrder = SortOrder.Ascending,
-            int? top = null,
-            int? skip = null,
-            string expand = null)
-        {
-            return this.client.QueryOLD(Uri, predicate, orderBy, sortOrder, top, skip, expand);
+            return (TPostResponseResource) client.Post(Uri, postAction);
         }
     }
 }
