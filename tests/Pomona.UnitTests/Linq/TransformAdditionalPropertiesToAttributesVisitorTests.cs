@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,16 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
 using NSubstitute;
-
 using NUnit.Framework;
-
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Internals;
@@ -61,16 +54,18 @@ namespace Pomona.UnitTests.Linq
             var client = Substitute.For<IPomonaClient>();
 
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(
-                typeof(ICustomUserEntity),
-                typeof(IServerKnownEntity),
-                (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IServerKnownEntity>(x => x.Attributes));
+                typeof (ICustomUserEntity),
+                typeof (IServerKnownEntity),
+                (PropertyInfo) ReflectionHelper.GetInstanceMemberInfo<IServerKnownEntity>(x => x.Attributes));
 
-            var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(client, typeof(ICustomUserEntity)))
+            var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(client,
+                                                                                       typeof (ICustomUserEntity)))
                 .Where(x => x.CustomString == "Lalalala")
                 .Where(x => x.OtherCustom == "Blob rob")
                 .Select(x => x.OtherCustom);
 
-            var expectedQuery = new RestQuery<IServerKnownEntity>(new RestQueryProvider(client, typeof(IServerKnownEntity)))
+            var expectedQuery = new RestQuery<IServerKnownEntity>(new RestQueryProvider(client,
+                                                                                        typeof (IServerKnownEntity)))
                 .Where(x => x.Attributes.SafeGet("CustomString") == "Lalalala")
                 .Where(x => x.Attributes.SafeGet("OtherCustom") == "Blob rob")
                 .Select(x => x.Attributes.SafeGet("OtherCustom"));
