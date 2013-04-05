@@ -48,7 +48,6 @@ namespace Pomona.Common
         {
         }
 
-
         public abstract string BaseUri { get; }
         public abstract IWebClient WebClient { get; set; }
 
@@ -78,6 +77,15 @@ namespace Pomona.Common
         public abstract T Patch<T>(T target, Action<T> updateAction)
             where T : class, IClientResource;
 
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+
+
+        protected void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString)
+        {
+            var eh = RequestCompleted;
+            if (eh != null)
+                eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString));
+        }
 
         public abstract IList<T> Query<T>(
             string uri,
@@ -617,8 +625,6 @@ namespace Pomona.Common
             return stringWriter.ToString();
         }
 
-        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-
         private string UploadToUri(string uri, object obj, Type expectedBaseType, string httpMethod)
         {
             var requestString = Serialize(obj, expectedBaseType);
@@ -631,13 +637,6 @@ namespace Pomona.Common
             RaiseRequestCompleted(httpMethod, uri, requestString, responseString);
 
             return responseString;
-        }
-
-        private void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString)
-        {
-            var eh = RequestCompleted;
-            if (eh != null)
-                eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString));
         }
 
         #region Nested type: ChangeExpressionArgumentVisitor
@@ -730,41 +729,5 @@ namespace Pomona.Common
         }
 
         #endregion
-
-        public class ClientRequestLogEventArgs : EventArgs
-        {
-            private readonly string method;
-            private readonly string request;
-            private readonly string response;
-            private readonly string uri;
-
-            public ClientRequestLogEventArgs(string method, string uri, string request, string response)
-            {
-                this.method = method;
-                this.uri = uri;
-                this.request = request;
-                this.response = response;
-            }
-
-            public string Uri
-            {
-                get { return uri; }
-            }
-
-            public string Response
-            {
-                get { return response; }
-            }
-
-            public string Request
-            {
-                get { return request; }
-            }
-
-            public string Method
-            {
-                get { return method; }
-            }
-        }
     }
 }

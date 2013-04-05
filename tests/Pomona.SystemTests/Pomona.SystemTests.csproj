@@ -107,11 +107,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="ProfilingSessions\Session20130404_171607.sdps" />
-    <Content Include="ProfilingSessions\Session20130404_171949.sdps" />
-    <Content Include="ProfilingSessions\Session20130405_075834.sdps" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

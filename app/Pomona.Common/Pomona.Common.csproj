@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
+    <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
