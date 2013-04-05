@@ -28,7 +28,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
@@ -51,6 +50,7 @@ namespace Pomona.Common
 
 
         public abstract string BaseUri { get; }
+        public abstract IWebClient WebClient { get; set; }
 
         public abstract T Get<T>(string uri);
         public abstract string GetUriOfType(Type type);
@@ -97,8 +97,6 @@ namespace Pomona.Common
 
         internal abstract T Patch<T>(string uri, T target, Action<T> updateAction)
             where T : class, IClientResource;
-
-        public abstract IWebClient WebClient { get; set; }
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -115,6 +113,11 @@ namespace Pomona.Common
 
         private static readonly MethodInfo queryWithUriMethod;
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
+
+        private static readonly MethodInfo postOrPatchMethod =
+            ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
+                x => x.PostOrPatch("", "", null, "POST", null));
+
         private readonly string baseUri;
         private readonly JsonSerializer jsonSerializer;
         private readonly ISerializer serializer;
@@ -191,14 +194,14 @@ namespace Pomona.Common
 
         public override object DownloadString(string uri, Type type)
         {
-            return Deserialize(GetString(uri), type);
+            return Deserialize(DownloadString(uri), type);
         }
 
 
         public override T Get<T>(string uri)
         {
             Log("Fetching uri {0}", uri);
-            return (T) Deserialize(GetString(uri), typeof (T));
+            return (T) Deserialize(DownloadString(uri), typeof (T));
         }
 
 
@@ -231,7 +234,7 @@ namespace Pomona.Common
         {
             CustomUserTypeInfo info;
             string uri;
-            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof(T), this, out info))
+            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof (T), this, out info))
             {
                 uri = GetUriOfType(info.ServerType);
             }
@@ -247,7 +250,7 @@ namespace Pomona.Common
 
         public override T Patch<T>(T target, Action<T> updateAction)
         {
-            return (T)PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType);
+            return (T) PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType);
         }
 
 
@@ -334,10 +337,8 @@ namespace Pomona.Common
             return PostOrPatch(uri, null, postAction, "POST", x => x.PostFormType);
         }
 
-        private static readonly MethodInfo postOrPatchMethod =
-            ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(x => x.PostOrPatch("", "", null, "POST", null));
-
-        private object PostOrPatch<T>(string uri, T form, Action<T> postAction, string httpMethod, Func<ResourceInfoAttribute, Type> formTypeGetter)
+        private object PostOrPatch<T>(string uri, T form, Action<T> postAction, string httpMethod,
+                                      Func<ResourceInfoAttribute, Type> formTypeGetter)
             where T : class
         {
             var type = typeof (T);
@@ -363,15 +364,18 @@ namespace Pomona.Common
                 var wrappedForm = Activator.CreateInstance(formTypeGetter(resourceInfo));
 
                 proxy.ProxyTarget = wrappedForm;
-                
+
                 if (postAction != null)
                 {
-                    postAction((T)((object)proxy));
+                    postAction((T) ((object) proxy));
                 }
                 var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
-                                 .Invoke(this, new object[] { uri, wrappedForm, null, httpMethod,formTypeGetter });
+                                                     .Invoke(this,
+                                                             new[] {uri, wrappedForm, null, httpMethod, formTypeGetter});
 
-                var responseProxy = (ClientSideResourceProxyBase)((object)RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
+                var responseProxy =
+                    (ClientSideResourceProxyBase)
+                    ((object) RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
                 responseProxy.AttributesProperty = customUserTypeInfo.DictProperty;
                 responseProxy.ProxyTarget = innerResponse;
                 return responseProxy;
@@ -384,7 +388,6 @@ namespace Pomona.Common
 
                 if (form == null)
                     form = (T) Activator.CreateInstance(newType);
-
             }
 
             if (postAction != null)
@@ -504,20 +507,16 @@ namespace Pomona.Common
         }
 
 
-        private string GetString(string uri)
+        private string DownloadString(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
             webClient.Headers["Accept"] = "application/json";
-            byte[] downloadData = webClient.DownloadData(uri);
-            var jsonString = Encoding.UTF8.GetString(downloadData);
-            Console.WriteLine("Incoming data from " + uri + ":\r\n" + jsonString);
-            return jsonString;
-        }
+            var downloadData = webClient.DownloadData(uri);
+            var responseString = Encoding.UTF8.GetString(downloadData);
 
+            RaiseRequestCompleted("GET", uri, null, responseString);
 
-        private Type GetUpdateProxyForInterface(Type expectedType)
-        {
-            return this.GetResourceInfoForType(expectedType).PutFormType;
+            return responseString;
         }
 
 
@@ -618,21 +617,27 @@ namespace Pomona.Common
             return stringWriter.ToString();
         }
 
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
         private string UploadToUri(string uri, object obj, Type expectedBaseType, string httpMethod)
         {
             var requestString = Serialize(obj, expectedBaseType);
-
-            Console.WriteLine(httpMethod + "ting data to " + uri + ":\r\n" + requestString);
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
             webClient.Headers["Accept"] = "application/json";
             var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
             var responseString = Encoding.UTF8.GetString(responseBytes);
 
-            Console.WriteLine("Received response from " + httpMethod + ":\t\n" + responseString);
+            RaiseRequestCompleted(httpMethod, uri, requestString, responseString);
 
             return responseString;
+        }
+
+        private void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString)
+        {
+            var eh = RequestCompleted;
+            if (eh != null)
+                eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString));
         }
 
         #region Nested type: ChangeExpressionArgumentVisitor
@@ -725,5 +730,41 @@ namespace Pomona.Common
         }
 
         #endregion
+
+        public class ClientRequestLogEventArgs : EventArgs
+        {
+            private readonly string method;
+            private readonly string request;
+            private readonly string response;
+            private readonly string uri;
+
+            public ClientRequestLogEventArgs(string method, string uri, string request, string response)
+            {
+                this.method = method;
+                this.uri = uri;
+                this.request = request;
+                this.response = response;
+            }
+
+            public string Uri
+            {
+                get { return uri; }
+            }
+
+            public string Response
+            {
+                get { return response; }
+            }
+
+            public string Request
+            {
+                get { return request; }
+            }
+
+            public string Method
+            {
+                get { return method; }
+            }
+        }
     }
 }

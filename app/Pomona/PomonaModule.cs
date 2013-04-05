@@ -71,7 +71,6 @@ namespace Pomona
 
             this.dataSource = dataSource;
 
-            // TODO: This is performance hotspot: cache typemapper between each request.
             this.typeMapper = typeMapper;
             this.container = container;
 
@@ -84,7 +83,6 @@ namespace Pomona
 
             session = new PomonaSession(dataSource, this.typeMapper, RelativeToAbsoluteUri, this);
 
-            Console.WriteLine("Registering routes..");
             foreach (var transformedType in this.typeMapper
                                                 .TransformedTypes
                                                 .Select(x => x.UriBaseType)

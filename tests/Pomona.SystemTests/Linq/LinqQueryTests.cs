@@ -216,6 +216,27 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual.Select(x => x.Id), Is.EquivalentTo(expected.Select(x => x.Id)));
         }
 
+        [Test]
+        public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues_ManyTimes()
+        {
+            var expected =
+                CritterEntities.Where(
+                    x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
+                               .Take(5)
+                               .ToList();
+
+            for (int i = 0; i < 100; i++)
+            {
+                var actual =
+                    client.Query<ICritter>()
+                          .Where(x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
+                          .Expand(x => x.Weapons)
+                          .Take(5)
+                          .ToList();
+                Assert.That(actual.Select(x => x.Id), Is.EquivalentTo(expected.Select(x => x.Id)));
+            }
+        }
+
 
         [Test]
         public void QueryCritter_WhereFirst_ReturnsCorrectCritter()
