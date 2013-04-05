@@ -144,7 +144,7 @@ namespace Pomona.Common.Internals
             if (typeArgExpr == null || typeArgExpr.Value == null)
                 return expr;
 
-            var convertToType = (Type)typeArgExpr.Value;
+            var convertToType = (Type) typeArgExpr.Value;
 
             return Expression.Convert(expr, convertToType);
         }

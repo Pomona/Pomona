@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,17 +34,17 @@ namespace Pomona.Common.Proxies
 {
     public class ProxyBuilder
     {
+        private readonly bool isPublic;
+
+        private readonly ModuleDefinition module;
+
         private readonly Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference>
             onGeneratePropertyMethodsFunc;
 
-        private bool isPublic;
+        private readonly TypeReference proxyBaseTypeDef;
 
-        private ModuleDefinition module;
-
-        private TypeReference proxyBaseTypeDef;
-
+        private readonly string proxyNamespace;
         private string proxyNameFormat;
-        private string proxyNamespace;
 
 
         public ProxyBuilder(

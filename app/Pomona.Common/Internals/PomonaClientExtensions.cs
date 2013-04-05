@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Linq;
@@ -55,7 +51,6 @@ namespace Pomona.Common.Internals
         }
 
 
-
         public static ResourceInfoAttribute GetResourceInfoForType(this IPomonaClient client, Type type)
         {
             ResourceInfoAttribute resourceInfoAttribute;
@@ -79,12 +74,12 @@ namespace Pomona.Common.Internals
 
             var allResourceInfos = sourceType.GetInterfaces().Select(
                 x =>
-                {
-                    ResourceInfoAttribute resourceInfo;
-                    if (!client.TryGetResourceInfoForType(x, out resourceInfo))
-                        resourceInfo = null;
-                    return resourceInfo;
-                }).Where(x => x != null).ToList();
+                    {
+                        ResourceInfoAttribute resourceInfo;
+                        if (!client.TryGetResourceInfoForType(x, out resourceInfo))
+                            resourceInfo = null;
+                        return resourceInfo;
+                    }).Where(x => x != null).ToList();
 
             var mostSubtyped = allResourceInfos
                 .FirstOrDefault(

@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.IO;
 using Pomona.Common.TypeSystem;
 
@@ -35,7 +31,9 @@ namespace Pomona.Common.Serialization
     {
         ISerializerWriter CreateWriter(TextWriter textWriter);
         void SerializeNode(ISerializerNode node, ISerializerWriter writer);
-        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer, IMappedType elementType);
+
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer,
+                                  IMappedType elementType);
     }
 
     public interface ISerializer<TWriter> : ISerializer
@@ -43,7 +41,9 @@ namespace Pomona.Common.Serialization
     {
         new TWriter CreateWriter(TextWriter textWriter);
         void SerializeNode(ISerializerNode node, TWriter writer);
-        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer, IMappedType elementType);
+
+        void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer,
+                                  IMappedType elementType);
     }
 
     public interface ISerializerReader
@@ -53,7 +53,10 @@ namespace Pomona.Common.Serialization
     public interface IDeserializer
     {
         ISerializerReader CreateReader(TextReader textReader);
-        object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context, object patchedObject = null);
+
+        object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context,
+                           object patchedObject = null);
+
         void DeserializeNode(IDeserializerNode node, ISerializerReader reader);
 
         void DeserializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,
