@@ -24,7 +24,7 @@
 
 namespace Pomona.Queries
 {
-    public class PomonaQueryLexer
+    public partial class PomonaQueryLexer
     {
     }
 }
