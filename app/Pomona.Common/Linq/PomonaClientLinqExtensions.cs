@@ -30,11 +30,6 @@ namespace Pomona.Common.Linq
 {
     public static class PomonaClientLinqExtensions
     {
-        public static IQueryable<T> Query<T>(this IPomonaClient client)
-        {
-            return new RestQuery<T>(new RestQueryProvider(client, typeof (T)));
-        }
-
         public static IQueryable<T> Query<T>(this IPomonaClient client, Expression<Func<T, bool>> predicate)
         {
             return client.Query<T>().Where(predicate);

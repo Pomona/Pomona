@@ -33,6 +33,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Pomona.Common.Internals;
+using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
@@ -52,6 +53,7 @@ namespace Pomona.Common
 
         public abstract T Get<T>(string uri);
         public abstract string GetUriOfType(Type type);
+        public abstract IQueryable<T> Query<T>();
 
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
         public abstract object DownloadString(string uri, Type type);
@@ -248,6 +250,10 @@ namespace Pomona.Common
             return resourceInfo.UrlRelativePath;
         }
 
+        public override IQueryable<T> Query<T>()
+        {
+            return new RestQuery<T>(new RestQueryProvider(this, typeof (T)));
+        }
 
         internal override object Post<T>(string uri, Action<T> postAction)
         {

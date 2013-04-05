@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Pomona.Common
@@ -37,8 +38,9 @@ namespace Pomona.Common
         T Get<T>(string uri);
         string GetUriOfType(Type type);
 
-
+        IQueryable<T> Query<T>();
         bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
         object DownloadString(string uri, Type type);
+
     }
 }

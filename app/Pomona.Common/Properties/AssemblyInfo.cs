@@ -37,3 +37,4 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("74ed614e-29e9-42c5-87b3-8f6268a1ec74")]
 [assembly: InternalsVisibleTo("Pomona.SystemTests")]
+[assembly: InternalsVisibleTo("Pomona.UnitTests")]

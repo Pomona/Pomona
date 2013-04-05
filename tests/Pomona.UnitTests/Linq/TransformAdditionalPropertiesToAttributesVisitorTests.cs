@@ -65,12 +65,12 @@ namespace Pomona.UnitTests.Linq
                 typeof(IServerKnownEntity),
                 (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IServerKnownEntity>(x => x.Attributes));
 
-            var originalQuery = client.Query<ICustomUserEntity>()
+            var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(client, typeof(ICustomUserEntity)))
                 .Where(x => x.CustomString == "Lalalala")
                 .Where(x => x.OtherCustom == "Blob rob")
                 .Select(x => x.OtherCustom);
 
-            var expectedQuery = client.Query<IServerKnownEntity>()
+            var expectedQuery = new RestQuery<IServerKnownEntity>(new RestQueryProvider(client, typeof(IServerKnownEntity)))
                 .Where(x => x.Attributes.SafeGet("CustomString") == "Lalalala")
                 .Where(x => x.Attributes.SafeGet("OtherCustom") == "Blob rob")
                 .Select(x => x.Attributes.SafeGet("OtherCustom"));
