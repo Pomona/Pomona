@@ -43,7 +43,6 @@ namespace Pomona
         private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
         private static readonly MethodInfo updateMethod;
-        private readonly Func<string, string> baseUriGetter;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
         private readonly ISerializer serializer;
@@ -70,18 +69,14 @@ namespace Pomona
         /// <param name="typeMapper">Typemapper for session.</param>
         /// <param name="baseUriGetter"> </param>
         /// <param name="uriResolver"></param>
-        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, Func<string, string> baseUriGetter,
-                             IPomonaUriResolver uriResolver)
+        public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, IPomonaUriResolver uriResolver)
         {
             if (dataSource == null)
                 throw new ArgumentNullException("dataSource");
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            if (baseUriGetter == null)
-                throw new ArgumentNullException("baseUriGetter");
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
-            this.baseUriGetter = baseUriGetter;
             this.uriResolver = uriResolver;
             serializer = typeMapper.SerializerFactory.GetSerialier();
             deserializer = typeMapper.SerializerFactory.GetDeserializer();
@@ -141,13 +136,9 @@ namespace Pomona
                 throw new ArgumentNullException("entity");
             var transformedType = (TransformedType) TypeMapper.GetClassMapping(entity.GetType());
 
-            //return
-            //    new Uri(
-            //        string.Format("{0}{1}/{2}", baseUriGetter(), transformedType.UriRelativePath,
-            //                      transformedType.GetId(entity))).
-            //        ToString();
             return
-                baseUriGetter(string.Format("{0}/{1}", transformedType.UriRelativePath, transformedType.GetId(entity)));
+                uriResolver.RelativeToAbsoluteUri(string.Format("{0}/{1}", transformedType.UriRelativePath,
+                                                                transformedType.GetId(entity)));
         }
 
 
@@ -204,9 +195,7 @@ namespace Pomona
 
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
-            var clientLibGenerator = new ClientLibGenerator(typeMapper);
-            clientLibGenerator.PomonaClientEmbeddingEnabled = embedPomonaClient;
-            clientLibGenerator.CreateClientDll(stream);
+            ClientLibGenerator.WriteClientLibrary(typeMapper, stream, embedPomonaClient);
         }
 
 

@@ -463,6 +463,18 @@ namespace Pomona
         }
 
 
+        private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
+        {
+            var reflectedType = propertyInfo.ReflectedType;
+
+            while (reflectedType.BaseType != null && reflectedType != propertyInfo.DeclaringType && typeMapper.SourceTypes.Contains(reflectedType.BaseType))
+            {
+                reflectedType = reflectedType.BaseType;
+            }
+
+            return reflectedType;
+        }
+
         internal void ScanProperties(Type type)
         {
             var filter = typeMapper.Filter;
@@ -474,15 +486,7 @@ namespace Pomona
                 if (!filter.PropertyIsIncluded(propInfo))
                     continue;
 
-                IMappedType declaringType;
-
-                if (typeMapper.SourceTypes.Contains(propInfo.DeclaringType))
-                    declaringType = typeMapper.GetClassMapping(propInfo.DeclaringType);
-                else
-                {
-                    // TODO: Find lowest base type with this property
-                    declaringType = this;
-                }
+                IMappedType declaringType = typeMapper.GetClassMapping(GetKnownDeclaringType(propInfo));
 
                 var propInfoLocal = propInfo;
                 var getter = filter.GetPropertyGetter(propInfo);

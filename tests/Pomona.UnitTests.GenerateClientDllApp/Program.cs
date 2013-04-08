@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,49 +22,32 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.IO;
+using Pomona.CodeGen;
 using Pomona.Example;
 
 namespace Pomona.UnitTests.GenerateClientDllApp
 {
     internal class Program
     {
-        private class NoopUriResolver : IPomonaUriResolver
-        {
-            public object GetResultByUri(string uri)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         private static void Main(string[] args)
         {
             var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            var session = new PomonaSession(
-                new CritterDataSource(typeMapper), typeMapper, UriResolver, new NoopUriResolver());
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
-                session.WriteClientLibrary(file, embedPomonaClient: false);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);
             }
 
             using (
                 var file = new FileStream(
                     @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
             {
-                session.WriteClientLibrary(file, embedPomonaClient: true);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: true);
             }
 
             Console.WriteLine("Wrote client dll.");
-        }
-
-
-        private static string UriResolver(string path)
-        {
-            return "http://localhost/" + path;
         }
     }
 }

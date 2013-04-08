@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,11 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
-using System;
 using System.Linq;
-using NSubstitute;
 using NUnit.Framework;
 using Pomona.Example;
 using Pomona.Example.Models;
@@ -83,14 +77,21 @@ namespace Pomona.UnitTests.PomonaSession
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             dataSource = new CritterDataSource(typeMapper);
-            session = new Pomona.PomonaSession(dataSource, typeMapper, UriResolver, Substitute.For<IPomonaUriResolver>());
+            session = new Pomona.PomonaSession(dataSource, typeMapper, new DummyUriResolver());
             firstCritter = dataSource.List<Critter>().First();
         }
 
-
-        private string UriResolver(string path)
+        private class DummyUriResolver : IPomonaUriResolver
         {
-            return "http://localhost/" + path;
+            public object GetResultByUri(string uri)
+            {
+                return null;
+            }
+
+            public string RelativeToAbsoluteUri(string uri)
+            {
+                return "http://localhost/" + uri;
+            }
         }
     }
 }

@@ -27,5 +27,6 @@ namespace Pomona
     public interface IPomonaUriResolver
     {
         object GetResultByUri(string uri);
+        string RelativeToAbsoluteUri(string uri);
     }
 }

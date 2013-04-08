@@ -81,7 +81,7 @@ namespace Pomona
             }
             this.queryTransformer = queryTransformer;
 
-            session = new PomonaSession(dataSource, this.typeMapper, RelativeToAbsoluteUri, this);
+            session = new PomonaSession(dataSource, this.typeMapper, this);
 
             foreach (var transformedType in this.typeMapper
                                                 .TransformedTypes
@@ -172,7 +172,7 @@ namespace Pomona
         }
 
 
-        protected virtual string RelativeToAbsoluteUri(string path)
+        public virtual string RelativeToAbsoluteUri(string path)
         {
             if (string.IsNullOrEmpty(Request.Url.HostName))
             {

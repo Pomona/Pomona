@@ -69,6 +69,13 @@ namespace Pomona.CodeGen
             get { return module.Import(typeof (void)); }
         }
 
+        public static void WriteClientLibrary(TypeMapper typeMapper, Stream stream, bool embedPomonaClient = true)
+        {
+            var clientLibGenerator = new ClientLibGenerator(typeMapper);
+            clientLibGenerator.PomonaClientEmbeddingEnabled = embedPomonaClient;
+            clientLibGenerator.CreateClientDll(stream);
+        }
+
 
         public void CreateClientDll(Stream stream)
         {
@@ -132,14 +139,14 @@ namespace Pomona.CodeGen
 
             // Create proxy types
 
-            CreateProxies(
-                new ProxyBuilder(
-                    module,
-                    "{0}OldProxy",
-                    GetProxyType("LazyProxyBase"),
-                    MakeProxyTypesPublic,
-                    GeneratePropertyProxyMethods),
-                (info, def) => { info.LazyProxyType = def; });
+            //CreateProxies(
+            //    new ProxyBuilder(
+            //        module,
+            //        "{0}OldProxy",
+            //        GetProxyType("LazyProxyBase"),
+            //        MakeProxyTypesPublic,
+            //        GeneratePropertyProxyMethods),
+            //    (info, def) => { info.LazyProxyType = def; });
 
             CreateProxies(
                 new WrappedPropertyProxyBuilder(
