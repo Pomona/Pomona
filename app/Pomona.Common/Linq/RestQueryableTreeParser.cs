@@ -245,13 +245,11 @@ namespace Pomona.Common.Linq
 
         internal void QFirstOrDefault<TSource>()
         {
-            takeCount = 1;
             projection = QueryProjection.FirstOrDefault;
         }
 
         internal void QFirstLazy<TSource>()
         {
-            takeCount = 1;
             projection = QueryProjection.FirstLazy;
         }
 

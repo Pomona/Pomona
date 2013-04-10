@@ -33,10 +33,15 @@ namespace Pomona.Common.Web
     public class WrappedWebClient : IWebClient
     {
         private readonly IDictionary<string, string> headers;
-        private readonly WebClient webClient = new WebClient();
+        private readonly WebClient webClient;
 
-        public WrappedWebClient()
+        public WrappedWebClient() : this(null)
         {
+        }
+
+        public WrappedWebClient(WebClient webClient)
+        {
+            this.webClient = webClient ?? new WebClient();
             headers = new HeaderDictionaryWrapper(webClient);
         }
 

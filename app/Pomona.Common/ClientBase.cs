@@ -29,8 +29,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
@@ -49,14 +47,14 @@ namespace Pomona.Common
         }
 
         public abstract string BaseUri { get; }
-        public abstract IWebClient WebClient { get; set; }
+        public abstract IWebClient WebClient { get; }
 
         public abstract T Get<T>(string uri);
         public abstract string GetUriOfType(Type type);
         public abstract IQueryable<T> Query<T>();
 
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
-        public abstract object DownloadString(string uri, Type type);
+        public abstract object DownloadFromUri(string uri, Type type);
 
 
         public abstract IList<T> List<T>(string expand = null)
@@ -73,11 +71,11 @@ namespace Pomona.Common
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
-        protected void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString)
+        protected void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString, Exception thrownException = null)
         {
             var eh = RequestCompleted;
             if (eh != null)
-                eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString));
+                eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString, thrownException));
         }
 
 
@@ -107,7 +105,6 @@ namespace Pomona.Common
                 x => x.PostOrPatch("", "", null, "POST", null));
 
         private readonly string baseUri;
-        private readonly JsonSerializer jsonSerializer;
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
@@ -143,12 +140,9 @@ namespace Pomona.Common
         }
 
 
-        protected ClientBase(string baseUri)
+        protected ClientBase(string baseUri, IWebClient webClient)
         {
-            jsonSerializer = new JsonSerializer();
-            jsonSerializer.Converters.Add(new StringEnumConverter());
-
-            webClient = new WrappedWebClient();
+            this.webClient = webClient ?? new WrappedWebClient();
 
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
@@ -162,7 +156,6 @@ namespace Pomona.Common
         public override IWebClient WebClient
         {
             get { return webClient; }
-            set { webClient = value; }
         }
 
         public static IEnumerable<Type> ResourceTypes
@@ -176,16 +169,16 @@ namespace Pomona.Common
         }
 
 
-        public override object DownloadString(string uri, Type type)
+        public override object DownloadFromUri(string uri, Type type)
         {
-            return Deserialize(DownloadString(uri), type);
+            return Deserialize(DownloadFromUri(uri), type);
         }
 
 
         public override T Get<T>(string uri)
         {
             Log("Fetching uri {0}", uri);
-            return (T) Deserialize(DownloadString(uri), typeof (T));
+            return (T) Deserialize(DownloadFromUri(uri), typeof (T));
         }
 
 
@@ -394,14 +387,27 @@ namespace Pomona.Common
         }
 
 
-        private string DownloadString(string uri)
+        private string DownloadFromUri(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
             webClient.Headers["Accept"] = "application/json";
-            var downloadData = webClient.DownloadData(uri);
-            var responseString = Encoding.UTF8.GetString(downloadData);
 
-            RaiseRequestCompleted("GET", uri, null, responseString);
+            string responseString = null;
+            Exception thrownException = null;
+            try
+            {
+                var downloadData = webClient.DownloadData(uri);
+                responseString = Encoding.UTF8.GetString(downloadData);
+            }
+            catch (Exception ex)
+            {
+                thrownException = ex;
+                throw;
+            }
+            finally
+            {
+                RaiseRequestCompleted("GET", uri, null, responseString, thrownException);
+            }
 
             return responseString;
         }
@@ -447,10 +453,25 @@ namespace Pomona.Common
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
             webClient.Headers["Accept"] = "application/json";
-            var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
-            var responseString = Encoding.UTF8.GetString(responseBytes);
 
-            RaiseRequestCompleted(httpMethod, uri, requestString, responseString);
+            string responseString = null;
+            Exception thrownException = null;
+            try
+            {
+                var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
+                responseString = Encoding.UTF8.GetString(responseBytes);
+            }
+            catch (Exception ex)
+            {
+                thrownException = ex;
+                throw;
+            }
+            finally
+            {
+                RaiseRequestCompleted(httpMethod, uri, requestString, responseString, thrownException);
+            }
+
+
 
             return responseString;
         }

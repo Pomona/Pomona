@@ -168,12 +168,13 @@ namespace Pomona
             var queryResult = dataSource.Query(query);
 
             var pq = (PomonaQuery) query;
-            if (pq.Projection == PomonaQuery.ProjectionType.First)
+            if (pq.Projection == PomonaQuery.ProjectionType.First || pq.Projection == PomonaQuery.ProjectionType.FirstOrDefault)
             {
-                if (queryResult.Count < 1)
+                var foundNoResults = queryResult.Count < 1;
+                if (pq.Projection == PomonaQuery.ProjectionType.First && foundNoResults)
                     throw new InvalidOperationException("No resources found.");
 
-                var firstResult = ((IEnumerable) queryResult).Cast<object>().First();
+                var firstResult = foundNoResults ? null : ((IEnumerable) queryResult).Cast<object>().First();
                 return new PomonaResponse(query, firstResult, this);
             }
             return new PomonaResponse(query, queryResult, this);

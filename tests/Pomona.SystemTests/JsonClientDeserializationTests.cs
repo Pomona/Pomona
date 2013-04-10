@@ -86,6 +86,16 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void DeserializeClassWithObjectProperty_PropertyGotStringValue_ReturnsDeserializedObject()
+        {
+            var jsonString = @"{ ""fooBar"": ""blabla"" }";
+
+
+            var deserialized = Deserialize<IHasObjectProperty>(jsonString);
+            Assert.That(deserialized.FooBar, Is.EqualTo("blabla"));
+        }
+
+        [Test]
         public void DeserializeCritter_AndCheckSomeProperties()
         {
             var jsonString =

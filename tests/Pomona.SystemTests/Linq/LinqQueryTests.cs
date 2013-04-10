@@ -430,6 +430,14 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void Query_UsingFirstOrDefault_WithNoMatches_ReturnsNull()
+        {
+            var result = client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
         public void QueryCustomTestEntity_UsingFirstOrDefault_ReturnsCustomTestEntity()
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));

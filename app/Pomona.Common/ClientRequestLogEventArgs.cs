@@ -31,14 +31,23 @@ namespace Pomona.Common
         private readonly string method;
         private readonly string request;
         private readonly string response;
+        private readonly Exception thrownException;
+
         private readonly string uri;
 
-        public ClientRequestLogEventArgs(string method, string uri, string request, string response)
+        public ClientRequestLogEventArgs(string method, string uri, string request, string response,
+                                         Exception thrownException)
         {
             this.method = method;
             this.uri = uri;
             this.request = request;
             this.response = response;
+            this.thrownException = thrownException;
+        }
+
+        public Exception ThrownException
+        {
+            get { return thrownException; }
         }
 
         public string Uri

@@ -43,7 +43,8 @@ namespace Pomona
         public enum ProjectionType
         {
             Default,
-            First
+            First,
+            FirstOrDefault
         }
 
         private static readonly MethodInfo applyAndExecuteMethod;

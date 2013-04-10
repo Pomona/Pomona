@@ -98,10 +98,10 @@ namespace Pomona.SystemTests
             else
             {
                 baseUri = "http://test/";
-                client = new Client(baseUri);
                 var critterBootstrapper = new CritterBootstrapper();
                 DataSource = critterBootstrapper.DataSource;
-                client.WebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
+                var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
+                client = new Client(baseUri, nancyTestingWebClient);
             }
         }
 

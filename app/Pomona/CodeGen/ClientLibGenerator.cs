@@ -33,6 +33,7 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
+using Pomona.Common.Web;
 
 namespace Pomona.CodeGen
 {
@@ -124,12 +125,6 @@ namespace Pomona.CodeGen
 
             clientTypeInfoDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
             enumClientTypeDict = new Dictionary<EnumType, TypeDefinition>();
-
-            var msObjectTypeRef = module.Import(typeof (object));
-            var msObjectCtor =
-                module.Import(
-                    msObjectTypeRef.Resolve().Methods.First(
-                        x => x.Name == ".ctor" && x.IsConstructor && x.Parameters.Count == 0));
 
             BuildEnumTypes();
 
@@ -504,7 +499,23 @@ namespace Pomona.CodeGen
 
             var clientBaseTypeGenericInstance = clientBaseTypeRef.MakeGenericInstanceType(clientTypeDefinition);
             clientTypeDefinition.BaseType = clientBaseTypeGenericInstance;
+            
+            var clientBaseTypeCtor =
+                module.Import(
+                    clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 2));
+                        clientBaseTypeCtor.DeclaringType =
+                            clientBaseTypeCtor.DeclaringType.MakeGenericInstanceType(clientTypeDefinition);
 
+            CreateClientConstructor(clientBaseTypeCtor, clientTypeDefinition, false);
+            CreateClientConstructor(clientBaseTypeCtor, clientTypeDefinition, true);
+
+            AddRepositoryPropertiesToClientType(clientTypeDefinition);
+
+            module.Types.Add(clientTypeDefinition);
+        }
+
+        private void CreateClientConstructor(MethodReference clientBaseTypeCtor, TypeDefinition clientTypeDefinition, bool includeWebClientArgument)
+        {
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
@@ -513,24 +524,28 @@ namespace Pomona.CodeGen
 
             ctor.Parameters.Add(new ParameterDefinition("uri", ParameterAttributes.None, StringTypeRef));
 
-            var clientBaseTypeCtor =
-                module.Import(
-                    clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 1));
-            clientBaseTypeCtor.DeclaringType =
-                clientBaseTypeCtor.DeclaringType.MakeGenericInstanceType(clientTypeDefinition);
+            if (includeWebClientArgument)
+            {
+                ctor.Parameters.Add(new ParameterDefinition("webClient", ParameterAttributes.None,
+                                                            GetClientTypeReference(typeof (IWebClient))));
+            }
 
             ctor.Body.MaxStackSize = 8;
             var ctorIlProcessor = ctor.Body.GetILProcessor();
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            if (includeWebClientArgument)
+            {
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_2));
+            }
+            else
+            {
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldnull));
+            }
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, clientBaseTypeCtor));
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
             clientTypeDefinition.Methods.Add(ctor);
-
-            AddRepositoryPropertiesToClientType(clientTypeDefinition);
-
-            module.Types.Add(clientTypeDefinition);
         }
 
 
@@ -791,19 +806,26 @@ namespace Pomona.CodeGen
                 TypeReference rootProxyTargetType)
             {
                 var propertyMapping = owner.GetPropertyMapping(targetProp);
-                if (propertyMapping.IsWriteable)
-                {
-                    base.OnGeneratePropertyMethods(
-                        targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
-                }
-                else
+                base.OnGeneratePropertyMethods(
+                    targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
+                if (!propertyMapping.IsWriteable)
                 {
                     var invalidOperationStrCtor =
                         typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
-                    foreach (var method in new[] {proxyProp.GetMethod, proxyProp.SetMethod})
+                    // Do not disable GETTING of collection types in update proxy, we might want to change
+                    // the collection itself.
+
+                    bool allowReadingOfProperty = propertyMapping.PropertyType.IsCollection || propertyMapping.PropertyType.IsDictionary;
+
+                    var methodsToRestrict = allowReadingOfProperty
+                                                ? new[] {proxyProp.SetMethod}
+                                                : new[] {proxyProp.SetMethod, proxyProp.GetMethod};
+
+                    foreach (var method in methodsToRestrict)
                     {
+                        method.Body.Instructions.Clear();
                         var ilproc = method.Body.GetILProcessor();
                         ilproc.Append(
                             Instruction.Create(

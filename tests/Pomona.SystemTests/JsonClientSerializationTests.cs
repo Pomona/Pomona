@@ -114,12 +114,10 @@ namespace Pomona.SystemTests
 
             var mapJobj = jobj.AssertHasPropertyWithObject("map");
             var fooBox = mapJobj.AssertHasPropertyWithObject("foo");
-            var barBox = mapJobj.AssertHasPropertyWithObject("bar");
+            Assert.That(mapJobj.AssertHasPropertyWithString("bar"), Is.EqualTo("hoho"));
 
             fooBox.AssertHasPropertyWithValue("_type", "Int32");
             fooBox.AssertHasPropertyWithValue("value", 1234);
-            barBox.AssertHasPropertyWithValue("_type", "String");
-            barBox.AssertHasPropertyWithValue("value", "hoho");
         }
     }
 }

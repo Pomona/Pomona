@@ -87,26 +87,35 @@ namespace Pomona.Common.Serialization.Json
                     SerializeCollection(node, writer);
                     break;
                 case TypeSerializationMode.Value:
-                    var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
-                                               node.ExpectedBaseType.MappedTypeInstance == typeof (object);
-                    if (boxValueWithTypeSpec)
-                    {
-                        writer.JsonWriter.WriteStartObject();
-                        writer.JsonWriter.WritePropertyName("_type");
-                        writer.JsonWriter.WriteValue(node.ValueType.Name);
-                        writer.JsonWriter.WritePropertyName("value");
-                    }
-
-                    var jsonConverter = node.ValueType.JsonConverter;
-                    if (jsonConverter != null)
-                        jsonConverter.WriteJson(writer.JsonWriter, node.Value, null);
-                    else
-                        writer.JsonWriter.WriteValue(node.Value);
-
-                    if (boxValueWithTypeSpec)
-                        writer.JsonWriter.WriteEndObject();
+                    SerializeValue(node, writer);
                     break;
             }
+        }
+
+        private static void SerializeValue(ISerializerNode node, Writer writer)
+        {
+            var value = node.Value;
+
+            var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
+                                       node.ExpectedBaseType.MappedTypeInstance == typeof (object) &&
+                                       (!(node.Value is string));
+
+            if (boxValueWithTypeSpec)
+            {
+                writer.JsonWriter.WriteStartObject();
+                writer.JsonWriter.WritePropertyName("_type");
+                writer.JsonWriter.WriteValue(node.ValueType.Name);
+                writer.JsonWriter.WritePropertyName("value");
+            }
+
+            var jsonConverter = node.ValueType.JsonConverter;
+            if (jsonConverter != null)
+                jsonConverter.WriteJson(writer.JsonWriter, value, null);
+            else
+                writer.JsonWriter.WriteValue(value);
+
+            if (boxValueWithTypeSpec)
+                writer.JsonWriter.WriteEndObject();
         }
 
 

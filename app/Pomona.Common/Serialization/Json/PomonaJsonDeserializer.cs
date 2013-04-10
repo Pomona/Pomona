@@ -235,15 +235,17 @@ namespace Pomona.Common.Serialization.Json
                 var prop = node.ValueType.Properties.First(x => x.JsonName == name);
                 var propNode = new PropertyValueDeserializerNode(node, prop);
 
+                object oldPropValue = null;
                 if (node.Value != null)
                 {
                     // If value is set we PATCH an existing object instead of creating a new one.
-                    propNode.Value = prop.Getter(node.Value);
+                    oldPropValue = propNode.Value = prop.Getter(node.Value);
                 }
 
                 propNode.Deserialize(this, new Reader(jprop.Value));
 
-                propertyValueMap[prop] = propNode.Value;
+                if (oldPropValue != propNode.Value)
+                    propertyValueMap[prop] = propNode.Value;
             }
 
             if (node.Value == null)

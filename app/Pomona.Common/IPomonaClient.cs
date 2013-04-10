@@ -40,7 +40,7 @@ namespace Pomona.Common
 
         IQueryable<T> Query<T>();
         bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
-        object DownloadString(string uri, Type type);
+        object DownloadFromUri(string uri, Type type);
 
     }
 }

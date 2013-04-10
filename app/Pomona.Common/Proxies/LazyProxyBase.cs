@@ -83,7 +83,7 @@ namespace Pomona.Common.Proxies
         {
             if (proxyTarget == null)
             {
-                proxyTarget = client.DownloadString(uri, proxyTargetType);
+                proxyTarget = client.DownloadFromUri(uri, proxyTargetType);
                 var hasResourceUri = proxyTarget as IHasResourceUri;
                 if (hasResourceUri != null)
                 {

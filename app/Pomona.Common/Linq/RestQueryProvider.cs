@@ -151,10 +151,13 @@ namespace Pomona.Common.Linq
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy ||
-                parser.Projection == RestQueryableTreeParser.QueryProjection.First ||
-                parser.Projection == RestQueryableTreeParser.QueryProjection.FirstOrDefault)
+                parser.Projection == RestQueryableTreeParser.QueryProjection.First)
             {
                 builder.AppendParameter("$projection", "first");
+            }
+            else if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstOrDefault)
+            {
+                builder.AppendParameter("$projection", "firstordefault");
             }
 
             if (parser.WherePredicate != null)
