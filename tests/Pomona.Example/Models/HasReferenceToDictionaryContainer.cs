@@ -22,20 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-
-namespace Pomona.Schemas
+namespace Pomona.Example.Models
 {
-    public class SchemaTypeEntry
+    public class HasReferenceToDictionaryContainer : EntityBase
     {
-        public SchemaTypeEntry()
-        {
-            Properties = new Dictionary<string, SchemaPropertyEntry>();
-        }
-
-        public string Uri { get; set; }
-        public string Name { get; set; }
-        public string Extends { get; set; }
-        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
+        public StringToObjectDictionaryContainer Container { get; set; }
     }
 }

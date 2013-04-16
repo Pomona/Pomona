@@ -85,6 +85,7 @@
     <Compile Include="Queries\ParseFilterTests.cs" />
     <Compile Include="Queries\ParseSelectTests.cs" />
     <Compile Include="Queries\QueryExpressionParserTestsBase.cs" />
+    <Compile Include="Schemas\SchemaTests.cs" />
     <Compile Include="SingularToPluralTranslatorTests.cs" />
     <Compile Include="TypeMapperTests.cs" />
   </ItemGroup>

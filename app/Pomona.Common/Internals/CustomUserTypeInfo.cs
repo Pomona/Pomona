@@ -74,13 +74,6 @@ namespace Pomona.Common.Internals
                 serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
                     x => x.GetCustomAttributes(typeof (ResourceAttributesPropertyAttribute), true).Any());
 
-            if (attrProp == null)
-            {
-                throw new InvalidOperationException(
-                    "Unable to find property with ResourceAttributesPropertyAttribute attached to it on type "
-                    + serverKnownType.FullName);
-            }
-
             return attrProp;
         }
     }

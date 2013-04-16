@@ -78,6 +78,7 @@
     <Compile Include="Models\HasCustomEnum.cs" />
     <Compile Include="Models\HasCustomNullableEnum.cs" />
     <Compile Include="Models\HasObjectProperty.cs" />
+    <Compile Include="Models\HasReferenceToDictionaryContainer.cs" />
     <Compile Include="Models\Hat.cs" />
     <Compile Include="Models\InheritsFromGenericBaseClass.cs" />
     <Compile Include="Models\Instrument.cs" />

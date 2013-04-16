@@ -270,6 +270,7 @@ namespace Pomona.Common.Linq
                 return false;
             }
 
+
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(
                 customClientType, info.ServerType, info.DictProperty);
             var transformedExpression = visitor.Visit(expression);

@@ -39,7 +39,7 @@ namespace Pomona.Common.Serialization.Json
     public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializer.Writer>
     {
         private readonly IDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache;
-
+        private bool inlineDocumentationEnabled = true;
 
         internal PomonaJsonSerializer(IDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache)
         {
@@ -292,6 +292,7 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var prop in propertiesToSerialize)
             {
+
                 jsonWriter.WritePropertyName(prop.JsonName);
                 var propNode = new PropertyValueSerializerNode(node, prop);
                 propNode.Serialize(this, writer);
