@@ -119,6 +119,8 @@
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
+    <Compile Include="CodeGen\ProxyBuilder.cs" />
+    <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="EnumType.cs" />
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />

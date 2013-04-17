@@ -25,18 +25,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 using Pomona.Common.Internals;
-using TypeDefinition = System.Reflection.Emit.TypeBuilder;
-using TypeReference = System.Type;
-using ModuleDefinition = System.Reflection.Emit.ModuleBuilder;
-using PropertyDefinition = System.Reflection.Emit.PropertyBuilder;
-using MethodReference = System.Reflection.MethodInfo;
-using MethodDefinition = System.Reflection.Emit.MethodBuilder;
 
-
-namespace Pomona.Common.Proxies
+namespace Pomona.CodeGen
 {
     public class ProxyBuilder
     {
@@ -44,7 +38,7 @@ namespace Pomona.Common.Proxies
 
         private readonly ModuleDefinition module;
 
-        private readonly Action<PropertyInfo, PropertyDefinition, TypeReference, TypeReference>
+        private readonly Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference>
             onGeneratePropertyMethodsFunc;
 
         private readonly TypeReference proxyBaseTypeDef;
@@ -58,11 +52,11 @@ namespace Pomona.Common.Proxies
             string proxyNameFormat,
             TypeReference proxyBaseTypeDef,
             bool isPublic,
-            Action<PropertyInfo, PropertyDefinition, TypeReference, TypeReference> onGeneratePropertyMethodsFunc =
+            Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference> onGeneratePropertyMethodsFunc =
                 null,
             string proxyNamespace = null)
         {
-            this.proxyNamespace = proxyNamespace ?? module.Assembly.GetName().Name;
+            this.proxyNamespace = proxyNamespace ?? module.Assembly.Name.Name;
             this.module = module;
             this.proxyBaseTypeDef = proxyBaseTypeDef;
             this.onGeneratePropertyMethodsFunc = onGeneratePropertyMethodsFunc;
@@ -85,10 +79,11 @@ namespace Pomona.Common.Proxies
 
         public TypeDefinition CreateProxyType(
             string nameBase,
-            IEnumerable<TypeReference> interfacesToImplement)
+            IEnumerable<TypeDefinition> interfacesToImplement)
         {
-            var proxyBaseCtor =
-                proxyBaseTypeDef.GetConstructors().First(x => x.GetParameters().Length == 0);
+            MethodReference proxyBaseCtor =
+                proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+            proxyBaseCtor = Module.Import(proxyBaseCtor);
 
             var proxyTypeName = string.Format(proxyNameFormat, nameBase);
 
@@ -97,46 +92,50 @@ namespace Pomona.Common.Proxies
                                      : TypeAttributes.NotPublic;
 
             var proxyType =
-                Module.DefineType(proxyNamespace + "." + proxyTypeName, typeAttributes, proxyBaseTypeDef);
+                new TypeDefinition(
+                    proxyNamespace,
+                    proxyTypeName,
+                    typeAttributes,
+                    module.Import(proxyBaseTypeDef));
+            Module.Types.Add(proxyType);
 
             foreach (var interfaceDef in interfacesToImplement)
-                proxyType.AddInterfaceImplementation(interfaceDef);
+                proxyType.Interfaces.Add(module.Import(interfaceDef));
 
             // Empty public constructor
-            var ctor =
-                proxyType.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.SpecialName |
-                                            MethodAttributes.RTSpecialName
-                                            | MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
+            var ctor = new MethodDefinition(
+                ".ctor",
+                MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
+                | MethodAttributes.Public,
+                Module.TypeSystem.Void);
 
-            var ctorIlProcessor = ctor.GetILGenerator();
-            ctorIlProcessor.Emit(OpCodes.Ldarg_0);
-            ctorIlProcessor.Emit(OpCodes.Call, proxyBaseCtor);
-            ctorIlProcessor.Emit(OpCodes.Ret);
+            ctor.Body.MaxStackSize = 8;
+            var ctorIlProcessor = ctor.Body.GetILProcessor();
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, proxyBaseCtor));
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+
+            proxyType.Methods.Add(ctor);
 
             var interfaces = interfacesToImplement.SelectMany(GetAllInterfacesRecursive).Distinct().ToList();
 
-            foreach (var targetProp in interfaces.SelectMany(x => x.GetProperties()))
+            foreach (var targetProp in interfaces.SelectMany(x => x.Properties))
             {
-                var proxyPropDef = AddProperty(proxyType, targetProp.Name, targetProp.PropertyType);
+                var proxyPropDef = AddProperty(proxyType, targetProp.Name, module.Import(targetProp.PropertyType));
                 OnGeneratePropertyMethods(
                     targetProp,
                     proxyPropDef,
                     proxyBaseTypeDef,
-                    targetProp.DeclaringType,
+                    module.Import(targetProp.DeclaringType),
                     interfacesToImplement.First());
             }
-
-            OnPropertyGenerationComplete(proxyType);
 
             return proxyType;
         }
 
-        protected virtual void OnPropertyGenerationComplete(TypeDefinition proxyType)
-        {
-        }
 
         protected virtual void OnGeneratePropertyMethods(
-            PropertyInfo targetProp,
+            PropertyDefinition targetProp,
             PropertyDefinition proxyProp,
             TypeReference proxyBaseType,
             TypeReference proxyTargetType,
@@ -152,11 +151,11 @@ namespace Pomona.Common.Proxies
         }
 
 
-        private static IEnumerable<TypeReference> GetAllInterfacesRecursive(TypeReference typeDefinition)
+        private static IEnumerable<TypeDefinition> GetAllInterfacesRecursive(TypeDefinition typeDefinition)
         {
             return
                 typeDefinition.WrapAsEnumerable().Concat(
-                    typeDefinition.GetInterfaces().SelectMany(x => GetAllInterfacesRecursive(x)));
+                    typeDefinition.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())));
         }
 
 
@@ -165,27 +164,28 @@ namespace Pomona.Common.Proxies
         /// </summary>
         private PropertyDefinition AddProperty(TypeDefinition declaringType, string name, TypeReference propertyType)
         {
-            var proxyPropDef = declaringType.DefineProperty(name, PropertyAttributes.None, propertyType, null);
-            var proxyPropGetter = declaringType.DefineMethod(
+            var proxyPropDef = new PropertyDefinition(name, PropertyAttributes.None, propertyType);
+            var proxyPropGetter = new MethodDefinition(
                 "get_" + name,
                 MethodAttributes.NewSlot | MethodAttributes.SpecialName |
                 MethodAttributes.HideBySig
                 | MethodAttributes.Virtual | MethodAttributes.Public,
-                propertyType, Type.EmptyTypes);
+                propertyType);
+            proxyPropDef.GetMethod = proxyPropGetter;
 
-            proxyPropDef.SetGetMethod(proxyPropGetter);
-
-            var proxyPropSetter = declaringType.DefineMethod(
+            var proxyPropSetter = new MethodDefinition(
                 "set_" + name,
                 MethodAttributes.NewSlot | MethodAttributes.SpecialName |
                 MethodAttributes.HideBySig
                 | MethodAttributes.Virtual | MethodAttributes.Public,
-                null, new[] {propertyType});
+                Module.TypeSystem.Void);
 
-            proxyPropSetter.DefineParameter(0, ParameterAttributes.None, "value");
+            proxyPropSetter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propertyType));
+            proxyPropDef.SetMethod = proxyPropSetter;
 
-            proxyPropDef.SetSetMethod(proxyPropSetter);
-
+            declaringType.Methods.Add(proxyPropGetter);
+            declaringType.Methods.Add(proxyPropSetter);
+            declaringType.Properties.Add(proxyPropDef);
             return proxyPropDef;
         }
     }

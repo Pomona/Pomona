@@ -50,6 +50,8 @@ namespace Pomona.Common.Proxies
 
             var typeDef = proxyBuilder.CreateProxyType(typeName, type.WrapAsEnumerable());
 
+            proxyType = typeDef.CreateType();
+
             /*
             var type = typeof (T);
             var typeName = type.Name;

@@ -25,7 +25,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 
-namespace Pomona.Common.Proxies
+namespace Pomona.CodeGen
 {
     public static class CecilExtensions
     {
