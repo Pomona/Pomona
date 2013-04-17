@@ -32,11 +32,11 @@ namespace Pomona.Common.Proxies
 {
     public class PropertyWrapper<TOwner, TPropType>
     {
-        private readonly Func<TOwner, TPropType> getter;
-        private readonly Expression<Func<TOwner, TPropType>> getterExpression;
         private readonly PropertyInfo propertyInfo;
-        private readonly Action<TOwner, TPropType> setter;
-        private readonly Expression<Action<TOwner, TPropType>> setterExpression;
+        private Func<TOwner, TPropType> getter;
+        private Expression<Func<TOwner, TPropType>> getterExpression;
+        private Action<TOwner, TPropType> setter;
+        private Expression<Action<TOwner, TPropType>> setterExpression;
 
 
         public PropertyWrapper(string propertyName)
@@ -47,34 +47,31 @@ namespace Pomona.Common.Proxies
                 t => t.GetProperty(
                     propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)).FirstOrDefault(
                         t => t != null);
-
-            var getterSelfParam = Expression.Parameter(ownerType, "x");
-            getterExpression =
-                Expression.Lambda<Func<TOwner, TPropType>>(
-                    Expression.MakeMemberAccess(getterSelfParam, propertyInfo), getterSelfParam);
-            var setterSelfParam = Expression.Parameter(ownerType, "x");
-            var setterValueParam = Expression.Parameter(typeof (TPropType), "value");
-
-            getter = getterExpression.Compile();
-
-            setterExpression =
-                Expression.Lambda<Action<TOwner, TPropType>>(
-                    Expression.Assign(Expression.Property(setterSelfParam, propertyInfo), setterValueParam),
-                    setterSelfParam,
-                    setterValueParam);
-
-            setter = setterExpression.Compile();
         }
 
 
         public Func<TOwner, TPropType> Getter
         {
-            get { return getter; }
+            get { return getter ?? (getter = GetterExpression.Compile()); }
         }
 
         public Expression<Func<TOwner, TPropType>> GetterExpression
         {
-            get { return getterExpression; }
+            get
+            {
+                if (getterExpression == null)
+                {
+                    var ownerType = typeof (TOwner);
+
+                    var getterSelfParam = Expression.Parameter(ownerType, "x");
+                    getterExpression =
+                        Expression.Lambda<Func<TOwner, TPropType>>(
+                            Expression.MakeMemberAccess(getterSelfParam, propertyInfo), getterSelfParam);
+                }
+
+
+                return getterExpression;
+            }
         }
 
         public string Name
@@ -89,12 +86,28 @@ namespace Pomona.Common.Proxies
 
         public Action<TOwner, TPropType> Setter
         {
-            get { return setter; }
+            get { return setter ?? (setter = SetterExpression.Compile()); }
         }
 
         public Expression<Action<TOwner, TPropType>> SetterExpression
         {
-            get { return setterExpression; }
+            get
+            {
+                if (setterExpression == null)
+                {
+                    var ownerType = typeof (TOwner);
+
+                    var setterSelfParam = Expression.Parameter(ownerType, "x");
+                    var setterValueParam = Expression.Parameter(typeof (TPropType), "value");
+
+                    setterExpression =
+                        Expression.Lambda<Action<TOwner, TPropType>>(
+                            Expression.Assign(Expression.Property(setterSelfParam, propertyInfo), setterValueParam),
+                            setterSelfParam,
+                            setterValueParam);
+                }
+                return setterExpression;
+            }
         }
 
 
