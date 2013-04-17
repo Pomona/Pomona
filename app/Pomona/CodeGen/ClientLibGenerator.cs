@@ -44,6 +44,7 @@ namespace Pomona.CodeGen
         private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumType, TypeDefinition> enumClientTypeDict;
         private ModuleDefinition module;
+        private TypeDefinition clientInterface;
 
 
         public ClientLibGenerator(TypeMapper typeMapper)
@@ -158,6 +159,7 @@ namespace Pomona.CodeGen
                 new PostFormProxyBuilder(this),
                 (info, def) => { info.PostFormType = def; });
 
+            CreateClientInterface("IClient");
             CreateClientType("Client");
 
             foreach (var typeInfo in clientTypeInfoDict.Values)
@@ -173,6 +175,19 @@ namespace Pomona.CodeGen
             stream.Write(array, 0, array.Length);
 
             //assembly.Write(stream);
+        }
+
+        private void CreateClientInterface(string interfaceName)
+        {
+            clientInterface = new TypeDefinition(
+                assemblyName, interfaceName, TypeAttributes.Interface | TypeAttributes.Public |
+                    TypeAttributes.Abstract);
+
+            clientInterface.Interfaces.Add(GetClientTypeReference(typeof(IPomonaClient)));
+
+            AddRepositoryPropertiesToClientType(clientInterface);
+
+            module.Types.Add(clientInterface);
         }
 
         private DefaultAssemblyResolver GetAssemblyResolver()
@@ -261,8 +276,16 @@ namespace Pomona.CodeGen
                 var repoPropType =
                     GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
                         resourceTypeInfo.InterfaceType, postReturnTypeRef);
-                var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
-                repoProp.SetMethod.IsPublic = false;
+
+                if (clientTypeDefinition.IsInterface)
+                {
+                    AddInterfaceProperty(clientTypeDefinition, repoPropName, repoPropType, true);
+                }
+                else
+                {
+                    var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
+                    repoProp.SetMethod.IsPublic = false;                    
+                }
             }
         }
 
@@ -458,35 +481,46 @@ namespace Pomona.CodeGen
                     var propTypeRef = GetPropertyTypeReference(prop);
 
                     // For interface getters and setters
-                    var interfacePropDef = new PropertyDefinition(prop.Name, PropertyAttributes.None, propTypeRef);
-                    var interfaceGetMethod = new MethodDefinition(
-                        "get_" + prop.Name,
-                        MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                        MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
-                        propTypeRef);
-                    var interfaceSetMethod = new MethodDefinition(
-                        "set_" + prop.Name,
-                        MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                        MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
-                        module.TypeSystem.Void);
-                    interfaceSetMethod.Parameters.Add(
-                        new ParameterDefinition(
-                            "value",
-                            ParameterAttributes.None,
-                            propTypeRef));
-
-                    interfacePropDef.GetMethod = interfaceGetMethod;
-                    interfacePropDef.SetMethod = interfaceSetMethod;
-
-                    interfaceDef.Methods.Add(interfaceGetMethod);
-                    interfaceDef.Methods.Add(interfaceSetMethod);
-                    interfaceDef.Properties.Add(interfacePropDef);
+                    var interfacePropDef = AddInterfaceProperty(interfaceDef, prop.Name, propTypeRef);
 
                     if (prop.IsAttributesProperty)
                         AddResourceAttributesPropertyAttribute(interfacePropDef);
+
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
                 }
             }
+        }
+
+        private PropertyDefinition AddInterfaceProperty(TypeDefinition interfaceDef, string propName, TypeReference propTypeRef, bool readOnly = false)
+        {
+            var interfacePropDef = new PropertyDefinition(propName, PropertyAttributes.None, propTypeRef);
+            var interfaceGetMethod = new MethodDefinition(
+                "get_" + propName,
+                MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+                MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
+                propTypeRef);
+            interfacePropDef.GetMethod = interfaceGetMethod;
+            interfaceDef.Methods.Add(interfaceGetMethod);
+
+            if (!readOnly)
+            {
+                var interfaceSetMethod = new MethodDefinition(
+                    "set_" + propName,
+                    MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
+                    MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
+                    module.TypeSystem.Void);
+
+                interfaceSetMethod.Parameters.Add(
+                    new ParameterDefinition(
+                        "value",
+                        ParameterAttributes.None,
+                        propTypeRef));
+                interfacePropDef.SetMethod = interfaceSetMethod;
+                interfaceDef.Methods.Add(interfaceSetMethod);
+            }
+
+            interfaceDef.Properties.Add(interfacePropDef);
+            return interfacePropDef;
         }
 
 
@@ -496,6 +530,8 @@ namespace Pomona.CodeGen
 
             var clientTypeDefinition = new TypeDefinition(
                 assemblyName, clientTypeName, TypeAttributes.Public);
+
+            clientTypeDefinition.Interfaces.Add(clientInterface);
 
             var clientBaseTypeGenericInstance = clientBaseTypeRef.MakeGenericInstanceType(clientTypeDefinition);
             clientTypeDefinition.BaseType = clientBaseTypeGenericInstance;
