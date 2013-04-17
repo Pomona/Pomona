@@ -24,7 +24,8 @@
 
 using System;
 using System.IO;
-using Mono.Cecil;
+using System.Reflection;
+using System.Reflection.Emit;
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
@@ -36,6 +37,20 @@ namespace Pomona.Common.Proxies
 
         static RuntimeProxyFactory()
         {
+            var type = typeof (T);
+            var typeName = type.Name;
+            var assemblyNameString = typeName + "Proxy" + Guid.NewGuid().ToString();
+            var assemblyName = new AssemblyName(assemblyNameString);
+
+            var asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var modBuilder = asmBuilder.DefineDynamicModule(assemblyNameString, false);
+
+            var proxyBuilder = new WrappedPropertyProxyBuilder(modBuilder, typeof (TProxyBase),
+                                                                     typeof (PropertyWrapper<,>));
+
+            var typeDef = proxyBuilder.CreateProxyType(typeName, type.WrapAsEnumerable());
+
+            /*
             var type = typeof (T);
             var typeName = type.Name;
             var assemblyName = typeName + "Proxy" + Guid.NewGuid().ToString();
@@ -60,6 +75,7 @@ namespace Pomona.Common.Proxies
 
             var loadedAssembly = AppDomain.CurrentDomain.Load(assemblyBlob);
             proxyType = loadedAssembly.GetType(typeDef.FullName);
+                 */
         }
 
 

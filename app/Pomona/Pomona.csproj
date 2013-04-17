@@ -116,6 +116,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
+    <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="EnumType.cs" />

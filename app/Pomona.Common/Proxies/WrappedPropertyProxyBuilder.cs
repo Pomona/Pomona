@@ -23,22 +23,29 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Cecil.Rocks;
+using System.Reflection;
+using System.Reflection.Emit;
+using TypeDefinition = System.Reflection.Emit.TypeBuilder;
+using TypeReference = System.Type;
+using ModuleDefinition = System.Reflection.Emit.ModuleBuilder;
+using PropertyDefinition = System.Reflection.Emit.PropertyBuilder;
+using MethodReference = System.Reflection.MethodInfo;
+using MethodDefinition = System.Reflection.Emit.MethodBuilder;
 
 namespace Pomona.Common.Proxies
 {
     public class WrappedPropertyProxyBuilder : ProxyBuilder
     {
-        private readonly TypeDefinition propertyWrapperType;
+        private readonly List<Action<ILGenerator>> initPropertyWrapperIlAction = new List<Action<ILGenerator>>();
+        private readonly TypeReference propertyWrapperType;
 
 
         public WrappedPropertyProxyBuilder(
             ModuleDefinition module,
             TypeReference proxyBaseTypeDef,
-            TypeDefinition propertyWrapperType,
+            TypeReference propertyWrapperType,
             bool isPublic = true) : base(module, "Fast{0}Proxy", proxyBaseTypeDef, isPublic)
         {
             this.propertyWrapperType = propertyWrapperType;
@@ -46,30 +53,31 @@ namespace Pomona.Common.Proxies
 
 
         protected override void OnGeneratePropertyMethods(
-            PropertyDefinition targetProp,
+            PropertyInfo targetProp,
             PropertyDefinition proxyProp,
             TypeReference proxyBaseType,
             TypeReference proxyTargetType,
             TypeReference rootProxyTargetType)
         {
             var propWrapperTypeDef = propertyWrapperType;
-            var propWrapperTypeRef =
-                Module.Import(
-                    propWrapperTypeDef.MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType));
+            var propWrapperTypeRef = propertyWrapperType.MakeGenericType(proxyTargetType, proxyProp.PropertyType);
+            var proxyType = (TypeDefinition) proxyProp.DeclaringType;
 
-            var propWrapperCtor = Module.Import(
-                propWrapperTypeDef.GetConstructors().First(
-                    x => !x.IsStatic &&
-                         x.Parameters.Count == 1 &&
-                         x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName).
-                                   MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType));
+            var propWrapperCtor =
+                propWrapperTypeRef.GetConstructors().First(x => x.GetParameters().Length == 1 &&
+                                                                x.GetParameters()[0].ParameterType == typeof (string));
 
-            var propertyWrapperField = new FieldDefinition(
-                "_pwrap_" + targetProp.Name,
-                /*FieldAttributes.SpecialName | */FieldAttributes.Private | FieldAttributes.Static,
-                propWrapperTypeRef);
-            proxyProp.DeclaringType.Fields.Add(propertyWrapperField);
+            var propertyWrapperField = proxyType.DefineField(
+                "_pwrap_" + targetProp.Name, propWrapperTypeRef, FieldAttributes.Private | FieldAttributes.Static);
 
+            initPropertyWrapperIlAction.Add(il =>
+                {
+                    il.Emit(OpCodes.Ldstr, targetProp.Name);
+                    il.Emit(OpCodes.Newobj, propWrapperCtor);
+                    il.Emit(OpCodes.Stsfld, propertyWrapperField);
+                });
+
+            /*
             var initPropertyWrappersMethod = GetInitPropertyWrappersMethod(proxyProp);
 
             var initIl = initPropertyWrappersMethod.Body.GetILProcessor();
@@ -80,38 +88,43 @@ namespace Pomona.Common.Proxies
             initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Ldstr, targetProp.Name));
             initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Newobj, propWrapperCtor));
             initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Stsfld, propertyWrapperField));
+            */
 
-            var baseDef = proxyBaseType.Resolve();
+
+            var baseDef = proxyBaseType;
             var proxyOnGetMethod =
-                Module.Import(baseDef.Methods.First(x => x.Name == "OnGet"));
-            if (proxyOnGetMethod.GenericParameters.Count != 2)
+                baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                       .First(x => x.Name == "OnGet");
+            if (proxyOnGetMethod.GetGenericArguments().Length != 2)
             {
                 throw new InvalidOperationException(
                     "OnGet method of base class is required to have two generic parameters.");
             }
-            var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
-            proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);
-            proxyOnGetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
+
+            var proxyOnGetMethodInstance = proxyOnGetMethod.MakeGenericMethod(proxyTargetType, proxyProp.PropertyType);
 
             var proxyOnSetMethod =
-                Module.Import(baseDef.Methods.First(x => x.Name == "OnSet"));
-            if (proxyOnSetMethod.GenericParameters.Count != 2)
+                baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                       .First(x => x.Name == "OnSet");
+            ;
+            if (proxyOnGetMethod.GetGenericArguments().Length != 2)
             {
                 throw new InvalidOperationException(
                     "OnSet method of base class is required to have two generic parameters.");
             }
-            var proxyOnSetMethodInstance = new GenericInstanceMethod(proxyOnSetMethod);
-            proxyOnSetMethodInstance.GenericArguments.Add(proxyTargetType);
-            proxyOnSetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
 
+            var proxyOnSetMethodInstance = proxyOnSetMethod.MakeGenericMethod(proxyTargetType, proxyProp.PropertyType);
 
-            var getIl = proxyProp.GetMethod.Body.GetILProcessor();
+            var getMethod = (MethodDefinition) proxyProp.GetGetMethod(true);
+            var getIl = getMethod.GetILGenerator();
+
             getIl.Emit(OpCodes.Ldarg_0);
             getIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
             getIl.Emit(OpCodes.Callvirt, proxyOnGetMethodInstance);
             getIl.Emit(OpCodes.Ret);
 
-            var setIl = proxyProp.SetMethod.Body.GetILProcessor();
+            var setMethod = (MethodDefinition) proxyProp.GetSetMethod(true);
+            var setIl = setMethod.GetILGenerator();
             setIl.Emit(OpCodes.Ldarg_0);
             setIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
             setIl.Emit(OpCodes.Ldarg_1);
@@ -119,39 +132,24 @@ namespace Pomona.Common.Proxies
             setIl.Emit(OpCodes.Ret);
         }
 
-
-        private MethodDefinition GetInitPropertyWrappersMethod(PropertyDefinition def)
+        protected override void OnPropertyGenerationComplete(TypeDefinition proxyType)
         {
             const string initPropertyWrappersMethodName = "InitPropertyWrappers";
-            var initPropertyWrappersMethod =
-                def.DeclaringType.Methods.FirstOrDefault(x => x.IsStatic && x.Name == initPropertyWrappersMethodName);
 
-            if (initPropertyWrappersMethod == null)
-            {
-                initPropertyWrappersMethod = new MethodDefinition(
-                    initPropertyWrappersMethodName,
-                    MethodAttributes.Static | MethodAttributes.Private,
-                    Module.TypeSystem.Void);
-                def.DeclaringType.Methods.Add(initPropertyWrappersMethod);
+            var initPropertyWrappersMethod = proxyType.DefineMethod(
+                initPropertyWrappersMethodName,
+                MethodAttributes.Static | MethodAttributes.Private,
+                null, Type.EmptyTypes);
 
-                initPropertyWrappersMethod.Body.MaxStackSize = 8;
-                var il = initPropertyWrappersMethod.Body.GetILProcessor();
-                il.Emit(OpCodes.Ret);
+            var il = initPropertyWrappersMethod.GetILGenerator();
+            initPropertyWrapperIlAction.ForEach(m => m(il));
+            il.Emit(OpCodes.Ret);
 
-                var cctor = new MethodDefinition(
-                    ".cctor",
-                    MethodAttributes.HideBySig | MethodAttributes.Private | MethodAttributes.SpecialName
-                    | MethodAttributes.RTSpecialName | MethodAttributes.Static,
-                    Module.TypeSystem.Void);
+            var cctor = proxyType.DefineTypeInitializer();
 
-                def.DeclaringType.Methods.Add(cctor);
-
-                cctor.Body.MaxStackSize = 8;
-                var cctorIl = cctor.Body.GetILProcessor();
-                cctorIl.Emit(OpCodes.Call, initPropertyWrappersMethod);
-                cctorIl.Emit(OpCodes.Ret);
-            }
-            return initPropertyWrappersMethod;
+            var cctorIl = cctor.GetILGenerator();
+            cctorIl.Emit(OpCodes.Call, initPropertyWrappersMethod);
+            cctorIl.Emit(OpCodes.Ret);
         }
     }
 }
