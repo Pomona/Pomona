@@ -29,6 +29,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
@@ -49,6 +50,7 @@ namespace Pomona.Common
         public abstract string BaseUri { get; }
         public abstract IWebClient WebClient { get; }
 
+        public abstract Task<T> GetAsync<T>(string uri);
         public abstract T Get<T>(string uri);
         public abstract string GetUriOfType(Type type);
         public abstract IQueryable<T> Query<T>();
@@ -71,7 +73,8 @@ namespace Pomona.Common
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
-        protected void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString, Exception thrownException = null)
+        protected void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString,
+                                             Exception thrownException = null)
         {
             var eh = RequestCompleted;
             if (eh != null)
@@ -108,7 +111,7 @@ namespace Pomona.Common
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
-        private IWebClient webClient;
+        private readonly IWebClient webClient;
 
 
         static ClientBase()
@@ -174,6 +177,12 @@ namespace Pomona.Common
             return Deserialize(DownloadFromUri(uri), type);
         }
 
+
+        public override async Task<T> GetAsync<T>(string uri)
+        {
+            Log("Fetching uri {0} asynchronously", uri);
+            return (T) Deserialize(DownloadFromUriAsync(uri).Result, typeof (T));
+        }
 
         public override T Get<T>(string uri)
         {
@@ -387,6 +396,31 @@ namespace Pomona.Common
         }
 
 
+        private async Task<string> DownloadFromUriAsync(string uri)
+        {
+            // TODO: Check that response code is correct and content-type matches JSON. [KNS]
+            webClient.Headers["Accept"] = "application/json";
+
+            string responseString = null;
+            Exception thrownException = null;
+            try
+            {
+                var responseMessage = await webClient.SendAsync(new WebClientRequestMessage(uri, null, "GET"));
+                responseString = Encoding.UTF8.GetString(responseMessage.Data);
+            }
+            catch (Exception ex)
+            {
+                thrownException = ex;
+                throw;
+            }
+            finally
+            {
+                RaiseRequestCompleted("GET", uri, null, responseString, thrownException);
+            }
+
+            return responseString;
+        }
+
         private string DownloadFromUri(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
@@ -470,7 +504,6 @@ namespace Pomona.Common
             {
                 RaiseRequestCompleted(httpMethod, uri, requestString, responseString, thrownException);
             }
-
 
 
             return responseString;

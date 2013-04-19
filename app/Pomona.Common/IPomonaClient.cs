@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,23 +22,20 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Pomona.Common
 {
     public interface IPomonaClient
     {
+        Task<T> GetAsync<T>(string uri);
         T Get<T>(string uri);
         string GetUriOfType(Type type);
 
         IQueryable<T> Query<T>();
         bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
         object DownloadFromUri(string uri, Type type);
-
     }
 }

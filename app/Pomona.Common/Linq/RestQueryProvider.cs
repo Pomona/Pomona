@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Internals;
@@ -42,12 +43,15 @@ namespace Pomona.Common.Linq
 
         private readonly Type sourceType;
         private readonly string uri;
+        private readonly static MethodInfo executeAsyncGenericMethod;
 
 
         static RestQueryProvider()
         {
             executeGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(x => x.Execute<object>(null));
+            executeAsyncGenericMethod =
+                ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(x => x.ExecuteAsync<object>(null));
             mapToCustomUserTypeResultMethod =
                 ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(
                     x => x.MapToCustomUserTypeResult<object>(null, null, null, null));
@@ -111,6 +115,15 @@ namespace Pomona.Common.Linq
             return Execute(expression);
         }
 
+        public virtual Task<object> ExecuteAsync(Expression expression)
+        {
+            // TODO: Support custom inherited client-side resources
+            var queryTreeParser = new RestQueryableTreeParser();
+            queryTreeParser.Visit(expression);
+            return (Task<object>)executeAsyncGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
+                this, new object[] { queryTreeParser });
+        }
+
         public virtual object Execute(Expression expression)
         {
             object result;
@@ -142,8 +155,6 @@ namespace Pomona.Common.Linq
         private string BuildUri(RestQueryableTreeParser parser)
         {
             var builder = new UriQueryBuilder();
-
-            // TODO: Support expand
 
             var resourceInfo = client.GetResourceInfoForType(sourceType);
 
@@ -218,6 +229,38 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..
                     return client.Get<IList<T>>(uri).Count > 0;
+                default:
+                    throw new NotImplementedException("Don't recognize projection type " + parser.Projection);
+            }
+        }
+
+        private async Task<object> ExecuteAsync<T>(RestQueryableTreeParser parser)
+        {
+            var uri = BuildUri(parser);
+            /*
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
+                return new Uri(uri);
+            
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
+            {
+                var resourceInfo = client.GetResourceInfoForType(typeof(T));
+                var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
+                proxy.Uri = uri;
+                proxy.Client = client;
+                return proxy;
+            }*/
+
+
+            switch (parser.Projection)
+            {
+                case RestQueryableTreeParser.QueryProjection.Enumerable:
+                    return await client.GetAsync<IList<T>>(uri);
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                case RestQueryableTreeParser.QueryProjection.First:
+                    return await client.GetAsync<T>(uri);
+                case RestQueryableTreeParser.QueryProjection.Any:
+                    // TODO: Implement count querying without returning any results..
+                    return (await client.GetAsync<IList<T>>(uri)).Count > 0;
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + parser.Projection);
             }

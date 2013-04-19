@@ -27,11 +27,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Pomona.Common.Linq
 {
     public static class RestQueryExtensions
     {
+        public static async Task<IList<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
+        {
+            var restQuery = source as RestQuery<TSource>;
+            if (restQuery == null)
+            {
+                return restQuery.ToList();
+            }
+            var result = await restQuery.Provider.ExecuteAsync(source.Expression);
+            return (IList<TSource>) result;
+        }
+
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
             return (QueryResult<TSource>) source.Provider.Execute(source.Expression);

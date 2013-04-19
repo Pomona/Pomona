@@ -22,19 +22,34 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace Pomona.Common.Web
 {
-    /// <summary>
-    /// Wrapper for webclient, to make testing easier.
-    /// </summary>
-    public interface IWebClient
+    public class WebClientRequestMessage
     {
-        IDictionary<string, string> Headers { get; }
-        byte[] DownloadData(string uri);
-        byte[] UploadData(string uri, string httpMethod, byte[] requestBytes);
-        Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage);
+        private readonly byte[] data;
+        private readonly string method;
+        private readonly string uri;
+
+        public WebClientRequestMessage(string uri, byte[] data, string method)
+        {
+            this.uri = uri;
+            this.data = data;
+            this.method = method;
+        }
+
+        public string Uri
+        {
+            get { return uri; }
+        }
+
+        public byte[] Data
+        {
+            get { return data; }
+        }
+
+        public string Method
+        {
+            get { return method; }
+        }
     }
 }

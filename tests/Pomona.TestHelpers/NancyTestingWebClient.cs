@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Nancy.Testing;
 using Pomona.Common.Web;
 
@@ -71,6 +72,11 @@ namespace Pomona.TestHelpers
 
             var browserResponse = Wrap(uri, browserMethod, bc => bc.Body(new MemoryStream(requestBytes)));
             return browserResponse.Body.ToArray();
+        }
+
+        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
+        {
+            throw new NotImplementedException();
         }
 
         private BrowserResponse Wrap(string uri, Func<string, Action<BrowserContext>, BrowserResponse> browserMethod, Action<BrowserContext> additionalContext  = null)

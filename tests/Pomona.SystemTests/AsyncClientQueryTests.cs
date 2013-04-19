@@ -22,19 +22,43 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
+using Critters.Client;
+using NUnit.Framework;
+using Pomona.Common;
+using Pomona.Common.Linq;
 
-namespace Pomona.Common.Web
+namespace Pomona.SystemTests
 {
-    /// <summary>
-    /// Wrapper for webclient, to make testing easier.
-    /// </summary>
-    public interface IWebClient
+    [TestFixture]
+    public class AsyncClientQueryTests : ClientTestsBase
     {
-        IDictionary<string, string> Headers { get; }
-        byte[] DownloadData(string uri);
-        byte[] UploadData(string uri, string httpMethod, byte[] requestBytes);
-        Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage);
+        public override bool UseSelfHostedHttpServer
+        {
+            get { return true; }
+        }
+
+        [Test]
+        public void GetAsyncUsingUri_ReturnsResource()
+        {
+            // First get the uri a way we know works:
+            var critterUri = ((IHasResourceUri) client.Critters.Query().FirstLazy()).Uri;
+
+            var asyncCritter = client.GetAsync<ICritter>(critterUri).Result;
+
+            var expected = CritterEntities.First();
+            Assert.That(asyncCritter, Is.Not.Null);
+            Assert.That(asyncCritter.Id, Is.EqualTo(expected.Id));
+            Assert.That(asyncCritter.Name, Is.EqualTo(expected.Name));
+        }
+
+        [Test]
+        public void Query_ToListAsync_ReturnsResources()
+        {
+            var expectedCritters = CritterEntities.Where(x => x.Id % 3 == 0).Take(5).ToList();
+            var fetchedCritters = client.Critters.Query().Where(x => x.Id % 3 == 0).Take(5).ToListAsync().Result;
+
+            Assert.That(fetchedCritters.Select(x => x.Id), Is.EquivalentTo(expectedCritters.Select(x => x.Id)));
+        }
     }
 }

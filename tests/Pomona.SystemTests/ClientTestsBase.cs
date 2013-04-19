@@ -32,7 +32,7 @@ using Critters.Client;
 using NUnit.Framework;
 using Nancy.Testing;
 using Pomona.Common;
-using Pomona.Common.Linq;
+using Pomona.Common.Web;
 using Pomona.Example;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
@@ -41,12 +41,16 @@ namespace Pomona.SystemTests
 {
     public class ClientTestsBase
     {
-        public const bool UseSelfHostedHttpServer = false;
-
+        public const bool UseSelfHostedHttpServerDefault = false;
         private string baseUri;
 
         protected Client client;
         private CritterHost critterHost;
+
+        public virtual bool UseSelfHostedHttpServer
+        {
+            get { return UseSelfHostedHttpServerDefault; }
+        }
 
         protected string BaseUri
         {
@@ -81,7 +85,6 @@ namespace Pomona.SystemTests
             Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
         }
 
-
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
@@ -92,7 +95,7 @@ namespace Pomona.SystemTests
                 Console.WriteLine("Starting CritterHost on " + baseUri);
                 critterHost = new CritterHost(new Uri(baseUri));
                 critterHost.Start();
-                client = new Client(baseUri);
+                client = new Client(baseUri, new WrappedHttpClient());
                 DataSource = critterHost.DataSource;
             }
             else

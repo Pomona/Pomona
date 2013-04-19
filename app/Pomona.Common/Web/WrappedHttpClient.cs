@@ -22,28 +22,24 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Pomona.Common.Web
 {
-    public class WrappedWebClient : IWebClient
+    public class WrappedHttpClient : IWebClient
     {
-        private readonly IDictionary<string, string> headers;
-        private readonly WebClient webClient;
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
+        private readonly HttpClient httpClient;
 
-        public WrappedWebClient() : this(null)
+        public WrappedHttpClient()
         {
-        }
-
-        public WrappedWebClient(WebClient webClient)
-        {
-            this.webClient = webClient ?? new WebClient();
-            headers = new HeaderDictionaryWrapper(this.webClient);
+            httpClient = new HttpClient();
+            headers = new HeadersDictionaryWrapper(httpClient.DefaultRequestHeaders);
         }
 
         public IDictionary<string, string> Headers
@@ -53,40 +49,43 @@ namespace Pomona.Common.Web
 
         public byte[] DownloadData(string uri)
         {
-            return webClient.DownloadData(uri);
+            return httpClient.GetByteArrayAsync(uri).Result;
         }
 
         public byte[] UploadData(string uri, string httpMethod, byte[] requestBytes)
         {
-            return webClient.UploadData(uri, httpMethod, requestBytes);
+            var request = new HttpRequestMessage(new HttpMethod(httpMethod), uri)
+                {
+                    Content = new ByteArrayContent(requestBytes)
+                };
+            return httpClient.SendAsync(request).Result.Content.ReadAsByteArrayAsync().Result;
         }
 
-        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
+        public async Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
         {
-            throw new NotSupportedException("Does not support async. Use WrappedHttpClient instead.");
+            var httpRequestMessage = new HttpRequestMessage(new HttpMethod(requestMessage.Method), requestMessage.Uri);
+            if (requestMessage.Data != null)
+                httpRequestMessage.Content = new ByteArrayContent(requestMessage.Data);
+
+            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
+            var responseData = await httpResponseMessage.Content.ReadAsByteArrayAsync();
+            return new WebClientResponseMessage(requestMessage.Uri, responseData, (int) httpResponseMessage.StatusCode);
         }
 
-        private class HeaderDictionaryWrapper : IDictionary<string, string>
+        private class HeadersDictionaryWrapper : IDictionary<string, string>
         {
-            private readonly WebClient webClient;
+            private readonly HttpHeaders headers;
 
-            public HeaderDictionaryWrapper(WebClient webClient)
+            public HeadersDictionaryWrapper(HttpHeaders headers)
             {
-                if (webClient == null) throw new ArgumentNullException("webClient");
-                this.webClient = webClient;
-            }
-
-            private WebHeaderCollection Headers
-            {
-                get { return webClient.Headers; }
+                this.headers = headers;
             }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
             {
-                for (var i = 0; i < Headers.Count; i++)
-                {
-                    yield return new KeyValuePair<string, string>(Headers.GetKey(i), Headers.Get(i));
-                }
+                return
+                    headers.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.FirstOrDefault()))
+                           .GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -96,18 +95,20 @@ namespace Pomona.Common.Web
 
             public void Add(KeyValuePair<string, string> item)
             {
-                Headers.Add(item.Key, item.Value);
+                headers.Add(item.Key, item.Value);
             }
 
             public void Clear()
             {
-                Headers.Clear();
+                headers.Clear();
             }
 
             public bool Contains(KeyValuePair<string, string> item)
             {
-                // Returns null if it has no value.
-                return Headers.Get(item.Key) == item.Value;
+                IEnumerable<string> values;
+                if (!headers.TryGetValues(item.Key, out values))
+                    return false;
+                return values.Contains(item.Value);
             }
 
             public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
@@ -117,16 +118,17 @@ namespace Pomona.Common.Web
 
             public bool Remove(KeyValuePair<string, string> item)
             {
-                if (!Contains(item))
-                    return false;
-
-                Headers.Remove(item.Key);
-                return true;
+                if (Contains(item))
+                {
+                    headers.Remove(item.Value);
+                    return true;
+                }
+                return false;
             }
 
             public int Count
             {
-                get { return Headers.Count; }
+                get { return headers.Count(); }
             }
 
             public bool IsReadOnly
@@ -136,50 +138,53 @@ namespace Pomona.Common.Web
 
             public bool ContainsKey(string key)
             {
-                return Headers.Get(key) != null;
+                return headers.Contains(key);
             }
 
             public void Add(string key, string value)
             {
-                Headers.Add(key, value);
+                headers.Add(key, value);
             }
 
             public bool Remove(string key)
             {
-                if (Headers.Get(key) == null)
-                    return false;
-                Headers.Remove(key);
-                return true;
+                return headers.Remove(key);
             }
 
             public bool TryGetValue(string key, out string value)
             {
-                value = Headers.Get(key);
-                return value != null;
+                IEnumerable<string> values;
+                if (headers.TryGetValues(key, out values))
+                {
+                    value = string.Join(",", values);
+                    return true;
+                }
+                value = null;
+                return false;
             }
 
             public string this[string key]
             {
-                get
+                get { return string.Join(",", headers.GetValues(key)); }
+                set
                 {
-                    string value;
-                    if (!TryGetValue(key, out value))
-                    {
-                        throw new KeyNotFoundException();
-                    }
-                    return value;
+                    headers.Remove(key);
+                    headers.Add(key, value);
                 }
-                set { Headers.Set(key, value); }
             }
 
             public ICollection<string> Keys
             {
-                get { return this.Select(x => x.Key).ToList(); }
+                get { return headers.Select(x => x.Key).ToList(); }
             }
 
             public ICollection<string> Values
             {
-                get { return this.Select(x => x.Value).ToList(); }
+                get
+                {
+                    return
+                        headers.Select(x => string.Join(",", x.Value)).ToList();
+                }
             }
         }
     }
