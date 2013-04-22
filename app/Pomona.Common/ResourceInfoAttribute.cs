@@ -43,5 +43,6 @@ namespace Pomona.Common
         public Type PutFormType { get; set; }
         public Type UriBaseType { get; set; }
         public string UrlRelativePath { get; set; }
+        public bool IsValueObject { get; set; }
     }
 }

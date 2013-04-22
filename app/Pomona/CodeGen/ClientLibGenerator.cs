@@ -341,6 +341,10 @@ namespace Pomona.CodeGen
                 new CustomAttributeNamedArgument(
                     "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
 
+            custAttr.Properties.Add(
+                new CustomAttributeNamedArgument(
+                    "IsValueObject", new CustomAttributeArgument(module.TypeSystem.Boolean, typeInfo.TransformedType.MappedAsValueObject)));
+
             interfaceDef.CustomAttributes.Add(custAttr);
             //var attrConstructor = attr.Resolve().GetConstructors();
         }

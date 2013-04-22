@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Pomona.Common.Serialization;
+using System.Linq;
 
 namespace Pomona.Common.Proxies
 {
@@ -41,6 +42,7 @@ namespace Pomona.Common.Proxies
             if (!propMap.TryGetValue(property.Name, out value))
             {
                 var propertyType = property.PropertyInfo.PropertyType;
+
                 if (propertyType.IsGenericInstanceOf(typeof (IDictionary<,>)))
                 {
                     var newDictType =
@@ -61,6 +63,21 @@ namespace Pomona.Common.Proxies
                                                            new object[] {this, property.Name}, null);
                     propMap[property.Name] = newList;
                     return (TPropType) newList;
+                }
+                if (typeof (IClientResource).IsAssignableFrom(propertyType))
+                {
+                    var resourceInfo =
+                        propertyType.GetCustomAttributes(typeof (ResourceInfoAttribute), false)
+                                    .OfType<ResourceInfoAttribute>()
+                                    .FirstOrDefault();
+
+                    if (resourceInfo != null && resourceInfo.IsValueObject)
+                    {
+                        var valueObjectForm = Activator.CreateInstance(resourceInfo.PutFormType);
+                        propMap[property.Name] = valueObjectForm;
+                        dirtyMap[property.Name] = true;
+                        return (TPropType) valueObjectForm;
+                    }
                 }
                 throw new InvalidOperationException("Update value for " + property.Name + " has not been set");
             }

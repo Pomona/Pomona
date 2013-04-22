@@ -54,6 +54,18 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PatchCritter_UpdatePropertyOfValueObject()
+        {
+            var critter = Save(new Critter());
+            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
+            client.Patch(resource,
+                         x =>
+                         x.CrazyValue.Sickness = "Just crazy thats all");
+
+            Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
+        }
+
+        [Test]
         public void PatchCritter_UpdateReferenceProperty_UsingValueFromFirstLazyMethod()
         {
             var hat = Save(new Hat {Style = "Gangnam Style 1234"});
