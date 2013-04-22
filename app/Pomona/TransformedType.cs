@@ -532,8 +532,15 @@ namespace Pomona
             }
 
             // TODO: Support not including the whole type hierarchy. Remember that base type might be allowed to be a shared type.
-            if (type.BaseType != null)
-                BaseType = typeMapper.GetClassMapping(type.BaseType);
+            var exposedBaseType = type.BaseType;
+
+            while (!filter.TypeIsMapped(exposedBaseType) && exposedBaseType != null)
+                exposedBaseType = exposedBaseType.BaseType;
+
+            if (exposedBaseType != null)
+            {
+                BaseType = typeMapper.GetClassMapping(exposedBaseType);
+            }
 
             // Find longest (most specific) public constructor
             var constructor = typeMapper.Filter.GetTypeConstructor(type);
