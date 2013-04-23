@@ -73,6 +73,11 @@ namespace Pomona.Example
                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula());
         }
 
+        public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
+        {
+            map.Include(x => x.ETag, o => o.AsEtag());
+        }
+
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
             map.ConstructedUsing(x => new Gun(x.Critter, x.Model))

@@ -29,7 +29,8 @@ using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
-    public class ClientRepository<TResource, TPostResponseResource>
+    public class ClientRepository<TResource, TPostResponseResource> :
+        IClientRepository<TResource, TPostResponseResource>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -47,14 +48,14 @@ namespace Pomona.Common
         }
 
 
-        public string Uri
-        {
-            get { return uri; }
-        }
-
         internal ClientBase Client
         {
             get { return client; }
+        }
+
+        public string Uri
+        {
+            get { return uri; }
         }
 
 
@@ -69,6 +70,7 @@ namespace Pomona.Common
         {
             return (TPostResponseResource) client.Post<TResource>(Uri, form);
         }
+
 
         public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
@@ -85,6 +87,11 @@ namespace Pomona.Common
         public TPostResponseResource Post(Action<TResource> postAction)
         {
             return (TPostResponseResource) client.Post(Uri, postAction);
+        }
+
+        public IQueryable<TResource> Query()
+        {
+            return new RestQuery<TResource>(new RestQueryProvider(client, typeof (TResource), Uri));
         }
     }
 }

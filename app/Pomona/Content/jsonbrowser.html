@@ -11,7 +11,7 @@
     <script>
         var currentTags = null;
 
-        $.getJSON("/schemas", function (schemas) {
+        $.getJSON("schemas", function (schemas) {
             $.each(schemas.types, function (i, v) {
                 if (v.extends)
                     return;

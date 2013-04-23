@@ -42,7 +42,7 @@ namespace Pomona
     {
         private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
-        private static readonly MethodInfo updateMethod;
+        private static readonly MethodInfo patchGenericMethod;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
         private readonly ISerializer serializer;
@@ -53,12 +53,12 @@ namespace Pomona
         static PomonaSession()
         {
             postGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<PomonaSession>(dst => dst.PostGeneric<object>(null)).
+                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
                                  GetGenericMethodDefinition();
             getByIdMethod = new GenericMethodCaller<IPomonaDataSource, object, object>(
                 ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null)));
-            updateMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Update((object) null));
+            patchGenericMethod =
+                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
         }
 
 
@@ -156,8 +156,10 @@ namespace Pomona
             var deserializationContext = new ServerDeserializationContext(this);
             var postResource = deserializer.Deserialize(textReader, transformedType, deserializationContext,
                                                         patchedObject);
-            var postResponse = postGenericMethod.MakeGenericMethod(postResource.GetType())
-                                                .Invoke(this, new[] {postResource});
+
+            var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
+            var postResponse = method.MakeGenericMethod(postResource.GetType())
+                                                .Invoke(dataSource, new[] {postResource});
 
             return new PomonaResponse(new PomonaQuery(transformedType) {ExpandedPaths = string.Empty}, postResponse,
                                       this);
@@ -207,10 +209,5 @@ namespace Pomona
             return getByIdMethod.Call(transformedType.MappedType, dataSource, id);
         }
 
-
-        private object PostGeneric<T>(T objectToPost)
-        {
-            return dataSource.Post(objectToPost);
-        }
     }
 }

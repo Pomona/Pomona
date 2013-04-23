@@ -41,10 +41,10 @@ namespace Pomona.CodeGen
     {
         private readonly TypeMapper typeMapper;
         private string assemblyName;
+        private TypeDefinition clientInterface;
         private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumType, TypeDefinition> enumClientTypeDict;
         private ModuleDefinition module;
-        private TypeDefinition clientInterface;
 
 
         public ClientLibGenerator(TypeMapper typeMapper)
@@ -181,9 +181,9 @@ namespace Pomona.CodeGen
         {
             clientInterface = new TypeDefinition(
                 assemblyName, interfaceName, TypeAttributes.Interface | TypeAttributes.Public |
-                    TypeAttributes.Abstract);
+                                             TypeAttributes.Abstract);
 
-            clientInterface.Interfaces.Add(GetClientTypeReference(typeof(IPomonaClient)));
+            clientInterface.Interfaces.Add(GetClientTypeReference(typeof (IPomonaClient)));
 
             AddRepositoryPropertiesToClientType(clientInterface);
 
@@ -274,7 +274,7 @@ namespace Pomona.CodeGen
                 var repoPropName = transformedType.PluralName;
                 var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
                 var repoPropType =
-                    GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
+                    GetClientTypeReference(typeof (IClientRepository<,>)).MakeGenericInstanceType(
                         resourceTypeInfo.InterfaceType, postReturnTypeRef);
 
                 if (clientTypeDefinition.IsInterface)
@@ -284,15 +284,15 @@ namespace Pomona.CodeGen
                 else
                 {
                     var repoProp = AddAutomaticProperty(clientTypeDefinition, repoPropName, repoPropType);
-                    repoProp.SetMethod.IsPublic = false;                    
+                    repoProp.SetMethod.IsPublic = false;
                 }
             }
         }
 
 
-        private void AddResourceAttributesPropertyAttribute(PropertyDefinition interfacePropDef)
+        private void AddAttributeToProperty(PropertyDefinition interfacePropDef, Type attributeType)
         {
-            var attr = GetClientTypeReference(typeof (ResourceAttributesPropertyAttribute));
+            var attr = GetClientTypeReference(attributeType);
             var ctor =
                 module.Import(attr.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
             var custAttr =
@@ -340,6 +340,11 @@ namespace Pomona.CodeGen
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
                     "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
+
+            custAttr.Properties.Add(
+                new CustomAttributeNamedArgument(
+                    "IsValueObject",
+                    new CustomAttributeArgument(module.TypeSystem.Boolean, typeInfo.TransformedType.MappedAsValueObject)));
 
             interfaceDef.CustomAttributes.Add(custAttr);
             //var attrConstructor = attr.Resolve().GetConstructors();
@@ -484,14 +489,21 @@ namespace Pomona.CodeGen
                     var interfacePropDef = AddInterfaceProperty(interfaceDef, prop.Name, propTypeRef);
 
                     if (prop.IsAttributesProperty)
-                        AddResourceAttributesPropertyAttribute(interfacePropDef);
+                    {
+                        AddAttributeToProperty(interfacePropDef, typeof (ResourceAttributesPropertyAttribute));
+                    }
+                    if (prop.IsEtagProperty)
+                    {
+                        AddAttributeToProperty(interfacePropDef, typeof (ResourceEtagPropertyAttribute));
+                    }
 
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
                 }
             }
         }
 
-        private PropertyDefinition AddInterfaceProperty(TypeDefinition interfaceDef, string propName, TypeReference propTypeRef, bool readOnly = false)
+        private PropertyDefinition AddInterfaceProperty(TypeDefinition interfaceDef, string propName,
+                                                        TypeReference propTypeRef, bool readOnly = false)
         {
             var interfacePropDef = new PropertyDefinition(propName, PropertyAttributes.None, propTypeRef);
             var interfaceGetMethod = new MethodDefinition(
@@ -535,12 +547,12 @@ namespace Pomona.CodeGen
 
             var clientBaseTypeGenericInstance = clientBaseTypeRef.MakeGenericInstanceType(clientTypeDefinition);
             clientTypeDefinition.BaseType = clientBaseTypeGenericInstance;
-            
+
             var clientBaseTypeCtor =
                 module.Import(
                     clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 2));
-                        clientBaseTypeCtor.DeclaringType =
-                            clientBaseTypeCtor.DeclaringType.MakeGenericInstanceType(clientTypeDefinition);
+            clientBaseTypeCtor.DeclaringType =
+                clientBaseTypeCtor.DeclaringType.MakeGenericInstanceType(clientTypeDefinition);
 
             CreateClientConstructor(clientBaseTypeCtor, clientTypeDefinition, false);
             CreateClientConstructor(clientBaseTypeCtor, clientTypeDefinition, true);
@@ -550,7 +562,8 @@ namespace Pomona.CodeGen
             module.Types.Add(clientTypeDefinition);
         }
 
-        private void CreateClientConstructor(MethodReference clientBaseTypeCtor, TypeDefinition clientTypeDefinition, bool includeWebClientArgument)
+        private void CreateClientConstructor(MethodReference clientBaseTypeCtor, TypeDefinition clientTypeDefinition,
+                                             bool includeWebClientArgument)
         {
             var ctor = new MethodDefinition(
                 ".ctor",
@@ -853,7 +866,8 @@ namespace Pomona.CodeGen
                     // Do not disable GETTING of collection types in update proxy, we might want to change
                     // the collection itself.
 
-                    bool allowReadingOfProperty = propertyMapping.PropertyType.IsCollection || propertyMapping.PropertyType.IsDictionary;
+                    var allowReadingOfProperty = propertyMapping.PropertyType.IsCollection ||
+                                                 propertyMapping.PropertyType.IsDictionary;
 
                     var methodsToRestrict = allowReadingOfProperty
                                                 ? new[] {proxyProp.SetMethod}

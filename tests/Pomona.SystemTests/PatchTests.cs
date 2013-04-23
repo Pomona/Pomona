@@ -54,6 +54,18 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PatchCritter_UpdatePropertyOfValueObject()
+        {
+            var critter = Save(new Critter());
+            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
+            client.Patch(resource,
+                         x =>
+                         x.CrazyValue.Sickness = "Just crazy thats all");
+
+            Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
+        }
+
+        [Test]
         public void PatchCritter_UpdateReferenceProperty_UsingValueFromFirstLazyMethod()
         {
             var hat = Save(new Hat {Style = "Gangnam Style 1234"});
@@ -106,6 +118,32 @@ namespace Pomona.SystemTests
                          x.BandName = "The Patched Sheeps");
 
             Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
+        }
+
+        [Test]
+        public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
+        {
+            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
+            Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
+        }
+
+        [Category("TODO")]
+        [Test]
+        public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
+        {
+            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+
+            // Change etag on entity, which should give an exception
+            etaggedEntity.ETag = "MODIFIED!";
+
+            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"), Throws.Exception);
+            Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
+
+            Assert.Fail("Missing support for throwing good client side exceptions.");
         }
     }
 }

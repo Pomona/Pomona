@@ -73,6 +73,7 @@
     <Compile Include="Models\CustomEnum.cs" />
     <Compile Include="Models\DictionaryContainer.cs" />
     <Compile Include="Models\EntityBase.cs" />
+    <Compile Include="Models\EtaggedEntity.cs" />
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\FooBarRequest.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="Models\HasReferenceToDictionaryContainer.cs" />
     <Compile Include="Models\Hat.cs" />
     <Compile Include="Models\InheritsFromGenericBaseClass.cs" />
+    <Compile Include="Models\InheritsFromHiddenBase.cs" />
     <Compile Include="Models\Instrument.cs" />
     <Compile Include="Models\IntListContainer.cs" />
     <Compile Include="Models\JunkWithNullableInt.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="Models\MusicalCritter.cs" />
     <Compile Include="Models\OrderResponse.cs" />
     <Compile Include="Models\SimpleAttribute.cs" />
+    <Compile Include="Models\HiddenBaseInMiddle.cs" />
     <Compile Include="Models\StringListContainer.cs" />
     <Compile Include="Models\StringToObjectDictionaryContainer.cs" />
     <Compile Include="Models\Subscription.cs" />

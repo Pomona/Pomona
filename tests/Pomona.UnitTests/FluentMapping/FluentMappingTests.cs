@@ -37,11 +37,22 @@ namespace Pomona.UnitTests.FluentMapping
     {
         public abstract class TestEntityBase
         {
+            public abstract string ToBeOverridden { get; set; }
             public virtual int Id { get; set; }
         }
 
         public class Top : TestEntityBase
         {
+            private string toBeOverridden;
+
+// ReSharper disable ConvertToAutoProperty
+            public override string ToBeOverridden
+// ReSharper restore ConvertToAutoProperty
+            {
+                get { return toBeOverridden; }
+                set { toBeOverridden = value; }
+            }
+
             public virtual string ToBeRenamed { get; set; }
         }
 
@@ -60,9 +71,16 @@ namespace Pomona.UnitTests.FluentMapping
                 this.defaultPropertyInclusionMode = defaultPropertyInclusionMode;
             }
 
+            public void Map(ITypeMappingConfigurator<Specialized> map)
+            {
+            }
+
 
             public void Map(ITypeMappingConfigurator<TestEntityBase> map)
             {
+                map.Include(x => x.Id);
+                map.Include(x => x.ToBeOverridden);
+
                 switch (defaultPropertyInclusionMode)
                 {
                     case null:
@@ -140,7 +158,9 @@ namespace Pomona.UnitTests.FluentMapping
             if (propInfo == null)
                 throw new ArgumentException("Expected MemberExpression with property acccess");
 
-            return propInfo;
+            return typeof (TInstance).GetProperty(propInfo.Name);
+
+            //return propInfo;
         }
 
 
@@ -155,12 +175,29 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
+        {
+            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.Id)), Is.True);
+        }
+
+        [Test]
+        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesOverriddenPropertyInInheritedClass()
+        {
+            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.ToBeOverridden)), Is.True);
+
+            var propInfo = typeof (Top).GetProperty("ToBeOverridden");
+            Assert.That(filter.PropertyIsIncluded(propInfo), Is.True);
+        }
+
+        [Test]
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
             Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
         }
-
 
         [Test]
         public void DefaultPropertyInclusionMode_SetToIncludedByDefault_MakesPropertyIncludedByDefault()

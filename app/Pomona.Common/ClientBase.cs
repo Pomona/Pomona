@@ -236,7 +236,21 @@ namespace Pomona.Common
 
         public override T Patch<T>(T target, Action<T> updateAction)
         {
-            return (T) PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType);
+            var modifiedAction = updateAction;
+            ResourceInfoAttribute resourceInfo;
+
+            // Set etag to target resources' etag (optimistic concurrency)
+            if (TryGetResourceInfoForType(typeof(T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            {
+                modifiedAction = form =>
+                    {
+                        updateAction(form);
+                        var etagValue = resourceInfo.EtagProperty.GetValue(target, null);
+                        resourceInfo.EtagProperty.SetValue(form, etagValue, null);
+                    };
+            }
+
+            return (T) PostOrPatch(((IHasResourceUri) target).Uri, null, modifiedAction, "PATCH", x => x.PutFormType);
         }
 
 
@@ -454,12 +468,15 @@ namespace Pomona.Common
                     GetType().GetProperties().Where(
                         x =>
                         x.PropertyType.IsGenericType
-                        && x.PropertyType.GetGenericTypeDefinition() == typeof (ClientRepository<,>)))
+                        && x.PropertyType.GetGenericTypeDefinition() == typeof (IClientRepository<,>)))
             {
-                var repositoryType = prop.PropertyType;
-                var tResource = repositoryType.GetGenericArguments()[0];
+                var repositoryInterface = prop.PropertyType;
+                var repositoryImplementation =
+                    typeof (ClientRepository<,>).MakeGenericType(repositoryInterface.GetGenericArguments());
+
+                var tResource = repositoryInterface.GetGenericArguments()[0];
                 var uri = GetUriOfType(tResource);
-                prop.SetValue(this, Activator.CreateInstance(repositoryType, this, uri), null);
+                prop.SetValue(this, Activator.CreateInstance(repositoryImplementation, this, uri), null);
             }
         }
 

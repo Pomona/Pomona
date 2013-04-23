@@ -62,6 +62,11 @@ namespace Pomona.Common.TypeSystem
             get { return x => propertyInfo.GetValue(x, null); }
         }
 
+        public bool IsEtagProperty
+        {
+            get { return false; }
+        }
+
         public Expression CreateGetterExpression(Expression instance)
         {
             throw new NotImplementedException();

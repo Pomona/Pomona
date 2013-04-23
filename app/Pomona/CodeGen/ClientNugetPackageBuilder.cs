@@ -89,7 +89,7 @@ namespace Pomona.CodeGen
                     null,
                     new[]
                         {
-                            CreatePackageDependency<TypeDefinition>(4),
+                            // CreatePackageDependency<TypeDefinition>(4), <-- Dependency on Cecil no longer needed.
                             CreatePackageDependency<JsonSerializer>(3)
                         }));
 

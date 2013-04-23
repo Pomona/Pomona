@@ -83,6 +83,7 @@ namespace Pomona
         public PropertyMapping ElementForeignKey { get; set; }
 
         public bool IsAttributesProperty { get; set; }
+        public bool IsEtagProperty { get; set; }
 
         public bool IsOneToManyCollection
         {

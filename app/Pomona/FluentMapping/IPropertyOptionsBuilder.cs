@@ -37,6 +37,8 @@ namespace Pomona.FluentMapping
         /// <returns>the builder</returns>
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes();
 
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag();
+
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula);
 

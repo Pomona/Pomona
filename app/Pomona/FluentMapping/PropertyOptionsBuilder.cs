@@ -42,6 +42,12 @@ namespace Pomona.FluentMapping
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
 
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
+        {
+            propertyMappingOptions.IsEtagProperty = true;
+            return this;
+        }
+
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {

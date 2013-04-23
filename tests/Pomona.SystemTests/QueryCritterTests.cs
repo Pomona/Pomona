@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,19 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
-
 using Critters.Client;
-
 using NUnit.Framework;
-
 using Pomona.Common;
+using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Example.Models;
-using Pomona.Common.Linq;
 
 namespace Pomona.SystemTests
 {
@@ -51,8 +44,15 @@ namespace Pomona.SystemTests
             var bandName = firstMusicalCritter.BandName;
 
             TestQuery<ICritter, Critter>(
-                x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
-                x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
+                x => x is IMusicalCritter && ((IMusicalCritter) x).BandName == bandName,
+                x => x is MusicalCritter && ((MusicalCritter) x).BandName == bandName);
+        }
+
+        [Test]
+        public void QueryCritter_IdInList_ReturnsCorrectCritters()
+        {
+            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
+            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
         }
 
 
@@ -81,7 +81,7 @@ namespace Pomona.SystemTests
         public void QueryCritter_NameEqualsStringWithEncodedSingleQuote_ReturnsCorrectCritters()
         {
             var name = "bah'bah''" + Guid.NewGuid();
-            this.client.Critters.Post(x => { x.Name = name; });
+            client.Critters.Post(x => { x.Name = name; });
             var results = TestQuery<ICritter, Critter>(
                 x => x.Name == name, x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
@@ -92,16 +92,23 @@ namespace Pomona.SystemTests
         public void QueryCritter_NameEqualsStringWithNonAsciiCharacter_ReturnsCorrectCritters()
         {
             var name = "MøllÆÅØΔδ" + Guid.NewGuid();
-            this.client.Critters.Post(x => { x.Name = name; });
+            client.Critters.Post(x => { x.Name = name; });
             var results = TestQuery<ICritter, Critter>(x => x.Name == name, x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void QueryCritter_NameInList_ReturnsCorrectCritters()
+        {
+            var names = CritterEntities.Skip(4).Select(x => x.Name).Take(5).ToArray();
+            TestQuery<ICritter, Critter>(x => names.Contains(x.Name), x => names.Contains(x.Name));
         }
 
 
         [Test]
         public void QueryCritter_ReturnsExpandedProperties()
         {
-            var critter = this.client.Query<ICritter>().Expand(x => x.Hat).Expand(x => x.Weapons).First();
+            var critter = client.Query<ICritter>().Expand(x => x.Hat).Expand(x => x.Weapons).First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
@@ -126,21 +133,6 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void QueryCritter_IdInList_ReturnsCorrectCritters()
-        {
-            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
-            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount : 5);
-        }
-
-        [Test]
-        public void QueryCritter_NameInList_ReturnsCorrectCritters()
-        {
-            var names = CritterEntities.Skip(4).Select(x => x.Name).Take(5).ToArray();
-            TestQuery<ICritter, Critter>(x => names.Contains(x.Name), x => names.Contains(x.Name));
-        }
-
-
-        [Test]
         public void QueryCritter_TolowerNameContainsString_ReturnsCorrectCritters()
         {
             TestQuery<ICritter, Critter>(x => x.Name.ToLower().Contains("bear"), x => x.Name.ToLower().Contains("bear"));
@@ -150,7 +142,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithCreatedDayMod3Equals0_ReturnsCorrectCritters()
         {
-            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day % 3 == 0, x => x.CreatedOn.Day % 3 == 0);
+            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day%3 == 0, x => x.CreatedOn.Day%3 == 0);
         }
 
 
@@ -168,9 +160,9 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = this.DataSource.List<Critter>().First();
+            var firstCritter = DataSource.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
-            var fetchedCritter = this.client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
+            var fetchedCritter = client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
 
             Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
             Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
@@ -181,11 +173,11 @@ namespace Pomona.SystemTests
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
             var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
-                ToList();
+                                                  ToList();
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
 
-            var critters = this.client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
+            var critters = client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
 
             Assert.That(
                 critters.OrderBy(x => x.Id).Select(x => x.Id), Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
@@ -204,10 +196,10 @@ namespace Pomona.SystemTests
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                this.DataSource.List<Critter>().Skip(1).First().Name;
+                DataSource.List<Critter>().Skip(1).First().Name;
 
             var critters =
-                this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
+                client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);
 
             Assert.That(critters.Any(x => x.Name == nameOfFirstCritter));
             Assert.That(critters.Any(x => x.Name == nameOfSecondCritter));
@@ -218,7 +210,7 @@ namespace Pomona.SystemTests
         public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
-            var fetchedCritters = this.client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
+            var fetchedCritters = client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
             Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
         }
 
@@ -241,7 +233,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByInt_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query().OrderBy(x => x.Id).Take(1000);
+            var fetchedCritters = client.Critters.Query().OrderBy(x => x.Id).Take(1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Ascending);
         }
 
@@ -249,7 +241,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query().OrderByDescending(x => x.Name).Take(1000).ToList();
+            var fetchedCritters = client.Critters.Query().OrderByDescending(x => x.Name).Take(1000).ToList();
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
         }
 
@@ -257,7 +249,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithOrderByString_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = this.client.Critters.Query().OrderBy(x => x.Name).Take(1000);
+            var fetchedCritters = client.Critters.Query().OrderBy(x => x.Name).Take(1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Ascending);
         }
 

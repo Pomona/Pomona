@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,15 +22,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common;
+using Critters.Client;
+using NUnit.Framework;
+using System.Linq;
 
-namespace Pomona
+namespace Pomona.SystemTests
 {
-    public interface IPomonaDataSource
+    [TestFixture]
+    public class ClientGeneratedTypeTests
     {
-        T GetById<T>(object id);
-        QueryResult Query(IPomonaQuery query);
-        object Post<T>(T newObject);
-        object Patch<T>(T updatedObject);
+        [Test]
+        public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
+        {
+            Assert.That(typeof(IInheritsFromHiddenBase).GetInterfaces(), Has.Member(typeof(IEntityBase)));
+            Assert.That(typeof(Client).Assembly.GetTypes().Count(x => x.Name == "IHiddenBaseInMiddle"), Is.EqualTo(0));
+            Assert.That(typeof(IInheritsFromHiddenBase).GetProperty("ExposedFromDerivedResource"), Is.Not.Null);
+        }
     }
 }

@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncClientQueryTests.cs" />
+    <Compile Include="ClientGeneratedTypeTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
     <Compile Include="CritterModuleInternal.cs" />
     <Compile Include="CritterTests.cs" />

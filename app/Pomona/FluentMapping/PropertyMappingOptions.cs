@@ -45,6 +45,8 @@ namespace Pomona.FluentMapping
 
         public LambdaExpression Formula { get; set; }
 
+        public bool? IsEtagProperty { get; set; }
+
         public bool? PropertyFormulaIsDecompiled { get; set; }
 
         public int? ConstructorArgIndex { get; set; }

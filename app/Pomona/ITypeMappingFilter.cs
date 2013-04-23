@@ -85,5 +85,6 @@ namespace Pomona
         LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);
         LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
+        bool PropertyIsEtag(PropertyInfo propertyInfo);
     }
 }

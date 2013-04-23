@@ -106,6 +106,14 @@ namespace Pomona.SystemTests
                 var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
                 client = new Client(baseUri, nancyTestingWebClient);
             }
+
+            client.RequestCompleted += ClientOnRequestCompleted;
+        }
+
+        private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
+        {
+            Console.WriteLine("{0} request to uri {1}.\r\nSent:{2}\r\nReceived:\r\n{3}\r\n", e.Method, e.Uri,
+                              e.Request, e.Response);
         }
 
 

@@ -35,8 +35,8 @@ namespace Pomona.FluentMapping
 {
     public sealed class FluentTypeMappingFilter : ITypeMappingFilter
     {
-        private readonly IDictionary<string, TypeMappingConfigurator> typeMappingDict =
-            new Dictionary<string, TypeMappingConfigurator>();
+        private readonly IDictionary<string, TypeMappingOptions> typeMappingDict =
+            new Dictionary<string, TypeMappingOptions>();
 
         private readonly ITypeMappingFilter wrappedFilter;
 
@@ -142,6 +142,11 @@ namespace Pomona.FluentMapping
             return wrappedFilter.GetDecompiledPropertyFormula(propertyInfo);
         }
 
+        public bool PropertyIsEtag(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.IsEtagProperty, () => wrappedFilter.PropertyIsEtag(propertyInfo));
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);
@@ -187,7 +192,7 @@ namespace Pomona.FluentMapping
 
         public bool PropertyIsIncluded(PropertyInfo propertyInfo)
         {
-            TypeMappingConfigurator typeMapping;
+            TypeMappingOptions typeMapping;
             PropertyMappingOptions propertyOptions;
             if (!TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMapping, out propertyOptions))
                 return wrappedFilter.PropertyIsIncluded(propertyInfo);
@@ -297,14 +302,12 @@ namespace TestNs
         }
 
 
-        internal TypeMappingConfigurator GetTypeMapping(Type type)
+        internal TypeMappingOptions GetTypeMapping(Type type)
         {
-            TypeMappingConfigurator typeMapping;
+            TypeMappingOptions typeMapping;
             if (!typeMappingDict.TryGetValue(type.FullName, out typeMapping))
             {
-                var typeMappingConfiguratorType =
-                    typeof (TypeMappingConfigurator<>).MakeGenericType(type);
-                typeMapping = (TypeMappingConfigurator) Activator.CreateInstance(typeMappingConfiguratorType);
+                typeMapping = new TypeMappingOptions(type);
                 typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
                 typeMappingDict[type.FullName] = typeMapping;
             }
@@ -330,6 +333,8 @@ namespace TestNs
             if (ruleContainers == null)
                 throw new ArgumentNullException("ruleContainers");
 
+            var allTransformedTypes = GetSourceTypes().Where(TypeIsMappedAsTransformedType).ToList();
+
             // Find all rule methods in all instances
             var ruleMethods = ruleContainers
                 .SelectMany(
@@ -351,14 +356,19 @@ namespace TestNs
 
             foreach (var ruleMethod in ruleMethods)
             {
-                var typeMapping = GetTypeMapping(ruleMethod.AppliesToType);
-                ruleMethod.Method.Invoke(ruleMethod.Instance, new object[] {typeMapping});
+                var appliesToType = ruleMethod.AppliesToType;
+                foreach (var subType in allTransformedTypes.Where(x => appliesToType.IsAssignableFrom(x)))
+                {
+                    var typeMapping = GetTypeMapping(subType);
+                    var configurator = typeMapping.GetConfigurator(ruleMethod.AppliesToType);
+                    ruleMethod.Method.Invoke(ruleMethod.Instance, new[] {configurator});
+                }
             }
         }
 
 
         private bool FromMappingOrDefault(
-            Type type, Func<TypeMappingConfigurator, bool?> ifMappingExist, Func<bool> ifMappingMissing)
+            Type type, Func<TypeMappingOptions, bool?> ifMappingExist, Func<bool> ifMappingMissing)
         {
             var result = FromMappingOrDefault(type, ifMappingExist, () => (bool?) ifMappingMissing());
             if (!result.HasValue)
@@ -368,12 +378,12 @@ namespace TestNs
 
 
         private T FromMappingOrDefault<T>(
-            Type type, Func<TypeMappingConfigurator, T> ifMappingExist, Func<T> ifMappingMissing)
+            Type type, Func<TypeMappingOptions, T> ifMappingExist, Func<T> ifMappingMissing)
         {
-            TypeMappingConfigurator typeMappingConfigurator;
+            TypeMappingOptions typeMappingOptions;
             object result = null;
-            if (typeMappingDict.TryGetValue(type.FullName, out typeMappingConfigurator))
-                result = ifMappingExist(typeMappingConfigurator);
+            if (typeMappingDict.TryGetValue(type.FullName, out typeMappingOptions))
+                result = ifMappingExist(typeMappingOptions);
             if (result == null)
                 return ifMappingMissing();
             return (T) result;
@@ -393,11 +403,11 @@ namespace TestNs
         private T FromMappingOrDefault<T>(
             PropertyInfo propertyInfo, Func<PropertyMappingOptions, T> ifMappingExist, Func<T> ifMappingMissing)
         {
-            TypeMappingConfigurator typeMappingConfigurator;
+            TypeMappingOptions typeMappingOptions;
             PropertyMappingOptions propertyOptions;
             object result = null;
 
-            if (TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMappingConfigurator, out propertyOptions))
+            if (TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMappingOptions, out propertyOptions))
                 result = ifMappingExist(propertyOptions);
 
             if (result == null)
@@ -409,10 +419,10 @@ namespace TestNs
 
         private bool TryGetTypeMappingAndPropertyOptions(
             PropertyInfo propertyInfo,
-            out TypeMappingConfigurator typeMapping,
+            out TypeMappingOptions typeMapping,
             out PropertyMappingOptions propertyOptions)
         {
-            typeMapping = GetTypeMapping(propertyInfo.DeclaringType);
+            typeMapping = GetTypeMapping(propertyInfo.ReflectedType);
             propertyOptions = typeMapping.GetPropertyOptions(propertyInfo.Name);
             return true;
         }

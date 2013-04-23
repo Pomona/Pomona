@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,14 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Pomona.Example.Models;
-using System.Linq;
 
 namespace Pomona.Example
 {
@@ -77,7 +73,7 @@ namespace Pomona.Example
 
         public override IEnumerable<Type> GetSourceTypes()
         {
-            return CritterDataSource.GetEntityTypes().Concat(new [] {typeof(GenericBaseClass<int>)});
+            return CritterDataSource.GetEntityTypes().Concat(new[] {typeof (GenericBaseClass<int>)});
         }
 
 
@@ -87,8 +83,8 @@ namespace Pomona.Example
                 return typeof (Weapon);
             if (type == typeof (MusicalCritter))
                 return typeof (Critter);
-            if (typeof(DictionaryContainer).IsAssignableFrom(type))
-                return typeof(DictionaryContainer);
+            if (typeof (DictionaryContainer).IsAssignableFrom(type))
+                return typeof (DictionaryContainer);
 
             if (type == typeof (EntityBase))
                 return null;
@@ -110,7 +106,7 @@ namespace Pomona.Example
 
         public override bool TypeIsMapped(Type type)
         {
-            if (type == typeof (ExcludedThing))
+            if (type == typeof (ExcludedThing) || type == typeof (HiddenBaseInMiddle))
                 return false;
 
             return base.TypeIsMapped(type);
