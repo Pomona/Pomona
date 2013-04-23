@@ -274,7 +274,7 @@ namespace Pomona.CodeGen
                 var repoPropName = transformedType.PluralName;
                 var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
                 var repoPropType =
-                    GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
+                    GetClientTypeReference(typeof (IClientRepository<,>)).MakeGenericInstanceType(
                         resourceTypeInfo.InterfaceType, postReturnTypeRef);
 
                 if (clientTypeDefinition.IsInterface)

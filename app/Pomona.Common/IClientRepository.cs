@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,24 +24,30 @@
 
 using System;
 using System.Linq;
-using System.Linq.Expressions;
+using Pomona.Common.Proxies;
 
-namespace Pomona.Common.Linq
+namespace Pomona.Common
 {
-    public static class PomonaClientLinqExtensions
+    public interface IClientRepository<TResource, TPostResponseResource>
+        where TResource : class, IClientResource
+        where TPostResponseResource : IClientResource
     {
-        public static IQueryable<T> Query<T>(this IPomonaClient client, Expression<Func<T, bool>> predicate)
-        {
-            return client.Query<T>().Where(predicate);
-        }
+        string Uri { get; }
 
-        public static IQueryable<TResource> Query<TResource, TPostResponseResource>(
-            this IClientRepository<TResource, TPostResponseResource> repository,
-            Expression<Func<TResource, bool>> predicate)
-            where TResource : class, IClientResource
-            where TPostResponseResource : IClientResource
-        {
-            return repository.Query().Where(predicate);
-        }
+        TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
+            where TSubResource : class, TResource;
+
+        TPostResponseResource Post<TPostForm>(TPostForm form)
+            where TPostForm : PutResourceBase, TResource;
+
+        TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource;
+
+        TPostResponseResource Post(Action<TResource> postAction);
+
+        IQueryable<TResource> Query();
+
+        IQueryable<TSubResource> Query<TSubResource>()
+            where TSubResource : TResource;
     }
 }

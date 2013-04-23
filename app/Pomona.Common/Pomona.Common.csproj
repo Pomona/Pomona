@@ -54,6 +54,7 @@
     <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="HttpEncoder.cs" />
     <Compile Include="HttpUtility.cs" />
+    <Compile Include="IClientRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
     <Compile Include="Internals\CustomUserTypeInfo.cs" />
