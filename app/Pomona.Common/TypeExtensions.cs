@@ -38,6 +38,12 @@ namespace Pomona.Common
             return UniqueMemberToken.FromMemberInfo(member);
         }
 
+        public static bool HasAttribute<TAttribute>(this MemberInfo member, bool inherit)
+            where TAttribute : Attribute
+        {
+            return member.GetCustomAttributes(typeof (TAttribute), inherit).Any();
+        }
+
         /// <summary>
         /// Gets version of member where reflected type is same as declaring type.
         /// </summary>

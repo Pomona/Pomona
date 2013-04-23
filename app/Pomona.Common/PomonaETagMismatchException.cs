@@ -22,15 +22,22 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common;
+using System;
 
-namespace Pomona
+namespace Pomona.Common
 {
-    public interface IPomonaDataSource
+    public class PomonaETagMismatchException : Exception
     {
-        T GetById<T>(object id);
-        QueryResult Query(IPomonaQuery query);
-        object Post<T>(T newObject);
-        object Patch<T>(T updatedObject);
+        public PomonaETagMismatchException()
+        {
+        }
+
+        public PomonaETagMismatchException(string message) : base(message)
+        {
+        }
+
+        public PomonaETagMismatchException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

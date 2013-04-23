@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,15 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common;
+using System;
 
-namespace Pomona
+namespace Pomona.Common
 {
-    public interface IPomonaDataSource
+    [AttributeUsage(AttributeTargets.Property)]
+    public class ResourceEtagPropertyAttribute : Attribute
     {
-        T GetById<T>(object id);
-        QueryResult Query(IPomonaQuery query);
-        object Post<T>(T newObject);
-        object Patch<T>(T updatedObject);
     }
 }

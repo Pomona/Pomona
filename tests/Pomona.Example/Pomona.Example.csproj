@@ -70,6 +70,7 @@
     <Compile Include="Models\CustomEnum.cs" />
     <Compile Include="Models\DictionaryContainer.cs" />
     <Compile Include="Models\EntityBase.cs" />
+    <Compile Include="Models\EtaggedEntity.cs" />
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\FooBarRequest.cs" />

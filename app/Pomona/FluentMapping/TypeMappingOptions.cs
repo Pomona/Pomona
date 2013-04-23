@@ -111,21 +111,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        private Exception FluentRuleException(string message)
-        {
-            throw new InvalidOperationException(message);
-        }
-
-        /*
-        private PropertyMappingOptions GetPropertyOptions<TPropertyType>(
-            Expression<Func<TDeclaringType, TPropertyType>> property)
-        {
-            if (property == null)
-                throw new ArgumentNullException("property");
-            return GetPropertyOptions((Expression) property);
-        }*/
-
-
         private PropertyMappingOptions GetPropertyOptions(Expression propertyExpr)
         {
             if (propertyExpr == null)
@@ -206,6 +191,10 @@ namespace Pomona.FluentMapping
             public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
                 Expression<Func<TDeclaringType, TDeclaringType>> expr)
             {
+                // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
+                if (!owner.declaringType.IsAssignableFrom(typeof (TDeclaringType)))
+                    return this;
+
                 var expressionGotWrongStructureMessage =
                     "Expression got wrong structure, expects expression which looks like this: x => new FooBar(x.Prop)" +
                     " where each property maps to the argument";

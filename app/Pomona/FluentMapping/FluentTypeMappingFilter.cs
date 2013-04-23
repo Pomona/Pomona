@@ -142,6 +142,11 @@ namespace Pomona.FluentMapping
             return wrappedFilter.GetDecompiledPropertyFormula(propertyInfo);
         }
 
+        public bool PropertyIsEtag(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.IsEtagProperty, () => wrappedFilter.PropertyIsEtag(propertyInfo));
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);

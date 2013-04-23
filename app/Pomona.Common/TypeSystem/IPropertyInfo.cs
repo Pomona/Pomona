@@ -46,6 +46,7 @@ namespace Pomona.Common.TypeSystem
         IMappedType PropertyType { get; }
         Action<object, object> Setter { get; }
         bool IsPrimaryKey { get; }
+        bool IsEtagProperty { get; }
         Expression CreateGetterExpression(Expression instance);
     }
 }

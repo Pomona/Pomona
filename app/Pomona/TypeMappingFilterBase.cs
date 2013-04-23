@@ -68,6 +68,7 @@ namespace Pomona
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return false;
         }
 
@@ -80,12 +81,14 @@ namespace Pomona
 
         public virtual Type GetClientLibraryType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return null;
         }
 
 
         public virtual JsonConverter GetJsonConverterForType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             if (IsNullableType(type) && type.GetGenericArguments()[0].IsEnum)
                 return new StringEnumConverter();
             return null;
@@ -94,12 +97,14 @@ namespace Pomona
 
         public virtual Type GetPostReturnType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return type;
         }
 
 
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             var selfParam = Expression.Parameter(typeof (object), "x");
             var expr = Expression.Lambda<Func<object, object>>(
                 Expression.Convert(
@@ -118,12 +123,14 @@ namespace Pomona
 
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return propertyInfo.Name;
         }
 
 
         public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             if (!propertyInfo.CanWrite)
             {
                 return (obj, value) =>
@@ -152,12 +159,14 @@ namespace Pomona
 
         public virtual Type GetPropertyType(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return propertyInfo.PropertyType;
         }
 
 
         public virtual ConstructorInfo GetTypeConstructor(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             // Find longest (most specific) public constructor
             return type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
         }
@@ -165,24 +174,28 @@ namespace Pomona
 
         public virtual Type GetUriBaseType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return type;
         }
 
 
         public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return propertyInfo.DeclaringType.IsAnonymous();
         }
 
 
         public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return propertyInfo.GetGetMethod(true).IsPublic;
         }
 
 
         public virtual Type ResolveRealTypeForProxy(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             // TODO: Implement some crude heuristics to check whether a type is a proxy type,
             //       that should be treated as its base type.
             //
@@ -205,6 +218,7 @@ namespace Pomona
 
         public virtual bool TypeIsMapped(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
                    IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type)
@@ -215,6 +229,7 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return
                 type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
         }
@@ -222,52 +237,67 @@ namespace Pomona
 
         public virtual bool TypeIsMappedAsSharedType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return type.IsEnum || IsNativelySupportedType(type) || TypeIsMappedAsCollection(type);
         }
 
 
         public virtual bool TypeIsMappedAsTransformedType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return SourceTypes.Contains(type) || type.IsAnonymous() || TypeIsIGrouping(type);
         }
 
 
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return type.IsAnonymous();
         }
 
         public virtual bool TypeIsExposedAsRepository(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return true;
         }
 
 
         public bool PropertyIsAttributes(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return false;
         }
 
         public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return false;
         }
 
         public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             var getMethod = propertyInfo.GetGetMethod(true);
             var decompiled = getMethod.Decompile();
             return decompiled;
         }
 
+        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            return false;
+        }
+
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return null;
         }
 
 
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
+            if (collectionProperty == null) throw new ArgumentNullException("collectionProperty");
             Type[] genericArguments;
             if (
                 !TypeUtils.TryGetTypeArguments(
@@ -293,12 +323,19 @@ namespace Pomona
 
         public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return propertyInfo.Name.ToLower() == "id";
+        }
+
+        public virtual bool TypeIsMapped()
+        {
+            return TypeIsMapped(null);
         }
 
 
         private bool TypeIsIGrouping(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return type.UniqueToken() == typeof (IGrouping<,>).UniqueToken();
         }
 
@@ -317,6 +354,7 @@ namespace Pomona
 
         private static bool IsNullableType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition().Equals(typeof (Nullable<>));
         }
@@ -324,17 +362,16 @@ namespace Pomona
 
         private bool IsNativelySupportedType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
         }
 
 
         private bool IsNullableAllowedNativeType(Type type)
         {
+            if (type == null) throw new ArgumentNullException("type");
             return IsNullableType(type) &&
                    TypeIsMapped(type.GetGenericArguments()[0]);
         }
-
-
-        // TODO: Replace this with a way to find out what property has the Id.
     }
 }

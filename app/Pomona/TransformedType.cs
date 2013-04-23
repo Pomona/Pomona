@@ -520,6 +520,8 @@ namespace Pomona
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
                 }
 
+                propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
+
                 var formula = filter.GetPropertyFormula(propInfo);
 
                 if (formula == null && filter.PropertyFormulaIsDecompiled(propInfo))

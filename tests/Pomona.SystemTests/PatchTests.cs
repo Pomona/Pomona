@@ -119,5 +119,31 @@ namespace Pomona.SystemTests
 
             Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
         }
+
+        [Test]
+        public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
+        {
+            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
+            Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
+        }
+
+        [Category("TODO")]
+        [Test]
+        public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
+        {
+            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+
+            // Change etag on entity, which should give an exception
+            etaggedEntity.ETag = "MODIFIED!";
+
+            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"), Throws.Exception);
+            Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
+
+            Assert.Fail("Missing support for throwing good client side exceptions.");
+        }
     }
 }

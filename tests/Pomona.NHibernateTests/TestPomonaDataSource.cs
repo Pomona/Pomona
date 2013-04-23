@@ -58,7 +58,7 @@ namespace PomonaNHibernateTest
             throw new NotImplementedException();
         }
 
-        public object Update<T>(T updatedObject)
+        public object Patch<T>(T updatedObject)
         {
             session.SaveOrUpdate(updatedObject);
             return updatedObject;

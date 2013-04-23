@@ -113,8 +113,14 @@ namespace Pomona.Example
             }
         }
 
-        public object Update<T>(T updatedObject)
+        public object Patch<T>(T updatedObject)
         {
+            var etagEntity = updatedObject as EtaggedEntity;
+            if (etagEntity != null)
+                etagEntity.ETag = Guid.NewGuid().ToString();
+
+            Save(updatedObject);
+
             return updatedObject;
         }
 

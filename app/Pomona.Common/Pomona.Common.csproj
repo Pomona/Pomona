@@ -73,6 +73,7 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="PomonaETagMismatchException.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ClientSideFormProxyBase.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="ResourceAttributesPropertyAttribute.cs" />
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PutResourceBase.cs" />
+    <Compile Include="ResourceEtagPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />

@@ -240,6 +240,14 @@ namespace Pomona.Common.Serialization.Json
                 {
                     // If value is set we PATCH an existing object instead of creating a new one.
                     oldPropValue = propNode.Value = prop.Getter(node.Value);
+
+                    // Check for etag match
+                    if (prop.IsEtagProperty)
+                    {
+                        var newEtag = (string)jprop.Value;
+                        if (newEtag != (string)oldPropValue)
+                            throw new PomonaETagMismatchException("PATCH aborted, etag didn't match.");
+                    }
                 }
 
                 propNode.Deserialize(this, new Reader(jprop.Value));

@@ -227,7 +227,21 @@ namespace Pomona.Common
 
         public override T Patch<T>(T target, Action<T> updateAction)
         {
-            return (T) PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType);
+            var modifiedAction = updateAction;
+            ResourceInfoAttribute resourceInfo;
+
+            // Set etag to target resources' etag (optimistic concurrency)
+            if (TryGetResourceInfoForType(typeof(T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            {
+                modifiedAction = form =>
+                    {
+                        updateAction(form);
+                        var etagValue = resourceInfo.EtagProperty.GetValue(target, null);
+                        resourceInfo.EtagProperty.SetValue(form, etagValue, null);
+                    };
+            }
+
+            return (T) PostOrPatch(((IHasResourceUri) target).Uri, null, modifiedAction, "PATCH", x => x.PutFormType);
         }
 
 
