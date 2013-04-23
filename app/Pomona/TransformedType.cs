@@ -534,7 +534,7 @@ namespace Pomona
             // TODO: Support not including the whole type hierarchy. Remember that base type might be allowed to be a shared type.
             var exposedBaseType = type.BaseType;
 
-            while (!filter.TypeIsMapped(exposedBaseType) && exposedBaseType != null)
+            while (exposedBaseType != null && !filter.TypeIsMapped(exposedBaseType))
                 exposedBaseType = exposedBaseType.BaseType;
 
             if (exposedBaseType != null)
