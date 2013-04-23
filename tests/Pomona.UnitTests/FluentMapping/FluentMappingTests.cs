@@ -60,9 +60,14 @@ namespace Pomona.UnitTests.FluentMapping
                 this.defaultPropertyInclusionMode = defaultPropertyInclusionMode;
             }
 
+            public void Map(ITypeMappingConfigurator<Specialized> map)
+            {
+            }
+
 
             public void Map(ITypeMappingConfigurator<TestEntityBase> map)
             {
+                map.Include(x => x.Id);
                 switch (defaultPropertyInclusionMode)
                 {
                     case null:
@@ -155,12 +160,19 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
+        {
+            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.Id)), Is.True);
+        }
+
+        [Test]
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
             Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
         }
-
 
         [Test]
         public void DefaultPropertyInclusionMode_SetToIncludedByDefault_MakesPropertyIncludedByDefault()
