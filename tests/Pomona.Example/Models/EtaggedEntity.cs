@@ -35,7 +35,11 @@ namespace Pomona.Example.Models
         public string ETag
         {
             get { return eTag; }
-            set { eTag = value; }
+        }
+
+        public void SetEtag(string newEtagValue)
+        {
+            eTag = newEtagValue;
         }
     }
 }

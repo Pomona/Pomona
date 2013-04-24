@@ -228,7 +228,6 @@ namespace Pomona.Common
 
         public override T Patch<T>(T target, Action<T> updateAction)
         {
-            var modifiedAction = updateAction;
             Action<WebClientRequestMessage> modifyResponse = null;
             ResourceInfoAttribute resourceInfo;
 
@@ -236,19 +235,12 @@ namespace Pomona.Common
             if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
                 var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
-
-                modifiedAction = form =>
-                    {
-                        updateAction(form);
-                        resourceInfo.EtagProperty.SetValue(form, etagValue, null);
-                    };
-
                 modifyResponse = request => { request.Headers["If-Match"] = etagValue; };
             }
 
             return
                 (T)
-                PostOrPatch(((IHasResourceUri) target).Uri, null, modifiedAction, "PATCH", x => x.PutFormType,
+                PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType,
                             modifyResponse);
         }
 
@@ -310,7 +302,11 @@ namespace Pomona.Common
                 }
                 var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
                                                      .Invoke(this,
-                                                             new[] {uri, wrappedForm, null, httpMethod, formTypeGetter, modifyRequestHandler});
+                                                             new[]
+                                                                 {
+                                                                     uri, wrappedForm, null, httpMethod, formTypeGetter,
+                                                                     modifyRequestHandler
+                                                                 });
 
                 var responseProxy =
                     (ClientSideResourceProxyBase)
