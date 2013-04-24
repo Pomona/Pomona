@@ -318,7 +318,11 @@ namespace Pomona.Common
                 }
                 var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
                                                      .Invoke(this,
-                                                             new[] {uri, wrappedForm, null, httpMethod, formTypeGetter, modifyRequestHandler});
+                                                             new[]
+                                                                 {
+                                                                     uri, wrappedForm, null, httpMethod, formTypeGetter,
+                                                                     modifyRequestHandler
+                                                                 });
 
                 var responseProxy =
                     (ClientSideResourceProxyBase)
@@ -424,11 +428,19 @@ namespace Pomona.Common
             webClient.Headers["Accept"] = "application/json";
 
             string responseString = null;
+            var request = new WebClientRequestMessage(uri, null, "GET");
+            WebClientResponseMessage response = null;
             Exception thrownException = null;
             try
             {
-                var responseMessage = await webClient.SendAsync(new WebClientRequestMessage(uri, null, "GET"));
-                responseString = Encoding.UTF8.GetString(responseMessage.Data);
+                response = await webClient.SendAsync(request);
+
+                if ((int) response.StatusCode >= 400)
+                {
+                    throw WebClientException.Create(request, response, null);
+                }
+
+                responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
             {
@@ -437,7 +449,7 @@ namespace Pomona.Common
             }
             finally
             {
-                RaiseRequestCompleted("GET", uri, null, responseString, thrownException);
+                RaiseRequestCompleted(request, response, thrownException);
             }
 
             return responseString;

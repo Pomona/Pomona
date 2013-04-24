@@ -60,7 +60,13 @@ namespace Pomona.Common.Web
 
             var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
             var responseData = await httpResponseMessage.Content.ReadAsByteArrayAsync();
-            return new WebClientResponseMessage(requestMessage.Uri, responseData, (int) httpResponseMessage.StatusCode);
+
+            return new WebClientResponseMessage(requestMessage.Uri, responseData,
+                                                (HttpStatusCode) httpResponseMessage.StatusCode,
+                                                httpResponseMessage.Headers.Select(
+                                                    x =>
+                                                    new KeyValuePair<string, string>(x.Key, string.Join(",", x.Value))),
+                                                httpResponseMessage.Version.ToString());
         }
 
         private class HeadersDictionaryWrapper : IDictionary<string, string>
