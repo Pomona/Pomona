@@ -26,6 +26,7 @@ using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
+using Pomona.Common.Web;
 using Pomona.Example.Models;
 using Pomona.SystemTests.Linq;
 
@@ -130,7 +131,6 @@ namespace Pomona.SystemTests
             Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
         }
 
-        [Category("TODO")]
         [Test]
         public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
         {
@@ -140,10 +140,9 @@ namespace Pomona.SystemTests
             // Change etag on entity, which should give an exception
             etaggedEntity.ETag = "MODIFIED!";
 
-            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"), Throws.Exception);
+            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
+                        Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
-
-            Assert.Fail("Missing support for throwing good client side exceptions.");
         }
     }
 }

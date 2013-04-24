@@ -22,19 +22,51 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Text;
+
 namespace Pomona.Common.Web
 {
     public class WebClientRequestMessage
     {
         private readonly byte[] data;
+        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
         private readonly string method;
         private readonly string uri;
+        private readonly string protocolVersion = "1.1";
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0} {1} HTTP/{2}\r\n", method, uri, protocolVersion);
+            foreach (var h in headers)
+            {
+                sb.AppendFormat("{0}: {1}\r\n", h.Key, h.Value);
+            }
+            sb.AppendLine();
+            if (data != null)
+            {
+                sb.Append(Encoding.UTF8.GetString(data));
+            }
+            sb.AppendLine();
+            return sb.ToString();
+        }
+
+        public string ProtocolVersion
+        {
+            get { return protocolVersion; }
+        }
 
         public WebClientRequestMessage(string uri, byte[] data, string method)
         {
             this.uri = uri;
             this.data = data;
             this.method = method;
+        }
+
+        public IDictionary<string, string> Headers
+        {
+            get { return headers; }
         }
 
         public string Uri

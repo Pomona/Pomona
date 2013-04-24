@@ -36,6 +36,7 @@ namespace Pomona
             {
                 HttpStatusCode.BadRequest,
                 HttpStatusCode.NotFound,
+                HttpStatusCode.PreconditionFailed, 
                 HttpStatusCode.InternalServerError
             };
 
@@ -55,6 +56,16 @@ namespace Pomona
             if (exception is ResourceNotFoundException)
             {
                 context.Response = new NotFoundResponse();
+                return;
+            }
+
+            if (exception is ResourcePreconditionFailedException)
+            {
+                context.Response = new Response()
+                    {
+                        StatusCode = HttpStatusCode.PreconditionFailed,
+                        ContentType = "text/html"
+                    };
                 return;
             }
 

@@ -63,14 +63,16 @@ namespace Pomona
         public virtual Response Process(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
             var pomonaResponse = (PomonaResponse) model;
+            var pq = (PomonaQuery) pomonaResponse.Query;
 
             string jsonString;
+            var resultType = pq.ResultType;
+
             using (var strWriter = new StringWriter())
             {
-                var pq = (PomonaQuery) pomonaResponse.Query;
                 var serializationContext = new ServerSerializationContext(pq.ExpandedPaths, false,
                                                                           pomonaResponse.Session);
-                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pq.ResultType);
+                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, resultType);
                 jsonString = strWriter.ToString();
             }
 
@@ -85,12 +87,30 @@ namespace Pomona
             else
             {
                 var bytes = Encoding.UTF8.GetBytes(jsonString);
-                return new Response
+                Response response = new Response
+                {
+                    //Headers = {{"Content-Length", bytes.Length.ToString()}},
+                    Contents = s => s.Write(bytes, 0, bytes.Length),
+                    ContentType = ContentType
+                };
+
+                
+                // Add etag header
+                var transformedResultType = resultType as TransformedType;
+                if (transformedResultType != null)
+                {
+                    var etagProperty = transformedResultType.ETagProperty;
+                    if (etagProperty != null)
                     {
-                        //Headers = {{"Content-Length", bytes.Length.ToString()}},
-                        Contents = s => s.Write(bytes, 0, bytes.Length),
-                        ContentType = ContentType
-                    };
+                        var etagValue = (string) etagProperty.Getter(pomonaResponse.Entity);
+                        if (etagValue != null)
+                        {
+                            response.Headers["ETag"] = etagValue;
+                        }
+                    }
+                }
+
+                return response;
             }
         }
 

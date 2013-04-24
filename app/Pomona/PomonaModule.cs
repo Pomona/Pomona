@@ -351,7 +351,8 @@ namespace Pomona
 
         private PomonaResponse UpdateFromJson(TransformedType transformedType, object id)
         {
-            return session.PatchJson(transformedType, id, Request.Body);
+            var ifMatch = Request.Headers.IfMatch.FirstOrDefault();
+            return session.Patch(transformedType, id, Request.Body, ifMatch);
         }
     }
 }

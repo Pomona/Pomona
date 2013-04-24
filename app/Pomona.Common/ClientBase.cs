@@ -73,12 +73,12 @@ namespace Pomona.Common
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
-        protected void RaiseRequestCompleted(string httpMethod, string uri, string requestString, string responseString,
+        protected void RaiseRequestCompleted(WebClientRequestMessage request, WebClientResponseMessage response,
                                              Exception thrownException = null)
         {
             var eh = RequestCompleted;
             if (eh != null)
-                eh(this, new ClientRequestLogEventArgs(httpMethod, uri, requestString, responseString, thrownException));
+                eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
         }
 
 
@@ -105,7 +105,7 @@ namespace Pomona.Common
 
         private static readonly MethodInfo postOrPatchMethod =
             ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
-                x => x.PostOrPatch("", "", null, "POST", null));
+                x => x.PostOrPatch("", "", null, "POST", null, null));
 
         private readonly string baseUri;
         private readonly ISerializer serializer;
@@ -237,20 +237,27 @@ namespace Pomona.Common
         public override T Patch<T>(T target, Action<T> updateAction)
         {
             var modifiedAction = updateAction;
+            Action<WebClientRequestMessage> modifyResponse = null;
             ResourceInfoAttribute resourceInfo;
 
             // Set etag to target resources' etag (optimistic concurrency)
-            if (TryGetResourceInfoForType(typeof(T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
+                var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
+
                 modifiedAction = form =>
                     {
                         updateAction(form);
-                        var etagValue = resourceInfo.EtagProperty.GetValue(target, null);
                         resourceInfo.EtagProperty.SetValue(form, etagValue, null);
                     };
+
+                modifyResponse = request => { request.Headers["If-Match"] = etagValue; };
             }
 
-            return (T) PostOrPatch(((IHasResourceUri) target).Uri, null, modifiedAction, "PATCH", x => x.PutFormType);
+            return
+                (T)
+                PostOrPatch(((IHasResourceUri) target).Uri, null, modifiedAction, "PATCH", x => x.PutFormType,
+                            modifyResponse);
         }
 
 
@@ -273,11 +280,12 @@ namespace Pomona.Common
 
         internal override object Post<T>(string uri, Action<T> postAction)
         {
-            return PostOrPatch(uri, null, postAction, "POST", x => x.PostFormType);
+            return PostOrPatch(uri, null, postAction, "POST", x => x.PostFormType, null);
         }
 
         private object PostOrPatch<T>(string uri, T form, Action<T> postAction, string httpMethod,
-                                      Func<ResourceInfoAttribute, Type> formTypeGetter)
+                                      Func<ResourceInfoAttribute, Type> formTypeGetter,
+                                      Action<WebClientRequestMessage> modifyRequestHandler)
             where T : class
         {
             var type = typeof (T);
@@ -310,7 +318,7 @@ namespace Pomona.Common
                 }
                 var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
                                                      .Invoke(this,
-                                                             new[] {uri, wrappedForm, null, httpMethod, formTypeGetter});
+                                                             new[] {uri, wrappedForm, null, httpMethod, formTypeGetter, modifyRequestHandler});
 
                 var responseProxy =
                     (ClientSideResourceProxyBase)
@@ -335,14 +343,14 @@ namespace Pomona.Common
             }
 
             // Post the json!
-            var response = UploadToUri(uri, form, type, httpMethod);
+            var response = UploadToUri(uri, form, type, httpMethod, modifyRequestHandler);
 
             return Deserialize(response, null);
         }
 
         internal override object Post<T>(string uri, T postForm)
         {
-            return PostOrPatch(uri, postForm, null, "POST", x => x.PostFormType);
+            return PostOrPatch(uri, postForm, null, "POST", x => x.PostFormType, null);
         }
 
 
@@ -439,12 +447,14 @@ namespace Pomona.Common
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
             webClient.Headers["Accept"] = "application/json";
+            var request = new WebClientRequestMessage(uri, null, "GET");
+            WebClientResponseMessage response = null;
 
             string responseString = null;
             Exception thrownException = null;
             try
             {
-                var response = webClient.Send(new WebClientRequestMessage(uri, null, "GET"));
+                response = webClient.Send(request);
                 responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
@@ -454,7 +464,7 @@ namespace Pomona.Common
             }
             finally
             {
-                RaiseRequestCompleted("GET", uri, null, responseString, thrownException);
+                RaiseRequestCompleted(request, response, thrownException);
             }
 
             return responseString;
@@ -498,18 +508,31 @@ namespace Pomona.Common
             return stringWriter.ToString();
         }
 
-        private string UploadToUri(string uri, object obj, Type expectedBaseType, string httpMethod)
+        private string UploadToUri(string uri, object obj, Type expectedBaseType, string httpMethod,
+                                   Action<WebClientRequestMessage> modifyRequestHandler = null)
         {
             var requestString = Serialize(obj, expectedBaseType);
 
             var requestBytes = Encoding.UTF8.GetBytes(requestString);
+            WebClientResponseMessage response = null;
+            WebClientRequestMessage request;
+            request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
+
             webClient.Headers["Accept"] = "application/json";
 
             string responseString = null;
             Exception thrownException = null;
             try
             {
-                var response = webClient.Send(new WebClientRequestMessage(uri, requestBytes, httpMethod));
+                if (modifyRequestHandler != null)
+                    modifyRequestHandler(request);
+
+                response = webClient.Send(request);
+
+                if ((int) response.StatusCode >= 400)
+                {
+                    throw WebClientException.Create(request, response, null);
+                }
                 responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
@@ -519,7 +542,7 @@ namespace Pomona.Common
             }
             finally
             {
-                RaiseRequestCompleted(httpMethod, uri, requestString, responseString, thrownException);
+                RaiseRequestCompleted(request, response, thrownException);
             }
 
 

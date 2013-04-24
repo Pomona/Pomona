@@ -141,10 +141,13 @@
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
+    <Compile Include="Web\HttpStatusCode.cs" />
     <Compile Include="Web\IWebClient.cs" />
+    <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\WebClientRequestMessage.cs" />
     <Compile Include="Web\WebClientResponseMessage.cs" />
     <Compile Include="Web\WrappedHttpClient.cs" />
+    <Compile Include="Web\WebClientException.cs" />
     <Compile Include="Web\WrappedWebClient.cs" />
   </ItemGroup>
   <ItemGroup>

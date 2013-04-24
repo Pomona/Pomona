@@ -27,32 +27,33 @@ using Pomona.Common.Web;
 
 namespace Pomona
 {
-    public class ResourceNotFoundException : PomonaException
+    public class PomonaException : ApplicationException
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class.
-        /// </summary>
-        public ResourceNotFoundException()
+        private readonly HttpStatusCode statusCode;
+
+        public PomonaException()
         {
         }
 
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class with a specified error message.
-        /// </summary>
-        /// <param name="message">A message that describes the error. </param>
-        public ResourceNotFoundException(string message) : base(message, null, HttpStatusCode.NotFound)
+        public PomonaException(string message) : base(message)
         {
+            statusCode = HttpStatusCode.InternalServerError;
         }
 
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
-        /// </summary>
-        /// <param name="message">The error message that explains the reason for the exception. </param><param name="innerException">The exception that is the cause of the current exception. If the <paramref name="innerException"/> parameter is not a null reference, the current exception is raised in a catch block that handles the inner exception. </param>
-        public ResourceNotFoundException(string message, Exception innerException)
-            : base(message, innerException, HttpStatusCode.NotFound)
+        public PomonaException(string message, Exception innerException) : base(message, innerException)
         {
+            statusCode = HttpStatusCode.InternalServerError;
+        }
+
+        public PomonaException(string message, Exception innerException, HttpStatusCode statusCode)
+            : base(message, innerException)
+        {
+            this.statusCode = statusCode;
+        }
+
+        public HttpStatusCode StatusCode
+        {
+            get { return statusCode; }
         }
     }
 }
