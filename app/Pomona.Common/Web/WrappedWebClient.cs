@@ -27,38 +27,60 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
+using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
 {
     public class WrappedWebClient : IWebClient
     {
-        private readonly IDictionary<string, string> headers;
-        private readonly WebClient webClient;
-
-        public WrappedWebClient() : this(null)
-        {
-        }
-
-        public WrappedWebClient(WebClient webClient)
-        {
-            this.webClient = webClient ?? new WebClient();
-            headers = new HeaderDictionaryWrapper(this.webClient);
-        }
+        private readonly HeaderDictionaryWrapper headers = new HeaderDictionaryWrapper(new WebHeaderCollection());
 
         public IDictionary<string, string> Headers
         {
             get { return headers; }
         }
 
-        public byte[] DownloadData(string uri)
+        public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
-            return webClient.DownloadData(uri);
-        }
+            var webRequest = (HttpWebRequest)WebRequest.Create(request.Uri);
 
-        public byte[] UploadData(string uri, string httpMethod, byte[] requestBytes)
-        {
-            return webClient.UploadData(uri, httpMethod, requestBytes);
+            foreach (var h in headers)
+            {
+                if (!WebHeaderCollection.IsRestricted(h.Key))
+                    webRequest.Headers.Add(h.Key, h.Value);
+                else
+                {
+                    switch (h.Key)
+                    {
+                        case "Accept":
+                            webRequest.Accept = h.Value;
+                            break;
+
+                        default:
+                            throw new NotImplementedException("Setting restricted header " + h.Key + " not implemented.");
+                    }
+                }
+            }
+
+            webRequest.Method = request.Method;
+
+            if (request.Data != null)
+            {
+                webRequest.ContentLength = request.Data.Length;
+                using (var requestStream = webRequest.GetRequestStream())
+                {
+                    requestStream.Write(request.Data, 0, request.Data.Length);
+                }
+            }
+
+            using (var webResponse = (HttpWebResponse) webRequest.GetResponse())
+            using (var responseStream = webResponse.GetResponseStream())
+            {
+                var responseBytes = responseStream.ReadAllBytes();
+
+                return new WebClientResponseMessage(webResponse.ResponseUri.ToString(), responseBytes,
+                                                    (int) webResponse.StatusCode);
+            }
         }
 
         public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
@@ -68,17 +90,17 @@ namespace Pomona.Common.Web
 
         private class HeaderDictionaryWrapper : IDictionary<string, string>
         {
-            private readonly WebClient webClient;
+            private readonly WebHeaderCollection headers;
 
-            public HeaderDictionaryWrapper(WebClient webClient)
+            public HeaderDictionaryWrapper(WebHeaderCollection headers)
             {
-                if (webClient == null) throw new ArgumentNullException("webClient");
-                this.webClient = webClient;
+                if (headers == null) throw new ArgumentNullException("headers");
+                this.headers = headers;
             }
 
-            private WebHeaderCollection Headers
+            internal WebHeaderCollection Headers
             {
-                get { return webClient.Headers; }
+                get { return headers; }
             }
 
             public IEnumerator<KeyValuePair<string, string>> GetEnumerator()

@@ -26,7 +26,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Nancy.Testing;
 using Pomona.Common.Web;
 
@@ -48,17 +47,11 @@ namespace Pomona.TestHelpers
             get { return headers; }
         }
 
-        public byte[] DownloadData(string uri)
-        {
-            return Wrap(uri, browser.Get).Body.ToArray();
-        }
-
-
-        public byte[] UploadData(string uri, string httpMethod, byte[] requestBytes)
+        public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
             Func<string, Action<BrowserContext>, BrowserResponse> browserMethod;
 
-            switch (httpMethod.ToUpper())
+            switch (request.Method.ToUpper())
             {
                 case "POST":
                     browserMethod = browser.Post;
@@ -66,34 +59,30 @@ namespace Pomona.TestHelpers
                 case "PATCH":
                     browserMethod = browser.Patch;
                     break;
+                case "GET":
+                    browserMethod = browser.Get;
+                    break;
                 default:
                     throw new NotImplementedException();
             }
 
-            var browserResponse = Wrap(uri, browserMethod, bc => bc.Body(new MemoryStream(requestBytes)));
-            return browserResponse.Body.ToArray();
-        }
-
-        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
-        {
-            throw new NotImplementedException();
-        }
-
-        private BrowserResponse Wrap(string uri, Func<string, Action<BrowserContext>, BrowserResponse> browserMethod, Action<BrowserContext> additionalContext  = null)
-        {
-            var u = new Uri(uri);
-            return browserMethod(u.LocalPath, bc =>
+            var uri = new Uri(request.Uri);
+            var browserResponse = browserMethod(uri.LocalPath, bc =>
                 {
                     bc.HttpRequest();
-                    ((IBrowserContextValues) bc).QueryString = u.Query;
+                    ((IBrowserContextValues) bc).QueryString = uri.Query;
                     foreach (var kvp in headers)
                     {
                         bc.Header(kvp.Key, kvp.Value);
                     }
-
-                    if (additionalContext != null)
-                        additionalContext(bc);
+                    if (request.Data != null)
+                    {
+                        bc.Body(new MemoryStream(request.Data));
+                    }
                 });
+
+            return new WebClientResponseMessage(request.Uri, browserResponse.Body.ToArray(),
+                                                (int) browserResponse.StatusCode);
         }
     }
 }
