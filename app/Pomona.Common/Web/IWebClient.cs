@@ -32,7 +32,6 @@ namespace Pomona.Common.Web
     public interface IWebClient
     {
         IDictionary<string, string> Headers { get; }
-        byte[] DownloadData(string uri);
-        byte[] UploadData(string uri, string httpMethod, byte[] requestBytes);
+        WebClientResponseMessage Send(WebClientRequestMessage request);
     }
 }

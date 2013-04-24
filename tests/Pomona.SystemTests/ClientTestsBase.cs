@@ -40,7 +40,7 @@ namespace Pomona.SystemTests
 {
     public class ClientTestsBase
     {
-        public const bool UseSelfHostedHttpServer = false;
+        public const bool UseSelfHostedHttpServer = true;
 
         private string baseUri;
 

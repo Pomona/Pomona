@@ -62,6 +62,7 @@
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\PomonaClientExtensions.cs" />
+    <Compile Include="Internals\StreamExtensions.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPomonaClient.cs" />

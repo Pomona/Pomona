@@ -87,6 +87,7 @@ namespace Pomona
                 var bytes = Encoding.UTF8.GetBytes(jsonString);
                 return new Response
                     {
+                        //Headers = {{"Content-Length", bytes.Length.ToString()}},
                         Contents = s => s.Write(bytes, 0, bytes.Length),
                         ContentType = ContentType
                     };

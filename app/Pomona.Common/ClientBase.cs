@@ -410,8 +410,8 @@ namespace Pomona.Common
             Exception thrownException = null;
             try
             {
-                var downloadData = webClient.DownloadData(uri);
-                responseString = Encoding.UTF8.GetString(downloadData);
+                var response = webClient.Send(new WebClientRequestMessage(uri, null, "GET"));
+                responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
             {
@@ -475,8 +475,8 @@ namespace Pomona.Common
             Exception thrownException = null;
             try
             {
-                var responseBytes = webClient.UploadData(uri, httpMethod, requestBytes);
-                responseString = Encoding.UTF8.GetString(responseBytes);
+                var response = webClient.Send(new WebClientRequestMessage(uri, requestBytes, httpMethod));
+                responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
             {
