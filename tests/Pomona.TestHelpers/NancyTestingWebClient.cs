@@ -82,7 +82,7 @@ namespace Pomona.TestHelpers
                 });
 
             return new WebClientResponseMessage(request.Uri, browserResponse.Body.ToArray(),
-                                                (int) browserResponse.StatusCode);
+                                                (HttpStatusCode) browserResponse.StatusCode, browserResponse.Headers, "1.1");
         }
     }
 }

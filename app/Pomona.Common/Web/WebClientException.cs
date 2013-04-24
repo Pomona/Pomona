@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,48 +23,40 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using Pomona.Common.Web;
 
-namespace Pomona.Common
+namespace Pomona.Common.Web
 {
-    public class ClientRequestLogEventArgs : EventArgs
+    public class WebClientException : Exception
     {
         private readonly WebClientRequestMessage request;
         private readonly WebClientResponseMessage response;
 
-        private readonly Exception thrownException;
-
-        public ClientRequestLogEventArgs(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception thrownException)
+        protected WebClientException(WebClientRequestMessage request, WebClientResponseMessage response,
+                                     Exception innerException)
+            : base(response != null ? response.StatusCode.ToString() : "Response missing", innerException)
         {
-            if (request == null) throw new ArgumentNullException("request");
             this.request = request;
             this.response = response;
         }
 
-        public WebClientRequestMessage Request
+        public HttpStatusCode StatusCode
         {
-            get { return request; }
+            get { return response != null ? response.StatusCode : HttpStatusCode.EmptyResponse; }
         }
 
-        public WebClientResponseMessage Response
+        public static WebClientException Create(WebClientRequestMessage request, WebClientResponseMessage response,
+                                                Exception innerException)
         {
-            get { return response; }
-        }
+            if (request == null) throw new ArgumentNullException("request");
 
-        public Exception ThrownException
-        {
-            get { return thrownException; }
-        }
-
-        public string Uri
-        {
-            get { return request.Uri; }
-        }
-
-        public string Method
-        {
-            get { return request.Method; }
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            switch (statusCode)
+            {
+                case HttpStatusCode.PreconditionFailed:
+                    return new PreconditionFailedException(request, response, innerException);
+                default:
+                    return new WebClientException(request, response, innerException);
+            }
         }
     }
 }

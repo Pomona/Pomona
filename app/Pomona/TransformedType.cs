@@ -85,6 +85,11 @@ namespace Pomona
             get { return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
         }
 
+        public PropertyMapping ETagProperty
+        {
+            get { return properties.FirstOrDefault(x => x.IsEtagProperty); }
+        }
+
         public bool PostAllowed
         {
             get { return true; }
@@ -467,7 +472,8 @@ namespace Pomona
         {
             var reflectedType = propertyInfo.ReflectedType;
 
-            while (reflectedType.BaseType != null && reflectedType != propertyInfo.DeclaringType && typeMapper.SourceTypes.Contains(reflectedType.BaseType))
+            while (reflectedType.BaseType != null && reflectedType != propertyInfo.DeclaringType &&
+                   typeMapper.SourceTypes.Contains(reflectedType.BaseType))
             {
                 reflectedType = reflectedType.BaseType;
             }
@@ -486,7 +492,7 @@ namespace Pomona
                 if (!filter.PropertyIsIncluded(propInfo))
                     continue;
 
-                IMappedType declaringType = typeMapper.GetClassMapping(GetKnownDeclaringType(propInfo));
+                var declaringType = typeMapper.GetClassMapping(GetKnownDeclaringType(propInfo));
 
                 var propInfoLocal = propInfo;
                 var getter = filter.GetPropertyGetter(propInfo);

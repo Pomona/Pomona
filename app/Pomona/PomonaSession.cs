@@ -28,6 +28,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Pomona.CodeGen;
+using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
@@ -40,7 +41,7 @@ namespace Pomona
     /// </summary>
     public class PomonaSession
     {
-        private static readonly GenericMethodCaller<IPomonaDataSource, object, object> getByIdMethod;
+        private static readonly MethodInfo getByIdMethod;
         private static readonly MethodInfo postGenericMethod;
         private static readonly MethodInfo patchGenericMethod;
         private readonly IPomonaDataSource dataSource;
@@ -55,8 +56,8 @@ namespace Pomona
             postGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
                                  GetGenericMethodDefinition();
-            getByIdMethod = new GenericMethodCaller<IPomonaDataSource, object, object>(
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null)));
+            getByIdMethod =
+                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
             patchGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
         }
@@ -183,15 +184,34 @@ namespace Pomona
         }
 
 
-        public PomonaResponse PatchJson(
-            TransformedType transformedType, object id, Stream readStream)
+        public PomonaResponse Patch(
+            TransformedType transformedType, object id, Stream readStream, string ifMatch)
         {
             var o = GetById(transformedType, id);
+
+            if (o != null && ifMatch != null)
+            {
+                var etagProp = transformedType.ETagProperty;
+                if (etagProp == null)
+                    throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
+
+                if ((string) etagProp.Getter(o) != ifMatch)
+                {
+                    throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
+                }
+            }
 
             using (var textReader = new StreamReader(readStream))
             {
                 var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
-                return DeserializePostOrPatch(objType, textReader, o);
+                try
+                {
+                    return DeserializePostOrPatch(objType, textReader, o);
+                }
+                catch (PomonaETagMismatchException eTagMismatchException)
+                {
+                    throw new ResourcePreconditionFailedException(eTagMismatchException.Message, eTagMismatchException);
+                }
             }
         }
 
@@ -206,7 +226,8 @@ namespace Pomona
         {
             // TODO: Maybe cache method instance?
 
-            return getByIdMethod.Call(transformedType.MappedType, dataSource, id);
+            return getByIdMethod.MakeGenericMethod(transformedType.MappedTypeInstance)
+                                .Invoke(dataSource, new object[] {id});
         }
 
     }

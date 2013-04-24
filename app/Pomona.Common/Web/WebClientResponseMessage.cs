@@ -22,19 +22,33 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
 namespace Pomona.Common.Web
 {
     public class WebClientResponseMessage
     {
         private readonly byte[] data;
-        private readonly int statusCode;
+        private readonly IDictionary<string, string> headers;
+        private readonly string protocolVersion;
+        private readonly HttpStatusCode statusCode;
         private readonly string uri;
 
-        public WebClientResponseMessage(string uri, byte[] data, int statusCode)
+        public WebClientResponseMessage(string uri, byte[] data, HttpStatusCode statusCode,
+                                        IEnumerable<KeyValuePair<string, string>> headers, string protocolVersion)
         {
+            this.headers = new ReadOnlyDictionary<string, string>(headers.ToDictionary(x => x.Key, x => x.Value));
             this.uri = uri;
             this.data = data;
             this.statusCode = statusCode;
+            this.protocolVersion = protocolVersion;
+        }
+
+        public IDictionary<string, string> Headers
+        {
+            get { return headers; }
         }
 
         public string Uri
@@ -47,9 +61,27 @@ namespace Pomona.Common.Web
             get { return data; }
         }
 
-        public int StatusCode
+        public HttpStatusCode StatusCode
         {
             get { return statusCode; }
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendFormat("HTTP/{0} {1} {2}\r\n", protocolVersion, (int) statusCode, statusCode);
+            foreach (var h in headers)
+            {
+                sb.AppendFormat("{0}: {1}\r\n", h.Key, h.Value);
+            }
+            sb.AppendLine();
+
+            if (data != null)
+            {
+                sb.Append(Encoding.UTF8.GetString(data));
+            }
+            sb.AppendLine();
+            return sb.ToString();
         }
     }
 }

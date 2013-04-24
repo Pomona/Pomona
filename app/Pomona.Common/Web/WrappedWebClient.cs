@@ -42,9 +42,9 @@ namespace Pomona.Common.Web
 
         public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
-            var webRequest = (HttpWebRequest)WebRequest.Create(request.Uri);
+            var webRequest = (HttpWebRequest) WebRequest.Create(request.Uri);
 
-            foreach (var h in headers)
+            foreach (var h in headers.Concat(request.Headers))
             {
                 if (!WebHeaderCollection.IsRestricted(h.Key))
                     webRequest.Headers.Add(h.Key, h.Value);
@@ -62,6 +62,7 @@ namespace Pomona.Common.Web
                 }
             }
 
+            webRequest.ProtocolVersion = Version.Parse(request.ProtocolVersion);
             webRequest.Method = request.Method;
 
             if (request.Data != null)
@@ -73,13 +74,30 @@ namespace Pomona.Common.Web
                 }
             }
 
-            using (var webResponse = (HttpWebResponse) webRequest.GetResponse())
+            Exception innerException;
+            using (var webResponse = GetResponseNoThrow(webRequest, out innerException))
             using (var responseStream = webResponse.GetResponseStream())
             {
                 var responseBytes = responseStream.ReadAllBytes();
 
                 return new WebClientResponseMessage(webResponse.ResponseUri.ToString(), responseBytes,
-                                                    (int) webResponse.StatusCode);
+                                                    (HttpStatusCode) webResponse.StatusCode,
+                                                    new HeaderDictionaryWrapper(webResponse.Headers),
+                                                    webResponse.ProtocolVersion.ToString());
+            }
+        }
+
+        private static HttpWebResponse GetResponseNoThrow(HttpWebRequest request, out Exception thrownException)
+        {
+            try
+            {
+                thrownException = null;
+                return (HttpWebResponse) request.GetResponse();
+            }
+            catch (WebException ex)
+            {
+                thrownException = ex;
+                return (HttpWebResponse) ex.Response;
             }
         }
 
