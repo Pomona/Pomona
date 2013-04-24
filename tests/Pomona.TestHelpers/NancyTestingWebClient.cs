@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Nancy.Testing;
 using Pomona.Common.Web;
 
@@ -83,6 +84,11 @@ namespace Pomona.TestHelpers
 
             return new WebClientResponseMessage(request.Uri, browserResponse.Body.ToArray(),
                                                 (int) browserResponse.StatusCode);
+        }
+
+        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -47,18 +47,9 @@ namespace Pomona.Common.Web
             get { return headers; }
         }
 
-        public byte[] DownloadData(string uri)
+        public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
-            return httpClient.GetByteArrayAsync(uri).Result;
-        }
-
-        public byte[] UploadData(string uri, string httpMethod, byte[] requestBytes)
-        {
-            var request = new HttpRequestMessage(new HttpMethod(httpMethod), uri)
-                {
-                    Content = new ByteArrayContent(requestBytes)
-                };
-            return httpClient.SendAsync(request).Result.Content.ReadAsByteArrayAsync().Result;
+            return SendAsync(request).Result;
         }
 
         public async Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
