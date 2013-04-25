@@ -85,6 +85,11 @@ namespace Pomona.SystemTests
             Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
         }
 
+        protected virtual IWebClient CreateWebClient()
+        {
+            return new WrappedHttpClient();
+        }
+
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {

@@ -38,6 +38,11 @@ namespace Pomona.SystemTests
             get { return true; }
         }
 
+        protected override IWebClient CreateWebClient()
+        {
+            return new HttpWebRequestClient();
+        }
+
         [Test]
         public void Get_UsingQuery_ReturnsEntities()
         {
