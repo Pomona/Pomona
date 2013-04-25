@@ -40,12 +40,16 @@ namespace Pomona.SystemTests
 {
     public class ClientTestsBase
     {
-        public const bool UseSelfHostedHttpServer = false;
-
+        public const bool UseSelfHostedHttpServerDefault = false;
         private string baseUri;
 
         protected Client client;
         private CritterHost critterHost;
+
+        public virtual bool UseSelfHostedHttpServer
+        {
+            get { return UseSelfHostedHttpServerDefault; }
+        }
 
         protected string BaseUri
         {
@@ -108,7 +112,8 @@ namespace Pomona.SystemTests
 
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
-            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n", e.Request, (object)e.Response ?? "(nothing received)");
+            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n", e.Request,
+                              (object) e.Response ?? "(nothing received)");
         }
 
 
