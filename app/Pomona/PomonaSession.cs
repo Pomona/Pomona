@@ -204,14 +204,7 @@ namespace Pomona
             using (var textReader = new StreamReader(readStream))
             {
                 var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
-                try
-                {
-                    return DeserializePostOrPatch(objType, textReader, o);
-                }
-                catch (PomonaETagMismatchException eTagMismatchException)
-                {
-                    throw new ResourcePreconditionFailedException(eTagMismatchException.Message, eTagMismatchException);
-                }
+                return DeserializePostOrPatch(objType, textReader, o);
             }
         }
 

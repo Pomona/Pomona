@@ -138,7 +138,7 @@ namespace Pomona.SystemTests
             var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
 
             // Change etag on entity, which should give an exception
-            etaggedEntity.ETag = "MODIFIED!";
+            etaggedEntity.SetEtag("MODIFIED!");
 
             Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
                         Throws.TypeOf<PreconditionFailedException>());

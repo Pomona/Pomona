@@ -30,7 +30,7 @@ using Nancy.ErrorHandling;
 
 namespace Pomona
 {
-    public class ErrorHandler : IErrorHandler
+    public class ErrorHandler : IStatusCodeHandler
     {
         private readonly HttpStatusCode[] _supportedStatusCodes = new[]
             {

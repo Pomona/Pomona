@@ -117,7 +117,7 @@ namespace Pomona.Example
         {
             var etagEntity = updatedObject as EtaggedEntity;
             if (etagEntity != null)
-                etagEntity.ETag = Guid.NewGuid().ToString();
+                etagEntity.SetEtag(Guid.NewGuid().ToString());
 
             Save(updatedObject);
 

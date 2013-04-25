@@ -112,7 +112,8 @@ namespace Pomona.SystemTests
 
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
-            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n", e.Request, (object)e.Response ?? "(nothing received)");
+            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n", e.Request,
+                              (object) e.Response ?? "(nothing received)");
         }
 
 

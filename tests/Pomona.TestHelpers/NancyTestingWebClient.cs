@@ -72,7 +72,7 @@ namespace Pomona.TestHelpers
                 {
                     bc.HttpRequest();
                     ((IBrowserContextValues) bc).QueryString = uri.Query;
-                    foreach (var kvp in headers)
+                    foreach (var kvp in headers.Concat(request.Headers))
                     {
                         bc.Header(kvp.Key, kvp.Value);
                     }
