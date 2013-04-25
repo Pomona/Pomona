@@ -31,11 +31,19 @@ using Pomona.Example.Models;
 namespace Pomona.SystemTests
 {
     [TestFixture]
-    public class ClientRealHttpConnectionTests : ClientTestsBase
+    public class HttpWebRequestClientTests : ClientTestsBase
     {
         public override bool UseSelfHostedHttpServer
         {
             get { return true; }
+        }
+
+        [Test]
+        public void Get_UsingQuery_ReturnsEntities()
+        {
+            // Here we just expect to get something returned, Query itself is tested in other fixture,
+            var oddCritters = client.Critters.Query().Where(x => x.Id%2 == 1).ToList();
+            Assert.That(oddCritters, Has.Count.GreaterThan(0));
         }
 
         [Test]
@@ -60,6 +68,14 @@ namespace Pomona.SystemTests
             Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
                         Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
+        }
+
+        [Test]
+        public void Post_SavesEntityAndReturnsResource()
+        {
+            var resource = client.Critters.Post(new CritterForm {Name = "Hiihaa"});
+            Assert.That(resource.Id, Is.GreaterThan(0));
+            Assert.That(resource.Name, Is.EqualTo("Hiihaa"));
         }
     }
 }

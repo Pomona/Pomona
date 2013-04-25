@@ -143,7 +143,7 @@ namespace Pomona.Common
 
         protected ClientBase(string baseUri, IWebClient webClient)
         {
-            this.webClient = webClient ?? new WrappedWebClient();
+            this.webClient = webClient ?? new HttpWebRequestClient();
 
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";

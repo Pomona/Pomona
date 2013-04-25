@@ -142,7 +142,7 @@
     <Compile Include="Web\WebClientRequestMessage.cs" />
     <Compile Include="Web\WebClientResponseMessage.cs" />
     <Compile Include="Web\WebClientException.cs" />
-    <Compile Include="Web\WrappedWebClient.cs" />
+    <Compile Include="Web\HttpWebRequestClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

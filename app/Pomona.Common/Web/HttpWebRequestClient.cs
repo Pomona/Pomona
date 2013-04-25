@@ -31,7 +31,7 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
 {
-    public class WrappedWebClient : IWebClient
+    public class HttpWebRequestClient : IWebClient
     {
         private readonly HeaderDictionaryWrapper headers = new HeaderDictionaryWrapper(new WebHeaderCollection());
 
