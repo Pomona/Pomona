@@ -52,6 +52,7 @@ namespace Pomona.FluentMapping
         private bool? isUriBaseType;
         private bool? isValueObject;
 
+        private string pluralName;
         private Type postResponseType;
 
         public TypeMappingOptions(Type declaringType)
@@ -79,6 +80,12 @@ namespace Pomona.FluentMapping
         {
             get { return isValueObject; }
         }
+
+        public string PluralName
+        {
+            get { return pluralName; }
+        }
+
 
         public bool? IsExposedAsRepository
         {
@@ -222,6 +229,12 @@ namespace Pomona.FluentMapping
 
                 owner.constructor = constructExpr.Constructor;
 
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName)
+            {
+                owner.pluralName = pluralName;
                 return this;
             }
 

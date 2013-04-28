@@ -92,24 +92,6 @@ namespace Pomona.SystemTests
         }
 
         [Test]
-        public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
-        {
-            var entity = new StringToObjectDictionaryContainer
-                {
-                    Map = {{"Text", "testtest"}}
-                };
-            Save(entity);
-
-            var resource = client.Query<LinqQueryTests.ICustomTestEntity3>().First(x => x.Id == entity.Id);
-
-            var patchedResource =
-                client.Patch(resource, x => { x.Text = "UPDATED!"; });
-
-
-            Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
-        }
-
-        [Test]
         public void PatchMusicalInheritedCritter_UpdateProperty()
         {
             var critter = Save(new MusicalCritter());

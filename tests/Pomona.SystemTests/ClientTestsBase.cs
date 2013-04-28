@@ -30,6 +30,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Critters.Client;
 using NUnit.Framework;
+using Nancy.Routing;
 using Nancy.Testing;
 using Pomona.Common;
 using Pomona.Example;
@@ -83,7 +84,6 @@ namespace Pomona.SystemTests
 
             Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
         }
-
 
         [TestFixtureSetUp]
         public void FixtureSetUp()

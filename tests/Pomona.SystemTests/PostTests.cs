@@ -113,20 +113,6 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
-        [Test]
-        public void PostCustomTestEntity()
-        {
-            var response = (LinqQueryTests.ICustomTestEntity3) client.Post<LinqQueryTests.ICustomTestEntity3>(x =>
-                {
-                    x.Number = 123;
-                    x.Text = "foobar";
-                    x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
-                });
-
-            Assert.That(response.Number, Is.EqualTo(123));
-            Assert.That(response.Text, Is.EqualTo("foobar"));
-            Assert.That(response.Time, Is.EqualTo(new DateTime(2030, 3, 4, 5, 3, 2)));
-        }
 
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()

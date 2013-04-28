@@ -51,6 +51,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_IdInList_ReturnsCorrectCritters()
         {
+            DataSource.CreateRandomData(critterCount: 10);
             var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
             TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
         }

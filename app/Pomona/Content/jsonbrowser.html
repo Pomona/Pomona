@@ -9,31 +9,143 @@
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
     <script>
+        if (typeof String.prototype.startsWith != 'function') {
+            // see below for better implementation!
+            String.prototype.startsWith = function (str){
+                return this.indexOf(str) == 0;
+            };
+        }
+
         var currentTags = null;
 
-        $.getJSON("schemas", function (schemas) {
-            $.each(schemas.types, function (i, v) {
-                if (v.extends)
-                    return;
-
-                var li = $("<li />");
-                var anchor = $("<a />");
-
-                anchor.click(function() {
-                    $.getJSON(v.uri, function (data) {
-                        $("pre").text(JSON.stringify(data, null, 4));
-                    });
-                    currentTags = Object.keys(v.properties);
-                });
-                //anchor.attr("href", v.uri);
-                anchor.text(v.name);
-                li.append(anchor);
-                $("ul").append(li);
+        function createAnchor(uri) {
+            var currentUrl = document.URL;
+            if (uri.startsWith(currentUrl))
+                uri = uri.substring(currentUrl.length);
+            
+            return $('<a href="' + uri + '" />').text('"' + uri + '"').click(function() {
+                fetchUri(uri, $("article"), false, true);
+                return false;
             });
-        });
+        }
 
+        function jsToHtml(el, o) {
+            if (o === null) {
+                el.append($('<span class="js_null">null</span>'));
+                return;
+            }
 
+            if ($.isArray(o)) {
+                if (o.length == 0) {
+                    el.append($('<span class="js_empty_array_info">(empty array)</span>'));
+                }
+
+                var arrList = $('<ul class="js_array"></ul>');
+                for (var i = 0; i < o.length; i++) {
+                    var item = o[i];
+                    var itemLi = $('<li />');
+                    jsToHtml(itemLi, item);
+                    arrList.append(itemLi);
+                }
+                el.append(arrList);
+                return;
+            }
+
+            switch (typeof o) {
+            case "object":
+                if (o._ref) {
+                    var refUri = o._ref;
+                    var expandButton = $('<span class="fetch_ref_obj">(get)</span>');
+                    expandButton.click(function() {
+                        fetchUri(refUri, el, true);
+                    });
+                    el.append(expandButton);
+                    el.append($('<span class="js_obj_ref" />').append(createAnchor(refUri)));
+                    return;
+                }
+                    
+                if (o._uri) {
+                    el.append($('<span class="js_obj_uri" />').append(createAnchor(o._uri)));
+                }
+
+                var propList = $('<ul class="js_obj"></ul>');
+                for (var propName in o) {
+                    if (propName === '_uri' || propName === '_type')
+                        continue;
+
+                    var propValue = o[propName];
+                    var propLi = $('<li />');
+                    propLi.append($('<label js_prop_name />').text(propName));
+                    var propValueSpan = $('<span class="js_prop_value" />');
+                    jsToHtml(propValueSpan, propValue);
+                    propLi.append(propValueSpan);
+                    propList.append(propLi);
+                }
+                el.append(propList);
+                break;
+            case "string":
+                if (o.indexOf("\n") !== -1) {
+                    el.append($("<pre class='js_multiline_string' />").text(o));
+                } else {
+                    el.append($('<span />').text('"' + o + '"'));
+                }
+                break;
+            default:
+                el.append($('<span />').text(o));
+                break;
+            }
+        }
+
+        function fetchUri(uri, element, unwrapItems, setUriInputElement, keepFuture) {
+            if (element === undefined)
+                element = $("article");
+
+            element.empty();
+            element.append($('<div class="resource_loading">Loading..</div>'));
+
+            if (setUriInputElement) {
+                $("#fetch_uri").val(uri);
+            }
+
+            $.getJSON(uri, function (data) {
+                if (unwrapItems) {
+                    if (data._type === '__result__') {
+                        data = data.items;
+                    }
+                }
+                element.empty();
+                jsToHtml(element, data);
+                //$("pre").text(JSON.stringify(data, null, 4));
+            });
+        }
         $(function () {
+            $.getJSON("schemas", function (schemas) {
+
+                $.each(schemas.types, function (i, v) {
+                    if (v.extends)
+                        return;
+
+                    var li = $("<li />");
+                    var anchor = $("<a />");
+
+                    anchor.click(function () {
+                        fetchUri(v.uri, $("article"), false, true);
+                        currentTags = Object.keys(v.properties);
+                    });
+                    //anchor.attr("href", v.uri);
+                    anchor.text(v.name);
+                    li.append(anchor);
+                    $("ul").append(li);
+                });
+            });
+
+            $('#fetch_uri').keypress(function (e) {
+                if (e.which == 13) {
+                    fetchUri($("#fetch_uri").val(), $("article"), false, true);
+                    return false;    //<---- Add this line
+                }
+            });
+
             function split(val) {
                 return val.split(/[\. ]\s*/);
             }
@@ -75,11 +187,10 @@
         });
     </script>
     <body>
-        
 <div class="ui-widget">
-  <label for="tags">Tag programming languages: </label>
-  <input id="tags" size="50" />
+    <span>Path:</span><input id="fetch_uri" size="100" />
 </div>
+        <article></article>
         <nav>
             <ul></ul>
         </nav>

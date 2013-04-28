@@ -99,7 +99,7 @@ namespace Pomona.Schemas
                 };
 
             if (!string.IsNullOrEmpty(transformedType.UriRelativePath))
-                schemaTypeEntry.Uri = "/" + transformedType.UriRelativePath;
+                schemaTypeEntry.Uri = transformedType.UriRelativePath;
 
             return schemaTypeEntry;
         }

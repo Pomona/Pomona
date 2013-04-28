@@ -86,5 +86,6 @@ namespace Pomona
         bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);
         LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyIsEtag(PropertyInfo propertyInfo);
+        string GetPluralNameForType(Type type);
     }
 }

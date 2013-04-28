@@ -63,7 +63,7 @@ namespace Pomona
             this.typeMapper = typeMapper;
 
             UriBaseType = this;
-            PluralName = SingularToPluralTranslator.CamelCaseToPlural(Name);
+            PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
         }
 

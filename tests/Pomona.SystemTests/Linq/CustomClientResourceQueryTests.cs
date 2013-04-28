@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -30,8 +31,27 @@ using Pomona.Example.Models;
 namespace Pomona.SystemTests.Linq
 {
     [TestFixture]
-    internal class CustomClientResourceQueryTests : ClientTestsBase
+    public class CustomClientResourceQueryTests : ClientTestsBase
     {
+        public interface ICustomTestEntity : IDictionaryContainer
+        {
+            string CustomString { get; set; }
+            string OtherCustom { get; set; }
+        }
+
+        public interface ICustomTestEntity2 : ISubtypedDictionaryContainer
+        {
+            string CustomString { get; set; }
+            string OtherCustom { get; set; }
+        }
+
+        public interface ICustomTestEntity3 : IStringToObjectDictionaryContainer
+        {
+            string Text { get; set; }
+            int? Number { get; set; }
+            DateTime? Time { get; set; }
+        }
+
         public interface ITestClientResource : IStringToObjectDictionaryContainer
         {
             string Jalla { get; set; }
@@ -40,6 +60,147 @@ namespace Pomona.SystemTests.Linq
         public interface ITestParentClientResource : IHasReferenceToDictionaryContainer
         {
             new ITestClientResource Container { get; set; }
+        }
+
+        [Test]
+        public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
+        {
+            var entity = new StringToObjectDictionaryContainer
+                {
+                    Map = {{"Text", "testtest"}}
+                };
+            Save(entity);
+
+            var resource = client.Query<ICustomTestEntity3>().First(x => x.Id == entity.Id);
+
+            var patchedResource =
+                client.Patch(resource, x => { x.Text = "UPDATED!"; });
+
+
+            Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
+        }
+
+        [Test]
+        public void PostCustomTestEntity()
+        {
+            var response = (ICustomTestEntity3) client.Post<ICustomTestEntity3>(x =>
+                {
+                    x.Number = 123;
+                    x.Text = "foobar";
+                    x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
+                });
+
+            Assert.That(response.Number, Is.EqualTo(123));
+            Assert.That(response.Text, Is.EqualTo("foobar"));
+            Assert.That(response.Time, Is.EqualTo(new DateTime(2030, 3, 4, 5, 3, 2)));
+        }
+
+        [Test]
+        public void QueryCustomTestEntity2_WhereDictIsOnBaseInterface_ReturnsCustomTestEntity2()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            var subtypedDictionaryContainer = new SubtypedDictionaryContainer
+                {
+                    Map = {{"CustomString", "Lalalala"}, {"OtherCustom", "Blob rob"}},
+                    SomethingExtra = "Hahahohohihi"
+                };
+
+            DataSource.Save<DictionaryContainer>(subtypedDictionaryContainer);
+
+            // Post does not yet work on subtypes
+            //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
+            //    x =>
+            //    {
+            //        x.Map.Add("CustomString", "Lalalala");
+            //        x.Map.Add("OtherCustom", "Blob rob");
+            //        x.SomethingExtra = "Hahahohohihi";
+            //    });
+
+            var results = client.Query<ICustomTestEntity2>()
+                                .Where(
+                                    x =>
+                                    x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
+                                    x.SomethingExtra == "Hahahohohihi")
+                                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+
+            Assert.That(result.Id, Is.EqualTo(subtypedDictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(subtypedDictionaryContainer.Map["CustomString"]));
+        }
+
+        [Test]
+        public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
+        {
+            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
+            var dictContainer = DataSource.Save(new StringToObjectDictionaryContainer
+                {
+                    Map = {{"Text", "foobar"}, {"Number", 32}, {"Time", timeValue}}
+                });
+
+            var results = client.Query<ICustomTestEntity3>()
+                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                                .ToList();
+
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Number, Is.EqualTo(32));
+            Assert.That(result.Text, Is.EqualTo("foobar"));
+            Assert.That(result.Time, Is.EqualTo(timeValue));
+            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+        }
+
+
+        [Test]
+        public void QueryCustomTestEntity_ReturnsCustomTestEntity()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+
+            var dictionaryContainer = client.DictionaryContainers.Post(
+                x =>
+                    {
+                        x.Map.Add("CustomString", "Lalalala");
+                        x.Map.Add("OtherCustom", "Blob rob");
+                    });
+
+            var results = client.Query<ICustomTestEntity>()
+                                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+
+            Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+
+        [Test]
+        public void QueryCustomTestEntity_UsingFirstOrDefault_ReturnsCustomTestEntity()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+
+            var dictionaryContainer = client.DictionaryContainers.Post(
+                x =>
+                    {
+                        x.Map.Add("CustomString", "Lalalala");
+                        x.Map.Add("OtherCustom", "Blob rob");
+                    });
+
+            var result =
+                client.Query<ICustomTestEntity>()
+                      .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
+
+            Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+        [Category("TODO")]
+        [Test(Description = "TODO: Reminder for func to be implemented.")]
+        public void Query_ClientResourceWithNonNullableProperty_ThrowsSaneException_ExplainingWhyThisIsNotPossible()
+        {
+            Assert.Fail("Test not implemented, correct behaviour not yet defined.");
         }
 
         [Category("TODO")]
