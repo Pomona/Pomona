@@ -85,6 +85,9 @@ namespace Pomona.SystemTests
             Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
         }
 
+        private static Client cachedNancyTestingClient;
+        private static CritterDataSource cachedNancyTestingClientDataSource;
+
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
@@ -101,10 +104,16 @@ namespace Pomona.SystemTests
             else
             {
                 baseUri = "http://test/";
-                var critterBootstrapper = new CritterBootstrapper();
-                DataSource = critterBootstrapper.DataSource;
-                var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-                client = new Client(baseUri, nancyTestingWebClient);
+
+                if (cachedNancyTestingClient == null)
+                {
+                    var critterBootstrapper = new CritterBootstrapper();
+                    cachedNancyTestingClientDataSource = critterBootstrapper.DataSource;
+                    var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
+                    cachedNancyTestingClient = new Client(baseUri, nancyTestingWebClient);
+                }
+                client = cachedNancyTestingClient;
+                DataSource = cachedNancyTestingClientDataSource;
             }
 
             client.RequestCompleted += ClientOnRequestCompleted;

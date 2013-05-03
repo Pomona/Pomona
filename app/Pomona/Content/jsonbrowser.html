@@ -6,7 +6,24 @@
         <title>JSON browser</title>
     </head>
       <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
-  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <style>
+
+        article, nav {
+            float: left;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+        .js_prop_value {
+            margin-left: 10px;
+        }
+
+        label {
+            color: darkviolet;
+        }
+    </style>
   <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
     <script>
         if (typeof String.prototype.startsWith != 'function') {
@@ -15,8 +32,23 @@
                 return this.indexOf(str) == 0;
             };
         }
+        
+        /*!
+         * jsUri
+         * https://github.com/derek-watson/jsUri
+         *
+         * Copyright 2012, Derek Watson
+         * Released under the MIT license.
+         *
+         * Includes parseUri regular expressions
+         * http://blog.stevenlevithan.com/archives/parseuri
+         * Copyright 2007, Steven Levithan
+         * Released under the MIT license.
+         *
+         */(function(e){function t(e){return e=decodeURIComponent(e),e=e.replace("+"," "),e}function n(e){var t=/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/,n=["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],r=t.exec(e||""),i={};return n.forEach(function(e,t){i[e]=r[t]||""}),i}function r(e){var t,n,r,i,s,o,u=[];if(typeof e=="undefined"||e===null||e==="")return u;e.indexOf("?")===0&&(e=e.substring(1)),n=e.toString().split(/[&;]/);for(t=0;t<n.length;t++)r=n[t],i=r.split("="),s=i[0],o=r.indexOf("=")===-1?null:i[1]===null?"":i[1],u.push([s,o]);return u}function i(e){this.uriParts=n(e),this.queryPairs=r(this.uriParts.query),this.hasAuthorityPrefixUserPref=null}Array.prototype.forEach||(Array.prototype.forEach=function(e,t){for(var n=0,r=this.length;n<r;++n)e.call(t||this,this[n],n,this)}),["protocol","userInfo","host","port","path","anchor"].forEach(function(e){i.prototype[e]=function(t){return typeof t!="undefined"&&(this.uriParts[e]=t),this.uriParts[e]}}),i.prototype.hasAuthorityPrefix=function(e){return typeof e!="undefined"&&(this.hasAuthorityPrefixUserPref=e),this.hasAuthorityPrefixUserPref===null?this.uriParts.source.indexOf("//")!==-1:this.hasAuthorityPrefixUserPref},i.prototype.query=function(e){var t="",n,i;typeof e!="undefined"&&(this.queryPairs=r(e));for(n=0;n<this.queryPairs.length;n++)i=this.queryPairs[n],t.length>0&&(t+="&"),i[1]===null?t+=i[0]:(t+=i[0],t+="=",i[1]&&(t+=encodeURIComponent(i[1])));return t.length>0?"?"+t:t},i.prototype.getQueryParamValue=function(e){var n,r;for(r=0;r<this.queryPairs.length;r++){n=this.queryPairs[r];if(t(e)===t(n[0]))return n[1]}},i.prototype.getQueryParamValues=function(e){var n=[],r,i;for(r=0;r<this.queryPairs.length;r++)i=this.queryPairs[r],t(e)===t(i[0])&&n.push(i[1]);return n},i.prototype.deleteQueryParam=function(e,n){var r=[],i,s,o,u;for(i=0;i<this.queryPairs.length;i++)s=this.queryPairs[i],o=t(s[0])===t(e),u=t(s[1])===t(n),(arguments.length===1&&!o||arguments.length===2&&!o&&!u)&&r.push(s);return this.queryPairs=r,this},i.prototype.addQueryParam=function(e,t,n){return arguments.length===3&&n!==-1?(n=Math.min(n,this.queryPairs.length),this.queryPairs.splice(n,0,[e,t])):arguments.length>0&&this.queryPairs.push([e,t]),this},i.prototype.replaceQueryParam=function(e,n,r){var i=-1,s,o;if(arguments.length===3){for(s=0;s<this.queryPairs.length;s++){o=this.queryPairs[s];if(t(o[0])===t(e)&&decodeURIComponent(o[1])===t(r)){i=s;break}}this.deleteQueryParam(e,r).addQueryParam(e,n,i)}else{for(s=0;s<this.queryPairs.length;s++){o=this.queryPairs[s];if(t(o[0])===t(e)){i=s;break}}this.deleteQueryParam(e),this.addQueryParam(e,n,i)}return this},["protocol","hasAuthorityPrefix","userInfo","host","port","path","query","anchor"].forEach(function(e){var t="set"+e.charAt(0).toUpperCase()+e.slice(1);i.prototype[t]=function(t){return this[e](t),this}}),i.prototype.scheme=function(){var e="";return this.protocol()?(e+=this.protocol(),this.protocol().indexOf(":")!==this.protocol().length-1&&(e+=":"),e+="//"):this.hasAuthorityPrefix()&&this.host()&&(e+="//"),e},i.prototype.origin=function(){var e=this.scheme();return this.userInfo()&&this.host()&&(e+=this.userInfo(),this.userInfo().indexOf("@")!==this.userInfo().length-1&&(e+="@")),this.host()&&(e+=this.host(),this.port()&&(e+=":"+this.port())),e},i.prototype.toString=function(){var e=this.origin();return this.path()?e+=this.path():this.host()&&(this.query().toString()||this.anchor())&&(e+="/"),this.query().toString()&&(this.query().toString().indexOf("?")!==0&&(e+="?"),e+=this.query().toString()),this.anchor()&&(this.anchor().indexOf("#")!==0&&(e+="#"),e+=this.anchor()),e},i.prototype.clone=function(){return new i(this.toString())},typeof module=="undefined"?e.Uri=i:module.exports=i})(this);
 
         var currentTags = null;
+
 
         function createAnchor(uri) {
             var currentUrl = document.URL;
@@ -24,17 +56,17 @@
                 uri = uri.substring(currentUrl.length);
             
             return $('<a href="' + uri + '" />').text('"' + uri + '"').click(function() {
-                fetchUri(uri, $("article"), false, true);
+                fetchUri(uri, null, false, true);
                 return false;
             });
         }
 
-        function jsToHtml(el, o) {
+        function jsToHtml(el, o, propButton) {
             if (o === null) {
                 el.append($('<span class="js_null">null</span>'));
                 return;
             }
-
+/*
             if ($.isArray(o)) {
                 if (o.length == 0) {
                     el.append($('<span class="js_empty_array_info">(empty array)</span>'));
@@ -50,20 +82,40 @@
                 el.append(arrList);
                 return;
             }
-
+            */
             switch (typeof o) {
             case "object":
                 if (o._ref) {
                     var refUri = o._ref;
-                    var expandButton = $('<span class="fetch_ref_obj">(get)</span>');
-                    expandButton.click(function() {
-                        fetchUri(refUri, el, true);
-                    });
-                    el.append(expandButton);
+
+                    if (propButton) {
+                        propButton.text('X');
+                        propButton.click(function() {
+                            fetchUri(refUri, el, true, false, propButton);
+                        });
+                    }
+
                     el.append($('<span class="js_obj_ref" />').append(createAnchor(refUri)));
                     return;
                 }
+
+                el.css('display', 'block');
                     
+                if (propButton) {
+                    propButton.text('-');
+                    propButton.unbind('click');
+                    propButton.click(function () {
+                        if (el.is(":visible")) {
+                            propButton.text('+');
+                            el.hide();
+                        } else {
+                            propButton.text('-');
+                            el.show();
+                        }
+                        return false;
+                    });
+                }
+
                 if (o._uri) {
                     el.append($('<span class="js_obj_uri" />').append(createAnchor(o._uri)));
                 }
@@ -75,9 +127,13 @@
 
                     var propValue = o[propName];
                     var propLi = $('<li />');
+                    var showHideButton = $("<span></span>");
+                    propLi.append(showHideButton);
                     propLi.append($('<label js_prop_name />').text(propName));
+                    propLi.append(':');
                     var propValueSpan = $('<span class="js_prop_value" />');
-                    jsToHtml(propValueSpan, propValue);
+                    jsToHtml(propValueSpan, propValue, showHideButton);
+
                     propLi.append(propValueSpan);
                     propList.append(propLi);
                 }
@@ -96,27 +152,49 @@
             }
         }
 
-        function fetchUri(uri, element, unwrapItems, setUriInputElement, keepFuture) {
-            if (element === undefined)
+        function fetchUri(uri, element, unwrapItems, setUriInputElement, propButton) {
+            if (!element)
                 element = $("article");
+
 
             element.empty();
             element.append($('<div class="resource_loading">Loading..</div>'));
 
             if (setUriInputElement) {
-                $("#fetch_uri").val(uri);
+                var parsedUri = new Uri(uri);
+                var filterParam = parsedUri.getQueryParamValue('$filter');
+                if (filterParam) {
+                    parsedUri.deleteQueryParam('$filter');
+                    $("#query_filter").val(decodeURIComponent(filterParam));
+                } else {
+                    $("#query_filter").val('');
+                }
+
+                $("#fetch_uri").val(parsedUri.toString());
             }
 
-            $.getJSON(uri, function (data) {
-                if (unwrapItems) {
-                    if (data._type === '__result__') {
-                        data = data.items;
+            $.ajax({
+                dataType: "json",
+                url: uri,
+                success: function (data) {
+                    var isQueryResults = data._type === '__result__';
+
+                    if (unwrapItems) {
+                        if (isQueryResults) {
+                            data = data.items;
+                        }
                     }
+                    element.empty();
+                    jsToHtml(element, data, propButton);
+                    //$("pre").text(JSON.stringify(data, null, 4));
+                },
+                error: function (data) {
+                    element.empty();
+                    element.append($('<pre class="exception_message" />').text(data.responseText));
+                    return false;
                 }
-                element.empty();
-                jsToHtml(element, data);
-                //$("pre").text(JSON.stringify(data, null, 4));
             });
+
         }
         $(function () {
             $.getJSON("schemas", function (schemas) {
@@ -129,7 +207,7 @@
                     var anchor = $("<a />");
 
                     anchor.click(function () {
-                        fetchUri(v.uri, $("article"), false, true);
+                        fetchUri(v.uri, null, true, true);
                         currentTags = Object.keys(v.properties);
                     });
                     //anchor.attr("href", v.uri);
@@ -139,9 +217,13 @@
                 });
             });
 
-            $('#fetch_uri').keypress(function (e) {
+            $('.enter_submit').keypress(function (e) {
                 if (e.which == 13) {
-                    fetchUri($("#fetch_uri").val(), $("article"), false, true);
+                    var uri = new Uri($("#fetch_uri").val());
+                    var filterParam = $("#query_filter").val();
+                    if (filterParam && filterParam != '')
+                        uri.addQueryParam('$filter', filterParam);
+                    fetchUri(uri.toString(), null, true, true);
                     return false;    //<---- Add this line
                 }
             });
@@ -187,13 +269,13 @@
         });
     </script>
     <body>
-<div class="ui-widget">
-    <span>Path:</span><input id="fetch_uri" size="100" />
+<div>
+    <span>Path:</span><input class="enter_submit" id="fetch_uri" size="70" /><span>Filter:</span><input class="enter_submit" id="query_filter" size="100" />
 </div>
-        <article></article>
         <nav>
             <ul></ul>
         </nav>
+        <article></article>
         <pre></pre>
     </body>
 </html>

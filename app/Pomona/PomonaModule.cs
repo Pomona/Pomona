@@ -146,24 +146,6 @@ namespace Pomona
                     () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName), "text/html");
         }
 
-
-        private void FillJsonResponse(Response res, string json, TransformedType transformedType)
-        {
-            // Very simple content negotiation. Ainnt need noo fancy thing here.
-
-            if (Request.Headers.Accept.Any(x => x.Item1 == "text/html"))
-            {
-                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(
-                    res, htmlLinks, json, GetAppVirtualPath() + transformedType.UriRelativePath);
-            }
-            else
-            {
-                res.ContentsFromString(json);
-                res.ContentType = "text/plain; charset=utf-8";
-            }
-        }
-
-
         private PomonaResponse GetAsJson(TransformedType transformedType, object id)
         {
             var expand = GetExpandedPaths().ToLower();
