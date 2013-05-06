@@ -99,6 +99,12 @@ namespace Pomona
             RegisterClientNugetPackageRoute();
 
             Get["/"] = x => GetJsonBrowserHtmlResponse();
+            RegisterResourceContent("antlr3-all-min.js");
+            RegisterResourceContent("antlr3-all.js");
+            RegisterResourceContent("PomonaQueryJsLexer.js");
+            RegisterResourceContent("PomonaQueryJsParser.js");
+            RegisterResourceContent("QueryEditor.css");
+            RegisterResourceContent("QueryEditor.js");
         }
 
 
@@ -136,6 +142,21 @@ namespace Pomona
             var pomonaResponse = (PomonaResponse) route.Action((dynamic) dynamicDict);
 
             return pomonaResponse.Entity;
+        }
+
+        private void RegisterResourceContent(string name)
+        {
+            string mediaType = "text/html";
+            if (name.EndsWith(".js"))
+                mediaType = "text/javascript";
+            if (name.EndsWith(".css"))
+                mediaType = "text/css";
+
+            var resourceName = "Pomona.Content." + name;
+            Get["/" + name] = x =>
+                Response.FromStream(
+                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName), mediaType);
+            
         }
 
         private object GetJsonBrowserHtmlResponse()

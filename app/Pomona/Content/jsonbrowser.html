@@ -6,7 +6,12 @@
         <title>JSON browser</title>
     </head>
       <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+      <link rel="stylesheet" href="QueryEditor.css" />
     <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="antlr3-all.js"></script>
+    <script src="PomonaQueryJsLexer.js"></script>
+    <script src="PomonaQueryJsParser.js"></script>
+    <script src="QueryEditor.js"></script>
     <style>
 
         article, nav {
@@ -49,9 +54,15 @@
 
         var currentTags = null;
 
+        function removeHashFromUrl(uri) {
+            var hashIndex = uri.indexOf('#');
+            if (hashIndex == -1)
+                return uri;
+            return uri.substring(0, hashIndex);
+        }
 
         function createAnchor(uri) {
-            var currentUrl = document.URL;
+            var currentUrl = removeHashFromUrl(document.URL);
             if (uri.startsWith(currentUrl))
                 uri = uri.substring(currentUrl.length);
             
@@ -151,6 +162,12 @@
                 break;
             }
         }
+        
+        function getCurrentFetchUriWithoutQueryPart() {
+            var uri = $("#fetch_uri").val();
+            var patt = /([^\?\/]*).*/;
+            return patt.exec(uri)[1];
+        }
 
         function fetchUri(uri, element, unwrapItems, setUriInputElement, propButton) {
             if (!element)
@@ -196,15 +213,168 @@
             });
 
         }
+        
+        function walkNode(node, walkInfo) {
+            if (!walkInfo)
+                walkInfo = {
+                    errorNodes: []
+                };
+
+            if (node instanceof org.antlr.runtime.tree.CommonErrorNode) {
+                walkInfo.errorNodes.push(node);
+            }
+            else if (node instanceof org.antlr.runtime.tree.CommonTree) {
+                if (node.children) {
+                    for (var i = 0; i < node.children.length; i++)
+                        walkNode(node.children[i], walkInfo);
+                }
+            }
+
+            walkInfo.currentNode = node;
+            return walkInfo;
+        }
+
+        function parseFilter(filter) {
+            var input = filter,
+             cstream = new org.antlr.runtime.ANTLRStringStream(input),
+             lexer = new PomonaQueryJsLexer(cstream),
+             tstream = new org.antlr.runtime.CommonTokenStream(lexer),
+             parser = new PomonaQueryJsParser(tstream);
+            parser.reportError = function(re) {
+                console.log('Parser error: ' + re);
+            };
+
+
+            var walkInfo = walkNode(parser.parse().tree);
+            return walkInfo;
+        }
+
+        function parseFilterUpdate() {
+            var walkInfo = parseFilter($("#query_filter").val());
+            if (walkInfo.errorNodes.length > 0)
+                $("#query_filter").css('background-color', '#FF3333');
+            else {
+                $("#query_filter").css('background-color', '#33FF00');
+            }
+        }
+        
+        function SchemaProperty(root, declaringType, name, source) {
+            this.root = root;
+            this.declaringType = declaringType;
+            this.propertyType = root.getType(source.type);
+            this.name = name;
+        }
+        
+        function SchemaType(root, source, name, baseTypeName) {
+            this.typeId = root.typeIdCounter++;
+            this.root = root;
+            this.name = name;
+            this.baseTypeName = baseTypeName;
+            this.source = source;
+        }
+
+        SchemaType.prototype.getProperties = function() {
+            if (!this._properties) {
+                // Copy from base type if any
+                var p = {};
+                var baseType = this.getBaseType();
+                
+                if (baseType != null) {
+                    var baseProps = baseType.getProperties();
+                    for (var k in baseProps) {
+                        p[k] = baseProps[k];
+                    }
+                }
+                
+                for (var propName in this.source.properties) {
+                    p[propName.toLowerCase()] = new SchemaProperty(this.root, this, propName, this.source.properties[propName]);
+                }
+                this._properties = p;
+            }
+            return this._properties;
+        };
+
+        SchemaType.prototype.getBaseType = function() {
+            if (this.baseTypeName)
+                return this.root.getType(this.baseTypeName);
+            return null;
+        };
+
+        SchemaType.prototype.getProperty = function(propName) {
+            return this.getProperties()[propName.toLowerCase()];
+        };
+
+        SchemaType.prototype.getPropertyRecursive = function(propPath) {
+            var parts = propPath.split('.');
+            var currentType = this;
+            var prop = null;
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i];
+                prop = currentType.getProperty(part);
+                if (!prop)
+                    return null;
+                currentType = prop.propertyType;
+            }
+            return prop;
+        };
+
+        function SchemaRoot(jsonSchema) {
+            var nameToTypeMap = {};
+            var uriToSchemaMap = {};
+
+            this.typeIdCounter = 1;
+            var self = this;
+
+            $.each(jsonSchema.types, function (i, v) {
+                var type = new SchemaType(self, v, v.name, v.extends);
+                if (!v.extends)
+                    uriToSchemaMap[v.uri] = type;
+                nameToTypeMap[v.name.toLowerCase()] = type;
+            });
+
+            this.nameToTypeMap = nameToTypeMap;
+            this.uriToSchemaMap = uriToSchemaMap;
+        }
+
+        SchemaRoot.prototype.getType = function(typeName) {
+            var type = this.nameToTypeMap[typeName.toLowerCase()];
+            if (!type) {
+                type = new SchemaType(this, { properties: {}, name: typeName, isUnknown: true });
+                this.nameToTypeMap[typeName.toLowerCase()] = type;
+            }
+            return type;
+        };
+        
+        function charCodeIsValidForSymbol(cc) {
+            return (cc >= 48 /*0*/ && cc <= 57 /*9*/) || (cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || cc == 46 /* . */;
+        }
+        
+        function matchSymbolBackwards(text, index) {
+            var endIndex = index;
+            while (index > 0 && charCodeIsValidForSymbol(text.charCodeAt(index - 1)))
+                index--;
+            return text.substring(index, endIndex);
+        }
+        
+        var schemaRoot = null;
+
         $(function () {
+            $("#parse_filter").click(parseFilterUpdate);
+            
+
             $.getJSON("schemas", function (schemas) {
+
+                schemaRoot = new SchemaRoot(schemas);
+
+                var critterhatProp = schemaRoot.getType("MusicalCritter").getPropertyRecursive("hat.hattype");
 
                 $.each(schemas.types, function (i, v) {
                     if (v.extends)
                         return;
 
+
                     var li = $("<li />");
-                    var anchor = $("<a />");
+                    var anchor = $('<a href="#' + v.name + '" />');
 
                     anchor.click(function () {
                         fetchUri(v.uri, null, true, true);
@@ -234,6 +404,8 @@
             function extractLast(term) {
                 return split(term).pop();
             }
+
+            window.setInterval(parseFilterUpdate, 500);
 
             $("#tags")
                 // don't navigate away from the field on tab when selecting an item
@@ -266,11 +438,35 @@
                         return false;
                     }
                 });
+            
+
+            var qe = new QueryEditor($(".editbox"), "");
+            qe.getAutocompleteAlternatives = function () {
+                var uri = getCurrentFetchUriWithoutQueryPart();
+                var typeSchema = schemaRoot.uriToSchemaMap[uri];
+
+                var partialDotChain = matchSymbolBackwards(qe.text, qe.pos);
+                var dotChainParts = partialDotChain.split('.');
+                if (typeSchema != null && dotChainParts.length > 1) {
+                    dotChainParts.pop();
+                    var prop = typeSchema.getPropertyRecursive(dotChainParts.join("."));
+                    if (prop)
+                        typeSchema = prop.propertyType;
+                }
+                
+                if (typeSchema) {
+                    return Object.keys(typeSchema.source.properties);
+                }
+                return [];
+            };
+            
         });
     </script>
     <body>
 <div>
     <span>Path:</span><input class="enter_submit" id="fetch_uri" size="70" /><span>Filter:</span><input class="enter_submit" id="query_filter" size="100" />
+    <button id="parse_filter">Parse filter</button><br />
+    <div class="editbox" tabindex="0" />
 </div>
         <nav>
             <ul></ul>
