@@ -80,11 +80,11 @@ lambda_expression
 	;
 
 or_expression
-	:	and_expression ( 'or' and_expression )* -> ^(OR_OP and_expression+)
+	:	and_expression ( ('or'|'||') and_expression )* -> ^(OR_OP and_expression+)
 	;
 
 and_operator
-	:	'and';
+	:	('and'|'&&');
 	
 
 and_expression 

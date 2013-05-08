@@ -39,3 +39,7 @@
     border-width: 1px;
     position: relative;
 }
+
+.textSelected {
+    background-color: #87cefa;
+}

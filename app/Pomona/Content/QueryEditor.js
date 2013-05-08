@@ -32,21 +32,39 @@ function QueryEditor(box, text) {
     // var keyTarget = $("body");
     var keyTarget = box;
     keyTarget.keydown(function (ev) {
-        if (ev.keyCode == 39) { // left
-            self.setPos(self.pos + 1);
+        self.shiftDown = ev.shiftKey;
+        
+        if (ev.keyCode == 16 && !self.selectStartPos) { // Shift down, start selection
+            self.selectStartPos = self.pos;
+        }
+        
+        if (ev.keyCode == 36) { // home
+            self.setPos(0);
+        } else if (ev.keyCode == 35) { // end
+            self.setPos(self.text.length);
+        } else if (ev.keyCode == 39) { // right
+            if (ev.ctrlKey)
+                self.movePosToNextWord(1);
+            else
+                self.setPos(self.pos + 1);
         } else if (ev.keyCode == 38) { // up
             self.arrowUp();
-        } else if (ev.keyCode == 37) { // right
-            self.setPos(self.pos - 1);
+        } else if (ev.keyCode == 37) { // left
+            if (ev.ctrlKey)
+                self.movePosToNextWord(-1);
+            else
+                self.setPos(self.pos - 1);
         } else if (ev.keyCode == 40) { // down
             self.arrowDown();
         } else if (ev.keyCode == 8) { // backspace
-            self.backspace();
+            self.backspace(ev.ctrlKey);
         } else if (ev.keyCode == 32 && ev.ctrlKey) { // ctrl-space 
             self.startAutoComplete(false);
         } else if (ev.keyCode == 13) { // cr
             if (self.inAutoComplete)
                 self.closeAutoComplete(true);
+            else
+                window.setTimeout(function () { self.onSubmit(self.text); });
         } else {
             return true;
         }
@@ -60,6 +78,7 @@ function QueryEditor(box, text) {
     keyTarget.keypress(function (ev) {
         var c = String.fromCharCode(ev.which);
 
+
         if (self.inAutoComplete && c == '.')
             self.closeAutoComplete(true);
 
@@ -68,12 +87,16 @@ function QueryEditor(box, text) {
         self.text = left + c + right;
         self.pos++;
 
+        if (self.selectStartPos)
+            self.selectStartPos = self.pos;
+
         if (!self.inAutoComplete && charCodeIsValidForSymbol(c.charCodeAt(0)))
             self.startAutoComplete(true);
 
         self.refresh();
         return false;
     });
+
 
     this.getAutoCompleteStartPos = function () {
         var t = this.text;
@@ -86,12 +109,15 @@ function QueryEditor(box, text) {
     this.getAutocompleteAlternatives = function () {
         return ['Foo', 'Bar', 'SubscriptionOrder', 'FunkyBusiness'];
     };
+
+    this.onSubmit = function(text) {
+    };
     
     this.checkAutoCompleteStart = function (ev) { return false; }
 
     this.refresh();
 }
-/*
+
 QueryEditor.prototype.getCharacterClass = function(c) {
     if (c == ' ' || c == "\t")
         return 1;
@@ -100,7 +126,7 @@ QueryEditor.prototype.getCharacterClass = function(c) {
     return c.charCodeAt(c) + 10;
 };
 
-QueryEditor.prototype.getWordBoundaryBackwards = function(text, curpos, direction) {
+QueryEditor.prototype.findWordPos = function(text, curpos, direction) {
     if (direction == -1 && curpos == 0)
         return curpos;
     if (direction == 1 && curpos >= text.length)
@@ -111,16 +137,42 @@ QueryEditor.prototype.getWordBoundaryBackwards = function(text, curpos, directio
     var startPos = direction == -1 ? curpos - 1 : curpos;
     var matchClass = this.getCharacterClass(text.charAt(startPos));
 
-    while (curpos > 0 && curpos < text.length && this.getCharacterClass(text.charAt()))
+    while (curpos > 0 && curpos <= text.length && this.getCharacterClass(text.charAt(curpos + direction)) == matchClass)
+        curpos += direction;
+
+    if (direction == 1)
+        curpos++;
+
+    return curpos;
 };
-*/
-QueryEditor.prototype.backspace = function () {
+
+QueryEditor.prototype.movePosToNextWord = function(direction) {
+    this.setPos(this.findWordPos(this.text, this.pos, direction));
+};
+
+QueryEditor.prototype.areaIsSelected = function() {
+    return this.selectStartPos && this.selectStartPos != this.pos;
+};
+
+QueryEditor.prototype.backspace = function (ctrlDown) {
+    var backUntil = this.pos - 1;
+    if (this.areaIsSelected()) {
+        var pos = Math.max(this.selectStartPos, this.pos);
+        backUntil = Math.min(this.selectStartPos, this.pos);
+        this.pos = pos;
+        this.selectStartPos = null;
+    } else {
+        if (ctrlDown)
+            backUntil = this.findWordPos(this.text, this.pos, -1);
+    }
+
     if (this.pos < 1) return;
 
-    var left = this.text.substring(0, this.pos - 1);
+
+    var left = this.text.substring(0, backUntil);
     var right = this.text.substring(this.pos, this.text.length);
     this.text = left + right;
-    this.pos--;
+    this.pos = backUntil;
 
     if (this.inAutoComplete)
         this.closeAutoComplete(false);
@@ -221,6 +273,8 @@ QueryEditor.prototype.closeAutoComplete = function (insertSelected) {
         var right = this.text.substring(this.pos, this.text.length);
         this.text = left + selectedWord + right;
         this.pos = this.acStartPos + selectedWord.length;
+        if (this.selectStartPos)
+            this.selectStartPos = this.pos;
         // TODO: Stop autocomplete here
         this.refresh();
     }
@@ -241,14 +295,33 @@ QueryEditor.prototype.refresh = function () {
     if (this.onEmpty)
         this.onEmpty();
 
-    var left = this.text.substring(0, this.pos);
-    var right = this.text.substring(this.pos, this.text.length);
-    this.textContainer.append(encodeHtmlChars(left));
-    var textMarker = $('<span class="textCursorVisible">');
-    var textCursor = $('<span class="textCursor" />');
+    var tlen = this.text.length;
+    var selectStart = -1;
+    var selectEnd = -1;
+    if (this.selectStartPos) {
+        selectStart = Math.min(this.pos, this.selectStartPos);
+        selectEnd = Math.max(this.pos, this.selectStartPos);
+    }
 
-    this.textContainer.append(textCursor);
-    this.textContainer.append(encodeHtmlChars(right));
+    var htmlStr = "";
+    for (var i = 0; i <= tlen; i++) {
+        if (i == selectStart)
+            htmlStr += '<span class="textSelected">';
+        if (i == selectEnd)
+            htmlStr += '</span>';
+        if (i == this.pos)
+            htmlStr += '<span class="textCursor" />';
+        if (i < tlen)
+            htmlStr += encodeHtmlChars(this.text.charAt(i));
+    }
+
+    this.textContainer.append(htmlStr);
+    //this.textContainer.append(encodeHtmlChars(left));
+    var textMarker = $('<span class="textCursorVisible">');
+    var textCursor = this.textContainer.find(".textCursor");
+    //this.textContainer.append(textCursor);
+    //this.textContainer.append(encodeHtmlChars(right));
+    
     this.textContainer.append(textMarker);
     this.cursorPos = textCursor.position();
     textMarker.css('top', this.cursorPos.top + 'px');
@@ -270,6 +343,9 @@ QueryEditor.prototype.refresh = function () {
 QueryEditor.prototype.setPos = function (newPos) {
     if (this.inAutoComplete)
         this.closeAutoComplete(false);
+
+    if (this.selectStartPos && !this.shiftDown)
+        this.selectStartPos = null;
 
     this.pos = Math.max(0, Math.min(this.text.length, newPos));
     this.refresh();
