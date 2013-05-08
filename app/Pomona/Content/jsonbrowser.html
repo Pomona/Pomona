@@ -193,6 +193,7 @@
         element.append($('<div class="resource_loading">Loading..</div>'));
 
         if (setUriInputElement) {
+            
             var parsedUri = new Uri(uri);
             var filterParam = parsedUri.getQueryParamValue('$filter');
             if (filterParam) {
@@ -201,8 +202,22 @@
             } else {
                 $("#query_filter").val('');
             }
+            var orderbyParam = parsedUri.getQueryParamValue('$orderby');
+            if (orderbyParam) {
+                parsedUri.deleteQueryParam('$orderby');
+                $("#query_orderby").val(decodeURIComponent(orderbyParam));
+            } else {
+                $("#query_orderby").val('');
+            }
+            var selectParam = parsedUri.getQueryParamValue('$select');
+            if (selectParam) {
+                parsedUri.deleteQueryParam('$select');
+                $("#query_select").val(decodeURIComponent(selectParam));
+            } else {
+                $("#query_select").val('');
+            }
 
-            $("#fetch_uri").val(parsedUri.toString());
+            $("#fetch_uri").val(decodeURI(parsedUri.toString()));
         }
 
         $.ajax({
@@ -432,6 +447,14 @@
             var filterParam = qe.text;
             if (filterParam && filterParam != '')
                 uri.addQueryParam('$filter', filterParam);
+            var orderbyParam = $("#query_orderby").val();
+            if (orderbyParam && orderbyParam != '') {
+                uri.addQueryParam('$orderby', orderbyParam);
+            }
+            var selectParam = $("#query_select").val();
+            if (selectParam && selectParam != '') {
+                uri.addQueryParam('$select', selectParam);
+            }
             fetchUri(uri.toString(), null, true, true);
             return false;    //<---- Add this line
         }
@@ -500,6 +523,8 @@
 <body>
     <div>
         <span>Path:</span><input class="enter_submit queryInput" id="fetch_uri" size="70" /><br />
+        <span>Select:</span><input class="enter_submit queryInput" id="query_select" size="40" />
+        <span>Orderby:</span><input class="enter_submit queryInput" id="query_orderby" size="40" />
         <span>Filter:</span><div class="editbox queryInput" tabindex="0" />
         <!--<button id="parse_filter">Parse filter</button>-->
 
