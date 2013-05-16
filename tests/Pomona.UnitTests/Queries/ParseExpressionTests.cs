@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using Pomona.Common;
 
@@ -34,13 +35,49 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void ParseConvertToIntExpression_ReturnsCorrectExpression()
         {
-            ParseAndAssert("convert(text,t'Int32')", _this => (int)Convert.ChangeType(_this.Text, typeof (int)));
+            ParseAndAssert("convert(text,t'Int32')", _this => (int) Convert.ChangeType(_this.Text, typeof (int)));
         }
 
         [Test]
         public void ParseSafeGetFromObjectDictionaryAsStringExpression_ReturnsCorrectExpression()
         {
             ParseAndAssert("objectAttributes.Hei as t'String'", _this => _this.ObjectAttributes.SafeGet("Hei") as string);
+        }
+
+        [Test]
+        public void ParseSumOfDecimalEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfDecimals.sum()", _this => _this.ListOfDecimals.Sum());
+        }
+
+        [Test]
+        public void ParseSumOfDoubleEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfDoubles.sum()", _this => _this.ListOfDoubles.Sum());
+        }
+
+        [Test]
+        public void ParseSumOfIntEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfInts.sum()", _this => _this.ListOfInts.Sum());
+        }
+
+        [Test]
+        public void ParseSumWithSelectorOfDecimal_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.sum(x: x.someDecimal)", _this => _this.Children.Sum(x => x.SomeDecimal));
+        }
+
+        [Test]
+        public void ParseSumWithSelectorOfDouble_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.sum(x: x.precise)", _this => _this.Children.Sum(x => x.Precise));
+        }
+
+        [Test]
+        public void ParseSumWithSelectorOfInt_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.sum(x: x.number)", _this => _this.Children.Sum(x => x.Number));
         }
 
         [Test]

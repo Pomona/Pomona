@@ -36,6 +36,9 @@ namespace Pomona.UnitTests.Client
     {
         public class FooBar : IClientResource
         {
+            public int SomeInt { get; set; }
+            public decimal SomeDecimal { get; set; }
+            public double SomeDouble { get; set; }
             public string SomeString { get; set; }
             public IList<TestResource> TestResources { get; set; }
         }
@@ -65,6 +68,9 @@ namespace Pomona.UnitTests.Client
             public IList<FooBar> SomeList { get; set; }
             public TimeSpan TimeSpan { get; set; }
             public object UnknownProperty { get; set; }
+            public IList<int> ListOfInts { get; set; }
+            public IList<int> ListOfDoubles { get; set; }
+            public IList<int> ListOfDecimals { get; set; }
         }
 
         public class Container
@@ -211,11 +217,36 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45'"));
         }
 
+        [Test]
+        public void BuildDecimalEnumerableSumExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDecimals.Sum(), "sum(listOfDecimals)");
+        }
+
+
+        [Test]
+        public void BuildDecimalEnumerableSumWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Sum(y => y.SomeDecimal), "someList.sum(y:y.someDecimal)");
+        }
+
 
         [Test]
         public void BuildDecimal_ReturnsCorrectString()
         {
             AssertBuild(x => 10.25m, "10.25m");
+        }
+
+        [Test]
+        public void BuildDoubleEnumerableSumExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDoubles.Sum(), "sum(listOfDoubles)");
+        }
+
+        [Test]
+        public void BuildDoubleEnumerableSumWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Sum(y => y.SomeDouble), "someList.sum(y:y.someDouble)");
         }
 
 
@@ -291,6 +322,18 @@ namespace Pomona.UnitTests.Client
         public void BuildIndexOfExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla.IndexOf("banana") == 2, "indexof(jalla,'banana') eq 2");
+        }
+
+        [Test]
+        public void BuildIntEnumerableSumExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfInts.Sum(), "sum(listOfInts)");
+        }
+
+        [Test]
+        public void BuildIntEnumerableSumWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Sum(y => y.SomeInt), "someList.sum(y:y.someInt)");
         }
 
 

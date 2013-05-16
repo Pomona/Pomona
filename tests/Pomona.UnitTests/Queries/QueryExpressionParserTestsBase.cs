@@ -26,10 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using NSubstitute;
 using NUnit.Framework;
-using Pomona.Common.Serialization;
-using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 using Pomona.TestHelpers;
 
@@ -46,28 +43,6 @@ namespace Pomona.UnitTests.Queries
         }
 
         protected QueryExpressionParser parser;
-
-        private class PomonaTestTypeMappingFilter : TypeMappingFilterBase
-        {
-            public override object GetIdFor(object entity)
-            {
-                return 1;
-            }
-
-            public override IEnumerable<Type> GetSourceTypes()
-            {
-                yield return typeof (TestEnum);
-                yield return typeof (Dummy);
-            }
-        }
-
-        private class PomonaTestConfiguration : PomonaConfigurationBase
-        {
-            public override ITypeMappingFilter TypeMappingFilter
-            {
-                get { return new PomonaTestTypeMappingFilter(); }
-            }
-        }
 
         [SetUp]
         public void SetUp()
@@ -91,15 +66,41 @@ namespace Pomona.UnitTests.Queries
             public IDictionary<string, object> ObjectAttributes { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
             public IList<Dummy> Children { get; set; }
+            public IList<int> ListOfInts { get; set; }
+            public IList<int> ListOfDoubles { get; set; }
+            public IList<int> ListOfDecimals { get; set; }
             public Dummy Friend { get; set; }
             public Guid Guid { get; set; }
             public double Precise { get; set; }
+            public decimal SomeDecimal { get; set; }
             public int Number { get; set; }
             public Dummy Parent { get; set; }
             public IList<string> SomeStrings { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
             public TestEnum AnEnumValue { get; set; }
+        }
+
+        private class PomonaTestConfiguration : PomonaConfigurationBase
+        {
+            public override ITypeMappingFilter TypeMappingFilter
+            {
+                get { return new PomonaTestTypeMappingFilter(); }
+            }
+        }
+
+        private class PomonaTestTypeMappingFilter : TypeMappingFilterBase
+        {
+            public override object GetIdFor(object entity)
+            {
+                return 1;
+            }
+
+            public override IEnumerable<Type> GetSourceTypes()
+            {
+                yield return typeof (TestEnum);
+                yield return typeof (Dummy);
+            }
         }
 
         public class SimpleQueryPropertyResolver : IQueryTypeResolver
