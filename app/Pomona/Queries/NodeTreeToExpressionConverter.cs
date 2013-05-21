@@ -726,12 +726,6 @@ namespace Pomona.Queries
             switch (node.Name)
             {
                 case "isof":
-                    var typeNameChildNode = node.Children[0] as TypeNameNode;
-                    if (typeNameChildNode == null)
-                        throw new QueryParseException("Argument to isof is required to be a type literal.");
-
-                    expression = Expression.TypeIs(thisParam, ResolveType(typeNameChildNode));
-                    return true;
                 case "cast":
                     //var 
                     if (node.Children.Count > 2 || node.Children.Count < 1)
@@ -753,7 +747,22 @@ namespace Pomona.Queries
                     if (castTypeArg == null)
                         throw new QueryParseException("Argument to cast is required to be a type literal.");
 
-                    expression = Expression.Convert(operand, ResolveType(castTypeArg));
+                    var type = ResolveType(castTypeArg);
+                    if (node.Name == "cast")
+                        expression = Expression.Convert(operand, type);
+                    else if (node.Name == "isof")
+                        expression = Expression.TypeIs(operand, type);
+                    return true;
+
+                case "iif":
+                    if (node.Children.Count != 3)
+                        throw CreateParseException(node,
+                                                   "Conditional requires three arguments: iif(test, iftrue, iffalse).");
+
+                    expression = Expression.Condition(ParseExpression(node.Children[0]),
+                                                      ParseExpression(node.Children[1]),
+                                                      ParseExpression(node.Children[2]));
+
                     return true;
             }
 

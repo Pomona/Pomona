@@ -222,6 +222,10 @@ namespace Pomona.Common
             if (lambdaExpression != null)
                 return BuildFromLambdaExpression(lambdaExpression);
 
+            var conditionalExpression = expr as ConditionalExpression;
+            if (conditionalExpression != null)
+                return BuildFromConditionalExpression(conditionalExpression);
+
             var parameterExpression = expr as ParameterExpression;
             if (parameterExpression != null)
             {
@@ -235,6 +239,12 @@ namespace Pomona.Common
                 return BuildFromNewArrayExpression(newArrayExpression);
 
             throw new NotImplementedException("NodeType " + expr.NodeType + " not yet handled.");
+        }
+
+        private string BuildFromConditionalExpression(ConditionalExpression conditionalExpression)
+        {
+            return string.Format("iif({0},{1},{2})", Build(conditionalExpression.Test), Build(conditionalExpression.IfTrue),
+                                 Build(conditionalExpression.IfFalse));
         }
 
 
@@ -369,22 +379,25 @@ namespace Pomona.Common
             {
                 case ExpressionType.TypeIs:
                     var typeOperand = typeBinaryExpression.TypeOperand;
-                    if (!typeOperand.IsInterface || !typeof (IClientResource).IsAssignableFrom(typeOperand))
+                    //if (!typeOperand.IsInterface || !typeof (IClientResource).IsAssignableFrom(typeOperand))
+                    //{
+                    //    throw new InvalidOperationException(
+                    //        typeOperand.FullName
+                    //        + " is not an interface and/or does not implement type IClientResource.");
+                    //}
+                    var jsonTypeName = GetExternalTypeName(typeOperand);
+                    if (typeBinaryExpression.Expression == thisParameter)
                     {
-                        throw new InvalidOperationException(
-                            typeOperand.FullName
-                            + " is not an interface and/or does not implement type IClientResource.");
+                        return string.Format("isof({0})", jsonTypeName);
                     }
-                    if (typeBinaryExpression.Expression != thisParameter)
+                    else
                     {
-                        throw new NotImplementedException(
-                            "Only know how to do TypeIs when target is instance parameter for now..");
+                        return string.Format("isof({0},{1})", Build(typeBinaryExpression.Expression),
+                                             Build(Expression.Constant(typeOperand)));
                     }
 
                     // TODO: Proper typename resolving
 
-                    var jsonTypeName = GetExternalTypeName(typeOperand);
-                    return string.Format("isof({0})", jsonTypeName);
                 default:
                     throw new NotImplementedException(
                         "Don't know how to handle TypeBinaryExpression with NodeType " + typeBinaryExpression.NodeType);

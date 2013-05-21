@@ -143,6 +143,12 @@ namespace Pomona.UnitTests.Client
         }
 
         [Test]
+        public void BuildConditional_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Precise > 1.0 ? x.Bonga : "boo", "iif((precise gt 1.0),bonga,'boo')");
+        }
+
+        [Test]
         public void BuildConstantArrayOfSimpleValuesContains_ReturnsCorrectString()
         {
             var array = new[] {3, 2, 4};
@@ -375,6 +381,12 @@ namespace Pomona.UnitTests.Client
         {
             // Implicit as for comparison with object and other types
             AssertBuild(x => x.UnknownProperty as int? > 1234, "unknownProperty gt 1234");
+        }
+
+        [Test]
+        public void BuildObjectIsOfType_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.UnknownProperty is int, "isof(unknownProperty,t'Int32')");
         }
 
 

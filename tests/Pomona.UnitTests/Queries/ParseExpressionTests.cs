@@ -33,9 +33,21 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
+        public void ParseConditional_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("iif(text eq 'lalala', 'yes', 'no')", _this => _this.Text == "lalala" ? "yes" : "no");
+        }
+
+        [Test]
         public void ParseConvertToIntExpression_ReturnsCorrectExpression()
         {
             ParseAndAssert("convert(text,t'Int32')", _this => (int) Convert.ChangeType(_this.Text, typeof (int)));
+        }
+
+        [Test]
+        public void ParseObjectIsOfType_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("isof(unknownProperty,t'Int32')", _this => _this.UnknownProperty is int);
         }
 
         [Test]
