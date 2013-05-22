@@ -22,9 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -47,6 +49,8 @@ namespace Pomona.Common.Web
             get { return headers; }
         }
 
+        public NetworkCredential Credentials { get; set; }
+
         public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
             return SendAsync(request).Result;
@@ -55,6 +59,10 @@ namespace Pomona.Common.Web
         public async Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
         {
             var httpRequestMessage = new HttpRequestMessage(new HttpMethod(requestMessage.Method), requestMessage.Uri);
+
+            if (Credentials != null)
+                throw new NotImplementedException("Authentication not yet implemented in async web client!");
+
             if (requestMessage.Data != null)
                 httpRequestMessage.Content = new ByteArrayContent(requestMessage.Data);
 
