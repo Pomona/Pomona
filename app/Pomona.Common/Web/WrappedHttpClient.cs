@@ -66,6 +66,11 @@ namespace Pomona.Common.Web
             if (requestMessage.Data != null)
                 httpRequestMessage.Content = new ByteArrayContent(requestMessage.Data);
 
+            foreach (var header in Headers.Concat(requestMessage.Headers))
+            {
+                httpRequestMessage.Headers.Add(header.Key, header.Value);
+            }
+
             var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
             var responseData = await httpResponseMessage.Content.ReadAsByteArrayAsync();
 
