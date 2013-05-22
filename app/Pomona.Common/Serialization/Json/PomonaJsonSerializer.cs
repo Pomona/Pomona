@@ -161,6 +161,18 @@ namespace Pomona.Common.Serialization.Json
                                                        string.Empty, fetchContext);
             itemNode.Serialize(this, writer);
 
+            if (queryResult.DebugInfo.Count > 0)
+            {
+                jsonWriter.WritePropertyName("debugInfo");
+                jsonWriter.WriteStartObject();
+                foreach (var kvp in queryResult.DebugInfo)
+                {
+                    jsonWriter.WritePropertyName(kvp.Key);
+                    jsonWriter.WriteValue(kvp.Value);
+                }
+                jsonWriter.WriteEndObject();
+            }
+
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
         }

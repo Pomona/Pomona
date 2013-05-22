@@ -87,11 +87,11 @@ lambda_expression
 	;
 
 or_expression
-	:	and_expression ( 'or' and_expression )* -> ^(OR_OP and_expression+)
+	:	and_expression ( ('or'|'||') and_expression )* -> ^(OR_OP and_expression+)
 	;
 
 and_operator
-	:	'and';
+	:	('and'|'&&');
 	
 
 and_expression 
@@ -101,12 +101,12 @@ and_expression
 
 
 relational_operator 
-	: 'gt' -> GT_OP
-	| 'lt' -> LT_OP
-	| 'eq' -> EQ_OP
-	| 'ge' -> GE_OP
-	| 'le' -> LE_OP
-	| 'ne' -> NE_OP
+	: ('gt'|'>') -> GT_OP
+	| ('lt'|'<') -> LT_OP
+	| ('eq'|'==') -> EQ_OP
+	| ('ge'|'>=') -> GE_OP
+	| ('le'|'<=') -> LE_OP
+	| ('ne'|'!=') -> NE_OP
 	| 'in' -> IN_OP
 	;
 /*
@@ -123,8 +123,8 @@ relational_expr
 	;
 
 additive_operator
-    : 'add' -> ADD_OP
-    | 'sub' -> SUB_OP
+    : ('add'|'+') -> ADD_OP
+    | ('sub'|'-') -> SUB_OP
     ;
 
 additive_expr 
@@ -132,9 +132,9 @@ additive_expr
 	;
 
 multiplicative_operator
-    :   'mul' -> MUL_OP
-    |   'div' -> DIV_OP
-	|   'mod' -> MOD_OP
+    :   ('mul'|'*') -> MUL_OP
+    |   ('div'|'/') -> DIV_OP
+	|   ('mod'|'%') -> MOD_OP
     ;
 
 multiplicative_expr 
@@ -142,7 +142,7 @@ multiplicative_expr
 	;
 
 unary_operator 
-	:	'not' -> NOT_OP
+	:	('not'|'!') -> NOT_OP
 	;
 
 dot_operator

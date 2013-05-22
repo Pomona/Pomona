@@ -288,6 +288,11 @@ namespace Pomona
             return false;
         }
 
+        public virtual string GetPluralNameForType(Type type)
+        {
+            return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
+        }
+
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");

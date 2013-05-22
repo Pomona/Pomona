@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Nancy;
@@ -65,6 +66,12 @@ namespace Pomona
             }
 
             var query = new PomonaQuery(rootType);
+
+            if (request.Query["$debug"].HasValue)
+            {
+                query.DebugInfoKeys =
+                    new HashSet<string>(((string) request.Query["$debug"]).ToLower().Split(',').Select(x => x.Trim()));
+            }
 
             string filter = null;
             var top = 10;

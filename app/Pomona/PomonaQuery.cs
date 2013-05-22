@@ -60,11 +60,13 @@ namespace Pomona
 
         public PomonaQuery(TransformedType targetType)
         {
+            DebugInfoKeys = new HashSet<string>();
             if (targetType == null)
                 throw new ArgumentNullException("targetType");
             this.targetType = targetType;
         }
 
+        public HashSet<string> DebugInfoKeys { get; set; }
 
         public LambdaExpression FilterExpression { get; set; }
         public LambdaExpression GroupByExpression { get; set; }
@@ -92,6 +94,11 @@ namespace Pomona
         public string Url { get; set; }
 
         #endregion
+
+        public bool DebugEnabled(string debugKey)
+        {
+            return DebugInfoKeys.Contains(debugKey.ToLower());
+        }
 
         public QueryResult ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {

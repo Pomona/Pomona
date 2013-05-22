@@ -147,6 +147,11 @@ namespace Pomona.FluentMapping
             return FromMappingOrDefault(propertyInfo, x => x.IsEtagProperty, () => wrappedFilter.PropertyIsEtag(propertyInfo));
         }
 
+        public string GetPluralNameForType(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.PluralName, () => wrappedFilter.GetPluralNameForType(type));
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);

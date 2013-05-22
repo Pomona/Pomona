@@ -69,6 +69,29 @@ namespace Pomona.TestHelpers
                     return;
                 }
 
+                var actualCondExpr = actual as ConditionalExpression;
+                if (actualCondExpr != null)
+                {
+                    var expectedCondExpr = (ConditionalExpression) expected;
+                    AssertEquals(actualCondExpr.Test, expectedCondExpr.Test);
+                    AssertEquals(actualCondExpr.IfTrue, expectedCondExpr.IfTrue);
+                    AssertEquals(actualCondExpr.IfFalse, expectedCondExpr.IfFalse);
+                    return;
+                }
+
+                var actualTypeBinExpr = actual as TypeBinaryExpression;
+                if (actualTypeBinExpr != null)
+                {
+                    var expectedTypeBinExpr = (TypeBinaryExpression) expected;
+
+                    AssertEquals(actualTypeBinExpr.Expression, expectedTypeBinExpr.Expression);
+                    if (actualTypeBinExpr.TypeOperand != expectedTypeBinExpr.TypeOperand)
+                        Assert.Fail("Expected TypeOperand " + expectedTypeBinExpr.TypeOperand + " got nodetype " +
+                                    actualTypeBinExpr.TypeOperand);
+
+                    return;
+                }
+
                 var actualConstExpr = actual as ConstantExpression;
                 if (actualConstExpr != null)
                 {

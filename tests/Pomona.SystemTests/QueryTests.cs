@@ -130,7 +130,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
-            var musicalCritter = CritterEntities.OfType<MusicalCritter>().Skip(1).First();
+            var musicalCritter = (MusicalCritter)DataSource.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
             var bandName = musicalCritter.BandName;
             var critters =
                 client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);

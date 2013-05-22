@@ -38,11 +38,17 @@ namespace Pomona.Common
     {
         private static readonly MethodInfo createMethod;
 
+        private readonly Dictionary<string, string> debugInfo = new Dictionary<string, string>();
 
         static QueryResult()
         {
             createMethod =
                 ReflectionHelper.GetGenericMethodDefinition<QueryResult>(x => Create<object>(null, 0, 0, null));
+        }
+
+        public Dictionary<string, string> DebugInfo
+        {
+            get { return debugInfo; }
         }
 
 
@@ -99,6 +105,7 @@ namespace Pomona.Common
             this.totalCount = totalCount;
             this.url = url;
         }
+
 
         public override Type ListType
         {

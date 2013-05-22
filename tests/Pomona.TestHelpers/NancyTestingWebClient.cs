@@ -27,8 +27,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
 using Nancy.Testing;
 using Pomona.Common.Web;
+using HttpStatusCode = Pomona.Common.Web.HttpStatusCode;
 
 namespace Pomona.TestHelpers
 {
@@ -47,6 +49,8 @@ namespace Pomona.TestHelpers
         {
             get { return headers; }
         }
+
+        public NetworkCredential Credentials { get; set; }
 
         public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
@@ -68,9 +72,15 @@ namespace Pomona.TestHelpers
             }
 
             var uri = new Uri(request.Uri);
+            var creds = Credentials;
+
             var browserResponse = browserMethod(uri.LocalPath, bc =>
                 {
                     bc.HttpRequest();
+                    if (creds != null)
+                    {
+                        bc.BasicAuth(creds.UserName, creds.Password);
+                    }
                     ((IBrowserContextValues) bc).QueryString = uri.Query;
                     foreach (var kvp in headers.Concat(request.Headers))
                     {
@@ -83,7 +93,8 @@ namespace Pomona.TestHelpers
                 });
 
             return new WebClientResponseMessage(request.Uri, browserResponse.Body.ToArray(),
-                                                (HttpStatusCode) browserResponse.StatusCode, browserResponse.Headers, "1.1");
+                                                (HttpStatusCode) browserResponse.StatusCode, browserResponse.Headers,
+                                                "1.1");
         }
 
         public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)

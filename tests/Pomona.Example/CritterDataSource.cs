@@ -36,7 +36,6 @@ namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
     {
-        private readonly TypeMapper typeMapper;
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
         private static readonly MethodInfo saveInternalMethod;
@@ -44,6 +43,7 @@ namespace Pomona.Example
 
         private readonly List<PomonaQuery> queryLog = new List<PomonaQuery>();
         private readonly object syncLock = new object();
+        private readonly TypeMapper typeMapper;
         private Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
@@ -60,7 +60,8 @@ namespace Pomona.Example
             saveDictionaryMethod =
                 ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
                     x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
-            saveInternalMethod = ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
+            saveInternalMethod =
+                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
         }
 
 
@@ -192,7 +193,9 @@ namespace Pomona.Example
 
         public static IEnumerable<Type> GetEntityTypes()
         {
-            return typeof (CritterModule).Assembly.GetTypes().Where(x => x.Namespace == "Pomona.Example.Models" && !x.IsGenericTypeDefinition);
+            return
+                typeof (CritterModule).Assembly.GetTypes()
+                                      .Where(x => x.Namespace == "Pomona.Example.Models" && !x.IsGenericTypeDefinition);
         }
 
 
@@ -203,7 +206,7 @@ namespace Pomona.Example
                 idCounter = 1;
                 entityLists = new Dictionary<Type, object>();
                 notificationsEnabled = false;
-                CreateObjectModel();
+                CreateRandomData();
                 notificationsEnabled = true;
                 queryLog.Clear();
             }
@@ -218,7 +221,7 @@ namespace Pomona.Example
 
         private object SaveCollection<T>(ICollection<T> collection)
             where T : EntityBase
-        { 
+        {
             foreach (var item in collection)
             {
                 Save(item);
@@ -228,9 +231,9 @@ namespace Pomona.Example
 
         public T Save<T>(T entity)
         {
-            var transformedType = (TransformedType)typeMapper.GetClassMapping<T>();
+            var transformedType = (TransformedType) typeMapper.GetClassMapping<T>();
             var saveMethodInstance = saveInternalMethod.MakeGenericMethod(transformedType.UriBaseType.MappedTypeInstance);
-            return (T)saveMethodInstance.Invoke(this, new object[] {entity});
+            return (T) saveMethodInstance.Invoke(this, new object[] {entity});
             return entity;
         }
 
@@ -280,7 +283,6 @@ namespace Pomona.Example
 
         public void AddToEntityList<T>(T entity)
         {
-            
         }
 
         private void CreateFarms()
@@ -296,8 +298,7 @@ namespace Pomona.Example
             Save(new JunkWithNullableInt {Maybe = null, MentalState = "I got nothing in life. So sad.."});
         }
 
-
-        private void CreateObjectModel()
+        public void CreateRandomData(int critterCount = 5, int weaponModelCount = 3)
         {
             var rng = new Random(23576758);
 
@@ -305,8 +306,6 @@ namespace Pomona.Example
                 Save(new WeaponModel {Name = Words.GetSpecialWeapon(rng)});
 
             CreateFarms();
-
-            const int critterCount = 180;
 
             for (var i = 0; i < critterCount; i++)
                 CreateRandomCritter(rng);
@@ -318,11 +317,13 @@ namespace Pomona.Example
                 Save(loner);
         }
 
-
-        private void CreateRandomCritter(Random rng)
+        public Critter CreateRandomCritter(Random rng = null, int? rngSeed = null, bool forceMusicalCritter = false)
         {
+            if (rng == null)
+                rng = new Random(rngSeed ?? 75648382 + idCounter);
+
             Critter critter;
-            if (rng.NextDouble() > 0.76)
+            if (forceMusicalCritter || rng.NextDouble() > 0.76)
             {
                 var musicalCritter = new MusicalCritter
                     {
@@ -353,6 +354,8 @@ namespace Pomona.Example
             // Patch on a random hat
             Save(critter.Hat);
             Save(critter);
+
+            return critter;
         }
 
 

@@ -36,6 +36,9 @@ namespace Pomona.UnitTests.Client
     {
         public class FooBar : IClientResource
         {
+            public int SomeInt { get; set; }
+            public decimal SomeDecimal { get; set; }
+            public double SomeDouble { get; set; }
             public string SomeString { get; set; }
             public IList<TestResource> TestResources { get; set; }
         }
@@ -65,6 +68,9 @@ namespace Pomona.UnitTests.Client
             public IList<FooBar> SomeList { get; set; }
             public TimeSpan TimeSpan { get; set; }
             public object UnknownProperty { get; set; }
+            public IList<int> ListOfInts { get; set; }
+            public IList<int> ListOfDoubles { get; set; }
+            public IList<int> ListOfDecimals { get; set; }
         }
 
         public class Container
@@ -134,6 +140,12 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
+        }
+
+        [Test]
+        public void BuildConditional_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Precise > 1.0 ? x.Bonga : "boo", "iif((precise gt 1.0),bonga,'boo')");
         }
 
         [Test]
@@ -211,11 +223,36 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45'"));
         }
 
+        [Test]
+        public void BuildDecimalEnumerableSumExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDecimals.Sum(), "sum(listOfDecimals)");
+        }
+
+
+        [Test]
+        public void BuildDecimalEnumerableSumWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Sum(y => y.SomeDecimal), "someList.sum(y:y.someDecimal)");
+        }
+
 
         [Test]
         public void BuildDecimal_ReturnsCorrectString()
         {
             AssertBuild(x => 10.25m, "10.25m");
+        }
+
+        [Test]
+        public void BuildDoubleEnumerableSumExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDoubles.Sum(), "sum(listOfDoubles)");
+        }
+
+        [Test]
+        public void BuildDoubleEnumerableSumWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Sum(y => y.SomeDouble), "someList.sum(y:y.someDouble)");
         }
 
 
@@ -293,6 +330,18 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla.IndexOf("banana") == 2, "indexof(jalla,'banana') eq 2");
         }
 
+        [Test]
+        public void BuildIntEnumerableSumExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfInts.Sum(), "sum(listOfInts)");
+        }
+
+        [Test]
+        public void BuildIntEnumerableSumWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Sum(y => y.SomeInt), "someList.sum(y:y.someInt)");
+        }
+
 
         [Test]
         public void BuildLengthExpression_ReturnsCorrectString()
@@ -332,6 +381,12 @@ namespace Pomona.UnitTests.Client
         {
             // Implicit as for comparison with object and other types
             AssertBuild(x => x.UnknownProperty as int? > 1234, "unknownProperty gt 1234");
+        }
+
+        [Test]
+        public void BuildObjectIsOfType_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.UnknownProperty is int, "isof(unknownProperty,t'Int32')");
         }
 
 
