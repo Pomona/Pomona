@@ -27,6 +27,8 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Web;
+using Pomona.Example.Models;
 
 namespace Pomona.SystemTests
 {
@@ -52,11 +54,53 @@ namespace Pomona.SystemTests
             Assert.That(asyncCritter.Name, Is.EqualTo(expected.Name));
         }
 
+
+        [Test]
+        public void Get_UsingQuery_ReturnsEntities()
+        {
+            // Here we just expect to get something returned, Query itself is tested in other fixture,
+            var oddCritters = client.Critters.Query().Where(x => x.Id%2 == 1).ToList();
+            Assert.That(oddCritters, Has.Count.GreaterThan(0));
+        }
+
+        [Test]
+        public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
+        {
+            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
+            Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
+        }
+
+        [Test]
+        public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
+        {
+            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+
+            // Change etag on entity, which should give an exception
+            etaggedEntity.SetEtag("MODIFIED!");
+
+            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
+                        Throws.TypeOf<PreconditionFailedException>());
+            Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
+        }
+
+        [Test]
+        public void Post_SavesEntityAndReturnsResource()
+        {
+            var resource = client.Critters.Post(new CritterForm {Name = "Hiihaa"});
+            Assert.That(resource.Id, Is.GreaterThan(0));
+            Assert.That(resource.Name, Is.EqualTo("Hiihaa"));
+        }
+
+
         [Test]
         public void Query_ToListAsync_ReturnsResources()
         {
-            var expectedCritters = CritterEntities.Where(x => x.Id % 3 == 0).Take(5).ToList();
-            var fetchedCritters = client.Critters.Query().Where(x => x.Id % 3 == 0).Take(5).ToListAsync().Result;
+            var expectedCritters = CritterEntities.Where(x => x.Id%3 == 0).Take(5).ToList();
+            var fetchedCritters = client.Critters.Query().Where(x => x.Id%3 == 0).Take(5).ToListAsync().Result;
 
             Assert.That(fetchedCritters.Select(x => x.Id), Is.EquivalentTo(expectedCritters.Select(x => x.Id)));
         }

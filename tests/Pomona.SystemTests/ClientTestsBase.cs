@@ -103,7 +103,7 @@ namespace Pomona.SystemTests
                 Console.WriteLine("Starting CritterHost on " + baseUri);
                 critterHost = new CritterHost(new Uri(baseUri));
                 critterHost.Start();
-                client = new Client(baseUri, new WrappedHttpClient());
+                client = new Client(baseUri, CreateWebClient());
                 DataSource = critterHost.DataSource;
             }
             else

@@ -93,6 +93,11 @@ namespace Pomona.Common.Web
             }
         }
 
+        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
+        {
+            throw new NotSupportedException("Does not support async. Use WrappedHttpClient instead.");
+        }
+
         private static HttpWebResponse GetResponseNoThrow(HttpWebRequest request, out Exception thrownException)
         {
             try
@@ -105,11 +110,6 @@ namespace Pomona.Common.Web
                 thrownException = ex;
                 return (HttpWebResponse) ex.Response;
             }
-        }
-
-        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
-        {
-            throw new NotSupportedException("Does not support async. Use WrappedHttpClient instead.");
         }
 
         private class HeaderDictionaryWrapper : IDictionary<string, string>
