@@ -105,7 +105,8 @@ namespace Pomona
                         var etagValue = (string) etagProperty.Getter(pomonaResponse.Entity);
                         if (etagValue != null)
                         {
-                            response.Headers["ETag"] = etagValue;
+                            // I think defining this as a weak etag will be correct, since we can specify $expand which change data (byte-by-byte).
+                            response.Headers["ETag"] = string.Format("W/\"{0}\"", etagValue);
                         }
                     }
                 }

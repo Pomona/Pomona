@@ -243,7 +243,7 @@ namespace Pomona.Common
             if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
                 var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
-                modifyResponse = request => { request.Headers["If-Match"] = etagValue; };
+                modifyResponse = request => { request.Headers["If-Match"] = string.Format("\"{0}\"", etagValue); };
             }
 
             return
