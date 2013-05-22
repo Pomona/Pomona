@@ -40,9 +40,14 @@ namespace Pomona.Common.Web
             get { return headers; }
         }
 
+        public NetworkCredential Credentials { get; set; }
+
         public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
             var webRequest = (HttpWebRequest) WebRequest.Create(request.Uri);
+
+            if (Credentials != null)
+                webRequest.Credentials = Credentials;
 
             foreach (var h in headers.Concat(request.Headers))
             {

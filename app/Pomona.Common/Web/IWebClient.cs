@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Net;
 
 namespace Pomona.Common.Web
 {
@@ -32,6 +33,7 @@ namespace Pomona.Common.Web
     public interface IWebClient
     {
         IDictionary<string, string> Headers { get; }
+        NetworkCredential Credentials { get; set; }
         WebClientResponseMessage Send(WebClientRequestMessage request);
     }
 }
