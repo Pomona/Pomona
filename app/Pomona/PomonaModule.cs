@@ -299,6 +299,7 @@ namespace Pomona
         private void RegisterClientNugetPackageRoute()
         {
             var packageBuilder = new ClientNugetPackageBuilder(typeMapper);
+            Get["/client.nupkg"] = x => Response.AsRedirect(packageBuilder.PackageFileName);
             Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
         }
 
