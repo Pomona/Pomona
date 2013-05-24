@@ -111,6 +111,8 @@ namespace Pomona.Common.Internals
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.First(y => true), "first({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true), "firstdefault({0},{1})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");

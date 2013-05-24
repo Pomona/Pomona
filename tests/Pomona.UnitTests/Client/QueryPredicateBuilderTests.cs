@@ -297,6 +297,19 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => false, "false");
         }
 
+        [Test]
+        public void BuildFirstOrDefaultWithPredicate_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.FirstOrDefault(x => x.SomeString == "blah"),
+                        "someList.firstdefault(x:x.someString eq 'blah')");
+        }
+
+        [Test]
+        public void BuildFirstWithPredicate_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.First(x => x.SomeString == "blah"), "someList.first(x:x.someString eq 'blah')");
+        }
+
 
         [Test]
         public void BuildFloat_ReturnsCorrectString()
