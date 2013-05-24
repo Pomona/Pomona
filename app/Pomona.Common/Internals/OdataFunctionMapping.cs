@@ -119,6 +119,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<float>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<decimal>>(x => x.Sum(), "sum({0})");
 
+            Add<IEnumerable<string>>(x => string.Join("?", x), "join({1},{0})", MethodCallStyle.Chained);
+
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10m), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10.0), "sum({0},{1})", MethodCallStyle.Chained);
