@@ -26,9 +26,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.Routing;
-using Nancy.TinyIoc;
 using Pomona.CodeGen;
 using Pomona.Queries;
 using Pomona.Schemas;
@@ -37,7 +37,7 @@ namespace Pomona
 {
     public abstract class PomonaModule : NancyModule, IPomonaUriResolver
     {
-        private readonly TinyIoCContainer container;
+        private readonly IServiceLocator container;
         private readonly IPomonaDataSource dataSource;
         private readonly IHttpQueryTransformer queryTransformer;
         private readonly PomonaSession session;
@@ -46,7 +46,7 @@ namespace Pomona
         private string htmlLinks = string.Empty;
 
 
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, TinyIoCContainer container)
+        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
             : this(dataSource, typeMapper, container, null)
         {
         }
@@ -55,7 +55,7 @@ namespace Pomona
         protected PomonaModule(
             IPomonaDataSource dataSource,
             TypeMapper typeMapper,
-            TinyIoCContainer container,
+            IServiceLocator container,
             IHttpQueryTransformer queryTransformer)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
@@ -115,7 +115,7 @@ namespace Pomona
 
         object IPomonaUriResolver.GetResultByUri(string uriString)
         {
-            var routeResolver = container.Resolve<IRouteResolver>();
+            var routeResolver = container.GetInstance<IRouteResolver>();
             var uri = new Uri(uriString, UriKind.Absolute);
 
             var modulePath = uri.AbsolutePath;
@@ -144,9 +144,19 @@ namespace Pomona
             return pomonaResponse.Entity;
         }
 
+        public virtual string RelativeToAbsoluteUri(string path)
+        {
+            if (string.IsNullOrEmpty(Request.Url.HostName))
+            {
+                return path;
+            }
+
+            return string.Format("{0}{1}", GetBaseUri(), path);
+        }
+
         private void RegisterResourceContent(string name)
         {
-            string mediaType = "text/html";
+            var mediaType = "text/html";
             if (name.EndsWith(".js"))
                 mediaType = "text/javascript";
             if (name.EndsWith(".css"))
@@ -154,9 +164,9 @@ namespace Pomona
 
             var resourceName = "Pomona.Content." + name;
             Get["/" + name] = x =>
-                Response.FromStream(
-                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName), mediaType);
-            
+                              Response.FromStream(
+                                  () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
+                                  mediaType);
         }
 
         private object GetJsonBrowserHtmlResponse()
@@ -174,16 +184,6 @@ namespace Pomona
             return session.GetAsJson(transformedType, id, expand);
         }
 
-
-        public virtual string RelativeToAbsoluteUri(string path)
-        {
-            if (string.IsNullOrEmpty(Request.Url.HostName))
-            {
-                return path;
-            }
-
-            return string.Format("{0}{1}", GetBaseUri(), path);
-        }
 
         protected virtual Uri GetBaseUri()
         {
@@ -360,7 +360,8 @@ namespace Pomona
             {
                 ifMatch = ifMatch.Trim();
                 if (ifMatch.Length < 2 || ifMatch[0] != '"' || ifMatch[ifMatch.Length - 1] != '"')
-                    throw new NotImplementedException("Only recognized If-Match with quotes around, * not yet supported (TODO).");
+                    throw new NotImplementedException(
+                        "Only recognized If-Match with quotes around, * not yet supported (TODO).");
 
                 ifMatch = ifMatch.Substring(1, ifMatch.Length - 2);
             }

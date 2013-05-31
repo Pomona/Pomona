@@ -22,21 +22,57 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Practices.ServiceLocation;
+using Nancy.TinyIoc;
 
-namespace Pomona.Example
+namespace Pomona
 {
-    public class CritterModule : PomonaModule
+    public class TinyIoCServiceLocator : IServiceLocator
     {
-        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
-            : base(dataSource, typeMapper, container)
+        private readonly TinyIoCContainer container;
+
+        public TinyIoCServiceLocator(TinyIoCContainer container)
         {
+            if (container == null) throw new ArgumentNullException("container");
+            this.container = container;
         }
 
-
-        public CritterDataSource CritterDataSource
+        public object GetService(Type serviceType)
         {
-            get { return (CritterDataSource) DataSource; }
+            return container.Resolve(serviceType);
+        }
+
+        public object GetInstance(Type serviceType)
+        {
+            return container.Resolve(serviceType);
+        }
+
+        public object GetInstance(Type serviceType, string key)
+        {
+            return container.Resolve(serviceType, key);
+        }
+
+        public IEnumerable<object> GetAllInstances(Type serviceType)
+        {
+            return container.ResolveAll(serviceType);
+        }
+
+        public TService GetInstance<TService>()
+        {
+            return (TService) container.Resolve(typeof (TService));
+        }
+
+        public TService GetInstance<TService>(string key)
+        {
+            return (TService) container.Resolve(typeof (TService), key);
+        }
+
+        public IEnumerable<TService> GetAllInstances<TService>()
+        {
+            return GetAllInstances(typeof (TService)).Cast<TService>();
         }
     }
 }
