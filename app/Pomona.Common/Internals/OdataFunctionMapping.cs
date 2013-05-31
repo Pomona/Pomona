@@ -111,16 +111,30 @@ namespace Pomona.Common.Internals
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.First(y => true), "first({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true), "firstdefault({0},{1})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<float>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<decimal>>(x => x.Sum(), "sum({0})");
 
+            Add<IEnumerable<string>>(x => string.Join("?", x), "join({1},{0})", MethodCallStyle.Chained);
+
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10m), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10.0), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10f), "sum({0},{1})", MethodCallStyle.Chained);
+
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10m), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10.0), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10f), "max({0},{1})", MethodCallStyle.Chained);
+
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10m), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10.0), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10f), "min({0},{1})", MethodCallStyle.Chained);
 
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.Contains(null, null), "contains({0},{1},{2})", MethodCallStyle.Chained);

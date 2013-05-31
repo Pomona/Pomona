@@ -37,7 +37,6 @@ namespace Pomona.SystemTests.Linq
     [TestFixture]
     public class LinqQueryTests : ClientTestsBase
     {
-
         [Test]
         public void QueryCritter_AnyWithExistingName_ReturnsTrue()
         {
@@ -70,6 +69,25 @@ namespace Pomona.SystemTests.Linq
             Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+3)+eq+0"));
             Console.WriteLine(afterLoadUri);
             Assert.That(name, Is.EqualTo(expected.Name));
+        }
+
+        [Category("TODO")]
+        [Test]
+        public void QueryCritter_GetMaxId_ReturnsMaxId()
+        {
+            var expected = DataSource.List<Critter>().Max(x => x.Id);
+            Assert.That(client.Critters.Query().Max(x => x.Id), Is.EqualTo(expected));
+            Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
+        }
+
+        [Category("TODO")]
+        [Test]
+        public void QueryCritter_GetMinId_ReturnsMinId()
+        {
+            var expected = DataSource.List<Critter>().Min(x => x.Id);
+
+            Assert.That(client.Critters.Query().Min(x => x.Id), Is.EqualTo(expected));
+            Assert.That(client.Critters.Query().Select(x => x.Id).Min(), Is.EqualTo(expected));
         }
 
         [Category("TODO")]
@@ -206,7 +224,7 @@ namespace Pomona.SystemTests.Linq
                                .Take(5)
                                .ToList();
 
-            for (int i = 0; i < 100; i++)
+            for (var i = 0; i < 100; i++)
             {
                 var actual =
                     client.Query<ICritter>()
@@ -332,14 +350,6 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void Query_UsingFirstOrDefault_WithNoMatches_ReturnsNull()
-        {
-            var result = client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
-
-            Assert.That(result, Is.Null);
-        }
-
-        [Test]
         public void QueryHasStringToObjectDictionary_ReturnsCorrectValues()
         {
             for (var i = 1; i <= 8; i++)
@@ -366,6 +376,14 @@ namespace Pomona.SystemTests.Linq
                 client.Query<IMusicalCritter>().First(
                     x => x.Name == critter.Name && x.Guid == critter.Guid && x.BandName == critter.BandName);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
+        }
+
+        [Test]
+        public void Query_UsingFirstOrDefault_WithNoMatches_ReturnsNull()
+        {
+            var result = client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
+
+            Assert.That(result, Is.Null);
         }
     }
 }

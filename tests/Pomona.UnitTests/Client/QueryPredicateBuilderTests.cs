@@ -290,11 +290,23 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => !x.OnOrOff, "not (onOrOff)");
         }
 
-
         [Test]
         public void BuildFalse_ReturnsCorrectString()
         {
             AssertBuild(x => false, "false");
+        }
+
+        [Test]
+        public void BuildFirstOrDefaultWithPredicate_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.FirstOrDefault(x => x.SomeString == "blah"),
+                        "someList.firstdefault(x:x.someString eq 'blah')");
+        }
+
+        [Test]
+        public void BuildFirstWithPredicate_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.First(x => x.SomeString == "blah"), "someList.first(x:x.someString eq 'blah')");
         }
 
 
@@ -340,6 +352,13 @@ namespace Pomona.UnitTests.Client
         public void BuildIntEnumerableSumWithSelectorExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeList.Sum(y => y.SomeInt), "someList.sum(y:y.someInt)");
+        }
+
+        [Test]
+        public void BuildJoinExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => string.Join(";", x.SomeList.Select(y => y.SomeString)),
+                        "someList.select(y:y.someString).join(';')");
         }
 
 

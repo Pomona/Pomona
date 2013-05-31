@@ -45,6 +45,20 @@ namespace Pomona.UnitTests.Queries
         }
 
         [Test]
+        public void ParseFirstOrDefaultWithPredicate_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.firstdefault(x:x.number eq 4)",
+                           _this => _this.Children.FirstOrDefault(x => x.Number == 4));
+        }
+
+        [Test]
+        public void ParseFirstWithPredicate_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.first(x:x.number eq 4)",
+                           _this => _this.Children.First(x => x.Number == 4));
+        }
+
+        [Test]
         public void ParseObjectIsOfType_ReturnsCorrectExpression()
         {
             ParseAndAssert("isof(unknownProperty,t'Int32')", _this => _this.UnknownProperty is int);

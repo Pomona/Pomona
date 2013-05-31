@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.TinyIoc;
 
@@ -54,6 +55,7 @@ namespace Pomona.Example
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
+            container.Register<IServiceLocator>((c, no) => new TinyIoCServiceLocator(c));
             container.Register(dataSource);
             container.Register(typeMapper);
         }
