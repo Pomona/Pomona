@@ -50,6 +50,9 @@ namespace Pomona.Common.Web
 
             foreach (var h in headers.Concat(request.Headers))
             {
+                if (h.Value.Count == 0)
+                    continue;
+
                 if (!WebHeaderCollection.IsRestricted(h.Key))
                 {
                     foreach (var v in h.Value)
@@ -62,7 +65,7 @@ namespace Pomona.Common.Web
                     switch (h.Key)
                     {
                         case "Accept":
-                            webRequest.Accept = h.Value.Single();
+                            webRequest.Accept = h.Value.Last();
                             break;
 
                         default:
