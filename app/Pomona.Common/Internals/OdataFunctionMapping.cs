@@ -126,6 +126,16 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10.0), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10f), "sum({0},{1})", MethodCallStyle.Chained);
 
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10m), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10.0), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => 10f), "max({0},{1})", MethodCallStyle.Chained);
+
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10m), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10.0), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => 10f), "min({0},{1})", MethodCallStyle.Chained);
+
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.Contains(null, null), "contains({0},{1},{2})", MethodCallStyle.Chained);
             Add<IDictionary<WildcardType, WildcardType>>(

@@ -180,6 +180,8 @@ namespace Pomona.Common.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Visit(node.Arguments[0]);
+
+            // TODO: Throw better exception when method is not supported
             var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.UniqueToken()];
             var visitMethodInstance = visitMethod.MakeGenericMethod(node.Method.GetGenericArguments());
 
