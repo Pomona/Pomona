@@ -136,7 +136,9 @@
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
+    <Compile Include="Web\HttpHeaders.cs" />
     <Compile Include="Web\HttpStatusCode.cs" />
+    <Compile Include="Web\IHttpHeaders.cs" />
     <Compile Include="Web\IWebClient.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\WebClientRequestMessage.cs" />

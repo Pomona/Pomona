@@ -235,7 +235,7 @@ namespace Pomona.Common
             if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
                 var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
-                modifyResponse = request => { request.Headers["If-Match"] = string.Format("\"{0}\"", etagValue); };
+                modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
             }
 
             return
@@ -409,7 +409,7 @@ namespace Pomona.Common
         private string DownloadFromUri(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            webClient.Headers["Accept"] = "application/json";
+            webClient.Headers.Add("Accept", "application/json");
             var request = new WebClientRequestMessage(uri, null, "GET");
             WebClientResponseMessage response = null;
 
@@ -481,7 +481,7 @@ namespace Pomona.Common
             WebClientRequestMessage request;
             request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
-            webClient.Headers["Accept"] = "application/json";
+            webClient.Headers.Add("Accept", "application/json");
 
             string responseString = null;
             Exception thrownException = null;

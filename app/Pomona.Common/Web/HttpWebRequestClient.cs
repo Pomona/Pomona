@@ -23,7 +23,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -33,9 +32,9 @@ namespace Pomona.Common.Web
 {
     public class HttpWebRequestClient : IWebClient
     {
-        private readonly HeaderDictionaryWrapper headers = new HeaderDictionaryWrapper(new WebHeaderCollection());
+        private readonly IHttpHeaders headers = new HttpHeaders();
 
-        public IDictionary<string, string> Headers
+        public IHttpHeaders Headers
         {
             get { return headers; }
         }
@@ -52,13 +51,18 @@ namespace Pomona.Common.Web
             foreach (var h in headers.Concat(request.Headers))
             {
                 if (!WebHeaderCollection.IsRestricted(h.Key))
-                    webRequest.Headers.Add(h.Key, h.Value);
+                {
+                    foreach (var v in h.Value)
+                    {
+                        webRequest.Headers.Add(h.Key, v);
+                    }
+                }
                 else
                 {
                     switch (h.Key)
                     {
                         case "Accept":
-                            webRequest.Accept = h.Value;
+                            webRequest.Accept = h.Value.Single();
                             break;
 
                         default:
@@ -87,8 +91,18 @@ namespace Pomona.Common.Web
 
                 return new WebClientResponseMessage(webResponse.ResponseUri.ToString(), responseBytes,
                                                     (HttpStatusCode) webResponse.StatusCode,
-                                                    new HeaderDictionaryWrapper(webResponse.Headers),
+                                                    new HttpHeaders(ConvertHeaders(webResponse.Headers)),
                                                     webResponse.ProtocolVersion.ToString());
+            }
+        }
+
+        private static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ConvertHeaders(
+            WebHeaderCollection webHeaders)
+        {
+            for (var i = 0; i < webHeaders.Count; i++)
+            {
+                var key = webHeaders.GetKey(i);
+                yield return new KeyValuePair<string, IEnumerable<string>>(key, webHeaders.GetValues(i));
             }
         }
 
@@ -103,124 +117,6 @@ namespace Pomona.Common.Web
             {
                 thrownException = ex;
                 return (HttpWebResponse) ex.Response;
-            }
-        }
-
-
-        private class HeaderDictionaryWrapper : IDictionary<string, string>
-        {
-            private readonly WebHeaderCollection headers;
-
-            public HeaderDictionaryWrapper(WebHeaderCollection headers)
-            {
-                if (headers == null) throw new ArgumentNullException("headers");
-                this.headers = headers;
-            }
-
-            internal WebHeaderCollection Headers
-            {
-                get { return headers; }
-            }
-
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                for (var i = 0; i < Headers.Count; i++)
-                {
-                    yield return new KeyValuePair<string, string>(Headers.GetKey(i), Headers.Get(i));
-                }
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public void Add(KeyValuePair<string, string> item)
-            {
-                Headers.Add(item.Key, item.Value);
-            }
-
-            public void Clear()
-            {
-                Headers.Clear();
-            }
-
-            public bool Contains(KeyValuePair<string, string> item)
-            {
-                // Returns null if it has no value.
-                return Headers.Get(item.Key) == item.Value;
-            }
-
-            public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
-            {
-                this.ToList().CopyTo(array, arrayIndex);
-            }
-
-            public bool Remove(KeyValuePair<string, string> item)
-            {
-                if (!Contains(item))
-                    return false;
-
-                Headers.Remove(item.Key);
-                return true;
-            }
-
-            public int Count
-            {
-                get { return Headers.Count; }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return false; }
-            }
-
-            public bool ContainsKey(string key)
-            {
-                return Headers.Get(key) != null;
-            }
-
-            public void Add(string key, string value)
-            {
-                Headers.Add(key, value);
-            }
-
-            public bool Remove(string key)
-            {
-                if (Headers.Get(key) == null)
-                    return false;
-                Headers.Remove(key);
-                return true;
-            }
-
-            public bool TryGetValue(string key, out string value)
-            {
-                value = Headers.Get(key);
-                return value != null;
-            }
-
-            public string this[string key]
-            {
-                get
-                {
-                    string value;
-                    if (!TryGetValue(key, out value))
-                    {
-                        throw new KeyNotFoundException();
-                    }
-                    return value;
-                }
-                set { Headers.Set(key, value); }
-            }
-
-            public ICollection<string> Keys
-            {
-                get { return this.Select(x => x.Key).ToList(); }
-            }
-
-            public ICollection<string> Values
-            {
-                get { return this.Select(x => x.Value).ToList(); }
             }
         }
     }

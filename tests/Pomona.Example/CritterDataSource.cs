@@ -234,7 +234,6 @@ namespace Pomona.Example
             var transformedType = (TransformedType) typeMapper.GetClassMapping<T>();
             var saveMethodInstance = saveInternalMethod.MakeGenericMethod(transformedType.UriBaseType.MappedTypeInstance);
             return (T) saveMethodInstance.Invoke(this, new object[] {entity});
-            return entity;
         }
 
         public T SaveInternal<T>(T entity)
