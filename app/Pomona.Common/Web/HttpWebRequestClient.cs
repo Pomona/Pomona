@@ -68,6 +68,10 @@ namespace Pomona.Common.Web
                             webRequest.Accept = h.Value.Last();
                             break;
 
+                        case "Content-Type":
+                            webRequest.ContentType = h.Value.Last();
+                            break;
+
                         default:
                             throw new NotImplementedException("Setting restricted header " + h.Key + " not implemented.");
                     }

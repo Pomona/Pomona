@@ -41,9 +41,10 @@ namespace Pomona.Common.Web
             sb.AppendFormat("{0} {1} HTTP/{2}\r\n", method, uri, protocolVersion);
             foreach (var h in headers)
             {
-                sb.AppendFormat("{0}: {1}\r\n", h.Key, h.Value);
+                foreach (var v in h.Value)
+                    sb.AppendFormat("{0}: {1}\r\n", h.Key, v);
             }
-            sb.AppendLine();
+                sb.AppendLine();
             if (data != null)
             {
                 sb.Append(Encoding.UTF8.GetString(data));

@@ -72,7 +72,8 @@ namespace Pomona.Common.Web
             sb.AppendFormat("HTTP/{0} {1} {2}\r\n", protocolVersion, (int) statusCode, statusCode);
             foreach (var h in headers)
             {
-                sb.AppendFormat("{0}: {1}\r\n", h.Key, h.Value);
+                foreach (var v in h.Value)
+                    sb.AppendFormat("{0}: {1}\r\n", h.Key, v);
             }
             sb.AppendLine();
 
