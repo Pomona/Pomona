@@ -190,6 +190,26 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_SelectThenWhereThenSelect_ReturnsCorrectValues()
+        {
+            var expected = CritterEntities
+                .Select(x => new {c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name})
+                .Where(x => x.isHeavyArmed)
+                .Select(x => new {critterName = x.c.Name, x.farmName})
+                .Take(5)
+                .ToList();
+
+            var actual = client.Query<ICritter>()
+                               .Select(x => new {c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name})
+                               .Where(x => x.isHeavyArmed)
+                               .Select(x => new {critterName = x.c.Name, x.farmName})
+                               .Take(5)
+                               .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+        [Test]
         public void QueryCritter_ToUri_ReturnsUriForQuery()
         {
             var uri = client.Query<ICritter>().Where(x => x.Name == "holahola").ToUri();

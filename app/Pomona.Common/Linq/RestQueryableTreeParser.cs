@@ -289,14 +289,9 @@ namespace Pomona.Common.Linq
 
         internal void QSelect<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
         {
-            if (selectExpression != null)
-            {
-                throw new NotSupportedException(
-                    "Pomona LINQ provider does not support calling Select() multiple times.");
-            }
             if (expandedPaths.Length > 0)
                 throw new NotSupportedException("Pomona LINQ provider does not support using Expand() before Select()");
-            selectExpression = selector;
+            selectExpression = selectExpression != null ? MergeWhereAfterSelect(selector) : selector;
         }
 
 
@@ -317,21 +312,33 @@ namespace Pomona.Common.Linq
             this.takeCount = takeCount;
         }
 
+        private LambdaExpression MergeWhereAfterSelect(LambdaExpression predicate)
+        {
+            var parameter = Expression.Parameter(selectExpression.Parameters[0].Type,
+                                                 selectExpression.Parameters[0].Name);
+            var fixedSelectExpr = LamdbaParameterReplacer.Replace(selectExpression.Body, selectExpression.Parameters[0],
+                                                                  parameter);
+            var expandedBody = LamdbaParameterReplacer.Replace(predicate.Body, predicate.Parameters[0], fixedSelectExpr);
+            var newBody = new CollapseDisplayObjectsVisitor().Visit(expandedBody);
+            return Expression.Lambda(newBody, parameter);
+        }
 
         internal void QWhere<TSource>(Expression<Func<TSource, bool>> predicate)
         {
-            if (SelectExpression != null)
-                throw new NotSupportedException("Pomona LINQ provider does not support calling Where() after Select()");
+            LambdaExpression fixedPredicate = predicate;
+
             if (GroupByKeySelector != null)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Where() after GroupBy()");
+            if (SelectExpression != null)
+                fixedPredicate = MergeWhereAfterSelect(fixedPredicate);
 
-            whereExpressions.Add(predicate);
+            whereExpressions.Add(fixedPredicate);
             if (wherePredicate == null)
-                wherePredicate = predicate;
+                wherePredicate = fixedPredicate;
             else
             {
-                var replacer = new LamdbaParameterReplacer(predicate.Parameters[0], wherePredicate.Parameters[0]);
-                var rewrittenPredicateBody = replacer.Visit(predicate.Body);
+                var replacer = new LamdbaParameterReplacer(fixedPredicate.Parameters[0], wherePredicate.Parameters[0]);
+                var rewrittenPredicateBody = replacer.Visit(fixedPredicate.Body);
                 wherePredicate = Expression.Lambda(
                     wherePredicate.Type,
                     Expression.AndAlso(wherePredicate.Body, rewrittenPredicateBody),
@@ -416,14 +423,19 @@ namespace Pomona.Common.Linq
 
         private class LamdbaParameterReplacer : ExpressionVisitor
         {
-            private readonly ParameterExpression replaceParam;
+            private readonly Expression replaceParam;
             private readonly ParameterExpression searchParam;
 
 
-            public LamdbaParameterReplacer(ParameterExpression searchParam, ParameterExpression replaceParam)
+            public LamdbaParameterReplacer(ParameterExpression searchParam, Expression replaceParam)
             {
                 this.searchParam = searchParam;
                 this.replaceParam = replaceParam;
+            }
+
+            public static Expression Replace(Expression target, ParameterExpression searchParam, Expression replaceParam)
+            {
+                return (new LamdbaParameterReplacer(searchParam, replaceParam)).Visit(target);
             }
 
 
@@ -436,5 +448,23 @@ namespace Pomona.Common.Linq
         }
 
         #endregion
+
+        private class CollapseDisplayObjectsVisitor : ExpressionVisitor
+        {
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                var newExprNode = node.Expression as NewExpression;
+                if (newExprNode != null)
+                {
+                    var memberIndex = newExprNode.Members.IndexOf(node.Member);
+                    if (memberIndex != -1)
+                    {
+                        return Visit(newExprNode.Arguments[memberIndex]);
+                    }
+                }
+
+                return base.VisitMember(node);
+            }
+        }
     }
 }

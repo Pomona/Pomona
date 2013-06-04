@@ -51,6 +51,22 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryWithWhereAfterSelect_PredicateIsCorrectlyMerged()
+        {
+            var parser =
+                Parse<ICritter>(x => x.Where(y => y.Id == 1).Select(y => new { CritterName = y.Name.ToUpper() }).Where(y => y.CritterName.StartsWith("BAH")));
+            parser.WherePredicate.AssertEquals<Func<ICritter, bool>>(y => y.Id == 1 && y.Name.ToUpper().StartsWith("BAH"));
+        }
+
+        [Test]
+        public void QueryWithSelectAfterSelect_SelectIsCorrectlyMerged()
+        {
+            var parser =
+                Parse<ICritter>(x => x.Where(y => y.Id == 1).Select(y => new {f = y.Farm, c = y}).Select(y => y.f.Name));
+            parser.SelectExpression.AssertEquals<Func<ICritter, string>>(y => y.Farm.Name);
+        }
+
+        [Test]
         public void QueryWithSingleWhere_PredicateIsCorrect()
         {
             var parser = Parse<ICritter>(x => x.Where(y => y.Id == 5));
