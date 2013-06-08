@@ -347,7 +347,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        private static void MapQueryableFunction(Expression<Func<IQueryable<int>, object>> expr)
+        private static void MapQueryableFunction(Expression<Action<IQueryable<int>>> expr)
         {
             MapQueryableFunction(ReflectionHelper.GetGenericMethodDefinition(expr));
         }

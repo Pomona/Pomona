@@ -30,7 +30,7 @@ namespace Pomona.Internals
 {
     public static class ReflectionHelper
     {
-        public static MethodInfo GetGenericMethodDefinition<TInstance>(Expression<Func<TInstance, object>> expr)
+        public static MethodInfo GetGenericMethodDefinition<TInstance>(Expression<Action<TInstance>> expr)
         {
             var body = expr.Body;
             while (body.NodeType == ExpressionType.Convert)
