@@ -54,7 +54,7 @@ namespace Pomona
         static PomonaQuery()
         {
             applyAndExecuteMethod =
-                ReflectionHelper.GetGenericMethodDefinition<PomonaQuery>(x => x.ApplyAndExecute<object>(null, false));
+                ReflectionHelper.GetMethodDefinition<PomonaQuery>(x => x.ApplyAndExecute<object>(null, false));
         }
 
 

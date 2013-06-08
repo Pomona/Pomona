@@ -102,7 +102,7 @@ namespace Pomona.Common
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
 
         private static readonly MethodInfo postOrPatchMethod =
-            ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
+            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(
                 x => x.PostOrPatch("", "", null, "POST", null, null));
 
         private readonly string baseUri;
@@ -116,7 +116,7 @@ namespace Pomona.Common
         {
             createListOfTypeMethod =
                 new GenericMethodCaller<ClientBase<TClient>, IEnumerable, object>(
-                    ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
+                    ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(
                         x => x.CreateListOfTypeGeneric<object>(null)));
 
             // Preload resource info attributes..

@@ -60,9 +60,9 @@ namespace Pomona.Common.Internals
         {
             DictStringStringGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
             EnumerableContainsMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
+                ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
             SafeGetMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IDictionary<object, object>>(x => x.SafeGet(null));
+                ReflectionHelper.GetMethodDefinition<IDictionary<object, object>>(x => x.SafeGet(null));
 
             Add<string>(x => x.Length, "length({0})");
             Add<string>(x => x.StartsWith(null), "startswith({0},{1})");

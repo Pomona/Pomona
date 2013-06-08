@@ -51,7 +51,7 @@ namespace Pomona.Common.Serialization.Json
         #region Implementation of ISerializer<PomonaJsonSerializerState>
 
         private static readonly MethodInfo serializeDictionaryGenericMethod =
-            ReflectionHelper.GetGenericMethodDefinition<PomonaJsonSerializer>(
+            ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
                 x => x.SerializeDictionaryGeneric<object, object>(null, null));
 
         public Writer CreateWriter(TextWriter textWriter)

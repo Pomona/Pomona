@@ -73,7 +73,7 @@ namespace Pomona.Common.Linq
         static RestQueryableTreeParser()
         {
             visitQueryConstantValueMethod =
-                ReflectionHelper.GetGenericMethodDefinition<RestQueryableTreeParser>(
+                ReflectionHelper.GetMethodDefinition<RestQueryableTreeParser>(
                     x => x.VisitQueryConstantValue<object>(null));
             MapQueryableFunction(QueryableMethods.Take);
             MapQueryableFunction(QueryableMethods.Skip);
@@ -349,7 +349,7 @@ namespace Pomona.Common.Linq
 
         private static void MapQueryableFunction(Expression<Action<IQueryable<int>>> expr)
         {
-            MapQueryableFunction(ReflectionHelper.GetGenericMethodDefinition(expr));
+            MapQueryableFunction(ReflectionHelper.GetMethodDefinition(expr));
         }
 
 

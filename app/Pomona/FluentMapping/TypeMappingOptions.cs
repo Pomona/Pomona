@@ -35,7 +35,7 @@ namespace Pomona.FluentMapping
     internal sealed class TypeMappingOptions
     {
         private static readonly MethodInfo getConfiguratorGenericMethod =
-            ReflectionHelper.GetGenericMethodDefinition<TypeMappingOptions>(x => x.GetConfigurator<object>());
+            ReflectionHelper.GetMethodDefinition<TypeMappingOptions>(x => x.GetConfigurator<object>());
 
         private readonly Type declaringType;
 

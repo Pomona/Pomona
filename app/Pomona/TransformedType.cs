@@ -40,11 +40,11 @@ namespace Pomona
     public class TransformedType : IMappedType
     {
         private static readonly MethodInfo addItemsToDictionaryMethod =
-            ReflectionHelper.GetGenericMethodDefinition<TransformedType>(
+            ReflectionHelper.GetMethodDefinition<TransformedType>(
                 x => x.AddItemsToDictionary<object, object>(null, null));
 
         private static readonly MethodInfo addValuesToCollectionMethod =
-            ReflectionHelper.GetGenericMethodDefinition<TransformedType>(
+            ReflectionHelper.GetMethodDefinition<TransformedType>(
                 x => x.AddValuesToCollection<object>(null, null));
 
         private readonly Type mappedType;

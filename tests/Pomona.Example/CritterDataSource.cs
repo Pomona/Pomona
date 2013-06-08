@@ -53,15 +53,15 @@ namespace Pomona.Example
         static CritterDataSource()
         {
             queryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
             saveCollectionMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(
                     x => x.SaveCollection((ICollection<EntityBase>) null));
             saveDictionaryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(
                     x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
             saveInternalMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
         }
 
 

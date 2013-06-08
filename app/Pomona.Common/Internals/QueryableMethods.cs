@@ -171,7 +171,7 @@ namespace Pomona.Common.Internals
 
         private static MethodInfo GetMethodInfo(Expression<Action<IQueryable<object>>> expression)
         {
-            return ReflectionHelper.GetGenericMethodDefinition(expression);
+            return ReflectionHelper.GetMethodDefinition(expression);
         }
     }
 }

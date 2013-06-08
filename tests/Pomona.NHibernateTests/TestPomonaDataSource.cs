@@ -27,8 +27,8 @@ namespace PomonaNHibernateTest
             AnonymousTypeBuilder.ScanAssemblyForExistingAnonymousTypes(typeof(TestPomonaDataSource).Assembly);
 
             getEntityByIdMethod =
-                ReflectionHelper.GetGenericMethodDefinition<TestPomonaDataSource>(x => x.GetEntityById<EntityBase>(0));
-            queryMethod = ReflectionHelper.GetGenericMethodDefinition<TestPomonaDataSource>(x => x.Query<object>(null));
+                ReflectionHelper.GetMethodDefinition<TestPomonaDataSource>(x => x.GetEntityById<EntityBase>(0));
+            queryMethod = ReflectionHelper.GetMethodDefinition<TestPomonaDataSource>(x => x.Query<object>(null));
         }
 
         public TestPomonaDataSource(ISessionFactory sessionFactory)

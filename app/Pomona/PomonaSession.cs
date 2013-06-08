@@ -54,12 +54,12 @@ namespace Pomona
         static PomonaSession()
         {
             postGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
+                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
                                  GetGenericMethodDefinition();
             getByIdMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
+                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
             patchGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
+                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
         }
 
 
