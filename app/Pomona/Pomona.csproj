@@ -125,6 +125,15 @@
     <Compile Include="CodeGen\ProxyBuilder.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="EnumType.cs" />
+    <Compile Include="Fetcher\BatchFetcher.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Fetcher\IBatchFetchDriver.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Fetcher\ParentChildRelation.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
     <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />
