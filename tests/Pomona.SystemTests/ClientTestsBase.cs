@@ -30,7 +30,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Critters.Client;
 using NUnit.Framework;
-using Nancy.Routing;
 using Nancy.Testing;
 using Pomona.Common;
 using Pomona.Example;
@@ -42,6 +41,8 @@ namespace Pomona.SystemTests
     public class ClientTestsBase
     {
         public const bool UseSelfHostedHttpServerDefault = false;
+        private static Client cachedNancyTestingClient;
+        private static CritterDataSource cachedNancyTestingClientDataSource;
         private string baseUri;
 
         protected Client client;
@@ -84,9 +85,6 @@ namespace Pomona.SystemTests
 
             Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
         }
-
-        private static Client cachedNancyTestingClient;
-        private static CritterDataSource cachedNancyTestingClientDataSource;
 
         [TestFixtureSetUp]
         public void FixtureSetUp()

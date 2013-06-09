@@ -134,10 +134,10 @@ namespace Pomona
                     CurrentUser = Context.CurrentUser,
                     Request = innerRequest
                 };
-
+            
             var routeMatch = routeResolver.Resolve(innerContext);
-            var route = routeMatch.Item1;
-            var dynamicDict = routeMatch.Item2;
+            var route = routeMatch.Route;
+            var dynamicDict = routeMatch.Parameters;
 
             var pomonaResponse = (PomonaResponse) route.Action((dynamic) dynamicDict);
 
