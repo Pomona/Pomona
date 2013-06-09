@@ -67,8 +67,9 @@ namespace Pomona.UnitTests.Queries
             public IDictionary<string, string> Attributes { get; set; }
             public IList<Dummy> Children { get; set; }
             public IList<int> ListOfInts { get; set; }
-            public IList<int> ListOfDoubles { get; set; }
-            public IList<int> ListOfDecimals { get; set; }
+            public IList<double> ListOfDoubles { get; set; }
+            public IList<decimal> ListOfDecimals { get; set; }
+            public IList<float> ListOfFloats { get; set; }
             public Dummy Friend { get; set; }
             public Guid Guid { get; set; }
             public double Precise { get; set; }
