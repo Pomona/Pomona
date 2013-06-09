@@ -103,7 +103,7 @@
     <Compile Include="Models\ThingWithCustomIList.cs" />
     <Compile Include="Models\ThingWithNullableDateTime.cs" />
     <Compile Include="Models\ThingWithPropertyNamedUri.cs" />
-    <Compile Include="Models\ThingWithRenamedReferenceProperty.cs" />
+    <Compile Include="Models\ThingWithRenamedProperties.cs" />
     <Compile Include="Models\ThingWithUri.cs" />
     <Compile Include="Models\Weapon.cs" />
     <Compile Include="Models\WeaponModel.cs" />

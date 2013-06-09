@@ -33,7 +33,7 @@ namespace Pomona.Example
         //    && propertyInfo.Name == "ReallyUglyPropertyName")
         //    return "BeautifulAndExposed";
 
-        //if (propertyInfo.DeclaringType == typeof(ThingWithRenamedReferenceProperty)
+        //if (propertyInfo.DeclaringType == typeof(ThingWithRenamedProperties)
         //    && propertyInfo.Name == "Junky")
         //    return "DiscoFunky";
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
@@ -52,9 +52,10 @@ namespace Pomona.Example
         }
 
 
-        public void Map(ITypeMappingConfigurator<ThingWithRenamedReferenceProperty> map)
+        public void Map(ITypeMappingConfigurator<ThingWithRenamedProperties> map)
         {
             map.Include(x => x.Junky, o => o.Named("DiscoFunky"));
+            map.Include(x => x.RelatedJunks, o => o.Named("PrettyThings"));
         }
 
 
