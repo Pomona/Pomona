@@ -67,9 +67,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Common.Logging.2.1.1\lib\net40\Common.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="DelegateDecompiler, Version=0.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="DelegateDecompiler, Version=0.8.1.0, Culture=neutral, PublicKeyToken=93b26a10a04705bd, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\DelegateDecompiler.0.7.1.0\lib\net40-Client\DelegateDecompiler.dll</HintPath>
+      <HintPath>..\..\packages\DelegateDecompiler.0.8.1.0\lib\net40-Client\DelegateDecompiler.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>..\..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
