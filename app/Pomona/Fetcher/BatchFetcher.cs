@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Pomona.Common.Internals;
 using Pomona.Internals;
 
 namespace Pomona.Fetcher
@@ -47,11 +48,16 @@ namespace Pomona.Fetcher
             ReflectionHelper.GetMethodDefinition<BatchFetcher>(
                 x => x.ExpandCollection<object, object>(null, null, null));
 
-        private readonly IBatchFetchDriver mapper;
+        private static readonly MethodInfo expandMethod =
+            ReflectionHelper.GetMethodDefinition<BatchFetcher>(x => x.Expand<object>(null, null));
 
-        public BatchFetcher(IBatchFetchDriver mapper)
+        private readonly IBatchFetchDriver driver;
+        private readonly HashSet<string> expandedPaths;
+
+        public BatchFetcher(IBatchFetchDriver driver, string expandedPaths)
         {
-            this.mapper = mapper;
+            this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
+            this.driver = driver;
         }
 
         private IEnumerable<TEntity> FetchEntitiesById<TEntity>(IEnumerable<object> ids, PropertyInfo idProp)
@@ -64,8 +70,10 @@ namespace Pomona.Fetcher
                     Expression.Constant(ids),
                     Expression.Convert(Expression.Property(fetchPredicateParam, idProp), typeof (object))),
                 fetchPredicateParam);
-            return mapper.Query<TEntity>()
-                         .Where(fetchPredicate);
+            var results = driver.Query<TEntity>()
+                                .Where(fetchPredicate)
+                                .ToList();
+            return results;
         }
 
         private void ExpandManyToOne<TParentEntity, TReferencedEntity>(IEnumerable<TParentEntity> entities, string path,
@@ -82,10 +90,11 @@ namespace Pomona.Fetcher
                 .ToList();
 
             var objectsToExpand = objectsToWalk
-                .Where(x => !mapper.IsLoaded(x.Reference))
+                .Where(x => !driver.IsLoaded(x.Reference))
                 .ToList();
 
             var ids = objectsToExpand.Select(x => idGetter(x.Reference)).Distinct().ToArray();
+
             foreach (
                 var item in
                     FetchEntitiesById<TReferencedEntity>(ids, idProp)
@@ -94,15 +103,30 @@ namespace Pomona.Fetcher
                 prop.SetValue(item.Parent, item.Child, null);
             }
 
-            Expand(objectsToWalk.Select(x => x.Reference), path);
+            Expand<TReferencedEntity>(objectsToWalk.Select(x => x.Reference), path);
         }
 
-        public void Expand<TEntity>(IEnumerable<TEntity> entities, string path)
+        public void Expand(object entity, Type entityType)
         {
+            expandMethod.MakeGenericMethod(entityType).Invoke(this, new[] {entity, ""});
+        }
+
+        public void Expand<TEntity>(object entitiesUncast, string path = "")
+            where TEntity : class
+        {
+            var entities = entitiesUncast as IEnumerable<TEntity>;
+            if (entities == null)
+            {
+                var singleEntity = entitiesUncast as TEntity;
+                if (singleEntity == null)
+                    throw new InvalidOperationException("Unexpected entity type sent to Expand method.");
+                entities = singleEntity.WrapAsEnumerable();
+            }
+
             foreach (var prop in typeof (TEntity).GetProperties())
             {
                 var subPath = string.IsNullOrEmpty(path) ? prop.Name : path + "." + prop.Name;
-                if (mapper.PathIsExpanded(subPath, prop))
+                if (expandedPaths.Contains(subPath.ToLower()) || driver.PathIsExpanded(subPath, prop))
                 {
                     if (IsManyToOne(prop))
                     {
@@ -130,7 +154,7 @@ namespace Pomona.Fetcher
 
         private Expression<Func<TEntity, object>> CreateIdGetExpression<TEntity>(out PropertyInfo idProp)
         {
-            idProp = mapper.GetIdProperty(typeof (TEntity));
+            idProp = driver.GetIdProperty(typeof (TEntity));
             var refParam = Expression.Parameter(typeof (TEntity), "ref");
             var idGetter =
                 Expression.Lambda<Func<TEntity, object>>(
@@ -141,6 +165,7 @@ namespace Pomona.Fetcher
         private void ExpandCollection<TParentEntity, TCollectionElement>(IEnumerable<TParentEntity> entities,
                                                                          string path,
                                                                          PropertyInfo prop)
+            where TCollectionElement : class
         {
             PropertyInfo parentIdProp;
             var getParentIdExpr = CreateIdGetExpression<TParentEntity>(out parentIdProp).Compile();
@@ -158,7 +183,7 @@ namespace Pomona.Fetcher
 
             var parentIdsToFetch =
                 parentEntities
-                    .Where(x => x.Collection != null && !mapper.IsLoaded(x.Collection))
+                    .Where(x => x.Collection != null && !driver.IsLoaded(x.Collection))
                     .Select(x => getParentIdExpr(x.Parent))
                     .Distinct()
                     .ToArray();
@@ -178,24 +203,24 @@ namespace Pomona.Fetcher
             //    .ToList();
 
             var selectManyExprParam = Expression.Parameter(typeof (TParentEntity), "x");
-            var innerSelectParam = Expression.Parameter(typeof (TCollectionElement), "y");
-            var innerSelect =
-                Expression.Lambda(
-                    Expression.New(typeof (ParentChildRelation).GetConstructors().First(),
-                                   Expression.Convert(Expression.Property(selectManyExprParam, parentIdProp),
-                                                      typeof (object)),
-                                   Expression.Convert(Expression.Property(innerSelectParam, childIdProp),
-                                                      typeof (object))), innerSelectParam);
             var selectManyExpr =
-                Expression.Lambda<Func<TParentEntity, IEnumerable<ParentChildRelation>>>(
-                    Expression.Call(
-                        selectMethod.MakeGenericMethod(typeof (TCollectionElement), typeof (ParentChildRelation)),
-                        Expression.Property(selectManyExprParam, prop), innerSelect)
-                    , selectManyExprParam);
+                Expression.Lambda<Func<TParentEntity, IEnumerable<TCollectionElement>>>(
+                    Expression.Property(selectManyExprParam, prop), selectManyExprParam);
 
-            var relations = mapper.Query<TParentEntity>()
+            var selectRelationLeftParam = Expression.Parameter(typeof (TParentEntity), "a");
+            var selectRelationRightParam = Expression.Parameter(typeof (TCollectionElement), "b");
+            var selectRelation =
+                Expression.Lambda<Func<TParentEntity, TCollectionElement, ParentChildRelation>>(Expression.New(
+                    typeof (ParentChildRelation).GetConstructors().First(),
+                    Expression.Convert(Expression.Property(selectRelationLeftParam, parentIdProp), typeof (object)),
+                    Expression.Convert(Expression.Property(selectRelationRightParam, childIdProp), typeof (object))
+                                                                                                    ),
+                                                                                                selectRelationLeftParam,
+                                                                                                selectRelationRightParam);
+
+            var relations = driver.Query<TParentEntity>()
                                   .Where(containsExpr)
-                                  .SelectMany(selectManyExpr)
+                                  .SelectMany(selectManyExpr, selectRelation)
                                   .ToList();
 
             var childIdsToFetch = relations.Select(x => x.ChildId).Distinct().ToArray();
@@ -206,15 +231,13 @@ namespace Pomona.Fetcher
 
             var bindings = parentEntities
                 .Select(x => x.Parent)
-                .GroupJoin(relations, x => getParentIdExpr(x), x => x.ParentId,
+                .GroupJoin(relations, getParentIdExpr, x => x.ParentId,
                            (a, b) =>
                            new KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>
-                               (a, b
-                                       .Select(y =>
-                                               fetched[y.ChildId])));
-            mapper.PopulateCollections(bindings, prop, typeof (TCollectionElement));
+                               (a, b.Select(y => fetched[y.ChildId])));
+            driver.PopulateCollections(bindings, prop, typeof (TCollectionElement));
 
-            Expand(parentEntities.SelectMany(x => x.Collection), path);
+            Expand<TCollectionElement>(parentEntities.SelectMany(x => getChildLambda(x.Parent)), path);
         }
 
 
@@ -236,7 +259,7 @@ namespace Pomona.Fetcher
 
         private bool IsManyToOne(PropertyInfo prop)
         {
-            return mapper.IsManyToOne(prop);
+            return driver.IsManyToOne(prop);
         }
     }
 }

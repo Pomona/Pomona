@@ -1,3 +1,4 @@
+using Microsoft.Practices.ServiceLocation;
 using NHibernate;
 using Nancy;
 using Nancy.TinyIoc;
@@ -22,6 +23,7 @@ namespace PomonaNHibernateTest
             base.ConfigureApplicationContainer(container);
             container.Register(sessionFactory);
             container.Register(typeMapper);
+            container.Register<IServiceLocator>((c, no) => new TinyIoCServiceLocator(c));
             container.Register<IPomonaDataSource, TestPomonaDataSource>();
         }
     }

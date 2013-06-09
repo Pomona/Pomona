@@ -7,6 +7,7 @@ using NHibernate.Linq;
 using Pomona;
 using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Fetcher;
 using PomonaNHibernateTest.Models;
 using ReflectionHelper = Pomona.Internals.ReflectionHelper;
 
@@ -67,13 +68,21 @@ namespace PomonaNHibernateTest
         public T GetEntityById<T>(int id)
             where T : EntityBase
         {
-            return LinqExtensionMethods.Query<T>(session).First(x => x.Id == id);
+            return session.Query<T>().First(x => x.Id == id);
         }
 
         private QueryResult Query<T>(IPomonaQuery query)
         {
             var pq = (PomonaQuery) query;
-            return pq.ApplyAndExecute(LinqExtensionMethods.Query<T>(session));
+            Console.WriteLine("ORIG FETCH START");
+            var qres = pq.ApplyAndExecute(session.Query<T>());
+            Console.WriteLine("ORIG FETCH STOP");
+            if (!string.IsNullOrEmpty(pq.ExpandedPaths))
+            {
+                var batchFetcher = new BatchFetcher(new NHibernateBatchFetchDriver(session), pq.ExpandedPaths);
+                batchFetcher.Expand(qres, pq.SelectExpression != null ? pq.SelectExpression.ReturnType : pq.TargetType.MappedTypeInstance);
+            }
+            return qres;
         }
 
         #endregion
