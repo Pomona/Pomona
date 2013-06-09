@@ -145,12 +145,15 @@ namespace Pomona.Common.Serialization.Xml
         {
             var elementName = writer.NextElementName ?? GetXmlName(node.ExpectedBaseType);
             writer.XmlWriter.WriteStartElement(elementName);
-            if (node.Value == null)
-                return; // TODO: serialize as xsi:nil?
-            else if (node.SerializeAsReference)
-                SerializeReference(node, writer);
-            else
-                SerializeExpanded(node, writer);
+
+            if (node.Value != null)
+            {
+                if (node.SerializeAsReference)
+                    SerializeReference(node, writer);
+                else
+                    SerializeExpanded(node, writer);
+            }
+
             writer.XmlWriter.WriteEndElement();
         }
 
