@@ -183,8 +183,8 @@
     <Compile Include="Queries\NodeBase.cs" />
     <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
     <Compile Include="Queries\NodeType.cs" />
-    <Compile Include="Queries\PomonaQueryLexer.cs" />
-    <Compile Include="Queries\PomonaQueryParser.cs" />
+    <Compile Include="Queries\PomonaQueryLexer.Placeholder.cs" />
+    <Compile Include="Queries\PomonaQueryParser.Placeholder.cs" />
     <Compile Include="Queries\QueryTypeResolver.cs" />
     <Compile Include="Queries\QueryExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />
