@@ -80,6 +80,11 @@ namespace PomonaNHibernateTest
             return cm.GetPropertyType(prop.Name) is ManyToOneType;
         }
 
+        public IEnumerable<PropertyInfo> GetProperties(Type type)
+        {
+            return type.GetProperties();
+        }
+
         public bool PathIsExpanded(string path, PropertyInfo property)
         {
             if (path == "Father")

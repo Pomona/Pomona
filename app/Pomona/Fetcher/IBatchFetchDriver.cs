@@ -31,6 +31,7 @@ namespace Pomona.Fetcher
 {
     public interface IBatchFetchDriver
     {
+        IEnumerable<PropertyInfo> GetProperties(Type type);
         bool PathIsExpanded(string path, PropertyInfo property);
         PropertyInfo GetIdProperty(Type type);
         bool IsLoaded(object obj);

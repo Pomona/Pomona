@@ -39,7 +39,6 @@ namespace Pomona.Common.Serialization.Json
     public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializer.Writer>
     {
         private readonly IDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache;
-        private bool inlineDocumentationEnabled = true;
 
         internal PomonaJsonSerializer(IDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache)
         {

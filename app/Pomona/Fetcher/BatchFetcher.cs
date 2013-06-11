@@ -123,7 +123,7 @@ namespace Pomona.Fetcher
                 entities = singleEntity.WrapAsEnumerable();
             }
 
-            foreach (var prop in typeof (TEntity).GetProperties())
+            foreach (var prop in driver.GetProperties(typeof (TEntity)))
             {
                 var subPath = string.IsNullOrEmpty(path) ? prop.Name : path + "." + prop.Name;
                 if (expandedPaths.Contains(subPath.ToLower()) || driver.PathIsExpanded(subPath, prop))
