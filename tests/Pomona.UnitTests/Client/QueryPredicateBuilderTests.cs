@@ -69,8 +69,8 @@ namespace Pomona.UnitTests.Client
             public TimeSpan TimeSpan { get; set; }
             public object UnknownProperty { get; set; }
             public IList<int> ListOfInts { get; set; }
-            public IList<int> ListOfDoubles { get; set; }
-            public IList<int> ListOfDecimals { get; set; }
+            public IList<double> ListOfDoubles { get; set; }
+            public IList<decimal> ListOfDecimals { get; set; }
         }
 
         public class Container

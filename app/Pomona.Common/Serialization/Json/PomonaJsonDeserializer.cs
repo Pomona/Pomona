@@ -38,11 +38,11 @@ namespace Pomona.Common.Serialization.Json
     public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>
     {
         private static readonly MethodInfo deserializeDictionaryGenericMethod =
-            ReflectionHelper.GetGenericMethodDefinition<PomonaJsonDeserializer>(
+            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
                 x => x.DeserializeDictionaryGeneric<object, object>(null, null));
 
         private static readonly MethodInfo deserializeArrayNodeGenericMethod =
-            ReflectionHelper.GetGenericMethodDefinition<PomonaJsonDeserializer>(
+            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
                 x => x.DeserializeArrayNodeGeneric<object>(null, null));
 
         private readonly JsonSerializer jsonSerializer;
@@ -170,7 +170,7 @@ namespace Pomona.Common.Serialization.Json
 
         private object DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
         {
-            // Return type should be void, but ReflectionHelper.GetGenericMethodDefinition only works with methods with non-void return type.
+            // Return type should be void, but ReflectionHelper.GetMethodDefinition only works with methods with non-void return type.
 
             if (TryDeserializeAsReference(node, reader))
                 return null;

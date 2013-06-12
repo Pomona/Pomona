@@ -33,7 +33,7 @@ namespace Pomona.Common.Web
     /// </summary>
     public interface IWebClient
     {
-        IDictionary<string, string> Headers { get; }
+        IHttpHeaders Headers { get; }
         NetworkCredential Credentials { get; set; }
         WebClientResponseMessage Send(WebClientRequestMessage request);
         Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage);

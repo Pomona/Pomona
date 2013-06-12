@@ -22,48 +22,27 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Linq;
-using NUnit.Framework;
-using Pomona.Example;
-using Pomona.Example.Models;
-
-namespace Pomona.UnitTests
+namespace Pomona.Fetcher
 {
-    [TestFixture]
-    public class TypeMapperTests
+    internal class ParentChildRelation
     {
-        [SetUp]
-        public void SetUp()
+        private readonly object childId;
+        private readonly object parentId;
+
+        public ParentChildRelation(object parentId, object childId)
         {
-            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.parentId = parentId;
+            this.childId = childId;
         }
 
-        private TypeMapper typeMapper;
-
-
-        [Test]
-        public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
+        public object ParentId
         {
-            var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedProperties>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(
-                transformedType,
-                "DiscoFunky.BeautifulAndExposed");
-            Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
-
-            var internalPathToCollection = typeMapper.ConvertToInternalPropertyPath(
-                transformedType,
-                "PrettyThings.BeautifulAndExposed");
-            Assert.AreEqual("RelatedJunks.ReallyUglyPropertyName", internalPathToCollection);
+            get { return parentId; }
         }
 
-
-        [Test]
-        public void DoesNotCreateTransformedTypeForExcludedClass()
+        public object ChildId
         {
-            Assert.That(
-                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
-                Is.False,
-                "Excluded thing should not have been part of transformed types");
+            get { return childId; }
         }
     }
 }

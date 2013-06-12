@@ -29,6 +29,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net;
 using Nancy.Testing;
+using Pomona.Common.Internals;
 using Pomona.Common.Web;
 using HttpStatusCode = Pomona.Common.Web.HttpStatusCode;
 
@@ -37,7 +38,7 @@ namespace Pomona.TestHelpers
     public class NancyTestingWebClient : IWebClient
     {
         private readonly Browser browser;
-        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
+        private readonly IHttpHeaders headers = new HttpHeaders();
 
         public NancyTestingWebClient(Browser browser)
         {
@@ -45,7 +46,7 @@ namespace Pomona.TestHelpers
             this.browser = browser;
         }
 
-        public IDictionary<string, string> Headers
+        public IHttpHeaders Headers
         {
             get { return headers; }
         }
@@ -84,7 +85,8 @@ namespace Pomona.TestHelpers
                     ((IBrowserContextValues) bc).QueryString = uri.Query;
                     foreach (var kvp in headers.Concat(request.Headers))
                     {
-                        bc.Header(kvp.Key, kvp.Value);
+                        foreach (var v in kvp.Value)
+                            bc.Header(kvp.Key, v);
                     }
                     if (request.Data != null)
                     {
@@ -93,7 +95,14 @@ namespace Pomona.TestHelpers
                 });
 
             return new WebClientResponseMessage(request.Uri, browserResponse.Body.ToArray(),
-                                                (HttpStatusCode) browserResponse.StatusCode, browserResponse.Headers,
+                                                (HttpStatusCode) browserResponse.StatusCode,
+                                                new HttpHeaders(
+                                                    browserResponse.Headers.Select(
+                                                        x =>
+                                                        new KeyValuePair<string, IEnumerable<string>>(x.Key,
+                                                                                                      x.Value
+                                                                                                       .WrapAsEnumerable
+                                                                                                          ()))),
                                                 "1.1");
         }
 

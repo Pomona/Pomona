@@ -49,11 +49,11 @@ namespace Pomona.Common.Linq
         static RestQueryProvider()
         {
             executeGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(x => x.Execute<object>(null));
+                ReflectionHelper.GetMethodDefinition<RestQueryProvider>(x => x.Execute<object>(null));
             executeAsyncGenericMethod =
                 ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(x => x.ExecuteAsync<object>(null));
             mapToCustomUserTypeResultMethod =
-                ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(
+                ReflectionHelper.GetMethodDefinition<RestQueryProvider>(
                     x => x.MapToCustomUserTypeResult<object>(null, null, null, null));
         }
 

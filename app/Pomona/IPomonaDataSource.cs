@@ -29,7 +29,7 @@ namespace Pomona
     public interface IPomonaDataSource
     {
         T GetById<T>(object id);
-        QueryResult Query(IPomonaQuery query);
+        QueryResult Query(PomonaQuery query);
         object Post<T>(T newObject);
         object Patch<T>(T updatedObject);
     }

@@ -28,7 +28,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Pomona.CodeGen;
-using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
@@ -54,12 +53,12 @@ namespace Pomona
         static PomonaSession()
         {
             postGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
+                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
                                  GetGenericMethodDefinition();
             getByIdMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
+                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
             patchGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
+                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
         }
 
 
@@ -160,21 +159,21 @@ namespace Pomona
 
             var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
             var postResponse = method.MakeGenericMethod(postResource.GetType())
-                                                .Invoke(dataSource, new[] {postResource});
+                                     .Invoke(dataSource, new[] {postResource});
 
             return new PomonaResponse(new PomonaQuery(transformedType) {ExpandedPaths = string.Empty}, postResponse,
                                       this);
         }
 
-        public PomonaResponse Query(IPomonaQuery query)
+        public PomonaResponse Query(PomonaQuery query)
         {
             var queryResult = dataSource.Query(query);
 
-            var pq = (PomonaQuery) query;
-            if (pq.Projection == PomonaQuery.ProjectionType.First || pq.Projection == PomonaQuery.ProjectionType.FirstOrDefault)
+            if (query.Projection == PomonaQuery.ProjectionType.First ||
+                query.Projection == PomonaQuery.ProjectionType.FirstOrDefault)
             {
                 var foundNoResults = queryResult.Count < 1;
-                if (pq.Projection == PomonaQuery.ProjectionType.First && foundNoResults)
+                if (query.Projection == PomonaQuery.ProjectionType.First && foundNoResults)
                     throw new InvalidOperationException("No resources found.");
 
                 var firstResult = foundNoResults ? null : ((IEnumerable) queryResult).Cast<object>().First();
@@ -220,8 +219,7 @@ namespace Pomona
             // TODO: Maybe cache method instance?
 
             return getByIdMethod.MakeGenericMethod(transformedType.MappedTypeInstance)
-                                .Invoke(dataSource, new object[] {id});
+                                .Invoke(dataSource, new[] {id});
         }
-
     }
 }

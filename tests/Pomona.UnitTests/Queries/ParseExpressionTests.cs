@@ -59,6 +59,42 @@ namespace Pomona.UnitTests.Queries
         }
 
         [Test]
+        public void ParseMaxOfEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfInts.max()", _this => _this.ListOfInts.Max());
+            ParseAndAssert("listOfDoubles.max()", _this => _this.ListOfDoubles.Max());
+            ParseAndAssert("listOfDecimals.max()", _this => _this.ListOfDecimals.Max());
+            ParseAndAssert("listOfFloats.max()", _this => _this.ListOfFloats.Max());
+        }
+
+        [Test]
+        public void ParseMaxWithSelector_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfInts.max(y: y)", _this => _this.ListOfInts.Max(y => y));
+            ParseAndAssert("listOfDoubles.max(y: y)", _this => _this.ListOfDoubles.Max(y => y));
+            ParseAndAssert("listOfDecimals.max(y: y)", _this => _this.ListOfDecimals.Max(y => y));
+            ParseAndAssert("listOfFloats.max(y: y)", _this => _this.ListOfFloats.Max(y => y));
+        }
+
+        [Test]
+        public void ParseMinOfIntEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfInts.min()", _this => _this.ListOfInts.Min());
+            ParseAndAssert("listOfDoubles.min()", _this => _this.ListOfDoubles.Min());
+            ParseAndAssert("listOfDecimals.min()", _this => _this.ListOfDecimals.Min());
+            ParseAndAssert("listOfFloats.min()", _this => _this.ListOfFloats.Min());
+        }
+
+        [Test]
+        public void ParseMinWithSelector_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfInts.min(y: y)", _this => _this.ListOfInts.Min(y => y));
+            ParseAndAssert("listOfDoubles.min(y: y)", _this => _this.ListOfDoubles.Min(y => y));
+            ParseAndAssert("listOfDecimals.min(y: y)", _this => _this.ListOfDecimals.Min(y => y));
+            ParseAndAssert("listOfFloats.min(y: y)", _this => _this.ListOfFloats.Min(y => y));
+        }
+
+        [Test]
         public void ParseObjectIsOfType_ReturnsCorrectExpression()
         {
             ParseAndAssert("isof(unknownProperty,t'Int32')", _this => _this.UnknownProperty is int);

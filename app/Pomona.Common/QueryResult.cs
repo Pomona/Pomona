@@ -43,7 +43,7 @@ namespace Pomona.Common
         static QueryResult()
         {
             createMethod =
-                ReflectionHelper.GetGenericMethodDefinition<QueryResult>(x => Create<object>(null, 0, 0, null));
+                ReflectionHelper.GetMethodDefinition<QueryResult>(x => Create<object>(null, 0, 0, null));
         }
 
         public Dictionary<string, string> DebugInfo

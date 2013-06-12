@@ -31,11 +31,11 @@ namespace Pomona.Common.Proxies
     public class ClientSideFormProxyBase : PutResourceBase
     {
         private static readonly MethodInfo onGetAttributeMethod =
-            ReflectionHelper.GetGenericMethodDefinition<ClientSideFormProxyBase>(
+            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
                 x => x.OnGetAttribute<object, object, object>(null));
 
         private static readonly MethodInfo onSetAttributeMethod =
-            ReflectionHelper.GetGenericMethodDefinition<ClientSideFormProxyBase>(
+            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
                 x => x.OnSetAttribute<object, object, object>(null, null));
 
         public object ProxyTarget { get; internal set; }

@@ -39,7 +39,7 @@ namespace Pomona.Common.Internals
         static ExpressionExtensions()
         {
             enumerableExpandMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IEnumerable<object>>(x => x.Expand(y => 0));
+                ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Expand(y => 0));
         }
 
         private static void GetPropertyPath(Expression expr, ParameterExpression thisParam, StringBuilder sb,

@@ -40,11 +40,11 @@ namespace Pomona
     public class TransformedType : IMappedType
     {
         private static readonly MethodInfo addItemsToDictionaryMethod =
-            ReflectionHelper.GetGenericMethodDefinition<TransformedType>(
+            ReflectionHelper.GetMethodDefinition<TransformedType>(
                 x => x.AddItemsToDictionary<object, object>(null, null));
 
         private static readonly MethodInfo addValuesToCollectionMethod =
-            ReflectionHelper.GetGenericMethodDefinition<TransformedType>(
+            ReflectionHelper.GetMethodDefinition<TransformedType>(
                 x => x.AddValuesToCollection<object>(null, null));
 
         private readonly Type mappedType;
@@ -309,7 +309,6 @@ namespace Pomona
             get { return TypeSerializationMode.Complex; }
         }
 
-        [Obsolete("It seems like there's no longer any real dependency on this code.")]
         public string ConvertToInternalPropertyPath(string externalPath)
         {
             // TODO: Fix for lists, but first gotta find out how that would work..

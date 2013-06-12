@@ -30,7 +30,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Critters.Client;
 using NUnit.Framework;
-using Nancy.Routing;
 using Nancy.Testing;
 using Pomona.Common;
 using Pomona.Common.Web;
@@ -43,6 +42,8 @@ namespace Pomona.SystemTests
     public class ClientTestsBase
     {
         public const bool UseSelfHostedHttpServerDefault = false;
+        private static Client cachedNancyTestingClient;
+        private static CritterDataSource cachedNancyTestingClientDataSource;
         private string baseUri;
 
         protected Client client;

@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,37 +23,24 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
-namespace Pomona
+namespace Pomona.Fetcher
 {
-    public class PomonaResponse
+    public interface IBatchFetchDriver
     {
-        private readonly object entity;
-        private readonly PomonaQuery query;
-        private readonly PomonaSession session;
+        IEnumerable<PropertyInfo> GetProperties(Type type);
+        bool PathIsExpanded(string path, PropertyInfo property);
+        PropertyInfo GetIdProperty(Type type);
+        bool IsLoaded(object obj);
+        IQueryable<TEntity> Query<TEntity>();
 
-        public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
-        {
-            if (query == null) throw new ArgumentNullException("query");
-            if (session == null) throw new ArgumentNullException("session");
-            this.query = query;
-            this.entity = entity;
-            this.session = session;
-        }
+        void PopulateCollections<TParentEntity, TCollectionElement>(
+            IEnumerable<KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>> bindings, PropertyInfo property,
+            Type elementType);
 
-        public PomonaQuery Query
-        {
-            get { return query; }
-        }
-
-        public object Entity
-        {
-            get { return entity; }
-        }
-
-        public PomonaSession Session
-        {
-            get { return session; }
-        }
+        bool IsManyToOne(PropertyInfo prop);
     }
 }

@@ -72,9 +72,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Common.Logging.2.1.1\lib\net40\Common.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="DelegateDecompiler, Version=0.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="DelegateDecompiler, Version=0.8.1.0, Culture=neutral, PublicKeyToken=93b26a10a04705bd, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\DelegateDecompiler.0.7.1.0\lib\net40-Client\DelegateDecompiler.dll</HintPath>
+      <HintPath>..\..\packages\DelegateDecompiler.0.8.1.0\lib\net40-Client\DelegateDecompiler.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>..\..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
@@ -98,13 +98,13 @@
     <Reference Include="Mono.Reflection">
       <HintPath>..\..\packages\Mono.Reflection.1.0.0.0\lib\Mono.Reflection.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy, Version=0.16.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy, Version=0.17.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.16.1\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.0.17.1\lib\net40\Nancy.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.5.0.6\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.2.31210.9045, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -130,6 +130,15 @@
     <Compile Include="CodeGen\ProxyBuilder.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="EnumType.cs" />
+    <Compile Include="Fetcher\BatchFetcher.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Fetcher\IBatchFetchDriver.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Fetcher\ParentChildRelation.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
     <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />
@@ -141,7 +150,6 @@
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
-    <Compile Include="IPomonaQuery.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
@@ -179,8 +187,8 @@
     <Compile Include="Queries\NodeBase.cs" />
     <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
     <Compile Include="Queries\NodeType.cs" />
-    <Compile Include="Queries\PomonaQueryLexer.cs" />
-    <Compile Include="Queries\PomonaQueryParser.cs" />
+    <Compile Include="Queries\PomonaQueryLexer.Placeholder.cs" />
+    <Compile Include="Queries\PomonaQueryParser.Placeholder.cs" />
     <Compile Include="Queries\QueryTypeResolver.cs" />
     <Compile Include="Queries\QueryExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />

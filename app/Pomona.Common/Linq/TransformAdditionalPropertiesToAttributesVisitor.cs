@@ -44,7 +44,7 @@ namespace Pomona.Common.Linq
         static TransformAdditionalPropertiesToAttributesVisitor()
         {
             dictionarySafeGetMethod =
-                ReflectionHelper.GetGenericMethodDefinition<IDictionary<string, string>>(x => x.SafeGet(null));
+                ReflectionHelper.GetMethodDefinition<IDictionary<string, string>>(x => x.SafeGet(null));
         }
 
 

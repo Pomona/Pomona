@@ -53,15 +53,15 @@ namespace Pomona.Example
         static CritterDataSource()
         {
             queryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(x => x.Query<object, object>(null));
             saveCollectionMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(
                     x => x.SaveCollection((ICollection<EntityBase>) null));
             saveDictionaryMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(
                     x => x.SaveDictionary((IDictionary<object, EntityBase>) null));
             saveInternalMethod =
-                ReflectionHelper.GetGenericMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
+                ReflectionHelper.GetMethodDefinition<CritterDataSource>(x => x.SaveInternal<EntityBase>(null));
         }
 
 
@@ -125,17 +125,16 @@ namespace Pomona.Example
             return updatedObject;
         }
 
-        public QueryResult Query(IPomonaQuery query)
+        public QueryResult Query(PomonaQuery query)
         {
             lock (syncLock)
             {
-                var pq = (PomonaQuery) query;
-                var entityType = pq.TargetType.MappedTypeInstance;
-                var entityUriBaseType = pq.TargetType.UriBaseType.MappedTypeInstance;
+                var entityType = query.TargetType.MappedTypeInstance;
+                var entityUriBaseType = query.TargetType.UriBaseType.MappedTypeInstance;
 
                 return
                     (QueryResult)
-                    queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {pq});
+                    queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {query});
             }
         }
 
@@ -234,7 +233,6 @@ namespace Pomona.Example
             var transformedType = (TransformedType) typeMapper.GetClassMapping<T>();
             var saveMethodInstance = saveInternalMethod.MakeGenericMethod(transformedType.UriBaseType.MappedTypeInstance);
             return (T) saveMethodInstance.Invoke(this, new object[] {entity});
-            return entity;
         }
 
         public T SaveInternal<T>(T entity)

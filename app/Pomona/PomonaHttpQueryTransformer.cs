@@ -51,7 +51,7 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public IPomonaQuery TransformRequest(Request request, NancyContext nancyContext, TransformedType rootType)
+        public PomonaQuery TransformRequest(Request request, NancyContext nancyContext, TransformedType rootType)
         {
             if (request == null)
                 throw new ArgumentNullException("request");

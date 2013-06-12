@@ -41,7 +41,7 @@ namespace Pomona
 
         protected override string ContentType
         {
-            get { return "application/json"; }
+            get { return "application/json; charset=utf-8"; }
         }
 
         /// <summary>

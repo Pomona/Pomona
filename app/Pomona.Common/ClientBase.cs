@@ -104,7 +104,7 @@ namespace Pomona.Common
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
 
         private static readonly MethodInfo postOrPatchMethod =
-            ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
+            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(
                 x => x.PostOrPatch("", "", null, "POST", null, null));
 
         private readonly string baseUri;
@@ -118,7 +118,7 @@ namespace Pomona.Common
         {
             createListOfTypeMethod =
                 new GenericMethodCaller<ClientBase<TClient>, IEnumerable, object>(
-                    ReflectionHelper.GetGenericMethodDefinition<ClientBase<TClient>>(
+                    ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(
                         x => x.CreateListOfTypeGeneric<object>(null)));
 
             // Preload resource info attributes..
@@ -243,7 +243,7 @@ namespace Pomona.Common
             if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
                 var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
-                modifyResponse = request => { request.Headers["If-Match"] = string.Format("\"{0}\"", etagValue); };
+                modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
             }
 
             return
@@ -450,7 +450,7 @@ namespace Pomona.Common
         private string DownloadFromUri(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            webClient.Headers["Accept"] = "application/json";
+            webClient.Headers.Add("Accept", "application/json");
             var request = new WebClientRequestMessage(uri, null, "GET");
             WebClientResponseMessage response = null;
 
@@ -522,7 +522,7 @@ namespace Pomona.Common
             WebClientRequestMessage request;
             request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
-            webClient.Headers["Accept"] = "application/json";
+            webClient.Headers.Add("Accept", "application/json");
 
             string responseString = null;
             Exception thrownException = null;

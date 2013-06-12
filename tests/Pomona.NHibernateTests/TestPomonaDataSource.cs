@@ -7,6 +7,7 @@ using NHibernate.Linq;
 using Pomona;
 using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Fetcher;
 using PomonaNHibernateTest.Models;
 using ReflectionHelper = Pomona.Internals.ReflectionHelper;
 
@@ -27,8 +28,8 @@ namespace PomonaNHibernateTest
             AnonymousTypeBuilder.ScanAssemblyForExistingAnonymousTypes(typeof(TestPomonaDataSource).Assembly);
 
             getEntityByIdMethod =
-                ReflectionHelper.GetGenericMethodDefinition<TestPomonaDataSource>(x => x.GetEntityById<EntityBase>(0));
-            queryMethod = ReflectionHelper.GetGenericMethodDefinition<TestPomonaDataSource>(x => x.Query<object>(null));
+                ReflectionHelper.GetMethodDefinition<TestPomonaDataSource>(x => x.GetEntityById<EntityBase>(0));
+            queryMethod = ReflectionHelper.GetMethodDefinition<TestPomonaDataSource>(x => x.Query<object>(null));
         }
 
         public TestPomonaDataSource(ISessionFactory sessionFactory)
@@ -45,7 +46,7 @@ namespace PomonaNHibernateTest
         }
 
 
-        public QueryResult Query(IPomonaQuery query)
+        public QueryResult Query(PomonaQuery query)
         {
             return
                 (QueryResult)
@@ -67,13 +68,20 @@ namespace PomonaNHibernateTest
         public T GetEntityById<T>(int id)
             where T : EntityBase
         {
-            return LinqExtensionMethods.Query<T>(session).First(x => x.Id == id);
+            return session.Query<T>().First(x => x.Id == id);
         }
 
-        private QueryResult Query<T>(IPomonaQuery query)
+        private QueryResult Query<T>(PomonaQuery query)
         {
-            var pq = (PomonaQuery) query;
-            return pq.ApplyAndExecute(LinqExtensionMethods.Query<T>(session));
+            Console.WriteLine("ORIG FETCH START");
+            var qres = query.ApplyAndExecute(session.Query<T>());
+            Console.WriteLine("ORIG FETCH STOP");
+            if (!string.IsNullOrEmpty(query.ExpandedPaths))
+            {
+                var batchFetcher = new BatchFetcher(new NHibernateBatchFetchDriver(session), query.ExpandedPaths);
+                batchFetcher.Expand(qres, query.SelectExpression != null ? query.SelectExpression.ReturnType : query.TargetType.MappedTypeInstance);
+            }
+            return qres;
         }
 
         #endregion
