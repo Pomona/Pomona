@@ -63,7 +63,7 @@ namespace Pomona
         public virtual Response Process(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
             var pomonaResponse = (PomonaResponse) model;
-            var pq = (PomonaQuery) pomonaResponse.Query;
+            var pq = pomonaResponse.Query;
 
             string jsonString;
             var resultType = pq.ResultType;
@@ -87,14 +87,14 @@ namespace Pomona
             else
             {
                 var bytes = Encoding.UTF8.GetBytes(jsonString);
-                Response response = new Response
-                {
-                    //Headers = {{"Content-Length", bytes.Length.ToString()}},
-                    Contents = s => s.Write(bytes, 0, bytes.Length),
-                    ContentType = ContentType
-                };
+                var response = new Response
+                    {
+                        //Headers = {{"Content-Length", bytes.Length.ToString()}},
+                        Contents = s => s.Write(bytes, 0, bytes.Length),
+                        ContentType = ContentType
+                    };
 
-                
+
                 // Add etag header
                 var transformedResultType = resultType as TransformedType;
                 if (transformedResultType != null)

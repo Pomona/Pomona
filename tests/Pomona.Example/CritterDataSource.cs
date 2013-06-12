@@ -125,17 +125,16 @@ namespace Pomona.Example
             return updatedObject;
         }
 
-        public QueryResult Query(IPomonaQuery query)
+        public QueryResult Query(PomonaQuery query)
         {
             lock (syncLock)
             {
-                var pq = (PomonaQuery) query;
-                var entityType = pq.TargetType.MappedTypeInstance;
-                var entityUriBaseType = pq.TargetType.UriBaseType.MappedTypeInstance;
+                var entityType = query.TargetType.MappedTypeInstance;
+                var entityUriBaseType = query.TargetType.UriBaseType.MappedTypeInstance;
 
                 return
                     (QueryResult)
-                    queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {pq});
+                    queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {query});
             }
         }
 

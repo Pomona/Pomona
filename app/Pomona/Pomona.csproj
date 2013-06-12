@@ -145,7 +145,6 @@
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
-    <Compile Include="IPomonaQuery.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />

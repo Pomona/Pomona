@@ -29,10 +29,10 @@ namespace Pomona
     public class PomonaResponse
     {
         private readonly object entity;
-        private readonly IPomonaQuery query;
+        private readonly PomonaQuery query;
         private readonly PomonaSession session;
 
-        public PomonaResponse(IPomonaQuery query, object entity, PomonaSession session)
+        public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
         {
             if (query == null) throw new ArgumentNullException("query");
             if (session == null) throw new ArgumentNullException("session");
@@ -41,7 +41,7 @@ namespace Pomona
             this.session = session;
         }
 
-        public IPomonaQuery Query
+        public PomonaQuery Query
         {
             get { return query; }
         }

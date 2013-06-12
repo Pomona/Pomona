@@ -36,9 +36,9 @@ using Pomona.Internals;
 namespace Pomona
 {
     /// <summary>
-    /// A default implementation of IPomonaQuery, only simple querying.
+    /// A default implementation of PomonaQuery, only simple querying.
     /// </summary>
-    public class PomonaQuery : IPomonaQuery
+    public class PomonaQuery
     {
         public enum ProjectionType
         {
@@ -81,7 +81,7 @@ namespace Pomona
 
         public bool IncludeTotalCount { get; set; }
 
-        #region IPomonaQuery Members
+        #region PomonaQuery Members
 
         public IMappedType ResultType { get; internal set; }
         public string ExpandedPaths { get; set; }

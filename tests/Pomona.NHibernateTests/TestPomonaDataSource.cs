@@ -46,7 +46,7 @@ namespace PomonaNHibernateTest
         }
 
 
-        public QueryResult Query(IPomonaQuery query)
+        public QueryResult Query(PomonaQuery query)
         {
             return
                 (QueryResult)
@@ -71,16 +71,15 @@ namespace PomonaNHibernateTest
             return session.Query<T>().First(x => x.Id == id);
         }
 
-        private QueryResult Query<T>(IPomonaQuery query)
+        private QueryResult Query<T>(PomonaQuery query)
         {
-            var pq = (PomonaQuery) query;
             Console.WriteLine("ORIG FETCH START");
-            var qres = pq.ApplyAndExecute(session.Query<T>());
+            var qres = query.ApplyAndExecute(session.Query<T>());
             Console.WriteLine("ORIG FETCH STOP");
-            if (!string.IsNullOrEmpty(pq.ExpandedPaths))
+            if (!string.IsNullOrEmpty(query.ExpandedPaths))
             {
-                var batchFetcher = new BatchFetcher(new NHibernateBatchFetchDriver(session), pq.ExpandedPaths);
-                batchFetcher.Expand(qres, pq.SelectExpression != null ? pq.SelectExpression.ReturnType : pq.TargetType.MappedTypeInstance);
+                var batchFetcher = new BatchFetcher(new NHibernateBatchFetchDriver(session), query.ExpandedPaths);
+                batchFetcher.Expand(qres, query.SelectExpression != null ? query.SelectExpression.ReturnType : query.TargetType.MappedTypeInstance);
             }
             return qres;
         }
