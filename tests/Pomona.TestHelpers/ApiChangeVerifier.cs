@@ -39,15 +39,28 @@ namespace Pomona.TestHelpers
             this.schemaDirectory = schemaDirectory;
         }
 
+        public void MarkApiVersion(Schema schema)
+        {
+            var schemaFilename = Path.Combine(schemaDirectory, schema.Version + ".json");
+            File.WriteAllText(schemaFilename, schema.ToJson());
+        }
+
         public void VerifyCompatibility(Schema changedSchema)
         {
             foreach (var schemaFilename in Directory.GetFiles(schemaDirectory, "*.json"))
             {
-                var oldSchema = Schema.FromJson(File.ReadAllText(schemaFilename));
-                var errorWriter = new StringWriter();
-                if (!changedSchema.IsBackwardsCompatibleWith(oldSchema, errorWriter))
-                    throw new AssertException("Schema " + changedSchema.Version + " breaks compatibility with " +
-                                              schemaFilename);
+                var content = File.ReadAllText(schemaFilename);
+                Console.WriteLine(content);
+                var oldSchema = Schema.FromJson(content);
+                bool breaks;
+                using (var errorWriter = new StringWriter())
+                {
+                    breaks = !changedSchema.IsBackwardsCompatibleWith(oldSchema, errorWriter);
+                    errorWriter.Flush();
+                    if (breaks)
+                        throw new AssertException("Schema " + changedSchema.Version + " breaks compatibility with " +
+                                                  schemaFilename + ": " + errorWriter);
+                }
             }
         }
     }

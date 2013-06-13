@@ -58,7 +58,7 @@ namespace Pomona.UnitTests.Schemas
             }
         }
 
-        private static Schema CreateSchema()
+        public static Schema CreateSchema()
         {
             var schema = new Schema
                 {
@@ -72,21 +72,21 @@ namespace Pomona.UnitTests.Schemas
                     Properties =
                         {
                             {
-                                "FooRequired",
+                                "fooRequired",
                                 new SchemaPropertyEntry
                                     {
                                         Generated = false,
-                                        Name = "FooRequired",
+                                        Name = "fooRequired",
                                         Required = true,
                                         Type = "string"
                                     }
                             },
                             {
-                                "BarOptional",
+                                "barOptional",
                                 new SchemaPropertyEntry
                                     {
                                         Generated = false,
-                                        Name = "BarOptional",
+                                        Name = "barOptional",
                                         Required = false,
                                         Type = "string"
                                     }
@@ -115,7 +115,7 @@ namespace Pomona.UnitTests.Schemas
         {
             AssertBreaksBackwardsCompability(
                 s =>
-                s.Types.First(x => x.Name == "Class").Properties["BarOptional"].Required = true);
+                s.Types.First(x => x.Name == "Class").Properties["barOptional"].Required = true);
         }
 
         [Test]
@@ -123,7 +123,7 @@ namespace Pomona.UnitTests.Schemas
         {
             AssertBreaksBackwardsCompability(
                 s =>
-                s.Types.First(x => x.Name == "Class").Properties.Remove("BarOptional"));
+                s.Types.First(x => x.Name == "Class").Properties.Remove("barOptional"));
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace Pomona.UnitTests.Schemas
         {
             AssertBreaksBackwardsCompability(
                 s =>
-                s.Types.First(x => x.Name == "Class").Properties["BarOptional"].Type = "number");
+                s.Types.First(x => x.Name == "Class").Properties["barOptional"].Type = "number");
         }
 
         [Test]
