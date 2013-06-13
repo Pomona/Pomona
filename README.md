@@ -97,6 +97,15 @@ Features:
 
 # Brainstorm area
 
+## Implementation of automatic API compatibility checking
+
+For this to work we need to:
+* Have a api schema folder specified.
+* Have a method writing out existing schemas with version numbering: {api-name}.{version}.json
+* Find a way to whitelist a breaking API change.
+* Implement class ApiChangeVerifier.
+* Encourage having an ignored test that outputs current schema.
+
 ## Random ideas
 
 * Could make query mechanism pluggable, through some sort of IHttpQueryTranslator.
