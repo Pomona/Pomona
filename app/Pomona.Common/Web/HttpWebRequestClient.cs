@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
@@ -101,6 +102,11 @@ namespace Pomona.Common.Web
                                                     new HttpHeaders(ConvertHeaders(webResponse.Headers)),
                                                     webResponse.ProtocolVersion.ToString());
             }
+        }
+
+        public Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
+        {
+            throw new NotSupportedException();
         }
 
         private static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ConvertHeaders(

@@ -35,16 +35,16 @@ namespace Pomona.Common.Web
 {
     public class WrappedHttpClient : IWebClient
     {
-        private readonly IDictionary<string, string> headers = new Dictionary<string, string>();
         private readonly HttpClient httpClient;
+        private readonly HttpHeaders headers;
 
         public WrappedHttpClient()
         {
             httpClient = new HttpClient();
-            headers = new HeadersDictionaryWrapper(httpClient.DefaultRequestHeaders);
+            headers = new HttpHeaders();
         }
 
-        public IDictionary<string, string> Headers
+        public IHttpHeaders Headers
         {
             get { return headers; }
         }
@@ -76,126 +76,8 @@ namespace Pomona.Common.Web
 
             return new WebClientResponseMessage(requestMessage.Uri, responseData,
                                                 (HttpStatusCode) httpResponseMessage.StatusCode,
-                                                httpResponseMessage.Headers.Select(
-                                                    x =>
-                                                    new KeyValuePair<string, string>(x.Key, string.Join(",", x.Value))),
+                                                new HttpHeaders(httpResponseMessage.Headers), 
                                                 httpResponseMessage.Version.ToString());
-        }
-
-        private class HeadersDictionaryWrapper : IDictionary<string, string>
-        {
-            private readonly HttpHeaders headers;
-
-            public HeadersDictionaryWrapper(HttpHeaders headers)
-            {
-                this.headers = headers;
-            }
-
-            public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-            {
-                return
-                    headers.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.FirstOrDefault()))
-                           .GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public void Add(KeyValuePair<string, string> item)
-            {
-                headers.Add(item.Key, item.Value);
-            }
-
-            public void Clear()
-            {
-                headers.Clear();
-            }
-
-            public bool Contains(KeyValuePair<string, string> item)
-            {
-                IEnumerable<string> values;
-                if (!headers.TryGetValues(item.Key, out values))
-                    return false;
-                return values.Contains(item.Value);
-            }
-
-            public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
-            {
-                this.ToList().CopyTo(array, arrayIndex);
-            }
-
-            public bool Remove(KeyValuePair<string, string> item)
-            {
-                if (Contains(item))
-                {
-                    headers.Remove(item.Value);
-                    return true;
-                }
-                return false;
-            }
-
-            public int Count
-            {
-                get { return headers.Count(); }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return false; }
-            }
-
-            public bool ContainsKey(string key)
-            {
-                return headers.Contains(key);
-            }
-
-            public void Add(string key, string value)
-            {
-                headers.Add(key, value);
-            }
-
-            public bool Remove(string key)
-            {
-                return headers.Remove(key);
-            }
-
-            public bool TryGetValue(string key, out string value)
-            {
-                IEnumerable<string> values;
-                if (headers.TryGetValues(key, out values))
-                {
-                    value = string.Join(",", values);
-                    return true;
-                }
-                value = null;
-                return false;
-            }
-
-            public string this[string key]
-            {
-                get { return string.Join(",", headers.GetValues(key)); }
-                set
-                {
-                    headers.Remove(key);
-                    headers.Add(key, value);
-                }
-            }
-
-            public ICollection<string> Keys
-            {
-                get { return headers.Select(x => x.Key).ToList(); }
-            }
-
-            public ICollection<string> Values
-            {
-                get
-                {
-                    return
-                        headers.Select(x => string.Join(",", x.Value)).ToList();
-                }
-            }
         }
     }
 }

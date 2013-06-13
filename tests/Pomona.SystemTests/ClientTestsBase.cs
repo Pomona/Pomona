@@ -91,8 +91,6 @@ namespace Pomona.SystemTests
         {
             return new WrappedHttpClient();
         }
-        private static Client cachedNancyTestingClient;
-        private static CritterDataSource cachedNancyTestingClientDataSource;
 
         [TestFixtureSetUp]
         public void FixtureSetUp()

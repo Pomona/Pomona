@@ -181,7 +181,7 @@ namespace Pomona.Common
         public override async Task<T> GetAsync<T>(string uri)
         {
             Log("Fetching uri {0} asynchronously", uri);
-            return (T) Deserialize(DownloadFromUriAsync(uri).Result, typeof (T));
+            return (T) Deserialize(await DownloadFromUriAsync(uri), typeof (T));
         }
 
         public override T Get<T>(string uri)
@@ -417,7 +417,7 @@ namespace Pomona.Common
         private async Task<string> DownloadFromUriAsync(string uri)
         {
             // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            webClient.Headers["Accept"] = "application/json";
+            webClient.Headers.Add("Accept", "application/json");
 
             string responseString = null;
             var request = new WebClientRequestMessage(uri, null, "GET");

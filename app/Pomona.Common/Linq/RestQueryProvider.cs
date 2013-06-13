@@ -51,7 +51,7 @@ namespace Pomona.Common.Linq
             executeGenericMethod =
                 ReflectionHelper.GetMethodDefinition<RestQueryProvider>(x => x.Execute<object>(null));
             executeAsyncGenericMethod =
-                ReflectionHelper.GetGenericMethodDefinition<RestQueryProvider>(x => x.ExecuteAsync<object>(null));
+                ReflectionHelper.GetMethodDefinition<RestQueryProvider>(x => x.ExecuteAsync<object>(null));
             mapToCustomUserTypeResultMethod =
                 ReflectionHelper.GetMethodDefinition<RestQueryProvider>(
                     x => x.MapToCustomUserTypeResult<object>(null, null, null, null));
