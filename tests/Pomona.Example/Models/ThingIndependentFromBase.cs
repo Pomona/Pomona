@@ -22,27 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Linq;
-using Critters.Client;
-using NUnit.Framework;
-
-namespace Pomona.SystemTests
+namespace Pomona.Example.Models
 {
-    [TestFixture]
-    public class ClientGeneratedTypeTests
+    public class ThingIndependentFromBase : EntityBase
     {
-        [Test]
-        public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
-        {
-            Assert.That(typeof (IInheritsFromHiddenBase).GetInterfaces(), Has.Member(typeof (IEntityBase)));
-            Assert.That(typeof (Client).Assembly.GetTypes().Count(x => x.Name == "IHiddenBaseInMiddle"), Is.EqualTo(0));
-            Assert.That(typeof (IInheritsFromHiddenBase).GetProperty("ExposedFromDerivedResource"), Is.Not.Null);
-        }
-
-        [Test]
-        public void ThingIndependentFromBase_DoesNotInheritEntityBase()
-        {
-            Assert.That(!typeof (IEntityBase).IsAssignableFrom(typeof (IThingIndependentFromBase)));
-        }
+        public string Whatever { get; set; }
     }
 }

@@ -73,6 +73,12 @@ namespace Pomona.FluentMapping
             return wrappedFilter.GetClientLibraryType(type);
         }
 
+        public bool IsIndependentTypeRoot(Type type)
+        {
+            return FromMappingOrDefault(type, tmo => tmo.IsIndependentTypeRoot,
+                                        () => wrappedFilter.IsIndependentTypeRoot(type));
+        }
+
 
         public DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
         {
@@ -144,7 +150,8 @@ namespace Pomona.FluentMapping
 
         public bool PropertyIsEtag(PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(propertyInfo, x => x.IsEtagProperty, () => wrappedFilter.PropertyIsEtag(propertyInfo));
+            return FromMappingOrDefault(propertyInfo, x => x.IsEtagProperty,
+                                        () => wrappedFilter.PropertyIsEtag(propertyInfo));
         }
 
         public string GetPluralNameForType(Type type)

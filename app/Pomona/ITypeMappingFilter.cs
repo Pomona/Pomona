@@ -38,6 +38,7 @@ namespace Pomona
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();
         Type GetClientLibraryType(Type type);
+        bool IsIndependentTypeRoot(Type type);
         object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);
         PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);

@@ -237,6 +237,9 @@ namespace Pomona
 
                 classDefinition.ScanProperties(type);
 
+                if (filter.IsIndependentTypeRoot(type))
+                    classDefinition.BaseType = null;
+
                 return classDefinition;
             }
 

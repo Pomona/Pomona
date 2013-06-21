@@ -100,6 +100,7 @@
     <Compile Include="Models\StringToObjectDictionaryContainer.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\SubtypedDictionaryContainer.cs" />
+    <Compile Include="Models\ThingIndependentFromBase.cs" />
     <Compile Include="Models\ThingWithCustomIList.cs" />
     <Compile Include="Models\ThingWithNullableDateTime.cs" />
     <Compile Include="Models\ThingWithPropertyNamedUri.cs" />

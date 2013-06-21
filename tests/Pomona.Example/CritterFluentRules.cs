@@ -41,6 +41,11 @@ namespace Pomona.Example
             map.Include(x => x.ReallyUglyPropertyName, o => o.Named("BeautifulAndExposed"));
         }
 
+        public void Map(ITypeMappingConfigurator<ThingIndependentFromBase> map)
+        {
+            map.AsIndependentTypeRoot();
+        }
+
         public void Map(ITypeMappingConfigurator<StringToObjectDictionaryContainer> map)
         {
             map.Include(x => x.Map, o => o.AsAttributes());

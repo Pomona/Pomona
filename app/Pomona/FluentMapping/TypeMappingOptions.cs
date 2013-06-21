@@ -49,6 +49,8 @@ namespace Pomona.FluentMapping
 
         private bool? isExposedAsRepository;
 
+        private bool? isIndependentTypeRoot;
+
         private bool? isUriBaseType;
         private bool? isValueObject;
 
@@ -58,6 +60,11 @@ namespace Pomona.FluentMapping
         public TypeMappingOptions(Type declaringType)
         {
             this.declaringType = declaringType;
+        }
+
+        public bool? IsIndependentTypeRoot
+        {
+            get { return isIndependentTypeRoot; }
         }
 
         public ConstructorInfo Constructor
@@ -191,6 +198,12 @@ namespace Pomona.FluentMapping
             public ITypeMappingConfigurator<TDeclaringType> AsValueObject()
             {
                 owner.isValueObject = true;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot()
+            {
+                owner.isIndependentTypeRoot = true;
                 return this;
             }
 
