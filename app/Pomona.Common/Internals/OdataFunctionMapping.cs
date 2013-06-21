@@ -101,6 +101,7 @@ namespace Pomona.Common.Internals
             Add<decimal>(x => decimal.Ceiling(x), "ceiling({0})");
 
             // Custom functions, not odata standard
+            Add<IEnumerable<WildcardType>>(x => x.Any(), "any({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(
                 x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);

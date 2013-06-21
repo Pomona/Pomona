@@ -96,6 +96,14 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void Parse_AnyExpression_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("Children.any()");
+            AssertExpressionEquals(
+                expr, _this => _this.Children.Any());
+        }
+
+        [Test]
         public void Parse_ArrayWithExpressionOfSimpleValuesContains_CreatesCorrectExpression()
         {
             var expr = parser.Parse<Dummy>("Number in [3,Number,4]");
