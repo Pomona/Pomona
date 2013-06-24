@@ -161,7 +161,7 @@ namespace Pomona.Schemas
             }
         }
 
-        public Schema FromJson(string jsonString)
+        public static Schema FromJson(string jsonString)
         {
             var serializer = GetSerializer();
             var stringReader = new StringReader(jsonString);

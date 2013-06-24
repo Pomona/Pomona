@@ -101,7 +101,9 @@ namespace Pomona.Common.Internals
             Add<decimal>(x => decimal.Ceiling(x), "ceiling({0})");
 
             // Custom functions, not odata standard
+            Add<IEnumerable<WildcardType>>(x => x.Any(), "any({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.All(null), "all({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(
                 x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
@@ -109,11 +111,41 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>) null), "many({0},{1})",
                                            MethodCallStyle.Chained);
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
+
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.First(y => true), "first({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true), "firstdefault({0},{1})",
                                            MethodCallStyle.Chained);
+
+            Add<IEnumerable<WildcardType>>(x => x.Single(), "single({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(), "singledefault({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Single(y => true), "single({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(y => true), "singledefault({0},{1})",
+                                           MethodCallStyle.Chained);
+
+            Add<IEnumerable<int>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<double>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<float>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<decimal>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<int?>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<double?>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<float?>>(x => x.Average(), "average({0})");
+            Add<IEnumerable<decimal?>>(x => x.Average(), "average({0})");
+
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => 10m), "average({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => 10), "average({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => 10.0), "average({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => 10f), "average({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (decimal?) 10m), "average({0},{1})",
+                                           MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (int?) 10), "average({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (double?) 10.0), "average({0},{1})",
+                                           MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (float?) 10f), "average({0},{1})",
+                                           MethodCallStyle.Chained);
+
+            Add<IEnumerable<string>>(x => string.Join("?", x), "join({1},{0})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<double>>(x => x.Sum(), "sum({0})");
@@ -123,8 +155,6 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<double?>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<float?>>(x => x.Sum(), "sum({0})");
             Add<IEnumerable<decimal?>>(x => x.Sum(), "sum({0})");
-
-            Add<IEnumerable<string>>(x => string.Join("?", x), "join({1},{0})", MethodCallStyle.Chained);
 
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10m), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10), "sum({0},{1})", MethodCallStyle.Chained);

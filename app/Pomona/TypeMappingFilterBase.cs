@@ -61,6 +61,11 @@ namespace Pomona
 
         #region ITypeMappingFilter Members
 
+        public bool IsIndependentTypeRoot(Type type)
+        {
+            return false;
+        }
+
         public abstract object GetIdFor(object entity);
 
         public abstract IEnumerable<Type> GetSourceTypes();

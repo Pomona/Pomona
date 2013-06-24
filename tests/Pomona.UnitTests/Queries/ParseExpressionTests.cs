@@ -33,6 +33,30 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
+        public void ParseAverageOfDecimalEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfDecimals.average()", _this => _this.ListOfDecimals.Average());
+        }
+
+        [Test]
+        public void ParseAverageOfDecimalsWithSelector_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.average(y:y.someDecimal)", _this => _this.Children.Average(y => y.SomeDecimal));
+        }
+
+        [Test]
+        public void ParseAverageOfDoubleEnumerable_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("listOfDoubles.average()", _this => _this.ListOfDoubles.Average());
+        }
+
+        [Test]
+        public void ParseAverageOfDoublesWithSelector_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.average(y:y.precise)", _this => _this.Children.Average(y => y.Precise));
+        }
+
+        [Test]
         public void ParseConditional_ReturnsCorrectExpression()
         {
             ParseAndAssert("iif(text eq 'lalala', 'yes', 'no')", _this => _this.Text == "lalala" ? "yes" : "no");
@@ -105,6 +129,34 @@ namespace Pomona.UnitTests.Queries
         {
             ParseAndAssert("objectAttributes.Hei as t'String'", _this => _this.ObjectAttributes.SafeGet("Hei") as string);
         }
+
+        [Test]
+        public void ParseSingleOrDefaultWithPredicate_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.singledefault(x:x.number eq 4)",
+                           _this => _this.Children.SingleOrDefault(x => x.Number == 4));
+        }
+
+
+        [Test]
+        public void ParseSingleOrDefault_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.singledefault()", _this => _this.Children.SingleOrDefault());
+        }
+
+        [Test]
+        public void ParseSingleWithPredicate_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.single(x:x.number eq 4)",
+                           _this => _this.Children.Single(x => x.Number == 4));
+        }
+
+        [Test]
+        public void ParseSingle_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.single()", _this => _this.Children.Single());
+        }
+
 
         [Test]
         public void ParseSumOfDecimalEnumerable_ReturnsCorrectExpression()

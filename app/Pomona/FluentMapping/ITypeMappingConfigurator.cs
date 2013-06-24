@@ -36,6 +36,7 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository();
         ITypeMappingConfigurator<TDeclaringType> AsUriBaseType();
         ITypeMappingConfigurator<TDeclaringType> AsValueObject();
+        ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot();
 
 
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(

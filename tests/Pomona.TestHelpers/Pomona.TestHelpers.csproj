@@ -71,6 +71,7 @@
     <Compile Include="JsonAssertExtensions.cs" />
     <Compile Include="NancyTestingWebClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ApiChangeVerifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -80,6 +81,10 @@
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
+      <Project>{ee396a59-956e-4dee-b222-991f2274ed67}</Project>
+      <Name>Pomona</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

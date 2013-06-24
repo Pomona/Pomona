@@ -86,6 +86,15 @@ namespace Pomona.UnitTests.Queries
             }
         }
 
+
+        [Test]
+        public void Parse_AllExpressionWithLambda_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("all(Children,x:x.Number eq 5 and all(x.SomeStrings,y:y eq x.Text))");
+            AssertExpressionEquals(
+                expr, _this => _this.Children.All(x => x.Number == 5 && x.SomeStrings.All(y => y == x.Text)));
+        }
+
         [Test]
         public void Parse_AnyExpressionWithLambda_CreatesCorrectExpression()
         {
@@ -94,6 +103,14 @@ namespace Pomona.UnitTests.Queries
                 expr, _this => _this.Children.Any(x => x.Number == 5 && x.SomeStrings.Any(y => y == x.Text)));
         }
 
+
+        [Test]
+        public void Parse_AnyExpression_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("Children.any()");
+            AssertExpressionEquals(
+                expr, _this => _this.Children.Any());
+        }
 
         [Test]
         public void Parse_ArrayWithExpressionOfSimpleValuesContains_CreatesCorrectExpression()
