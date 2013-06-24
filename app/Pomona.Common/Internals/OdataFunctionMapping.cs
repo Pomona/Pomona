@@ -103,6 +103,7 @@ namespace Pomona.Common.Internals
             // Custom functions, not odata standard
             Add<IEnumerable<WildcardType>>(x => x.Any(), "any({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.All(null), "all({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(
                 x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
