@@ -103,6 +103,7 @@ namespace Pomona.UnitTests.Client
             }
         }
 
+
         [Test]
         public void BuildAllLambdaExpression_ReturnsCorrectString()
         {
@@ -236,11 +237,23 @@ namespace Pomona.UnitTests.Client
         }
 
         [Test]
+        public void BuildDecimalEnumerableAverageExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDecimals.Average(), "average(listOfDecimals)");
+        }
+
+
+        [Test]
+        public void BuildDecimalEnumerableAverageWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Average(y => y.SomeDecimal), "someList.average(y:y.someDecimal)");
+        }
+
+        [Test]
         public void BuildDecimalEnumerableSumExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.ListOfDecimals.Sum(), "sum(listOfDecimals)");
         }
-
 
         [Test]
         public void BuildDecimalEnumerableSumWithSelectorExpression_ReturnsCorrectString()
@@ -248,11 +261,22 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.SomeList.Sum(y => y.SomeDecimal), "someList.sum(y:y.someDecimal)");
         }
 
-
         [Test]
         public void BuildDecimal_ReturnsCorrectString()
         {
             AssertBuild(x => 10.25m, "10.25m");
+        }
+
+        [Test]
+        public void BuildDoubleEnumerableAverageExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDoubles.Average(), "average(listOfDoubles)");
+        }
+
+        [Test]
+        public void BuildDoubleEnumerableAverageWithSelectorExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Average(y => y.SomeDouble), "someList.average(y:y.someDouble)");
         }
 
         [Test]
