@@ -111,10 +111,17 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>) null), "many({0},{1})",
                                            MethodCallStyle.Chained);
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
+
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.First(y => true), "first({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true), "firstdefault({0},{1})",
+                                           MethodCallStyle.Chained);
+
+            Add<IEnumerable<WildcardType>>(x => x.Single(), "single({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(), "singledefault({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Single(y => true), "single({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(y => true), "singledefault({0},{1})",
                                            MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Average(), "average({0})");

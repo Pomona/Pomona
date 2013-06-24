@@ -130,6 +130,33 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("objectAttributes.Hei as t'String'", _this => _this.ObjectAttributes.SafeGet("Hei") as string);
         }
 
+        [Test]
+        public void ParseSingleOrDefaultWithPredicate_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.singledefault(x:x.number eq 4)",
+                           _this => _this.Children.SingleOrDefault(x => x.Number == 4));
+        }
+
+
+        [Test]
+        public void ParseSingleOrDefault_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.singledefault()", _this => _this.Children.SingleOrDefault());
+        }
+
+        [Test]
+        public void ParseSingleWithPredicate_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.single(x:x.number eq 4)",
+                           _this => _this.Children.Single(x => x.Number == 4));
+        }
+
+        [Test]
+        public void ParseSingle_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("children.single()", _this => _this.Children.Single());
+        }
+
 
         [Test]
         public void ParseSumOfDecimalEnumerable_ReturnsCorrectExpression()

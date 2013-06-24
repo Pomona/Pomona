@@ -332,6 +332,7 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => false, "false");
         }
 
+
         [Test]
         public void BuildFirstOrDefaultWithPredicate_ReturnsCorrectString()
         {
@@ -505,6 +506,31 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
                         "stringObjectAttributes.Hei as t'String'");
+        }
+
+        [Test]
+        public void BuildSingleOrDefaultWithPredicate_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.SingleOrDefault(x => x.SomeString == "blah"),
+                        "someList.singledefault(x:x.someString eq 'blah')");
+        }
+
+        [Test]
+        public void BuildSingleOrDefault_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.SingleOrDefault(), "someList.singledefault()");
+        }
+
+        [Test]
+        public void BuildSingleWithPredicate_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.Single(x => x.SomeString == "blah"), "someList.single(x:x.someString eq 'blah')");
+        }
+
+        [Test]
+        public void BuildSingle_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.Single(), "someList.single()");
         }
 
 
