@@ -49,6 +49,7 @@ namespace Pomona
 
         private static readonly MethodInfo applyAndExecuteMethod;
         private readonly TransformedType targetType;
+        private readonly PomonaSession session;
 
 
         static PomonaQuery()
@@ -58,12 +59,14 @@ namespace Pomona
         }
 
 
-        public PomonaQuery(TransformedType targetType)
+        public PomonaQuery(TransformedType targetType, PomonaSession session)
         {
             DebugInfoKeys = new HashSet<string>();
             if (targetType == null)
                 throw new ArgumentNullException("targetType");
+            if (session == null) throw new ArgumentNullException("session");
             this.targetType = targetType;
+            this.session = session;
         }
 
         public HashSet<string> DebugInfoKeys { get; set; }

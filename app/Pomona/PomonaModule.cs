@@ -290,7 +290,7 @@ namespace Pomona
 
         private PomonaResponse Query(TransformedType transformedType)
         {
-            var query = queryTransformer.TransformRequest(Request, Context, transformedType);
+            var query = queryTransformer.TransformRequest(Request, Context, session, transformedType);
 
             return session.Query(query);
         }

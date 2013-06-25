@@ -94,7 +94,7 @@ namespace Pomona
             var o = GetById(transformedType, id);
             return
                 new PomonaResponse(
-                    new PomonaQuery(transformedType) {ExpandedPaths = expand, ResultType = transformedType}, o, this);
+                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = transformedType}, o, this);
         }
 
         internal object GetResultByUri(string uri)
@@ -119,7 +119,7 @@ namespace Pomona
 
             return
                 new PomonaResponse(
-                    new PomonaQuery(transformedType) {ExpandedPaths = expand, ResultType = propertyType}, propertyValue,
+                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = propertyType}, propertyValue,
                     this);
         }
 
@@ -161,7 +161,7 @@ namespace Pomona
             var postResponse = method.MakeGenericMethod(postResource.GetType())
                                      .Invoke(dataSource, new[] {postResource});
 
-            return new PomonaResponse(new PomonaQuery(transformedType) {ExpandedPaths = string.Empty}, postResponse,
+            return new PomonaResponse(new PomonaQuery(transformedType, this) {ExpandedPaths = string.Empty}, postResponse,
                                       this);
         }
 
