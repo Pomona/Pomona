@@ -46,10 +46,10 @@ namespace PomonaNHibernateTest
         }
 
 
-        public QueryResult Query(PomonaQuery query)
+        public PomonaResponse Query(PomonaQuery query)
         {
             return
-                (QueryResult)
+                (PomonaResponse)
                 queryMethod.MakeGenericMethod(query.TargetType.MappedTypeInstance).Invoke(this, new object[] {query});
         }
 
@@ -71,7 +71,7 @@ namespace PomonaNHibernateTest
             return session.Query<T>().First(x => x.Id == id);
         }
 
-        private QueryResult Query<T>(PomonaQuery query)
+        private PomonaResponse Query<T>(PomonaQuery query)
         {
             Console.WriteLine("ORIG FETCH START");
             var qres = query.ApplyAndExecute(session.Query<T>());

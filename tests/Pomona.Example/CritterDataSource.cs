@@ -125,7 +125,7 @@ namespace Pomona.Example
             return updatedObject;
         }
 
-        public QueryResult Query(PomonaQuery query)
+        public PomonaResponse Query(PomonaQuery query)
         {
             lock (syncLock)
             {
@@ -133,7 +133,7 @@ namespace Pomona.Example
                 var entityUriBaseType = query.TargetType.UriBaseType.MappedTypeInstance;
 
                 return
-                    (QueryResult)
+                    (PomonaResponse)
                     queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] {query});
             }
         }
@@ -146,7 +146,7 @@ namespace Pomona.Example
             }
         }
 
-        private QueryResult Query<TEntityBase, TEntity>(PomonaQuery pq)
+        private PomonaResponse Query<TEntityBase, TEntity>(PomonaQuery pq)
         {
             queryLog.Add(pq);
 

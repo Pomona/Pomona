@@ -167,19 +167,7 @@ namespace Pomona
 
         public PomonaResponse Query(PomonaQuery query)
         {
-            var queryResult = dataSource.Query(query);
-
-            if (query.Projection == PomonaQuery.ProjectionType.First ||
-                query.Projection == PomonaQuery.ProjectionType.FirstOrDefault)
-            {
-                var foundNoResults = queryResult.Count < 1;
-                if (query.Projection == PomonaQuery.ProjectionType.First && foundNoResults)
-                    throw new InvalidOperationException("No resources found.");
-
-                var firstResult = foundNoResults ? null : ((IEnumerable) queryResult).Cast<object>().First();
-                return new PomonaResponse(query, firstResult, this);
-            }
-            return new PomonaResponse(query, queryResult, this);
+            return dataSource.Query(query);
         }
 
 

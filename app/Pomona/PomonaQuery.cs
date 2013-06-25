@@ -23,7 +23,6 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -48,8 +47,8 @@ namespace Pomona
         }
 
         private static readonly MethodInfo applyAndExecuteMethod;
-        private readonly TransformedType targetType;
         private readonly PomonaSession session;
+        private readonly TransformedType targetType;
 
 
         static PomonaQuery()
@@ -103,10 +102,10 @@ namespace Pomona
             return DebugInfoKeys.Contains(debugKey.ToLower());
         }
 
-        public QueryResult ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
+        public PomonaResponse ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
             var totalQueryable = ApplyExpressions(queryable);
-            return (QueryResult) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
+            return (PomonaResponse) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
                 this, new object[] {totalQueryable, skipAndTakeAfterExecute});
         }
 
@@ -168,18 +167,33 @@ namespace Pomona
         }
 
 
-        private QueryResult ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
+        private PomonaResponse ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
         {
-            IEnumerable limitedQueryable;
+            IList<T> limitedQueryable;
             var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
             if (skipAndTakeAfterExecute)
             {
-                limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top);
+                limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top).ToList();
             }
             else
                 limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
 
-            return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+
+            if (Projection == ProjectionType.First ||
+                Projection == ProjectionType.FirstOrDefault)
+            {
+                var foundNoResults = limitedQueryable.Count < 1;
+                if (Projection == ProjectionType.First && foundNoResults)
+                    throw new InvalidOperationException("No resources found.");
+
+                var firstResult = foundNoResults ? null : limitedQueryable.Cast<object>().First();
+                return new PomonaResponse(this, firstResult, session);
+            }
+            else
+            {
+                var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+                return new PomonaResponse(this, qr, session);
+            }
         }
 
 
