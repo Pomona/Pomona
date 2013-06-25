@@ -169,30 +169,26 @@ namespace Pomona
 
         private PomonaResponse ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
         {
-            IList<T> limitedQueryable;
-            var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
-            if (skipAndTakeAfterExecute)
+            switch (Projection)
             {
-                limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top).ToList();
-            }
-            else
-                limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
+                case ProjectionType.First:
+                    return new PomonaResponse(this, totalQueryable.First(), session);
+                case ProjectionType.FirstOrDefault:
+                    return new PomonaResponse(this, totalQueryable.FirstOrDefault(), session);
+                default:
+                    {
+                        IList<T> limitedQueryable;
+                        var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
+                        if (skipAndTakeAfterExecute)
+                        {
+                            limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top).ToList();
+                        }
+                        else
+                            limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
 
-
-            if (Projection == ProjectionType.First ||
-                Projection == ProjectionType.FirstOrDefault)
-            {
-                var foundNoResults = limitedQueryable.Count < 1;
-                if (Projection == ProjectionType.First && foundNoResults)
-                    throw new InvalidOperationException("No resources found.");
-
-                var firstResult = foundNoResults ? null : limitedQueryable.Cast<object>().First();
-                return new PomonaResponse(this, firstResult, session);
-            }
-            else
-            {
-                var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
-                return new PomonaResponse(this, qr, session);
+                        var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+                        return new PomonaResponse(this, qr, session);
+                    }
             }
         }
 
