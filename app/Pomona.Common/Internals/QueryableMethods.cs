@@ -52,7 +52,10 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo sumIntWithSelector;
         private static readonly MethodInfo includeTotalCount;
         private static readonly MethodInfo firstLazy;
-
+        private static readonly MethodInfo max;
+        private static readonly MethodInfo maxWithSelector;
+        private static readonly MethodInfo min;
+        private static readonly MethodInfo minWithSelector;
 
         static QueryableMethods()
         {
@@ -71,10 +74,35 @@ namespace Pomona.Common.Internals
             count = GetMethodInfo(x => x.Count());
             sumIntWithSelector = GetMethodInfo(x => x.Sum(y => 0));
 
+            max = GetMethodInfo(x => x.Max());
+            maxWithSelector = GetMethodInfo(x => x.Max(y => 0));
+            min = GetMethodInfo(x => x.Min());
+            minWithSelector = GetMethodInfo(x => x.Min(y => 0));
+
             expand = GetMethodInfo(x => x.Expand(y => 0));
             includeTotalCount = GetMethodInfo(x => x.IncludeTotalCount());
             toUri = GetMethodInfo(x => x.ToUri());
             firstLazy = GetMethodInfo(x => x.FirstLazy());
+        }
+
+        public static MethodInfo MaxWithSelector
+        {
+            get { return maxWithSelector; }
+        }
+
+        public static MethodInfo Max
+        {
+            get { return max; }
+        }
+
+        public static MethodInfo MinWithSelector
+        {
+            get { return minWithSelector; }
+        }
+
+        public static MethodInfo Min
+        {
+            get { return min; }
         }
 
         public static MethodInfo FirstLazy

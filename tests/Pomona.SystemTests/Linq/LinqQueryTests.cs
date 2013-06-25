@@ -71,7 +71,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(name, Is.EqualTo(expected.Name));
         }
 
-        [Category("TODO")]
         [Test]
         public void QueryCritter_GetMaxId_ReturnsMaxId()
         {
@@ -80,7 +79,7 @@ namespace Pomona.SystemTests.Linq
             Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
 
-        [Category("TODO")]
+
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
         {

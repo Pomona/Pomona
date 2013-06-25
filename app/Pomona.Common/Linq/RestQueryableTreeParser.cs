@@ -44,7 +44,9 @@ namespace Pomona.Common.Linq
             FirstLazy,
             FirstOrDefault,
             Any,
-            ToUri
+            ToUri,
+            Max,
+            Min
         }
 
         #endregion
@@ -92,6 +94,10 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(QueryableMethods.IncludeTotalCount);
             MapQueryableFunction(QueryableMethods.ToUri);
             MapQueryableFunction(QueryableMethods.FirstLazy);
+            MapQueryableFunction(QueryableMethods.Max);
+            MapQueryableFunction(QueryableMethods.MaxWithSelector);
+            MapQueryableFunction(QueryableMethods.Min);
+            MapQueryableFunction(QueryableMethods.MinWithSelector);
         }
 
         public bool IncludeTotalCount
@@ -233,6 +239,28 @@ namespace Pomona.Common.Linq
             projection = QueryProjection.First;
         }
 
+        internal void QMax<TSource>()
+        {
+            projection = QueryProjection.Max;
+        }
+
+        internal void QMax<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
+        {
+            QSelect(selector);
+            QMax<TResult>();
+        }
+
+
+        internal void QMin<TSource>()
+        {
+            projection = QueryProjection.Min;
+        }
+
+        internal void QMin<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
+        {
+            QSelect(selector);
+            QMin<TResult>();
+        }
 
         internal void QFirst<TSource>(Expression<Func<TSource, bool>> predicate)
         {

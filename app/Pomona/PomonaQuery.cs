@@ -43,7 +43,9 @@ namespace Pomona
         {
             Default,
             First,
-            FirstOrDefault
+            FirstOrDefault,
+            Max,
+            Min
         }
 
         private static readonly MethodInfo applyAndExecuteMethod;
@@ -175,6 +177,10 @@ namespace Pomona
                     return new PomonaResponse(this, totalQueryable.First(), session);
                 case ProjectionType.FirstOrDefault:
                     return new PomonaResponse(this, totalQueryable.FirstOrDefault(), session);
+                case ProjectionType.Max:
+                    return new PomonaResponse(this, totalQueryable.Max(), session);
+                case ProjectionType.Min:
+                    return new PomonaResponse(this, totalQueryable.Min(), session);
                 default:
                     {
                         IList<T> limitedQueryable;

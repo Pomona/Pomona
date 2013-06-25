@@ -150,15 +150,7 @@ namespace Pomona.Common.Linq
             if (!resourceInfo.IsUriBaseType)
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
 
-            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy ||
-                parser.Projection == RestQueryableTreeParser.QueryProjection.First)
-            {
-                builder.AppendParameter("$projection", "first");
-            }
-            else if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstOrDefault)
-            {
-                builder.AppendParameter("$projection", "firstordefault");
-            }
+            SetProjection(parser, builder);
 
             if (parser.WherePredicate != null)
                 builder.AppendExpressionParameter("$filter", parser.WherePredicate);
@@ -190,6 +182,29 @@ namespace Pomona.Common.Linq
             return (uri ?? client.GetUriOfType(parser.ElementType)) + "?" + builder;
         }
 
+        private static void SetProjection(RestQueryableTreeParser parser, UriQueryBuilder builder)
+        {
+            string projection = null;
+            switch (parser.Projection)
+            {
+                case RestQueryableTreeParser.QueryProjection.First:
+                case RestQueryableTreeParser.QueryProjection.FirstLazy:
+                    projection = "first";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                    projection = "firstordefault";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Max:
+                    projection = "max";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Min:
+                    projection = "min";
+                    break;
+            }
+            if (projection != null)
+                builder.AppendParameter("$projection", projection);
+        }
+
 
         private object Execute<T>(RestQueryableTreeParser parser)
         {
@@ -214,6 +229,8 @@ namespace Pomona.Common.Linq
                     return client.Get<IList<T>>(uri);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.First:
+                case RestQueryableTreeParser.QueryProjection.Max:
+                case RestQueryableTreeParser.QueryProjection.Min:
                     return client.Get<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..
