@@ -44,7 +44,7 @@ namespace Pomona.Internals
 
             var method = callExpressionBody.Method;
             if (!method.IsGenericMethod)
-                throw new ArgumentException("Can't get generic method definition of non-generic method " + method.Name);
+                return method;
 
             return method.GetGenericMethodDefinition();
         }

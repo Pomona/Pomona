@@ -89,12 +89,19 @@ namespace Pomona.SystemTests.Linq
             Assert.That(client.Critters.Query().Select(x => x.Id).Min(), Is.EqualTo(expected));
         }
 
-        [Category("TODO")]
-        [Test(Description = "Need to implement custom projections to make sum possible")]
+        [Test]
         public void QueryCritter_GetSumOfIntProperty()
         {
-            var expected = CritterEntities.Where(x => x.Name.StartsWith("B")).Sum(x => x.Name.Length);
-            var actual = client.Query<ICritter>().Where(x => x.Name.StartsWith("B")).Sum(x => x.Name.Length);
+            var expected = CritterEntities.Sum(x => x.Name.Length);
+            var actual = client.Query<ICritter>().Sum(x => x.Name.Length);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_SelectIntThenSum()
+        {
+            var expected = CritterEntities.Select(x => x.Name.Length).Sum();
+            var actual = client.Query<ICritter>().Select(x => x.Name.Length).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
 

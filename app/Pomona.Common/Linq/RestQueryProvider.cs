@@ -200,6 +200,9 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Min:
                     projection = "min";
                     break;
+                case RestQueryableTreeParser.QueryProjection.Sum:
+                    projection = "sum";
+                    break;
             }
             if (projection != null)
                 builder.AppendParameter("$projection", projection);
@@ -231,6 +234,7 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.First:
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
+                case RestQueryableTreeParser.QueryProjection.Sum:
                     return client.Get<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..

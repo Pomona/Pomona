@@ -46,7 +46,8 @@ namespace Pomona.Common.Linq
             Any,
             ToUri,
             Max,
-            Min
+            Min,
+            Sum
         }
 
         #endregion
@@ -91,6 +92,7 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(QueryableMethods.GroupBy);
             MapQueryableFunction(QueryableMethods.Expand);
             MapQueryableFunction(QueryableMethods.SumIntWithSelector);
+            MapQueryableFunction(QueryableMethods.SumInt);
             MapQueryableFunction(QueryableMethods.IncludeTotalCount);
             MapQueryableFunction(QueryableMethods.ToUri);
             MapQueryableFunction(QueryableMethods.FirstLazy);
@@ -189,7 +191,9 @@ namespace Pomona.Common.Linq
 
             // TODO: Throw better exception when method is not supported
             var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.UniqueToken()];
-            var visitMethodInstance = visitMethod.MakeGenericMethod(node.Method.GetGenericArguments());
+            var visitMethodInstance = visitMethod.IsGenericMethod
+                                          ? visitMethod.MakeGenericMethod(node.Method.GetGenericArguments())
+                                          : visitMethod;
 
             try
             {
@@ -223,7 +227,13 @@ namespace Pomona.Common.Linq
 
         internal void QSum<TSource>(Expression<Func<TSource, int>> propertySelector)
         {
-            throw new NotImplementedException();
+            QSelect(propertySelector);
+            QSum();
+        }
+
+        internal void QSum()
+        {
+            projection = QueryProjection.Sum;
         }
 
         internal void QExpand<TSource, TProperty>(Expression<Func<TSource, TProperty>> propertySelector)
