@@ -23,14 +23,15 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Nancy;
 using Pomona.CodeGen;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
+using ISerializer = Pomona.Common.Serialization.ISerializer;
 
 namespace Pomona
 {
@@ -94,7 +95,8 @@ namespace Pomona
             var o = GetById(transformedType, id);
             return
                 new PomonaResponse(
-                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = transformedType}, o, this);
+                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = transformedType}, o,
+                    this);
         }
 
         internal object GetResultByUri(string uri)
@@ -119,7 +121,8 @@ namespace Pomona
 
             return
                 new PomonaResponse(
-                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = propertyType}, propertyValue,
+                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = propertyType},
+                    propertyValue,
                     this);
         }
 
@@ -161,8 +164,11 @@ namespace Pomona
             var postResponse = method.MakeGenericMethod(postResource.GetType())
                                      .Invoke(dataSource, new[] {postResource});
 
-            return new PomonaResponse(new PomonaQuery(transformedType, this) {ExpandedPaths = string.Empty}, postResponse,
-                                      this);
+            var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
+
+            return new PomonaResponse(new PomonaQuery(transformedType, this) {ExpandedPaths = string.Empty},
+                                      postResponse,
+                                      this, successStatusCode);
         }
 
         public PomonaResponse Query(PomonaQuery query)

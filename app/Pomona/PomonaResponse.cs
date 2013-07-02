@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using Nancy;
 
 namespace Pomona
 {
@@ -31,14 +32,21 @@ namespace Pomona
         private readonly object entity;
         private readonly PomonaQuery query;
         private readonly PomonaSession session;
+        private readonly HttpStatusCode statusCode;
 
         public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
+            : this(query, entity, session, HttpStatusCode.OK)
+        {
+        }
+
+        public PomonaResponse(PomonaQuery query, object entity, PomonaSession session, HttpStatusCode statusCode)
         {
             if (query == null) throw new ArgumentNullException("query");
             if (session == null) throw new ArgumentNullException("session");
             this.query = query;
             this.entity = entity;
             this.session = session;
+            this.statusCode = statusCode;
         }
 
         public PomonaQuery Query
@@ -54,6 +62,11 @@ namespace Pomona
         public PomonaSession Session
         {
             get { return session; }
+        }
+
+        public HttpStatusCode StatusCode
+        {
+            get { return statusCode; }
         }
     }
 }

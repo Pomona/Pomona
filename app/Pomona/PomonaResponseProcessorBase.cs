@@ -91,7 +91,8 @@ namespace Pomona
                     {
                         //Headers = {{"Content-Length", bytes.Length.ToString()}},
                         Contents = s => s.Write(bytes, 0, bytes.Length),
-                        ContentType = ContentType
+                        ContentType = ContentType,
+                        StatusCode = pomonaResponse.StatusCode
                     };
 
 
