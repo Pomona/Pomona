@@ -104,7 +104,37 @@ namespace Pomona.SystemTests.Linq
             var actual = client.Query<ICritter>().Select(x => x.Name.Length).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
+        [Test]
+        public void QueryCritter_GetSumOfDecimalProperty()
+        {
+            var expected = CritterEntities.Sum(x => (decimal)x.Id);
+            var actual = client.Query<ICritter>().Sum(x => (decimal)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
 
+        [Test]
+        public void QueryCritter_SelectDecimalThenSum()
+        {
+            var expected = CritterEntities.Select(x => (decimal)x.Id).Sum();
+            var actual = client.Query<ICritter>().Select(x => (decimal)x.Id).Sum();
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_GetSumOfDoubleProperty()
+        {
+            var expected = CritterEntities.Sum(x => (double)x.Id);
+            var actual = client.Query<ICritter>().Sum(x => (double)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_SelectDoubleThenSum()
+        {
+            var expected = CritterEntities.Select(x => (double)x.Id).Sum();
+            var actual = client.Query<ICritter>().Select(x => (double)x.Id).Sum();
+            Assert.That(actual, Is.EqualTo(expected));
+        }
 
         [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()

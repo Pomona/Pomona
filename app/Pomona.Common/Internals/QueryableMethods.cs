@@ -49,7 +49,6 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo skip;
         private static readonly MethodInfo take;
         private static readonly MethodInfo where;
-        private static readonly MethodInfo sumIntWithSelector;
         private static readonly MethodInfo includeTotalCount;
         private static readonly MethodInfo firstLazy;
         private static readonly MethodInfo max;
@@ -57,6 +56,11 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo min;
         private static readonly MethodInfo minWithSelector;
         private static readonly MethodInfo sumInt;
+        private static readonly MethodInfo sumIntWithSelector;
+        private static readonly MethodInfo sumDoubleWithSelector;
+        private static readonly MethodInfo sumDouble;
+        private static readonly MethodInfo sumDecimalWithSelector;
+        private static readonly MethodInfo sumDecimal;
 
         static QueryableMethods()
         {
@@ -76,6 +80,10 @@ namespace Pomona.Common.Internals
 
             sumIntWithSelector = GetMethodInfo(x => x.Sum(y => 0));
             sumInt = GetMethodInfo<int>(x => x.Sum());
+            sumDoubleWithSelector = GetMethodInfo(x => x.Sum(y => 1.1));
+            sumDouble = GetMethodInfo<double>(x => x.Sum());
+            sumDecimalWithSelector = GetMethodInfo(x => x.Sum(y => 1.1m));
+            sumDecimal = GetMethodInfo<decimal>(x => x.Sum());
 
             max = GetMethodInfo(x => x.Max());
             maxWithSelector = GetMethodInfo(x => x.Max(y => 0));
@@ -86,6 +94,26 @@ namespace Pomona.Common.Internals
             includeTotalCount = GetMethodInfo(x => x.IncludeTotalCount());
             toUri = GetMethodInfo(x => x.ToUri());
             firstLazy = GetMethodInfo(x => x.FirstLazy());
+        }
+
+        public static MethodInfo SumDoubleWithSelector
+        {
+            get { return sumDoubleWithSelector; }
+        }
+
+        public static MethodInfo SumDouble
+        {
+            get { return sumDouble; }
+        }
+
+        public static MethodInfo SumDecimalWithSelector
+        {
+            get { return sumDecimalWithSelector; }
+        }
+
+        public static MethodInfo SumDecimal
+        {
+            get { return sumDecimal; }
         }
 
         public static MethodInfo SumInt

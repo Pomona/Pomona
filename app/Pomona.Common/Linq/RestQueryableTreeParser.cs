@@ -93,6 +93,10 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(QueryableMethods.Expand);
             MapQueryableFunction(QueryableMethods.SumIntWithSelector);
             MapQueryableFunction(QueryableMethods.SumInt);
+            MapQueryableFunction(QueryableMethods.SumDoubleWithSelector);
+            MapQueryableFunction(QueryableMethods.SumDouble);
+            MapQueryableFunction(QueryableMethods.SumDecimalWithSelector);
+            MapQueryableFunction(QueryableMethods.SumDecimal);
             MapQueryableFunction(QueryableMethods.IncludeTotalCount);
             MapQueryableFunction(QueryableMethods.ToUri);
             MapQueryableFunction(QueryableMethods.FirstLazy);
@@ -226,6 +230,18 @@ namespace Pomona.Common.Linq
         }
 
         internal void QSum<TSource>(Expression<Func<TSource, int>> propertySelector)
+        {
+            QSelect(propertySelector);
+            QSum();
+        }
+
+        internal void QSum<TSource>(Expression<Func<TSource, decimal>> propertySelector)
+        {
+            QSelect(propertySelector);
+            QSum();
+        }
+
+        internal void QSum<TSource>(Expression<Func<TSource, double>> propertySelector)
         {
             QSelect(propertySelector);
             QSum();
