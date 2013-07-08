@@ -28,7 +28,6 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
-using Pomona.SystemTests.Linq;
 using CustomEnum = Critters.Client.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -183,6 +182,14 @@ namespace Pomona.SystemTests
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
             Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
+        }
+
+        [Test]
+        public void PostOrderWithItems()
+        {
+            var orderResponse = client.Orders.Post(new OrderForm {Items = {new OrderItemForm {Name = "blah"}}});
+            Assert.That(orderResponse.Order.Items, Has.Count.EqualTo(1));
+            Assert.That(orderResponse.Order.Items[0].Name, Is.EqualTo("blah"));
         }
 
 

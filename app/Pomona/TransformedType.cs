@@ -514,7 +514,7 @@ namespace Pomona
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 // TODO: This should rather be configured by filter.
-                if (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null)
+                if (propertyTypeMapped.IsCollection || (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null))
                 {
                     propDef.CreateMode = PropertyCreateMode.Optional;
                     propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadWrite;
