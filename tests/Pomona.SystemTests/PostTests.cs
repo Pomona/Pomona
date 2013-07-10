@@ -55,26 +55,6 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
-        [Category("TODO")]
-        [Test(Description = "Need to implement sending in references to other entities with search.")]
-        public void PostCritterWithExistingHat_UsingFirstLazyMethod()
-        {
-            const string hatType = "BoomShakeRoom";
-            PostAHat(hatType);
-
-            const string critterName = "Super critter";
-
-            var critter = (ICritter) client.Post<ICritter>(
-                x =>
-                    {
-                        x.Hat = client.Query<IHat>().Where(y => y.HatType == hatType).FirstLazy();
-                        x.Name = critterName;
-                    });
-
-            Assert.That(critter.Name, Is.EqualTo(critterName));
-            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
-        }
-
         [Test]
         public void PostCritterWithExistingHat_UsingFirstLazyQuery()
         {
