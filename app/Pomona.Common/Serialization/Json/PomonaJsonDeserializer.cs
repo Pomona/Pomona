@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -254,6 +255,8 @@ namespace Pomona.Common.Serialization.Json
             {
                 foreach (var entry in propertyValueMap)
                 {
+                    if (!entry.Key.IsWriteable)
+                        throw new InvalidOperationException("Unable to set property.");
                     entry.Key.Setter(node.Value, entry.Value);
                 }
             }

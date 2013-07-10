@@ -43,6 +43,7 @@ namespace Pomona.Example.Models
                 };
 
             Hat = new Hat();
+            Protected = Guid.NewGuid().ToString();
         }
 
 
@@ -51,6 +52,7 @@ namespace Pomona.Example.Models
         public DateTime CreatedOn { get; set; }
         public IList<Critter> Enemies { get; set; }
         public Farm Farm { get; set; }
+        public string Protected { get; protected set; }
 
         public Guid Guid { get; set; }
         public Hat Hat { get; set; }
