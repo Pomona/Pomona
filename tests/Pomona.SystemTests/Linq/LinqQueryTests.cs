@@ -90,69 +90,27 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
-        public void QueryCritter_GetSumOfIntProperty()
-        {
-            var expected = CritterEntities.Sum(x => x.Name.Length);
-            var actual = client.Query<ICritter>().Sum(x => x.Name.Length);
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void QueryCritter_SelectIntThenSum()
-        {
-            var expected = CritterEntities.Select(x => x.Name.Length).Sum();
-            var actual = client.Query<ICritter>().Select(x => x.Name.Length).Sum();
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-        [Test]
         public void QueryCritter_GetSumOfDecimalProperty()
         {
-            var expected = CritterEntities.Sum(x => (decimal)x.Id);
-            var actual = client.Query<ICritter>().Sum(x => (decimal)x.Id);
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void QueryCritter_SelectDecimalThenSum()
-        {
-            var expected = CritterEntities.Select(x => (decimal)x.Id).Sum();
-            var actual = client.Query<ICritter>().Select(x => (decimal)x.Id).Sum();
+            var expected = CritterEntities.Sum(x => (decimal) x.Id);
+            var actual = client.Query<ICritter>().Sum(x => (decimal) x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
         [Test]
         public void QueryCritter_GetSumOfDoubleProperty()
         {
-            var expected = CritterEntities.Sum(x => (double)x.Id);
-            var actual = client.Query<ICritter>().Sum(x => (double)x.Id);
+            var expected = CritterEntities.Sum(x => (double) x.Id);
+            var actual = client.Query<ICritter>().Sum(x => (double) x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
         [Test]
-        public void QueryCritter_SelectDoubleThenSum()
+        public void QueryCritter_GetSumOfIntProperty()
         {
-            var expected = CritterEntities.Select(x => (double)x.Id).Sum();
-            var actual = client.Query<ICritter>().Select(x => (double)x.Id).Sum();
+            var expected = CritterEntities.Sum(x => x.Name.Length);
+            var actual = client.Query<ICritter>().Sum(x => x.Name.Length);
             Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void QueryCritter_OrderByAfterSelect_ReturnsCorrectValues()
-        {
-            var expected =
-                CritterEntities
-                    .Select(x => new {NameLength = x.Name.Length})
-                    .OrderBy(x => x.NameLength)
-                    .Take(10)
-                    .ToList();
-            var actual =
-                client.Critters.Query()
-                      .Select(x => new {NameLength = x.Name.Length})
-                      .OrderBy(x => x.NameLength)
-                      .Take(10)
-                      .ToList();
-
-            Assert.That(actual.SequenceEqual(expected));
         }
 
         [Test]
@@ -228,6 +186,25 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_OrderByAfterSelect_ReturnsCorrectValues()
+        {
+            var expected =
+                CritterEntities
+                    .Select(x => new {NameLength = x.Name.Length})
+                    .OrderBy(x => x.NameLength)
+                    .Take(10)
+                    .ToList();
+            var actual =
+                client.Critters.Query()
+                      .Select(x => new {NameLength = x.Name.Length})
+                      .OrderBy(x => x.NameLength)
+                      .Take(10)
+                      .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+        [Test]
         public void QueryCritter_QueryingPropertyOfBaseClass_ReflectedTypeOfPropertyInPomonaQueryIsCorrect()
         {
             // Fix: We don't want the parsed expression trees to give us members with "ReflectedType" set to inherited type, but same as DeclaringType.
@@ -242,6 +219,30 @@ namespace Pomona.SystemTests.Linq
             var propExpr = binExpr.Left as MemberExpression;
             Assert.That(propExpr, Is.Not.Null);
             Assert.That(propExpr.Member.ReflectedType, Is.EqualTo(propExpr.Member.DeclaringType));
+        }
+
+        [Test]
+        public void QueryCritter_SelectDecimalThenSum()
+        {
+            var expected = CritterEntities.Select(x => (decimal) x.Id).Sum();
+            var actual = client.Query<ICritter>().Select(x => (decimal) x.Id).Sum();
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_SelectDoubleThenSum()
+        {
+            var expected = CritterEntities.Select(x => (double) x.Id).Sum();
+            var actual = client.Query<ICritter>().Select(x => (double) x.Id).Sum();
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_SelectIntThenSum()
+        {
+            var expected = CritterEntities.Select(x => x.Name.Length).Sum();
+            var actual = client.Query<ICritter>().Select(x => x.Name.Length).Sum();
+            Assert.That(actual, Is.EqualTo(expected));
         }
 
         [Test]
