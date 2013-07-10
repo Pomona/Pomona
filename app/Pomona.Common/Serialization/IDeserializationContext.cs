@@ -22,12 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
     public interface IDeserializationContext
     {
+        IMappedType GetClassMapping(Type type);
         object CreateReference(IMappedType type, string uri);
 
 

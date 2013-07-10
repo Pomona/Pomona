@@ -70,6 +70,11 @@ namespace Pomona.Common.Serialization
         }
 
 
+        public IMappedType GetClassMapping(Type type)
+        {
+            return typeMapper.GetClassMapping(type);
+        }
+
         public object CreateReference(IMappedType type, string uri)
         {
             if (type.SerializationMode == TypeSerializationMode.Array)

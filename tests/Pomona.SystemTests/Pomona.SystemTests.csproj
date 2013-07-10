@@ -92,6 +92,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryCritterTests.cs" />
     <Compile Include="QueryTests.cs" />
+    <Compile Include="Serialization\JsonSerializationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">

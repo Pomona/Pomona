@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,39 +23,39 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using Critters.Client;
+using NUnit.Framework;
+using Pomona.Common;
 using Pomona.Common.Serialization;
-using Pomona.Common.TypeSystem;
+using Pomona.Common.Serialization.Json;
 
-namespace Pomona
+namespace Pomona.SystemTests.Serialization
 {
-    public class ServerDeserializationContext : IDeserializationContext
+    [TestFixture]
+    public class JsonSerializationTests
     {
-        private readonly PomonaSession pomonaSession;
+        private ISerializer serializer;
+        private IDeserializer deserializer;
 
-        public ServerDeserializationContext(PomonaSession pomonaSession)
+        [SetUp]
+         public void SetUp()
+         {
+             var factory = new PomonaJsonSerializerFactory();
+            this.serializer = factory.GetSerialier();
+            this.deserializer = factory.GetDeserializer();
+         }
+
+        public class TestClass : IClientResource
         {
-            this.pomonaSession = pomonaSession;
+            public string FooBar { get; set; }
         }
 
-        public IMappedType GetClassMapping(Type type)
+        [Test]
+        public void UnknownPropertyIsIgnoredByDeserializer()
         {
-            return pomonaSession.TypeMapper.GetClassMapping(type);
-        }
-
-        public object CreateReference(IMappedType type, string uri)
-        {
-            return pomonaSession.GetResultByUri(uri);
-        }
-
-        public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
-            where TReader : ISerializerReader
-        {
-            deserializer.DeserializeNode(node, reader);
-        }
-
-        public IMappedType GetTypeByName(string typeName)
-        {
-            return pomonaSession.TypeMapper.GetClassMapping(typeName);
+            deserializer.DeserializeFromString<IOrderItem>(
+                new ClientDeserializationContext(new ClientTypeMapper(new Type[]{ typeof(IOrderItem) })),
+                "{name:\"blah\",ignored:\"optional\"}");
         }
     }
 }
