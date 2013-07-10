@@ -35,6 +35,7 @@ using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
+using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 using Pomona.Internals;
 
@@ -277,7 +278,8 @@ namespace Pomona.Common
             if (!type.IsInterface)
                 throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
 
-            var serverType = type;
+
+            Type expectedBaseType;
 
             CustomUserTypeInfo customUserTypeInfo;
 
@@ -320,6 +322,7 @@ namespace Pomona.Common
                 var resourceInfo = this.GetResourceInfoForType(type);
 
                 var newType = formTypeGetter(resourceInfo);
+                expectedBaseType = resourceInfo.UriBaseType;
 
                 if (form == null)
                     form = (T) Activator.CreateInstance(newType);
@@ -331,7 +334,7 @@ namespace Pomona.Common
             }
 
             // Post the json!
-            var response = UploadToUri(uri, form, type, httpMethod, modifyRequestHandler);
+            var response = UploadToUri(uri, form, typeMapper.GetClassMapping(expectedBaseType), httpMethod, modifyRequestHandler);
 
             return Deserialize(response, null);
         }
@@ -461,17 +464,17 @@ namespace Pomona.Common
         }
 
 
-        private string Serialize(object obj, Type expectedBaseType)
+        private string Serialize(object obj, IMappedType expectedBaseType)
         {
             var stringWriter = new StringWriter();
             var writer = serializer.CreateWriter(stringWriter);
             var context = new ClientSerializationContext(typeMapper);
-            var node = new ItemValueSerializerNode(obj, typeMapper.GetClassMapping(expectedBaseType), "", context);
+            var node = new ItemValueSerializerNode(obj, expectedBaseType, "", context);
             serializer.SerializeNode(node, writer);
             return stringWriter.ToString();
         }
 
-        private string UploadToUri(string uri, object obj, Type expectedBaseType, string httpMethod,
+        private string UploadToUri(string uri, object obj, IMappedType expectedBaseType, string httpMethod,
                                    Action<WebClientRequestMessage> modifyRequestHandler = null)
         {
             var requestString = Serialize(obj, expectedBaseType);
