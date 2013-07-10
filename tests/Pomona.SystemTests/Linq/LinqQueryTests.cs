@@ -137,6 +137,25 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_OrderByAfterSelect_ReturnsCorrectValues()
+        {
+            var expected =
+                CritterEntities
+                    .Select(x => new {NameLength = x.Name.Length})
+                    .OrderBy(x => x.NameLength)
+                    .Take(10)
+                    .ToList();
+            var actual =
+                client.Critters.Query()
+                      .Select(x => new {NameLength = x.Name.Length})
+                      .OrderBy(x => x.NameLength)
+                      .Take(10)
+                      .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+        [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()
         {
             // Just take some random critter

@@ -462,7 +462,16 @@ namespace Pomona.Common.Linq
                 throw new NotSupportedException(
                     "Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
             }
-            orderKeySelector = keySelector;
+
+            if (selectExpression != null && groupByKeySelector == null)
+            {
+                // Support order by after select (not when using GroupBy)
+                orderKeySelector = MergeWhereAfterSelect(keySelector);
+            }
+            else
+            {
+                orderKeySelector = keySelector;
+            }
             this.sortOrder = sortOrder;
         }
 
