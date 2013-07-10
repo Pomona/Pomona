@@ -233,7 +233,10 @@ namespace Pomona.Common.Serialization.Json
                     continue;
                 }
                 var name = jprop.Name;
-                var prop = node.ValueType.Properties.First(x => x.JsonName == name);
+                var prop = node.ValueType.Properties.FirstOrDefault(x => x.JsonName == name);
+                if (prop == null)
+                    continue;
+
                 var propNode = new PropertyValueDeserializerNode(node, prop);
 
                 object oldPropValue = null;
