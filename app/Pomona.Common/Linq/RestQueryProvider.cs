@@ -132,10 +132,11 @@ namespace Pomona.Common.Linq
 
         private static Type GetElementType(Type type)
         {
-            if (type.UniqueToken() != typeof (IQueryable<>).UniqueToken())
+            var queryableTypeInstance = type.GetInterfacesOfGeneric(typeof (IQueryable<>)).FirstOrDefault();
+            if (queryableTypeInstance == null)
                 return type;
 
-            return type.GetGenericArguments()[0];
+            return queryableTypeInstance.GetGenericArguments()[0];
         }
 
 
