@@ -101,6 +101,16 @@ namespace Pomona.SystemTests
             Assert.That(response.Map["cow"] == "moo");
         }
 
+        [Test]
+        public void PostEntityWithReadOnlyPropertySetThroughConstructor()
+        {
+            var o =
+                client.HasConstructorInitializedReadOnlyProperties.Post(
+                    x => x.Crazy = new CrazyValueObjectForm {Info = "bam!", Sickness = "adhd"});
+            Assert.That(o.Crazy.Info, Is.EqualTo("bam!"));
+            Assert.That(o.Crazy.Sickness, Is.EqualTo("adhd"));
+        }
+
 
         [Test]
         public void PostHasCustomEnum()
