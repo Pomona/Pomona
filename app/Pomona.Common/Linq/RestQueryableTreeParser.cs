@@ -78,32 +78,16 @@ namespace Pomona.Common.Linq
             visitQueryConstantValueMethod =
                 ReflectionHelper.GetMethodDefinition<RestQueryableTreeParser>(
                     x => x.VisitQueryConstantValue<object>(null));
-            MapQueryableFunction(QueryableMethods.Take);
-            MapQueryableFunction(QueryableMethods.Skip);
-            MapQueryableFunction(QueryableMethods.Where);
-            MapQueryableFunction(QueryableMethods.OrderBy);
-            MapQueryableFunction(QueryableMethods.OrderByDescending);
-            MapQueryableFunction(QueryableMethods.First);
-            MapQueryableFunction(QueryableMethods.FirstOrDefault);
-            MapQueryableFunction(QueryableMethods.FirstWithPredicate);
-            MapQueryableFunction(QueryableMethods.FirstOrDefaultWithPredicate);
-            MapQueryableFunction(QueryableMethods.AnyWithPredicate);
-            MapQueryableFunction(QueryableMethods.Select);
-            MapQueryableFunction(QueryableMethods.GroupBy);
-            MapQueryableFunction(QueryableMethods.Expand);
-            MapQueryableFunction(QueryableMethods.SumIntWithSelector);
-            MapQueryableFunction(QueryableMethods.SumInt);
-            MapQueryableFunction(QueryableMethods.SumDoubleWithSelector);
-            MapQueryableFunction(QueryableMethods.SumDouble);
-            MapQueryableFunction(QueryableMethods.SumDecimalWithSelector);
-            MapQueryableFunction(QueryableMethods.SumDecimal);
-            MapQueryableFunction(QueryableMethods.IncludeTotalCount);
-            MapQueryableFunction(QueryableMethods.ToUri);
-            MapQueryableFunction(QueryableMethods.FirstLazy);
-            MapQueryableFunction(QueryableMethods.Max);
-            MapQueryableFunction(QueryableMethods.MaxWithSelector);
-            MapQueryableFunction(QueryableMethods.Min);
-            MapQueryableFunction(QueryableMethods.MinWithSelector);
+
+            foreach (var method in typeof (Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                TryMapQueryableFunction(method);
+            }
+
+            MapQueryableFunction(x => x.Expand(y => 0));
+            MapQueryableFunction(x => x.IncludeTotalCount());
+            MapQueryableFunction(x => x.ToUri());
+            MapQueryableFunction(x => x.FirstLazy());
         }
 
         public bool IncludeTotalCount
@@ -407,16 +391,23 @@ namespace Pomona.Common.Linq
         }
 
 
-        private static void MapQueryableFunction(MethodInfo method)
+        private static bool TryMapQueryableFunction(MethodInfo method)
         {
             var visitMethod = typeof (RestQueryableTreeParser)
                 .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                 .FirstOrDefault(x => VisitMethodMatches(x, method));
 
             if (visitMethod == null)
-                throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
+                return false;
 
             queryableMethodToVisitMethodDictionary.Add(method.UniqueToken(), visitMethod);
+            return true;
+        }
+
+        private static void MapQueryableFunction(MethodInfo method)
+        {
+            if (!TryMapQueryableFunction(method))
+                throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
         }
 
 
