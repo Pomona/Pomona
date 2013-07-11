@@ -79,7 +79,17 @@ namespace Pomona.SystemTests.Linq
             Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
 
+        public int TestIntProperty { get; set; }
 
+        [Test]
+        public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
+        {
+            var critter = DataSource.CreateRandomCritter();
+            TestIntProperty = critter.Id;
+            var result = client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Id, Is.EqualTo(TestIntProperty));
+        }
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
         {

@@ -71,6 +71,17 @@ namespace Pomona.Common
                     .Distinct();
         }
 
+        public static object GetPropertyOrFieldValue(this MemberInfo memberInfo, object obj)
+        {
+            var propInfo = memberInfo as PropertyInfo;
+            if (propInfo != null)
+                return propInfo.GetValue(obj, null);
+            var fieldInfo = memberInfo as FieldInfo;
+            if (fieldInfo != null)
+                return fieldInfo.GetValue(obj);
+            throw new NotSupportedException("Can only get value from property or field.");
+        }
+
         public static bool IsAnonymous(this IMappedType type)
         {
             return type.Name.StartsWith("<>f__AnonymousType");

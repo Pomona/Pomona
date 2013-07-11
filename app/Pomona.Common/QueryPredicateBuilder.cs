@@ -243,7 +243,8 @@ namespace Pomona.Common
 
         private string BuildFromConditionalExpression(ConditionalExpression conditionalExpression)
         {
-            return string.Format("iif({0},{1},{2})", Build(conditionalExpression.Test), Build(conditionalExpression.IfTrue),
+            return string.Format("iif({0},{1},{2})", Build(conditionalExpression.Test),
+                                 Build(conditionalExpression.IfTrue),
                                  Build(conditionalExpression.IfFalse));
         }
 
@@ -310,13 +311,6 @@ namespace Pomona.Common
             if (TryMapKnownOdataFunction(
                 memberExpr.Member, Enumerable.Repeat(memberExpr.Expression, 1), out odataExpression))
                 return odataExpression;
-
-            // This gets weird with closures, see:
-            // http://blog.nexterday.com/post/Automatic-compilation-of-Linq-to-SQL-queries.aspx
-
-            object value;
-            if (IsClosureMemberAccess(memberExpr, out value))
-                return GetEncodedConstant(value.GetType(), value);
 
             if (memberExpr.Expression != thisParameter)
                 return string.Format("{0}.{1}", Build(memberExpr.Expression), GetMemberName(memberExpr.Member));
@@ -511,36 +505,6 @@ namespace Pomona.Common
         }
 
 
-        private bool IsClosureMemberAccess(MemberExpression memberExpression, out object value)
-        {
-            value = null;
-            var member = memberExpression.Member;
-            if (member.DeclaringType.Name.StartsWith("<>c__") && member.MemberType == MemberTypes.Field)
-            {
-                var field = (FieldInfo) member;
-                var obj = ((ConstantExpression) memberExpression.Expression).Value;
-
-                //Add the value to the extraction list
-                value = field.GetValue(obj);
-                return true;
-            }
-
-            var innerMemberExpr = memberExpression.Expression as MemberExpression;
-
-            if (innerMemberExpr == null)
-                return false;
-
-            object innerValue;
-            if (IsClosureMemberAccess(innerMemberExpr, out innerValue))
-            {
-                value = GetMemberValue(innerValue, member);
-                return true;
-            }
-
-            return false;
-        }
-
-
         private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
             var unaryLeft = left as UnaryExpression;
@@ -582,7 +546,7 @@ namespace Pomona.Common
 
         #region Nested type: PreBuildVisitor
 
-        private class PreBuildVisitor : ExpressionVisitor
+        private class PreBuildVisitor : EvaluateClosureMemberVisitor
         {
             private static readonly MethodInfo concatMethod;
 
@@ -599,21 +563,6 @@ namespace Pomona.Common
                     && node.Right.Type == typeof (string))
                     return Expression.Call(concatMethod, Visit(node.Left), Visit(node.Right));
                 return base.VisitBinary(node);
-            }
-
-
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                if (node.Expression == null)
-                {
-                    var propInfo = node.Member as PropertyInfo;
-                    if (propInfo != null)
-                        return Expression.Constant(propInfo.GetValue(null, null), node.Type);
-                    var fieldInfo = node.Member as FieldInfo;
-                    if (fieldInfo != null)
-                        return Expression.Constant(fieldInfo.GetValue(null), node.Type);
-                }
-                return base.VisitMember(node);
             }
 
 
