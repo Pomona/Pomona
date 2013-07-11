@@ -312,6 +312,23 @@ namespace Pomona.Common.Linq
             groupByKeySelector = keySelector;
         }
 
+        internal void QOfType<TResult>()
+        {
+            if (!elementType.IsAssignableFrom(typeof (TResult)))
+                throw new NotSupportedException("Only supports OfType'ing to inherited type.");
+
+            if (selectExpression != null)
+                throw new NotSupportedException("Does only support OfType at start of query.");
+
+            if (wherePredicate != null)
+            {
+                var newParam = Expression.Parameter(typeof (TResult), wherePredicate.Parameters[0].Name);
+                var replacer = new LamdbaParameterReplacer(wherePredicate.Parameters[0], newParam);
+                wherePredicate = Expression.Lambda(replacer.Visit(wherePredicate.Body), newParam);
+            }
+
+            elementType = typeof (TResult);
+        }
 
         internal void QOrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
         {

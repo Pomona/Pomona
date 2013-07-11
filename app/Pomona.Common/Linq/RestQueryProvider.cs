@@ -146,7 +146,7 @@ namespace Pomona.Common.Linq
 
             // TODO: Support expand
 
-            var resourceInfo = client.GetResourceInfoForType(sourceType);
+            var resourceInfo = client.GetResourceInfoForType(parser.ElementType);
 
             if (!resourceInfo.IsUriBaseType)
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);

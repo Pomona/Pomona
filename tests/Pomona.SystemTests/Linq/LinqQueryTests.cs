@@ -37,6 +37,8 @@ namespace Pomona.SystemTests.Linq
     [TestFixture]
     public class LinqQueryTests : ClientTestsBase
     {
+        public int TestIntProperty { get; set; }
+
         [Test]
         public void QueryCritter_AnyWithExistingName_ReturnsTrue()
         {
@@ -79,17 +81,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
 
-        public int TestIntProperty { get; set; }
-
-        [Test]
-        public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
-        {
-            var critter = DataSource.CreateRandomCritter();
-            TestIntProperty = critter.Id;
-            var result = client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.Id, Is.EqualTo(TestIntProperty));
-        }
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
         {
@@ -196,6 +187,18 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCritter_OfType()
+        {
+            var critters =
+                client.Query<ICritter>()
+                      .Where(x => x.Id > 0)
+                      .OfType<IMusicalCritter>()
+                      .Where(x => x.Instrument.Type != "stupid")
+                      .ToList();
+            Assert.That(critters.Count, Is.GreaterThan(0));
+        }
+
+        [Test]
         public void QueryCritter_OrderByAfterSelect_ReturnsCorrectValues()
         {
             var expected =
@@ -280,6 +283,16 @@ namespace Pomona.SystemTests.Linq
         {
             var uri = client.Query<ICritter>().Where(x => x.Name == "holahola").ToUri();
             Assert.That(uri.PathAndQuery, Is.EqualTo("/critters?$filter=name+eq+'holahola'"));
+        }
+
+        [Test]
+        public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
+        {
+            var critter = DataSource.CreateRandomCritter();
+            TestIntProperty = critter.Id;
+            var result = client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Id, Is.EqualTo(TestIntProperty));
         }
 
 
