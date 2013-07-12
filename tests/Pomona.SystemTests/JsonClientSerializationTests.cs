@@ -49,7 +49,7 @@ namespace Pomona.SystemTests
 
         private JObject SerializeAndGetJsonObject<T>(T value)
         {
-            var serializerFactory = new PomonaJsonSerializerFactory(new IMappedType[] {});
+            var serializerFactory = new PomonaJsonSerializerFactory();
             var serializer = serializerFactory.GetSerialier();
             var stringWriter = new StringWriter();
             var jsonWriter = serializer.CreateWriter(stringWriter);

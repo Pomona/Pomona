@@ -1,7 +1,7 @@
-﻿// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright � 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,22 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using NUnit.Framework;
-using Pomona.Example;
-using Pomona.FluentMapping;
-using System.Linq;
-
-namespace Pomona.UnitTests
+namespace Pomona
 {
-    [TestFixture]
-    public class FluentMappingTests
+    public enum PropertyAccessMode
     {
-        [Test]
-         public void TestGenerateTemplateFluentRules()
-        {
-            var code = FluentTypeMappingFilter.BuildPropertyMappingTemplate(CritterDataSource.GetEntityTypes().Where(x => !x.IsEnum));
-            Console.Write(code);
-        }
+        ReadWrite,
+        ReadOnly,
+        WriteOnly
     }
 }

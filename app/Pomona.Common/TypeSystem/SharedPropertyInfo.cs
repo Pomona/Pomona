@@ -75,8 +75,15 @@ namespace Pomona.Common.TypeSystem
 
         public bool IsWriteable
         {
-            get { throw new NotImplementedException(); }
+            get { return propertyInfo.GetSetMethod() != null; }
         }
+
+        public bool IsReadable
+        {
+            get { return propertyInfo.GetGetMethod() != null; }
+        }
+
+        public bool IsSerialized { get { return true; } }
 
         public string JsonName
         {

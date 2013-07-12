@@ -37,5 +37,7 @@ namespace Pomona.Common.Serialization
 
         void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
             where TWriter : ISerializerWriter;
+
+        bool PropertyIsSerialized(IPropertyInfo property);
     }
 }

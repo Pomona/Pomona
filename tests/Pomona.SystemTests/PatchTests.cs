@@ -70,6 +70,17 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PatchCritter_SetWriteOnlyProperty()
+        {
+            var critter = DataSource.CreateRandomCritter();
+            var resource = client.Critters.Query(x => x.Id == critter.Id).First();
+
+            var resourceAfterPatch = client.Patch(resource, x => x.Password = "NewPassword");
+
+            Assert.That(resourceAfterPatch.Password, Is.EqualTo("NewPassword"));
+        }
+
+        [Test]
         public void PatchCritter_UpdatePropertyOfValueObject()
         {
             var critter = Save(new Critter());

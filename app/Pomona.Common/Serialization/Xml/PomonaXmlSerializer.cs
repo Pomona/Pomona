@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -170,7 +169,7 @@ namespace Pomona.Common.Serialization.Xml
                 jsonWriter.WriteAttributeString("type", node.ValueType.Name);
             }
 
-            IEnumerable<IPropertyInfo> propertiesToSerialize = node.ValueType.Properties;
+            var propertiesToSerialize = node.ValueType.Properties.Where(x => node.Context.PropertyIsSerialized(x));
 
             var pomonaSerializable = node.Value as IPomonaSerializable;
             if (pomonaSerializable != null)

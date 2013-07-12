@@ -27,6 +27,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Critters.Client;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
@@ -447,6 +448,21 @@ namespace Pomona.SystemTests.Linq
                         Throws.Exception);
         }
 
+
+        [Test]
+        public void QueryCritter_WriteOnlyProperty_IsNotReturned()
+        {
+            var critter = DataSource.CreateRandomCritter();
+            critter.Password = "HUSH";
+            var jobject = client.Critters.Query().Where(x => x.Id == critter.Id).ToJson();
+            var items = jobject.AssertHasPropertyWithArray("items");
+            Assert.That(items.Count, Is.EqualTo(1));
+            var critterObject = items[0] as JObject;
+            critterObject.AssertDoesNotHaveProperty("password");
+
+            var critters = client.Critters.Query().Where(x => x.Id == critter.Id).ToList();
+            Assert.That(critters.Count, Is.EqualTo(1));
+        }
 
         [Test]
         public void QueryHasStringToObjectDictionary_ReturnsCorrectValues()

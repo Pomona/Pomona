@@ -24,6 +24,7 @@
 
 using System;
 using System.Linq.Expressions;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -41,6 +42,25 @@ namespace Pomona.FluentMapping
         }
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
+        {
+            propertyMappingOptions.CreateMode = PropertyCreateMode.Optional;
+            propertyMappingOptions.AccessMode = PropertyAccessMode.ReadWrite;
+            return this;
+        }
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
+        {
+            propertyMappingOptions.CreateMode = createMode;
+            return this;
+        }
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
+        {
+            propertyMappingOptions.AccessMode = accessMode;
+            return this;
+        }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
         {

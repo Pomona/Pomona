@@ -35,13 +35,6 @@ namespace Pomona
     {
         #region PropertyAccessMode enum
 
-        public enum PropertyAccessMode
-        {
-            ReadWrite,
-            ReadOnly,
-            WriteOnly
-        }
-
         #endregion
 
         private readonly TransformedType declaringType;
@@ -83,7 +76,6 @@ namespace Pomona
         public PropertyMapping ElementForeignKey { get; set; }
 
         public bool IsAttributesProperty { get; set; }
-        public bool IsEtagProperty { get; set; }
 
         public bool IsOneToManyCollection
         {
@@ -116,6 +108,8 @@ namespace Pomona
             }
         }
 
+        public bool IsEtagProperty { get; set; }
+
         public bool AlwaysExpand { get; set; }
         public PropertyCreateMode CreateMode { get; set; }
 
@@ -134,6 +128,16 @@ namespace Pomona
         public bool IsWriteable
         {
             get { return AccessMode == PropertyAccessMode.WriteOnly || AccessMode == PropertyAccessMode.ReadWrite; }
+        }
+
+        public bool IsReadable
+        {
+            get { return AccessMode == PropertyAccessMode.ReadOnly || AccessMode == PropertyAccessMode.ReadWrite; }
+        }
+
+        public bool IsSerialized
+        {
+            get { return IsReadable; }
         }
 
         public string JsonName { get; set; }

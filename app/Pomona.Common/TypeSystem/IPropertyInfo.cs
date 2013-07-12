@@ -40,6 +40,8 @@ namespace Pomona.Common.TypeSystem
         IMappedType DeclaringType { get; }
         Func<object, object> Getter { get; }
         bool IsWriteable { get; }
+        bool IsReadable { get; }
+        bool IsSerialized { get; }
         string JsonName { get; }
         string LowerCaseName { get; }
         string Name { get; }

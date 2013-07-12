@@ -75,6 +75,11 @@ namespace Pomona.Common.Serialization
             serializer.SerializeNode(node, writer);
         }
 
+        public bool PropertyIsSerialized(IPropertyInfo property)
+        {
+            return property.IsSerialized;
+        }
+
         #endregion
     }
 }
