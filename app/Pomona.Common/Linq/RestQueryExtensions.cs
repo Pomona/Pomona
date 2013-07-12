@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Linq
 {
@@ -35,6 +36,16 @@ namespace Pomona.Common.Linq
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
             return (QueryResult<TSource>) source.Provider.Execute(source.Expression);
+        }
+
+        public static JToken ToJson<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            var methodCallExpression =
+                Expression.Call(null,
+                                ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] {typeof (TSource)}),
+                                new[] {source.Expression});
+            return source.Provider.Execute<JObject>(methodCallExpression);
         }
 
         public static TSource FirstLazy<TSource>(this IQueryable<TSource> source)

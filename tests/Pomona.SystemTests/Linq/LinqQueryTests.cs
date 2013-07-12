@@ -478,6 +478,13 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void Query_Critter_ToJson_ReturnsJObject()
+        {
+            var critter = client.Critters.Query().Where(x => x.Id > 3).ToJson();
+            var items = critter.AssertHasPropertyWithArray("items");
+        }
+
+        [Test]
         public void Query_UsingFirstOrDefault_WithNoMatches_ReturnsNull()
         {
             var result = client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();

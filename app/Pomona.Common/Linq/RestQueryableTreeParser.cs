@@ -47,7 +47,8 @@ namespace Pomona.Common.Linq
             ToUri,
             Max,
             Min,
-            Sum
+            Sum,
+            ToJson
         }
 
         #endregion
@@ -88,6 +89,7 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(x => x.IncludeTotalCount());
             MapQueryableFunction(x => x.ToUri());
             MapQueryableFunction(x => x.FirstLazy());
+            MapQueryableFunction(x => x.ToJson());
         }
 
         public bool IncludeTotalCount
@@ -229,6 +231,11 @@ namespace Pomona.Common.Linq
         {
             QSelect(propertySelector);
             QSum();
+        }
+
+        internal void QToJson()
+        {
+            projection = QueryProjection.ToJson;
         }
 
         internal void QSum()
