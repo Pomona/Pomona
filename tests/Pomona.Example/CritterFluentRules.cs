@@ -80,6 +80,11 @@ namespace Pomona.Example
                .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly));
         }
 
+        public void Map(ITypeMappingConfigurator<HasReadOnlyDictionaryProperty> map)
+        {
+            map.Include(x => x.Map, o => o.AsAttributes().WithAccessMode(PropertyAccessMode.ReadWrite));
+        }
+
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
         {
             map.Include(x => x.ETag, o => o.AsEtag());

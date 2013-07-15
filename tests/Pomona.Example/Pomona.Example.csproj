@@ -77,6 +77,7 @@
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
+    <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\GenericBaseClass.cs" />
     <Compile Include="Models\Gun.cs" />

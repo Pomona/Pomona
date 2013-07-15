@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+ï»¿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright Â© 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,25 +22,23 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
-[assembly: AssemblyCompany("Karsten N. Strand")]
-[assembly: AssemblyProduct("Pomona")]
-[assembly: AssemblyCopyright("Copyright © Karsten N. Strand 2013")]
+namespace Pomona.Example.Models
+{
+    public class HasReadOnlyDictionaryProperty : EntityBase
+    {
+        private readonly IDictionary<string, string> map;
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+        public HasReadOnlyDictionaryProperty()
+        {
+            map = new Dictionary<string, string>();
+        }
 
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.9.5")]
-[assembly: AssemblyInformationalVersion("0.1.9-alpha5")]
-[assembly: ComVisible(false)]
+
+        public IDictionary<string, string> Map
+        {
+            get { return map; }
+        }
+    }
+}
