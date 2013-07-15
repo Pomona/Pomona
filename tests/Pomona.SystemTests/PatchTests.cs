@@ -75,9 +75,9 @@ namespace Pomona.SystemTests
             var critter = DataSource.CreateRandomCritter();
             var resource = client.Critters.Query(x => x.Id == critter.Id).First();
 
-            var resourceAfterPatch = client.Patch(resource, x => x.Password = "NewPassword");
+            client.Patch(resource, x => x.Password = "NewPassword");
 
-            Assert.That(resourceAfterPatch.Password, Is.EqualTo("NewPassword"));
+            Assert.That(critter.Password, Is.EqualTo("NewPassword"));
         }
 
         [Test]
