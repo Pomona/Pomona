@@ -76,6 +76,18 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PostToReadOnlyAttributesProperty()
+        {
+            var o =
+                client.HasReadOnlyDictionaryProperties.Post(new HasReadOnlyDictionaryPropertyForm()
+                    {
+                        Map = {{"blah", "hah"}}
+                    });
+
+            Assert.That(o.Map["blah"], Is.EqualTo("hah"));
+        }
+
+        [Test]
         public void PostCritterWithHatForm()
         {
             const string critterName = "Nooob critter";

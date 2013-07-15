@@ -246,6 +246,7 @@ namespace Pomona
                         addItemsToDictionaryMethod.MakeGenericMethod(
                             prop.PropertyType.MappedTypeInstance.GetGenericArguments())
                                                   .Invoke(this, new[] {kvp.Value, dict});
+                        setPropertyToValue = false;
                     }
                 }
                 else if (prop.PropertyType.IsCollection)
