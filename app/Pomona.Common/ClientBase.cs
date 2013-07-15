@@ -355,6 +355,10 @@ namespace Pomona.Common
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jToken = JToken.Parse(jsonString);
+
+            if (expectedType == typeof (JToken))
+                return jToken;
+
             var jObject = jToken as JObject;
             if (jObject != null)
             {

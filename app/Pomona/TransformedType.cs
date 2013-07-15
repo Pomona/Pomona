@@ -513,17 +513,8 @@ namespace Pomona
                 propDef.IsAttributesProperty = filter.PropertyIsAttributes(propInfo);
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
-                // TODO: This should rather be configured by filter.
-                if (propertyTypeMapped.IsCollection || (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null))
-                {
-                    propDef.CreateMode = PropertyCreateMode.Optional;
-                    propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadWrite;
-                }
-                else
-                {
-                    propDef.CreateMode = PropertyCreateMode.Excluded;
-                    propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
-                }
+                propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal);
+                propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
 
                 propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
 

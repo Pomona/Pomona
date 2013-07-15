@@ -74,7 +74,6 @@
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
-    <Compile Include="FluentMappingTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />

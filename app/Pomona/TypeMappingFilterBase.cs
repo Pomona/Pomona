@@ -29,10 +29,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Common.Logging;
 using DelegateDecompiler;
+using Nancy.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
 namespace Pomona
@@ -267,7 +269,7 @@ namespace Pomona
         }
 
 
-        public bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return false;
@@ -296,6 +298,26 @@ namespace Pomona
         public virtual string GetPluralNameForType(Type type)
         {
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
+        }
+
+        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.PropertyType.IsCollection() ||
+                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+            {
+                return PropertyCreateMode.Optional;
+            }
+            return PropertyCreateMode.Excluded;
+        }
+
+        public virtual PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.PropertyType.IsCollection() ||
+                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+            {
+                return PropertyAccessMode.ReadWrite;
+            }
+            return PropertyAccessMode.ReadOnly;
         }
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)

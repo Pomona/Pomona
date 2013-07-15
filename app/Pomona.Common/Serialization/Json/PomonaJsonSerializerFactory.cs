@@ -22,29 +22,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
-using Pomona.Common.TypeSystem;
-
 namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonSerializerFactory : ISerializerFactory
     {
-        private readonly Dictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeCache;
-
-
-        public PomonaJsonSerializerFactory()
-            : this(Enumerable.Empty<IMappedType>())
-        {
-        }
-
-
-        public PomonaJsonSerializerFactory(IEnumerable<IMappedType> cachedTypes)
-        {
-            typeCache = cachedTypes.ToDictionary(x => x, x => new PomonaJsonSerializerTypeEntry(x));
-        }
-
-
         public IDeserializer GetDeserializer()
         {
             return new PomonaJsonDeserializer();
@@ -53,7 +34,7 @@ namespace Pomona.Common.Serialization.Json
 
         public ISerializer GetSerialier()
         {
-            return new PomonaJsonSerializer(typeCache);
+            return new PomonaJsonSerializer();
         }
     }
 }

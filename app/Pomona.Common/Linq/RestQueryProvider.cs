@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Internals;
@@ -213,6 +214,9 @@ namespace Pomona.Common.Linq
         private object Execute<T>(RestQueryableTreeParser parser)
         {
             var uri = BuildUri(parser);
+
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToJson)
+                return client.Get<JToken>(uri);
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
                 return new Uri(uri);

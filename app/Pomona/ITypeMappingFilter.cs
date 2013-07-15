@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
 namespace Pomona
@@ -88,5 +89,7 @@ namespace Pomona
         LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyIsEtag(PropertyInfo propertyInfo);
         string GetPluralNameForType(Type type);
+        PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo);
+        PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
     }
 }

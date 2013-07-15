@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -157,6 +158,18 @@ namespace Pomona.FluentMapping
         public string GetPluralNameForType(Type type)
         {
             return FromMappingOrDefault(type, x => x.PluralName, () => wrappedFilter.GetPluralNameForType(type));
+        }
+
+        public PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.CreateMode,
+                                        () => wrappedFilter.GetPropertyCreateMode(propertyInfo));
+        }
+
+        public PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.AccessMode,
+                                        () => wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 
         public Type GetPropertyType(PropertyInfo propertyInfo)
@@ -428,6 +441,23 @@ namespace TestNs
             return (T) result;
         }
 
+
+        private T FromMappingOrDefault<T>(
+            PropertyInfo propertyInfo, Func<PropertyMappingOptions, T?> ifMappingExist, Func<T> ifMappingMissing)
+            where T : struct
+        {
+            TypeMappingOptions typeMappingOptions;
+            PropertyMappingOptions propertyOptions;
+            object result = null;
+
+            if (TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMappingOptions, out propertyOptions))
+                result = ifMappingExist(propertyOptions);
+
+            if (result == null)
+                return ifMappingMissing();
+
+            return (T) result;
+        }
 
         private bool TryGetTypeMappingAndPropertyOptions(
             PropertyInfo propertyInfo,

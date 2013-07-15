@@ -111,6 +111,11 @@ namespace Pomona
             serializer.SerializeNode(node, writer);
         }
 
+        public bool PropertyIsSerialized(IPropertyInfo property)
+        {
+            return property.IsSerialized;
+        }
+
         private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
         {
             var propNode = node as PropertyValueSerializerNode;

@@ -63,6 +63,7 @@ namespace Pomona.Example.Models
             get { return Hat != null ? Hat.HatType : null; }
         }
 
+        public string Password { get; set; }
 
         public int DecompiledGeneratedProperty
         {
