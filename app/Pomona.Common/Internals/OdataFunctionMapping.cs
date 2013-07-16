@@ -88,6 +88,7 @@ namespace Pomona.Common.Internals
             Add<DateTime>(x => x.Month, "month({0})");
             Add<DateTime>(x => x.Second, "second({0})");
             Add<DateTime>(x => x.Year, "year({0})");
+            Add<DateTime>(x => x.Date, "date({0})");
 
             // TODO Math functions, these are static
             Add<double>(x => Math.Sqrt(x), "sqrt({0})");
