@@ -179,8 +179,11 @@ namespace Pomona.Common.Linq
         {
             Visit(node.Arguments[0]);
 
-            // TODO: Throw better exception when method is not supported
-            var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.UniqueToken()];
+            UniqueMemberToken token = node.Method.UniqueToken();
+            if (!queryableMethodToVisitMethodDictionary.ContainsKey(token))
+                throw new NotImplementedException(String.Format("{0} is not implemented.", node.Method.Name));
+
+            var visitMethod = queryableMethodToVisitMethodDictionary[token];
             var visitMethodInstance = visitMethod.IsGenericMethod
                                           ? visitMethod.MakeGenericMethod(node.Method.GetGenericArguments())
                                           : visitMethod;
