@@ -208,7 +208,7 @@ namespace Pomona.CodeGen
 
             var propField =
                 new FieldDefinition(
-                    "_" + name.Substring(0, 1).ToLower() + name.Substring(1),
+                    "_" + name.LowercaseFirstLetter(),
                     FieldAttributes.Private,
                     propertyType);
 
