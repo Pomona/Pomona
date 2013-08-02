@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -31,6 +35,27 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class ClientGeneratedTypeTests
     {
+        [Test]
+        public void GeneratedPocoTypeInitializesDictionaryPropertyInConstructor()
+        {
+            var dictContainer = new DictionaryContainerResource();
+            Assert.That(dictContainer.Map, Is.Not.Null);
+        }
+
+        [Test]
+        public void GeneratedPocoTypeInitializesListPropertyInConstructor()
+        {
+            var critter = new CritterResource();
+            Assert.That(critter.Weapons, Is.Not.Null);
+        }
+
+        [Test]
+        public void GeneratedPocoTypeInitializesValueObjectPropertyInConstructor()
+        {
+            var critter = new CritterResource();
+            Assert.That(critter.CrazyValue, Is.Not.Null);
+        }
+
         [Test]
         public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
         {

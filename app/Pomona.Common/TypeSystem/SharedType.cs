@@ -204,6 +204,11 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public bool MappedAsValueObject
+        {
+            get { return false; }
+        }
+
         public virtual object Create(IDictionary<IPropertyInfo, object> args)
         {
             if (MappedTypeInstance.IsAnonymous())

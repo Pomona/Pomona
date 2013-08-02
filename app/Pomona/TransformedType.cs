@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -74,8 +78,6 @@ namespace Pomona
         {
             get { return UriBaseType == this; }
         }
-
-        public bool MappedAsValueObject { get; set; }
 
         /// <summary>
         /// Other types having the same URI as this type. (in same inheritance chain)
@@ -285,6 +287,12 @@ namespace Pomona
         }
 
         #endregion
+
+        /// <summary>
+        /// When true this type is considered a value object, which will affect serialization.
+        /// It also means that it don't have an URL or identity.
+        /// </summary>
+        public bool MappedAsValueObject { get; set; }
 
         public string PluralName { get; set; }
 

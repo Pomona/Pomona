@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +44,7 @@ namespace Pomona.CodeGen
     public class ClientLibGenerator
     {
         private readonly TypeMapper typeMapper;
+        private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
         private string assemblyName;
         private TypeDefinition clientInterface;
         private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
@@ -201,12 +206,19 @@ namespace Pomona.CodeGen
         }
 
 
+        private PropertyDefinition AddAutomaticProperty(TypeDefinition declaringType, string name,
+                                                        TypeReference propertyType)
+        {
+            FieldDefinition _;
+            return AddAutomaticProperty(declaringType, name, propertyType, out _);
+        }
+
         private PropertyDefinition AddAutomaticProperty(
-            TypeDefinition declaringType, string name, TypeReference propertyType)
+            TypeDefinition declaringType, string name, TypeReference propertyType, out FieldDefinition propField)
         {
             var propertyDefinition = AddProperty(declaringType, name, propertyType);
 
-            var propField =
+            propField =
                 new FieldDefinition(
                     "_" + name.LowercaseFirstLetter(),
                     FieldAttributes.Private,
@@ -472,12 +484,7 @@ namespace Pomona.CodeGen
                     typeInfo.UriBaseType = clientTypeInfoDict[type.UriBaseType].InterfaceType;
                 }
 
-                var ctor = typeInfo.EmptyPocoCtor;
-                ctor.Body.MaxStackSize = 8;
-                var ctorIlProcessor = ctor.Body.GetILProcessor();
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+                var ctorIlActions = new List<Action<ILProcessor>>();
 
                 foreach (
                     var prop in
@@ -497,8 +504,63 @@ namespace Pomona.CodeGen
                         AddAttributeToProperty(interfacePropDef, typeof (ResourceEtagPropertyAttribute));
                     }
 
-                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
+                    FieldDefinition backingField;
+                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
+                    AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
                 }
+
+                var ctor = typeInfo.EmptyPocoCtor;
+                ctor.Body.MaxStackSize = 8;
+                var ctorIlProcessor = ctor.Body.GetILProcessor();
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
+                foreach (var ilAction in ctorIlActions)
+                {
+                    ilAction(ctorIlProcessor);
+                }
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+            }
+        }
+
+        private void AddPropertyFieldInitialization(FieldDefinition backingField, IMappedType propertyType,
+                                                    List<Action<ILProcessor>> ctorIlActions)
+        {
+            if (propertyType.MappedAsValueObject)
+            {
+                var typeInfo = clientTypeInfoDict[propertyType];
+
+                ctorIlActions.Add(il =>
+                    {
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Newobj, typeInfo.EmptyPocoCtor);
+                        il.Emit(OpCodes.Stfld, backingField);
+                    });
+            }
+            else if (propertyType.IsCollection)
+            {
+                var genericInstanceFieldType = (GenericInstanceType) backingField.FieldType;
+                var listReference = GetClientTypeReference(typeof (List<>));
+                var listCtor = listReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+                var listCtorInstance = module.Import(listCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments[0]));
+                ctorIlActions.Add(il =>
+                    {
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Newobj, listCtorInstance);
+                        il.Emit(OpCodes.Stfld, backingField);
+                    });
+            }
+            else if (propertyType.IsDictionary)
+            {
+                var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
+                var dictReference = GetClientTypeReference(typeof(Dictionary<,>));
+                var dictCtor = dictReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+                var dictCtorInstance = module.Import(dictCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments.ToArray()));
+                ctorIlActions.Add(il =>
+                {
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Newobj, dictCtorInstance);
+                    il.Emit(OpCodes.Stfld, backingField);
+                });
             }
         }
 
@@ -646,18 +708,25 @@ namespace Pomona.CodeGen
             setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
         }
 
-
         private TypeReference GetClientTypeReference(Type type)
         {
             TypeReference typeReference;
-            if (PomonaClientEmbeddingEnabled)
-            {
-                // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
-                typeReference = module.GetType(type.FullName);
-            }
-            else
-                typeReference = module.Import(type);
-            return typeReference;
+
+            return typeReferenceCache.GetOrCreate(type, () =>
+                {
+                    if (PomonaClientEmbeddingEnabled && type.Assembly == typeof (IPomonaClient).Assembly)
+                    {
+                        // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
+                        typeReference = module.GetType(type.FullName);
+                    }
+                    else
+                        typeReference = module.Import(type);
+
+                    if (typeReference == null)
+                        throw new InvalidOperationException("Did not expect to get null when resolving type.");
+
+                    return typeReference;
+                });
         }
 
 
