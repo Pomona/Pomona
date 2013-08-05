@@ -300,8 +300,13 @@ namespace Pomona
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
         }
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
+            if (ctorParameterInfo != null)
+            {
+                return PropertyCreateMode.Required;
+            }
+
             if (propertyInfo.PropertyType.IsCollection() ||
                 (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
             {

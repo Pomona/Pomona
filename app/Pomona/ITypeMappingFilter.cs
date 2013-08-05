@@ -89,7 +89,7 @@ namespace Pomona
         LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyIsEtag(PropertyInfo propertyInfo);
         string GetPluralNameForType(Type type);
-        PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo);
+        PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
         PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
     }
 }

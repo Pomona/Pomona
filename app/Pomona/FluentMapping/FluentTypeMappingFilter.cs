@@ -160,10 +160,10 @@ namespace Pomona.FluentMapping
             return FromMappingOrDefault(type, x => x.PluralName, () => wrappedFilter.GetPluralNameForType(type));
         }
 
-        public PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo)
+        public PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
             return FromMappingOrDefault(propertyInfo, x => x.CreateMode,
-                                        () => wrappedFilter.GetPropertyCreateMode(propertyInfo));
+                                        () => wrappedFilter.GetPropertyCreateMode(propertyInfo, ctorParameterInfo));
         }
 
         public PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)

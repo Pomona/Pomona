@@ -61,15 +61,16 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
-            var expected = CritterEntities.First(x => x.Id%3 == 0);
-            var lazyCritter = client.Query<ICritter>().Where(x => x.Id%3 == 0).FirstLazy();
+            DataSource.CreateRandomCritter(new Random());
+            var expected = CritterEntities.First(x => x.Id % 2 == 0);
+            var lazyCritter = client.Query<ICritter>().Where(x => x.Id%2 == 0).FirstLazy();
             var beforeLoadUri = ((IHasResourceUri) lazyCritter).Uri;
-            Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+3)+eq+0"));
+            Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+2)+eq+0"));
             Console.WriteLine(beforeLoadUri);
             // Should load uri when retrieving name
             var name = lazyCritter.Name;
             var afterLoadUri = ((IHasResourceUri) lazyCritter).Uri;
-            Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+3)+eq+0"));
+            Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+2)+eq+0"));
             Console.WriteLine(afterLoadUri);
             Assert.That(name, Is.EqualTo(expected.Name));
         }

@@ -37,7 +37,7 @@ namespace Pomona.Example.Models
 
         public ThingWithCustomIList()
         {
-            loners = new CustomListWrapper<Loner> {new Loner("Hooha", 387)};
+            loners = new CustomListWrapper<Loner> {new Loner("Hooha", 387, "lalala")};
         }
 
 

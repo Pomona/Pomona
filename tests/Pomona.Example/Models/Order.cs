@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,15 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pomona.Example.Models
 {
     public class Order : EntityBase
     {
-        public Order()
+        public Order(IEnumerable<OrderItem> items)
         {
-            Items = new List<OrderItem>();
+            Items = items.ToList();
         }
 
         public IList<OrderItem> Items { get; protected set; }

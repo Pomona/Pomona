@@ -382,9 +382,9 @@ namespace Pomona.Example
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var weapon =
                     rng.NextDouble() > 0.5
-                        ? Save(new Weapon(critter, weaponType) {Strength = rng.NextDouble()})
+                        ? Save(new Weapon(weaponType) {Strength = rng.NextDouble()})
                         : Save<Weapon>(
-                            new Gun(critter, weaponType)
+                            new Gun(weaponType)
                                 {
                                     Strength = rng.NextDouble(),
                                     ExplosionFactor = rng.NextDouble(),

@@ -54,7 +54,7 @@ namespace Pomona.SystemTests
         public void PatchCritter_AddNewFormToList()
         {
             var critter = new Critter();
-            critter.Weapons.Add(new Gun(critter, new WeaponModel {Name = "ExistingWeaponModel"}));
+            critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
             Save(critter);
 
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);

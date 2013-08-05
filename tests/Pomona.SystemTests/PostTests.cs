@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq;
@@ -73,18 +77,6 @@ namespace Pomona.SystemTests
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
-        }
-
-        [Test]
-        public void PostToReadOnlyAttributesProperty()
-        {
-            var o =
-                client.HasReadOnlyDictionaryProperties.Post(new HasReadOnlyDictionaryPropertyForm()
-                    {
-                        Map = {{"blah", "hah"}}
-                    });
-
-            Assert.That(o.Map["blah"], Is.EqualTo("hah"));
         }
 
         [Test]
@@ -198,7 +190,11 @@ namespace Pomona.SystemTests
         [Test]
         public void PostOrder_ReturnsOrderResponse()
         {
-            var response = client.Orders.Post(x => x.Description = "Blob");
+            var response = client.Orders.Post(x =>
+                {
+                    x.Description = "Blob";
+                    x.Items.Add(new OrderItemForm() {Name = "Lola"});
+                });
             Assert.That(response, Is.InstanceOf<IOrderResponse>());
             Assert.That(response.Order, Is.Not.Null);
             Assert.That(response.Order, Is.TypeOf<OrderResource>());
@@ -253,6 +249,18 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PostToReadOnlyAttributesProperty()
+        {
+            var o =
+                client.HasReadOnlyDictionaryProperties.Post(new HasReadOnlyDictionaryPropertyForm
+                    {
+                        Map = {{"blah", "hah"}}
+                    });
+
+            Assert.That(o.Map["blah"], Is.EqualTo("hah"));
+        }
+
+        [Test]
         public void PostUsingOverloadTakingFormObject()
         {
             const string critterName = "Lonely critter boy";
@@ -263,6 +271,31 @@ namespace Pomona.SystemTests
 
             var critterResource = client.Critters.Post(critterForm);
             Assert.That(critterResource.Name, Is.EqualTo(critterName));
+        }
+
+        [Test]
+        public void PostWeaponWithOptionalPropertyNotSet_DoesNotThrowException()
+        {
+            // Model is required, so an exception should be thrown.
+            Assert.That(() => client.Loners.Post(new LonerForm {Name = "blah", Strength = 123}), Throws.Nothing);
+        }
+
+        [Test]
+        public void PostWeaponWithRequiredPropertyNotSet_ThrowsException()
+        {
+            // Model is required, so an exception should be thrown.
+            var critter = client.Critters.Query().First();
+            Assert.That(() => client.Weapons.Post(new WeaponForm {}), Throws.Exception);
+        }
+
+
+        [Category("TODO")]
+        [Test(Description = "TODO: Must find out what kind of Exception we want to throw here.")]
+        public void PostWeaponWithoutModel_ThrowsSaneExceptionWithRelevantHttpStatusCode()
+        {
+            var critter = client.Critters.Query().First();
+            Assert.That(() => client.Weapons.Post(new WeaponForm { Model = null }), Throws.Exception);
+            Assert.Fail("TODO: Find out what kind of Exception we want to throw here.");
         }
     }
 }

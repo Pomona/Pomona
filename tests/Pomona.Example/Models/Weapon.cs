@@ -30,14 +30,12 @@ namespace Pomona.Example.Models
 {
     public class Weapon : EntityBase
     {
-        public Weapon(Critter critter, WeaponModel model)
+        public Weapon(WeaponModel model)
         {
-            Critter = critter;
             Model = model;
         }
 
 
-        public Critter Critter { get; set; }
         public WeaponModel Model { get; set; }
         public decimal Price { get; set; }
         public double Strength { get; set; }

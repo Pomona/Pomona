@@ -30,7 +30,7 @@ namespace Pomona.Example.Models
 {
     public class Knife : Weapon
     {
-        public Knife(Critter critter, WeaponModel model) : base(critter, model)
+        public Knife(WeaponModel model) : base(model)
         {
         }
 

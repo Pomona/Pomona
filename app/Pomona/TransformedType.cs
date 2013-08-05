@@ -211,21 +211,42 @@ namespace Pomona
         public object Create(IDictionary<IPropertyInfo, object> args)
         {
             var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
-            var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
-
-            var ctorArgs = new object[ConstructorInfo.GetParameters().Length];
+            //var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
+            var ctorParamCount = ConstructorInfo.GetParameters().Length;
+            var ctorArgs = new object[ctorParamCount];
+            var ctorDirtyMap = new bool[ctorParamCount];
+            var ctorArgDirtyCount = 0;
 
             foreach (var kvp in args)
             {
                 var propMapping = (PropertyMapping) kvp.Key;
-                if (propMapping.ConstructorArgIndex == -1)
+                var ctorArgIndex = propMapping.ConstructorArgIndex;
+
+                if (ctorArgIndex == -1)
                     propValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
                 else
-                    ctorValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
+                {
+                    ctorArgs[ctorArgIndex] = kvp.Value;
+                    ctorDirtyMap[ctorArgIndex] = true;
+                    ctorArgDirtyCount++;
+                }
             }
 
-            foreach (var kvp in ctorValues)
-                ctorArgs[kvp.Key.ConstructorArgIndex] = kvp.Value;
+            if (ctorArgDirtyCount < ctorParamCount)
+            {
+                // Set non-dirty ctor args to default value
+                for (var i = 0; i < ctorParamCount; i++)
+                {
+                    if (!ctorDirtyMap[i])
+                    {
+                        // Set to default value
+                        var prop = properties.First(x => x.ConstructorArgIndex == i);
+                        if (prop.CreateMode == PropertyCreateMode.Required)
+                            throw new InvalidOperationException(
+                                string.Format("Property {0} is required when creating resource {1}", prop.Name, Name));
+                    }
+                }
+            }
 
             var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
 
@@ -495,6 +516,11 @@ namespace Pomona
 
             var scannedProperties = GetPropertiesToScanOrderedByName(type).ToList();
 
+            // Find longest (most specific) public constructor
+            var constructor = typeMapper.Filter.GetTypeConstructor(type);
+            var ctorParams = constructor != null ? constructor.GetParameters() : null;
+            ConstructorInfo = constructor;
+
             foreach (var propInfo in scannedProperties)
             {
                 if (!filter.PropertyIsIncluded(propInfo))
@@ -521,8 +547,18 @@ namespace Pomona
                     PrimaryId = propDef;
                 propDef.IsAttributesProperty = filter.PropertyIsAttributes(propInfo);
 
+                ParameterInfo matchingCtorArg = null;
+                if (constructor != null)
+                {
+                    matchingCtorArg = ctorParams.FirstOrDefault(x => x.Name.ToLower() == propDef.LowerCaseName);
+                    if (matchingCtorArg != null)
+                    {
+                        propDef.ConstructorArgIndex = matchingCtorArg.Position;
+                    }
+                }
+
                 // TODO: Fix this for transformed properties with custom get/set methods.
-                propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal);
+                propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal, matchingCtorArg);
                 propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
 
                 propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
@@ -547,25 +583,6 @@ namespace Pomona
             if (exposedBaseType != null)
             {
                 BaseType = typeMapper.GetClassMapping(exposedBaseType);
-            }
-
-            // Find longest (most specific) public constructor
-            var constructor = typeMapper.Filter.GetTypeConstructor(type);
-            ConstructorInfo = constructor;
-
-            if (constructor != null)
-            {
-                // TODO: match constructor arguments
-                foreach (var ctorParam in constructor.GetParameters())
-                {
-                    var matchingProperty =
-                        properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name.ToLower());
-                    if (matchingProperty != null)
-                    {
-                        matchingProperty.CreateMode = PropertyCreateMode.Required;
-                        matchingProperty.ConstructorArgIndex = ctorParam.Position;
-                    }
-                }
             }
         }
 
