@@ -353,6 +353,13 @@ namespace Pomona.CodeGen
                 new CustomAttributeNamedArgument(
                     "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
 
+            if (typeInfo.BaseType != null)
+            {
+                custAttr.Properties.Add(
+                    new CustomAttributeNamedArgument(
+                        "BaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.BaseType)));
+            }
+
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
                     "IsValueObject",
@@ -471,12 +478,14 @@ namespace Pomona.CodeGen
                     baseCtorReference = baseTypeInfo.PocoType.GetConstructors().First(x => x.Parameters.Count == 0);
 
                     interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
+                    typeInfo.BaseType = baseTypeInfo.InterfaceType;
                 }
                 else
                 {
                     interfaceDef.Interfaces.Add(resourceInterfaceRef);
                     pocoDef.BaseType = resourceBaseRef;
                     baseCtorReference = resourceBaseCtor;
+                    typeInfo.BaseType = null;
                 }
 
                 if (type.UriBaseType != null)
@@ -893,6 +902,8 @@ namespace Pomona.CodeGen
 
             public TransformedType TransformedType { get; set; }
             public TypeDefinition UriBaseType { get; set; }
+
+            public TypeDefinition BaseType { get; set; }
         }
 
         #endregion

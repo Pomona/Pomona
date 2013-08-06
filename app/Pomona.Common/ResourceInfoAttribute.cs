@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq;
@@ -64,6 +68,7 @@ namespace Pomona.Common
         public Type PostFormType { get; set; }
         public Type PutFormType { get; set; }
         public Type UriBaseType { get; set; }
+        public Type BaseType { get; set; }
         public string UrlRelativePath { get; set; }
         public bool IsValueObject { get; set; }
 
