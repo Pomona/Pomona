@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq.Expressions;
@@ -155,7 +159,6 @@ namespace Pomona
 
         public Action<object, object> Setter { get; set; }
 
-
         public Expression CreateGetterExpression(Expression instance)
         {
             if (Formula == null)
@@ -163,6 +166,11 @@ namespace Pomona
 
             // TODO: Make some assertions here..
             return FindAndReplaceVisitor.Replace(Formula.Body, Formula.Parameters[0], instance);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1}::{2}", PropertyType, DeclaringType, Name);
         }
     }
 }

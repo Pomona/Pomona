@@ -172,6 +172,12 @@ namespace Pomona.FluentMapping
                                         () => wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 
+        public int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.ConstructorArgIndex,
+                                        () => wrappedFilter.GetPropertyConstructorArgIndex(propertyInfo));
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);

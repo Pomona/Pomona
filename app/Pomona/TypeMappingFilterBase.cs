@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -300,7 +304,8 @@ namespace Pomona
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
         }
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
+                                                                ParameterInfo ctorParameterInfo)
         {
             if (ctorParameterInfo != null)
             {
@@ -323,6 +328,11 @@ namespace Pomona
                 return PropertyAccessMode.ReadWrite;
             }
             return PropertyAccessMode.ReadOnly;
+        }
+
+        public int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        {
+            return null;
         }
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)

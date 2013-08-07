@@ -374,6 +374,15 @@ namespace Pomona
             return internalPropertyName;
         }
 
+        public override string ToString()
+        {
+            if (!IsGenericType)
+            {
+                return Name;
+            }
+
+            return string.Format("{0}<{1}>", Name, string.Join(",", GenericArguments));
+        }
 
         public Expression CreateExpressionForExternalPropertyPath(string externalPath)
         {
@@ -438,46 +447,6 @@ namespace Pomona
 
             // TODO: Possible to optimize here by putting property names in a dictionary
             return properties.First(x => x.Name == propertyName);
-        }
-
-
-        /// <summary>
-        /// Creates an newinstance of type that TransformedType targets
-        /// </summary>
-        /// <param name="initValues">Dictionary of initial values, prop names must be lowercased!</param>
-        /// <returns></returns>
-        public object NewInstance(IDictionary<string, object> initValues)
-        {
-            // Initvalues must be lowercased!
-            // HACK attack! This must probably be rethought..
-
-            var requiredCtorArgCount = ConstructorInfo.GetParameters().Count();
-            var ctorArgs = new object[requiredCtorArgCount];
-
-            foreach (
-                var ctorProp in
-                    properties.Where(
-                        x => x.CreateMode == PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
-            {
-                // TODO: Proper validation here!
-                var value = initValues[ctorProp.Name.ToLower()];
-
-                if (ctorProp.PropertyType.IsBasicWireType)
-                    value = Convert.ChangeType(value, ((SharedType) ctorProp.PropertyType).MappedType);
-
-                ctorArgs[ctorProp.ConstructorArgIndex] = value;
-            }
-
-            var newInstance = Activator.CreateInstance(mappedType, ctorArgs);
-
-            foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyCreateMode.Optional))
-            {
-                object propSetValue;
-                if (initValues.TryGetValue(optProp.Name.ToLower(), out propSetValue))
-                    optProp.Setter(newInstance, propSetValue);
-            }
-
-            return newInstance;
         }
 
 
@@ -550,10 +519,23 @@ namespace Pomona
                 ParameterInfo matchingCtorArg = null;
                 if (constructor != null)
                 {
-                    matchingCtorArg = ctorParams.FirstOrDefault(x => x.Name.ToLower() == propDef.LowerCaseName);
-                    if (matchingCtorArg != null)
+                    var constructorArgIndex = filter.GetPropertyConstructorArgIndex(propInfo);
+                    if (constructorArgIndex.HasValue)
                     {
-                        propDef.ConstructorArgIndex = matchingCtorArg.Position;
+                        matchingCtorArg = ctorParams.FirstOrDefault(x => x.Position == constructorArgIndex.Value);
+                        if (matchingCtorArg == null)
+                            throw new InvalidOperationException(
+                                string.Format("Unable to locate parameter with position {0} in ctor.",
+                                              constructorArgIndex.Value));
+                        propDef.ConstructorArgIndex = constructorArgIndex.Value;
+                    }
+                    else
+                    {
+                        matchingCtorArg = ctorParams.FirstOrDefault(x => x.Name.ToLower() == propDef.LowerCaseName);
+                        if (matchingCtorArg != null)
+                        {
+                            propDef.ConstructorArgIndex = matchingCtorArg.Position;
+                        }
                     }
                 }
 

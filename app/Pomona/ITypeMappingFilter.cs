@@ -91,5 +91,6 @@ namespace Pomona
         string GetPluralNameForType(Type type);
         PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
         PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
+        int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo);
     }
 }

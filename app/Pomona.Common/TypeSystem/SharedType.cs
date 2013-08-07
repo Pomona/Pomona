@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -268,6 +272,15 @@ namespace Pomona.Common.TypeSystem
             return properties;
         }
 
+        public override string ToString()
+        {
+            if (!IsGenericType)
+            {
+                return Name;
+            }
+
+            return string.Format("{0}<{1}>", Name, string.Join(",", GenericArguments));
+        }
 
         private void InitializeGenericArguments()
         {
