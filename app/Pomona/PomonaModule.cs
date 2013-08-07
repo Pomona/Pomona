@@ -32,6 +32,7 @@ using Nancy.Routing;
 using Pomona.CodeGen;
 using Pomona.Queries;
 using Pomona.Schemas;
+using Pomona.Common;
 
 namespace Pomona
 {
@@ -86,7 +87,7 @@ namespace Pomona
             foreach (var transformedType in this.typeMapper
                                                 .TransformedTypes
                                                 .Select(x => x.UriBaseType)
-                                                .Where(x => x != null && !x.IsValueType)
+                                                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous())
                                                 .Distinct())
             {
                 RegisterRoutesFor(transformedType);
