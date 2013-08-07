@@ -425,6 +425,12 @@ namespace Pomona.Common
             try
             {
                 response = webClient.Send(request);
+
+                if ((int)response.StatusCode >= 400)
+                {
+                    throw WebClientException.Create(request, response, null);
+                }
+
                 responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)

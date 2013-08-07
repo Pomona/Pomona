@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 
@@ -52,6 +56,8 @@ namespace Pomona.Common.Web
             var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
             switch (statusCode)
             {
+                case HttpStatusCode.NotFound:
+                    return new ResourceNotFoundException(request, response, innerException);
                 case HttpStatusCode.PreconditionFailed:
                     return new PreconditionFailedException(request, response, innerException);
                 default:

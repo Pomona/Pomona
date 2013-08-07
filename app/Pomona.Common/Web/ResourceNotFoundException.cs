@@ -30,10 +30,10 @@ using System;
 
 namespace Pomona.Common.Web
 {
-    public class PreconditionFailedException : WebClientException
+    public class ResourceNotFoundException : WebClientException
     {
-        public PreconditionFailedException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                           Exception innerException) : base(request, response, innerException)
+        public ResourceNotFoundException(WebClientRequestMessage request, WebClientResponseMessage response,
+                                         Exception innerException) : base(request, response, innerException)
         {
         }
     }

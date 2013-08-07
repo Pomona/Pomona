@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,9 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Nancy;
 using Nancy.ErrorHandling;
 
@@ -36,7 +41,7 @@ namespace Pomona
             {
                 HttpStatusCode.BadRequest,
                 HttpStatusCode.NotFound,
-                HttpStatusCode.PreconditionFailed, 
+                HttpStatusCode.PreconditionFailed,
                 HttpStatusCode.InternalServerError
             };
 
@@ -47,7 +52,7 @@ namespace Pomona
             object exceptionObject;
             context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject);
 
-            var exception = exceptionObject as Exception;
+            var exception = UnwrapException((Exception) exceptionObject);
 
             // We're not that interested in Nancys exception really
             if (exception is RequestExecutionException)
@@ -61,7 +66,7 @@ namespace Pomona
 
             if (exception is ResourcePreconditionFailedException)
             {
-                context.Response = new Response()
+                context.Response = new Response
                     {
                         StatusCode = HttpStatusCode.PreconditionFailed,
                         ContentType = "text/html"
@@ -99,6 +104,15 @@ namespace Pomona
         public bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
         {
             return _supportedStatusCodes.Any(s => s == statusCode);
+        }
+
+        private static Exception UnwrapException(Exception exception)
+        {
+            if (exception is TargetInvocationException || exception is RequestExecutionException)
+            {
+                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
+            }
+            return exception;
         }
 
         #endregion

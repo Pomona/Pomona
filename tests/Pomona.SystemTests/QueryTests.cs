@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -130,7 +134,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
-            var musicalCritter = (MusicalCritter)DataSource.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
+            var musicalCritter =
+                (MusicalCritter) DataSource.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
             var bandName = musicalCritter.BandName;
             var critters =
                 client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
@@ -143,6 +148,13 @@ namespace Pomona.SystemTests
             var musicalCritter = client.Query<IMusicalCritter>().Expand(x => x.Instrument).First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
+        }
+
+        [Test]
+        public void QueryNonExistingUrl_ThrowsResourceNotFoundException()
+        {
+            Assert.That(() => client.Get<Critter>(BaseUri + "critters/9999999"),
+                        Throws.TypeOf<Common.Web.ResourceNotFoundException>());
         }
 
         [Test]

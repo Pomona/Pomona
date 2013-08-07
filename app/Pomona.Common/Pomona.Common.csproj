@@ -142,6 +142,7 @@
     <Compile Include="Web\IHttpHeaders.cs" />
     <Compile Include="Web\IWebClient.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
+    <Compile Include="Web\ResourceNotFoundException.cs" />
     <Compile Include="Web\WebClientRequestMessage.cs" />
     <Compile Include="Web\WebClientResponseMessage.cs" />
     <Compile Include="Web\WebClientException.cs" />
