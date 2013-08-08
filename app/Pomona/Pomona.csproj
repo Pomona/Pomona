@@ -204,7 +204,6 @@
     <Compile Include="TransformedType.cs" />
     <Compile Include="ExpandPathsUtils.cs" />
     <Compile Include="MappingBase.cs" />
-    <Compile Include="ObjectWrapper.cs" />
     <Compile Include="ServerSerializationContext.cs" />
     <Compile Include="PropertyMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

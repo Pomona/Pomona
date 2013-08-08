@@ -126,10 +126,5 @@ namespace Pomona
                 return false;
             return propMapping.AlwaysExpand;
         }
-
-        public ObjectWrapper CreateWrapperFor(object target, string path, IMappedType expectedBaseType)
-        {
-            return new ObjectWrapper(target, path, this, expectedBaseType);
-        }
     }
 }
