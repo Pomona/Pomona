@@ -63,7 +63,7 @@
     <Compile Include="CritterFluentRules.cs" />
     <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />
-    <Compile Include="CritterDataSourceNew.cs" />
+    <Compile Include="CritterDataSource.cs" />
     <Compile Include="CritterPomonaConfiguration.cs" />
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />

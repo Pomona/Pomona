@@ -37,6 +37,8 @@ namespace Pomona.Example
             this.store = store;
         }
 
+        public PomonaModule Module { get; set; }
+
         public T GetById<T>(object id)
         {
             return store.GetById<T>(id);

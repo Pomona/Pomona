@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
 using System.Linq;
@@ -30,9 +34,9 @@ using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.Routing;
 using Pomona.CodeGen;
+using Pomona.Common;
 using Pomona.Queries;
 using Pomona.Schemas;
-using Pomona.Common;
 
 namespace Pomona
 {
@@ -71,6 +75,7 @@ namespace Pomona
 
 
             this.dataSource = dataSource;
+            dataSource.Module = this;
 
             this.typeMapper = typeMapper;
             this.container = container;
@@ -135,7 +140,7 @@ namespace Pomona
                     CurrentUser = Context.CurrentUser,
                     Request = innerRequest
                 };
-            
+
             var routeMatch = routeResolver.Resolve(innerContext);
             var route = routeMatch.Route;
             var dynamicDict = routeMatch.Parameters;

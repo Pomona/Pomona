@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,12 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common;
+#endregion
 
 namespace Pomona
 {
     public interface IPomonaDataSource
     {
+        /// <summary>
+        /// Current executing module.
+        /// This will be completely refactored later.
+        /// </summary>
+        PomonaModule Module { get; set; }
+
         T GetById<T>(object id);
         PomonaResponse Query(PomonaQuery query);
         object Post<T>(T newObject);
