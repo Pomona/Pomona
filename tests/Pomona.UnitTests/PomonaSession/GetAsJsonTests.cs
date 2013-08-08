@@ -57,14 +57,14 @@ namespace Pomona.UnitTests.PomonaSession
         private JObject SaveAndGetBackAsJson<T>(T entity, string expand = null)
             where T : EntityBase
         {
-            DataSource.Save(entity);
+            DataStore.Save(entity);
             return GetAsJson<T>(entity.Id, expand);
         }
 
 
         private JObject GetThingWithCustomListAsJson(string expand)
         {
-            var thing = DataSource.List<ThingWithCustomIList>().First();
+            var thing = DataStore.List<ThingWithCustomIList>().First();
             return GetAsJson<ThingWithCustomIList>(thing.Id, expand);
         }
 

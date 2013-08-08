@@ -105,7 +105,7 @@ namespace Pomona.SystemTests.Linq
                     SomethingExtra = "Hahahohohihi"
                 };
 
-            DataSource.Save<DictionaryContainer>(subtypedDictionaryContainer);
+            DataStore.Save<DictionaryContainer>(subtypedDictionaryContainer);
 
             // Post does not yet work on subtypes
             //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
@@ -134,7 +134,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
-            var dictContainer = DataSource.Save(new StringToObjectDictionaryContainer
+            var dictContainer = DataStore.Save(new StringToObjectDictionaryContainer
                 {
                     Map = {{"Text", "foobar"}, {"Number", 32}, {"Time", timeValue}}
                 });

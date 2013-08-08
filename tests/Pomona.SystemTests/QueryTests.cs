@@ -59,13 +59,13 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryClientSideInheritedResource_ReturnsCorrectResults()
         {
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booja"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "booja"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "hooha"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "halala"}}});
 
             var critters =
@@ -81,13 +81,13 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryDictionaryContainer_WhereAttributeContainsValueAndKey_ReturnsCorrectResults()
         {
-            var includedFirst = (DictionaryContainer) DataSource.Post(
+            var includedFirst = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booFirst"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "naaja"}}});
-            var includedSecond = (DictionaryContainer) DataSource.Post(
+            var includedSecond = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booAgain"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Other", "booAgain"}}});
 
             var results = TestQuery<IDictionaryContainer, DictionaryContainer>(
@@ -102,12 +102,12 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
         {
-            var matching = (DictionaryContainer) DataSource.Post(
+            var matching = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer
                     {
                         Map = new Dictionary<string, string> {{"fubu", "bar"}}
                     });
-            var notMatching = (DictionaryContainer) DataSource.Post(
+            var notMatching = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer
                     {
                         Map = new Dictionary<string, string> {{"fubu", "nope"}}
@@ -124,8 +124,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryHasCustomEnum_ReturnsCorrectItems()
         {
-            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tack});
-            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tick});
+            DataStore.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tack});
+            DataStore.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tick});
             TestQuery<IHasCustomEnum, HasCustomEnum>(
                 x => x.TheEnumValue == Critters.Client.CustomEnum.Tack, x => x.TheEnumValue == CustomEnum.Tack);
         }
@@ -135,7 +135,7 @@ namespace Pomona.SystemTests
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
             var musicalCritter =
-                (MusicalCritter) DataSource.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
+                (MusicalCritter) DataStore.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
             var bandName = musicalCritter.BandName;
             var critters =
                 client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
@@ -160,7 +160,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
         {
-            var entity = DataSource.Save(new StringToObjectDictionaryContainer {Map = {{"foo", 1234}, {"bar", "hoho"}}});
+            var entity = DataStore.Save(new StringToObjectDictionaryContainer {Map = {{"foo", 1234}, {"bar", "hoho"}}});
 
             var resource = client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
 

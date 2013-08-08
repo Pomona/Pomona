@@ -31,7 +31,7 @@ namespace Pomona.UnitTests.PomonaSession
 {
     public abstract class SessionTestsBase
     {
-        private CritterDataSource dataSource;
+        private CritterDataStore dataStore;
         private Critter firstCritter;
         private Pomona.PomonaSession session;
         private TypeMapper typeMapper;
@@ -48,7 +48,7 @@ namespace Pomona.UnitTests.PomonaSession
 
         public MusicalCritter MusicalCritter
         {
-            get { return dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
+            get { return dataStore.List<Critter>().OfType<MusicalCritter>().First(); }
         }
 
         public int MusicalCritterId
@@ -56,9 +56,9 @@ namespace Pomona.UnitTests.PomonaSession
             get { return MusicalCritter.Id; }
         }
 
-        protected CritterDataSource DataSource
+        protected CritterDataStore DataStore
         {
-            get { return dataSource; }
+            get { return dataStore; }
         }
 
         protected Pomona.PomonaSession Session
@@ -76,9 +76,9 @@ namespace Pomona.UnitTests.PomonaSession
         public void SetUp()
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            dataSource = new CritterDataSource(typeMapper);
-            session = new Pomona.PomonaSession(dataSource, typeMapper, new DummyUriResolver());
-            firstCritter = dataSource.List<Critter>().First();
+            dataStore = new CritterDataStore(typeMapper);
+            session = new Pomona.PomonaSession(new CritterDataSource(dataStore), typeMapper, new DummyUriResolver());
+            firstCritter = dataStore.List<Critter>().First();
         }
 
         private class DummyUriResolver : IPomonaUriResolver

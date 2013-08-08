@@ -61,7 +61,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
-            DataSource.CreateRandomCritter(new Random());
+            DataStore.CreateRandomCritter(new Random());
             var expected = CritterEntities.First(x => x.Id % 2 == 0);
             var lazyCritter = client.Query<ICritter>().Where(x => x.Id%2 == 0).FirstLazy();
             var beforeLoadUri = ((IHasResourceUri) lazyCritter).Uri;
@@ -78,7 +78,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_GetMaxId_ReturnsMaxId()
         {
-            var expected = DataSource.List<Critter>().Max(x => x.Id);
+            var expected = DataStore.List<Critter>().Max(x => x.Id);
             Assert.That(client.Critters.Query().Max(x => x.Id), Is.EqualTo(expected));
             Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
@@ -86,7 +86,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
         {
-            var expected = DataSource.List<Critter>().Min(x => x.Id);
+            var expected = DataStore.List<Critter>().Min(x => x.Id);
 
             Assert.That(client.Critters.Query().Min(x => x.Id), Is.EqualTo(expected));
             Assert.That(client.Critters.Query().Select(x => x.Id).Min(), Is.EqualTo(expected));
@@ -227,7 +227,7 @@ namespace Pomona.SystemTests.Linq
             // Result of below query not important..
             client.Critters.Query().Where(x => x.Id == 666).ToList();
 
-            var query = DataSource.QueryLog.Last();
+            var query = DataStore.QueryLog.Last();
             var binExpr = query.FilterExpression.Body as BinaryExpression;
             Assert.That(binExpr, Is.Not.Null);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.Equal));
@@ -290,7 +290,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
         {
-            var critter = DataSource.CreateRandomCritter();
+            var critter = DataStore.CreateRandomCritter();
             TestIntProperty = critter.Id;
             var result = client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
             Assert.That(result, Is.Not.Null);
@@ -394,7 +394,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
         {
             client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
-            var query = DataSource.QueryLog.Last();
+            var query = DataStore.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
@@ -424,7 +424,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithHandledGeneratedProperty_UsesPropertyFormula()
         {
             client.Critters.Query(x => x.HandledGeneratedProperty == 3).ToList();
-            var query = DataSource.QueryLog.Last();
+            var query = DataStore.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id%6) == 3;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
@@ -453,7 +453,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WriteOnlyProperty_IsNotReturned()
         {
-            var critter = DataSource.CreateRandomCritter();
+            var critter = DataStore.CreateRandomCritter();
             critter.Password = "HUSH";
             var jobject = client.Critters.Query().Where(x => x.Id == critter.Id).ToJson();
             var items = jobject.AssertHasPropertyWithArray("items");
@@ -470,7 +470,7 @@ namespace Pomona.SystemTests.Linq
         {
             for (var i = 1; i <= 8; i++)
             {
-                DataSource.Save(new StringToObjectDictionaryContainer {Map = {{"square", i*i}}});
+                DataStore.Save(new StringToObjectDictionaryContainer {Map = {{"square", i*i}}});
             }
 
             // Should get 36, 49 and 64

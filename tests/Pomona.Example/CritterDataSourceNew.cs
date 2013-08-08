@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,49 +26,35 @@
 
 #endregion
 
-using System;
-using Nancy.Hosting.Self;
-
 namespace Pomona.Example
 {
-    public class CritterHost
+    public class CritterDataSource : IPomonaDataSource
     {
-        private Uri baseUri;
-        private NancyHost host;
+        private readonly CritterDataStore store;
 
-
-        public CritterHost(Uri baseUri)
+        public CritterDataSource(CritterDataStore store)
         {
-            this.baseUri = baseUri;
+            this.store = store;
         }
 
-
-        public Uri BaseUri
+        public T GetById<T>(object id)
         {
-            get { return baseUri; }
+            return store.GetById<T>(id);
         }
 
-        public CritterDataStore DataSource { get; private set; }
-
-        public NancyHost Host
+        public PomonaResponse Query(PomonaQuery query)
         {
-            get { return host; }
+            return store.Query(query);
         }
 
-
-        public void Start()
+        public object Post<T>(T newObject)
         {
-            var bootstrapper = new CritterBootstrapper();
-            DataSource = bootstrapper.DataStore;
-            host = new NancyHost(baseUri, bootstrapper);
-            host.Start();
+            return store.Post(newObject);
         }
 
-
-        public void Stop()
+        public object Patch<T>(T updatedObject)
         {
-            host.Stop();
-            host = null;
+            return store.Patch(updatedObject);
         }
     }
 }

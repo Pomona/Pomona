@@ -30,20 +30,20 @@ namespace Pomona.Example
 {
     public class CritterBootstrapper : DefaultNancyBootstrapper
     {
-        private readonly CritterDataSource dataSource;
+        private readonly CritterDataStore dataStore;
 
         private readonly TypeMapper typeMapper;
 
 
-        public CritterBootstrapper(CritterDataSource dataSource = null)
+        public CritterBootstrapper(CritterDataStore dataSource = null)
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.dataSource = dataSource ?? new CritterDataSource(typeMapper);
+            this.dataStore = dataSource ?? new CritterDataStore(typeMapper);
         }
 
-        public CritterDataSource DataSource
+        public CritterDataStore DataStore
         {
-            get { return dataSource; }
+            get { return dataStore; }
         }
 
         public TypeMapper TypeMapper
@@ -60,7 +60,8 @@ namespace Pomona.Example
         {
             base.ConfigureApplicationContainer(container);
             container.Register<IServiceLocator>((c, no) => new TinyIoCServiceLocator(c));
-            container.Register(dataSource);
+            container.Register(dataStore);
+            container.Register<CritterDataSource>();
             container.Register(typeMapper);
         }
     }

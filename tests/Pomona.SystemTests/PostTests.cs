@@ -175,7 +175,7 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(DataSource.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
+            Assert.That(DataStore.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
         }
 
         [Test]
