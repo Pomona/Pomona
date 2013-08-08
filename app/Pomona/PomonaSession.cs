@@ -46,7 +46,6 @@ namespace Pomona
         private static readonly MethodInfo patchGenericMethod;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
-        private readonly ISerializer serializer;
         private readonly TypeMapper typeMapper;
         private readonly IPomonaUriResolver uriResolver;
 
@@ -68,7 +67,6 @@ namespace Pomona
         /// </summary>
         /// <param name="dataSource">Data source used for this session.</param>
         /// <param name="typeMapper">Typemapper for session.</param>
-        /// <param name="baseUriGetter"> </param>
         /// <param name="uriResolver"></param>
         public PomonaSession(IPomonaDataSource dataSource, TypeMapper typeMapper, IPomonaUriResolver uriResolver)
         {
@@ -79,7 +77,6 @@ namespace Pomona
             this.dataSource = dataSource;
             this.typeMapper = typeMapper;
             this.uriResolver = uriResolver;
-            serializer = typeMapper.SerializerFactory.GetSerialier();
             deserializer = typeMapper.SerializerFactory.GetDeserializer();
         }
 
