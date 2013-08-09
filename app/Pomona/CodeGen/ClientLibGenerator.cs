@@ -923,7 +923,7 @@ namespace Pomona.CodeGen
                     isPublic)
             {
                 this.owner = owner;
-                ProxyNameFormat = "{0}Update";
+                ProxyNameFormat = "{0}PatchForm";
             }
 
 
