@@ -26,7 +26,6 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
 
@@ -76,7 +75,7 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<Loner> map)
         {
-            map.Include(x => x.OptionalInfo, o => o.WithCreateMode(PropertyCreateMode.Optional));
+            map.ConstructedUsing((x, c) => new Loner(c.Optional(x.OptionalInfo), x.Strength, x.OptionalInfo));
         }
 
         public void Map(ITypeMappingConfigurator<Critter> map)

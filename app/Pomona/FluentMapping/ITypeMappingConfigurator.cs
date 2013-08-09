@@ -43,6 +43,10 @@ namespace Pomona.FluentMapping
             Expression<Func<TDeclaringType, TDeclaringType>> constructExpr);
 
 
+        ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+            Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> constructExpr);
+
+
         ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);
 
