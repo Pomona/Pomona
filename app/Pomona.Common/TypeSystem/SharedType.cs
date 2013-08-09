@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -46,6 +47,8 @@ namespace Pomona.Common.TypeSystem
                 typeof (bool), typeof (decimal), typeof (DateTime), typeof (Uri)
             };
 
+        private static readonly Lazy<StringEnumConverter> stringEnumConverter = new Lazy<StringEnumConverter>();
+
         private readonly bool isCollection;
         private readonly bool isDictionary;
 
@@ -54,7 +57,6 @@ namespace Pomona.Common.TypeSystem
         private readonly ITypeMapper typeMapper;
 
         private IList<IPropertyInfo> properties;
-
 
         public SharedType(Type mappedTypeInstance, ITypeMapper typeMapper)
         {
@@ -92,6 +94,9 @@ namespace Pomona.Common.TypeSystem
                 SerializationMode = TypeSerializationMode.Value;
 
             GenericArguments = new List<IMappedType>();
+
+            if (mappedTypeInstance.IsEnum)
+                JsonConverter = stringEnumConverter.Value;
 
             InitializeGenericArguments();
         }

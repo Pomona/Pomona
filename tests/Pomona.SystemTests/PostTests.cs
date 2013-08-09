@@ -193,12 +193,19 @@ namespace Pomona.SystemTests
             var response = client.Orders.Post(x =>
                 {
                     x.Description = "Blob";
-                    x.Items.Add(new OrderItemForm() {Name = "Lola"});
+                    x.Items.Add(new OrderItemForm {Name = "Lola"});
                 });
             Assert.That(response, Is.InstanceOf<IOrderResponse>());
             Assert.That(response.Order, Is.Not.Null);
             Assert.That(response.Order, Is.TypeOf<OrderResource>());
             Assert.That(response.Order.Description, Is.EqualTo("Blob"));
+        }
+
+        [Test]
+        public void PostResourceWithEnum()
+        {
+            var hasCustomEnum = client.HasCustomEnums.Post(x => x.TheEnumValue = CustomEnum.Tock);
+            Assert.That(hasCustomEnum, Is.EqualTo(hasCustomEnum));
         }
 
         [Test]
@@ -294,7 +301,7 @@ namespace Pomona.SystemTests
         public void PostWeaponWithoutModel_ThrowsSaneExceptionWithRelevantHttpStatusCode()
         {
             var critter = client.Critters.Query().First();
-            Assert.That(() => client.Weapons.Post(new WeaponForm { Model = null }), Throws.Exception);
+            Assert.That(() => client.Weapons.Post(new WeaponForm {Model = null}), Throws.Exception);
             Assert.Fail("TODO: Find out what kind of Exception we want to throw here.");
         }
     }
