@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,14 +22,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
+using Nancy.Responses;
+using Nancy.Responses.Negotiation;
 using Nancy.Routing;
 using Pomona.CodeGen;
 using Pomona.Common;
@@ -42,6 +41,7 @@ namespace Pomona
 {
     public abstract class PomonaModule : NancyModule, IPomonaUriResolver
     {
+        private const string ResourceContentsPrefix = "Pomona.Content.";
         private readonly IServiceLocator container;
         private readonly IPomonaDataSource dataSource;
         private readonly IHttpQueryTransformer queryTransformer;
@@ -102,7 +102,10 @@ namespace Pomona
 
             Get[string.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName())] = x => GetClientLibrary();
 
+
             RegisterClientNugetPackageRoute();
+
+            Before += RedirectToSpaJsonBrowser;
 
             Get["/"] = x => GetJsonBrowserHtmlResponse();
             RegisterResourceContent("antlr3-all-min.js");
@@ -111,6 +114,8 @@ namespace Pomona
             RegisterResourceContent("PomonaQueryJsParser.js");
             RegisterResourceContent("QueryEditor.css");
             RegisterResourceContent("QueryEditor.js");
+
+            RegisterAllContent();
         }
 
 
@@ -160,6 +165,84 @@ namespace Pomona
             return string.Format("{0}{1}", GetBaseUri(), path);
         }
 
+        private Response RedirectToSpaJsonBrowser(NancyContext ctx)
+        {
+            var request = ctx.Request;
+
+            if (request.Path == "/schemas")
+                return null;
+
+            if (request.Path.EndsWith(".nupkg"))
+                return null;
+
+            if (request.Path.StartsWith("/_static"))
+                return null;
+
+            if (!request.Headers.Accept.Where(x => x.Item2 == 1m).Any(x => ((MediaRange) x.Item1).Matches("text/html")))
+            {
+                return null;
+            }
+
+            var response = GetStaticContent("index.html");
+
+            var innerContents = response.Contents;
+            response.Contents = targetStream =>
+                {
+                    using (var memStream = new MemoryStream())
+                    {
+                        innerContents(memStream);
+                        var stringContent = Encoding.UTF8.GetString(memStream.ToArray());
+                        stringContent = stringContent.Replace("@@BASEPATH@@", request.Url.BasePath);
+                        stringContent = stringContent.Replace("@@SCHEMAS@@", GetSchemasAsString());
+                        byte[] buffer = Encoding.UTF8.GetBytes(stringContent);
+                        targetStream.Write(buffer, 0, buffer.Length);
+                    }
+                };
+            return response;
+        }
+
+        private void RegisterAllContent()
+        {
+            Get["/_static/{subpath*}"] = x =>
+                {
+                    var subpath = (string) x.subpath;
+                    return GetStaticContent(subpath);
+                };
+        }
+
+
+        private Response GetStaticContent(string subpath)
+        {
+            var rootPath = container.GetInstance<IRootPathProvider>().GetRootPath();
+            var contentType = MimeTypes.GetMimeType(subpath);
+
+            var fsFilePath = Path.Combine(Path.Combine(rootPath, "_static"), subpath);
+            if (File.Exists(fsFilePath))
+            {
+                return new GenericFileResponse(fsFilePath, Context);
+            }
+
+            var resourceName = ResourceContentsPrefix + subpath;
+            var resourceInfo =
+                Assembly.GetExecutingAssembly().GetManifestResourceInfo(resourceName);
+            if (resourceInfo == null)
+                throw new ResourceNotFoundException();
+
+            return new Response
+                {
+                    Contents = s =>
+                        {
+                            var resource =
+                                Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+                            if (resource == null)
+                                throw new InvalidOperationException(
+                                    "Unable to get strem for embdedded resource.");
+                            resource.CopyTo(s);
+                        },
+                    ContentType = contentType
+                };
+        }
+
         private void RegisterResourceContent(string name)
         {
             var mediaType = "text/html";
@@ -168,7 +251,7 @@ namespace Pomona
             if (name.EndsWith(".css"))
                 mediaType = "text/css";
 
-            var resourceName = "Pomona.Content." + name;
+            var resourceName = ResourceContentsPrefix + name;
             Get["/" + name] = x =>
                               Response.FromStream(
                                   () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
@@ -281,11 +364,16 @@ namespace Pomona
         {
             var res = new Response();
 
-            var schemas = new SchemaGenerator(typeMapper).Generate().ToJson();
+            var schemas = GetSchemasAsString();
             res.ContentsFromString(schemas);
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
+        }
+
+        private string GetSchemasAsString()
+        {
+            return new SchemaGenerator(typeMapper).Generate().ToJson();
         }
 
 
