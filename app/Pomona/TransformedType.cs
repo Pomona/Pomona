@@ -32,6 +32,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
@@ -468,9 +469,10 @@ namespace Pomona
 
         private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
         {
+            var propBaseDefinition = propertyInfo.GetBaseDefinition();
             var reflectedType = propertyInfo.ReflectedType;
 
-            while (reflectedType.BaseType != null && reflectedType != propertyInfo.DeclaringType &&
+            while (reflectedType.BaseType != null && reflectedType != propBaseDefinition.DeclaringType &&
                    typeMapper.SourceTypes.Contains(reflectedType.BaseType))
             {
                 reflectedType = reflectedType.BaseType;

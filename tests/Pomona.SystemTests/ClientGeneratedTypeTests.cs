@@ -65,6 +65,15 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PropertyGeneratedFromInheritedVirtualProperty_IsNotDuplicatedOnInheritedInterface()
+        {
+            Assert.That(typeof (IAbstractAnimal).GetProperty("TheVirtualProperty"), Is.Not.Null);
+            Assert.That(typeof (IBear).GetProperty("TheVirtualProperty"), Is.EqualTo(null));
+            Assert.That(typeof (IAbstractAnimal).GetProperty("TheAbstractProperty"), Is.Not.Null);
+            Assert.That(typeof (IBear).GetProperty("TheAbstractProperty"), Is.EqualTo(null));
+        }
+
+        [Test]
         public void ThingIndependentFromBase_DoesNotInheritEntityBase()
         {
             Assert.That(!typeof (IEntityBase).IsAssignableFrom(typeof (IThingIndependentFromBase)));

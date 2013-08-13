@@ -68,6 +68,8 @@
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="Models\AbstractAnimal.cs" />
+    <Compile Include="Models\Cat.cs" />
     <Compile Include="Models\ColorfulThing.cs" />
     <Compile Include="Models\CrazyValueObject.cs" />
     <Compile Include="Models\Critter.cs" />

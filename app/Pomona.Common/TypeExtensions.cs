@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +46,20 @@ namespace Pomona.Common
             where TAttribute : Attribute
         {
             return member.GetCustomAttributes(typeof (TAttribute), inherit).Any();
+        }
+
+        public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
+        {
+            var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);
+            if (method == null)
+                return propertyInfo.NormalizeReflectedType();
+
+            var baseMethod = method.GetBaseDefinition();
+            if (method == baseMethod)
+                return propertyInfo;
+            return baseMethod.DeclaringType.GetProperty(propertyInfo.Name,
+                                                        BindingFlags.Instance | BindingFlags.NonPublic |
+                                                        BindingFlags.Public);
         }
 
         /// <summary>
