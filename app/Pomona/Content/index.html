@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ember Starter Kit</title>
+  <link rel="stylesheet" href="@@BASEPATH@@/_static/css/normalize.css">
+  <link rel="stylesheet" href="@@BASEPATH@@/_static/css/style.css">
+</head>
+<body>
+
+<script type="text/x-handlebars">
+  {{outlet}}
+</script>
+
+<script type="text/x-handlebars" id="special">
+  <h1>The special</h1>
+  {{totalCount}}
+  <ul>
+  {{#each items}}
+    <li>{{_uri}}</li>
+  {{/each}}
+  </ul>
+  {{duty}}
+</script>
+
+<script type="text/x-handlebars" id="index">
+  <h1>People</h1>
+
+  <ul>
+  {{#each model}}
+    <li>Hello, <b>{{fullName}}</b>!</li>
+  {{/each}}
+  </ul>
+</script>
+  <script>
+    var PomonaSchemas = @@SCHEMAS@@;
+  </script>
+  <script src="@@BASEPATH@@/_static/js/libs/jquery-1.9.1.js"></script>
+  <script src="@@BASEPATH@@/_static/js/libs/handlebars-1.0.0-rc.4.js"></script>
+  <script src="@@BASEPATH@@/_static/js/libs/ember-1.0.0-rc.6.1.js"></script>
+  <script src="@@BASEPATH@@/_static/js/app.js"></script>
+
+</body>
+</html>
