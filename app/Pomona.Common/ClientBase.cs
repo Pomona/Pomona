@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections;
@@ -334,7 +338,8 @@ namespace Pomona.Common
             }
 
             // Post the json!
-            var response = UploadToUri(uri, form, typeMapper.GetClassMapping(expectedBaseType), httpMethod, modifyRequestHandler);
+            var response = SendHttpRequest(uri, httpMethod, form, typeMapper.GetClassMapping(expectedBaseType),
+                                           modifyRequestHandler);
 
             return Deserialize(response, null);
         }
@@ -415,35 +420,7 @@ namespace Pomona.Common
 
         private string DownloadFromUri(string uri)
         {
-            // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            webClient.Headers.Add("Accept", "application/json");
-            var request = new WebClientRequestMessage(uri, null, "GET");
-            WebClientResponseMessage response = null;
-
-            string responseString = null;
-            Exception thrownException = null;
-            try
-            {
-                response = webClient.Send(request);
-
-                if ((int)response.StatusCode >= 400)
-                {
-                    throw WebClientException.Create(request, response, null);
-                }
-
-                responseString = Encoding.UTF8.GetString(response.Data);
-            }
-            catch (Exception ex)
-            {
-                thrownException = ex;
-                throw;
-            }
-            finally
-            {
-                RaiseRequestCompleted(request, response, thrownException);
-            }
-
-            return responseString;
+            return SendHttpRequest(uri, "GET");
         }
 
 
@@ -484,15 +461,18 @@ namespace Pomona.Common
             return stringWriter.ToString();
         }
 
-        private string UploadToUri(string uri, object obj, IMappedType expectedBaseType, string httpMethod,
-                                   Action<WebClientRequestMessage> modifyRequestHandler = null)
+        private string SendHttpRequest(string uri, string httpMethod, object requestBodyEntity = null,
+                                       IMappedType requestBodyBaseType = null,
+                                       Action<WebClientRequestMessage> modifyRequestHandler = null)
         {
-            var requestString = Serialize(obj, expectedBaseType);
-
-            var requestBytes = Encoding.UTF8.GetBytes(requestString);
+            byte[] requestBytes = null;
             WebClientResponseMessage response = null;
-            WebClientRequestMessage request;
-            request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
+            if (requestBodyEntity != null)
+            {
+                var requestString = Serialize(requestBodyEntity, requestBodyBaseType);
+                requestBytes = Encoding.UTF8.GetBytes(requestString);
+            }
+            var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
             webClient.Headers.Add("Accept", "application/json");
 
