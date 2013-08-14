@@ -30,10 +30,25 @@ using System;
 
 namespace Pomona.Common.Web
 {
+    public class ResourceNotFoundException<TBody> : ResourceNotFoundException, IWebClientException<TBody>
+    {
+        public ResourceNotFoundException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
+                                         Exception innerException)
+            : base(request, response, body, innerException)
+        {
+        }
+
+        public new TBody Body
+        {
+            get { return (TBody) base.Body; }
+        }
+    }
+
     public class ResourceNotFoundException : WebClientException
     {
         public ResourceNotFoundException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception innerException) : base(request, response, innerException)
+                                         object body, Exception innerException)
+            : base(request, response, body, innerException)
         {
         }
     }

@@ -63,16 +63,13 @@ namespace Pomona
         public virtual Response Process(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
             var pomonaResponse = (PomonaResponse) model;
-            var pq = pomonaResponse.Query;
-
             string jsonString;
-            var resultType = pq.ResultType;
 
             using (var strWriter = new StringWriter())
             {
-                var serializationContext = new ServerSerializationContext(pq.ExpandedPaths, false,
+                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,
                                                                           pomonaResponse.Session);
-                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, resultType);
+                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pomonaResponse.ResultType);
                 jsonString = strWriter.ToString();
             }
 
@@ -97,7 +94,7 @@ namespace Pomona
 
 
                 // Add etag header
-                var transformedResultType = resultType as TransformedType;
+                var transformedResultType = pomonaResponse.ResultType as TransformedType;
                 if (transformedResultType != null)
                 {
                     var etagProperty = transformedResultType.ETagProperty;

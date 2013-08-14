@@ -484,12 +484,22 @@ namespace Pomona.Common
                     modifyRequestHandler(request);
 
                 response = webClient.Send(request);
+                responseString = (response.Data != null && response.Data.Length > 0)
+                                     ? Encoding.UTF8.GetString(response.Data)
+                                     : null;
 
                 if ((int) response.StatusCode >= 400)
                 {
-                    throw WebClientException.Create(request, response, null);
+                    var gotJsonResponseBody = responseString != null &&
+                                              response.Headers.GetValues("Content-Type")
+                                                      .Any(x => x.StartsWith("application/json"));
+
+                    var responseObject = gotJsonResponseBody
+                                             ? Deserialize(responseString, typeof (object))
+                                             : null;
+
+                    throw WebClientException.Create(this, request, response, responseObject, null);
                 }
-                responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
             {

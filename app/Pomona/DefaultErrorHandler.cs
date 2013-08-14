@@ -35,7 +35,7 @@ using Nancy.ErrorHandling;
 
 namespace Pomona
 {
-    public class ErrorHandler : IStatusCodeHandler
+    public class DefaultErrorHandler : IStatusCodeHandler
     {
         private readonly HttpStatusCode[] _supportedStatusCodes = new[]
             {
@@ -47,7 +47,7 @@ namespace Pomona
 
         #region IErrorHandler Members
 
-        public void Handle(HttpStatusCode statusCode, NancyContext context)
+        public virtual void Handle(HttpStatusCode statusCode, NancyContext context)
         {
             object exceptionObject;
             context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject);
@@ -101,12 +101,12 @@ namespace Pomona
         }
 
 
-        public bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
+        public virtual bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
         {
             return _supportedStatusCodes.Any(s => s == statusCode);
         }
 
-        private static Exception UnwrapException(Exception exception)
+        protected virtual Exception UnwrapException(Exception exception)
         {
             if (exception is TargetInvocationException || exception is RequestExecutionException)
             {

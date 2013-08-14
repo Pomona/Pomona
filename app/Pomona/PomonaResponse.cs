@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,17 +24,34 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using Nancy;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
     public class PomonaResponse
     {
         private readonly object entity;
+        private readonly string expandedPaths;
         private readonly PomonaQuery query;
+        private readonly IMappedType resultType;
         private readonly PomonaSession session;
         private readonly HttpStatusCode statusCode;
+
+        public PomonaResponse(object entity, PomonaSession session, HttpStatusCode statusCode = HttpStatusCode.OK,
+                              string expandedPaths = "",
+                              IMappedType resultType = null)
+        {
+            if (session == null) throw new ArgumentNullException("session");
+            this.entity = entity;
+            this.session = session;
+            this.statusCode = statusCode;
+            this.expandedPaths = expandedPaths;
+            this.resultType = resultType;
+        }
 
         public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
             : this(query, entity, session, HttpStatusCode.OK)
@@ -47,11 +66,18 @@ namespace Pomona
             this.entity = entity;
             this.session = session;
             this.statusCode = statusCode;
+            expandedPaths = query.ExpandedPaths;
+            resultType = query.ResultType;
         }
 
-        public PomonaQuery Query
+        public IMappedType ResultType
         {
-            get { return query; }
+            get { return resultType; }
+        }
+
+        public string ExpandedPaths
+        {
+            get { return expandedPaths; }
         }
 
         public object Entity

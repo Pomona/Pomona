@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
 using System.Linq;
@@ -31,7 +35,6 @@ using Pomona.CodeGen;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
-using ISerializer = Pomona.Common.Serialization.ISerializer;
 
 namespace Pomona
 {
@@ -91,9 +94,7 @@ namespace Pomona
         {
             var o = GetById(transformedType, id);
             return
-                new PomonaResponse(
-                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = transformedType}, o,
-                    this);
+                new PomonaResponse(o, this, expandedPaths: expand, resultType: transformedType);
         }
 
         internal object GetResultByUri(string uri)
@@ -117,10 +118,7 @@ namespace Pomona
             var propertyType = property.PropertyType;
 
             return
-                new PomonaResponse(
-                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = propertyType},
-                    propertyValue,
-                    this);
+                new PomonaResponse(propertyValue, this, expandedPaths: expand, resultType: propertyType);
         }
 
 
@@ -163,9 +161,7 @@ namespace Pomona
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
 
-            return new PomonaResponse(new PomonaQuery(transformedType, this) {ExpandedPaths = string.Empty},
-                                      postResponse,
-                                      this, successStatusCode);
+            return new PomonaResponse(postResponse, this, successStatusCode);
         }
 
         public PomonaResponse Query(PomonaQuery query)

@@ -73,7 +73,6 @@ namespace Pomona
                     return null;
                 };
 
-
             this.dataSource = dataSource;
             dataSource.Module = this;
 
@@ -315,6 +314,11 @@ namespace Pomona
             return "/";
         }
 
+        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, dynamic> handler)
+        {
+            routeBuilder[path] = handler;
+        }
+
         private void RegisterRoutesFor(TransformedType type)
         {
             var appVirtualPath = GetAppVirtualPath();
@@ -326,7 +330,7 @@ namespace Pomona
             htmlLinks = htmlLinks
                         + string.Format("<li><a href=\"{0}\">{1}</a></li>", absLinkPath, type.Name);
 
-            Get[path + "/{id}"] = x => GetAsJson(type, x.id);
+            Register(Get, path + "/{id}", x => GetAsJson(type, x.id));
 
             foreach (var prop in type.Properties)
             {
@@ -337,25 +341,27 @@ namespace Pomona
                     var collectionElementType = (TransformedType) prop.PropertyType.ElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;
 
-                    Get[path + "/{id}/" + prop.JsonName] =
-                        x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id);
+                    Register(Get, path + "/{id}/" + prop.JsonName,
+                             x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
 
                     var propname = prop.Name;
-                    Get[path + "/{id}/_old_" + prop.JsonName] = x => GetPropertyFromEntityAsJson(type, x.id, propname);
+                    Register(Get, path + "/{id}/_old_" + prop.JsonName, x => GetPropertyFromEntityAsJson(type, x.id, propname));
                 }
                 else
                 {
                     var propname = prop.Name;
-                    Get[path + "/{id}/" + prop.JsonName] = x => GetPropertyFromEntityAsJson(type, x.id, propname);
+                    Register(Get, path + "/{id}/" + prop.JsonName,
+                             x => GetPropertyFromEntityAsJson(type, x.id, propname));
                 }
             }
 
-            Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson(type, x.id, x.propname);
+            Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
 
-            Patch[path + "/{id}"] = x => UpdateFromJson(type, x.id);
-            Post[path] = x => PostFromJson(type);
+            Register(Patch, path + "/{id}", x => UpdateFromJson(type, x.id));
 
-            Get[path] = x => Query(type);
+            Register(Post, path, x => PostFromJson(type));
+
+            Register(Get, path, x => Query(type));
         }
 
 

@@ -30,12 +30,10 @@ using System;
 
 namespace Pomona.Common.Web
 {
-    public class PreconditionFailedException<TBody> : PreconditionFailedException, IWebClientException<TBody>
+    public class BadRequestException<TBody> : BadRequestException, IWebClientException<TBody>
     {
-        public PreconditionFailedException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                           object body,
-                                           Exception innerException)
-            : base(request, response, body, innerException)
+        public BadRequestException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
+                                   Exception innerException) : base(request, response, body, innerException)
         {
         }
 
@@ -45,11 +43,10 @@ namespace Pomona.Common.Web
         }
     }
 
-    public class PreconditionFailedException : WebClientException
+    public class BadRequestException : WebClientException
     {
-        public PreconditionFailedException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                           object body,
-                                           Exception innerException) : base(request, response, body, innerException)
+        public BadRequestException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
+                                   Exception innerException) : base(request, response, body, innerException)
         {
         }
     }

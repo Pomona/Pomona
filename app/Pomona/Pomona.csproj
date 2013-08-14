@@ -152,7 +152,7 @@
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NoCloseStreamWriter.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
-    <Compile Include="ErrorHandler.cs" />
+    <Compile Include="DefaultErrorHandler.cs" />
     <Compile Include="PomonaCsvResponseProcessor.cs" />
     <Compile Include="PomonaException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />

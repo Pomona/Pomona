@@ -26,31 +26,11 @@
 
 #endregion
 
-using System;
-
 namespace Pomona.Common.Web
 {
-    public class PreconditionFailedException<TBody> : PreconditionFailedException, IWebClientException<TBody>
+    public interface IWebClientException<out TBody>
     {
-        public PreconditionFailedException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                           object body,
-                                           Exception innerException)
-            : base(request, response, body, innerException)
-        {
-        }
-
-        public new TBody Body
-        {
-            get { return (TBody) base.Body; }
-        }
-    }
-
-    public class PreconditionFailedException : WebClientException
-    {
-        public PreconditionFailedException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                           object body,
-                                           Exception innerException) : base(request, response, body, innerException)
-        {
-        }
+        string Message { get; }
+        TBody Body { get; }
     }
 }
