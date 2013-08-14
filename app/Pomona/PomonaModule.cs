@@ -345,7 +345,8 @@ namespace Pomona
                              x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
 
                     var propname = prop.Name;
-                    Register(Get, path + "/{id}/_old_" + prop.JsonName, x => GetPropertyFromEntityAsJson(type, x.id, propname));
+                    Register(Get, path + "/{id}/_old_" + prop.JsonName,
+                             x => GetPropertyFromEntityAsJson(type, x.id, propname));
                 }
                 else
                 {
