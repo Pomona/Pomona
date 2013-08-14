@@ -26,46 +26,27 @@
 
 #endregion
 
-using Nancy.Validation;
-using Pomona.Example.Models;
-
-namespace Pomona.Example
+namespace Pomona.Example.Models
 {
-    public class CritterDataSource : IPomonaDataSource
+    public class ErrorStatus
     {
-        private readonly CritterDataStore store;
+        private readonly int errorCode;
+        private readonly string message;
 
-        public CritterDataSource(CritterDataStore store)
+        public ErrorStatus(string message, int errorCode)
         {
-            this.store = store;
+            this.message = message;
+            this.errorCode = errorCode;
         }
 
-        public PomonaModule Module { get; set; }
-
-        public T GetById<T>(object id)
+        public string Message
         {
-            return store.GetById<T>(id);
+            get { return message; }
         }
 
-        public PomonaResponse Query(PomonaQuery query)
+        public int ErrorCode
         {
-            return store.Query(query);
-        }
-
-        public object Post<T>(T newObject)
-        {
-            var newCritter = newObject as Critter;
-            if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
-            {
-                throw new ModelValidationException("Critter can't have name longer than 50 characters.");
-            }
-
-            return store.Post(newObject);
-        }
-
-        public object Patch<T>(T updatedObject)
-        {
-            return store.Patch(updatedObject);
+            get { return errorCode; }
         }
     }
 }

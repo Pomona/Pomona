@@ -55,11 +55,6 @@ namespace Pomona
             get { return debugMode; }
         }
 
-        public PomonaSession Session
-        {
-            get { return session; }
-        }
-
         public TypeMapper TypeMapper
         {
             get { return typeMapper; }

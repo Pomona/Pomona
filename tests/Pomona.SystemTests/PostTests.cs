@@ -31,6 +31,7 @@ using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
+using Pomona.Common.Web;
 using Pomona.Example.Models;
 using CustomEnum = Critters.Client.CustomEnum;
 
@@ -96,6 +97,15 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
+        [Test]
+        public void PostCritterWithNameTooLong_ThrowsExceptionWithErrorStatus()
+        {
+            var form = new CritterForm() {Name = string.Join(" ", Enumerable.Repeat("John", 50))};
+            var exception = Assert.Throws<BadRequestException<IErrorStatus>>(() => client.Critters.Post(form));
+            Assert.That(exception.Body, Is.Not.Null);
+            Assert.That(exception.Body.Message, Is.EqualTo("Critter can't have name longer than 50 characters."));
+            Assert.That(exception.Body.ErrorCode, Is.EqualTo(1337));
+        }
 
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()

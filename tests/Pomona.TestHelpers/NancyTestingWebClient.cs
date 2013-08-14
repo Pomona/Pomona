@@ -93,15 +93,20 @@ namespace Pomona.TestHelpers
                     }
                 });
 
+            var responseHeaders = new HttpHeaders(
+                browserResponse
+                .Headers
+                .Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value.WrapAsEnumerable())));
+
+            if (browserResponse.Context.Response != null &&
+                (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
+            {
+                responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
+            }
+
             return new WebClientResponseMessage(request.Uri, browserResponse.Body.ToArray(),
                                                 (HttpStatusCode) browserResponse.StatusCode,
-                                                new HttpHeaders(
-                                                    browserResponse.Headers.Select(
-                                                        x =>
-                                                        new KeyValuePair<string, IEnumerable<string>>(x.Key,
-                                                                                                      x.Value
-                                                                                                       .WrapAsEnumerable
-                                                                                                          ()))),
+                                                responseHeaders,
                                                 "1.1");
         }
     }

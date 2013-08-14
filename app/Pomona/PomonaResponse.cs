@@ -34,6 +34,8 @@ namespace Pomona
 {
     public class PomonaResponse
     {
+        internal static readonly object NoBodyEntity = new object();
+
         private readonly object entity;
         private readonly string expandedPaths;
         private readonly PomonaQuery query;

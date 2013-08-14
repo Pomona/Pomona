@@ -22,7 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using Microsoft.Practices.ServiceLocation;
+using Nancy;
+using Nancy.Validation;
+using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
@@ -37,6 +41,16 @@ namespace Pomona.Example
         public CritterDataSource CritterDataSource
         {
             get { return (CritterDataSource) DataSource; }
+        }
+
+        protected override PomonaError OnException(Exception exception)
+        {
+            if (exception is ModelValidationException)
+            {
+                return new PomonaError(HttpStatusCode.BadRequest, new ErrorStatus(exception.Message, 1337));
+            }
+
+            return base.OnException(exception);
         }
     }
 }

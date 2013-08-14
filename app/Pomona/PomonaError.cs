@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,46 +26,33 @@
 
 #endregion
 
-using Nancy.Validation;
-using Pomona.Example.Models;
+using Nancy;
 
-namespace Pomona.Example
+namespace Pomona
 {
-    public class CritterDataSource : IPomonaDataSource
+    public class PomonaError
     {
-        private readonly CritterDataStore store;
+        private readonly object entity;
+        private readonly HttpStatusCode statusCode;
 
-        public CritterDataSource(CritterDataStore store)
+        public PomonaError(HttpStatusCode statusCode) : this(statusCode, null)
         {
-            this.store = store;
         }
 
-        public PomonaModule Module { get; set; }
-
-        public T GetById<T>(object id)
+        public PomonaError(HttpStatusCode statusCode, object entity)
         {
-            return store.GetById<T>(id);
+            this.statusCode = statusCode;
+            this.entity = entity;
         }
 
-        public PomonaResponse Query(PomonaQuery query)
+        public HttpStatusCode StatusCode
         {
-            return store.Query(query);
+            get { return statusCode; }
         }
 
-        public object Post<T>(T newObject)
+        public object Entity
         {
-            var newCritter = newObject as Critter;
-            if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
-            {
-                throw new ModelValidationException("Critter can't have name longer than 50 characters.");
-            }
-
-            return store.Post(newObject);
-        }
-
-        public object Patch<T>(T updatedObject)
-        {
-            return store.Patch(updatedObject);
+            get { return entity; }
         }
     }
 }

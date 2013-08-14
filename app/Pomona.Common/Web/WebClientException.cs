@@ -82,8 +82,8 @@ namespace Pomona.Common.Web
         }
 
         private static WebClientException CreateGeneric<TBody>(WebClientRequestMessage request,
-                                                       WebClientResponseMessage response,
-                                                       TBody bodyObject, Exception innerException)
+                                                               WebClientResponseMessage response,
+                                                               TBody bodyObject, Exception innerException)
         {
             var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
             switch (statusCode)
@@ -106,11 +106,17 @@ namespace Pomona.Common.Web
             if (request == null) throw new ArgumentNullException("request");
 
             if (bodyObject != null)
+            {
+                var bodyObjectType = bodyObject.GetType();
+                var genericArg = bodyObject is IClientResource
+                                     ? client.GetMostInheritedResourceInterface(bodyObjectType)
+                                     : bodyObjectType;
                 return
                     (WebClientException)
                     createGenericMethod
-                        .MakeGenericMethod(client.GetMostInheritedResourceInterface(bodyObject.GetType()))
+                        .MakeGenericMethod(genericArg)
                         .Invoke(null, new[] {request, response, bodyObject, innerException});
+            }
 
             var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
             switch (statusCode)

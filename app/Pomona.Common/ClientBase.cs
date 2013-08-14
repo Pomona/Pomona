@@ -495,7 +495,7 @@ namespace Pomona.Common
                                                       .Any(x => x.StartsWith("application/json"));
 
                     var responseObject = gotJsonResponseBody
-                                             ? Deserialize(responseString, typeof (object))
+                                             ? Deserialize(responseString, null)
                                              : null;
 
                     throw WebClientException.Create(this, request, response, responseObject, null);

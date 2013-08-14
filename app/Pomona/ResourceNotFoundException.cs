@@ -23,7 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using Pomona.Common.Web;
+using Nancy;
 
 namespace Pomona
 {

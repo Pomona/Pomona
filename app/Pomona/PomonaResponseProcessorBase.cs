@@ -65,6 +65,9 @@ namespace Pomona
             var pomonaResponse = (PomonaResponse) model;
             string jsonString;
 
+            if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
+                return new Response() {StatusCode = pomonaResponse.StatusCode};
+
             using (var strWriter = new StringWriter())
             {
                 var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,

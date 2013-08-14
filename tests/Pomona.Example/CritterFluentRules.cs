@@ -78,6 +78,11 @@ namespace Pomona.Example
             map.ConstructedUsing((x, c) => new Loner(c.Optional(x.OptionalInfo), x.Strength, x.OptionalInfo));
         }
 
+        public void Map(ITypeMappingConfigurator<ErrorStatus> map)
+        {
+            map.AsValueObject();
+        }
+
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()

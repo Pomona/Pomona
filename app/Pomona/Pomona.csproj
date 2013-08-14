@@ -154,6 +154,7 @@
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
     <Compile Include="PomonaCsvResponseProcessor.cs" />
+    <Compile Include="PomonaError.cs" />
     <Compile Include="PomonaException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="PomonaResponse.cs" />

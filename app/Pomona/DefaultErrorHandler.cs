@@ -49,6 +49,10 @@ namespace Pomona
 
         public virtual void Handle(HttpStatusCode statusCode, NancyContext context)
         {
+            object errorHandled;
+            if (context.Items.TryGetValue("ERROR_HANDLED", out errorHandled) && (errorHandled as bool? ?? false))
+                return;
+
             object exceptionObject;
             context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject);
 

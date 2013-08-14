@@ -314,9 +314,42 @@ namespace Pomona
             return "/";
         }
 
-        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, dynamic> handler)
+        protected virtual Exception UnwrapException(Exception exception)
         {
-            routeBuilder[path] = handler;
+            if (exception is TargetInvocationException || exception is RequestExecutionException)
+            {
+                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
+            }
+            return exception;
+        }
+
+        protected virtual PomonaError OnException(Exception exception)
+        {
+            if (exception is PomonaException)
+            {
+                return new PomonaError(((PomonaException)exception).StatusCode);
+            }
+            return null;
+        }
+
+        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, PomonaResponse> handler)
+        {
+            routeBuilder[path] = x =>
+                {
+                    try
+                    {
+                        return handler(x);
+                    }
+                    catch (Exception ex)
+                    {
+                        var response = OnException(UnwrapException(ex));
+                        if (response == null)
+                            throw;
+
+                        Context.Items["ERROR_HANDLED"] = true;
+                        return new PomonaResponse(response.Entity ?? PomonaResponse.NoBodyEntity, session, response.StatusCode);
+                    }
+                };
         }
 
         private void RegisterRoutesFor(TransformedType type)
