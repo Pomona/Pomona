@@ -50,6 +50,14 @@ namespace Pomona.Example
                 return new PomonaError(HttpStatusCode.BadRequest, new ErrorStatus(exception.Message, 1337));
             }
 
+            if (exception is ResourceValidationException)
+            {
+                var validationException = (ResourceValidationException) exception;
+                return new PomonaError(HttpStatusCode.BadRequest,
+                                       new ErrorStatus(validationException.Message, 0xdead,
+                                                       validationException.MemberName));
+            }
+
             return base.OnException(exception);
         }
     }

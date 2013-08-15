@@ -193,6 +193,7 @@
     <Compile Include="Queries\SymbolNode.cs" />
     <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="ResourcePreconditionFailedException.cs" />
+    <Compile Include="ResourceValidationException.cs" />
     <Compile Include="Schemas\SchemaGenerator.cs" />
     <Compile Include="Schemas\Schema.cs" />
     <Compile Include="Schemas\SchemaArrayItem.cs" />

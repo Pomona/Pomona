@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,36 +22,33 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System;
+using Nancy;
 
-namespace Pomona.Example.Models
+namespace Pomona
 {
-    public class ErrorStatus
+    public class ResourceValidationException : PomonaException
     {
-        private readonly int errorCode;
-        private readonly string member;
-        private readonly string message;
+        private readonly string memberName;
 
-        public ErrorStatus(string message, int errorCode, string member = null)
+        private readonly string resourceName;
+
+        public ResourceValidationException(string message, string memberName, string resourceName,
+                                           Exception innerException)
+            : base(message, innerException, HttpStatusCode.BadRequest)
         {
-            this.message = message;
-            this.errorCode = errorCode;
-            this.member = member;
+            this.memberName = memberName;
+            this.resourceName = resourceName;
         }
 
-        public string Member
+        public string MemberName
         {
-            get { return member; }
+            get { return memberName; }
         }
 
-        public string Message
+        public string ResourceName
         {
-            get { return message; }
-        }
-
-        public int ErrorCode
-        {
-            get { return errorCode; }
+            get { return resourceName; }
         }
     }
 }

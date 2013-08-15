@@ -243,8 +243,9 @@ namespace Pomona
                         // Set to default value
                         var prop = properties.First(x => x.ConstructorArgIndex == i);
                         if (prop.CreateMode == PropertyCreateMode.Required)
-                            throw new InvalidOperationException(
-                                string.Format("Property {0} is required when creating resource {1}", prop.Name, Name));
+                            throw new ResourceValidationException(
+                                string.Format("Property {0} is required when creating resource {1}", prop.Name, Name),
+                                prop.Name, Name, null);
                     }
                 }
             }

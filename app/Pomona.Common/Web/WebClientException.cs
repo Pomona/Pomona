@@ -59,7 +59,7 @@ namespace Pomona.Common.Web
 
         protected WebClientException(WebClientRequestMessage request, WebClientResponseMessage response,
                                      object body, Exception innerException)
-            : base(response != null ? response.StatusCode.ToString() : "Response missing", innerException)
+            : base(CreateMessage(response, body), innerException)
         {
             this.request = request;
             this.response = response;
@@ -79,6 +79,15 @@ namespace Pomona.Common.Web
         public HttpStatusCode StatusCode
         {
             get { return response != null ? response.StatusCode : HttpStatusCode.EmptyResponse; }
+        }
+
+        private static string CreateMessage(WebClientResponseMessage response, object body)
+        {
+            var message = response != null ? response.StatusCode.ToString() : "Response missing";
+            var bodyString = body as string;
+            if (bodyString != null)
+                message = message + ": " + bodyString;
+            return message;
         }
 
         private static WebClientException CreateGeneric<TBody>(WebClientRequestMessage request,
@@ -105,7 +114,8 @@ namespace Pomona.Common.Web
         {
             if (request == null) throw new ArgumentNullException("request");
 
-            if (bodyObject != null)
+            // String body doesn't create a generic exception, it just puts the string in the message
+            if (bodyObject != null && !(bodyObject is string))
             {
                 var bodyObjectType = bodyObject.GetType();
                 var genericArg = bodyObject is IClientResource
@@ -122,13 +132,13 @@ namespace Pomona.Common.Web
             switch (statusCode)
             {
                 case HttpStatusCode.BadRequest:
-                    return new BadRequestException(request, response, null, innerException);
+                    return new BadRequestException(request, response, bodyObject, innerException);
                 case HttpStatusCode.NotFound:
-                    return new ResourceNotFoundException(request, response, null, innerException);
+                    return new ResourceNotFoundException(request, response, bodyObject, innerException);
                 case HttpStatusCode.PreconditionFailed:
-                    return new PreconditionFailedException(request, response, null, innerException);
+                    return new PreconditionFailedException(request, response, bodyObject, innerException);
                 default:
-                    return new WebClientException(request, response, null, innerException);
+                    return new WebClientException(request, response, bodyObject, innerException);
             }
         }
     }

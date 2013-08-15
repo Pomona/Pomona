@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,12 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -194,7 +197,7 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jitem in jarr)
             {
-                var itemNode = new ItemValueDeserializerNode(elementType, node.Context);
+                var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath);
                 itemNode.Deserialize(this, new Reader(jitem));
                 collection.Add((TElement) itemNode.Value);
             }
@@ -253,14 +256,14 @@ namespace Pomona.Common.Serialization.Json
             }
 
             if (node.Value == null)
+            {
                 node.Value = node.ValueType.Create(propertyValueMap);
+            }
             else
             {
                 foreach (var entry in propertyValueMap)
                 {
-                    if (!entry.Key.IsWriteable)
-                        throw new InvalidOperationException("Unable to set property.");
-                    entry.Key.Setter(node.Value, entry.Value);
+                    node.SetProperty(entry.Key, entry.Value);
                 }
             }
         }
@@ -301,7 +304,7 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jprop in jobj.Properties())
             {
-                var itemNode = new ItemValueDeserializerNode(valueType, node.Context);
+                var itemNode = new ItemValueDeserializerNode(valueType, node.Context, node.ExpandPath + "." + jprop.Name);
                 itemNode.Deserialize(this, new Reader(jprop.Value));
                 object key = jprop.Name;
                 dict[(TKey) key] = (TValue) itemNode.Value;

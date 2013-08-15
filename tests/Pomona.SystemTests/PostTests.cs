@@ -100,7 +100,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostCritterWithNameTooLong_ThrowsExceptionWithErrorStatus()
         {
-            var form = new CritterForm() {Name = string.Join(" ", Enumerable.Repeat("John", 50))};
+            var form = new CritterForm {Name = string.Join(" ", Enumerable.Repeat("John", 50))};
             var exception = Assert.Throws<BadRequestException<IErrorStatus>>(() => client.Critters.Post(form));
             Assert.That(exception.Body, Is.Not.Null);
             Assert.That(exception.Body.Message, Is.EqualTo("Critter can't have name longer than 50 characters."));
@@ -298,21 +298,14 @@ namespace Pomona.SystemTests
         }
 
         [Test]
-        public void PostWeaponWithRequiredPropertyNotSet_ThrowsException()
+        public void PostWeaponWithRequiredPropertyNotSet_ThrowsBadRequestException()
         {
             // Model is required, so an exception should be thrown.
-            var critter = client.Critters.Query().First();
-            Assert.That(() => client.Weapons.Post(new WeaponForm {}), Throws.Exception);
-        }
-
-
-        [Category("TODO")]
-        [Test(Description = "TODO: Must find out what kind of Exception we want to throw here.")]
-        public void PostWeaponWithoutModel_ThrowsSaneExceptionWithRelevantHttpStatusCode()
-        {
-            var critter = client.Critters.Query().First();
-            Assert.That(() => client.Weapons.Post(new WeaponForm {Model = null}), Throws.Exception);
-            Assert.Fail("TODO: Find out what kind of Exception we want to throw here.");
+            var ex =
+                Assert.Throws<BadRequestException<IErrorStatus>>(
+                    () => client.Weapons.Post(new WeaponForm {Price = 12345}));
+            Assert.That(ex.Body, Is.Not.Null);
+            Assert.That(ex.Body.Member, Is.EqualTo("Model"));
         }
     }
 }

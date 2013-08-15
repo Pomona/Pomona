@@ -325,9 +325,13 @@ namespace Pomona
 
         protected virtual PomonaError OnException(Exception exception)
         {
+            if (exception is PomonaSerializationException)
+            {
+                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
+            }
             if (exception is PomonaException)
             {
-                return new PomonaError(((PomonaException)exception).StatusCode);
+                return new PomonaError(((PomonaException) exception).StatusCode);
             }
             return null;
         }
@@ -347,7 +351,8 @@ namespace Pomona
                             throw;
 
                         Context.Items["ERROR_HANDLED"] = true;
-                        return new PomonaResponse(response.Entity ?? PomonaResponse.NoBodyEntity, session, response.StatusCode);
+                        return new PomonaResponse(response.Entity ?? PomonaResponse.NoBodyEntity, session,
+                                                  response.StatusCode);
                     }
                 };
         }

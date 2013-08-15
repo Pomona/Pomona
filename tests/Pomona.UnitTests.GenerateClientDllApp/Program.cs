@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
+using System.Linq;
 using Pomona.CodeGen;
 using Pomona.Example;
 
@@ -34,6 +39,16 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         private static void Main(string[] args)
         {
             var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+
+            // Modify property Protected of class Critter to not be protected in client dll.
+            // This is to test setting a protected property will throw exception on server.
+
+            var protectedPropertyOfCritter =
+                typeMapper.TransformedTypes.First(x => x.Name == "Critter")
+                          .Properties.OfType<PropertyMapping>()
+                          .First(x => x.Name == "Protected");
+
+            protectedPropertyOfCritter.AccessMode = PropertyAccessMode.ReadWrite;
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {

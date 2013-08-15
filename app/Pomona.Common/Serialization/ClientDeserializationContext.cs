@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using Pomona.Common.Proxies;
@@ -67,6 +71,14 @@ namespace Pomona.Common.Serialization
         public IMappedType GetTypeByName(string typeName)
         {
             return typeMapper.GetClassMapping(typeName);
+        }
+
+        public void SetProperty(IDeserializerNode target, IPropertyInfo property, object propertyValue)
+        {
+            if (!property.IsWriteable)
+                throw new InvalidOperationException("Unable to set property.");
+
+            property.Setter(target.Value, propertyValue);
         }
 
 
