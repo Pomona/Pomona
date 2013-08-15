@@ -245,7 +245,7 @@ namespace Pomona.Common
 
             return
                 (T)
-                PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType,
+                PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
                             modifyResponse);
         }
 
@@ -298,7 +298,8 @@ namespace Pomona.Common
 
                 var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
 
-                var wrappedForm = Activator.CreateInstance(formTypeGetter(resourceInfo));
+                var typeGetter = formTypeGetter(resourceInfo);
+                var wrappedForm = Activator.CreateInstance(typeGetter);
 
                 proxy.ProxyTarget = wrappedForm;
 
@@ -325,11 +326,17 @@ namespace Pomona.Common
             {
                 var resourceInfo = this.GetResourceInfoForType(type);
 
-                var newType = formTypeGetter(resourceInfo);
-                expectedBaseType = resourceInfo.UriBaseType;
+                var formType = formTypeGetter(resourceInfo);
 
+                // When form type of ResourceInfo is null, it means that method is not allowed.
+                if (formType == null)
+                    throw new InvalidOperationException("Method " + httpMethod + " is not allowed for uri.");
+
+                expectedBaseType = resourceInfo.UriBaseType;
                 if (form == null)
-                    form = (T) Activator.CreateInstance(newType);
+                {
+                    form = (T) Activator.CreateInstance(formType);
+                }
             }
 
             if (postAction != null)

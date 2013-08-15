@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Nancy;
 using Pomona.Common.TypeSystem;
 
@@ -39,13 +41,15 @@ namespace Pomona
         private readonly object entity;
         private readonly string expandedPaths;
         private readonly PomonaQuery query;
+        private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly IMappedType resultType;
         private readonly PomonaSession session;
         private readonly HttpStatusCode statusCode;
 
         public PomonaResponse(object entity, PomonaSession session, HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
-                              IMappedType resultType = null)
+                              IMappedType resultType = null,
+                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
             if (session == null) throw new ArgumentNullException("session");
             this.entity = entity;
@@ -53,6 +57,9 @@ namespace Pomona
             this.statusCode = statusCode;
             this.expandedPaths = expandedPaths;
             this.resultType = resultType;
+
+            if (responseHeaders != null)
+                this.responseHeaders = responseHeaders.ToList();
         }
 
         public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
@@ -70,6 +77,11 @@ namespace Pomona
             this.statusCode = statusCode;
             expandedPaths = query.ExpandedPaths;
             resultType = query.ResultType;
+        }
+
+        public List<KeyValuePair<string, string>> ResponseHeaders
+        {
+            get { return responseHeaders; }
         }
 
         public IMappedType ResultType

@@ -29,6 +29,7 @@
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
+using Pomona.Common;
 
 namespace Pomona.SystemTests
 {
@@ -71,6 +72,36 @@ namespace Pomona.SystemTests
             Assert.That(typeof (IBear).GetProperty("TheVirtualProperty"), Is.EqualTo(null));
             Assert.That(typeof (IAbstractAnimal).GetProperty("TheAbstractProperty"), Is.Not.Null);
             Assert.That(typeof (IBear).GetProperty("TheAbstractProperty"), Is.EqualTo(null));
+        }
+
+        [Test]
+        public void ResourceInheritedFromResourceWithPostDeniedDoesNotHavePostResourceFormGenerated()
+        {
+            var typeInfo =
+                typeof (IInheritedUnpostableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(typeInfo.PostFormType, Is.Null);
+            Assert.That(
+                typeof (IInheritedUnpostableThing).Assembly.GetType("Critters.Client.InheritedUnpostableThingForm"),
+                Is.Null);
+        }
+
+        [Test]
+        public void ResourceWithPatchDeniedDoesNotHavePatchResourceFormGenerated()
+        {
+            var typeInfo = typeof (IUnpatchableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(typeInfo.PatchFormType, Is.Null);
+            Assert.That(typeof (IUnpatchableThing).Assembly.GetType("Critters.Client.UnpatchableThingPatchForm"),
+                        Is.Null);
+            Assert.That(typeof (IUnpatchableThing).Assembly.GetType("Critters.Client.CritterPatchForm"), Is.Not.Null);
+        }
+
+        [Test]
+        public void ResourceWithPostDeniedDoesNotHavePostResourceFormGenerated()
+        {
+            var typeInfo = typeof (IUnpostableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(typeInfo.PostFormType, Is.Null);
+            Assert.That(typeof (IUnpostableThing).Assembly.GetType("Critters.Client.UnpostableThingForm"), Is.Null);
+            Assert.That(typeof (IUnpostableThing).Assembly.GetType("Critters.Client.CritterForm"), Is.Not.Null);
         }
 
         [Test]

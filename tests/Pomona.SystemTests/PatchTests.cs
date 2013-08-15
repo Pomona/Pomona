@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -51,6 +52,7 @@ namespace Pomona.SystemTests
             Assert.That(ex.Body.Member, Is.EqualTo("Protected"));
             Assert.That(critter.Protected, Is.EqualTo(protectedValue));
         }
+
 
         [Test]
         public void PatchCritter_AddNewFormToList()
@@ -129,6 +131,16 @@ namespace Pomona.SystemTests
                          x.BandName = "The Patched Sheeps");
 
             Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
+        }
+
+        [Test]
+        public void PatchUnpatchableThing_ThrowsInvalidOperationException()
+        {
+            var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
+            var ex =
+                Assert.Throws<InvalidOperationException>(
+                    () => client.UnpatchableThings.Patch(resource, x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
         }
 
         [Test]

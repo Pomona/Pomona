@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,16 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
+#endregion
 
-namespace Pomona.Common
+namespace Pomona.Example.Models
 {
-    public class PomonaResourceInfo
+    public class InheritedUnpostableThing : UnpostableThing
     {
-        public Type InterfaceType { get; set; }
-        public Type LaxyProxyType { get; set; }
-        public Type PocoType { get; set; }
-        public Type PostFormType { get; set; }
-        public Type PatchFormType { get; set; }
     }
 }

@@ -277,6 +277,25 @@ namespace Pomona.SystemTests
             Assert.That(o.Map["blah"], Is.EqualTo("hah"));
         }
 
+
+        [Test]
+        public void PostUnpostableThingOnServer_ThatIsOnlyUnpostableServerSide_ThrowsInvalidOperationException()
+        {
+            // UnpostableThingOnServer has been modified in GenerateClientDllApp to appear postable in client dll,
+            // but should still not be postable on server. This is done to test server validation of posting rules.
+
+            var ex = Assert.Throws<WebClientException>(() => client.UnpostableThingsOnServer.Post(x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("MethodNotAllowed"));
+            Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
+        }
+
+        [Test]
+        public void PostUnpostableThing_ThrowsInvalidOperationException()
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => client.UnpostableThings.Post(x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("Method POST is not allowed for uri."));
+        }
+
         [Test]
         public void PostUsingOverloadTakingFormObject()
         {

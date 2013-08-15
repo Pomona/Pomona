@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +36,7 @@ using Nancy;
 using Nancy.Routing;
 using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Queries;
 using Pomona.Schemas;
 
@@ -290,6 +292,9 @@ namespace Pomona
 
         private PomonaResponse PostFromJson(TransformedType transformedType)
         {
+            if (!transformedType.PostAllowed)
+                ThrowMethodNotAllowedForType(transformedType);
+
             return session.PostJson(transformedType, Request.Body);
         }
 
@@ -346,13 +351,13 @@ namespace Pomona
                     }
                     catch (Exception ex)
                     {
-                        var response = OnException(UnwrapException(ex));
-                        if (response == null)
+                        var error = OnException(UnwrapException(ex));
+                        if (error == null)
                             throw;
 
                         Context.Items["ERROR_HANDLED"] = true;
-                        return new PomonaResponse(response.Entity ?? PomonaResponse.NoBodyEntity, session,
-                                                  response.StatusCode);
+                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity, session,
+                                                  error.StatusCode, responseHeaders: error.ResponseHeaders);
                     }
                 };
         }
@@ -406,6 +411,9 @@ namespace Pomona
 
         private PomonaResponse UpdateFromJson(TransformedType transformedType, object id)
         {
+            if (!transformedType.PatchAllowed)
+                ThrowMethodNotAllowedForType(transformedType);
+
             var ifMatch = Request.Headers.IfMatch.FirstOrDefault();
             if (ifMatch != null)
             {
@@ -418,6 +426,21 @@ namespace Pomona
             }
 
             return session.Patch(transformedType, id, Request.Body, ifMatch);
+        }
+
+        private void ThrowMethodNotAllowedForType(TransformedType type)
+        {
+            // HTTP specification says it's mandatory to return a list of allowed methods in header on 405 method not allowed!
+            var allowedMethods = "GET";
+            if (type.PostAllowed)
+                allowedMethods += ", POST";
+            if (type.PatchAllowed)
+                allowedMethods += ", PATCH";
+
+            var allowHeader = new KeyValuePair<string, string>("Allow", allowedMethods);
+
+            throw new PomonaException("Method " + Context.Request.Method + " not allowed!", null,
+                                      HttpStatusCode.MethodNotAllowed, allowHeader.WrapAsEnumerable());
         }
     }
 }

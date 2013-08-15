@@ -56,12 +56,11 @@ namespace Pomona
         static PomonaSession()
         {
             postGenericMethod =
-                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
-                                 GetGenericMethodDefinition();
+                ReflectionHelper.GetMethodDefinition<PomonaSession>(dst => dst.InvokeDataSourcePost((object) null));
             getByIdMethod =
                 ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
             patchGenericMethod =
-                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
+                ReflectionHelper.GetMethodDefinition<PomonaSession>(dst => dst.InvokeDataSourcePatch((object) null));
         }
 
 
@@ -87,6 +86,20 @@ namespace Pomona
         public TypeMapper TypeMapper
         {
             get { return typeMapper; }
+        }
+
+        private object InvokeDataSourcePatch<T>(T entity)
+        {
+            if (!((TransformedType) typeMapper.GetClassMapping<T>()).PatchAllowed)
+                throw new PomonaException("Method PATCH not allowed", null, HttpStatusCode.MethodNotAllowed);
+            return dataSource.Patch(entity);
+        }
+
+        private object InvokeDataSourcePost<T>(T entity)
+        {
+            if (!((TransformedType) typeMapper.GetClassMapping<T>()).PostAllowed)
+                throw new PomonaException("Method POST not allowed", null, HttpStatusCode.MethodNotAllowed);
+            return dataSource.Post(entity);
         }
 
 
@@ -157,7 +170,7 @@ namespace Pomona
 
             var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
             var postResponse = method.MakeGenericMethod(postResource.GetType())
-                                     .Invoke(dataSource, new[] {postResource});
+                                     .Invoke(this, new[] {postResource});
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
 

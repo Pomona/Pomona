@@ -60,5 +60,9 @@ namespace Pomona.FluentMapping
 
         ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
         ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
+        ITypeMappingConfigurator<TDeclaringType> PostAllowed();
+        ITypeMappingConfigurator<TDeclaringType> PostDenied();
+        ITypeMappingConfigurator<TDeclaringType> PatchAllowed();
+        ITypeMappingConfigurator<TDeclaringType> PatchDenied();
     }
 }

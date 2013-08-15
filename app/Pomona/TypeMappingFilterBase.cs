@@ -330,9 +330,19 @@ namespace Pomona
             return PropertyAccessMode.ReadOnly;
         }
 
-        public int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
         {
             return null;
+        }
+
+        public virtual bool PostOfTypeIsAllowed(Type type)
+        {
+            return true;
+        }
+
+        public virtual bool PatchOfTypeIsAllowed(Type type)
+        {
+            return true;
         }
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)

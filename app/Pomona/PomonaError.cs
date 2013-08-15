@@ -26,6 +26,8 @@
 
 #endregion
 
+using System.Collections.Generic;
+using System.Linq;
 using Nancy;
 
 namespace Pomona
@@ -33,16 +35,25 @@ namespace Pomona
     public class PomonaError
     {
         private readonly object entity;
+        private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly HttpStatusCode statusCode;
 
         public PomonaError(HttpStatusCode statusCode) : this(statusCode, null)
         {
         }
 
-        public PomonaError(HttpStatusCode statusCode, object entity)
+        public PomonaError(HttpStatusCode statusCode, object entity,
+                           IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
             this.statusCode = statusCode;
             this.entity = entity;
+            if (responseHeaders != null)
+                this.responseHeaders = responseHeaders.ToList();
+        }
+
+        public List<KeyValuePair<string, string>> ResponseHeaders
+        {
+            get { return responseHeaders; }
         }
 
         public HttpStatusCode StatusCode

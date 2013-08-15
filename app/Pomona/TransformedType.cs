@@ -93,10 +93,9 @@ namespace Pomona
             get { return properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
 
-        public bool PostAllowed
-        {
-            get { return true; }
-        }
+        public bool PatchAllowed { get; set; }
+
+        public bool PostAllowed { get; set; }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.

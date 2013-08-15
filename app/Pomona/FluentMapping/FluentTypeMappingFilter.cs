@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -176,6 +180,16 @@ namespace Pomona.FluentMapping
         {
             return FromMappingOrDefault(propertyInfo, x => x.ConstructorArgIndex,
                                         () => wrappedFilter.GetPropertyConstructorArgIndex(propertyInfo));
+        }
+
+        public bool PostOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.PostAllowed, () => wrappedFilter.PostOfTypeIsAllowed(type));
+        }
+
+        public bool PatchOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.PatchAllowed, () => wrappedFilter.PatchOfTypeIsAllowed(type));
         }
 
         public Type GetPropertyType(PropertyInfo propertyInfo)
@@ -398,10 +412,11 @@ namespace TestNs
         }
 
 
-        private bool FromMappingOrDefault(
-            Type type, Func<TypeMappingOptions, bool?> ifMappingExist, Func<bool> ifMappingMissing)
+        private T FromMappingOrDefault<T>(
+            Type type, Func<TypeMappingOptions, T?> ifMappingExist, Func<T> ifMappingMissing)
+            where T : struct
         {
-            var result = FromMappingOrDefault(type, ifMappingExist, () => (bool?) ifMappingMissing());
+            var result = FromMappingOrDefault(type, ifMappingExist, () => (T?) ifMappingMissing());
             if (!result.HasValue)
                 throw new InvalidOperationException("Expected a non-null value here.");
             return result.Value;
@@ -418,16 +433,6 @@ namespace TestNs
             if (result == null)
                 return ifMappingMissing();
             return (T) result;
-        }
-
-
-        private bool FromMappingOrDefault(
-            PropertyInfo propertyInfo, Func<PropertyMappingOptions, bool?> ifMappingExist, Func<bool> ifMappingMissing)
-        {
-            var result = FromMappingOrDefault(propertyInfo, ifMappingExist, () => (bool?) ifMappingMissing());
-            if (!result.HasValue)
-                throw new InvalidOperationException("Expected a non-null value here.");
-            return result.Value;
         }
 
 

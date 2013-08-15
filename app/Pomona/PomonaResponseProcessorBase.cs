@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +70,7 @@ namespace Pomona
             string jsonString;
 
             if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
-                return new Response() {StatusCode = pomonaResponse.StatusCode};
+                return new Response {StatusCode = pomonaResponse.StatusCode};
 
             using (var strWriter = new StringWriter())
             {
@@ -94,6 +98,14 @@ namespace Pomona
                         ContentType = ContentType,
                         StatusCode = pomonaResponse.StatusCode
                     };
+
+                if (pomonaResponse.ResponseHeaders != null)
+                {
+                    foreach (var kvp in pomonaResponse.ResponseHeaders)
+                    {
+                        response.Headers.Add(kvp);
+                    }
+                }
 
 
                 // Add etag header

@@ -50,6 +50,13 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             protectedPropertyOfCritter.AccessMode = PropertyAccessMode.ReadWrite;
 
+
+            // Modify UnpostableThingOnServer to generate form type for post.
+            // This is to check that server generates correct status code.
+
+            var unpostableThing = typeMapper.TransformedTypes.First(x => x.Name == "UnpostableThingOnServer");
+            unpostableThing.PostAllowed = true;
+
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
                 ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);

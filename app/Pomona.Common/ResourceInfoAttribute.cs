@@ -66,7 +66,7 @@ namespace Pomona.Common
         public Type LazyProxyType { get; set; }
         public Type PocoType { get; set; }
         public Type PostFormType { get; set; }
-        public Type PutFormType { get; set; }
+        public Type PatchFormType { get; set; }
         public Type UriBaseType { get; set; }
         public Type BaseType { get; set; }
         public string UrlRelativePath { get; set; }
