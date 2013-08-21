@@ -48,6 +48,206 @@ namespace Pomona.Common
             return member.GetCustomAttributes(typeof (TAttribute), inherit).Any();
         }
 
+        public static bool TryResolveGenericMethod(this MethodInfo methodDefinition, Type[] argumentTypes,
+                                                   out MethodInfo method)
+        {
+            if (methodDefinition == null) throw new ArgumentNullException("methodDefinition");
+            if (argumentTypes == null) throw new ArgumentNullException("argumentTypes");
+
+            method = methodDefinition;
+            var methodParameters = method.GetParameters();
+            var methodTypeArgs = method.GetGenericArguments();
+
+            if (methodParameters.Length != argumentTypes.Length)
+                return false;
+
+            var typeArgsWasResolved = false;
+            for (var i = 0; i < argumentTypes.Length; i++)
+            {
+                var argType = argumentTypes[i];
+                var param = methodParameters[i];
+
+
+                bool innerTypeArgsWasResolved;
+                if (
+                    !TryFillGenericTypeParameters(param.ParameterType, argType, methodTypeArgs,
+                                                  out innerTypeArgsWasResolved))
+                    return false;
+
+                typeArgsWasResolved = typeArgsWasResolved || innerTypeArgsWasResolved;
+            }
+
+            if (typeArgsWasResolved)
+            {
+                // Upgrade to real method when all type args are resolved!!
+                method = methodDefinition.MakeGenericMethod(methodTypeArgs);
+                methodParameters = method.GetParameters();
+            }
+
+            if (methodTypeArgs.Any(x => x.IsGenericParameter))
+                return false;
+
+            return true;
+        }
+
+        private static Type SubstituteTypeParameters(Type type, Type[] methodTypeArgs)
+        {
+            if (type.IsGenericParameter)
+                return methodTypeArgs[type.GenericParameterPosition];
+
+            if (!type.IsGenericType)
+                return type;
+
+            var genArgs = type.GetGenericArguments();
+            var genericArgsReplaced = false;
+
+            for (var i = 0; i < genArgs.Length; i++)
+            {
+                var original = genArgs[i];
+                var substitute = SubstituteTypeParameters(original, methodTypeArgs);
+                if (original != substitute)
+                {
+                    genArgs[i] = substitute;
+                    genericArgsReplaced = true;
+                }
+            }
+
+            if (genericArgsReplaced)
+            {
+                return type.GetGenericTypeDefinition().MakeGenericType(genArgs);
+            }
+
+            return type;
+        }
+
+        /// <summary>
+        /// This method makes an attempt to fill a list of generic parameters provided a wanted type.
+        /// </summary>
+        /// <param name="wantedType">The type that is wanted. For example IEnumerable&lt;T&gt;</param>
+        /// <param name="actualType">The type we try to fill the type parameter with. For example IGrouping&lt;int, string&gt;</param>
+        /// <param name="methodTypeArgs">An array with type parameters to be filled.</param>
+        /// <param name="typeArgsWasResolved">One or more type arguments were resolved, which means that methodTypeArgs was changed</param>
+        /// <returns>true for match, false if actualType could not match wantedType.</returns>
+        public static bool TryFillGenericTypeParameters(
+            Type wantedType, Type actualType, Type[] methodTypeArgs, out bool typeArgsWasResolved)
+        {
+            typeArgsWasResolved = false;
+            if (wantedType.IsGenericTypeDefinition)
+            {
+                throw new ArgumentException(
+                    "Does not expect genDefArgType to be a generic type definition.", "wantedType");
+            }
+            if (actualType.IsGenericTypeDefinition)
+            {
+                throw new ArgumentException(
+                    "Does not expect instanceArgType to be a generic type definition.", "actualType");
+            }
+
+            if (wantedType.IsGenericParameter)
+                wantedType = methodTypeArgs[wantedType.GenericParameterPosition];
+
+            if (wantedType.IsGenericParameter)
+            {
+                var constraints = wantedType.GetGenericParameterConstraints();
+                if (
+                    !constraints.Select(x => SubstituteTypeParameters(x, methodTypeArgs))
+                                .All(x => x.IsAssignableFrom(actualType)))
+                    return false;
+
+                if ((wantedType.GenericParameterAttributes &
+                     GenericParameterAttributes.NotNullableValueTypeConstraint) ==
+                    GenericParameterAttributes.NotNullableValueTypeConstraint && actualType.IsNullable())
+                {
+                    return false;
+                }
+
+                if ((wantedType.GenericParameterAttributes & GenericParameterAttributes.DefaultConstructorConstraint) ==
+                    GenericParameterAttributes.DefaultConstructorConstraint)
+                {
+                    if (!wantedType.IsValueType && actualType.GetConstructor(Type.EmptyTypes) == null)
+                        return false;
+                }
+
+
+                typeArgsWasResolved = true;
+                methodTypeArgs[wantedType.GenericParameterPosition] = actualType;
+
+                return true;
+            }
+
+            if (!wantedType.IsGenericType)
+            {
+                if (!wantedType.IsAssignableFrom(actualType))
+                    return false;
+            }
+            else
+            {
+                var wantedTypeArgs = wantedType.GetGenericArguments();
+                Type[] actualTypeArgs;
+                if (!actualType.TryExtractTypeArguments(wantedType.GetGenericTypeDefinition(), out actualTypeArgs))
+                    return false;
+
+                for (var i = 0; i < wantedTypeArgs.Length; i++)
+                {
+                    var wantedTypeArg = wantedTypeArgs[i];
+                    var actualTypeArg = actualTypeArgs[i];
+
+                    bool innerTypeArgsWasResolved;
+                    if (
+                        !TryFillGenericTypeParameters(wantedTypeArg, actualTypeArg, methodTypeArgs,
+                                                      out innerTypeArgsWasResolved))
+                        return false;
+
+                    if (innerTypeArgsWasResolved)
+                        typeArgsWasResolved = true;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// This method attempts to extract the type parameters of a given type, when viewed as a particular generic type.
+        /// </summary>
+        /// <param name="typeInstance">The type instance, which type args will be extracted from.</param>
+        /// <param name="genTypeDef">The generic type definition of class or interface we want to extract type args for.</param>
+        /// <param name="typeArgs">The outgoing type arguments.</param>
+        /// <returns>true when typeInstance implements genTypeDef generically, false if not.</returns>
+        public static bool TryExtractTypeArguments(this Type typeInstance, Type genTypeDef, out Type[] typeArgs)
+        {
+            if (typeInstance == null) throw new ArgumentNullException("typeInstance");
+            if (genTypeDef == null) throw new ArgumentNullException("genTypeDef");
+            if (!genTypeDef.IsGenericTypeDefinition)
+                throw new ArgumentException("gentTypeDef is required to be a generic type definition.", "genTypeDef");
+
+            if (typeInstance.IsGenericType && typeInstance.GetGenericTypeDefinition() == genTypeDef)
+            {
+                typeArgs = typeInstance.GetGenericArguments();
+                return true;
+            }
+
+            if (genTypeDef.IsInterface)
+            {
+                foreach (var interfaceType in typeInstance.GetInterfaces())
+                {
+                    if (TryExtractTypeArguments(interfaceType, genTypeDef, out typeArgs))
+                        return true;
+                }
+            }
+            else
+            {
+                if (typeInstance.BaseType != null &&
+                    typeInstance.BaseType.TryExtractTypeArguments(genTypeDef, out typeArgs))
+                {
+                    return true;
+                }
+            }
+
+            typeArgs = null;
+            return false;
+        }
+
+
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
             var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);

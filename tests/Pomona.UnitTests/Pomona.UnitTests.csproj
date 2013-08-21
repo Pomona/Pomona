@@ -88,6 +88,7 @@
     <Compile Include="Schemas\ApiChangeVerifierTests.cs" />
     <Compile Include="Schemas\SchemaTests.cs" />
     <Compile Include="SingularToPluralTranslatorTests.cs" />
+    <Compile Include="TypeExtensionsTests.cs" />
     <Compile Include="TypeMapperTests.cs" />
   </ItemGroup>
   <ItemGroup>
