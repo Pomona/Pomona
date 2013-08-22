@@ -2,6 +2,7 @@
 
 echo "Building Nuget packages"
 
+del build\*.nupkg
 mkdir build
 
 
