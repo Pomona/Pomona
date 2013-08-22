@@ -199,5 +199,12 @@ namespace Pomona.SystemTests
         {
             TestQuery<IWeapon, Weapon>(x => x.Strength > 0.8, x => x.Strength > 0.8);
         }
+
+        [Test]
+        public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
+        {
+            var results = client.Critters.Query().Select(x => new {theNull = (int?) null}).Take(1).ToList();
+            Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] {(int?) null}));
+        }
     }
 }

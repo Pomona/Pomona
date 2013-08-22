@@ -251,7 +251,7 @@ namespace Pomona.Common.Serialization.Json
 
                 propNode.Deserialize(this, new Reader(jprop.Value));
 
-                if (oldPropValue != propNode.Value)
+                if (node.Value == null || oldPropValue != propNode.Value)
                     propertyValueMap[prop] = propNode.Value;
             }
 
