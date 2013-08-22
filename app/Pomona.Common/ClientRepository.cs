@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq;
@@ -87,6 +91,11 @@ namespace Pomona.Common
         public TPostResponseResource Post(Action<TResource> postAction)
         {
             return (TPostResponseResource) client.Post(Uri, postAction);
+        }
+
+        public TResource Get(object id)
+        {
+            return client.Get<TResource>(string.Format("{0}/{1}", uri, id));
         }
 
         public IQueryable<TResource> Query()

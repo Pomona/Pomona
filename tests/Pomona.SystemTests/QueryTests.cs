@@ -42,6 +42,14 @@ namespace Pomona.SystemTests
     public class QueryTests : ClientTestsBase
     {
         [Test]
+        public void GetResourceById_UsingClientRepository_ReturnsResource()
+        {
+            var critterEntity = CritterEntities.First();
+            var critterResource = client.Critters.Get(critterEntity.Id);
+            Assert.That(critterResource, Is.Not.Null);
+        }
+
+        [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
             var farms = client.Farms.Query().ToList();
