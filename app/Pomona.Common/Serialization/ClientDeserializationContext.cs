@@ -34,7 +34,7 @@ namespace Pomona.Common.Serialization
 {
     public class ClientDeserializationContext : IDeserializationContext
     {
-        private readonly ClientBase client;
+        private readonly IPomonaClient client;
         private readonly ITypeMapper typeMapper;
 
         [Obsolete("Solely here for testing purposes")]
@@ -43,7 +43,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public ClientDeserializationContext(ITypeMapper typeMapper, ClientBase client)
+        public ClientDeserializationContext(ITypeMapper typeMapper, IPomonaClient client)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");

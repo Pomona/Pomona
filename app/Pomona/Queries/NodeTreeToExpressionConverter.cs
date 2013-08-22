@@ -503,7 +503,7 @@ namespace Pomona.Queries
             }
             catch (Exception ex)
             {
-                throw CreateParseException(node, string.Format("Unable to resolve symbol with name {0}.", node.Name));
+                throw CreateParseException(node, string.Format("Unable to resolve symbol with name {0}.", node.Name), ex);
             }
         }
 
