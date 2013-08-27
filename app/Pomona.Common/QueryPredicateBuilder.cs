@@ -458,7 +458,7 @@ namespace Pomona.Common
         private string GetEncodedConstant(Type valueType, object value)
         {
             Type enumerableElementType;
-            if (valueType != typeof (string) && valueType.TryGetCollectionElementType(out enumerableElementType))
+            if (valueType != typeof (string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {
                 // This handles arrays in constant expressions
                 var elements = string

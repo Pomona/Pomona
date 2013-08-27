@@ -374,7 +374,7 @@ namespace Pomona.Common
                     .Where(t => t.UniqueToken() == metadataToken);
         }
 
-        public static bool TryGetCollectionElementType(this Type type, out Type elementType)
+        public static bool TryGetEnumerableElementType(this Type type, out Type elementType)
         {
             var enumerableInterface = type.GetInterfacesOfGeneric(typeof (IEnumerable<>)).FirstOrDefault();
 

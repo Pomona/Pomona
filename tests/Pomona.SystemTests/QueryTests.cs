@@ -33,6 +33,7 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Proxies;
 using Pomona.Example.Models;
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
@@ -163,6 +164,28 @@ namespace Pomona.SystemTests
         {
             Assert.That(() => client.Get<Critter>(BaseUri + "critters/9999999"),
                         Throws.TypeOf<Common.Web.ResourceNotFoundException>());
+        }
+
+        [Test]
+        public void QueryResourceWithExpandedEnumerable_ReturnsExpandedItems()
+        {
+            DataStore.CreateRandomData(critterCount: 20);
+            var farms = client.Farms.Query().Expand(x => x.MusicalCritters).ToList();
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(farms.All(x => !(x.MusicalCritters is LazyListProxy<IMusicalCritter>)));
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+        }
+
+        [Test]
+        public void QueryResourceWithNonExpandedEnumerable_ReturnsLazyItems()
+        {
+            DataStore.CreateRandomData(critterCount: 20);
+            var farms = client.Farms.Query().ToList();
+            Assert.That(farms.All(x => x.MusicalCritters is LazyListProxy<IMusicalCritter>));
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
         }
 
         [Test]

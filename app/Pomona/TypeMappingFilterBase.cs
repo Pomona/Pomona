@@ -241,8 +241,11 @@ namespace Pomona
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
+
+            Type _;
+            return type != typeof (string) &&
+                   type.UniqueToken() != typeof (IGrouping<,>).UniqueToken() &&
+                   type.TryGetEnumerableElementType(out _);
         }
 
 
