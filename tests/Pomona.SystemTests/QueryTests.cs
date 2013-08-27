@@ -167,6 +167,15 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void QueryResourceWithEnumerable_PredicateOnEmumerable_ReturnsCorrectResults()
+        {
+            var musicalCritter = (MusicalCritter) DataStore.CreateRandomCritter(forceMusicalCritter: true);
+            var farms =
+                client.Farms.Query(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
+            Assert.That(farms.Any(x => x.MusicalCritters.Select(y => y.Id).Contains(musicalCritter.Id)));
+        }
+
+        [Test]
         public void QueryResourceWithExpandedEnumerable_ReturnsExpandedItems()
         {
             DataStore.CreateRandomData(critterCount: 20);
