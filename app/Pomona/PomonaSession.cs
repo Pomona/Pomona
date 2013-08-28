@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.IO;
@@ -125,7 +121,13 @@ namespace Pomona
             var o = GetById(transformedType, id);
             var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
 
-            var property = mappedType.Properties.First(x => x.Name.ToLower() == propertyName);
+            var property =
+                mappedType.Properties.OfType<PropertyMapping>()
+                          .FirstOrDefault(
+                              x => string.Equals(propertyName, x.UriName, StringComparison.InvariantCultureIgnoreCase));
+
+            if (property == null)
+                throw new ResourceNotFoundException("Resource not found.");
 
             var propertyValue = property.Getter(o);
             var propertyType = property.PropertyType;
@@ -137,7 +139,7 @@ namespace Pomona
 
         public string GetUri(IPropertyInfo property, object entity)
         {
-            return GetUri(entity) + "/" + property.LowerCaseName;
+            return GetUri(entity) + "/" + ((PropertyMapping) property).UriName;
         }
 
 

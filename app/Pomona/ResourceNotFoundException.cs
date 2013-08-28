@@ -30,14 +30,6 @@ namespace Pomona
     public class ResourceNotFoundException : PomonaException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class.
-        /// </summary>
-        public ResourceNotFoundException()
-        {
-        }
-
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class with a specified error message.
         /// </summary>
         /// <param name="message">A message that describes the error. </param>

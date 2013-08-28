@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Linq.Expressions;
@@ -60,6 +56,7 @@ namespace Pomona
             this.name = name;
             LowerCaseName = name.ToLower();
             JsonName = name.Substring(0, 1).ToLower() + name.Substring(1);
+            UriName = NameUtils.ConvertCamelCaseToUri(name);
             this.declaringType = declaringType;
             this.propertyType = propertyType;
             this.propertyInfo = propertyInfo;
@@ -111,6 +108,8 @@ namespace Pomona
                 return normalizedPropertyInfo;
             }
         }
+
+        public string UriName { get; set; }
 
         public bool IsEtagProperty { get; set; }
 

@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -384,7 +380,7 @@ namespace Pomona
                     var collectionElementType = (TransformedType) prop.PropertyType.ElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;
 
-                    Register(Get, path + "/{id}/" + prop.JsonName,
+                    Register(Get, path + "/{id}/" + transformedProp.UriName,
                              x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
                 }
             }
