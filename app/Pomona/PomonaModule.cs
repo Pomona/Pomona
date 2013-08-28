@@ -386,16 +386,6 @@ namespace Pomona
 
                     Register(Get, path + "/{id}/" + prop.JsonName,
                              x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
-
-                    var propname = prop.Name;
-                    Register(Get, path + "/{id}/_old_" + prop.JsonName,
-                             x => GetPropertyFromEntityAsJson(type, x.id, propname));
-                }
-                else
-                {
-                    var propname = prop.Name;
-                    Register(Get, path + "/{id}/" + prop.JsonName,
-                             x => GetPropertyFromEntityAsJson(type, x.id, propname));
                 }
             }
 
