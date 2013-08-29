@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,16 +27,15 @@
 #endregion
 
 using System;
-using Pomona.Example;
 
-namespace Pomona
+namespace Pomona.Example.ServerApp
 {
     internal class Program
     {
         private static void Main(string[] args)
         {
             var critterHost = new CritterHost(new Uri("http://localhost:2211"));
-            critterHost.Start();
+            critterHost.Start(new CustomRootPathProvider());
             Console.WriteLine("Started critter host on " + critterHost.BaseUri);
             Console.ReadKey();
             critterHost.Stop();

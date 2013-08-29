@@ -217,7 +217,7 @@ namespace Pomona
             var rootPath = container.GetInstance<IRootPathProvider>().GetRootPath();
             var contentType = MimeTypes.GetMimeType(subpath);
 
-            var fsFilePath = Path.Combine(Path.Combine(rootPath, "_static"), subpath);
+            var fsFilePath = Path.Combine(Path.Combine(rootPath, "Content"), subpath);
             if (File.Exists(fsFilePath))
             {
                 return new GenericFileResponse(fsFilePath, Context);
@@ -227,7 +227,7 @@ namespace Pomona
             var resourceInfo =
                 Assembly.GetExecutingAssembly().GetManifestResourceInfo(resourceName);
             if (resourceInfo == null)
-                throw new ResourceNotFoundException();
+                throw new ResourceNotFoundException("Statuc content not found.");
 
             return new Response
                 {

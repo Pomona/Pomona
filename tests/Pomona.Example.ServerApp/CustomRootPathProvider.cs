@@ -27,49 +27,27 @@
 #endregion
 
 using System;
+using System.IO;
 using Nancy;
-using Nancy.Hosting.Self;
 
-namespace Pomona.Example
+namespace Pomona.Example.ServerApp
 {
-    public class CritterHost
+    internal class CustomRootPathProvider : IRootPathProvider
     {
-        private readonly Uri baseUri;
-        private NancyHost host;
+        private readonly string path;
 
-
-        public CritterHost(Uri baseUri)
+        internal CustomRootPathProvider()
         {
-            this.baseUri = baseUri;
+            path = Path.GetFullPath(@"..\..\..\..\app\Pomona");
+            if (!Directory.Exists(path))
+            {
+                path = Environment.CurrentDirectory;
+            }
         }
 
-
-        public Uri BaseUri
+        public string GetRootPath()
         {
-            get { return baseUri; }
-        }
-
-        public CritterDataStore DataSource { get; private set; }
-
-        public NancyHost Host
-        {
-            get { return host; }
-        }
-
-
-        public void Start(IRootPathProvider rootPathProvider = null)
-        {
-            var bootstrapper = new CritterBootstrapper(rootPathProvider: rootPathProvider);
-            DataSource = bootstrapper.DataStore;
-            host = new NancyHost(baseUri, bootstrapper);
-            host.Start();
-        }
-
-
-        public void Stop()
-        {
-            host.Stop();
-            host = null;
+            return path;
         }
     }
 }

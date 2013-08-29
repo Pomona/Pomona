@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.TinyIoc;
@@ -31,14 +35,16 @@ namespace Pomona.Example
     public class CritterBootstrapper : DefaultNancyBootstrapper
     {
         private readonly CritterDataStore dataStore;
+        private readonly IRootPathProvider rootPathProvider;
 
         private readonly TypeMapper typeMapper;
 
 
-        public CritterBootstrapper(CritterDataStore dataSource = null)
+        public CritterBootstrapper(CritterDataStore dataSource = null, IRootPathProvider rootPathProvider = null)
         {
+            this.rootPathProvider = rootPathProvider;
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.dataStore = dataSource ?? new CritterDataStore(typeMapper);
+            dataStore = dataSource ?? new CritterDataStore(typeMapper);
         }
 
         public CritterDataStore DataStore
@@ -53,7 +59,7 @@ namespace Pomona.Example
 
         protected override IRootPathProvider RootPathProvider
         {
-            get { return new DefaultRootPathProvider(); }
+            get { return rootPathProvider ?? new DefaultRootPathProvider(); }
         }
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
