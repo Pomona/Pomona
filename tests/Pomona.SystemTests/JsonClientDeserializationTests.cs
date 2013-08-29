@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.IO;
 using Critters.Client;
+using NSubstitute;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Serialization;
@@ -46,7 +51,7 @@ namespace Pomona.SystemTests
         {
             var jsonDeserializer = new PomonaJsonDeserializer();
             var reader = jsonDeserializer.CreateReader(new StringReader(jsonString));
-            var context = new ClientDeserializationContext(typeMapper);
+            var context = new ClientDeserializationContext(typeMapper, Substitute.For<IPomonaClient>());
             var node = new ItemValueDeserializerNode(typeMapper.GetClassMapping(typeof (T)), context);
             jsonDeserializer.DeserializeNode(node, reader);
             var critter = (T) node.Value;

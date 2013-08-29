@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
@@ -30,7 +34,7 @@ namespace Pomona.Common.Serialization
 {
     public class ClientDeserializationContext : IDeserializationContext
     {
-        private readonly ClientBase client;
+        private readonly IPomonaClient client;
         private readonly ITypeMapper typeMapper;
 
         [Obsolete("Solely here for testing purposes")]
@@ -39,7 +43,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public ClientDeserializationContext(ITypeMapper typeMapper, ClientBase client)
+        public ClientDeserializationContext(ITypeMapper typeMapper, IPomonaClient client)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -67,6 +71,14 @@ namespace Pomona.Common.Serialization
         public IMappedType GetTypeByName(string typeName)
         {
             return typeMapper.GetClassMapping(typeName);
+        }
+
+        public void SetProperty(IDeserializerNode target, IPropertyInfo property, object propertyValue)
+        {
+            if (!property.IsWriteable)
+                throw new InvalidOperationException("Unable to set property.");
+
+            property.Setter(target.Value, propertyValue);
         }
 
 

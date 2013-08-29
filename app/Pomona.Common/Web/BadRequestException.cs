@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,50 +24,30 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using Pomona.Common.Web;
 
-namespace Pomona.Common
+namespace Pomona.Common.Web
 {
-    public class ClientRequestLogEventArgs : EventArgs
+    public class BadRequestException<TBody> : BadRequestException, IWebClientException<TBody>
     {
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
-
-        private readonly Exception thrownException;
-
-        public ClientRequestLogEventArgs(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception thrownException)
+        public BadRequestException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
+                                   Exception innerException) : base(request, response, body, innerException)
         {
-            if (request == null) throw new ArgumentNullException("request");
-            this.request = request;
-            this.response = response;
-            this.thrownException = thrownException;
         }
 
-        public WebClientRequestMessage Request
+        public new TBody Body
         {
-            get { return request; }
+            get { return (TBody) base.Body; }
         }
+    }
 
-        public WebClientResponseMessage Response
+    public class BadRequestException : WebClientException
+    {
+        public BadRequestException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
+                                   Exception innerException) : base(request, response, body, innerException)
         {
-            get { return response; }
-        }
-
-        public Exception ThrownException
-        {
-            get { return thrownException; }
-        }
-
-        public string Uri
-        {
-            get { return request.Uri; }
-        }
-
-        public string Method
-        {
-            get { return request.Method; }
         }
     }
 }

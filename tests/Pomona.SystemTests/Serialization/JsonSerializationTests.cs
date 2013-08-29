@@ -24,6 +24,7 @@
 
 using System;
 using Critters.Client;
+using NSubstitute;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Serialization;
@@ -54,7 +55,7 @@ namespace Pomona.SystemTests.Serialization
         public void UnknownPropertyIsIgnoredByDeserializer()
         {
             deserializer.DeserializeFromString<IOrderItem>(
-                new ClientDeserializationContext(new ClientTypeMapper(new Type[]{ typeof(IOrderItem) })),
+                new ClientDeserializationContext(new ClientTypeMapper(new Type[]{ typeof(IOrderItem) }), Substitute.For<IPomonaClient>()),
                 "{name:\"blah\",ignored:\"optional\"}");
         }
     }

@@ -323,6 +323,9 @@ namespace Pomona.Common
             if (callExpr.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
                 return Build(callExpr.Arguments[1]) + " in " + Build(callExpr.Arguments[0]);
 
+            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.ListContainsMethod.UniqueToken())
+                return Build(callExpr.Arguments[0]) + " in " + Build(callExpr.Object);
+
             if (callExpr.Method.UniqueToken() == OdataFunctionMapping.DictStringStringGetMethod.UniqueToken())
             {
                 var quotedKey = Build(callExpr.Arguments[0]);
@@ -455,7 +458,7 @@ namespace Pomona.Common
         private string GetEncodedConstant(Type valueType, object value)
         {
             Type enumerableElementType;
-            if (valueType != typeof (string) && valueType.TryGetCollectionElementType(out enumerableElementType))
+            if (valueType != typeof (string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {
                 // This handles arrays in constant expressions
                 var elements = string

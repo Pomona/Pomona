@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,8 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using System.Linq;
-using System.Text;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
@@ -35,20 +39,20 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class PatchTests : ClientTestsBase
     {
-        private WebClientResponseMessage PatchProtectedProperty(Critter critter)
+        public void PatchProtectedProperty_ThrowsBadRequestException_AndDoesNotAllowChangeOfProtectedProperty()
         {
-            var response = client.WebClient.Send(new WebClientRequestMessage("http://test/critters/" + critter.Id,
-                                                                             Encoding.UTF8.GetBytes(
-                                                                                 "{ protected: \"CHANGED\" }"),
-                                                                             "PATCH")
-                {
-                    Headers =
-                        {
-                            {"Accept", "application/json"}
-                        }
-                });
-            return response;
+            var critter = Save(new Critter());
+            var protectedValue = critter.Protected;
+            var c = client.Critters.Query(x => x.Id == critter.Id).First();
+            var ex =
+                Assert.Throws<BadRequestException<IErrorStatus>>(
+                    () => client.Critters.Patch(c, p => p.Protected = "HALLA MALLA NALLA"));
+
+            Assert.That(ex.Body, Is.Not.Null);
+            Assert.That(ex.Body.Member, Is.EqualTo("Protected"));
+            Assert.That(critter.Protected, Is.EqualTo(protectedValue));
         }
+
 
         [Test]
         public void PatchCritter_AddNewFormToList()
@@ -129,28 +133,14 @@ namespace Pomona.SystemTests
             Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
         }
 
-        [Category("TODO")]
-        [Test(Description = "Will correct this until patching is refactored to use Delta")]
-        public void PatchProtectedProperty_DoesNotAllowChangeOfProtectedProperty()
+        [Test]
+        public void PatchUnpatchableThing_ThrowsInvalidOperationException()
         {
-            var critter = Save(new Critter());
-            var protectedValue = critter.Protected;
-            PatchProtectedProperty(critter);
-
-
-            Assert.That(critter.Protected, Is.EqualTo(protectedValue));
-        }
-
-        [Category("TODO")]
-        [Test(Description = "Will correct this until patching is refactored to use Delta")]
-        public void PatchProtectedProperty_ReturnsCorrectStatusCode()
-        {
-            var critter = Save(new Critter());
-            var response = PatchProtectedProperty(critter);
-
-            Assert.That(response.StatusCode, Is.Not.EqualTo(HttpStatusCode.OK));
-            Assert.Inconclusive(
-                "Don't know yet what should be correct status code for failed PATCH due to access denied.");
+            var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
+            var ex =
+                Assert.Throws<InvalidOperationException>(
+                    () => client.UnpatchableThings.Patch(resource, x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
         }
 
         [Test]

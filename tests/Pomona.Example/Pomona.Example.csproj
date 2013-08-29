@@ -37,13 +37,13 @@
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>..\..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy, Version=0.17.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.17.1\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.0.18.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=0.17.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy.Hosting.Self, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.17.1\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.Hosting.Self.0.18.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -68,17 +68,21 @@
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="Models\AbstractAnimal.cs" />
+    <Compile Include="Models\Cat.cs" />
     <Compile Include="Models\ColorfulThing.cs" />
     <Compile Include="Models\CrazyValueObject.cs" />
     <Compile Include="Models\Critter.cs" />
     <Compile Include="Models\CustomEnum.cs" />
     <Compile Include="Models\DictionaryContainer.cs" />
     <Compile Include="Models\EntityBase.cs" />
+    <Compile Include="Models\ErrorStatus.cs" />
     <Compile Include="Models\EtaggedEntity.cs" />
     <Compile Include="Models\ExcludedThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
+    <Compile Include="Models\InheritedUnpostableThing.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\GenericBaseClass.cs" />
     <Compile Include="Models\Gun.cs" />
@@ -110,6 +114,9 @@
     <Compile Include="Models\ThingWithPropertyNamedUri.cs" />
     <Compile Include="Models\ThingWithRenamedProperties.cs" />
     <Compile Include="Models\ThingWithUri.cs" />
+    <Compile Include="Models\UnpatchableThing.cs" />
+    <Compile Include="Models\UnpostableThing.cs" />
+    <Compile Include="Models\UnpostableThingOnServer.cs" />
     <Compile Include="Models\Weapon.cs" />
     <Compile Include="Models\WeaponModel.cs" />
     <Compile Include="Models\WebColor.cs" />

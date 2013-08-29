@@ -58,8 +58,10 @@ namespace Pomona.FluentMapping
 
         private bool? isUriBaseType;
         private bool? isValueObject;
+        private bool? patchAllowed;
 
         private string pluralName;
+        private bool? postAllowed;
         private Type postResponseType;
 
         public TypeMappingOptions(Type declaringType)
@@ -114,6 +116,15 @@ namespace Pomona.FluentMapping
             get { return propertyOptions; }
         }
 
+        public bool? PostAllowed
+        {
+            get { return postAllowed; }
+        }
+
+        public bool? PatchAllowed
+        {
+            get { return patchAllowed; }
+        }
 
         internal PropertyMappingOptions GetPropertyOptions(string name)
         {
@@ -291,6 +302,30 @@ namespace Pomona.FluentMapping
             public ITypeMappingConfigurator<TDeclaringType> PostReturns(Type type)
             {
                 owner.postResponseType = type;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PostAllowed()
+            {
+                owner.postAllowed = true;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PostDenied()
+            {
+                owner.postAllowed = false;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PatchAllowed()
+            {
+                owner.patchAllowed = true;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PatchDenied()
+            {
+                owner.patchAllowed = false;
                 return this;
             }
 

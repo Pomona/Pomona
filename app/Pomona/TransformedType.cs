@@ -32,6 +32,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
@@ -92,10 +93,9 @@ namespace Pomona
             get { return properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
 
-        public bool PostAllowed
-        {
-            get { return true; }
-        }
+        public bool PatchAllowed { get; set; }
+
+        public bool PostAllowed { get; set; }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.
@@ -242,8 +242,9 @@ namespace Pomona
                         // Set to default value
                         var prop = properties.First(x => x.ConstructorArgIndex == i);
                         if (prop.CreateMode == PropertyCreateMode.Required)
-                            throw new InvalidOperationException(
-                                string.Format("Property {0} is required when creating resource {1}", prop.Name, Name));
+                            throw new ResourceValidationException(
+                                string.Format("Property {0} is required when creating resource {1}", prop.Name, Name),
+                                prop.Name, Name, null);
                     }
                 }
             }
@@ -468,9 +469,10 @@ namespace Pomona
 
         private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
         {
+            var propBaseDefinition = propertyInfo.GetBaseDefinition();
             var reflectedType = propertyInfo.ReflectedType;
 
-            while (reflectedType.BaseType != null && reflectedType != propertyInfo.DeclaringType &&
+            while (reflectedType.BaseType != null && reflectedType != propBaseDefinition.DeclaringType &&
                    typeMapper.SourceTypes.Contains(reflectedType.BaseType))
             {
                 reflectedType = reflectedType.BaseType;

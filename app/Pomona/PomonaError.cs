@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,50 +24,46 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using Pomona.Common.Web;
+#endregion
 
-namespace Pomona.Common
+using System.Collections.Generic;
+using System.Linq;
+using Nancy;
+
+namespace Pomona
 {
-    public class ClientRequestLogEventArgs : EventArgs
+    public class PomonaError
     {
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
+        private readonly object entity;
+        private readonly List<KeyValuePair<string, string>> responseHeaders;
+        private readonly HttpStatusCode statusCode;
 
-        private readonly Exception thrownException;
-
-        public ClientRequestLogEventArgs(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception thrownException)
+        public PomonaError(HttpStatusCode statusCode) : this(statusCode, null)
         {
-            if (request == null) throw new ArgumentNullException("request");
-            this.request = request;
-            this.response = response;
-            this.thrownException = thrownException;
         }
 
-        public WebClientRequestMessage Request
+        public PomonaError(HttpStatusCode statusCode, object entity,
+                           IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
-            get { return request; }
+            this.statusCode = statusCode;
+            this.entity = entity;
+            if (responseHeaders != null)
+                this.responseHeaders = responseHeaders.ToList();
         }
 
-        public WebClientResponseMessage Response
+        public List<KeyValuePair<string, string>> ResponseHeaders
         {
-            get { return response; }
+            get { return responseHeaders; }
         }
 
-        public Exception ThrownException
+        public HttpStatusCode StatusCode
         {
-            get { return thrownException; }
+            get { return statusCode; }
         }
 
-        public string Uri
+        public object Entity
         {
-            get { return request.Uri; }
-        }
-
-        public string Method
-        {
-            get { return request.Method; }
+            get { return entity; }
         }
     }
 }

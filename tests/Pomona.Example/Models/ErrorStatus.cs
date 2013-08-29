@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,50 +24,36 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using Pomona.Common.Web;
+#endregion
 
-namespace Pomona.Common
+namespace Pomona.Example.Models
 {
-    public class ClientRequestLogEventArgs : EventArgs
+    public class ErrorStatus
     {
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
+        private readonly int errorCode;
+        private readonly string member;
+        private readonly string message;
 
-        private readonly Exception thrownException;
-
-        public ClientRequestLogEventArgs(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception thrownException)
+        public ErrorStatus(string message, int errorCode, string member = null)
         {
-            if (request == null) throw new ArgumentNullException("request");
-            this.request = request;
-            this.response = response;
-            this.thrownException = thrownException;
+            this.message = message;
+            this.errorCode = errorCode;
+            this.member = member;
         }
 
-        public WebClientRequestMessage Request
+        public string Member
         {
-            get { return request; }
+            get { return member; }
         }
 
-        public WebClientResponseMessage Response
+        public string Message
         {
-            get { return response; }
+            get { return message; }
         }
 
-        public Exception ThrownException
+        public int ErrorCode
         {
-            get { return thrownException; }
-        }
-
-        public string Uri
-        {
-            get { return request.Uri; }
-        }
-
-        public string Method
-        {
-            get { return request.Method; }
+            get { return errorCode; }
         }
     }
 }

@@ -49,10 +49,18 @@ namespace Pomona.SystemTests
         }
 
         [Test]
-        public void QueryCritter_IdInList_ReturnsCorrectCritters()
+        public void QueryCritter_IdInArray_ReturnsCorrectCritters()
         {
             DataStore.CreateRandomData(critterCount: 10);
             var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
+            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
+        }
+
+        [Test]
+        public void QueryCritter_IdInList_ReturnsCorrectCritters()
+        {
+            DataStore.CreateRandomData(critterCount: 10);
+            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToList();
             TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
         }
 

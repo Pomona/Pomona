@@ -40,6 +40,22 @@ namespace Pomona.Example
         //if (propertyInfo.DeclaringType == typeof(ThingWithRenamedProperties)
         //    && propertyInfo.Name == "Junky")
         //    return "DiscoFunky";
+        public void Map(ITypeMappingConfigurator<UnpostableThing> map)
+        {
+            map.PostDenied();
+        }
+
+        public void Map(ITypeMappingConfigurator<UnpostableThingOnServer> map)
+        {
+            map.WithPluralName("UnpostableThingsOnServer");
+            map.PostDenied();
+        }
+
+        public void Map(ITypeMappingConfigurator<UnpatchableThing> map)
+        {
+            map.PatchDenied();
+        }
+
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
         {
             map.Include(x => x.ReallyUglyPropertyName, o => o.Named("BeautifulAndExposed"));
@@ -76,6 +92,11 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Loner> map)
         {
             map.ConstructedUsing((x, c) => new Loner(c.Optional(x.OptionalInfo), x.Strength, x.OptionalInfo));
+        }
+
+        public void Map(ITypeMappingConfigurator<ErrorStatus> map)
+        {
+            map.AsValueObject();
         }
 
         public void Map(ITypeMappingConfigurator<Critter> map)

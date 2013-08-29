@@ -31,6 +31,7 @@ using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
+using Pomona.Common.Web;
 using Pomona.Example.Models;
 using CustomEnum = Critters.Client.CustomEnum;
 
@@ -96,6 +97,15 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
 
+        [Test]
+        public void PostCritterWithNameTooLong_ThrowsExceptionWithErrorStatus()
+        {
+            var form = new CritterForm {Name = string.Join(" ", Enumerable.Repeat("John", 50))};
+            var exception = Assert.Throws<BadRequestException<IErrorStatus>>(() => client.Critters.Post(form));
+            Assert.That(exception.Body, Is.Not.Null);
+            Assert.That(exception.Body.Message, Is.EqualTo("Critter can't have name longer than 50 characters."));
+            Assert.That(exception.Body.ErrorCode, Is.EqualTo(1337));
+        }
 
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
@@ -267,6 +277,25 @@ namespace Pomona.SystemTests
             Assert.That(o.Map["blah"], Is.EqualTo("hah"));
         }
 
+
+        [Test]
+        public void PostUnpostableThingOnServer_ThatIsOnlyUnpostableServerSide_ThrowsInvalidOperationException()
+        {
+            // UnpostableThingOnServer has been modified in GenerateClientDllApp to appear postable in client dll,
+            // but should still not be postable on server. This is done to test server validation of posting rules.
+
+            var ex = Assert.Throws<WebClientException>(() => client.UnpostableThingsOnServer.Post(x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("MethodNotAllowed"));
+            Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
+        }
+
+        [Test]
+        public void PostUnpostableThing_ThrowsInvalidOperationException()
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => client.UnpostableThings.Post(x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("Method POST is not allowed for uri."));
+        }
+
         [Test]
         public void PostUsingOverloadTakingFormObject()
         {
@@ -288,21 +317,14 @@ namespace Pomona.SystemTests
         }
 
         [Test]
-        public void PostWeaponWithRequiredPropertyNotSet_ThrowsException()
+        public void PostWeaponWithRequiredPropertyNotSet_ThrowsBadRequestException()
         {
             // Model is required, so an exception should be thrown.
-            var critter = client.Critters.Query().First();
-            Assert.That(() => client.Weapons.Post(new WeaponForm {}), Throws.Exception);
-        }
-
-
-        [Category("TODO")]
-        [Test(Description = "TODO: Must find out what kind of Exception we want to throw here.")]
-        public void PostWeaponWithoutModel_ThrowsSaneExceptionWithRelevantHttpStatusCode()
-        {
-            var critter = client.Critters.Query().First();
-            Assert.That(() => client.Weapons.Post(new WeaponForm {Model = null}), Throws.Exception);
-            Assert.Fail("TODO: Find out what kind of Exception we want to throw here.");
+            var ex =
+                Assert.Throws<BadRequestException<IErrorStatus>>(
+                    () => client.Weapons.Post(new WeaponForm {Price = 12345}));
+            Assert.That(ex.Body, Is.Not.Null);
+            Assert.That(ex.Body.Member, Is.EqualTo("Model"));
         }
     }
 }

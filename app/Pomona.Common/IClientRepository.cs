@@ -45,6 +45,8 @@ namespace Pomona.Common
 
         TPostResponseResource Post(Action<TResource> postAction);
 
+        TResource Get(object id);
+
         IQueryable<TResource> Query();
 
         IQueryable<TSubResource> Query<TSubResource>()

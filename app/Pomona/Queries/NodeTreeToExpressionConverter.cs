@@ -503,65 +503,11 @@ namespace Pomona.Queries
             }
             catch (Exception ex)
             {
-                throw CreateParseException(node, string.Format("Unable to resolve symbol with name {0}.", node.Name));
+                throw CreateParseException(node, string.Format("Unable to resolve symbol with name {0}.", node.Name), ex);
             }
         }
 
 
-        private bool ResolveTypeArgs(
-            Type wantedType, Type actualType, Type[] methodTypeArgs, out bool typeArgsWasResolved)
-        {
-            typeArgsWasResolved = false;
-            if (wantedType.IsGenericTypeDefinition)
-            {
-                throw new ArgumentException(
-                    "Does not expect genDefArgType to be a generic type definition.", "genDefArgType");
-            }
-            if (actualType.IsGenericTypeDefinition)
-            {
-                throw new ArgumentException(
-                    "Does not expect instanceArgType to be a generic type definition.", "instanceArgType");
-            }
-
-            if (!wantedType.IsGenericType)
-            {
-                if (!wantedType.IsAssignableFrom(actualType))
-                    return false;
-            }
-            else
-            {
-                var wantedTypeArgs = wantedType.GetGenericArguments();
-                Type[] actualTypeArgs;
-                if (!TryExtractTypeArguments(wantedType.GetGenericTypeDefinition(), actualType, out actualTypeArgs))
-                    return false;
-
-                for (var i = 0; i < wantedTypeArgs.Length; i++)
-                {
-                    var wantedTypeArg = wantedTypeArgs[i];
-                    var actualTypeArg = actualTypeArgs[i];
-
-                    if (wantedTypeArg.IsGenericParameter)
-                    {
-                        if (methodTypeArgs[wantedTypeArg.GenericParameterPosition] != actualTypeArg)
-                        {
-                            typeArgsWasResolved = true;
-                            methodTypeArgs[wantedTypeArg.GenericParameterPosition] = actualTypeArg;
-                        }
-                    }
-                    else
-                    {
-                        bool innerTypeArgsWasResolved;
-                        if (!ResolveTypeArgs(wantedTypeArg, actualTypeArg, methodTypeArgs, out innerTypeArgsWasResolved))
-                            return false;
-
-                        if (innerTypeArgsWasResolved)
-                            typeArgsWasResolved = true;
-                    }
-                }
-            }
-
-            return true;
-        }
 
 
         private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
@@ -583,22 +529,6 @@ namespace Pomona.Queries
         }
 
 
-        private bool TryExtractTypeArguments(Type genTypeDef, Type typeInstance, out Type[] typeArgs)
-        {
-            if (typeInstance.GetGenericTypeDefinition() == genTypeDef)
-            {
-                typeArgs = typeInstance.GetGenericArguments();
-                return true;
-            }
-            foreach (var interfaceType in typeInstance.GetInterfaces())
-            {
-                if (TryExtractTypeArguments(genTypeDef, interfaceType, out typeArgs))
-                    return true;
-            }
-
-            typeArgs = null;
-            return false;
-        }
 
 
         private bool TryResolveGenericInstanceMethod<TMemberInfo>(Expression instance, ref TMemberInfo member)
@@ -608,7 +538,7 @@ namespace Pomona.Queries
             if (declaringType.IsGenericTypeDefinition)
             {
                 Type[] typeArgs;
-                if (TryExtractTypeArguments(declaringType, instance.Type, out typeArgs))
+                if (instance.Type.TryExtractTypeArguments(declaringType, out typeArgs))
                 {
                     var memberLocal = member;
                     member = declaringType
@@ -686,7 +616,7 @@ namespace Pomona.Queries
                         var argExpr = ParseExpression(argNode, thisParam, param.ParameterType);
 
                         bool typeArgsWasResolved;
-                        if (!ResolveTypeArgs(param.ParameterType, argExpr.Type, methodTypeArgs, out typeArgsWasResolved))
+                        if (!TypeExtensions.TryFillGenericTypeParameters(param.ParameterType, argExpr.Type, methodTypeArgs, out typeArgsWasResolved))
                             return false;
 
                         if (typeArgsWasResolved)

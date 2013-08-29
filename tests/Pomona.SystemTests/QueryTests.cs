@@ -33,6 +33,7 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Proxies;
 using Pomona.Example.Models;
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
@@ -41,6 +42,14 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class QueryTests : ClientTestsBase
     {
+        [Test]
+        public void GetResourceById_UsingClientRepository_ReturnsResource()
+        {
+            var critterEntity = CritterEntities.First();
+            var critterResource = client.Critters.Get(critterEntity.Id);
+            Assert.That(critterResource, Is.Not.Null);
+        }
+
         [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
@@ -158,6 +167,37 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void QueryResourceWithEnumerable_PredicateOnEmumerable_ReturnsCorrectResults()
+        {
+            var musicalCritter = (MusicalCritter) DataStore.CreateRandomCritter(forceMusicalCritter: true);
+            var farms =
+                client.Farms.Query(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
+            Assert.That(farms.Any(x => x.MusicalCritters.Select(y => y.Id).Contains(musicalCritter.Id)));
+        }
+
+        [Test]
+        public void QueryResourceWithExpandedEnumerable_ReturnsExpandedItems()
+        {
+            DataStore.CreateRandomData(critterCount: 20);
+            var farms = client.Farms.Query().Expand(x => x.MusicalCritters).ToList();
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(farms.All(x => !(x.MusicalCritters is LazyListProxy<IMusicalCritter>)));
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+        }
+
+        [Test]
+        public void QueryResourceWithNonExpandedEnumerable_ReturnsLazyItems()
+        {
+            DataStore.CreateRandomData(critterCount: 20);
+            var farms = client.Farms.Query().ToList();
+            Assert.That(farms.All(x => x.MusicalCritters is LazyListProxy<IMusicalCritter>));
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+        }
+
+        [Test]
         public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
         {
             var entity = DataStore.Save(new StringToObjectDictionaryContainer {Map = {{"foo", 1234}, {"bar", "hoho"}}});
@@ -198,6 +238,13 @@ namespace Pomona.SystemTests
         public void QueryWeapons_WithFilterOnDouble_ReturnsCorrectCritters()
         {
             TestQuery<IWeapon, Weapon>(x => x.Strength > 0.8, x => x.Strength > 0.8);
+        }
+
+        [Test]
+        public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
+        {
+            var results = client.Critters.Query().Select(x => new {theNull = (int?) null}).Take(1).ToList();
+            Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] {(int?) null}));
         }
     }
 }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,17 +24,43 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Nancy;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
     public class PomonaResponse
     {
+        internal static readonly object NoBodyEntity = new object();
+
         private readonly object entity;
+        private readonly string expandedPaths;
         private readonly PomonaQuery query;
+        private readonly List<KeyValuePair<string, string>> responseHeaders;
+        private readonly IMappedType resultType;
         private readonly PomonaSession session;
         private readonly HttpStatusCode statusCode;
+
+        public PomonaResponse(object entity, PomonaSession session, HttpStatusCode statusCode = HttpStatusCode.OK,
+                              string expandedPaths = "",
+                              IMappedType resultType = null,
+                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+        {
+            if (session == null) throw new ArgumentNullException("session");
+            this.entity = entity;
+            this.session = session;
+            this.statusCode = statusCode;
+            this.expandedPaths = expandedPaths;
+            this.resultType = resultType;
+
+            if (responseHeaders != null)
+                this.responseHeaders = responseHeaders.ToList();
+        }
 
         public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
             : this(query, entity, session, HttpStatusCode.OK)
@@ -47,11 +75,23 @@ namespace Pomona
             this.entity = entity;
             this.session = session;
             this.statusCode = statusCode;
+            expandedPaths = query.ExpandedPaths;
+            resultType = query.ResultType;
         }
 
-        public PomonaQuery Query
+        public List<KeyValuePair<string, string>> ResponseHeaders
         {
-            get { return query; }
+            get { return responseHeaders; }
+        }
+
+        public IMappedType ResultType
+        {
+            get { return resultType; }
+        }
+
+        public string ExpandedPaths
+        {
+            get { return expandedPaths; }
         }
 
         public object Entity

@@ -260,7 +260,7 @@ namespace Pomona.Common.Linq
                 return CreateClientSideResourceProxy<TCustomClientType>(dictProp, result);
             }
 
-            if (transformedExpression.Type.TryGetCollectionElementType(out elementType)
+            if (transformedExpression.Type.TryGetEnumerableElementType(out elementType)
                 && elementType == serverKnownType)
             {
                 // Map back to customClientType

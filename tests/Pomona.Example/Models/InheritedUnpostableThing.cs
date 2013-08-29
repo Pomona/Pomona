@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,50 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using Pomona.Common.Web;
+#endregion
 
-namespace Pomona.Common
+namespace Pomona.Example.Models
 {
-    public class ClientRequestLogEventArgs : EventArgs
+    public class InheritedUnpostableThing : UnpostableThing
     {
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
-
-        private readonly Exception thrownException;
-
-        public ClientRequestLogEventArgs(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception thrownException)
-        {
-            if (request == null) throw new ArgumentNullException("request");
-            this.request = request;
-            this.response = response;
-            this.thrownException = thrownException;
-        }
-
-        public WebClientRequestMessage Request
-        {
-            get { return request; }
-        }
-
-        public WebClientResponseMessage Response
-        {
-            get { return response; }
-        }
-
-        public Exception ThrownException
-        {
-            get { return thrownException; }
-        }
-
-        public string Uri
-        {
-            get { return request.Uri; }
-        }
-
-        public string Method
-        {
-            get { return request.Method; }
-        }
     }
 }

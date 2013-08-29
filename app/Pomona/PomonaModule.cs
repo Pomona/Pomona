@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -34,6 +35,7 @@ using Nancy.Responses.Negotiation;
 using Nancy.Routing;
 using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Queries;
 using Pomona.Schemas;
 
@@ -72,7 +74,6 @@ namespace Pomona
                     }
                     return null;
                 };
-
 
             this.dataSource = dataSource;
             dataSource.Module = this;
@@ -379,6 +380,9 @@ namespace Pomona
 
         private PomonaResponse PostFromJson(TransformedType transformedType)
         {
+            if (!transformedType.PostAllowed)
+                ThrowMethodNotAllowedForType(transformedType);
+
             return session.PostJson(transformedType, Request.Body);
         }
 
@@ -403,6 +407,49 @@ namespace Pomona
             return "/";
         }
 
+        protected virtual Exception UnwrapException(Exception exception)
+        {
+            if (exception is TargetInvocationException || exception is RequestExecutionException)
+            {
+                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
+            }
+            return exception;
+        }
+
+        protected virtual PomonaError OnException(Exception exception)
+        {
+            if (exception is PomonaSerializationException)
+            {
+                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
+            }
+            if (exception is PomonaException)
+            {
+                return new PomonaError(((PomonaException) exception).StatusCode);
+            }
+            return null;
+        }
+
+        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, PomonaResponse> handler)
+        {
+            routeBuilder[path] = x =>
+                {
+                    try
+                    {
+                        return handler(x);
+                    }
+                    catch (Exception ex)
+                    {
+                        var error = OnException(UnwrapException(ex));
+                        if (error == null)
+                            throw;
+
+                        Context.Items["ERROR_HANDLED"] = true;
+                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity, session,
+                                                  error.StatusCode, responseHeaders: error.ResponseHeaders);
+                    }
+                };
+        }
+
         private void RegisterRoutesFor(TransformedType type)
         {
             var appVirtualPath = GetAppVirtualPath();
@@ -414,7 +461,7 @@ namespace Pomona
             htmlLinks = htmlLinks
                         + string.Format("<li><a href=\"{0}\">{1}</a></li>", absLinkPath, type.Name);
 
-            Get[path + "/{id}"] = x => GetAsJson(type, x.id);
+            Register(Get, path + "/{id}", x => GetAsJson(type, x.id));
 
             foreach (var prop in type.Properties)
             {
@@ -425,30 +472,26 @@ namespace Pomona
                     var collectionElementType = (TransformedType) prop.PropertyType.ElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;
 
-                    Get[path + "/{id}/" + prop.JsonName] =
-                        x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id);
-
-                    var propname = prop.Name;
-                    Get[path + "/{id}/_old_" + prop.JsonName] = x => GetPropertyFromEntityAsJson(type, x.id, propname);
-                }
-                else
-                {
-                    var propname = prop.Name;
-                    Get[path + "/{id}/" + prop.JsonName] = x => GetPropertyFromEntityAsJson(type, x.id, propname);
+                    Register(Get, path + "/{id}/" + transformedProp.UriName,
+                             x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
                 }
             }
 
-            Get[path + "/{id}/{propname}"] = x => GetPropertyFromEntityAsJson(type, x.id, x.propname);
+            Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
 
-            Patch[path + "/{id}"] = x => UpdateFromJson(type, x.id);
-            Post[path] = x => PostFromJson(type);
+            Register(Patch, path + "/{id}", x => UpdateFromJson(type, x.id));
 
-            Get[path] = x => Query(type);
+            Register(Post, path, x => PostFromJson(type));
+
+            Register(Get, path, x => Query(type));
         }
 
 
         private PomonaResponse UpdateFromJson(TransformedType transformedType, object id)
         {
+            if (!transformedType.PatchAllowed)
+                ThrowMethodNotAllowedForType(transformedType);
+
             var ifMatch = Request.Headers.IfMatch.FirstOrDefault();
             if (ifMatch != null)
             {
@@ -461,6 +504,21 @@ namespace Pomona
             }
 
             return session.Patch(transformedType, id, Request.Body, ifMatch);
+        }
+
+        private void ThrowMethodNotAllowedForType(TransformedType type)
+        {
+            // HTTP specification says it's mandatory to return a list of allowed methods in header on 405 method not allowed!
+            var allowedMethods = "GET";
+            if (type.PostAllowed)
+                allowedMethods += ", POST";
+            if (type.PatchAllowed)
+                allowedMethods += ", PATCH";
+
+            var allowHeader = new KeyValuePair<string, string>("Allow", allowedMethods);
+
+            throw new PomonaException("Method " + Context.Request.Method + " not allowed!", null,
+                                      HttpStatusCode.MethodNotAllowed, allowHeader.WrapAsEnumerable());
         }
     }
 }

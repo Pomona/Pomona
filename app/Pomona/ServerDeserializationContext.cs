@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using Pomona.Common.Serialization;
@@ -56,6 +60,22 @@ namespace Pomona
         public IMappedType GetTypeByName(string typeName)
         {
             return pomonaSession.TypeMapper.GetClassMapping(typeName);
+        }
+
+        public void SetProperty(IDeserializerNode targetNode, IPropertyInfo property, object propertyValue)
+        {
+            if (!property.IsWriteable)
+            {
+                var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)
+                                   ? property.Name
+                                   : targetNode.ExpandPath + "." + property.Name;
+                throw new ResourceValidationException(
+                    string.Format("Property {0} of resource {1} is not writable.", property.Name,
+                                  targetNode.ValueType.Name), propPath,
+                    targetNode.ValueType.Name, null);
+            }
+
+            property.Setter(targetNode.Value, propertyValue);
         }
     }
 }

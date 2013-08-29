@@ -31,7 +31,6 @@ using Pomona.CodeGen;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
-using ISerializer = Pomona.Common.Serialization.ISerializer;
 
 namespace Pomona
 {
@@ -53,12 +52,11 @@ namespace Pomona
         static PomonaSession()
         {
             postGenericMethod =
-                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Post<object>(null)).
-                                 GetGenericMethodDefinition();
+                ReflectionHelper.GetMethodDefinition<PomonaSession>(dst => dst.InvokeDataSourcePost((object) null));
             getByIdMethod =
                 ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
             patchGenericMethod =
-                ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.Patch((object) null));
+                ReflectionHelper.GetMethodDefinition<PomonaSession>(dst => dst.InvokeDataSourcePatch((object) null));
         }
 
 
@@ -86,14 +84,26 @@ namespace Pomona
             get { return typeMapper; }
         }
 
+        private object InvokeDataSourcePatch<T>(T entity)
+        {
+            if (!((TransformedType) typeMapper.GetClassMapping<T>()).PatchAllowed)
+                throw new PomonaException("Method PATCH not allowed", null, HttpStatusCode.MethodNotAllowed);
+            return dataSource.Patch(entity);
+        }
+
+        private object InvokeDataSourcePost<T>(T entity)
+        {
+            if (!((TransformedType) typeMapper.GetClassMapping<T>()).PostAllowed)
+                throw new PomonaException("Method POST not allowed", null, HttpStatusCode.MethodNotAllowed);
+            return dataSource.Post(entity);
+        }
+
 
         public PomonaResponse GetAsJson(TransformedType transformedType, object id, string expand)
         {
             var o = GetById(transformedType, id);
             return
-                new PomonaResponse(
-                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = transformedType}, o,
-                    this);
+                new PomonaResponse(o, this, expandedPaths: expand, resultType: transformedType);
         }
 
         internal object GetResultByUri(string uri)
@@ -111,22 +121,25 @@ namespace Pomona
             var o = GetById(transformedType, id);
             var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
 
-            var property = mappedType.Properties.First(x => x.Name.ToLower() == propertyName);
+            var property =
+                mappedType.Properties.OfType<PropertyMapping>()
+                          .FirstOrDefault(
+                              x => string.Equals(propertyName, x.UriName, StringComparison.InvariantCultureIgnoreCase));
+
+            if (property == null)
+                throw new ResourceNotFoundException("Resource not found.");
 
             var propertyValue = property.Getter(o);
             var propertyType = property.PropertyType;
 
             return
-                new PomonaResponse(
-                    new PomonaQuery(transformedType, this) {ExpandedPaths = expand, ResultType = propertyType},
-                    propertyValue,
-                    this);
+                new PomonaResponse(propertyValue, this, expandedPaths: expand, resultType: propertyType);
         }
 
 
         public string GetUri(IPropertyInfo property, object entity)
         {
-            return GetUri(entity) + "/" + property.LowerCaseName;
+            return GetUri(entity) + "/" + ((PropertyMapping) property).UriName;
         }
 
 
@@ -159,13 +172,11 @@ namespace Pomona
 
             var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
             var postResponse = method.MakeGenericMethod(postResource.GetType())
-                                     .Invoke(dataSource, new[] {postResource});
+                                     .Invoke(this, new[] {postResource});
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
 
-            return new PomonaResponse(new PomonaQuery(transformedType, this) {ExpandedPaths = string.Empty},
-                                      postResponse,
-                                      this, successStatusCode);
+            return new PomonaResponse(postResponse, this, successStatusCode);
         }
 
         public PomonaResponse Query(PomonaQuery query)

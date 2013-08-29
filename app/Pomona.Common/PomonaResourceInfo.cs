@@ -32,6 +32,6 @@ namespace Pomona.Common
         public Type LaxyProxyType { get; set; }
         public Type PocoType { get; set; }
         public Type PostFormType { get; set; }
-        public Type PutFormType { get; set; }
+        public Type PatchFormType { get; set; }
     }
 }

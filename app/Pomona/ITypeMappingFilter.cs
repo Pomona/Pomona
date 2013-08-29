@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -92,5 +96,8 @@ namespace Pomona
         PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
         PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
         int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo);
+
+        bool PostOfTypeIsAllowed(Type type);
+        bool PatchOfTypeIsAllowed(Type type);
     }
 }

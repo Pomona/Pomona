@@ -241,8 +241,11 @@ namespace Pomona
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
+
+            Type _;
+            return type != typeof (string) &&
+                   type.UniqueToken() != typeof (IGrouping<,>).UniqueToken() &&
+                   type.TryGetEnumerableElementType(out _);
         }
 
 
@@ -330,9 +333,19 @@ namespace Pomona
             return PropertyAccessMode.ReadOnly;
         }
 
-        public int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
         {
             return null;
+        }
+
+        public virtual bool PostOfTypeIsAllowed(Type type)
+        {
+            return true;
+        }
+
+        public virtual bool PatchOfTypeIsAllowed(Type type)
+        {
+            return true;
         }
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)

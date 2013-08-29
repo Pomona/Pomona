@@ -79,7 +79,7 @@ namespace Pomona.Common.TypeSystem
             {
                 if (mappedType != typeof (string))
                 {
-                    var collectionMetadataToken = typeof (ICollection<>).UniqueToken();
+                    var collectionMetadataToken = typeof (IEnumerable<>).UniqueToken();
                     isCollection =
                         mappedTypeInstance.UniqueToken() == collectionMetadataToken ||
                         mappedTypeInstance.GetInterfaces().Any(x => x.UniqueToken() == collectionMetadataToken);

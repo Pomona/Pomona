@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,49 +23,32 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using Pomona.Common.Web;
+using Nancy;
 
-namespace Pomona.Common
+namespace Pomona
 {
-    public class ClientRequestLogEventArgs : EventArgs
+    public class ResourceValidationException : PomonaException
     {
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
+        private readonly string memberName;
 
-        private readonly Exception thrownException;
+        private readonly string resourceName;
 
-        public ClientRequestLogEventArgs(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         Exception thrownException)
+        public ResourceValidationException(string message, string memberName, string resourceName,
+                                           Exception innerException)
+            : base(message, innerException, HttpStatusCode.BadRequest)
         {
-            if (request == null) throw new ArgumentNullException("request");
-            this.request = request;
-            this.response = response;
-            this.thrownException = thrownException;
+            this.memberName = memberName;
+            this.resourceName = resourceName;
         }
 
-        public WebClientRequestMessage Request
+        public string MemberName
         {
-            get { return request; }
+            get { return memberName; }
         }
 
-        public WebClientResponseMessage Response
+        public string ResourceName
         {
-            get { return response; }
-        }
-
-        public Exception ThrownException
-        {
-            get { return thrownException; }
-        }
-
-        public string Uri
-        {
-            get { return request.Uri; }
-        }
-
-        public string Method
-        {
-            get { return request.Method; }
+            get { return resourceName; }
         }
     }
 }

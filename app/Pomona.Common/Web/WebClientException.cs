@@ -27,20 +27,53 @@
 #endregion
 
 using System;
+using System.Reflection;
+using Pomona.Common.Internals;
+using Pomona.Internals;
 
 namespace Pomona.Common.Web
 {
+    internal class WebClientException<TBody> : WebClientException, IWebClientException<TBody>
+    {
+        internal WebClientException(WebClientRequestMessage request, WebClientResponseMessage response, TBody body,
+                                    Exception innerException) : base(request, response, body, innerException)
+        {
+        }
+
+        public new TBody Body
+        {
+            get { return (TBody) base.Body; }
+        }
+    }
+
     public class WebClientException : Exception
     {
+        private static readonly MethodInfo createGenericMethod =
+            ReflectionHelper.GetMethodDefinition<WebClientException>(
+                x => CreateGeneric<object>(null, null, null, null));
+
+        private readonly object body;
+
         private readonly WebClientRequestMessage request;
         private readonly WebClientResponseMessage response;
 
         protected WebClientException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                     Exception innerException)
-            : base(response != null ? response.StatusCode.ToString() : "Response missing", innerException)
+                                     object body, Exception innerException)
+            : base(CreateMessage(response, body), innerException)
         {
             this.request = request;
             this.response = response;
+            this.body = body;
+        }
+
+        public bool HasBody
+        {
+            get { return body != null; }
+        }
+
+        public object Body
+        {
+            get { return body; }
         }
 
         public HttpStatusCode StatusCode
@@ -48,20 +81,64 @@ namespace Pomona.Common.Web
             get { return response != null ? response.StatusCode : HttpStatusCode.EmptyResponse; }
         }
 
-        public static WebClientException Create(WebClientRequestMessage request, WebClientResponseMessage response,
-                                                Exception innerException)
+        private static string CreateMessage(WebClientResponseMessage response, object body)
+        {
+            var message = response != null ? response.StatusCode.ToString() : "Response missing";
+            var bodyString = body as string;
+            if (bodyString != null)
+                message = message + ": " + bodyString;
+            return message;
+        }
+
+        private static WebClientException CreateGeneric<TBody>(WebClientRequestMessage request,
+                                                               WebClientResponseMessage response,
+                                                               TBody bodyObject, Exception innerException)
+        {
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            switch (statusCode)
+            {
+                case HttpStatusCode.BadRequest:
+                    return new BadRequestException<TBody>(request, response, bodyObject, innerException);
+                case HttpStatusCode.NotFound:
+                    return new ResourceNotFoundException<TBody>(request, response, bodyObject, innerException);
+                case HttpStatusCode.PreconditionFailed:
+                    return new PreconditionFailedException<TBody>(request, response, bodyObject, innerException);
+                default:
+                    return new WebClientException<TBody>(request, response, bodyObject, innerException);
+            }
+        }
+
+        public static WebClientException Create(IPomonaClient client, WebClientRequestMessage request,
+                                                WebClientResponseMessage response,
+                                                object bodyObject, Exception innerException)
         {
             if (request == null) throw new ArgumentNullException("request");
+
+            // String body doesn't create a generic exception, it just puts the string in the message
+            if (bodyObject != null && !(bodyObject is string))
+            {
+                var bodyObjectType = bodyObject.GetType();
+                var genericArg = bodyObject is IClientResource
+                                     ? client.GetMostInheritedResourceInterface(bodyObjectType)
+                                     : bodyObjectType;
+                return
+                    (WebClientException)
+                    createGenericMethod
+                        .MakeGenericMethod(genericArg)
+                        .Invoke(null, new[] {request, response, bodyObject, innerException});
+            }
 
             var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
             switch (statusCode)
             {
+                case HttpStatusCode.BadRequest:
+                    return new BadRequestException(request, response, bodyObject, innerException);
                 case HttpStatusCode.NotFound:
-                    return new ResourceNotFoundException(request, response, innerException);
+                    return new ResourceNotFoundException(request, response, bodyObject, innerException);
                 case HttpStatusCode.PreconditionFailed:
-                    return new PreconditionFailedException(request, response, innerException);
+                    return new PreconditionFailedException(request, response, bodyObject, innerException);
                 default:
-                    return new WebClientException(request, response, innerException);
+                    return new WebClientException(request, response, bodyObject, innerException);
             }
         }
     }

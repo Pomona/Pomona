@@ -30,9 +30,11 @@ namespace Pomona.Common.Serialization
     {
         IDeserializationContext Context { get; }
         IMappedType ExpectedBaseType { get; }
+        string ExpandPath { get; }
         string Uri { get; set; }
         object Value { get; set; }
         IMappedType ValueType { get; }
         void SetValueType(string typeName);
+        void SetProperty(IPropertyInfo property, object propertyValue);
     }
 }

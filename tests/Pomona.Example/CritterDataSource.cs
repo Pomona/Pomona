@@ -26,6 +26,9 @@
 
 #endregion
 
+using Nancy.Validation;
+using Pomona.Example.Models;
+
 namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
@@ -51,6 +54,12 @@ namespace Pomona.Example
 
         public object Post<T>(T newObject)
         {
+            var newCritter = newObject as Critter;
+            if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
+            {
+                throw new ModelValidationException("Critter can't have name longer than 50 characters.");
+            }
+
             return store.Post(newObject);
         }
 

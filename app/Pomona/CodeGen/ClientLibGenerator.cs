@@ -157,12 +157,14 @@ namespace Pomona.CodeGen
                 (info, def) => { info.LazyProxyType = def; });
 
             CreateProxies(
-                new UpdateProxyBuilder(this, MakeProxyTypesPublic),
-                (info, def) => { info.PutFormType = def; });
+                new PatchFormProxyBuilder(this, MakeProxyTypesPublic),
+                (info, def) => { info.PatchFormType = def; },
+                typeIsGeneratedPredicate: x => x.TransformedType.PatchAllowed);
 
             CreateProxies(
                 new PostFormProxyBuilder(this),
-                (info, def) => { info.PostFormType = def; });
+                (info, def) => { info.PostFormType = def; },
+                typeIsGeneratedPredicate: x => x.TransformedType.PostAllowed);
 
             CreateClientInterface("IClient");
             CreateClientType("Client");
@@ -343,7 +345,7 @@ namespace Pomona.CodeGen
                     "PostFormType", new CustomAttributeArgument(typeTypeReference, typeInfo.PostFormType)));
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
-                    "PutFormType", new CustomAttributeArgument(typeTypeReference, typeInfo.PutFormType)));
+                    "PatchFormType", new CustomAttributeArgument(typeTypeReference, typeInfo.PatchFormType)));
 
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
@@ -550,7 +552,8 @@ namespace Pomona.CodeGen
                 var genericInstanceFieldType = (GenericInstanceType) backingField.FieldType;
                 var listReference = GetClientTypeReference(typeof (List<>));
                 var listCtor = listReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
-                var listCtorInstance = module.Import(listCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments[0]));
+                var listCtorInstance =
+                    module.Import(listCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments[0]));
                 ctorIlActions.Add(il =>
                     {
                         il.Emit(OpCodes.Ldarg_0);
@@ -560,16 +563,17 @@ namespace Pomona.CodeGen
             }
             else if (propertyType.IsDictionary)
             {
-                var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
-                var dictReference = GetClientTypeReference(typeof(Dictionary<,>));
+                var genericInstanceFieldType = (GenericInstanceType) backingField.FieldType;
+                var dictReference = GetClientTypeReference(typeof (Dictionary<,>));
                 var dictCtor = dictReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
-                var dictCtorInstance = module.Import(dictCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments.ToArray()));
+                var dictCtorInstance =
+                    module.Import(dictCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments.ToArray()));
                 ctorIlActions.Add(il =>
-                {
-                    il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Newobj, dictCtorInstance);
-                    il.Emit(OpCodes.Stfld, backingField);
-                });
+                    {
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Newobj, dictCtorInstance);
+                        il.Emit(OpCodes.Stfld, backingField);
+                    });
             }
         }
 
@@ -671,9 +675,12 @@ namespace Pomona.CodeGen
 
         private void CreateProxies(
             ProxyBuilder proxyBuilder,
-            Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated)
+            Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
+            Func<TypeCodeGenInfo, bool> typeIsGeneratedPredicate = null)
         {
-            foreach (var typeInfo in clientTypeInfoDict.Values)
+            typeIsGeneratedPredicate = typeIsGeneratedPredicate ?? (x => true);
+
+            foreach (var typeInfo in clientTypeInfoDict.Values.Where(typeIsGeneratedPredicate))
             {
                 var targetType = typeInfo.TransformedType;
                 var name = targetType.Name;
@@ -685,37 +692,6 @@ namespace Pomona.CodeGen
             }
         }
 
-
-        private void GeneratePropertyProxyMethods(
-            PropertyDefinition targetProp,
-            PropertyDefinition proxyPropDef,
-            TypeReference proxyBaseDefinition,
-            TypeReference proxyTargetType)
-        {
-            var proxyOnPropertyGetMethod =
-                module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
-            var proxyOnPropertySetMethod =
-                module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
-
-            var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, targetProp.Name));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
-            if (targetProp.PropertyType.IsValueType)
-                getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
-            else
-                getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-
-            var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, targetProp.Name));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
-            if (targetProp.PropertyType.IsValueType)
-                setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-        }
 
         private TypeReference GetClientTypeReference(Type type)
         {
@@ -898,7 +874,7 @@ namespace Pomona.CodeGen
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition PostFormType { get; set; }
-            public TypeDefinition PutFormType { get; set; }
+            public TypeDefinition PatchFormType { get; set; }
 
             public TransformedType TransformedType { get; set; }
             public TypeDefinition UriBaseType { get; set; }
@@ -910,12 +886,12 @@ namespace Pomona.CodeGen
 
         #region Nested type: UpdateProxyBuilder
 
-        private class UpdateProxyBuilder : WrappedPropertyProxyBuilder
+        private class PatchFormProxyBuilder : WrappedPropertyProxyBuilder
         {
             private readonly ClientLibGenerator owner;
 
 
-            public UpdateProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
+            public PatchFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
                 : base(
                     owner.module,
                     owner.GetProxyType("PutResourceBase"),
