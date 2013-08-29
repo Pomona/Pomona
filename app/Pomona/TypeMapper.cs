@@ -68,6 +68,8 @@ namespace Pomona
             MapForeignKeys();
 
             serializerFactory = configuration.SerializerFactory;
+
+            configuration.OnMappingComplete(this);
         }
 
 

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using Pomona.Common.Proxies;
@@ -44,6 +48,9 @@ namespace Pomona.Common
             where TSubResource : class, TResource;
 
         TPostResponseResource Post(Action<TResource> postAction);
+
+        object Post<TPostForm>(TResource resource, TPostForm form)
+            where TPostForm : PutResourceBase, IClientResource;
 
         TResource Get(object id);
 

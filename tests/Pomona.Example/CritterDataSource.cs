@@ -67,5 +67,12 @@ namespace Pomona.Example
         {
             return store.Patch(updatedObject);
         }
+
+        [PomonaMethod("POST")]
+        public object Capture(Critter critter, CaptureCommand captureCommand)
+        {
+            critter.IsCaptured = true;
+            return critter;
+        }
     }
 }

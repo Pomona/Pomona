@@ -345,7 +345,7 @@ namespace Pomona.Common
             }
 
             // Post the json!
-            var response = SendHttpRequest(uri, httpMethod, form, typeMapper.GetClassMapping(expectedBaseType),
+            var response = SendHttpRequest(uri, httpMethod, form, null /*typeMapper.GetClassMapping(expectedBaseType)*/,
                                            modifyRequestHandler);
 
             return Deserialize(response, null);
@@ -353,7 +353,16 @@ namespace Pomona.Common
 
         internal override object Post<T>(string uri, T postForm)
         {
-            return PostOrPatch(uri, postForm, null, "POST", x => x.PostFormType, null);
+            var type = typeof (T);
+            Func<ResourceInfoAttribute, Type> formTypeGetter = x => x.PostFormType;
+            if (!type.IsInterface)
+            {
+                var interfaceType = this.GetMostInheritedResourceInterface(type);
+                return postOrPatchMethod
+                    .MakeGenericMethod(interfaceType)
+                    .Invoke(this, new object[] {uri, postForm, null, "POST", formTypeGetter, null});
+            }
+            return PostOrPatch(uri, postForm, null, "POST", formTypeGetter, null);
         }
 
 

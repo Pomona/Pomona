@@ -119,6 +119,11 @@ namespace Pomona.Example
             map.Include(x => x.ETag, o => o.AsEtag());
         }
 
+        public void Map(ITypeMappingConfigurator<CaptureCommand> map)
+        {
+            map.AsValueObject();
+        }
+
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
             map.ConstructedUsing(x => new Gun(x.Model))

@@ -26,28 +26,20 @@
 
 #endregion
 
-using System.Collections.Generic;
-using Pomona.Common.Serialization;
-using Pomona.Common.Serialization.Json;
+using Critters.Client;
+using NUnit.Framework;
+using System.Linq;
 
-namespace Pomona
+namespace Pomona.SystemTests
 {
-    public abstract class PomonaConfigurationBase
+    [TestFixture]
+    public class PostToResourceTests : ClientTestsBase
     {
-        public virtual ISerializerFactory SerializerFactory
+        [Test]
+        public void PostCaptureCommandToCritter_IsSuccessful()
         {
-            get { return new PomonaJsonSerializerFactory(); }
-        }
-
-        public virtual IEnumerable<object> FluentRuleObjects
-        {
-            get { yield break; }
-        }
-
-        public abstract ITypeMappingFilter TypeMappingFilter { get; }
-
-        public virtual void OnMappingComplete(TypeMapper typeMapper)
-        {
+            var critterResource = client.Critters.Query().First();
+            client.Critters.Post(critterResource, new CaptureCommandForm() {FooBar = "lalala"});
         }
     }
 }

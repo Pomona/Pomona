@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.IO;
@@ -157,19 +161,23 @@ namespace Pomona
 
         public PomonaResponse PostJson(TransformedType transformedType, Stream readStream)
         {
-            using (var textReader = new StreamReader(readStream))
+            return PostOrPatch(transformedType, readStream);
+        }
+
+        public object Deserialize(TransformedType expectedBaseType, Stream body, object patchedObject = null)
+        {
+            using (var textReader = new StreamReader(body))
             {
-                return DeserializePostOrPatch(transformedType, textReader);
+                var deserializationContext = new ServerDeserializationContext(this);
+                return deserializer.Deserialize(textReader, expectedBaseType, deserializationContext,
+                                                patchedObject);
             }
         }
 
-        private PomonaResponse DeserializePostOrPatch(TransformedType transformedType, TextReader textReader,
-                                                      object patchedObject = null)
+        private PomonaResponse PostOrPatch(TransformedType transformedType, Stream body,
+                                           object patchedObject = null)
         {
-            var deserializationContext = new ServerDeserializationContext(this);
-            var postResource = deserializer.Deserialize(textReader, transformedType, deserializationContext,
-                                                        patchedObject);
-
+            var postResource = Deserialize(transformedType, body, patchedObject);
             var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
             var postResponse = method.MakeGenericMethod(postResource.GetType())
                                      .Invoke(this, new[] {postResource});
@@ -202,11 +210,8 @@ namespace Pomona
                 }
             }
 
-            using (var textReader = new StreamReader(readStream))
-            {
-                var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
-                return DeserializePostOrPatch(objType, textReader, o);
-            }
+            var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+            return PostOrPatch(objType, readStream, o);
         }
 
 
@@ -216,10 +221,8 @@ namespace Pomona
         }
 
 
-        private object GetById(TransformedType transformedType, object id)
+        public object GetById(TransformedType transformedType, object id)
         {
-            // TODO: Maybe cache method instance?
-
             return getByIdMethod.MakeGenericMethod(transformedType.MappedTypeInstance)
                                 .Invoke(dataSource, new[] {id});
         }

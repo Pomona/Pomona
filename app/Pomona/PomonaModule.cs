@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -387,11 +391,37 @@ namespace Pomona
 
             Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
 
+            Register(Post, path + "/{id}", x => PostToResource(type, x.id));
+
             Register(Patch, path + "/{id}", x => UpdateFromJson(type, x.id));
 
             Register(Post, path, x => PostFromJson(type));
 
             Register(Get, path, x => Query(type));
+        }
+
+        private PomonaResponse PostToResource(TransformedType type, object id, string actionName = "")
+        {
+            var o = session.GetById(type, id);
+            var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+
+            var handlers =
+                mappedType.PostHandlers.Where(
+                    x => string.Equals(actionName, x.UriName ?? "", StringComparison.InvariantCultureIgnoreCase))
+                          .ToList();
+
+            if (handlers.Count < 1)
+                throw new ResourceNotFoundException("TODO: Should throw method not allowed..");
+
+            if (handlers.Count > 1)
+                throw new NotImplementedException(
+                    "TODO: Only support one handler candidate when posting to a resource for now.");
+
+            var form = session.Deserialize(null, Request.Body);
+            var handler = handlers[0];
+            var result = handler.Method.Invoke(DataSource, new[] {o, form});
+
+            return new PomonaResponse(result, session);
         }
 
 
