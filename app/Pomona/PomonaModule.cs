@@ -113,6 +113,9 @@ namespace Pomona
             Before += RedirectToSpaJsonBrowser;
 
             Get["/"] = x => GetJsonBrowserHtmlResponse();
+            // Old jsonbrowser, for testing
+            Get["/jsonbrowser.html"] = x => GetBasedHtml(Request, "jsonbrowser.html");
+            
             RegisterResourceContent("antlr3-all-min.js");
             RegisterResourceContent("antlr3-all.js");
             RegisterResourceContent("PomonaQueryJsLexer.js");
@@ -174,6 +177,9 @@ namespace Pomona
         {
             var request = ctx.Request;
 
+            if (request.Path == "/jsonbrowser.html")
+                return null;
+
             if (request.Path == "/schemas")
                 return null;
 
@@ -188,7 +194,13 @@ namespace Pomona
                 return null;
             }
 
-            var response = GetStaticContent("index.html");
+            var response = GetBasedHtml(request, "index.html");
+            return response;
+        }
+
+        private Response GetBasedHtml(Request request, string filename)
+        {
+            var response = GetStaticContent(filename);
 
             var innerContents = response.Contents;
             response.Contents = targetStream =>
