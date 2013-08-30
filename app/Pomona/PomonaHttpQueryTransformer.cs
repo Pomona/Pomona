@@ -51,7 +51,7 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public PomonaQuery TransformRequest(Request request, NancyContext nancyContext, IPomonaSession session, TransformedType rootType)
+        public PomonaQuery TransformRequest(Request request, NancyContext nancyContext, IPomonaUriResolver uriResolver, TransformedType rootType)
         {
             if (request == null)
                 throw new ArgumentNullException("request");
@@ -65,7 +65,7 @@ namespace Pomona
                 rootType = (TransformedType) typeMapper.GetClassMapping((string) request.Query["$oftype"]);
             }
 
-            var query = new PomonaQuery(rootType, session);
+            var query = new PomonaQuery(rootType, uriResolver);
 
             if (request.Query["$debug"].HasValue)
             {

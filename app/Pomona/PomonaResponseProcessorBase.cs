@@ -74,8 +74,8 @@ namespace Pomona
 
             using (var strWriter = new StringWriter())
             {
-                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,
-                                                                          pomonaResponse.Session);
+                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false, 
+                                                                          pomonaResponse.UriResolver);
                 serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pomonaResponse.ResultType);
                 jsonString = strWriter.ToString();
             }

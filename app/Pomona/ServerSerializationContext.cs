@@ -33,19 +33,19 @@ namespace Pomona
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
-        private readonly IPomonaSession session;
+        private readonly IPomonaUriResolver uriResolver;
 
-        private readonly TypeMapper typeMapper;
+        private readonly ITypeMapper typeMapper;
 
 
         public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
-            IPomonaSession session)
+            IPomonaUriResolver uriResolver)
         {
             this.debugMode = debugMode;
-            this.session = session;
-            typeMapper = session.TypeMapper;
+            this.uriResolver = uriResolver;
+            this.typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
@@ -55,7 +55,7 @@ namespace Pomona
             get { return debugMode; }
         }
 
-        public TypeMapper TypeMapper
+        public ITypeMapper TypeMapper
         {
             get { return typeMapper; }
         }
@@ -74,13 +74,13 @@ namespace Pomona
 
         public string GetUri(IPropertyInfo property, object entity)
         {
-            return session.GetUri(property, entity);
+            return uriResolver.GetUriFor(property, entity);
         }
 
 
         public string GetUri(object value)
         {
-            return session.GetUri(value);
+            return uriResolver.GetUriFor(value);
         }
 
 

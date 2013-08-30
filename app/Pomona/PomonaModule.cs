@@ -130,13 +130,13 @@ namespace Pomona
         }
 
 
-        public string GetUri(IPropertyInfo property, object entity)
+        public string GetUriFor(IPropertyInfo property, object entity)
         {
-            return GetUri(entity) + "/" + ((PropertyMapping) property).UriName;
+            return GetUriFor(entity) + "/" + ((PropertyMapping) property).UriName;
         }
 
 
-        public string GetUri(object entity)
+        public string GetUriFor(object entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -147,12 +147,12 @@ namespace Pomona
                                                     transformedType.GetId(entity)));
         }
 
-        public TypeMapper TypeMapper
+        public ITypeMapper TypeMapper
         {
             get { return typeMapper; }
         }
 
-        public object GetResultByUri(string uriString)
+        public object ResolveUri(string uriString)
         {
             var routeResolver = container.GetInstance<IRouteResolver>();
             var uri = new Uri(uriString, UriKind.Absolute);
@@ -223,7 +223,7 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                var deserializationContext = new ServerDeserializationContext(this);
+                var deserializationContext = new ServerDeserializationContext(TypeMapper, this);
                 return deserializer.Deserialize(textReader, expectedBaseType, deserializationContext,
                                                 patchedObject);
             }

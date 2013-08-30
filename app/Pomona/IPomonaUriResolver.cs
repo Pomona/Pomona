@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using Pomona.Common.TypeSystem;
+
 namespace Pomona
 {
     public interface IPomonaUriResolver
     {
-        object GetResultByUri(string uri);
+        object ResolveUri(string uri);
         string RelativeToAbsoluteUri(string uri);
+        string GetUriFor(object entity);
+        string GetUriFor(IPropertyInfo property, object entity);
+        ITypeMapper TypeMapper { get; }
     }
 }

@@ -43,17 +43,17 @@ namespace Pomona
         private readonly PomonaQuery query;
         private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly IMappedType resultType;
-        private readonly IPomonaSession session;
+        private readonly IPomonaUriResolver uriResolver;
         private readonly HttpStatusCode statusCode;
 
-        public PomonaResponse(object entity, IPomonaSession session, HttpStatusCode statusCode = HttpStatusCode.OK,
+        public PomonaResponse(object entity, IPomonaUriResolver uriResolver, HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               IMappedType resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
-            if (session == null) throw new ArgumentNullException("session");
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.entity = entity;
-            this.session = session;
+            this.uriResolver = uriResolver;
             this.statusCode = statusCode;
             this.expandedPaths = expandedPaths;
             this.resultType = resultType;
@@ -62,18 +62,18 @@ namespace Pomona
                 this.responseHeaders = responseHeaders.ToList();
         }
 
-        public PomonaResponse(PomonaQuery query, object entity, IPomonaSession session)
-            : this(query, entity, session, HttpStatusCode.OK)
+        public PomonaResponse(PomonaQuery query, object entity, IPomonaUriResolver uriResolver)
+            : this(query, entity, uriResolver, HttpStatusCode.OK)
         {
         }
 
-        public PomonaResponse(PomonaQuery query, object entity, IPomonaSession session, HttpStatusCode statusCode)
+        public PomonaResponse(PomonaQuery query, object entity, IPomonaUriResolver uriResolver, HttpStatusCode statusCode)
         {
             if (query == null) throw new ArgumentNullException("query");
-            if (session == null) throw new ArgumentNullException("session");
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.query = query;
             this.entity = entity;
-            this.session = session;
+            this.uriResolver = uriResolver;
             this.statusCode = statusCode;
             expandedPaths = query.ExpandedPaths;
             resultType = query.ResultType;
@@ -99,9 +99,9 @@ namespace Pomona
             get { return entity; }
         }
 
-        public IPomonaSession Session
+        public IPomonaUriResolver UriResolver
         {
-            get { return session; }
+            get { return uriResolver; }
         }
 
         public HttpStatusCode StatusCode

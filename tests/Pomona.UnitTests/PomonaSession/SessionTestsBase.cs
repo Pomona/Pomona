@@ -24,6 +24,7 @@
 
 using System.Linq;
 using NUnit.Framework;
+using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -76,7 +77,7 @@ namespace Pomona.UnitTests.PomonaSession
 
         private class DummyUriResolver : IPomonaUriResolver
         {
-            public object GetResultByUri(string uri)
+            public object ResolveUri(string uri)
             {
                 return null;
             }
@@ -84,6 +85,21 @@ namespace Pomona.UnitTests.PomonaSession
             public string RelativeToAbsoluteUri(string uri)
             {
                 return "http://localhost/" + uri;
+            }
+
+            public string GetUriFor(object entity)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public string GetUriFor(IPropertyInfo property, object entity)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public ITypeMapper TypeMapper
+            {
+                get { throw new System.NotImplementedException(); }
             }
         }
     }

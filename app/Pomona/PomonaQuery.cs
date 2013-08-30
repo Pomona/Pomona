@@ -50,7 +50,7 @@ namespace Pomona
         }
 
         private static readonly MethodInfo applyAndExecuteMethod;
-        private readonly IPomonaSession session;
+        private readonly IPomonaUriResolver uriResolver;
         private readonly TransformedType targetType;
 
 
@@ -61,14 +61,14 @@ namespace Pomona
         }
 
 
-        public PomonaQuery(TransformedType targetType, IPomonaSession session)
+        public PomonaQuery(TransformedType targetType, IPomonaUriResolver uriResolver)
         {
             DebugInfoKeys = new HashSet<string>();
             if (targetType == null)
                 throw new ArgumentNullException("targetType");
-            if (session == null) throw new ArgumentNullException("session");
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.targetType = targetType;
-            this.session = session;
+            this.uriResolver = uriResolver;
         }
 
         public HashSet<string> DebugInfoKeys { get; set; }
@@ -175,13 +175,13 @@ namespace Pomona
             switch (Projection)
             {
                 case ProjectionType.First:
-                    return new PomonaResponse(this, totalQueryable.First(), session);
+                    return new PomonaResponse(this, totalQueryable.First(), uriResolver);
                 case ProjectionType.FirstOrDefault:
-                    return new PomonaResponse(this, totalQueryable.FirstOrDefault(), session);
+                    return new PomonaResponse(this, totalQueryable.FirstOrDefault(), uriResolver);
                 case ProjectionType.Max:
-                    return new PomonaResponse(this, totalQueryable.Max(), session);
+                    return new PomonaResponse(this, totalQueryable.Max(), uriResolver);
                 case ProjectionType.Min:
-                    return new PomonaResponse(this, totalQueryable.Min(), session);
+                    return new PomonaResponse(this, totalQueryable.Min(), uriResolver);
                 case ProjectionType.Sum:
                     return ApplySum(totalQueryable);
                 default:
@@ -196,7 +196,7 @@ namespace Pomona
                             limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
 
                         var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
-                        return new PomonaResponse(this, qr, session);
+                        return new PomonaResponse(this, qr, uriResolver);
                     }
             }
         }
@@ -205,22 +205,22 @@ namespace Pomona
         {
             var intQueryable = totalQueryable as IQueryable<int>;
             if (intQueryable != null)
-                return new PomonaResponse(this, intQueryable.Sum(), session);
+                return new PomonaResponse(this, intQueryable.Sum(), uriResolver);
             var nullableIntQueryable = totalQueryable as IQueryable<int?>;
             if (nullableIntQueryable != null)
-                return new PomonaResponse(this, nullableIntQueryable.Sum(), session);
+                return new PomonaResponse(this, nullableIntQueryable.Sum(), uriResolver);
             var decimalQueryable = totalQueryable as IQueryable<decimal>;
             if (decimalQueryable != null)
-                return new PomonaResponse(this, decimalQueryable.Sum(), session);
+                return new PomonaResponse(this, decimalQueryable.Sum(), uriResolver);
             var nullableDecimalQueryable = totalQueryable as IQueryable<decimal?>;
             if (nullableDecimalQueryable != null)
-                return new PomonaResponse(this, nullableDecimalQueryable.Sum(), session);
+                return new PomonaResponse(this, nullableDecimalQueryable.Sum(), uriResolver);
             var doubleQueryable = totalQueryable as IQueryable<double>;
             if (doubleQueryable != null)
-                return new PomonaResponse(this, doubleQueryable.Sum(), session);
+                return new PomonaResponse(this, doubleQueryable.Sum(), uriResolver);
             var nullableDoubleQueryable = totalQueryable as IQueryable<double?>;
             if (nullableDoubleQueryable != null)
-                return new PomonaResponse(this, nullableDoubleQueryable.Sum(), session);
+                return new PomonaResponse(this, nullableDoubleQueryable.Sum(), uriResolver);
 
             throw new NotSupportedException("Unable to calculate sum of type " + typeof (T).Name);
         }

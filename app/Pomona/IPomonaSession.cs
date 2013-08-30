@@ -32,9 +32,5 @@ namespace Pomona
 {
     public interface IPomonaSession
     {
-        TypeMapper TypeMapper { get; }
-        string GetUri(object entity);
-        string GetUri(IPropertyInfo property, object entity);
-        object GetResultByUri(string uri);
     }
 }

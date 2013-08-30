@@ -34,21 +34,23 @@ namespace Pomona
 {
     public class ServerDeserializationContext : IDeserializationContext
     {
-        private readonly IPomonaSession pomonaSession;
+        private readonly ITypeMapper typeMapper;
+        private readonly IPomonaUriResolver uriResolver;
 
-        public ServerDeserializationContext(IPomonaSession pomonaSession)
+        public ServerDeserializationContext(ITypeMapper typeMapper, IPomonaUriResolver uriResolver)
         {
-            this.pomonaSession = pomonaSession;
+            this.typeMapper = typeMapper;
+            this.uriResolver = uriResolver;
         }
 
         public IMappedType GetClassMapping(Type type)
         {
-            return pomonaSession.TypeMapper.GetClassMapping(type);
+            return typeMapper.GetClassMapping(type);
         }
 
         public object CreateReference(IMappedType type, string uri)
         {
-            return pomonaSession.GetResultByUri(uri);
+            return uriResolver.ResolveUri(uri);
         }
 
         public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
@@ -59,7 +61,7 @@ namespace Pomona
 
         public IMappedType GetTypeByName(string typeName)
         {
-            return pomonaSession.TypeMapper.GetClassMapping(typeName);
+            return typeMapper.GetClassMapping(typeName);
         }
 
         public void SetProperty(IDeserializerNode targetNode, IPropertyInfo property, object propertyValue)
