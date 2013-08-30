@@ -1,9 +1,7 @@
-#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,30 +22,52 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System.Reflection;
+using Pomona.Common.TypeSystem;
 
-using System.Collections.Generic;
-using Pomona.Common.Serialization;
-using Pomona.Common.Serialization.Json;
-
-namespace Pomona
+namespace Pomona.Handlers
 {
-    public abstract class PomonaConfigurationBase
+    public class HandlerInfo
     {
-        public virtual ISerializerFactory SerializerFactory
+        private string httpMethod;
+
+        public string HttpMethod
         {
-            get { return new PomonaJsonSerializerFactory(); }
+            get { return httpMethod; }
         }
 
-        public virtual IEnumerable<object> FluentRuleObjects
+        public string UriName
         {
-            get { yield break; }
+            get { return uriName; }
         }
 
-        public abstract ITypeMappingFilter TypeMappingFilter { get; }
-
-        public virtual void OnMappingComplete(TypeMapper typeMapper)
+        public MethodInfo Method
         {
+            get { return method; }
+        }
+
+        public IMappedType TargetResourceType
+        {
+            get { return targetResourceType; }
+        }
+
+        public IMappedType FormType
+        {
+            get { return formType; }
+        }
+
+        private string uriName;
+        private MethodInfo method;
+        private IMappedType targetResourceType;
+        private IMappedType formType;
+
+        public HandlerInfo(string httpMethod, string uriName, MethodInfo method, IMappedType targetResourceType, IMappedType formType)
+        {
+            this.httpMethod = httpMethod;
+            this.uriName = uriName;
+            this.method = method;
+            this.targetResourceType = targetResourceType;
+            this.formType = formType;
         }
     }
 }

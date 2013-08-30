@@ -184,6 +184,11 @@ namespace Pomona.CodeGen
             //assembly.Write(stream);
         }
 
+        private void CreatePostToResourceExtensionMethods()
+        {
+            
+        }
+
         private void CreateClientInterface(string interfaceName)
         {
             clientInterface = new TypeDefinition(

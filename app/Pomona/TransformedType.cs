@@ -35,6 +35,7 @@ using Newtonsoft.Json;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Handlers;
 using Pomona.Internals;
 
 namespace Pomona
@@ -52,12 +53,19 @@ namespace Pomona
             ReflectionHelper.GetMethodDefinition<TransformedType>(
                 x => x.AddValuesToCollection<object>(null, null));
 
+        private readonly List<HandlerInfo> declaredPostHandlers = new List<HandlerInfo>();
+
+        public IList<HandlerInfo> DeclaredPostHandlers
+        {
+            get { return declaredPostHandlers; }
+        }
+
         private readonly Type mappedType;
         private readonly string name;
+
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
 
         private readonly TypeMapper typeMapper;
-
 
         internal TransformedType(Type mappedType, string name, TypeMapper typeMapper)
         {
@@ -70,6 +78,17 @@ namespace Pomona
             UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
+        }
+
+        public IEnumerable<HandlerInfo> PostHandlers
+        {
+            get
+            {
+                var baseType = BaseType as TransformedType;
+                return (IsUriBaseType || baseType == null)
+                           ? declaredPostHandlers
+                           : declaredPostHandlers.Concat(baseType.PostHandlers);
+            }
         }
 
 

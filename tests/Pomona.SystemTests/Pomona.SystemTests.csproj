@@ -89,6 +89,7 @@
     <Compile Include="Linq\RestQueryTreeParserTests.cs" />
     <Compile Include="PatchTests.cs" />
     <Compile Include="PostTests.cs" />
+    <Compile Include="PostToResourceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryCritterTests.cs" />
     <Compile Include="QueryTests.cs" />

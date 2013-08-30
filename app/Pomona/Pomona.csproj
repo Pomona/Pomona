@@ -143,6 +143,7 @@
     <Compile Include="FluentMapping\PropertyMappingOptions.cs" />
     <Compile Include="FluentMapping\PropertyOptionsBuilder.cs" />
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
+    <Compile Include="Handlers\HandlerInfo.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="PomonaError.cs" />
     <Compile Include="PomonaException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
+    <Compile Include="PomonaMethodAttribute.cs" />
     <Compile Include="PomonaResponse.cs" />
     <Compile Include="PomonaJsonResponseProcessor.cs" />
     <Compile Include="PomonaResponseProcessorBase.cs" />

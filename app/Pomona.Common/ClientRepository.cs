@@ -93,6 +93,14 @@ namespace Pomona.Common
             return (TPostResponseResource) client.Post(Uri, postAction);
         }
 
+        public object Post<TPostForm>(TResource resource, TPostForm form) where TPostForm : PutResourceBase, IClientResource
+        {
+            if (resource == null) throw new ArgumentNullException("resource");
+            if (form == null) throw new ArgumentNullException("form");
+
+            return client.Post(((IHasResourceUri) resource).Uri, form);
+        }
+
         public TResource Get(object id)
         {
             return client.Get<TResource>(string.Format("{0}/{1}", uri, id));
