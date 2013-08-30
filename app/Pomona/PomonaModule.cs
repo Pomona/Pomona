@@ -204,28 +204,6 @@ namespace Pomona
         }
 
 
-        public PomonaResponse PatchJson(
-            TransformedType transformedType, object id, Stream readStream, string ifMatch)
-        {
-            var o = GetById(transformedType, id);
-
-            if (o != null && ifMatch != null)
-            {
-                var etagProp = transformedType.ETagProperty;
-                if (etagProp == null)
-                    throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
-
-                if ((string) etagProp.Getter(o) != ifMatch)
-                {
-                    throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
-                }
-            }
-
-            var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
-            return PostOrPatch(objType, readStream, o);
-        }
-
-
         private object InvokeDataSourcePatch<T>(T entity)
         {
             if (!((TransformedType) typeMapper.GetClassMapping<T>()).PatchAllowed)
@@ -240,11 +218,6 @@ namespace Pomona
             return dataSource.Post(entity);
         }
 
-
-        public PomonaResponse PostJson(TransformedType transformedType, Stream readStream)
-        {
-            return PostOrPatch(transformedType, readStream);
-        }
 
         public object Deserialize(TransformedType expectedBaseType, Stream body, object patchedObject = null)
         {
@@ -443,7 +416,7 @@ namespace Pomona
             if (!transformedType.PostAllowed)
                 ThrowMethodNotAllowedForType(transformedType);
 
-            return PostJson(transformedType, Request.Body);
+            return PostOrPatch(transformedType, Request.Body);
         }
 
         private PomonaResponse Query(TransformedType transformedType)
@@ -541,7 +514,7 @@ namespace Pomona
 
             Register(Post, path + "/{id}", x => PostToResource(type, x.id));
 
-            Register(Patch, path + "/{id}", x => UpdateFromJson(type, x.id));
+            Register(Patch, path + "/{id}", x => PatchFromJson(type, x.id));
 
             Register(Post, path, x => PostFromJson(type));
 
@@ -573,11 +546,33 @@ namespace Pomona
         }
 
 
-        private PomonaResponse UpdateFromJson(TransformedType transformedType, object id)
+        private PomonaResponse PatchFromJson(TransformedType transformedType, object id)
         {
             if (!transformedType.PatchAllowed)
                 ThrowMethodNotAllowedForType(transformedType);
 
+            var ifMatch = GetIfMatchFromRequest();
+
+            var o = GetById(transformedType, id);
+
+            if (o != null && ifMatch != null)
+            {
+                var etagProp = transformedType.ETagProperty;
+                if (etagProp == null)
+                    throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
+
+                if ((string) etagProp.Getter(o) != ifMatch)
+                {
+                    throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
+                }
+            }
+
+            var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+            return PostOrPatch(objType, Request.Body, o);
+        }
+
+        private string GetIfMatchFromRequest()
+        {
             var ifMatch = Request.Headers.IfMatch.FirstOrDefault();
             if (ifMatch != null)
             {
@@ -588,8 +583,7 @@ namespace Pomona
 
                 ifMatch = ifMatch.Substring(1, ifMatch.Length - 2);
             }
-
-            return PatchJson(transformedType, id, Request.Body, ifMatch);
+            return ifMatch;
         }
 
         private void ThrowMethodNotAllowedForType(TransformedType type)
