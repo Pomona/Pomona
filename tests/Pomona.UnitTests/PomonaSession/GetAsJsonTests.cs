@@ -43,14 +43,15 @@ namespace Pomona.UnitTests.PomonaSession
         private JObject GetAsJson<T>(int id, string expand = null)
             where T : EntityBase
         {
-            var transformedType = (TransformedType) Session.TypeMapper.GetClassMapping<T>();
-            var response = Session.GetAsJson(transformedType, id, expand);
-            var serializerFactory = new PomonaJsonSerializerFactory();
-            var serializer = serializerFactory.GetSerialier();
-            var serializationContext = new ServerSerializationContext(expand ?? string.Empty, false, Session);
-            var jsonString = serializer.SerializeToString(serializationContext, response.Entity);
-            Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
-            return JObject.Parse(jsonString);
+            throw new NotImplementedException("TODO: Fix after PomonaSession refactoring.");
+            //var transformedType = (TransformedType) Session.TypeMapper.GetClassMapping<T>();
+            //var response = Session.GetAsJson(transformedType, id, expand);
+            //var serializerFactory = new PomonaJsonSerializerFactory();
+            //var serializer = serializerFactory.GetSerialier();
+            //var serializationContext = new ServerSerializationContext(expand ?? string.Empty, false, Session);
+            //var jsonString = serializer.SerializeToString(serializationContext, response.Entity);
+            //Console.WriteLine("Object converted to JSON:\r\n" + jsonString);
+            //return JObject.Parse(jsonString);
         }
 
 

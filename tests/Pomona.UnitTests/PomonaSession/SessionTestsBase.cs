@@ -33,7 +33,6 @@ namespace Pomona.UnitTests.PomonaSession
     {
         private CritterDataStore dataStore;
         private Critter firstCritter;
-        private Pomona.PomonaSession session;
         private TypeMapper typeMapper;
 
         public Critter FirstCritter
@@ -61,11 +60,6 @@ namespace Pomona.UnitTests.PomonaSession
             get { return dataStore; }
         }
 
-        protected Pomona.PomonaSession Session
-        {
-            get { return session; }
-        }
-
         protected TypeMapper TypeMapper
         {
             get { return typeMapper; }
@@ -77,7 +71,6 @@ namespace Pomona.UnitTests.PomonaSession
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             dataStore = new CritterDataStore(typeMapper);
-            session = new Pomona.PomonaSession(new CritterDataSource(dataStore), typeMapper, new DummyUriResolver());
             firstCritter = dataStore.List<Critter>().First();
         }
 

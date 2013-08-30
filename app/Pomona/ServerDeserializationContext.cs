@@ -34,9 +34,9 @@ namespace Pomona
 {
     public class ServerDeserializationContext : IDeserializationContext
     {
-        private readonly PomonaSession pomonaSession;
+        private readonly IPomonaSession pomonaSession;
 
-        public ServerDeserializationContext(PomonaSession pomonaSession)
+        public ServerDeserializationContext(IPomonaSession pomonaSession)
         {
             this.pomonaSession = pomonaSession;
         }

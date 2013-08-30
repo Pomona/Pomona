@@ -33,7 +33,7 @@ namespace Pomona
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
-        private readonly PomonaSession session;
+        private readonly IPomonaSession session;
 
         private readonly TypeMapper typeMapper;
 
@@ -41,7 +41,7 @@ namespace Pomona
         public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
-            PomonaSession session)
+            IPomonaSession session)
         {
             this.debugMode = debugMode;
             this.session = session;

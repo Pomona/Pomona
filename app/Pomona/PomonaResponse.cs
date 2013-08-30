@@ -43,10 +43,10 @@ namespace Pomona
         private readonly PomonaQuery query;
         private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly IMappedType resultType;
-        private readonly PomonaSession session;
+        private readonly IPomonaSession session;
         private readonly HttpStatusCode statusCode;
 
-        public PomonaResponse(object entity, PomonaSession session, HttpStatusCode statusCode = HttpStatusCode.OK,
+        public PomonaResponse(object entity, IPomonaSession session, HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               IMappedType resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
@@ -62,12 +62,12 @@ namespace Pomona
                 this.responseHeaders = responseHeaders.ToList();
         }
 
-        public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
+        public PomonaResponse(PomonaQuery query, object entity, IPomonaSession session)
             : this(query, entity, session, HttpStatusCode.OK)
         {
         }
 
-        public PomonaResponse(PomonaQuery query, object entity, PomonaSession session, HttpStatusCode statusCode)
+        public PomonaResponse(PomonaQuery query, object entity, IPomonaSession session, HttpStatusCode statusCode)
         {
             if (query == null) throw new ArgumentNullException("query");
             if (session == null) throw new ArgumentNullException("session");
@@ -99,7 +99,7 @@ namespace Pomona
             get { return entity; }
         }
 
-        public PomonaSession Session
+        public IPomonaSession Session
         {
             get { return session; }
         }
