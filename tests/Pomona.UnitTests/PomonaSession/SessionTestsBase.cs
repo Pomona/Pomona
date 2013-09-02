@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using System.Linq;
 using NUnit.Framework;
 using Pomona.Common.TypeSystem;
@@ -89,17 +94,17 @@ namespace Pomona.UnitTests.PomonaSession
 
             public string GetUriFor(object entity)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
 
             public string GetUriFor(IPropertyInfo property, object entity)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
 
             public ITypeMapper TypeMapper
             {
-                get { throw new System.NotImplementedException(); }
+                get { throw new NotImplementedException(); }
             }
         }
     }

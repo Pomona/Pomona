@@ -32,8 +32,8 @@ namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
-            : base(dataSource, typeMapper, container)
+        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
+            : base(dataSource, typeMapper, serviceLocator)
         {
         }
 

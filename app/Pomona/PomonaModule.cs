@@ -45,7 +45,7 @@ using Pomona.Schemas;
 
 namespace Pomona
 {
-    public abstract class PomonaModule : NancyModule, IPomonaUriResolver, IPomonaSession
+    public abstract class PomonaModule : NancyModule
     {
         private static readonly MethodInfo getByIdMethod =
             ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
@@ -56,7 +56,7 @@ namespace Pomona
         private static readonly MethodInfo patchGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePatch((object) null));
 
-        private readonly IServiceLocator container;
+        private readonly IServiceLocator serviceLocator;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
         private readonly IHttpQueryTransformer queryTransformer;
@@ -64,15 +64,15 @@ namespace Pomona
         private string htmlLinks = String.Empty;
 
 
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
-            : this(dataSource, typeMapper, container, null)
+        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
+            : this(dataSource, typeMapper, serviceLocator, null)
         {
         }
 
         protected PomonaModule(
             IPomonaDataSource dataSource,
             TypeMapper typeMapper,
-            IServiceLocator container,
+            IServiceLocator serviceLocator,
             IHttpQueryTransformer queryTransformer)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
@@ -89,7 +89,7 @@ namespace Pomona
             dataSource.Module = this;
 
             this.typeMapper = typeMapper;
-            this.container = container;
+            this.serviceLocator = serviceLocator;
 
             if (queryTransformer == null)
             {
@@ -130,68 +130,12 @@ namespace Pomona
         }
 
 
-        public string GetUriFor(IPropertyInfo property, object entity)
-        {
-            return GetUriFor(entity) + "/" + ((PropertyMapping) property).UriName;
-        }
-
-
-        public string GetUriFor(object entity)
-        {
-            if (entity == null)
-                throw new ArgumentNullException("entity");
-            var transformedType = (TransformedType) TypeMapper.GetClassMapping(entity.GetType());
-
-            return
-                RelativeToAbsoluteUri(String.Format("{0}/{1}", transformedType.UriRelativePath,
-                                                    transformedType.GetId(entity)));
-        }
 
         public ITypeMapper TypeMapper
         {
             get { return typeMapper; }
         }
 
-        public object ResolveUri(string uriString)
-        {
-            var routeResolver = container.GetInstance<IRouteResolver>();
-            var uri = new Uri(uriString, UriKind.Absolute);
-
-            var modulePath = uri.AbsolutePath;
-            var basePath = Request.Url.BasePath ?? String.Empty;
-            if (modulePath.StartsWith(basePath))
-                modulePath = modulePath.Substring(basePath.Length);
-
-            var url = Request.Url.Clone();
-            url.Path = modulePath;
-            url.Query = uri.Query;
-
-            var innerRequest = new Request("GET", url);
-            var innerContext = new NancyContext
-                {
-                    Culture = Context.Culture,
-                    CurrentUser = Context.CurrentUser,
-                    Request = innerRequest
-                };
-
-            var routeMatch = routeResolver.Resolve(innerContext);
-            var route = routeMatch.Route;
-            var dynamicDict = routeMatch.Parameters;
-
-            var pomonaResponse = (PomonaResponse) route.Action((dynamic) dynamicDict);
-
-            return pomonaResponse.Entity;
-        }
-
-        public virtual string RelativeToAbsoluteUri(string path)
-        {
-            if (String.IsNullOrEmpty(Request.Url.HostName))
-            {
-                return path;
-            }
-
-            return String.Format("{0}{1}", GetBaseUri(), path);
-        }
 
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
@@ -203,6 +147,7 @@ namespace Pomona
             return dataSource.Query(query);
         }
 
+        public virtual IPomonaUriResolver UriResolver { get { return new PomonaUriResolver(typeMapper, Context, serviceLocator); } }
 
         private object InvokeDataSourcePatch<T>(T entity)
         {
@@ -223,7 +168,7 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                var deserializationContext = new ServerDeserializationContext(TypeMapper, this);
+                var deserializationContext = new ServerDeserializationContext(TypeMapper, UriResolver);
                 return deserializer.Deserialize(textReader, expectedBaseType, deserializationContext,
                                                 patchedObject);
             }
@@ -239,7 +184,7 @@ namespace Pomona
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
 
-            return new PomonaResponse(postResponse, this, successStatusCode);
+            return new PomonaResponse(postResponse, UriResolver, successStatusCode);
         }
 
 
@@ -271,7 +216,7 @@ namespace Pomona
             var propertyType = property.PropertyType;
 
             return
-                new PomonaResponse(propertyValue, this, expandedPaths: expand, resultType: propertyType);
+                new PomonaResponse(propertyValue, UriResolver, expandedPaths: expand, resultType: propertyType);
         }
 
 
@@ -306,20 +251,11 @@ namespace Pomona
         }
 
 
-        protected virtual Uri GetBaseUri()
-        {
-            var appUrl = GetAppVirtualPath();
-            var uriString = String.Format("{0}://{1}:{2}{3}{4}", Request.Url.Scheme, Request.Url.HostName,
-                                          Request.Url.Port, appUrl, appUrl.EndsWith("/") ? String.Empty : "/");
-
-            return new Uri(uriString);
-        }
-
         public PomonaResponse GetAsJson(TransformedType transformedType, object id, string expand)
         {
             var o = GetById(transformedType, id);
             return
-                new PomonaResponse(o, this, expandedPaths: expand, resultType: transformedType);
+                new PomonaResponse(o, UriResolver, expandedPaths: expand, resultType: transformedType);
         }
 
 
@@ -421,7 +357,7 @@ namespace Pomona
 
         private PomonaResponse Query(TransformedType transformedType)
         {
-            var query = queryTransformer.TransformRequest(Request, Context, this, transformedType);
+            var query = queryTransformer.TransformRequest(Request, Context, UriResolver, transformedType);
 
             return Query(query);
         }
@@ -434,11 +370,6 @@ namespace Pomona
             Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
         }
 
-
-        protected virtual string GetAppVirtualPath()
-        {
-            return "/";
-        }
 
         protected virtual Exception UnwrapException(Exception exception)
         {
@@ -477,7 +408,7 @@ namespace Pomona
                             throw;
 
                         Context.Items["ERROR_HANDLED"] = true;
-                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity, this,
+                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity, UriResolver,
                                                   error.StatusCode, responseHeaders: error.ResponseHeaders);
                     }
                 };
@@ -485,14 +416,8 @@ namespace Pomona
 
         private void RegisterRoutesFor(TransformedType type)
         {
-            var appVirtualPath = GetAppVirtualPath();
-            var absLinkPath = String.Format("{0}{1}{2}", appVirtualPath,
-                                            appVirtualPath.EndsWith("/") ? String.Empty : "/", type.UriRelativePath);
-
             var path = "/" + type.UriRelativePath;
             //Console.WriteLine("Registering path " + path);
-            htmlLinks = htmlLinks
-                        + String.Format("<li><a href=\"{0}\">{1}</a></li>", absLinkPath, type.Name);
 
             Register(Get, path + "/{id}", x => GetAsJson(type, x.id));
 
@@ -542,7 +467,7 @@ namespace Pomona
             var handler = handlers[0];
             var result = handler.Method.Invoke(DataSource, new[] {o, form});
 
-            return new PomonaResponse(result, this);
+            return new PomonaResponse(result, UriResolver);
         }
 
 
