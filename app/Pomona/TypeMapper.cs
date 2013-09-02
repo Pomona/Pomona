@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,11 +35,13 @@ using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
+using Pomona.Handlers;
 
 namespace Pomona
 {
     public class TypeMapper : ITypeMapper
     {
+        private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
         private readonly ISerializerFactory serializerFactory;
@@ -47,6 +53,7 @@ namespace Pomona
         {
             if (configuration == null)
                 throw new ArgumentNullException("configuration");
+            this.configuration = configuration;
 
             filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
@@ -69,6 +76,7 @@ namespace Pomona
 
             serializerFactory = configuration.SerializerFactory;
 
+            ScanHandlerForPomonaMethods();
             configuration.OnMappingComplete(this);
         }
 
@@ -118,6 +126,15 @@ namespace Pomona
         public IMappedType GetClassMapping(string typeName)
         {
             return typeNameMap[typeName.ToLower()];
+        }
+
+        private void ScanHandlerForPomonaMethods()
+        {
+            var scanner = new PomonaMethodScanner(this);
+            foreach (var handlerClass in configuration.HandlerTypes)
+            {
+                scanner.ScanPostToResourceHandlers(handlerClass);
+            }
         }
 
         public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)

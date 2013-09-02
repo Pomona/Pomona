@@ -26,10 +26,8 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
-using Pomona.Example.Models;
-using Pomona.Handlers;
-using Pomona.Internals;
 
 namespace Pomona.Example
 {
@@ -46,18 +44,9 @@ namespace Pomona.Example
             get { return new CritterTypeMappingFilter(); }
         }
 
-        public override void OnMappingComplete(TypeMapper typeMapper)
+        public override IEnumerable<Type> HandlerTypes
         {
-            base.OnMappingComplete(typeMapper);
-
-            // Code below is temporary, need to implement auto-detection of handlers.
-            var critterType = (TransformedType) typeMapper.GetClassMapping<Critter>();
-            var captureCommandType = (TransformedType) typeMapper.GetClassMapping<CaptureCommand>();
-
-            critterType.DeclaredPostHandlers.Add(new HandlerInfo("POST", null,
-                                                                 ReflectionHelper.GetMethodDefinition<CritterDataSource>
-                                                                     (x => x.Capture(null, null)), critterType,
-                                                                 captureCommandType));
+            get { yield return typeof (CritterDataSource); }
         }
     }
 }

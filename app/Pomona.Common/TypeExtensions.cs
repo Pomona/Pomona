@@ -42,6 +42,12 @@ namespace Pomona.Common
             return UniqueMemberToken.FromMemberInfo(member);
         }
 
+        public static TAttribute GetFirstOrDefaultAttribute<TAttribute>(this MemberInfo member, bool inherit)
+            where TAttribute : Attribute
+        {
+            return member.GetCustomAttributes(typeof (TAttribute), inherit).OfType<TAttribute>().FirstOrDefault();
+        }
+
         public static bool HasAttribute<TAttribute>(this MemberInfo member, bool inherit)
             where TAttribute : Attribute
         {

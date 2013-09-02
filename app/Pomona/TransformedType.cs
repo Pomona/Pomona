@@ -339,7 +339,7 @@ namespace Pomona
 
         public bool HasUri
         {
-            get { return !MappedAsValueObject; }
+            get { return !MappedAsValueObject && UriBaseType != null; }
         }
 
         public Type MappedType

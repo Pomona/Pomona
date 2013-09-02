@@ -26,7 +26,9 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 
@@ -41,7 +43,12 @@ namespace Pomona
 
         public virtual IEnumerable<object> FluentRuleObjects
         {
-            get { yield break; }
+            get { return Enumerable.Empty<object>(); }
+        }
+
+        public virtual IEnumerable<Type> HandlerTypes
+        {
+            get { return Enumerable.Empty<Type>(); }
         }
 
         public abstract ITypeMappingFilter TypeMappingFilter { get; }

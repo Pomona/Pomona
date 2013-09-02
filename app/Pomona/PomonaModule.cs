@@ -60,19 +60,12 @@ namespace Pomona
         private readonly IHttpQueryTransformer queryTransformer;
         private readonly IServiceLocator serviceLocator;
         private readonly TypeMapper typeMapper;
-        private string htmlLinks = String.Empty;
 
-
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
-            : this(dataSource, typeMapper, serviceLocator, null)
-        {
-        }
 
         protected PomonaModule(
             IPomonaDataSource dataSource,
             TypeMapper typeMapper,
-            IServiceLocator serviceLocator,
-            IHttpQueryTransformer queryTransformer)
+            IServiceLocator serviceLocator)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
@@ -90,12 +83,8 @@ namespace Pomona
             this.typeMapper = typeMapper;
             this.serviceLocator = serviceLocator;
 
-            if (queryTransformer == null)
-            {
-                queryTransformer = new PomonaHttpQueryTransformer(
-                    this.typeMapper, new QueryExpressionParser(new QueryTypeResolver(this.typeMapper)));
-            }
-            this.queryTransformer = queryTransformer;
+            queryTransformer = new PomonaHttpQueryTransformer(
+                this.typeMapper, new QueryExpressionParser(new QueryTypeResolver(this.typeMapper)));
 
             deserializer = typeMapper.SerializerFactory.GetDeserializer();
 
