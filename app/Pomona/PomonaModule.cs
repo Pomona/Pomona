@@ -33,7 +33,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
-using Nancy.Routing;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -56,10 +55,10 @@ namespace Pomona
         private static readonly MethodInfo patchGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePatch((object) null));
 
-        private readonly IServiceLocator serviceLocator;
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
         private readonly IHttpQueryTransformer queryTransformer;
+        private readonly IServiceLocator serviceLocator;
         private readonly TypeMapper typeMapper;
         private string htmlLinks = String.Empty;
 
@@ -130,10 +129,14 @@ namespace Pomona
         }
 
 
-
         public ITypeMapper TypeMapper
         {
             get { return typeMapper; }
+        }
+
+        public virtual IPomonaUriResolver UriResolver
+        {
+            get { return new PomonaUriResolver(typeMapper, Context, serviceLocator); }
         }
 
 
@@ -146,8 +149,6 @@ namespace Pomona
         {
             return dataSource.Query(query);
         }
-
-        public virtual IPomonaUriResolver UriResolver { get { return new PomonaUriResolver(typeMapper, Context, serviceLocator); } }
 
         private object InvokeDataSourcePatch<T>(T entity)
         {
@@ -450,10 +451,12 @@ namespace Pomona
         {
             var o = GetById(type, id);
             var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+            var form = Deserialize(null, Request.Body);
 
             var handlers =
                 mappedType.PostHandlers.Where(
                     x => String.Equals(actionName, x.UriName ?? "", StringComparison.InvariantCultureIgnoreCase))
+                          .Where(x => x.FormType.MappedTypeInstance.IsInstanceOfType(form))
                           .ToList();
 
             if (handlers.Count < 1)
@@ -461,9 +464,8 @@ namespace Pomona
 
             if (handlers.Count > 1)
                 throw new NotImplementedException(
-                    "TODO: Only support one handler candidate when posting to a resource for now.");
+                    "TODO: Overload resolution not fully implemented when posting to a resource.");
 
-            var form = Deserialize(null, Request.Body);
             var handler = handlers[0];
             var result = handler.Method.Invoke(DataSource, new[] {o, form});
 
