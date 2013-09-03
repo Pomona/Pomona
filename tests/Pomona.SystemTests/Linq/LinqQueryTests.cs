@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq;
@@ -62,7 +66,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
             DataStore.CreateRandomCritter(new Random());
-            var expected = CritterEntities.First(x => x.Id % 2 == 0);
+            var expected = CritterEntities.First(x => x.Id%2 == 0);
             var lazyCritter = client.Query<ICritter>().Where(x => x.Id%2 == 0).FirstLazy();
             var beforeLoadUri = ((IHasResourceUri) lazyCritter).Uri;
             Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+2)+eq+0"));
@@ -463,6 +467,12 @@ namespace Pomona.SystemTests.Linq
 
             var critters = client.Critters.Query().Where(x => x.Id == critter.Id).ToList();
             Assert.That(critters.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void QueryEtaggedEntity_HavingZeroResults_ProjectedByFirstOrDefault_ReturnsNull()
+        {
+            Assert.IsNull(client.EtaggedEntities.Query(x => false).FirstOrDefault());
         }
 
         [Test]
