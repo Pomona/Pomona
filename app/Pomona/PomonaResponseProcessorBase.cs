@@ -74,7 +74,7 @@ namespace Pomona
 
             using (var strWriter = new StringWriter())
             {
-                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false, 
+                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,
                                                                           pomonaResponse.UriResolver);
                 serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pomonaResponse.ResultType);
                 jsonString = strWriter.ToString();
@@ -113,7 +113,7 @@ namespace Pomona
                 if (transformedResultType != null)
                 {
                     var etagProperty = transformedResultType.ETagProperty;
-                    if (etagProperty != null)
+                    if (pomonaResponse.Entity != null && etagProperty != null)
                     {
                         var etagValue = (string) etagProperty.Getter(pomonaResponse.Entity);
                         if (etagValue != null)
