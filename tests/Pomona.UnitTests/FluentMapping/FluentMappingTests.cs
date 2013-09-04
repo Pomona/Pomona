@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -53,6 +57,9 @@ namespace Pomona.UnitTests.FluentMapping
                 get { return toBeOverridden; }
                 set { toBeOverridden = value; }
             }
+
+
+            public virtual bool DeserializeHookWasRun { get; set; }
 
             public virtual string ToBeRenamed { get; set; }
         }
@@ -103,6 +110,7 @@ namespace Pomona.UnitTests.FluentMapping
 
             public void Map(ITypeMappingConfigurator<Top> map)
             {
+                map.OnDeserialized(x => x.DeserializeHookWasRun = true);
                 map.Include(x => x.ToBeRenamed, o => o.Named("NewName"));
             }
         }
@@ -209,13 +217,24 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void OnDeserializedRule_IsAppliedToMappingFilter()
+        {
+            var fluentMappingFilter = GetMappingFilter();
+
+            var onDeserializedHook = fluentMappingFilter.GetOnDeserializedHook(typeof (Top));
+            Assert.That(onDeserializedHook, Is.Not.Null);
+            var top = new Top();
+            onDeserializedHook(top);
+            Assert.That(top.DeserializeHookWasRun, Is.True);
+        }
+
+        [Test]
         public void RenameRule_GivesPropertyANewName()
         {
             var fluentMappingFilter = GetMappingFilter();
             Assert.That(
                 fluentMappingFilter.GetPropertyMappedName(GetPropInfo<Top>(x => x.ToBeRenamed)), Is.EqualTo("NewName"));
         }
-
 
         [Test]
         public void RuleForBaseClass_IsAlsoAppliedToInheritedClass()
