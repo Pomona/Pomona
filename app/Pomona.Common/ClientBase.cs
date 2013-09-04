@@ -353,6 +353,8 @@ namespace Pomona.Common
 
         internal override object Post<T>(string uri, T postForm)
         {
+            if (uri == null) throw new ArgumentNullException("uri");
+            if (postForm == null) throw new ArgumentNullException("postForm");
             var type = typeof (T);
             Func<ResourceInfoAttribute, Type> formTypeGetter = x => x.PostFormType;
             if (!type.IsInterface)
