@@ -192,6 +192,11 @@ namespace Pomona.FluentMapping
             return FromMappingOrDefault(type, x => x.PatchAllowed, () => wrappedFilter.PatchOfTypeIsAllowed(type));
         }
 
+        public Action<object> GetOnDeserializedHook(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.OnDeserialized, () => wrappedFilter.GetOnDeserializedHook(type));
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);

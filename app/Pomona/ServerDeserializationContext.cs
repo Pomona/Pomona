@@ -57,7 +57,14 @@ namespace Pomona
             where TReader : ISerializerReader
         {
             deserializer.DeserializeNode(node, reader);
+
+            var transformedType = node.ValueType as TransformedType;
+            if (transformedType != null && transformedType.OnDeserialized != null && node.Value != null)
+            {
+                transformedType.OnDeserialized(node.Value);
+            }
         }
+
 
         public IMappedType GetTypeByName(string typeName)
         {

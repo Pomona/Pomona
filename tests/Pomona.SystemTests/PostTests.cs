@@ -108,6 +108,31 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PostCritterWithSubscription_RunsOnDeserializationHook()
+        {
+            const string critterName = "Postal critter";
+
+            var critter = (ICritter) client.Post<ICritter>(
+                x =>
+                    {
+                        x.Subscriptions.Add(new SubscriptionForm
+                            {
+                                Model = new WeaponModelForm {Name = "blah"},
+                                Sku = "haha",
+                                StartsOn = DateTime.UtcNow
+                            });
+                        x.Name = critterName;
+                    });
+
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Subscriptions.Count, Is.EqualTo(1));
+
+
+            var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
+            Assert.That(critterEntity.Subscriptions[0].Critter, Is.EqualTo(critterEntity));
+        }
+
+        [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
         {
             var response = (IDictionaryContainer) client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });

@@ -58,6 +58,8 @@ namespace Pomona.FluentMapping
 
         private bool? isUriBaseType;
         private bool? isValueObject;
+        private Action<object> onDeserialized;
+
         private bool? patchAllowed;
 
         private string pluralName;
@@ -67,6 +69,11 @@ namespace Pomona.FluentMapping
         public TypeMappingOptions(Type declaringType)
         {
             this.declaringType = declaringType;
+        }
+
+        public Action<object> OnDeserialized
+        {
+            get { return onDeserialized; }
         }
 
         public bool? IsIndependentTypeRoot
@@ -326,6 +333,12 @@ namespace Pomona.FluentMapping
             public ITypeMappingConfigurator<TDeclaringType> PatchDenied()
             {
                 owner.patchAllowed = false;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action)
+            {
+                owner.onDeserialized = x => action((TDeclaringType) x);
                 return this;
             }
 

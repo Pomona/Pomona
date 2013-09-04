@@ -257,6 +257,8 @@ namespace Pomona
                 classDefinition.PostAllowed = filter.PostOfTypeIsAllowed(type);
                 classDefinition.PatchAllowed = filter.PatchOfTypeIsAllowed(type);
 
+                classDefinition.OnDeserialized = filter.GetOnDeserializedHook(type);
+
                 classDefinition.ScanProperties(type);
 
                 if (filter.IsIndependentTypeRoot(type))

@@ -92,5 +92,13 @@ namespace Pomona.Example.Models
         /// To check that property scanning works properly on entities having explicit prop implementations.
         /// </summary>
         int IHiddenInterface.Foo { get; set; }
+
+        public void FixParentReferences()
+        {
+            foreach (var subscription in Subscriptions)
+            {
+                subscription.Critter = this;
+            }
+        }
     }
 }

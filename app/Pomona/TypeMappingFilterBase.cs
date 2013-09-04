@@ -348,6 +348,11 @@ namespace Pomona
             return true;
         }
 
+        public virtual Action<object> GetOnDeserializedHook(Type type)
+        {
+            return null;
+        }
+
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");

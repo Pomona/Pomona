@@ -55,11 +55,6 @@ namespace Pomona
 
         private readonly List<HandlerInfo> declaredPostHandlers = new List<HandlerInfo>();
 
-        public IList<HandlerInfo> DeclaredPostHandlers
-        {
-            get { return declaredPostHandlers; }
-        }
-
         private readonly Type mappedType;
         private readonly string name;
 
@@ -78,6 +73,11 @@ namespace Pomona
             UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
+        }
+
+        public IList<HandlerInfo> DeclaredPostHandlers
+        {
+            get { return declaredPostHandlers; }
         }
 
         public IEnumerable<HandlerInfo> PostHandlers
@@ -111,6 +111,11 @@ namespace Pomona
         {
             get { return properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
+
+        /// <summary>
+        /// Action to be called after deserialization has completed.
+        /// </summary>
+        public Action<object> OnDeserialized { get; set; }
 
         public bool PatchAllowed { get; set; }
 

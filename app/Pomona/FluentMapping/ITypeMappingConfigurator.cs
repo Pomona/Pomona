@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq.Expressions;
@@ -64,5 +68,7 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> PostDenied();
         ITypeMappingConfigurator<TDeclaringType> PatchAllowed();
         ITypeMappingConfigurator<TDeclaringType> PatchDenied();
+
+        ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action);
     }
 }

@@ -369,8 +369,12 @@ namespace Pomona.Example
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
                 var subscription =
                     Save(
-                        new Subscription(critter, weaponType)
-                            {Sku = rng.Next(0, 9999).ToString(), StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))});
+                        new Subscription(weaponType)
+                            {
+                                Critter = critter,
+                                Sku = rng.Next(0, 9999).ToString(),
+                                StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))
+                            });
                 critter.Subscriptions.Add(subscription);
             }
         }

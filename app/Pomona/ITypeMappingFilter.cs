@@ -99,5 +99,7 @@ namespace Pomona
 
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
+
+        Action<object> GetOnDeserializedHook(Type type);
     }
 }

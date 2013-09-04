@@ -99,6 +99,12 @@ namespace Pomona.Example
             map.AsValueObject();
         }
 
+        public void Map(ITypeMappingConfigurator<Subscription> map)
+        {
+            map.AsValueObject();
+            map.Exclude(x => x.Critter);
+        }
+
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()
@@ -106,7 +112,8 @@ namespace Pomona.Example
                .Include(x => x.CreatedOn)
                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
-               .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly));
+               .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly))
+               .OnDeserialized(c => c.FixParentReferences());
         }
 
         public void Map(ITypeMappingConfigurator<HasReadOnlyDictionaryProperty> map)
