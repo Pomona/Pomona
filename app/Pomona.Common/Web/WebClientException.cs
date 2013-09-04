@@ -87,6 +87,12 @@ namespace Pomona.Common.Web
             var bodyString = body as string;
             if (bodyString != null)
                 message = message + ": " + bodyString;
+            else if (body != null)
+            {
+                var messageProperty = body.GetType().GetProperty("Message");
+                if (messageProperty != null && messageProperty.PropertyType == typeof(string))
+                    message = (string)messageProperty.GetValue(body, null);
+            }
             return message;
         }
 
