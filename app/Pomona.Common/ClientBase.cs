@@ -474,7 +474,7 @@ namespace Pomona.Common
             var stringWriter = new StringWriter();
             var writer = serializer.CreateWriter(stringWriter);
             var context = new ClientSerializationContext(typeMapper);
-            var node = new ItemValueSerializerNode(obj, expectedBaseType, "", context);
+            var node = new ItemValueSerializerNode(obj, expectedBaseType, "", context, null);
             serializer.SerializeNode(node, writer);
             return stringWriter.ToString();
         }

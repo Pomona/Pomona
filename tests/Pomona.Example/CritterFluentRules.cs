@@ -110,6 +110,7 @@ namespace Pomona.Example
             map.AsUriBaseType()
                .Include(x => x.CrazyValue)
                .Include(x => x.CreatedOn)
+               .Include(x => x.Subscriptions, o => o.AlwaysExpanded())
                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly))

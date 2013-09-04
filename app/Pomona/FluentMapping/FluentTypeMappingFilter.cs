@@ -224,7 +224,8 @@ namespace Pomona.FluentMapping
 
         public bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            return wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo);
+            return FromMappingOrDefault(propertyInfo, x => x.AlwaysExpanded,
+                                        () => wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo));
         }
 
 

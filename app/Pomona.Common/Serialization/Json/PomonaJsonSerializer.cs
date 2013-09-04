@@ -129,7 +129,7 @@ namespace Pomona.Common.Serialization.Json
 
             jsonWriter.WritePropertyName("items");
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
-                                                       string.Empty, fetchContext);
+                                                       string.Empty, fetchContext, null);
             itemNode.Serialize(this, writer);
 
             if (queryResult.DebugInfo.Count > 0)
@@ -217,7 +217,7 @@ namespace Pomona.Common.Serialization.Json
                 var elementType = node.ExpectedBaseType.ElementType;
                 foreach (var item in (IEnumerable) node.Value)
                 {
-                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context);
+                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
                     itemNode.Serialize(this, writer);
                 }
                 jsonWriter.WriteEndArray();
@@ -258,7 +258,7 @@ namespace Pomona.Common.Serialization.Json
             {
                 // TODO: Support other key types than string
                 jsonWriter.WritePropertyName((string) ((object) kvp.Key));
-                var itemNode = new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.Context);
+                var itemNode = new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.Context, node);
                 itemNode.Serialize(this, writer);
             }
             jsonWriter.WriteEndObject();

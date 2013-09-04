@@ -71,7 +71,7 @@ namespace Pomona.Common.Serialization.Csv
                                          IMappedType elementType)
         {
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
-                                                       string.Empty, fetchContext);
+                                                       string.Empty, fetchContext, null);
             itemNode.Serialize(this, writer);
         }
 

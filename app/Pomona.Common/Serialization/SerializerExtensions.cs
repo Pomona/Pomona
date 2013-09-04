@@ -63,7 +63,7 @@ namespace Pomona.Common.Serialization
             {
                 var itemValueNode = new ItemValueSerializerNode(obj, expectedBaseType,
                                                                 string.Empty,
-                                                                serializationContext);
+                                                                serializationContext, null);
                 serializer.SerializeNode(itemValueNode, writer);
             }
         }

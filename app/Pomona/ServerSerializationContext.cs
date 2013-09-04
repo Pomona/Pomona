@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using Pomona.Common.Serialization;
@@ -33,9 +37,9 @@ namespace Pomona
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
-        private readonly IPomonaUriResolver uriResolver;
 
         private readonly ITypeMapper typeMapper;
+        private readonly IPomonaUriResolver uriResolver;
 
 
         public ServerSerializationContext(
@@ -45,7 +49,7 @@ namespace Pomona
         {
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;
-            this.typeMapper = uriResolver.TypeMapper;
+            typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
@@ -113,6 +117,12 @@ namespace Pomona
 
         private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
         {
+            if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
+                IsAlwaysExpandedPropertyNode(node.ParentNode))
+            {
+                return true;
+            }
+
             var propNode = node as PropertyValueSerializerNode;
             if (propNode == null)
                 return false;

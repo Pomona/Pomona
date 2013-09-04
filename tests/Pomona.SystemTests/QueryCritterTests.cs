@@ -121,7 +121,6 @@ namespace Pomona.SystemTests
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
-            Assert.That(critter.Subscriptions, Is.TypeOf<LazyListProxy<ISubscription>>());
         }
 
 

@@ -84,7 +84,7 @@ namespace Pomona.Common.Serialization.Xml
                                          IMappedType elementType)
         {
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
-                                                       string.Empty, fetchContext);
+                                                       string.Empty, fetchContext, null);
             itemNode.Serialize(this, writer);
         }
 
@@ -112,7 +112,7 @@ namespace Pomona.Common.Serialization.Xml
             {
                 foreach (var item in (IEnumerable) node.Value)
                 {
-                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context);
+                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
                     itemNode.Serialize(this, writer);
                 }
             }

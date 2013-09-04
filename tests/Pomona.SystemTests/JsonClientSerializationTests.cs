@@ -54,7 +54,7 @@ namespace Pomona.SystemTests
             var stringWriter = new StringWriter();
             var jsonWriter = serializer.CreateWriter(stringWriter);
             serializer.SerializeNode(
-                new ItemValueSerializerNode(value, GetClassMapping(value.GetType()), "", GetFetchContext()), jsonWriter);
+                new ItemValueSerializerNode(value, GetClassMapping(value.GetType()), "", GetFetchContext(), null), jsonWriter);
 
             Console.WriteLine("Serialized object to json:");
             var jsonString = stringWriter.ToString();

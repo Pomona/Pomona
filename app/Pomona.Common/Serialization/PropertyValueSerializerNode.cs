@@ -117,6 +117,11 @@ namespace Pomona.Common.Serialization
             }
         }
 
+        public ISerializerNode ParentNode
+        {
+            get { return parentNode; }
+        }
+
         #endregion
 
         public IPropertyInfo Property
