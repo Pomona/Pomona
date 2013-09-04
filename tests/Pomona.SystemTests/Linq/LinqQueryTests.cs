@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Critters.Client;
@@ -422,6 +423,15 @@ namespace Pomona.SystemTests.Linq
         {
             var result = client.Critters.Query().Expand(x => x.Hat).Take(1).First();
             Assert.That(result.Hat, Is.TypeOf<HatResource>());
+        }
+        [Test]
+        public void QueryCritter_WithPropertyOfListItemsExpanded_HasPropertiesExpanded()
+        {
+            var result = client.Critters.Query().Expand(x => x.Weapons.Expand(y => y.Model)).Take(1).First();
+            Assert.That(result.Weapons, Is.TypeOf<List<IWeapon>>());
+            Assert.That(result.Weapons.Count, Is.GreaterThanOrEqualTo(1));
+            Assert.That(result.Weapons.All(x => x is WeaponResource));
+            Assert.That(result.Weapons.All(x => x.Model is WeaponModelResource));
         }
 
         [Test]
