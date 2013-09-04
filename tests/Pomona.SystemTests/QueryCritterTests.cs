@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,7 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -121,6 +126,11 @@ namespace Pomona.SystemTests
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
+
+            // Subscriptions is configured to always be expanded
+            Assert.That(critter.Subscriptions, Is.TypeOf<List<ISubscription>>());
+            Assert.That(critter.Subscriptions.Count, Is.GreaterThan(0));
+            Assert.That(critter.Subscriptions.All(x => x is SubscriptionResource));
         }
 
 

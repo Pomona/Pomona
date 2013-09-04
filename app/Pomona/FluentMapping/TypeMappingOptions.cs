@@ -229,6 +229,8 @@ namespace Pomona.FluentMapping
 
             public ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot()
             {
+                if (IsMappingSubclass())
+                    return this;
                 owner.isIndependentTypeRoot = true;
                 return this;
             }
@@ -238,7 +240,7 @@ namespace Pomona.FluentMapping
                 Expression<Func<TDeclaringType, TDeclaringType>> expr)
             {
                 // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
-                if (!owner.declaringType.IsAssignableFrom(typeof (TDeclaringType)))
+                if (IsMappingSubclass())
                     return this;
 
                 if (expr == null)
@@ -255,7 +257,7 @@ namespace Pomona.FluentMapping
                 Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> expr)
             {
                 // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
-                if (!owner.declaringType.IsAssignableFrom(typeof (TDeclaringType)))
+                if (IsMappingSubclass())
                     return this;
 
                 if (expr == null)
@@ -340,6 +342,11 @@ namespace Pomona.FluentMapping
             {
                 owner.onDeserialized = x => action((TDeclaringType) x);
                 return this;
+            }
+
+            private bool IsMappingSubclass()
+            {
+                return !owner.declaringType.IsAssignableFrom(typeof (TDeclaringType));
             }
 
             private void ConstructedUsing(NewExpression constructExpr)
