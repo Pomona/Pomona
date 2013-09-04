@@ -424,15 +424,6 @@ namespace Pomona.SystemTests.Linq
             var result = client.Critters.Query().Expand(x => x.Hat).Take(1).First();
             Assert.That(result.Hat, Is.TypeOf<HatResource>());
         }
-        [Test]
-        public void QueryCritter_WithPropertyOfListItemsExpanded_HasPropertiesExpanded()
-        {
-            var result = client.Critters.Query().Expand(x => x.Weapons.Expand(y => y.Model)).Take(1).First();
-            Assert.That(result.Weapons, Is.TypeOf<List<IWeapon>>());
-            Assert.That(result.Weapons.Count, Is.GreaterThanOrEqualTo(1));
-            Assert.That(result.Weapons.All(x => x is WeaponResource));
-            Assert.That(result.Weapons.All(x => x.Model is WeaponModelResource));
-        }
 
         [Test]
         public void QueryCritter_WithHandledGeneratedProperty_UsesPropertyFormula()
@@ -454,6 +445,16 @@ namespace Pomona.SystemTests.Linq
                 .IncludeTotalCount()
                 .ToQueryResult();
             Assert.That(results.TotalCount, Is.EqualTo(expectedTotalCount));
+        }
+
+        [Test]
+        public void QueryCritter_WithPropertyOfListItemsExpanded_HasPropertiesExpanded()
+        {
+            var result = client.Critters.Query().Expand(x => x.Weapons.Expand(y => y.Model)).Take(1).First();
+            Assert.That(result.Weapons, Is.TypeOf<List<IWeapon>>());
+            Assert.That(result.Weapons.Count, Is.GreaterThanOrEqualTo(1));
+            Assert.That(result.Weapons.All(x => x is WeaponResource));
+            Assert.That(result.Weapons.All(x => x.Model is WeaponModelResource));
         }
 
         [Test]

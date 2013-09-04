@@ -192,6 +192,22 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PostLonerWithOptionalNullablePropertySet_SetsProperty()
+        {
+            // Model is required, so an exception should be thrown.
+            var date = DateTime.Now.AddDays(-2);
+            var resource = client.Loners.Post(new LonerForm {Name = "blah", Strength = 123, OptionalDate = date});
+            Assert.That(resource.OptionalDate, Is.EqualTo(date));
+        }
+
+        [Test]
+        public void PostLonerWithOptionalPropertyNotSet_DoesNotThrowException()
+        {
+            // Model is required, so an exception should be thrown.
+            Assert.That(() => client.Loners.Post(new LonerForm {Name = "blah", Strength = 123}), Throws.Nothing);
+        }
+
+        [Test]
         public void PostMusicalCritter()
         {
             const string critterName = "Nooob critter";
@@ -332,13 +348,6 @@ namespace Pomona.SystemTests
 
             var critterResource = client.Critters.Post(critterForm);
             Assert.That(critterResource.Name, Is.EqualTo(critterName));
-        }
-
-        [Test]
-        public void PostWeaponWithOptionalPropertyNotSet_DoesNotThrowException()
-        {
-            // Model is required, so an exception should be thrown.
-            Assert.That(() => client.Loners.Post(new LonerForm {Name = "blah", Strength = 123}), Throws.Nothing);
         }
 
         [Test]

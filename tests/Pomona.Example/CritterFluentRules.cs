@@ -91,7 +91,8 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<Loner> map)
         {
-            map.ConstructedUsing((x, c) => new Loner(c.Optional(x.OptionalInfo), x.Strength, x.OptionalInfo));
+            map.ConstructedUsing(
+                (x, c) => new Loner(x.Name, x.Strength, c.Optional(x.OptionalInfo), c.Optional(x.OptionalDate)));
         }
 
         public void Map(ITypeMappingConfigurator<ErrorStatus> map)

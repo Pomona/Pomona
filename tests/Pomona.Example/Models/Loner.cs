@@ -26,21 +26,30 @@
 
 #endregion
 
+using System;
+
 namespace Pomona.Example.Models
 {
     public class Loner : EntityBase
     {
-        private readonly string optionalInfo;
         private readonly string name;
+        private readonly DateTime optionalDate;
+        private readonly string optionalInfo;
         private readonly int strength;
 
 
-        public Loner(string name, int strength, string optionalInfo)
+        public Loner(string name, int strength, string optionalInfo, DateTime? optionalDate = null)
         {
             this.name = name;
             this.strength = strength;
             this.optionalInfo = optionalInfo;
+            this.optionalDate = optionalDate ?? DateTime.UtcNow;
             Occupation = "default boring";
+        }
+
+        public DateTime OptionalDate
+        {
+            get { return optionalDate; }
         }
 
         public string OptionalInfo

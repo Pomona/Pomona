@@ -366,6 +366,9 @@ namespace Pomona.FluentMapping
                         var ctorArg = constructExpr.Arguments[ctorArgIndex];
                         var isOptionalArg = false;
 
+                        while (ctorArg.NodeType == ExpressionType.Convert)
+                            ctorArg = ((UnaryExpression) ctorArg).Operand;
+
                         var methodCallExpr = ctorArg as MethodCallExpression;
                         if (methodCallExpr != null &&
                             methodCallExpr.Method.UniqueToken() == optionalMethod.UniqueToken())
