@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Nancy;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -175,7 +176,21 @@ namespace Pomona
             switch (Projection)
             {
                 case ProjectionType.First:
-                    return new PomonaResponse(this, totalQueryable.First(), uriResolver);
+                    {
+                        object result;
+                        try
+                        {
+                            result = totalQueryable.First();
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            // We assume that this means no matching element.
+                            // Don't know another way to check this in a non-ambigious way, since null might be a valid return value.
+                            return new PomonaResponse(this, PomonaResponse.NoBodyEntity, uriResolver,
+                                                      HttpStatusCode.NotFound);
+                        }
+                        return new PomonaResponse(this, result, uriResolver);
+                    }
                 case ProjectionType.FirstOrDefault:
                     return new PomonaResponse(this, totalQueryable.FirstOrDefault(), uriResolver);
                 case ProjectionType.Max:

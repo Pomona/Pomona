@@ -451,8 +451,8 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WithNonMatchingFirst_ThrowsInvalidOperationException()
         {
-            Assert.Throws<InvalidOperationException>(() => client.Query<ICritter>().First(x => x.Guid == Guid.NewGuid()));
-            Assert.Fail("Need to compare message in test.");
+            var ex = Assert.Throws<InvalidOperationException>(() => client.Query<ICritter>().First(x => x.Guid == Guid.NewGuid()));
+            Assert.That(ex.Message, Is.EqualTo("Sequence contains no matching element"));
         }
 
         [Test]
