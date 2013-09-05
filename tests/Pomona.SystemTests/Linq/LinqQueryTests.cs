@@ -69,12 +69,12 @@ namespace Pomona.SystemTests.Linq
             DataStore.CreateRandomCritter(new Random());
             var expected = CritterEntities.First(x => x.Id%2 == 0);
             var lazyCritter = client.Query<ICritter>().Where(x => x.Id%2 == 0).FirstLazy();
-            var beforeLoadUri = ((IHasResourceUri) lazyCritter).Uri;
+            var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
             Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+2)+eq+0"));
             Console.WriteLine(beforeLoadUri);
             // Should load uri when retrieving name
             var name = lazyCritter.Name;
-            var afterLoadUri = ((IHasResourceUri) lazyCritter).Uri;
+            var afterLoadUri = ((IHasResourceUri)lazyCritter).Uri;
             Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+2)+eq+0"));
             Console.WriteLine(afterLoadUri);
             Assert.That(name, Is.EqualTo(expected.Name));
@@ -100,16 +100,16 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_GetSumOfDecimalProperty()
         {
-            var expected = CritterEntities.Sum(x => (decimal) x.Id);
-            var actual = client.Query<ICritter>().Sum(x => (decimal) x.Id);
+            var expected = CritterEntities.Sum(x => (decimal)x.Id);
+            var actual = client.Query<ICritter>().Sum(x => (decimal)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
         [Test]
         public void QueryCritter_GetSumOfDoubleProperty()
         {
-            var expected = CritterEntities.Sum(x => (double) x.Id);
-            var actual = client.Query<ICritter>().Sum(x => (double) x.Id);
+            var expected = CritterEntities.Sum(x => (double)x.Id);
+            var actual = client.Query<ICritter>().Sum(x => (double)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
@@ -210,13 +210,13 @@ namespace Pomona.SystemTests.Linq
         {
             var expected =
                 CritterEntities
-                    .Select(x => new {NameLength = x.Name.Length})
+                    .Select(x => new { NameLength = x.Name.Length })
                     .OrderBy(x => x.NameLength)
                     .Take(10)
                     .ToList();
             var actual =
                 client.Critters.Query()
-                      .Select(x => new {NameLength = x.Name.Length})
+                      .Select(x => new { NameLength = x.Name.Length })
                       .OrderBy(x => x.NameLength)
                       .Take(10)
                       .ToList();
@@ -244,16 +244,16 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_SelectDecimalThenSum()
         {
-            var expected = CritterEntities.Select(x => (decimal) x.Id).Sum();
-            var actual = client.Query<ICritter>().Select(x => (decimal) x.Id).Sum();
+            var expected = CritterEntities.Select(x => (decimal)x.Id).Sum();
+            var actual = client.Query<ICritter>().Select(x => (decimal)x.Id).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
 
         [Test]
         public void QueryCritter_SelectDoubleThenSum()
         {
-            var expected = CritterEntities.Select(x => (double) x.Id).Sum();
-            var actual = client.Query<ICritter>().Select(x => (double) x.Id).Sum();
+            var expected = CritterEntities.Select(x => (double)x.Id).Sum();
+            var actual = client.Query<ICritter>().Select(x => (double)x.Id).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
 
@@ -269,16 +269,16 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_SelectThenWhereThenSelect_ReturnsCorrectValues()
         {
             var expected = CritterEntities
-                .Select(x => new {c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name})
+                .Select(x => new { c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name })
                 .Where(x => x.isHeavyArmed)
-                .Select(x => new {critterName = x.c.Name, x.farmName})
+                .Select(x => new { critterName = x.c.Name, x.farmName })
                 .Take(5)
                 .ToList();
 
             var actual = client.Query<ICritter>()
-                               .Select(x => new {c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name})
+                               .Select(x => new { c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name })
                                .Where(x => x.isHeavyArmed)
-                               .Select(x => new {critterName = x.c.Name, x.farmName})
+                               .Select(x => new { critterName = x.c.Name, x.farmName })
                                .Take(5)
                                .ToList();
 
@@ -360,14 +360,14 @@ namespace Pomona.SystemTests.Linq
         {
             var expected = CritterEntities
                 .Where(x => x.Id%2 == 0)
-                .Select(x => new {x.Name, Crazy = x.CrazyValue.Sickness})
+                .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
                 .OrderBy(x => x.Name)
                 .Take(10)
                 .ToList();
             var actual =
                 client.Query<ICritter>()
                       .Where(x => x.Id%2 == 0)
-                      .Select(x => new {x.Name, Crazy = x.CrazyValue.Sickness})
+                      .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
                       .OrderBy(x => x.Name)
                       .Take(10)
                       .ToList();
@@ -409,7 +409,7 @@ namespace Pomona.SystemTests.Linq
         {
             var result =
                 client.Critters.Query()
-                      .Select(x => new {TheHat = x.Hat, x.Name})
+                      .Select(x => new { TheHat = x.Hat, x.Name })
                       .OrderBy(x => x.Name)
                       .Expand(x => x.TheHat)
                       .Take(1)
@@ -445,6 +445,14 @@ namespace Pomona.SystemTests.Linq
                 .IncludeTotalCount()
                 .ToQueryResult();
             Assert.That(results.TotalCount, Is.EqualTo(expectedTotalCount));
+        }
+
+        [Category("TODO")]
+        [Test]
+        public void QueryCritter_WithNonMatchingFirst_ThrowsInvalidOperationException()
+        {
+            Assert.Throws<InvalidOperationException>(() => client.Query<ICritter>().First(x => x.Guid == Guid.NewGuid()));
+            Assert.Fail("Need to compare message in test.");
         }
 
         [Test]
@@ -491,7 +499,7 @@ namespace Pomona.SystemTests.Linq
         {
             for (var i = 1; i <= 8; i++)
             {
-                DataStore.Save(new StringToObjectDictionaryContainer {Map = {{"square", i*i}}});
+                DataStore.Save(new StringToObjectDictionaryContainer { Map = { { "square", i*i } } });
             }
 
             // Should get 36, 49 and 64
