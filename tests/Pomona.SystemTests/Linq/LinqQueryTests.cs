@@ -447,11 +447,10 @@ namespace Pomona.SystemTests.Linq
             Assert.That(results.TotalCount, Is.EqualTo(expectedTotalCount));
         }
 
-        [Category("TODO")]
         [Test]
         public void QueryCritter_WithNonMatchingFirst_ThrowsInvalidOperationException()
         {
-            var ex = Assert.Throws<InvalidOperationException>(() => client.Query<ICritter>().First(x => x.Guid == Guid.NewGuid()));
+            var ex = Assert.Throws<InvalidOperationException>(() => client.Query<ICritter>().First(x => false));
             Assert.That(ex.Message, Is.EqualTo("Sequence contains no matching element"));
         }
 

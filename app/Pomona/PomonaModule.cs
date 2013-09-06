@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -389,7 +385,12 @@ namespace Pomona
                 {
                     try
                     {
-                        return handler(x);
+                        var pomonaResponse = (PomonaResponse) handler(x);
+
+                        if ((int) pomonaResponse.StatusCode >= 400)
+                            SetErrorHandled();
+
+                        return pomonaResponse;
                     }
                     catch (Exception ex)
                     {
@@ -397,11 +398,16 @@ namespace Pomona
                         if (error == null)
                             throw;
 
-                        Context.Items["ERROR_HANDLED"] = true;
+                        SetErrorHandled();
                         return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity, UriResolver,
                                                   error.StatusCode, responseHeaders: error.ResponseHeaders);
                     }
                 };
+        }
+
+        private void SetErrorHandled()
+        {
+            Context.Items["ERROR_HANDLED"] = true;
         }
 
         private void RegisterRoutesFor(TransformedType type)

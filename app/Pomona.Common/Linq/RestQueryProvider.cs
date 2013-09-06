@@ -120,8 +120,15 @@ namespace Pomona.Common.Linq
 
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
-            return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
-                this, new object[] {queryTreeParser});
+            try
+            {
+                return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
+                    this, new object[] {queryTreeParser});
+            }
+            catch (TargetInvocationException tie)
+            {
+                throw tie.InnerException;
+            }
         }
 
 
@@ -235,8 +242,9 @@ namespace Pomona.Common.Linq
             {
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
                     return client.Get<IList<T>>(uri);
-                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.First:
+                    return GetFirst<T>(uri);
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
@@ -246,6 +254,18 @@ namespace Pomona.Common.Linq
                     return client.Get<IList<T>>(uri).Count > 0;
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + parser.Projection);
+            }
+        }
+
+        private T GetFirst<T>(string uri)
+        {
+            try
+            {
+                return client.Get<T>(uri);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Sequence contains no matching element");
             }
         }
 

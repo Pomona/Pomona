@@ -183,8 +183,7 @@ namespace Pomona.Common
 
         public override T Get<T>(string uri)
         {
-            Log("Fetching uri {0}", uri);
-            return (T) Deserialize(DownloadFromUri(uri), typeof (T));
+            return (T)Deserialize(DownloadFromUri(uri), typeof (T));
         }
 
 
@@ -239,13 +238,13 @@ namespace Pomona.Common
             // Set etag to target resources' etag (optimistic concurrency)
             if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
-                var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
+                var etagValue = (string)resourceInfo.EtagProperty.GetValue(target, null);
                 modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
             }
 
             return
                 (T)
-                PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
+                PostOrPatch(((IHasResourceUri)target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
                             modifyResponse);
         }
 
@@ -293,7 +292,7 @@ namespace Pomona.Common
                     throw new NotImplementedException("Only supports form set to null (created by action) for now.");
 
                 var proxy =
-                    (ClientSideFormProxyBase) ((object) RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
+                    (ClientSideFormProxyBase)((object)RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
                 proxy.AttributesProperty = customUserTypeInfo.DictProperty;
 
                 var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
@@ -305,7 +304,7 @@ namespace Pomona.Common
 
                 if (postAction != null)
                 {
-                    postAction((T) ((object) proxy));
+                    postAction((T)((object)proxy));
                 }
                 var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
                                                      .Invoke(this,
@@ -317,7 +316,7 @@ namespace Pomona.Common
 
                 var responseProxy =
                     (ClientSideResourceProxyBase)
-                    ((object) RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
+                    ((object)RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
                 responseProxy.AttributesProperty = customUserTypeInfo.DictProperty;
                 responseProxy.ProxyTarget = innerResponse;
                 return responseProxy;
@@ -335,7 +334,7 @@ namespace Pomona.Common
                 expectedBaseType = resourceInfo.UriBaseType;
                 if (form == null)
                 {
-                    form = (T) Activator.CreateInstance(formType);
+                    form = (T)Activator.CreateInstance(formType);
                 }
             }
 
@@ -362,7 +361,7 @@ namespace Pomona.Common
                 var interfaceType = this.GetMostInheritedResourceInterface(type);
                 return postOrPatchMethod
                     .MakeGenericMethod(interfaceType)
-                    .Invoke(this, new object[] {uri, postForm, null, "POST", formTypeGetter, null});
+                    .Invoke(this, new object[] { uri, postForm, null, "POST", formTypeGetter, null });
             }
             return PostOrPatch(uri, postForm, null, "POST", formTypeGetter, null);
         }
@@ -388,16 +387,16 @@ namespace Pomona.Common
                 JToken typeValue;
                 if (jObject.TryGetValue("_type", out typeValue))
                 {
-                    if (typeValue.Type == JTokenType.String && (string) ((JValue) typeValue).Value == "__result__")
+                    if (typeValue.Type == JTokenType.String && (string)((JValue)typeValue).Value == "__result__")
                     {
                         JToken itemsToken;
                         if (!jObject.TryGetValue("items", out itemsToken))
                             throw new InvalidOperationException("Got result object, but lacking items");
 
-                        var totalCount = (int) jObject.GetValue("totalCount");
+                        var totalCount = (int)jObject.GetValue("totalCount");
 
                         var deserializedItems = Deserialize(itemsToken.ToString(), expectedType);
-                        return QueryResult.Create((IEnumerable) deserializedItems, /* TODO */ 0, totalCount,
+                        return QueryResult.Create((IEnumerable)deserializedItems, /* TODO */ 0, totalCount,
                                                   "http://todo");
                     }
                 }
@@ -462,13 +461,6 @@ namespace Pomona.Common
         }
 
 
-        private void Log(string format, params object[] args)
-        {
-            // TODO: Provide optional integration with CommonLogging
-            Console.WriteLine(format, args);
-        }
-
-
         private string Serialize(object obj, IMappedType expectedBaseType)
         {
             var stringWriter = new StringWriter();
@@ -506,7 +498,7 @@ namespace Pomona.Common
                                      ? Encoding.UTF8.GetString(response.Data)
                                      : null;
 
-                if ((int) response.StatusCode >= 400)
+                if ((int)response.StatusCode >= 400)
                 {
                     var gotJsonResponseBody = responseString != null &&
                                               response.Headers.GetValues("Content-Type")
