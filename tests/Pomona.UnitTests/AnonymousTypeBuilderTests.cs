@@ -1,9 +1,7 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.IO;
 using NUnit.Framework;
@@ -41,6 +37,37 @@ namespace Pomona.UnitTests
         {
             propNames = new[] {"Foo", "Bar"};
             builder = new AnonymousTypeBuilder(propNames);
+        }
+
+        private struct FixedHash
+        {
+            private readonly int value;
+
+            public FixedHash(int value)
+            {
+                this.value = value;
+            }
+
+            public int Value
+            {
+                get { return value; }
+            }
+
+            private bool Equals(FixedHash other)
+            {
+                return value == other.value;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                return obj is FixedHash && Equals((FixedHash) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return value;
+            }
         }
 
         private string[] propNames;
@@ -118,15 +145,10 @@ namespace Pomona.UnitTests
         }
 
 
-        [Test(Description = "This test needs to be revisited.")]
-        [Category("TODO")]
+        [Test]
         public void GetHashCodeReturnsExpectedValue()
         {
-            const string unexpectedHashCodeFromSystemTypesMessage =
-                "This test won't make sense, it seems like a GetHashCode() implementation for system type has changed.";
-            Assert.That(1337.GetHashCode(), Is.EqualTo(1337), unexpectedHashCodeFromSystemTypesMessage);
-            Assert.That(0xdead.GetHashCode(), Is.EqualTo(0xdead), unexpectedHashCodeFromSystemTypesMessage);
-            var runtimeGenerated = CreateAnonObject(1337, 0xdead);
+            var runtimeGenerated = CreateAnonObject(new FixedHash(1337), new FixedHash(0xdead));
             Assert.That(runtimeGenerated.GetHashCode(), Is.EqualTo(1026086765));
         }
 
