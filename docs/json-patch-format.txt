@@ -20,7 +20,7 @@ We want to change info (an object):
 
 We want to replace info:
 {
-	"info" : { "foo" : "unknown", "bar" : "hello" }
+	"!info" : { "foo" : "unknown", "bar" : "hello" }
 }
 
 We want to remove joe:
