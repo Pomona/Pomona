@@ -63,6 +63,14 @@ namespace Pomona.SystemTests.Linq
             Assert.That(hasCritterWithGuid, Is.False);
         }
 
+        [Category("TODO")]
+        [Test]
+        public void QueryCritter_Count_ReturnsCount()
+        {
+            var expected = DataStore.List<Critter>().Count;
+            Assert.That(client.Critters.Query().Count(), Is.EqualTo(expected));
+        }
+
         [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
@@ -87,6 +95,7 @@ namespace Pomona.SystemTests.Linq
             Assert.That(client.Critters.Query().Max(x => x.Id), Is.EqualTo(expected));
             Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
