@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +39,7 @@ namespace Pomona.Common.Linq
     {
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
-            return (QueryResult<TSource>) source.Provider.Execute(source.Expression);
+            return (QueryResult<TSource>)source.Provider.Execute(source.Expression);
         }
 
         public static JToken ToJson<TSource>(this IQueryable<TSource> source)
@@ -43,8 +47,8 @@ namespace Pomona.Common.Linq
             if (source == null) throw new ArgumentNullException("source");
             var methodCallExpression =
                 Expression.Call(null,
-                                ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] {typeof (TSource)}),
-                                new[] {source.Expression});
+                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof (TSource) }),
+                                new[] { source.Expression });
             return source.Provider.Execute<JObject>(methodCallExpression);
         }
 
@@ -53,9 +57,15 @@ namespace Pomona.Common.Linq
             if (source == null) throw new ArgumentNullException("source");
             var methodCallExpression =
                 Expression.Call(null,
-                                ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] {typeof (TSource)}),
-                                new[] {source.Expression});
+                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof (TSource) }),
+                                new[] { source.Expression });
             return source.Provider.Execute<TSource>(methodCallExpression);
+        }
+
+        public static TSource FirstLazy<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            return source.First();
         }
 
         public static Uri ToUri<TSource>(this IQueryable<TSource> source)
@@ -63,8 +73,8 @@ namespace Pomona.Common.Linq
             if (source == null) throw new ArgumentNullException("source");
             var methodCallExpression =
                 Expression.Call(null,
-                                ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] {typeof (TSource)}),
-                                new[] {source.Expression});
+                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof (TSource) }),
+                                new[] { source.Expression });
             return source.Provider.Execute<Uri>(methodCallExpression);
         }
 
@@ -74,8 +84,8 @@ namespace Pomona.Common.Linq
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
                     null,
-                    ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (TSource)),
-                    new[] {source.Expression}
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (TSource)),
+                    new[] { source.Expression }
                     ));
         }
 
@@ -88,8 +98,8 @@ namespace Pomona.Common.Linq
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
                     null,
-                    ((MethodInfo) MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (TSource), typeof (TProperty)),
-                    new[] {source.Expression, Expression.Quote(propertySelector)}
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (TSource), typeof (TProperty)),
+                    new[] { source.Expression, Expression.Quote(propertySelector) }
                     ));
         }
 
