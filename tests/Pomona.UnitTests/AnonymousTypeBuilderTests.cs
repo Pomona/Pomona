@@ -149,7 +149,7 @@ namespace Pomona.UnitTests
         public void GetHashCodeReturnsExpectedValue()
         {
             var runtimeGenerated = CreateAnonObject(new FixedHash(1337), new FixedHash(0xdead));
-            Assert.That(runtimeGenerated.GetHashCode(), Is.EqualTo(1026086765));
+            Assert.That(runtimeGenerated.GetHashCode(), Is.EqualTo(-2040804512));
         }
 
 
