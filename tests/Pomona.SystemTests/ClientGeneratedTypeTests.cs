@@ -75,6 +75,20 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void ResourceInfoAttributeOfGeneratedTypeHasCorrectEtagPropertySet()
+        {
+            var resInfo = typeof (IEtaggedEntity).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(resInfo.EtagProperty, Is.EqualTo(typeof (IEtaggedEntity).GetProperty("ETag")));
+        }
+
+        [Test]
+        public void ResourceInfoAttributeOfGeneratedTypeHasCorrectIdPropertySet()
+        {
+            var resInfo = typeof (ICritter).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(resInfo.EtagProperty, Is.EqualTo(typeof (IEtaggedEntity).GetProperty("Id")));
+        }
+
+        [Test]
         public void ResourceInheritedFromResourceWithPostDeniedDoesNotHavePostResourceFormGenerated()
         {
             var typeInfo =

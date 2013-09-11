@@ -98,6 +98,7 @@
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PutResourceBase.cs" />
     <Compile Include="ResourceEtagPropertyAttribute.cs" />
+    <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />

@@ -97,7 +97,7 @@ namespace Pomona.CodeGen
 
             if (PomonaClientEmbeddingEnabled)
             {
-                var readerParameters = new ReaderParameters {AssemblyResolver = assemblyResolver};
+                var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };
                 assembly = AssemblyDefinition.ReadAssembly(typeof (ResourceBase).Assembly.Location, readerParameters);
             }
             else
@@ -186,7 +186,6 @@ namespace Pomona.CodeGen
 
         private void CreatePostToResourceExtensionMethods()
         {
-            
         }
 
         private void CreateClientInterface(string interfaceName)
@@ -463,7 +462,7 @@ namespace Pomona.CodeGen
 
             foreach (var kvp in clientTypeInfoDict)
             {
-                var type = (TransformedType) kvp.Key;
+                var type = (TransformedType)kvp.Key;
                 var typeInfo = kvp.Value;
                 var pocoDef = typeInfo.PocoType;
                 var interfaceDef = typeInfo.InterfaceType;
@@ -519,6 +518,10 @@ namespace Pomona.CodeGen
                     {
                         AddAttributeToProperty(interfacePropDef, typeof (ResourceEtagPropertyAttribute));
                     }
+                    if (prop.IsPrimaryKey)
+                    {
+                        AddAttributeToProperty(interfacePropDef, typeof (ResourceIdPropertyAttribute));
+                    }
 
                     FieldDefinition backingField;
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
@@ -554,7 +557,7 @@ namespace Pomona.CodeGen
             }
             else if (propertyType.IsCollection)
             {
-                var genericInstanceFieldType = (GenericInstanceType) backingField.FieldType;
+                var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
                 var listReference = GetClientTypeReference(typeof (List<>));
                 var listCtor = listReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
                 var listCtorInstance =
@@ -568,7 +571,7 @@ namespace Pomona.CodeGen
             }
             else if (propertyType.IsDictionary)
             {
-                var genericInstanceFieldType = (GenericInstanceType) backingField.FieldType;
+                var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
                 var dictReference = GetClientTypeReference(typeof (Dictionary<,>));
                 var dictCtor = dictReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
                 var dictCtorInstance =
@@ -836,13 +839,13 @@ namespace Pomona.CodeGen
                 else
                 {
                     var invalidOperationStrCtor =
-                        typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                        typeof (InvalidOperationException).GetConstructor(new[] { typeof (string) });
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
                     var getMethod = proxyProp.GetMethod;
                     var setMethod = proxyProp.SetMethod;
 
-                    foreach (var method in new[] {getMethod, setMethod})
+                    foreach (var method in new[] { getMethod, setMethod })
                     {
                         var ilproc = method.Body.GetILProcessor();
                         ilproc.Append(
@@ -921,7 +924,7 @@ namespace Pomona.CodeGen
                 if (!propertyMapping.IsWriteable)
                 {
                     var invalidOperationStrCtor =
-                        typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                        typeof (InvalidOperationException).GetConstructor(new[] { typeof (string) });
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
                     // Do not disable GETTING of collection types in update proxy, we might want to change
@@ -931,8 +934,8 @@ namespace Pomona.CodeGen
                                                  propertyMapping.PropertyType.IsDictionary;
 
                     var methodsToRestrict = allowReadingOfProperty
-                                                ? new[] {proxyProp.SetMethod}
-                                                : new[] {proxyProp.SetMethod, proxyProp.GetMethod};
+                                                ? new[] { proxyProp.SetMethod }
+                                                : new[] { proxyProp.SetMethod, proxyProp.GetMethod };
 
                     foreach (var method in methodsToRestrict)
                     {
