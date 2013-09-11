@@ -209,6 +209,9 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Min:
                     projection = "min";
                     break;
+                case RestQueryableTreeParser.QueryProjection.Count:
+                    projection = "count";
+                    break;
                 case RestQueryableTreeParser.QueryProjection.Sum:
                     projection = "sum";
                     break;
@@ -248,6 +251,7 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
+                case RestQueryableTreeParser.QueryProjection.Count:
                     return client.Get<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..

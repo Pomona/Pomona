@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +52,8 @@ namespace Pomona.Common.Linq
             Max,
             Min,
             Sum,
-            ToJson
+            ToJson,
+            Count
         }
 
         #endregion
@@ -59,6 +64,7 @@ namespace Pomona.Common.Linq
         private static readonly MethodInfo visitQueryConstantValueMethod;
         private readonly StringBuilder expandedPaths = new StringBuilder();
         private readonly IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
+        private Type aggregateReturnType;
         private Type elementType;
         private LambdaExpression groupByKeySelector;
         private bool includeTotalCount;
@@ -132,6 +138,9 @@ namespace Pomona.Common.Linq
         {
             get
             {
+                if (aggregateReturnType != null)
+                    return aggregateReturnType;
+
                 if (selectExpression == null)
                     return elementType;
                 return selectExpression.ReturnType;
@@ -166,7 +175,7 @@ namespace Pomona.Common.Linq
             if (node.Type.UniqueToken() == typeof (RestQuery<>).UniqueToken())
             {
                 visitQueryConstantValueMethod.MakeGenericMethod(node.Type.GetGenericArguments()).Invoke(
-                    this, new[] {node.Value});
+                    this, new[] { node.Value });
                 return node;
             }
 
@@ -179,7 +188,7 @@ namespace Pomona.Common.Linq
         {
             Visit(node.Arguments[0]);
 
-            UniqueMemberToken token = node.Method.UniqueToken();
+            var token = node.Method.UniqueToken();
             if (!queryableMethodToVisitMethodDictionary.ContainsKey(token))
                 throw new NotImplementedException(String.Format("{0} is not implemented.", node.Method.Name));
 
@@ -270,6 +279,17 @@ namespace Pomona.Common.Linq
             QMax<TResult>();
         }
 
+        internal void QCount<TSource>()
+        {
+            projection = QueryProjection.Count;
+            aggregateReturnType = typeof (int);
+        }
+
+        internal void QCount<TSource>(Expression<Func<TSource, bool>> predicate)
+        {
+            QWhere(predicate);
+            QCount<TSource>();
+        }
 
         internal void QMin<TSource>()
         {
@@ -459,11 +479,11 @@ namespace Pomona.Common.Linq
         private object ExtractArgumentFromExpression(Expression expression)
         {
             if (expression.NodeType == ExpressionType.Quote)
-                return ((UnaryExpression) expression).Operand;
+                return ((UnaryExpression)expression).Operand;
             if (expression.NodeType == ExpressionType.Lambda)
                 return expression;
             if (expression.NodeType == ExpressionType.Constant)
-                return ((ConstantExpression) expression).Value;
+                return ((ConstantExpression)expression).Value;
             throw new NotSupportedException("Does not know how to unwrap " + expression.NodeType);
         }
 
@@ -496,7 +516,7 @@ namespace Pomona.Common.Linq
 
         private object VisitQueryConstantValue<T>(RestQuery<T> restQuery)
         {
-            elementType = ((IQueryable) restQuery).ElementType;
+            elementType = ((IQueryable)restQuery).ElementType;
             return null;
         }
 

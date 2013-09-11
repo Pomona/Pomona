@@ -63,7 +63,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(hasCritterWithGuid, Is.False);
         }
 
-        [Category("TODO")]
         [Test]
         public void QueryCritter_Count_ReturnsCount()
         {

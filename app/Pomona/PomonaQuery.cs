@@ -47,7 +47,8 @@ namespace Pomona
             FirstOrDefault,
             Max,
             Min,
-            Sum
+            Sum,
+            Count
         }
 
         private static readonly MethodInfo applyAndExecuteMethod;
@@ -197,6 +198,8 @@ namespace Pomona
                     return new PomonaResponse(this, totalQueryable.Max(), uriResolver);
                 case ProjectionType.Min:
                     return new PomonaResponse(this, totalQueryable.Min(), uriResolver);
+                case ProjectionType.Count:
+                    return new PomonaResponse(this, totalQueryable.Count(), uriResolver);
                 case ProjectionType.Sum:
                     return ApplySum(totalQueryable);
                 default:
