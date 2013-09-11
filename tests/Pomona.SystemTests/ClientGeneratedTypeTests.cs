@@ -123,5 +123,11 @@ namespace Pomona.SystemTests
         {
             Assert.That(!typeof (IEntityBase).IsAssignableFrom(typeof (IThingIndependentFromBase)));
         }
+
+        [Test]
+        public void ThingIndependentFromBase_IncludesPropertyFromEntityBase()
+        {
+            Assert.That(typeof (IThingIndependentFromBase).GetProperty("Id"), Is.Not.Null);
+        }
     }
 }
