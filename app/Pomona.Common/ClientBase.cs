@@ -185,7 +185,6 @@ namespace Pomona.Common
 
         public override async Task<T> GetAsync<T>(string uri)
         {
-            Log("Fetching uri {0} asynchronously", uri);
             return (T) Deserialize(await DownloadFromUriAsync(uri), typeof (T));
         }
 
@@ -443,25 +442,46 @@ namespace Pomona.Common
         }
 
 
-        private async Task<string> DownloadFromUriAsync(string uri)
+
+        private async Task<string> SendHttpRequestAsync(string uri, string httpMethod, object requestBodyEntity = null,
+                                       IMappedType requestBodyBaseType = null,
+                                       Action<WebClientRequestMessage> modifyRequestHandler = null)
         {
-            // TODO: Check that response code is correct and content-type matches JSON. [KNS]
+            byte[] requestBytes = null;
+            WebClientResponseMessage response = null;
+            if (requestBodyEntity != null)
+            {
+                var requestString = Serialize(requestBodyEntity, requestBodyBaseType);
+                requestBytes = Encoding.UTF8.GetBytes(requestString);
+            }
+            var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
+
             webClient.Headers.Add("Accept", "application/json");
 
             string responseString = null;
-            var request = new WebClientRequestMessage(uri, null, "GET");
-            WebClientResponseMessage response = null;
             Exception thrownException = null;
             try
             {
+                if (modifyRequestHandler != null)
+                    modifyRequestHandler(request);
+
                 response = await webClient.SendAsync(request);
+                responseString = (response.Data != null && response.Data.Length > 0)
+                                     ? Encoding.UTF8.GetString(response.Data)
+                                     : null;
 
-                if ((int) response.StatusCode >= 400)
+                if ((int)response.StatusCode >= 400)
                 {
-                    throw WebClientException.Create(request, response, null);
-                }
+                    var gotJsonResponseBody = responseString != null &&
+                                              response.Headers.GetValues("Content-Type")
+                                                      .Any(x => x.StartsWith("application/json"));
 
-                responseString = Encoding.UTF8.GetString(response.Data);
+                    var responseObject = gotJsonResponseBody
+                                             ? Deserialize(responseString, null)
+                                             : null;
+
+                    throw WebClientException.Create(this, request, response, responseObject, null);
+                }
             }
             catch (Exception ex)
             {
@@ -473,7 +493,13 @@ namespace Pomona.Common
                 RaiseRequestCompleted(request, response, thrownException);
             }
 
+
             return responseString;
+        }
+
+        private async Task<string> DownloadFromUriAsync(string uri)
+        {
+            return await SendHttpRequestAsync(uri, "GET");
         }
 
         private string DownloadFromUri(string uri)

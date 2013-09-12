@@ -43,7 +43,7 @@ namespace Pomona.Common.Linq
             var restQuery = source as RestQuery<TSource>;
             if (restQuery == null)
             {
-                return restQuery.ToList();
+                return source.ToList();
             }
             var result = await restQuery.Provider.ExecuteAsync(source.Expression);
             return (IList<TSource>) result;
