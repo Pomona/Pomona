@@ -30,11 +30,11 @@ namespace Pomona.Common.Proxies
 {
     public abstract class LazyListProxy
     {
-        protected readonly ClientBase clientBase;
+        protected readonly IPomonaClient clientBase;
         protected readonly string uri;
 
 
-        protected LazyListProxy(string uri, ClientBase clientBase)
+        protected LazyListProxy(string uri, IPomonaClient clientBase)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
@@ -43,7 +43,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        internal static object CreateForType(Type elementType, string uri, ClientBase clientBase)
+        internal static object CreateForType(Type elementType, string uri, IPomonaClient clientBase)
         {
             return Activator.CreateInstance(typeof (LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
         }
@@ -54,7 +54,7 @@ namespace Pomona.Common.Proxies
         private IList<T> dontTouchwrappedList;
 
 
-        public LazyListProxy(string uri, ClientBase clientBase) : base(uri, clientBase)
+        public LazyListProxy(string uri, IPomonaClient clientBase) : base(uri, clientBase)
         {
         }
 

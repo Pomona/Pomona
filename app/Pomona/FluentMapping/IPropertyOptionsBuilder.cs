@@ -24,6 +24,7 @@
 
 using System;
 using System.Linq.Expressions;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -45,5 +46,12 @@ namespace Pomona.FluentMapping
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name);
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula();
+
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable();
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode);
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode);
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
     }
 }

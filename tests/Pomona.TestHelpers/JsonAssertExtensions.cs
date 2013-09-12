@@ -1,9 +1,7 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,10 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using NUnit.Framework;
-
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.TestHelpers
@@ -54,18 +49,23 @@ namespace Pomona.TestHelpers
             return TryConvertToObjectAndGetProperty<JArray>(jtoken, propertyName);
         }
 
+        public static JObject AssertHasPropertyWithObject(this JToken jtoken, string propertyName)
+        {
+            return TryConvertToObjectAndGetProperty<JObject>(jtoken, propertyName);
+        }
+
 
         public static double AssertHasPropertyWithDouble(this JToken jtoken, string propertyName)
         {
             var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
-            return (double)jsonValue.Value;
+            return (double) jsonValue.Value;
         }
 
 
         public static long AssertHasPropertyWithInteger(this JToken jtoken, string propertyName)
         {
             var jsonValue = TryConvertToObjectAndGetProperty<JValue>(jtoken, propertyName);
-            return (long)jsonValue.Value;
+            return (long) jsonValue.Value;
         }
 
 
@@ -107,7 +107,7 @@ namespace Pomona.TestHelpers
                     "JSON property {0} is not of type JValue. Contents:\r\n{1}",
                     propertyName,
                     jobject));
-            return (string)jsonValue.Value;
+            return (string) jsonValue.Value;
         }
 
 
@@ -142,9 +142,9 @@ namespace Pomona.TestHelpers
                 "Object does not contain property with name \"" + propertyName + "\":\r\n" + jobject);
 
             if (!(propToken is T))
-                Assert.Fail("Expected that property " + propertyName + " had a value of JSON type " + typeof(T).Name);
+                Assert.Fail("Expected that property " + propertyName + " had a value of JSON type " + typeof (T).Name);
 
-            return (T)propToken;
+            return (T) propToken;
         }
 
 

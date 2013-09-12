@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +34,7 @@ using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -159,6 +164,39 @@ namespace Pomona.FluentMapping
             return FromMappingOrDefault(type, x => x.PluralName, () => wrappedFilter.GetPluralNameForType(type));
         }
 
+        public PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.CreateMode,
+                                        () => wrappedFilter.GetPropertyCreateMode(propertyInfo, ctorParameterInfo));
+        }
+
+        public PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.AccessMode,
+                                        () => wrappedFilter.GetPropertyAccessMode(propertyInfo));
+        }
+
+        public int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo, x => x.ConstructorArgIndex,
+                                        () => wrappedFilter.GetPropertyConstructorArgIndex(propertyInfo));
+        }
+
+        public bool PostOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.PostAllowed, () => wrappedFilter.PostOfTypeIsAllowed(type));
+        }
+
+        public bool PatchOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.PatchAllowed, () => wrappedFilter.PatchOfTypeIsAllowed(type));
+        }
+
+        public Action<object> GetOnDeserializedHook(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.OnDeserialized, () => wrappedFilter.GetOnDeserializedHook(type));
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);
@@ -186,7 +224,8 @@ namespace Pomona.FluentMapping
 
         public bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            return wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo);
+            return FromMappingOrDefault(propertyInfo, x => x.AlwaysExpanded,
+                                        () => wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo));
         }
 
 
@@ -379,10 +418,11 @@ namespace TestNs
         }
 
 
-        private bool FromMappingOrDefault(
-            Type type, Func<TypeMappingOptions, bool?> ifMappingExist, Func<bool> ifMappingMissing)
+        private T FromMappingOrDefault<T>(
+            Type type, Func<TypeMappingOptions, T?> ifMappingExist, Func<T> ifMappingMissing)
+            where T : struct
         {
-            var result = FromMappingOrDefault(type, ifMappingExist, () => (bool?) ifMappingMissing());
+            var result = FromMappingOrDefault(type, ifMappingExist, () => (T?) ifMappingMissing());
             if (!result.HasValue)
                 throw new InvalidOperationException("Expected a non-null value here.");
             return result.Value;
@@ -402,16 +442,6 @@ namespace TestNs
         }
 
 
-        private bool FromMappingOrDefault(
-            PropertyInfo propertyInfo, Func<PropertyMappingOptions, bool?> ifMappingExist, Func<bool> ifMappingMissing)
-        {
-            var result = FromMappingOrDefault(propertyInfo, ifMappingExist, () => (bool?) ifMappingMissing());
-            if (!result.HasValue)
-                throw new InvalidOperationException("Expected a non-null value here.");
-            return result.Value;
-        }
-
-
         private T FromMappingOrDefault<T>(
             PropertyInfo propertyInfo, Func<PropertyMappingOptions, T> ifMappingExist, Func<T> ifMappingMissing)
         {
@@ -428,6 +458,23 @@ namespace TestNs
             return (T) result;
         }
 
+
+        private T FromMappingOrDefault<T>(
+            PropertyInfo propertyInfo, Func<PropertyMappingOptions, T?> ifMappingExist, Func<T> ifMappingMissing)
+            where T : struct
+        {
+            TypeMappingOptions typeMappingOptions;
+            PropertyMappingOptions propertyOptions;
+            object result = null;
+
+            if (TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMappingOptions, out propertyOptions))
+                result = ifMappingExist(propertyOptions);
+
+            if (result == null)
+                return ifMappingMissing();
+
+            return (T) result;
+        }
 
         private bool TryGetTypeMappingAndPropertyOptions(
             PropertyInfo propertyInfo,

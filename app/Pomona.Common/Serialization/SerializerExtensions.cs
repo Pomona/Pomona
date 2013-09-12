@@ -30,6 +30,16 @@ namespace Pomona.Common.Serialization
 {
     public static class SerializerExtensions
     {
+        public static T DeserializeFromString<T>(this IDeserializer deserializer,
+                                                 IDeserializationContext deserializationContext, string serialized)
+        {
+            using (var strReader = new StringReader(serialized))
+            {
+                return (T) deserializer.Deserialize(strReader, deserializationContext.GetClassMapping(typeof (T)),
+                                                    deserializationContext);
+            }
+        }
+
         public static string SerializeToString(this ISerializer serializer, ISerializationContext serializationContext,
                                                object obj)
         {
@@ -53,7 +63,7 @@ namespace Pomona.Common.Serialization
             {
                 var itemValueNode = new ItemValueSerializerNode(obj, expectedBaseType,
                                                                 string.Empty,
-                                                                serializationContext);
+                                                                serializationContext, null);
                 serializer.SerializeNode(itemValueNode, writer);
             }
         }

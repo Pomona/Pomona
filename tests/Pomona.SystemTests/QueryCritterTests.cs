@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,7 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -49,10 +54,18 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void QueryCritter_IdInArray_ReturnsCorrectCritters()
+        {
+            DataStore.CreateRandomData(critterCount: 10);
+            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
+            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
+        }
+
+        [Test]
         public void QueryCritter_IdInList_ReturnsCorrectCritters()
         {
-            DataSource.CreateRandomData(critterCount: 10);
-            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
+            DataStore.CreateRandomData(critterCount: 10);
+            var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToList();
             TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
         }
 
@@ -113,7 +126,11 @@ namespace Pomona.SystemTests
             // Check that we're not dealing with a lazy proxy
             Assert.That(critter.Hat, Is.TypeOf<HatResource>());
             Assert.That(critter.Weapons, Is.Not.TypeOf<LazyListProxy<IWeapon>>());
-            Assert.That(critter.Subscriptions, Is.TypeOf<LazyListProxy<ISubscription>>());
+
+            // Subscriptions is configured to always be expanded
+            Assert.That(critter.Subscriptions, Is.TypeOf<List<ISubscription>>());
+            Assert.That(critter.Subscriptions.Count, Is.GreaterThan(0));
+            Assert.That(critter.Subscriptions.All(x => x is SubscriptionResource));
         }
 
 
@@ -161,7 +178,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = DataSource.List<Critter>().First();
+            var firstCritter = DataStore.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
             var fetchedCritter = client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
 
@@ -197,7 +214,7 @@ namespace Pomona.SystemTests
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                DataSource.List<Critter>().Skip(1).First().Name;
+                DataStore.List<Critter>().Skip(1).First().Name;
 
             var critters =
                 client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);

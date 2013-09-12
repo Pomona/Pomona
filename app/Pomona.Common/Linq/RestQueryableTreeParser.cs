@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +48,12 @@ namespace Pomona.Common.Linq
             FirstLazy,
             FirstOrDefault,
             Any,
-            ToUri
+            ToUri,
+            Max,
+            Min,
+            Sum,
+            ToJson,
+            Count
         }
 
         #endregion
@@ -55,6 +64,7 @@ namespace Pomona.Common.Linq
         private static readonly MethodInfo visitQueryConstantValueMethod;
         private readonly StringBuilder expandedPaths = new StringBuilder();
         private readonly IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
+        private Type aggregateReturnType;
         private Type elementType;
         private LambdaExpression groupByKeySelector;
         private bool includeTotalCount;
@@ -75,23 +85,17 @@ namespace Pomona.Common.Linq
             visitQueryConstantValueMethod =
                 ReflectionHelper.GetMethodDefinition<RestQueryableTreeParser>(
                     x => x.VisitQueryConstantValue<object>(null));
-            MapQueryableFunction(QueryableMethods.Take);
-            MapQueryableFunction(QueryableMethods.Skip);
-            MapQueryableFunction(QueryableMethods.Where);
-            MapQueryableFunction(QueryableMethods.OrderBy);
-            MapQueryableFunction(QueryableMethods.OrderByDescending);
-            MapQueryableFunction(QueryableMethods.First);
-            MapQueryableFunction(QueryableMethods.FirstOrDefault);
-            MapQueryableFunction(QueryableMethods.FirstWithPredicate);
-            MapQueryableFunction(QueryableMethods.FirstOrDefaultWithPredicate);
-            MapQueryableFunction(QueryableMethods.AnyWithPredicate);
-            MapQueryableFunction(QueryableMethods.Select);
-            MapQueryableFunction(QueryableMethods.GroupBy);
-            MapQueryableFunction(QueryableMethods.Expand);
-            MapQueryableFunction(QueryableMethods.SumIntWithSelector);
-            MapQueryableFunction(QueryableMethods.IncludeTotalCount);
-            MapQueryableFunction(QueryableMethods.ToUri);
-            MapQueryableFunction(QueryableMethods.FirstLazy);
+
+            foreach (var method in typeof (Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                TryMapQueryableFunction(method);
+            }
+
+            MapQueryableFunction(x => x.Expand(y => 0));
+            MapQueryableFunction(x => x.IncludeTotalCount());
+            MapQueryableFunction(x => x.ToUri());
+            MapQueryableFunction(x => x.FirstLazy());
+            MapQueryableFunction(x => x.ToJson());
         }
 
         public bool IncludeTotalCount
@@ -134,6 +138,9 @@ namespace Pomona.Common.Linq
         {
             get
             {
+                if (aggregateReturnType != null)
+                    return aggregateReturnType;
+
                 if (selectExpression == null)
                     return elementType;
                 return selectExpression.ReturnType;
@@ -168,7 +175,7 @@ namespace Pomona.Common.Linq
             if (node.Type.UniqueToken() == typeof (RestQuery<>).UniqueToken())
             {
                 visitQueryConstantValueMethod.MakeGenericMethod(node.Type.GetGenericArguments()).Invoke(
-                    this, new[] {node.Value});
+                    this, new[] { node.Value });
                 return node;
             }
 
@@ -181,9 +188,14 @@ namespace Pomona.Common.Linq
         {
             Visit(node.Arguments[0]);
 
-            // TODO: Throw better exception when method is not supported
-            var visitMethod = queryableMethodToVisitMethodDictionary[node.Method.UniqueToken()];
-            var visitMethodInstance = visitMethod.MakeGenericMethod(node.Method.GetGenericArguments());
+            var token = node.Method.UniqueToken();
+            if (!queryableMethodToVisitMethodDictionary.ContainsKey(token))
+                throw new NotImplementedException(String.Format("{0} is not implemented.", node.Method.Name));
+
+            var visitMethod = queryableMethodToVisitMethodDictionary[token];
+            var visitMethodInstance = visitMethod.IsGenericMethod
+                                          ? visitMethod.MakeGenericMethod(node.Method.GetGenericArguments())
+                                          : visitMethod;
 
             try
             {
@@ -217,7 +229,30 @@ namespace Pomona.Common.Linq
 
         internal void QSum<TSource>(Expression<Func<TSource, int>> propertySelector)
         {
-            throw new NotImplementedException();
+            QSelect(propertySelector);
+            QSum();
+        }
+
+        internal void QSum<TSource>(Expression<Func<TSource, decimal>> propertySelector)
+        {
+            QSelect(propertySelector);
+            QSum();
+        }
+
+        internal void QSum<TSource>(Expression<Func<TSource, double>> propertySelector)
+        {
+            QSelect(propertySelector);
+            QSum();
+        }
+
+        internal void QToJson()
+        {
+            projection = QueryProjection.ToJson;
+        }
+
+        internal void QSum()
+        {
+            projection = QueryProjection.Sum;
         }
 
         internal void QExpand<TSource, TProperty>(Expression<Func<TSource, TProperty>> propertySelector)
@@ -233,6 +268,39 @@ namespace Pomona.Common.Linq
             projection = QueryProjection.First;
         }
 
+        internal void QMax<TSource>()
+        {
+            projection = QueryProjection.Max;
+        }
+
+        internal void QMax<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
+        {
+            QSelect(selector);
+            QMax<TResult>();
+        }
+
+        internal void QCount<TSource>()
+        {
+            projection = QueryProjection.Count;
+            aggregateReturnType = typeof (int);
+        }
+
+        internal void QCount<TSource>(Expression<Func<TSource, bool>> predicate)
+        {
+            QWhere(predicate);
+            QCount<TSource>();
+        }
+
+        internal void QMin<TSource>()
+        {
+            projection = QueryProjection.Min;
+        }
+
+        internal void QMin<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
+        {
+            QSelect(selector);
+            QMin<TResult>();
+        }
 
         internal void QFirst<TSource>(Expression<Func<TSource, bool>> predicate)
         {
@@ -274,6 +342,23 @@ namespace Pomona.Common.Linq
             groupByKeySelector = keySelector;
         }
 
+        internal void QOfType<TResult>()
+        {
+            if (!elementType.IsAssignableFrom(typeof (TResult)))
+                throw new NotSupportedException("Only supports OfType'ing to inherited type.");
+
+            if (selectExpression != null)
+                throw new NotSupportedException("Does only support OfType at start of query.");
+
+            if (wherePredicate != null)
+            {
+                var newParam = Expression.Parameter(typeof (TResult), wherePredicate.Parameters[0].Name);
+                var replacer = new LamdbaParameterReplacer(wherePredicate.Parameters[0], newParam);
+                wherePredicate = Expression.Lambda(replacer.Visit(wherePredicate.Body), newParam);
+            }
+
+            elementType = typeof (TResult);
+        }
 
         internal void QOrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
@@ -353,16 +438,23 @@ namespace Pomona.Common.Linq
         }
 
 
-        private static void MapQueryableFunction(MethodInfo method)
+        private static bool TryMapQueryableFunction(MethodInfo method)
         {
             var visitMethod = typeof (RestQueryableTreeParser)
                 .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
                 .FirstOrDefault(x => VisitMethodMatches(x, method));
 
             if (visitMethod == null)
-                throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
+                return false;
 
             queryableMethodToVisitMethodDictionary.Add(method.UniqueToken(), visitMethod);
+            return true;
+        }
+
+        private static void MapQueryableFunction(MethodInfo method)
+        {
+            if (!TryMapQueryableFunction(method))
+                throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
         }
 
 
@@ -387,11 +479,11 @@ namespace Pomona.Common.Linq
         private object ExtractArgumentFromExpression(Expression expression)
         {
             if (expression.NodeType == ExpressionType.Quote)
-                return ((UnaryExpression) expression).Operand;
+                return ((UnaryExpression)expression).Operand;
             if (expression.NodeType == ExpressionType.Lambda)
                 return expression;
             if (expression.NodeType == ExpressionType.Constant)
-                return ((ConstantExpression) expression).Value;
+                return ((ConstantExpression)expression).Value;
             throw new NotSupportedException("Does not know how to unwrap " + expression.NodeType);
         }
 
@@ -408,14 +500,23 @@ namespace Pomona.Common.Linq
                 throw new NotSupportedException(
                     "Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
             }
-            orderKeySelector = keySelector;
+
+            if (selectExpression != null && groupByKeySelector == null)
+            {
+                // Support order by after select (not when using GroupBy)
+                orderKeySelector = MergeWhereAfterSelect(keySelector);
+            }
+            else
+            {
+                orderKeySelector = keySelector;
+            }
             this.sortOrder = sortOrder;
         }
 
 
         private object VisitQueryConstantValue<T>(RestQuery<T> restQuery)
         {
-            elementType = ((IQueryable) restQuery).ElementType;
+            elementType = ((IQueryable)restQuery).ElementType;
             return null;
         }
 

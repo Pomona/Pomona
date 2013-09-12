@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,14 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Handlers;
 using Pomona.Internals;
 
 namespace Pomona
@@ -47,12 +53,14 @@ namespace Pomona
             ReflectionHelper.GetMethodDefinition<TransformedType>(
                 x => x.AddValuesToCollection<object>(null, null));
 
+        private readonly List<HandlerInfo> declaredPostHandlers = new List<HandlerInfo>();
+
         private readonly Type mappedType;
         private readonly string name;
+
         private readonly List<PropertyMapping> properties = new List<PropertyMapping>();
 
         private readonly TypeMapper typeMapper;
-
 
         internal TransformedType(Type mappedType, string name, TypeMapper typeMapper)
         {
@@ -67,6 +75,22 @@ namespace Pomona
             PostReturnType = this;
         }
 
+        public IList<HandlerInfo> DeclaredPostHandlers
+        {
+            get { return declaredPostHandlers; }
+        }
+
+        public IEnumerable<HandlerInfo> PostHandlers
+        {
+            get
+            {
+                var baseType = BaseType as TransformedType;
+                return (IsUriBaseType || baseType == null)
+                           ? declaredPostHandlers
+                           : declaredPostHandlers.Concat(baseType.PostHandlers);
+            }
+        }
+
 
         public ConstructorInfo ConstructorInfo { get; set; }
 
@@ -74,8 +98,6 @@ namespace Pomona
         {
             get { return UriBaseType == this; }
         }
-
-        public bool MappedAsValueObject { get; set; }
 
         /// <summary>
         /// Other types having the same URI as this type. (in same inheritance chain)
@@ -90,10 +112,14 @@ namespace Pomona
             get { return properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
 
-        public bool PostAllowed
-        {
-            get { return true; }
-        }
+        /// <summary>
+        /// Action to be called after deserialization has completed.
+        /// </summary>
+        public Action<object> OnDeserialized { get; set; }
+
+        public bool PatchAllowed { get; set; }
+
+        public bool PostAllowed { get; set; }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.
@@ -147,7 +173,7 @@ namespace Pomona
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] {}; }
+            get { return new IMappedType[] { }; }
         }
 
         public bool IsAlwaysExpanded
@@ -209,21 +235,43 @@ namespace Pomona
         public object Create(IDictionary<IPropertyInfo, object> args)
         {
             var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
-            var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
-
-            var ctorArgs = new object[ConstructorInfo.GetParameters().Length];
+            //var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
+            var ctorParamCount = ConstructorInfo.GetParameters().Length;
+            var ctorArgs = new object[ctorParamCount];
+            var ctorDirtyMap = new bool[ctorParamCount];
+            var ctorArgDirtyCount = 0;
 
             foreach (var kvp in args)
             {
-                var propMapping = (PropertyMapping) kvp.Key;
-                if (propMapping.ConstructorArgIndex == -1)
+                var propMapping = (PropertyMapping)kvp.Key;
+                var ctorArgIndex = propMapping.ConstructorArgIndex;
+
+                if (ctorArgIndex == -1)
                     propValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
                 else
-                    ctorValues.Add(new KeyValuePair<PropertyMapping, object>(propMapping, kvp.Value));
+                {
+                    ctorArgs[ctorArgIndex] = kvp.Value;
+                    ctorDirtyMap[ctorArgIndex] = true;
+                    ctorArgDirtyCount++;
+                }
             }
 
-            foreach (var kvp in ctorValues)
-                ctorArgs[kvp.Key.ConstructorArgIndex] = kvp.Value;
+            if (ctorArgDirtyCount < ctorParamCount)
+            {
+                // Set non-dirty ctor args to default value
+                for (var i = 0; i < ctorParamCount; i++)
+                {
+                    if (!ctorDirtyMap[i])
+                    {
+                        // Set to default value
+                        var prop = properties.First(x => x.ConstructorArgIndex == i);
+                        if (prop.CreateMode == PropertyCreateMode.Required)
+                            throw new ResourceValidationException(
+                                string.Format("Property {0} is required when creating resource {1}", prop.Name, Name),
+                                prop.Name, Name, null);
+                    }
+                }
+            }
 
             var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
 
@@ -245,7 +293,8 @@ namespace Pomona
                     {
                         addItemsToDictionaryMethod.MakeGenericMethod(
                             prop.PropertyType.MappedTypeInstance.GetGenericArguments())
-                                                  .Invoke(this, new[] {kvp.Value, dict});
+                                                  .Invoke(this, new[] { kvp.Value, dict });
+                        setPropertyToValue = false;
                     }
                 }
                 else if (prop.PropertyType.IsCollection)
@@ -255,7 +304,7 @@ namespace Pomona
                     {
                         addValuesToCollectionMethod
                             .MakeGenericMethod(prop.PropertyType.ElementType.MappedTypeInstance)
-                            .Invoke(this, new[] {kvp.Value, collection});
+                            .Invoke(this, new[] { kvp.Value, collection });
                         setPropertyToValue = false;
                     }
                 }
@@ -285,11 +334,17 @@ namespace Pomona
 
         #endregion
 
+        /// <summary>
+        /// When true this type is considered a value object, which will affect serialization.
+        /// It also means that it don't have an URL or identity.
+        /// </summary>
+        public bool MappedAsValueObject { get; set; }
+
         public string PluralName { get; set; }
 
         public bool HasUri
         {
-            get { return !MappedAsValueObject; }
+            get { return !MappedAsValueObject && UriBaseType != null; }
         }
 
         public Type MappedType
@@ -338,12 +393,21 @@ namespace Pomona
                 if (pathType.IsCollection)
                     pathType = pathType.ElementType;
 
-                var nextType = (TransformedType) pathType;
+                var nextType = (TransformedType)pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;
         }
 
+        public override string ToString()
+        {
+            if (!IsGenericType)
+            {
+                return Name;
+            }
+
+            return string.Format("{0}<{1}>", Name, string.Join(",", GenericArguments));
+        }
 
         public Expression CreateExpressionForExternalPropertyPath(string externalPath)
         {
@@ -411,46 +475,6 @@ namespace Pomona
         }
 
 
-        /// <summary>
-        /// Creates an newinstance of type that TransformedType targets
-        /// </summary>
-        /// <param name="initValues">Dictionary of initial values, prop names must be lowercased!</param>
-        /// <returns></returns>
-        public object NewInstance(IDictionary<string, object> initValues)
-        {
-            // Initvalues must be lowercased!
-            // HACK attack! This must probably be rethought..
-
-            var requiredCtorArgCount = ConstructorInfo.GetParameters().Count();
-            var ctorArgs = new object[requiredCtorArgCount];
-
-            foreach (
-                var ctorProp in
-                    properties.Where(
-                        x => x.CreateMode == PropertyCreateMode.Required && x.ConstructorArgIndex >= 0))
-            {
-                // TODO: Proper validation here!
-                var value = initValues[ctorProp.Name.ToLower()];
-
-                if (ctorProp.PropertyType.IsBasicWireType)
-                    value = Convert.ChangeType(value, ((SharedType) ctorProp.PropertyType).MappedType);
-
-                ctorArgs[ctorProp.ConstructorArgIndex] = value;
-            }
-
-            var newInstance = Activator.CreateInstance(mappedType, ctorArgs);
-
-            foreach (var optProp in Properties.Where(x => x.CreateMode == PropertyCreateMode.Optional))
-            {
-                object propSetValue;
-                if (initValues.TryGetValue(optProp.Name.ToLower(), out propSetValue))
-                    optProp.Setter(newInstance, propSetValue);
-            }
-
-            return newInstance;
-        }
-
-
         public void TakeLeftmostPathPart(string path, out string leftName, out string remainingPropPath)
         {
             var leftPathSeparatorIndex = path.IndexOf('.');
@@ -469,10 +493,15 @@ namespace Pomona
 
         private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
         {
+            var propBaseDefinition = propertyInfo.GetBaseDefinition();
             var reflectedType = propertyInfo.ReflectedType;
 
-            while (reflectedType.BaseType != null && reflectedType != propertyInfo.DeclaringType &&
-                   typeMapper.SourceTypes.Contains(reflectedType.BaseType))
+            while (
+                       !typeMapper.Filter.IsIndependentTypeRoot(reflectedType) &&
+                       reflectedType.BaseType != null &&
+                       reflectedType != propBaseDefinition.DeclaringType &&
+                       typeMapper.SourceTypes.Contains(reflectedType.BaseType)
+                   )
             {
                 reflectedType = reflectedType.BaseType;
             }
@@ -485,6 +514,11 @@ namespace Pomona
             var filter = typeMapper.Filter;
 
             var scannedProperties = GetPropertiesToScanOrderedByName(type).ToList();
+
+            // Find longest (most specific) public constructor
+            var constructor = typeMapper.Filter.GetTypeConstructor(type);
+            var ctorParams = constructor != null ? constructor.GetParameters() : null;
+            ConstructorInfo = constructor;
 
             foreach (var propInfo in scannedProperties)
             {
@@ -501,7 +535,7 @@ namespace Pomona
 
                 var propDef = new PropertyMapping(
                     typeMapper.Filter.GetPropertyMappedName(propInfo),
-                    (TransformedType) declaringType,
+                    (TransformedType)declaringType,
                     propertyTypeMapped,
                     propInfo);
 
@@ -512,18 +546,32 @@ namespace Pomona
                     PrimaryId = propDef;
                 propDef.IsAttributesProperty = filter.PropertyIsAttributes(propInfo);
 
+                ParameterInfo matchingCtorArg = null;
+                if (constructor != null)
+                {
+                    var constructorArgIndex = filter.GetPropertyConstructorArgIndex(propInfo);
+                    if (constructorArgIndex.HasValue)
+                    {
+                        matchingCtorArg = ctorParams.FirstOrDefault(x => x.Position == constructorArgIndex.Value);
+                        if (matchingCtorArg == null)
+                            throw new InvalidOperationException(
+                                string.Format("Unable to locate parameter with position {0} in ctor.",
+                                              constructorArgIndex.Value));
+                        propDef.ConstructorArgIndex = constructorArgIndex.Value;
+                    }
+                    else
+                    {
+                        matchingCtorArg = ctorParams.FirstOrDefault(x => x.Name.ToLower() == propDef.LowerCaseName);
+                        if (matchingCtorArg != null)
+                        {
+                            propDef.ConstructorArgIndex = matchingCtorArg.Position;
+                        }
+                    }
+                }
+
                 // TODO: Fix this for transformed properties with custom get/set methods.
-                // TODO: This should rather be configured by filter.
-                if (propInfoLocal.CanWrite && propInfoLocal.GetSetMethod() != null)
-                {
-                    propDef.CreateMode = PropertyCreateMode.Optional;
-                    propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadWrite;
-                }
-                else
-                {
-                    propDef.CreateMode = PropertyCreateMode.Excluded;
-                    propDef.AccessMode = PropertyMapping.PropertyAccessMode.ReadOnly;
-                }
+                propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal, matchingCtorArg);
+                propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
 
                 propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
 
@@ -547,25 +595,6 @@ namespace Pomona
             if (exposedBaseType != null)
             {
                 BaseType = typeMapper.GetClassMapping(exposedBaseType);
-            }
-
-            // Find longest (most specific) public constructor
-            var constructor = typeMapper.Filter.GetTypeConstructor(type);
-            ConstructorInfo = constructor;
-
-            if (constructor != null)
-            {
-                // TODO: match constructor arguments
-                foreach (var ctorParam in constructor.GetParameters())
-                {
-                    var matchingProperty =
-                        properties.FirstOrDefault(x => x.JsonName.ToLower() == ctorParam.Name.ToLower());
-                    if (matchingProperty != null)
-                    {
-                        matchingProperty.CreateMode = PropertyCreateMode.Required;
-                        matchingProperty.ConstructorArgIndex = ctorParam.Position;
-                    }
-                }
             }
         }
 

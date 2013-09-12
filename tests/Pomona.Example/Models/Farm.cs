@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pomona.Example.Models
 {
@@ -38,6 +39,10 @@ namespace Pomona.Example.Models
             Critters = new List<Critter>();
         }
 
+        public IEnumerable<MusicalCritter> MusicalCritters
+        {
+            get { return Critters.OfType<MusicalCritter>(); }
+        }
 
         public List<Critter> Critters { get; set; }
 

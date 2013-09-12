@@ -73,7 +73,7 @@ namespace Pomona.Example
 
         public override IEnumerable<Type> GetSourceTypes()
         {
-            return CritterDataSource.GetEntityTypes().Concat(new[] {typeof (GenericBaseClass<int>)});
+            return CritterDataStore.GetEntityTypes().Concat(new[] {typeof (GenericBaseClass<int>)});
         }
 
 

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -36,6 +40,7 @@ using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
+using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 using Pomona.Internals;
 
@@ -186,8 +191,7 @@ namespace Pomona.Common
 
         public override T Get<T>(string uri)
         {
-            Log("Fetching uri {0}", uri);
-            return (T) Deserialize(DownloadFromUri(uri), typeof (T));
+            return (T)Deserialize(DownloadFromUri(uri), typeof (T));
         }
 
 
@@ -242,13 +246,13 @@ namespace Pomona.Common
             // Set etag to target resources' etag (optimistic concurrency)
             if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
             {
-                var etagValue = (string) resourceInfo.EtagProperty.GetValue(target, null);
+                var etagValue = (string)resourceInfo.EtagProperty.GetValue(target, null);
                 modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
             }
 
             return
                 (T)
-                PostOrPatch(((IHasResourceUri) target).Uri, null, updateAction, "PATCH", x => x.PutFormType,
+                PostOrPatch(((IHasResourceUri)target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
                             modifyResponse);
         }
 
@@ -285,7 +289,8 @@ namespace Pomona.Common
             if (!type.IsInterface)
                 throw new InvalidOperationException("postAction needs to operate on the interface of the entity");
 
-            var serverType = type;
+
+            Type expectedBaseType;
 
             CustomUserTypeInfo customUserTypeInfo;
 
@@ -295,18 +300,19 @@ namespace Pomona.Common
                     throw new NotImplementedException("Only supports form set to null (created by action) for now.");
 
                 var proxy =
-                    (ClientSideFormProxyBase) ((object) RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
+                    (ClientSideFormProxyBase)((object)RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
                 proxy.AttributesProperty = customUserTypeInfo.DictProperty;
 
                 var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
 
-                var wrappedForm = Activator.CreateInstance(formTypeGetter(resourceInfo));
+                var typeGetter = formTypeGetter(resourceInfo);
+                var wrappedForm = Activator.CreateInstance(typeGetter);
 
                 proxy.ProxyTarget = wrappedForm;
 
                 if (postAction != null)
                 {
-                    postAction((T) ((object) proxy));
+                    postAction((T)((object)proxy));
                 }
                 var innerResponse = postOrPatchMethod.MakeGenericMethod(customUserTypeInfo.ServerType)
                                                      .Invoke(this,
@@ -318,7 +324,7 @@ namespace Pomona.Common
 
                 var responseProxy =
                     (ClientSideResourceProxyBase)
-                    ((object) RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
+                    ((object)RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
                 responseProxy.AttributesProperty = customUserTypeInfo.DictProperty;
                 responseProxy.ProxyTarget = innerResponse;
                 return responseProxy;
@@ -327,10 +333,17 @@ namespace Pomona.Common
             {
                 var resourceInfo = this.GetResourceInfoForType(type);
 
-                var newType = formTypeGetter(resourceInfo);
+                var formType = formTypeGetter(resourceInfo);
 
+                // When form type of ResourceInfo is null, it means that method is not allowed.
+                if (formType == null)
+                    throw new InvalidOperationException("Method " + httpMethod + " is not allowed for uri.");
+
+                expectedBaseType = resourceInfo.UriBaseType;
                 if (form == null)
-                    form = (T) Activator.CreateInstance(newType);
+                {
+                    form = (T)Activator.CreateInstance(formType);
+                }
             }
 
             if (postAction != null)
@@ -339,14 +352,26 @@ namespace Pomona.Common
             }
 
             // Post the json!
-            var response = UploadToUri(uri, form, type, httpMethod, modifyRequestHandler);
+            var response = SendHttpRequest(uri, httpMethod, form, null /*typeMapper.GetClassMapping(expectedBaseType)*/,
+                                           modifyRequestHandler);
 
             return Deserialize(response, null);
         }
 
         internal override object Post<T>(string uri, T postForm)
         {
-            return PostOrPatch(uri, postForm, null, "POST", x => x.PostFormType, null);
+            if (uri == null) throw new ArgumentNullException("uri");
+            if (postForm == null) throw new ArgumentNullException("postForm");
+            var type = typeof (T);
+            Func<ResourceInfoAttribute, Type> formTypeGetter = x => x.PostFormType;
+            if (!type.IsInterface)
+            {
+                var interfaceType = this.GetMostInheritedResourceInterface(type);
+                return postOrPatchMethod
+                    .MakeGenericMethod(interfaceType)
+                    .Invoke(this, new object[] { uri, postForm, null, "POST", formTypeGetter, null });
+            }
+            return PostOrPatch(uri, postForm, null, "POST", formTypeGetter, null);
         }
 
 
@@ -360,22 +385,26 @@ namespace Pomona.Common
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jToken = JToken.Parse(jsonString);
+
+            if (expectedType == typeof (JToken))
+                return jToken;
+
             var jObject = jToken as JObject;
             if (jObject != null)
             {
                 JToken typeValue;
                 if (jObject.TryGetValue("_type", out typeValue))
                 {
-                    if (typeValue.Type == JTokenType.String && (string) ((JValue) typeValue).Value == "__result__")
+                    if (typeValue.Type == JTokenType.String && (string)((JValue)typeValue).Value == "__result__")
                     {
                         JToken itemsToken;
                         if (!jObject.TryGetValue("items", out itemsToken))
                             throw new InvalidOperationException("Got result object, but lacking items");
 
-                        var totalCount = (int) jObject.GetValue("totalCount");
+                        var totalCount = (int)jObject.GetValue("totalCount");
 
                         var deserializedItems = Deserialize(itemsToken.ToString(), expectedType);
-                        return QueryResult.Create((IEnumerable) deserializedItems, /* TODO */ 0, totalCount,
+                        return QueryResult.Create((IEnumerable)deserializedItems, /* TODO */ 0, totalCount,
                                                   "http://todo");
                     }
                 }
@@ -449,29 +478,7 @@ namespace Pomona.Common
 
         private string DownloadFromUri(string uri)
         {
-            // TODO: Check that response code is correct and content-type matches JSON. [KNS]
-            webClient.Headers.Add("Accept", "application/json");
-            var request = new WebClientRequestMessage(uri, null, "GET");
-            WebClientResponseMessage response = null;
-
-            string responseString = null;
-            Exception thrownException = null;
-            try
-            {
-                response = webClient.Send(request);
-                responseString = Encoding.UTF8.GetString(response.Data);
-            }
-            catch (Exception ex)
-            {
-                thrownException = ex;
-                throw;
-            }
-            finally
-            {
-                RaiseRequestCompleted(request, response, thrownException);
-            }
-
-            return responseString;
+            return SendHttpRequest(uri, "GET");
         }
 
 
@@ -495,32 +502,28 @@ namespace Pomona.Common
         }
 
 
-        private void Log(string format, params object[] args)
-        {
-            // TODO: Provide optional integration with CommonLogging
-            Console.WriteLine(format, args);
-        }
-
-
-        private string Serialize(object obj, Type expectedBaseType)
+        private string Serialize(object obj, IMappedType expectedBaseType)
         {
             var stringWriter = new StringWriter();
             var writer = serializer.CreateWriter(stringWriter);
             var context = new ClientSerializationContext(typeMapper);
-            var node = new ItemValueSerializerNode(obj, typeMapper.GetClassMapping(expectedBaseType), "", context);
+            var node = new ItemValueSerializerNode(obj, expectedBaseType, "", context, null);
             serializer.SerializeNode(node, writer);
             return stringWriter.ToString();
         }
 
-        private string UploadToUri(string uri, object obj, Type expectedBaseType, string httpMethod,
-                                   Action<WebClientRequestMessage> modifyRequestHandler = null)
+        private string SendHttpRequest(string uri, string httpMethod, object requestBodyEntity = null,
+                                       IMappedType requestBodyBaseType = null,
+                                       Action<WebClientRequestMessage> modifyRequestHandler = null)
         {
-            var requestString = Serialize(obj, expectedBaseType);
-
-            var requestBytes = Encoding.UTF8.GetBytes(requestString);
+            byte[] requestBytes = null;
             WebClientResponseMessage response = null;
-            WebClientRequestMessage request;
-            request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
+            if (requestBodyEntity != null)
+            {
+                var requestString = Serialize(requestBodyEntity, requestBodyBaseType);
+                requestBytes = Encoding.UTF8.GetBytes(requestString);
+            }
+            var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
             webClient.Headers.Add("Accept", "application/json");
 
@@ -532,12 +535,22 @@ namespace Pomona.Common
                     modifyRequestHandler(request);
 
                 response = webClient.Send(request);
+                responseString = (response.Data != null && response.Data.Length > 0)
+                                     ? Encoding.UTF8.GetString(response.Data)
+                                     : null;
 
-                if ((int) response.StatusCode >= 400)
+                if ((int)response.StatusCode >= 400)
                 {
-                    throw WebClientException.Create(request, response, null);
+                    var gotJsonResponseBody = responseString != null &&
+                                              response.Headers.GetValues("Content-Type")
+                                                      .Any(x => x.StartsWith("application/json"));
+
+                    var responseObject = gotJsonResponseBody
+                                             ? Deserialize(responseString, null)
+                                             : null;
+
+                    throw WebClientException.Create(this, request, response, responseObject, null);
                 }
-                responseString = Encoding.UTF8.GetString(response.Data);
             }
             catch (Exception ex)
             {

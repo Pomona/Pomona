@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,12 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
     public interface IDeserializationContext
     {
+        IMappedType GetClassMapping(Type type);
         object CreateReference(IMappedType type, string uri);
 
 
@@ -36,5 +42,7 @@ namespace Pomona.Common.Serialization
 
 
         IMappedType GetTypeByName(string typeName);
+
+        void SetProperty(IDeserializerNode target, IPropertyInfo property, object propertyValue);
     }
 }

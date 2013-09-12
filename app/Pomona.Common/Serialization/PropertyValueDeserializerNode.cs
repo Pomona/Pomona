@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -29,8 +33,9 @@ namespace Pomona.Common.Serialization
     public class PropertyValueDeserializerNode : IDeserializerNode
     {
         private readonly IDeserializationContext context;
+        private readonly IDeserializerNode parent;
         private readonly IPropertyInfo property;
-        private IDeserializerNode parent;
+        private string expandPath;
         private IMappedType valueType;
 
 
@@ -49,6 +54,23 @@ namespace Pomona.Common.Serialization
             get { return context; }
         }
 
+
+        public string ExpandPath
+        {
+            get
+            {
+                if (expandPath == null)
+                {
+                    if (string.IsNullOrEmpty(parent.ExpandPath))
+                        return property.LowerCaseName;
+
+                    expandPath = string.Concat(parent.ExpandPath, ".", property.LowerCaseName);
+                }
+                return expandPath;
+            }
+        }
+
+
         public IMappedType ExpectedBaseType
         {
             get { return property.PropertyType; }
@@ -61,6 +83,11 @@ namespace Pomona.Common.Serialization
         public void SetValueType(string typeName)
         {
             valueType = Context.GetTypeByName(typeName);
+        }
+
+        public void SetProperty(IPropertyInfo property, object propertyValue)
+        {
+            context.SetProperty(this, property, propertyValue);
         }
 
 

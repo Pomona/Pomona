@@ -22,14 +22,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using Microsoft.Practices.ServiceLocation;
+using Nancy;
+using Nancy.Validation;
+using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
-            : base(dataSource, typeMapper, container)
+        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
+            : base(dataSource, typeMapper, serviceLocator)
         {
         }
 
@@ -37,6 +41,24 @@ namespace Pomona.Example
         public CritterDataSource CritterDataSource
         {
             get { return (CritterDataSource) DataSource; }
+        }
+
+        protected override PomonaError OnException(Exception exception)
+        {
+            if (exception is ModelValidationException)
+            {
+                return new PomonaError(HttpStatusCode.BadRequest, new ErrorStatus(exception.Message, 1337));
+            }
+
+            if (exception is ResourceValidationException)
+            {
+                var validationException = (ResourceValidationException) exception;
+                return new PomonaError(HttpStatusCode.BadRequest,
+                                       new ErrorStatus(validationException.Message, 0xdead,
+                                                       validationException.MemberName));
+            }
+
+            return base.OnException(exception);
         }
     }
 }

@@ -49,10 +49,18 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo skip;
         private static readonly MethodInfo take;
         private static readonly MethodInfo where;
-        private static readonly MethodInfo sumIntWithSelector;
         private static readonly MethodInfo includeTotalCount;
         private static readonly MethodInfo firstLazy;
-
+        private static readonly MethodInfo max;
+        private static readonly MethodInfo maxWithSelector;
+        private static readonly MethodInfo min;
+        private static readonly MethodInfo minWithSelector;
+        private static readonly MethodInfo sumInt;
+        private static readonly MethodInfo sumIntWithSelector;
+        private static readonly MethodInfo sumDoubleWithSelector;
+        private static readonly MethodInfo sumDouble;
+        private static readonly MethodInfo sumDecimalWithSelector;
+        private static readonly MethodInfo sumDecimal;
 
         static QueryableMethods()
         {
@@ -69,12 +77,68 @@ namespace Pomona.Common.Internals
             select = GetMethodInfo(x => x.Select(y => 0));
             groupBy = GetMethodInfo(x => x.GroupBy(y => 0));
             count = GetMethodInfo(x => x.Count());
+
             sumIntWithSelector = GetMethodInfo(x => x.Sum(y => 0));
+            sumInt = GetMethodInfo<int>(x => x.Sum());
+            sumDoubleWithSelector = GetMethodInfo(x => x.Sum(y => 1.1));
+            sumDouble = GetMethodInfo<double>(x => x.Sum());
+            sumDecimalWithSelector = GetMethodInfo(x => x.Sum(y => 1.1m));
+            sumDecimal = GetMethodInfo<decimal>(x => x.Sum());
+
+            max = GetMethodInfo(x => x.Max());
+            maxWithSelector = GetMethodInfo(x => x.Max(y => 0));
+            min = GetMethodInfo(x => x.Min());
+            minWithSelector = GetMethodInfo(x => x.Min(y => 0));
 
             expand = GetMethodInfo(x => x.Expand(y => 0));
             includeTotalCount = GetMethodInfo(x => x.IncludeTotalCount());
             toUri = GetMethodInfo(x => x.ToUri());
             firstLazy = GetMethodInfo(x => x.FirstLazy());
+        }
+
+        public static MethodInfo SumDoubleWithSelector
+        {
+            get { return sumDoubleWithSelector; }
+        }
+
+        public static MethodInfo SumDouble
+        {
+            get { return sumDouble; }
+        }
+
+        public static MethodInfo SumDecimalWithSelector
+        {
+            get { return sumDecimalWithSelector; }
+        }
+
+        public static MethodInfo SumDecimal
+        {
+            get { return sumDecimal; }
+        }
+
+        public static MethodInfo SumInt
+        {
+            get { return sumInt; }
+        }
+
+        public static MethodInfo MaxWithSelector
+        {
+            get { return maxWithSelector; }
+        }
+
+        public static MethodInfo Max
+        {
+            get { return max; }
+        }
+
+        public static MethodInfo MinWithSelector
+        {
+            get { return minWithSelector; }
+        }
+
+        public static MethodInfo Min
+        {
+            get { return min; }
         }
 
         public static MethodInfo FirstLazy
@@ -168,6 +232,10 @@ namespace Pomona.Common.Internals
             get { return @where; }
         }
 
+        private static MethodInfo GetMethodInfo<TSource>(Expression<Action<IQueryable<TSource>>> expression)
+        {
+            return ReflectionHelper.GetMethodDefinition(expression);
+        }
 
         private static MethodInfo GetMethodInfo(Expression<Action<IQueryable<object>>> expression)
         {

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
 
@@ -36,6 +40,22 @@ namespace Pomona.Example
         //if (propertyInfo.DeclaringType == typeof(ThingWithRenamedProperties)
         //    && propertyInfo.Name == "Junky")
         //    return "DiscoFunky";
+        public void Map(ITypeMappingConfigurator<UnpostableThing> map)
+        {
+            map.PostDenied();
+        }
+
+        public void Map(ITypeMappingConfigurator<UnpostableThingOnServer> map)
+        {
+            map.WithPluralName("UnpostableThingsOnServer");
+            map.PostDenied();
+        }
+
+        public void Map(ITypeMappingConfigurator<UnpatchableThing> map)
+        {
+            map.PatchDenied();
+        }
+
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
         {
             map.Include(x => x.ReallyUglyPropertyName, o => o.Named("BeautifulAndExposed"));
@@ -69,14 +89,38 @@ namespace Pomona.Example
             map.PostReturns<OrderResponse>();
         }
 
+        public void Map(ITypeMappingConfigurator<Loner> map)
+        {
+            map.ConstructedUsing(
+                (x, c) => new Loner(x.Name, x.Strength, c.Optional(x.OptionalInfo), c.Optional(x.OptionalDate)));
+        }
+
+        public void Map(ITypeMappingConfigurator<ErrorStatus> map)
+        {
+            map.AsValueObject();
+        }
+
+        public void Map(ITypeMappingConfigurator<Subscription> map)
+        {
+            map.AsValueObject();
+            map.Exclude(x => x.Critter);
+        }
 
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()
                .Include(x => x.CrazyValue)
                .Include(x => x.CreatedOn)
+               .Include(x => x.Subscriptions, o => o.AlwaysExpanded())
                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
-               .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula());
+               .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
+               .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly))
+               .OnDeserialized(c => c.FixParentReferences());
+        }
+
+        public void Map(ITypeMappingConfigurator<HasReadOnlyDictionaryProperty> map)
+        {
+            map.Include(x => x.Map, o => o.AsAttributes().WithAccessMode(PropertyAccessMode.ReadWrite));
         }
 
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
@@ -84,9 +128,14 @@ namespace Pomona.Example
             map.Include(x => x.ETag, o => o.AsEtag());
         }
 
+        public void Map(ITypeMappingConfigurator<CaptureCommand> map)
+        {
+            map.AsValueObject();
+        }
+
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
-            map.ConstructedUsing(x => new Gun(x.Critter, x.Model))
+            map.ConstructedUsing(x => new Gun(x.Model))
                .Include(x => x.ExplosionFactor);
         }
     }

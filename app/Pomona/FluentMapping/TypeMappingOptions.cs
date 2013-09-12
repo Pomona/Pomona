@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,12 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
 namespace Pomona.FluentMapping
@@ -53,13 +58,22 @@ namespace Pomona.FluentMapping
 
         private bool? isUriBaseType;
         private bool? isValueObject;
+        private Action<object> onDeserialized;
+
+        private bool? patchAllowed;
 
         private string pluralName;
+        private bool? postAllowed;
         private Type postResponseType;
 
         public TypeMappingOptions(Type declaringType)
         {
             this.declaringType = declaringType;
+        }
+
+        public Action<object> OnDeserialized
+        {
+            get { return onDeserialized; }
         }
 
         public bool? IsIndependentTypeRoot
@@ -109,6 +123,15 @@ namespace Pomona.FluentMapping
             get { return propertyOptions; }
         }
 
+        public bool? PostAllowed
+        {
+            get { return postAllowed; }
+        }
+
+        public bool? PatchAllowed
+        {
+            get { return patchAllowed; }
+        }
 
         internal PropertyMappingOptions GetPropertyOptions(string name)
         {
@@ -148,6 +171,9 @@ namespace Pomona.FluentMapping
 
         private class Configurator<TDeclaringType> : ITypeMappingConfigurator<TDeclaringType>
         {
+            private static MethodInfo optionalMethod =
+                ReflectionHelper.GetMethodDefinition<IConstructorControl>(x => x.Optional(0));
+
             private readonly TypeMappingOptions owner;
 
             public Configurator(TypeMappingOptions owner)
@@ -203,6 +229,8 @@ namespace Pomona.FluentMapping
 
             public ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot()
             {
+                if (IsMappingSubclass())
+                    return this;
                 owner.isIndependentTypeRoot = true;
                 return this;
             }
@@ -212,35 +240,32 @@ namespace Pomona.FluentMapping
                 Expression<Func<TDeclaringType, TDeclaringType>> expr)
             {
                 // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
-                if (!owner.declaringType.IsAssignableFrom(typeof (TDeclaringType)))
+                if (IsMappingSubclass())
                     return this;
-
-                var expressionGotWrongStructureMessage =
-                    "Expression got wrong structure, expects expression which looks like this: x => new FooBar(x.Prop)" +
-                    " where each property maps to the argument";
 
                 if (expr == null)
                     throw new ArgumentNullException("expr");
+
                 var constructExpr = expr.Body as NewExpression;
+
+                ConstructedUsing(constructExpr);
+
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+                Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> expr)
+            {
+                // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
+                if (IsMappingSubclass())
+                    return this;
+
                 if (expr == null)
-                    throw new ArgumentException(expressionGotWrongStructureMessage, "expr");
+                    throw new ArgumentNullException("expr");
 
-                var ctorArgCount = constructExpr.Arguments.Count;
-                for (var ctorArgIndex = 0; ctorArgIndex < ctorArgCount; ctorArgIndex++)
-                {
-                    try
-                    {
-                        var ctorArg = constructExpr.Arguments[ctorArgIndex];
-                        var propOptions = owner.GetPropertyOptions(ctorArg);
-                        propOptions.ConstructorArgIndex = ctorArgIndex;
-                    }
-                    catch (Exception exception)
-                    {
-                        throw new ArgumentException(expressionGotWrongStructureMessage, "expr", exception);
-                    }
-                }
+                var constructExpr = expr.Body as NewExpression;
 
-                owner.constructor = constructExpr.Constructor;
+                ConstructedUsing(constructExpr);
 
                 return this;
             }
@@ -287,6 +312,84 @@ namespace Pomona.FluentMapping
             {
                 owner.postResponseType = type;
                 return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PostAllowed()
+            {
+                owner.postAllowed = true;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PostDenied()
+            {
+                owner.postAllowed = false;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PatchAllowed()
+            {
+                owner.patchAllowed = true;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> PatchDenied()
+            {
+                owner.patchAllowed = false;
+                return this;
+            }
+
+            public ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action)
+            {
+                owner.onDeserialized = x => action((TDeclaringType) x);
+                return this;
+            }
+
+            private bool IsMappingSubclass()
+            {
+                return !owner.declaringType.IsAssignableFrom(typeof (TDeclaringType));
+            }
+
+            private void ConstructedUsing(NewExpression constructExpr)
+            {
+                var expressionGotWrongStructureMessage =
+                    "Expression got wrong structure, expects expression which looks like this: x => new FooBar(x.Prop)" +
+                    " where each property maps to the argument";
+
+                if (constructExpr == null)
+                    throw new ArgumentException(expressionGotWrongStructureMessage, "expr");
+
+                var ctorArgCount = constructExpr.Arguments.Count;
+                for (var ctorArgIndex = 0; ctorArgIndex < ctorArgCount; ctorArgIndex++)
+                {
+                    try
+                    {
+                        var ctorArg = constructExpr.Arguments[ctorArgIndex];
+                        var isOptionalArg = false;
+
+                        while (ctorArg.NodeType == ExpressionType.Convert)
+                            ctorArg = ((UnaryExpression) ctorArg).Operand;
+
+                        var methodCallExpr = ctorArg as MethodCallExpression;
+                        if (methodCallExpr != null &&
+                            methodCallExpr.Method.UniqueToken() == optionalMethod.UniqueToken())
+                        {
+                            isOptionalArg = true;
+                            ctorArg = methodCallExpr.Arguments[0];
+                        }
+
+                        var propOptions = owner.GetPropertyOptions(ctorArg);
+                        if (isOptionalArg)
+                            propOptions.CreateMode = PropertyCreateMode.Optional;
+
+                        propOptions.ConstructorArgIndex = ctorArgIndex;
+                    }
+                    catch (Exception exception)
+                    {
+                        throw new ArgumentException(expressionGotWrongStructureMessage, "expr", exception);
+                    }
+                }
+
+                owner.constructor = constructExpr.Constructor;
             }
         }
     }

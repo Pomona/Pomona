@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -60,6 +64,13 @@ namespace Pomona.Common.TypeSystem
         IPropertyInfo PrimaryId { get; }
         IList<IPropertyInfo> Properties { get; }
         TypeSerializationMode SerializationMode { get; }
+
+        /// <summary>
+        /// When true this type is considered a value object, which will affect serialization.
+        /// It also means that it don't have an URL or identity.
+        /// </summary>
+        bool MappedAsValueObject { get; }
+
         object Create(IDictionary<IPropertyInfo, object> args);
     }
 }

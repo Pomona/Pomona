@@ -32,13 +32,10 @@ namespace Pomona.Example.Models
 {
     public class Subscription : EntityBase
     {
-        public Subscription(Critter critter, WeaponModel model)
+        public Subscription(WeaponModel model)
         {
-            if (critter == null)
-                throw new ArgumentNullException("critter");
             if (model == null)
                 throw new ArgumentNullException("model");
-            Critter = critter;
             Model = model;
         }
 

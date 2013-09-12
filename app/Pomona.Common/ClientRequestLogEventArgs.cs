@@ -40,6 +40,7 @@ namespace Pomona.Common
             if (request == null) throw new ArgumentNullException("request");
             this.request = request;
             this.response = response;
+            this.thrownException = thrownException;
         }
 
         public WebClientRequestMessage Request

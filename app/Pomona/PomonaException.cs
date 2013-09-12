@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,13 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using Pomona.Common.Web;
+using System.Collections.Generic;
+using System.Linq;
+using Nancy;
 
 namespace Pomona
 {
     public class PomonaException : ApplicationException
     {
+        private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly HttpStatusCode statusCode;
 
         public PomonaException()
@@ -45,10 +52,19 @@ namespace Pomona
             statusCode = HttpStatusCode.InternalServerError;
         }
 
-        public PomonaException(string message, Exception innerException, HttpStatusCode statusCode)
+        public PomonaException(string message, Exception innerException, HttpStatusCode statusCode,
+                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
             : base(message, innerException)
         {
+            if (responseHeaders != null)
+                this.responseHeaders = responseHeaders.ToList();
+
             this.statusCode = statusCode;
+        }
+
+        public List<KeyValuePair<string, string>> ResponseHeaders
+        {
+            get { return responseHeaders; }
         }
 
         public HttpStatusCode StatusCode

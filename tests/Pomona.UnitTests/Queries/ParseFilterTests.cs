@@ -28,6 +28,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using NUnit.Framework;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Queries;
 using Pomona.TestHelpers;
 
@@ -64,26 +65,6 @@ namespace Pomona.UnitTests.Queries
         private void AssertExpressionEquals(Expression actual, Expression expected)
         {
             actual.AssertEquals(expected);
-        }
-
-
-        public class EvaluateClosureMemberVisitor : ExpressionVisitor
-        {
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                if (node.Expression.NodeType == ExpressionType.Constant)
-                {
-                    var target = ((ConstantExpression) node.Expression).Value;
-
-                    var propInfo = node.Member as PropertyInfo;
-                    if (propInfo != null)
-                        return Expression.Constant(propInfo.GetValue(target, null), propInfo.PropertyType);
-                    var fieldInfo = node.Member as FieldInfo;
-                    if (fieldInfo != null)
-                        return Expression.Constant(fieldInfo.GetValue(target), fieldInfo.FieldType);
-                }
-                return base.VisitMember(node);
-            }
         }
 
 

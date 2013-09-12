@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -193,7 +197,7 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jitem in jarr)
             {
-                var itemNode = new ItemValueDeserializerNode(elementType, node.Context);
+                var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath);
                 itemNode.Deserialize(this, new Reader(jitem));
                 collection.Add((TElement) itemNode.Value);
             }
@@ -232,7 +236,10 @@ namespace Pomona.Common.Serialization.Json
                     continue;
                 }
                 var name = jprop.Name;
-                var prop = node.ValueType.Properties.First(x => x.JsonName == name);
+                var prop = node.ValueType.Properties.FirstOrDefault(x => x.JsonName == name);
+                if (prop == null)
+                    continue;
+
                 var propNode = new PropertyValueDeserializerNode(node, prop);
 
                 object oldPropValue = null;
@@ -244,17 +251,19 @@ namespace Pomona.Common.Serialization.Json
 
                 propNode.Deserialize(this, new Reader(jprop.Value));
 
-                if (oldPropValue != propNode.Value)
+                if (node.Value == null || oldPropValue != propNode.Value)
                     propertyValueMap[prop] = propNode.Value;
             }
 
             if (node.Value == null)
+            {
                 node.Value = node.ValueType.Create(propertyValueMap);
+            }
             else
             {
                 foreach (var entry in propertyValueMap)
                 {
-                    entry.Key.Setter(node.Value, entry.Value);
+                    node.SetProperty(entry.Key, entry.Value);
                 }
             }
         }
@@ -295,7 +304,7 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jprop in jobj.Properties())
             {
-                var itemNode = new ItemValueDeserializerNode(valueType, node.Context);
+                var itemNode = new ItemValueDeserializerNode(valueType, node.Context, node.ExpandPath + "." + jprop.Name);
                 itemNode.Deserialize(this, new Reader(jprop.Value));
                 object key = jprop.Name;
                 dict[(TKey) key] = (TValue) itemNode.Value;

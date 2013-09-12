@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,28 +24,74 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Nancy;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
     public class PomonaResponse
     {
-        private readonly object entity;
-        private readonly PomonaQuery query;
-        private readonly PomonaSession session;
+        internal static readonly object NoBodyEntity = new object();
 
-        public PomonaResponse(PomonaQuery query, object entity, PomonaSession session)
+        private readonly object entity;
+        private readonly string expandedPaths;
+        private readonly PomonaQuery query;
+        private readonly List<KeyValuePair<string, string>> responseHeaders;
+        private readonly IMappedType resultType;
+        private readonly IPomonaUriResolver uriResolver;
+        private readonly HttpStatusCode statusCode;
+
+        public PomonaResponse(object entity, IPomonaUriResolver uriResolver, HttpStatusCode statusCode = HttpStatusCode.OK,
+                              string expandedPaths = "",
+                              IMappedType resultType = null,
+                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
-            if (query == null) throw new ArgumentNullException("query");
-            if (session == null) throw new ArgumentNullException("session");
-            this.query = query;
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.entity = entity;
-            this.session = session;
+            this.uriResolver = uriResolver;
+            this.statusCode = statusCode;
+            this.expandedPaths = expandedPaths;
+            this.resultType = resultType;
+
+            if (responseHeaders != null)
+                this.responseHeaders = responseHeaders.ToList();
         }
 
-        public PomonaQuery Query
+        public PomonaResponse(PomonaQuery query, object entity, IPomonaUriResolver uriResolver)
+            : this(query, entity, uriResolver, HttpStatusCode.OK)
         {
-            get { return query; }
+        }
+
+        public PomonaResponse(PomonaQuery query, object entity, IPomonaUriResolver uriResolver, HttpStatusCode statusCode)
+        {
+            if (query == null) throw new ArgumentNullException("query");
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
+            this.query = query;
+            this.entity = entity;
+            this.uriResolver = uriResolver;
+            this.statusCode = statusCode;
+            expandedPaths = query.ExpandedPaths;
+            resultType = query.ResultType;
+        }
+
+        public List<KeyValuePair<string, string>> ResponseHeaders
+        {
+            get { return responseHeaders; }
+        }
+
+        public IMappedType ResultType
+        {
+            get { return resultType; }
+        }
+
+        public string ExpandedPaths
+        {
+            get { return expandedPaths; }
         }
 
         public object Entity
@@ -51,9 +99,14 @@ namespace Pomona
             get { return entity; }
         }
 
-        public PomonaSession Session
+        public IPomonaUriResolver UriResolver
         {
-            get { return session; }
+            get { return uriResolver; }
+        }
+
+        public HttpStatusCode StatusCode
+        {
+            get { return statusCode; }
         }
     }
 }

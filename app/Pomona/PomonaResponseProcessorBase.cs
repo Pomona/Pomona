@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -63,16 +67,16 @@ namespace Pomona
         public virtual Response Process(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
             var pomonaResponse = (PomonaResponse) model;
-            var pq = pomonaResponse.Query;
-
             string jsonString;
-            var resultType = pq.ResultType;
+
+            if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
+                return new Response {StatusCode = pomonaResponse.StatusCode};
 
             using (var strWriter = new StringWriter())
             {
-                var serializationContext = new ServerSerializationContext(pq.ExpandedPaths, false,
-                                                                          pomonaResponse.Session);
-                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, resultType);
+                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,
+                                                                          pomonaResponse.UriResolver);
+                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pomonaResponse.ResultType);
                 jsonString = strWriter.ToString();
             }
 
@@ -91,16 +95,25 @@ namespace Pomona
                     {
                         //Headers = {{"Content-Length", bytes.Length.ToString()}},
                         Contents = s => s.Write(bytes, 0, bytes.Length),
-                        ContentType = ContentType
+                        ContentType = ContentType,
+                        StatusCode = pomonaResponse.StatusCode
                     };
+
+                if (pomonaResponse.ResponseHeaders != null)
+                {
+                    foreach (var kvp in pomonaResponse.ResponseHeaders)
+                    {
+                        response.Headers.Add(kvp);
+                    }
+                }
 
 
                 // Add etag header
-                var transformedResultType = resultType as TransformedType;
+                var transformedResultType = pomonaResponse.ResultType as TransformedType;
                 if (transformedResultType != null)
                 {
                     var etagProperty = transformedResultType.ETagProperty;
-                    if (etagProperty != null)
+                    if (pomonaResponse.Entity != null && etagProperty != null)
                     {
                         var etagValue = (string) etagProperty.Getter(pomonaResponse.Entity);
                         if (etagValue != null)

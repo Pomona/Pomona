@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,8 @@ namespace Pomona.Common.Web
 {
     public class HttpHeaders : IHttpHeaders
     {
-        private readonly IDictionary<string, IList<string>> dict = new Dictionary<string, IList<string>>();
+        private readonly IDictionary<string, IList<string>> dict =
+            new Dictionary<string, IList<string>>(StringComparer.InvariantCultureIgnoreCase);
 
         public HttpHeaders()
         {

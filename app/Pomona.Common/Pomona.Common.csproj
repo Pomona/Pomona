@@ -62,6 +62,7 @@
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
     <Compile Include="Internals\CustomUserTypeInfo.cs" />
+    <Compile Include="Internals\EvaluateClosureMemberVisitor.cs" />
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
@@ -101,6 +102,7 @@
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PutResourceBase.cs" />
     <Compile Include="ResourceEtagPropertyAttribute.cs" />
+    <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
@@ -140,11 +142,14 @@
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
+    <Compile Include="Web\BadRequestException.cs" />
     <Compile Include="Web\HttpHeaders.cs" />
     <Compile Include="Web\HttpStatusCode.cs" />
     <Compile Include="Web\IHttpHeaders.cs" />
     <Compile Include="Web\IWebClient.cs" />
+    <Compile Include="Web\IWebClientException.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
+    <Compile Include="Web\ResourceNotFoundException.cs" />
     <Compile Include="Web\WebClientRequestMessage.cs" />
     <Compile Include="Web\WebClientResponseMessage.cs" />
     <Compile Include="Web\WrappedHttpClient.cs" />

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,12 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using NUnit.Framework;
+using Pomona.Example;
 using Pomona.FluentMapping;
 
 namespace Pomona.UnitTests.FluentMapping
@@ -52,6 +57,9 @@ namespace Pomona.UnitTests.FluentMapping
                 get { return toBeOverridden; }
                 set { toBeOverridden = value; }
             }
+
+
+            public virtual bool DeserializeHookWasRun { get; set; }
 
             public virtual string ToBeRenamed { get; set; }
         }
@@ -102,6 +110,7 @@ namespace Pomona.UnitTests.FluentMapping
 
             public void Map(ITypeMappingConfigurator<Top> map)
             {
+                map.OnDeserialized(x => x.DeserializeHookWasRun = true);
                 map.Include(x => x.ToBeRenamed, o => o.Named("NewName"));
             }
         }
@@ -175,14 +184,6 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
-        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
-        {
-            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.Id)), Is.True);
-        }
-
-        [Test]
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesOverriddenPropertyInInheritedClass()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
@@ -190,6 +191,14 @@ namespace Pomona.UnitTests.FluentMapping
 
             var propInfo = typeof (Top).GetProperty("ToBeOverridden");
             Assert.That(filter.PropertyIsIncluded(propInfo), Is.True);
+        }
+
+        [Test]
+        public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
+        {
+            var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.Id)), Is.True);
         }
 
         [Test]
@@ -208,13 +217,24 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void OnDeserializedRule_IsAppliedToMappingFilter()
+        {
+            var fluentMappingFilter = GetMappingFilter();
+
+            var onDeserializedHook = fluentMappingFilter.GetOnDeserializedHook(typeof (Top));
+            Assert.That(onDeserializedHook, Is.Not.Null);
+            var top = new Top();
+            onDeserializedHook(top);
+            Assert.That(top.DeserializeHookWasRun, Is.True);
+        }
+
+        [Test]
         public void RenameRule_GivesPropertyANewName()
         {
             var fluentMappingFilter = GetMappingFilter();
             Assert.That(
                 fluentMappingFilter.GetPropertyMappedName(GetPropInfo<Top>(x => x.ToBeRenamed)), Is.EqualTo("NewName"));
         }
-
 
         [Test]
         public void RuleForBaseClass_IsAlsoAppliedToInheritedClass()
@@ -233,6 +253,15 @@ namespace Pomona.UnitTests.FluentMapping
             Assert.Fail("TODO: Test that default inclusion mode works.");
             Assert.Fail(
                 "TODO: Test that explicit inclusion mode throws exception if not all properties are accounted for.");
+        }
+
+        [Test]
+        public void TestGenerateTemplateFluentRules()
+        {
+            var code =
+                FluentTypeMappingFilter.BuildPropertyMappingTemplate(
+                    CritterDataStore.GetEntityTypes().Where(x => !x.IsEnum));
+            Console.Write(code);
         }
     }
 }

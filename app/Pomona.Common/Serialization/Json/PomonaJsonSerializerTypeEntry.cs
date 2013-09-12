@@ -82,7 +82,8 @@ namespace Pomona.Common.Serialization.Json
 
         private void BuildAcceleratedPropertyWritingAction()
         {
-            var writePropertyNameMethod = typeof (JsonWriter).GetMethod("WritePropertyName");
+            var writePropertyNameMethod = typeof (JsonWriter).GetMethod("WritePropertyName",
+                                                                        new[] {typeof (string)});
 
             var expressions = new List<Expression>();
             var jsonWriterParam = Expression.Parameter(typeof (JsonWriter));
@@ -92,7 +93,7 @@ namespace Pomona.Common.Serialization.Json
             expressions.Add(
                 Expression.Assign(valueVariable, Expression.Convert(objValueParam, type.MappedTypeInstance)));
 
-            foreach (var prop in type.Properties)
+            foreach (var prop in type.Properties.Where(p => p.IsSerialized))
             {
                 MethodInfo method;
                 if (TryGetJsonWriterMethodForWritingType(prop.PropertyType, out method))

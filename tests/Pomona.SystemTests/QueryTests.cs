@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +33,7 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Proxies;
 using Pomona.Example.Models;
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
@@ -37,6 +42,14 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class QueryTests : ClientTestsBase
     {
+        [Test]
+        public void GetResourceById_UsingClientRepository_ReturnsResource()
+        {
+            var critterEntity = CritterEntities.First();
+            var critterResource = client.Critters.Get(critterEntity.Id);
+            Assert.That(critterResource, Is.Not.Null);
+        }
+
         [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
@@ -55,13 +68,13 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryClientSideInheritedResource_ReturnsCorrectResults()
         {
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booja"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "booja"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "hooha"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"WrappedAttribute", "halala"}}});
 
             var critters =
@@ -77,13 +90,13 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryDictionaryContainer_WhereAttributeContainsValueAndKey_ReturnsCorrectResults()
         {
-            var includedFirst = (DictionaryContainer) DataSource.Post(
+            var includedFirst = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booFirst"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "naaja"}}});
-            var includedSecond = (DictionaryContainer) DataSource.Post(
+            var includedSecond = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Lulu", "booAgain"}}});
-            DataSource.Post(
+            DataStore.Post(
                 new DictionaryContainer {Map = new Dictionary<string, string> {{"Other", "booAgain"}}});
 
             var results = TestQuery<IDictionaryContainer, DictionaryContainer>(
@@ -98,12 +111,12 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryDictionaryContainer_WithDictonaryItemEquals_ReturnsCorrectStuff()
         {
-            var matching = (DictionaryContainer) DataSource.Post(
+            var matching = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer
                     {
                         Map = new Dictionary<string, string> {{"fubu", "bar"}}
                     });
-            var notMatching = (DictionaryContainer) DataSource.Post(
+            var notMatching = (DictionaryContainer) DataStore.Post(
                 new DictionaryContainer
                     {
                         Map = new Dictionary<string, string> {{"fubu", "nope"}}
@@ -120,8 +133,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryHasCustomEnum_ReturnsCorrectItems()
         {
-            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tack});
-            DataSource.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tick});
+            DataStore.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tack});
+            DataStore.Post(new HasCustomEnum {TheEnumValue = CustomEnum.Tick});
             TestQuery<IHasCustomEnum, HasCustomEnum>(
                 x => x.TheEnumValue == Critters.Client.CustomEnum.Tack, x => x.TheEnumValue == CustomEnum.Tack);
         }
@@ -130,7 +143,8 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
-            var musicalCritter = (MusicalCritter)DataSource.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
+            var musicalCritter =
+                (MusicalCritter) DataStore.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
             var bandName = musicalCritter.BandName;
             var critters =
                 client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
@@ -146,9 +160,47 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void QueryNonExistingUrl_ThrowsResourceNotFoundException()
+        {
+            Assert.That(() => client.Get<Critter>(BaseUri + "critters/9999999"),
+                        Throws.TypeOf<Common.Web.ResourceNotFoundException>());
+        }
+
+        [Test]
+        public void QueryResourceWithEnumerable_PredicateOnEmumerable_ReturnsCorrectResults()
+        {
+            var musicalCritter = (MusicalCritter) DataStore.CreateRandomCritter(forceMusicalCritter: true);
+            var farms =
+                client.Farms.Query(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
+            Assert.That(farms.Any(x => x.MusicalCritters.Select(y => y.Id).Contains(musicalCritter.Id)));
+        }
+
+        [Test]
+        public void QueryResourceWithExpandedEnumerable_ReturnsExpandedItems()
+        {
+            DataStore.CreateRandomData(critterCount: 20);
+            var farms = client.Farms.Query().Expand(x => x.MusicalCritters).ToList();
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(farms.All(x => !(x.MusicalCritters is LazyListProxy<IMusicalCritter>)));
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+        }
+
+        [Test]
+        public void QueryResourceWithNonExpandedEnumerable_ReturnsLazyItems()
+        {
+            DataStore.CreateRandomData(critterCount: 20);
+            var farms = client.Farms.Query().ToList();
+            Assert.That(farms.All(x => x.MusicalCritters is LazyListProxy<IMusicalCritter>));
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+        }
+
+        [Test]
         public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
         {
-            var entity = DataSource.Save(new StringToObjectDictionaryContainer {Map = {{"foo", 1234}, {"bar", "hoho"}}});
+            var entity = DataStore.Save(new StringToObjectDictionaryContainer {Map = {{"foo", 1234}, {"bar", "hoho"}}});
 
             var resource = client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
 
@@ -186,6 +238,13 @@ namespace Pomona.SystemTests
         public void QueryWeapons_WithFilterOnDouble_ReturnsCorrectCritters()
         {
             TestQuery<IWeapon, Weapon>(x => x.Strength > 0.8, x => x.Strength > 0.8);
+        }
+
+        [Test]
+        public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
+        {
+            var results = client.Critters.Query().Select(x => new {theNull = (int?) null}).Take(1).ToList();
+            Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] {(int?) null}));
         }
     }
 }

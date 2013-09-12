@@ -29,6 +29,7 @@ namespace Pomona.Common.Serialization
     public class ItemValueSerializerNode : ISerializerNode
     {
         private readonly ISerializationContext context;
+        private readonly ISerializerNode parentNode;
         private readonly string expandPath;
         private readonly IMappedType expectedBaseType;
         private readonly object value;
@@ -37,12 +38,13 @@ namespace Pomona.Common.Serialization
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext context)
+            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext context, ISerializerNode parentNode)
         {
             this.value = value;
             this.expectedBaseType = expectedBaseType;
             this.expandPath = expandPath;
             this.context = context;
+            this.parentNode = parentNode;
         }
 
 
@@ -82,6 +84,11 @@ namespace Pomona.Common.Serialization
                     valueType = context.GetClassMapping(Value.GetType());
                 return valueType;
             }
+        }
+
+        public ISerializerNode ParentNode
+        {
+            get { return parentNode; }
         }
 
         #endregion

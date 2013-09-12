@@ -105,7 +105,7 @@ namespace Pomona.SystemTests.Linq
                     SomethingExtra = "Hahahohohihi"
                 };
 
-            DataSource.Save<DictionaryContainer>(subtypedDictionaryContainer);
+            DataStore.Save<DictionaryContainer>(subtypedDictionaryContainer);
 
             // Post does not yet work on subtypes
             //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
@@ -134,7 +134,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
-            var dictContainer = DataSource.Save(new StringToObjectDictionaryContainer
+            var dictContainer = DataStore.Save(new StringToObjectDictionaryContainer
                 {
                     Map = {{"Text", "foobar"}, {"Number", 32}, {"Time", timeValue}}
                 });
@@ -194,6 +194,27 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
             Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+        [Test]
+        public void QueryCustomTestEntity_UsingGroupBy_ReturnsCustomTestEntity()
+        {
+            client.DictionaryContainers.Post(
+                x =>
+                    {
+                        x.Map.Add("CustomString", "Lalalala");
+                        x.Map.Add("OtherCustom", "Blob rob");
+                    });
+
+            var result =
+                client.Query<ICustomTestEntity>()
+                      .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                      .GroupBy(x => x.CustomString)
+                      .Select(x => new {x.Key})
+                      .ToList();
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result.First().Key, Is.EqualTo("Lalalala"));
         }
 
         [Category("TODO")]

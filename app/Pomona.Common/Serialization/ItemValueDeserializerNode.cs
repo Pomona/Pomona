@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,8 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using Newtonsoft.Json.Linq;
+#endregion
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -31,16 +33,18 @@ namespace Pomona.Common.Serialization
     public class ItemValueDeserializerNode : IDeserializerNode
     {
         private readonly IDeserializationContext context;
+        private readonly string expandPath;
         private readonly IMappedType expectedBaseType;
-        private object value;
         public IMappedType valueType;
 
         #region Implementation of IDeserializerNode
 
-        public ItemValueDeserializerNode(IMappedType expectedBaseType, IDeserializationContext context)
+        public ItemValueDeserializerNode(IMappedType expectedBaseType, IDeserializationContext context,
+                                         string expandPath = "")
         {
             this.expectedBaseType = expectedBaseType;
             this.context = context;
+            this.expandPath = expandPath;
             valueType = expectedBaseType;
         }
 
@@ -55,18 +59,14 @@ namespace Pomona.Common.Serialization
             get { return expectedBaseType; }
         }
 
+        public string ExpandPath
+        {
+            get { return expandPath; }
+        }
+
         public string Uri { get; set; }
 
-        public object Value
-        {
-            get { return value; }
-            set
-            {
-                if (value is JToken)
-                    throw new InvalidOperationException("Fuck you!");
-                this.value = value;
-            }
-        }
+        public object Value { get; set; }
 
         public IMappedType ValueType
         {
@@ -77,6 +77,11 @@ namespace Pomona.Common.Serialization
         public void SetValueType(string typeName)
         {
             valueType = context.GetTypeByName(typeName);
+        }
+
+        public void SetProperty(IPropertyInfo property, object propertyValue)
+        {
+            context.SetProperty(this, property, propertyValue);
         }
 
         #endregion

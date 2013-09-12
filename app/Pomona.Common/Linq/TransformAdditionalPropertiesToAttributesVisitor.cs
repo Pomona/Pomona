@@ -104,9 +104,11 @@ namespace Pomona.Common.Linq
             var replacementParams = new List<ParameterExpression>(node.Parameters.Count);
             foreach (var param in node.Parameters)
             {
-                if (param.Type == userType)
+                var modifiedParamType = ReplaceInGenericArguments(param.Type, userType, targetType);
+
+                if (param.Type != modifiedParamType)
                 {
-                    var replacementParam = Expression.Parameter(targetType, param.Name);
+                    var replacementParam = Expression.Parameter(modifiedParamType, param.Name);
                     var visitor = new TransformAdditionalPropertiesToAttributesVisitor(
                         userType,
                         targetType,
@@ -122,7 +124,6 @@ namespace Pomona.Common.Linq
 
             return Expression.Lambda(body, replacementParams);
         }
-
 
         protected override Expression VisitMember(MemberExpression node)
         {
@@ -170,16 +171,41 @@ namespace Pomona.Common.Linq
                     //                       Expression.Constant(propInfo.Name));
                 }
             }
+
+            var originalDeclaringType = node.Member.DeclaringType;
+            var modifiedDeclaringType = ReplaceInGenericArguments(originalDeclaringType, userType, targetType);
+            if (modifiedDeclaringType != originalDeclaringType)
+            {
+                var modifiedMember =
+                    modifiedDeclaringType.GetMember(node.Member.Name, node.Member.MemberType,
+                                                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic |
+                                                    BindingFlags.Public)
+                                         .First(x => x.UniqueToken() == node.Member.UniqueToken());
+                return Expression.MakeMemberAccess(node.Expression != null ? Visit(node.Expression) : null,
+                                                   modifiedMember);
+            }
+
             return base.VisitMember(node);
         }
 
 
+        protected override Expression VisitNew(NewExpression node)
+        {
+            var correctType = ReplaceInGenericArguments(node.Type, userType, targetType);
+            if (correctType == node.Type)
+                return base.VisitNew(node);
+            var ctor = correctType.GetConstructors().First(x => x.UniqueToken() == node.Constructor.UniqueToken());
+            return Expression.New(ctor, node.Arguments.Select(Visit));
+        }
+
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
+            var modifiedMethod = ReplaceInGenericMethod(node.Method, userType, targetType);
+            var modifiedArguments = node.Arguments.Select(Visit);
             return Expression.Call(
                 node.Object != null ? Visit(node.Object) : null,
-                ReplaceInGenericMethod(node.Method, userType, targetType),
-                node.Arguments.Select(Visit));
+                modifiedMethod,
+                modifiedArguments);
         }
 
 

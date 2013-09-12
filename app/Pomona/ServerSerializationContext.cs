@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using Pomona.Common.Serialization;
@@ -33,19 +37,19 @@ namespace Pomona
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
-        private readonly PomonaSession session;
 
-        private readonly TypeMapper typeMapper;
+        private readonly ITypeMapper typeMapper;
+        private readonly IPomonaUriResolver uriResolver;
 
 
         public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
-            PomonaSession session)
+            IPomonaUriResolver uriResolver)
         {
             this.debugMode = debugMode;
-            this.session = session;
-            typeMapper = session.TypeMapper;
+            this.uriResolver = uriResolver;
+            typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
@@ -55,12 +59,7 @@ namespace Pomona
             get { return debugMode; }
         }
 
-        public PomonaSession Session
-        {
-            get { return session; }
-        }
-
-        public TypeMapper TypeMapper
+        public ITypeMapper TypeMapper
         {
             get { return typeMapper; }
         }
@@ -79,13 +78,13 @@ namespace Pomona
 
         public string GetUri(IPropertyInfo property, object entity)
         {
-            return session.GetUri(property, entity);
+            return uriResolver.GetUriFor(property, entity);
         }
 
 
         public string GetUri(object value)
         {
-            return session.GetUri(value);
+            return uriResolver.GetUriFor(value);
         }
 
 
@@ -111,8 +110,19 @@ namespace Pomona
             serializer.SerializeNode(node, writer);
         }
 
+        public bool PropertyIsSerialized(IPropertyInfo property)
+        {
+            return property.IsSerialized;
+        }
+
         private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
         {
+            if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
+                IsAlwaysExpandedPropertyNode(node.ParentNode))
+            {
+                return true;
+            }
+
             var propNode = node as PropertyValueSerializerNode;
             if (propNode == null)
                 return false;
@@ -120,11 +130,6 @@ namespace Pomona
             if (propMapping == null)
                 return false;
             return propMapping.AlwaysExpand;
-        }
-
-        public ObjectWrapper CreateWrapperFor(object target, string path, IMappedType expectedBaseType)
-        {
-            return new ObjectWrapper(target, path, this, expectedBaseType);
         }
     }
 }

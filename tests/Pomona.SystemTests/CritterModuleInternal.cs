@@ -29,8 +29,8 @@ namespace Pomona.SystemTests
 {
     public class CritterModuleInternal : CritterModule
     {
-        public CritterModuleInternal(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
-            : base(dataSource, typeMapper, container)
+        public CritterModuleInternal(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
+            : base(dataSource, typeMapper, serviceLocator)
         {
         }
     }

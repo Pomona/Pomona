@@ -31,6 +31,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Mono.Cecil;
@@ -411,7 +412,15 @@ namespace Pomona.CodeGen
             var il = method.Body.GetILProcessor();
 
             // Different initial seed for different combinations of hashcodes
-            il.Emit(OpCodes.Ldc_I4, string.Join("|", properties.Select(x => x.Name)).GetHashCode());
+            int seed;
+            using (var cipher = new SHA1Managed())
+            {
+                var uniqueTypeString = string.Join("|", properties.Select(x => x.Name));
+                var hash = cipher.ComputeHash(Encoding.UTF8.GetBytes(uniqueTypeString));
+                seed = BitConverter.ToInt32(hash, 0);
+            }
+
+            il.Emit(OpCodes.Ldc_I4, seed);
             il.Emit(OpCodes.Stloc, var0);
 
             foreach (var prop in properties)

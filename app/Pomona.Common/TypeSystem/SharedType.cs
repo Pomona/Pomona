@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -42,6 +47,8 @@ namespace Pomona.Common.TypeSystem
                 typeof (bool), typeof (decimal), typeof (DateTime), typeof (Uri)
             };
 
+        private static readonly Lazy<StringEnumConverter> stringEnumConverter = new Lazy<StringEnumConverter>();
+
         private readonly bool isCollection;
         private readonly bool isDictionary;
 
@@ -50,7 +57,6 @@ namespace Pomona.Common.TypeSystem
         private readonly ITypeMapper typeMapper;
 
         private IList<IPropertyInfo> properties;
-
 
         public SharedType(Type mappedTypeInstance, ITypeMapper typeMapper)
         {
@@ -73,7 +79,7 @@ namespace Pomona.Common.TypeSystem
             {
                 if (mappedType != typeof (string))
                 {
-                    var collectionMetadataToken = typeof (ICollection<>).UniqueToken();
+                    var collectionMetadataToken = typeof (IEnumerable<>).UniqueToken();
                     isCollection =
                         mappedTypeInstance.UniqueToken() == collectionMetadataToken ||
                         mappedTypeInstance.GetInterfaces().Any(x => x.UniqueToken() == collectionMetadataToken);
@@ -88,6 +94,9 @@ namespace Pomona.Common.TypeSystem
                 SerializationMode = TypeSerializationMode.Value;
 
             GenericArguments = new List<IMappedType>();
+
+            if (mappedTypeInstance.IsEnum)
+                JsonConverter = stringEnumConverter.Value;
 
             InitializeGenericArguments();
         }
@@ -204,6 +213,11 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public bool MappedAsValueObject
+        {
+            get { return false; }
+        }
+
         public virtual object Create(IDictionary<IPropertyInfo, object> args)
         {
             if (MappedTypeInstance.IsAnonymous())
@@ -263,6 +277,15 @@ namespace Pomona.Common.TypeSystem
             return properties;
         }
 
+        public override string ToString()
+        {
+            if (!IsGenericType)
+            {
+                return Name;
+            }
+
+            return string.Format("{0}<{1}>", Name, string.Join(",", GenericArguments));
+        }
 
         private void InitializeGenericArguments()
         {

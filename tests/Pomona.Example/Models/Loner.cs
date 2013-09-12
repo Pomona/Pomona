@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,19 +26,35 @@
 
 #endregion
 
+using System;
+
 namespace Pomona.Example.Models
 {
     public class Loner : EntityBase
     {
         private readonly string name;
+        private readonly DateTime optionalDate;
+        private readonly string optionalInfo;
         private readonly int strength;
 
 
-        public Loner(string name, int strength)
+        public Loner(string name, int strength, string optionalInfo, DateTime? optionalDate = null)
         {
             this.name = name;
             this.strength = strength;
+            this.optionalInfo = optionalInfo;
+            this.optionalDate = optionalDate ?? DateTime.UtcNow;
             Occupation = "default boring";
+        }
+
+        public DateTime OptionalDate
+        {
+            get { return optionalDate; }
+        }
+
+        public string OptionalInfo
+        {
+            get { return optionalInfo; }
         }
 
 

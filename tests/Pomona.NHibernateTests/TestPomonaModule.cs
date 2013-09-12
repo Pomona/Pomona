@@ -29,8 +29,8 @@ namespace PomonaNHibernateTest
 {
     public class TestPomonaModule : PomonaModule
     {
-        public TestPomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator container)
-            : base(dataSource, typeMapper, container)
+        public TestPomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
+            : base(dataSource, typeMapper, serviceLocator)
         {
         }
     }

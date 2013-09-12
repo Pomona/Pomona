@@ -29,6 +29,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Internals;
@@ -132,8 +133,15 @@ namespace Pomona.Common.Linq
 
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
-            return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
-                this, new object[] {queryTreeParser});
+            try
+            {
+                return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
+                    this, new object[] {queryTreeParser});
+            }
+            catch (TargetInvocationException tie)
+            {
+                throw tie.InnerException;
+            }
         }
 
 
@@ -145,10 +153,11 @@ namespace Pomona.Common.Linq
 
         private static Type GetElementType(Type type)
         {
-            if (type.UniqueToken() != typeof (IQueryable<>).UniqueToken())
+            var queryableTypeInstance = type.GetInterfacesOfGeneric(typeof (IQueryable<>)).FirstOrDefault();
+            if (queryableTypeInstance == null)
                 return type;
 
-            return type.GetGenericArguments()[0];
+            return queryableTypeInstance.GetGenericArguments()[0];
         }
 
 
@@ -156,20 +165,12 @@ namespace Pomona.Common.Linq
         {
             var builder = new UriQueryBuilder();
 
-            var resourceInfo = client.GetResourceInfoForType(sourceType);
+            var resourceInfo = client.GetResourceInfoForType(parser.ElementType);
 
             if (!resourceInfo.IsUriBaseType)
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
 
-            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy ||
-                parser.Projection == RestQueryableTreeParser.QueryProjection.First)
-            {
-                builder.AppendParameter("$projection", "first");
-            }
-            else if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstOrDefault)
-            {
-                builder.AppendParameter("$projection", "firstordefault");
-            }
+            SetProjection(parser, builder);
 
             if (parser.WherePredicate != null)
                 builder.AppendExpressionParameter("$filter", parser.WherePredicate);
@@ -201,10 +202,42 @@ namespace Pomona.Common.Linq
             return (uri ?? client.GetUriOfType(parser.ElementType)) + "?" + builder;
         }
 
+        private static void SetProjection(RestQueryableTreeParser parser, UriQueryBuilder builder)
+        {
+            string projection = null;
+            switch (parser.Projection)
+            {
+                case RestQueryableTreeParser.QueryProjection.First:
+                case RestQueryableTreeParser.QueryProjection.FirstLazy:
+                    projection = "first";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                    projection = "firstordefault";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Max:
+                    projection = "max";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Min:
+                    projection = "min";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Count:
+                    projection = "count";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Sum:
+                    projection = "sum";
+                    break;
+            }
+            if (projection != null)
+                builder.AppendParameter("$projection", projection);
+        }
+
 
         private object Execute<T>(RestQueryableTreeParser parser)
         {
             var uri = BuildUri(parser);
+
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToJson)
+                return client.Get<JToken>(uri);
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
                 return new Uri(uri);
@@ -223,8 +256,13 @@ namespace Pomona.Common.Linq
             {
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
                     return client.Get<IList<T>>(uri);
-                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.First:
+                    return GetFirst<T>(uri);
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                case RestQueryableTreeParser.QueryProjection.Max:
+                case RestQueryableTreeParser.QueryProjection.Min:
+                case RestQueryableTreeParser.QueryProjection.Sum:
+                case RestQueryableTreeParser.QueryProjection.Count:
                     return client.Get<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..
@@ -267,6 +305,17 @@ namespace Pomona.Common.Linq
         }
 
 
+        private T GetFirst<T>(string uri)
+        {
+            try
+            {
+                return client.Get<T>(uri);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Sequence contains no matching element");
+            }
+        }
         private object MapToCustomUserTypeResult<TCustomClientType>(
             object result, Type serverKnownType, PropertyInfo dictProp, Expression transformedExpression)
         {
@@ -277,7 +326,7 @@ namespace Pomona.Common.Linq
                 return CreateClientSideResourceProxy<TCustomClientType>(dictProp, result);
             }
 
-            if (transformedExpression.Type.TryGetCollectionElementType(out elementType)
+            if (transformedExpression.Type.TryGetEnumerableElementType(out elementType)
                 && elementType == serverKnownType)
             {
                 // Map back to customClientType

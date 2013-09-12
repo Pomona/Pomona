@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 
@@ -43,14 +47,18 @@ namespace Pomona.Example.Models
                 };
 
             Hat = new Hat();
+            Protected = Guid.NewGuid().ToString();
         }
 
+
+        public bool IsCaptured { get; internal set; }
 
         public CrazyValueObject CrazyValue { get; set; }
 
         public DateTime CreatedOn { get; set; }
         public IList<Critter> Enemies { get; set; }
         public Farm Farm { get; set; }
+        public string Protected { get; protected set; }
 
         public Guid Guid { get; set; }
         public Hat Hat { get; set; }
@@ -61,6 +69,7 @@ namespace Pomona.Example.Models
             get { return Hat != null ? Hat.HatType : null; }
         }
 
+        public string Password { get; set; }
 
         public int DecompiledGeneratedProperty
         {
@@ -83,5 +92,13 @@ namespace Pomona.Example.Models
         /// To check that property scanning works properly on entities having explicit prop implementations.
         /// </summary>
         int IHiddenInterface.Foo { get; set; }
+
+        public void FixParentReferences()
+        {
+            foreach (var subscription in Subscriptions)
+            {
+                subscription.Critter = this;
+            }
+        }
     }
 }

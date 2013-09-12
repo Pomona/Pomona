@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,8 +28,32 @@
 
 namespace Pomona.Example.Models
 {
-    public class Order : EntityBase
+    public class ErrorStatus
     {
-        public string Description { get; set; }
+        private readonly int errorCode;
+        private readonly string member;
+        private readonly string message;
+
+        public ErrorStatus(string message, int errorCode, string member = null)
+        {
+            this.message = message;
+            this.errorCode = errorCode;
+            this.member = member;
+        }
+
+        public string Member
+        {
+            get { return member; }
+        }
+
+        public string Message
+        {
+            get { return message; }
+        }
+
+        public int ErrorCode
+        {
+            get { return errorCode; }
+        }
     }
 }

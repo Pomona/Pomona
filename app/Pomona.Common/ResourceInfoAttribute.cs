@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -31,8 +35,15 @@ namespace Pomona.Common
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class ResourceInfoAttribute : Attribute
     {
-        private PropertyInfo etagProperty;
-        private bool? hasEtagProperty;
+        private readonly Lazy<PropertyInfo> etagProperty;
+        private readonly Lazy<PropertyInfo> idProperty;
+
+        public ResourceInfoAttribute()
+        {
+            etagProperty = new Lazy<PropertyInfo>(GetPropertyWithAttribute<ResourceEtagPropertyAttribute>);
+            idProperty = new Lazy<PropertyInfo>(GetPropertyWithAttribute<ResourceIdPropertyAttribute>);
+        }
+
         public Type InterfaceType { get; set; }
 
         public bool IsUriBaseType
@@ -40,43 +51,41 @@ namespace Pomona.Common
             get { return UriBaseType == InterfaceType; }
         }
 
-        internal PropertyInfo EtagProperty
+        public PropertyInfo EtagProperty
         {
-            get
-            {
-                LocateEtagProperty();
-                return etagProperty;
-            }
+            get { return etagProperty.Value; }
         }
 
         public bool HasEtagProperty
         {
-            get
-            {
-                LocateEtagProperty();
-                return hasEtagProperty.Value;
-            }
+            get { return etagProperty.Value != null; }
+        }
+
+        public PropertyInfo IdProperty
+        {
+            get { return idProperty.Value; }
+        }
+
+        public bool HasIdProperty
+        {
+            get { return idProperty.Value != null; }
         }
 
         public string JsonTypeName { get; set; }
         public Type LazyProxyType { get; set; }
         public Type PocoType { get; set; }
         public Type PostFormType { get; set; }
-        public Type PutFormType { get; set; }
+        public Type PatchFormType { get; set; }
         public Type UriBaseType { get; set; }
+        public Type BaseType { get; set; }
         public string UrlRelativePath { get; set; }
         public bool IsValueObject { get; set; }
 
-        private void LocateEtagProperty()
+        private PropertyInfo GetPropertyWithAttribute<TAttribute>()
+            where TAttribute : Attribute
         {
-            if (!hasEtagProperty.HasValue)
-            {
-                etagProperty =
-                    InterfaceType.GetAllInheritedPropertiesFromInterface()
-                                 .FirstOrDefault(x => x.HasAttribute<ResourceEtagPropertyAttribute>(true));
-
-                hasEtagProperty = etagProperty != null;
-            }
+            return InterfaceType.GetAllInheritedPropertiesFromInterface()
+                                .FirstOrDefault(x => x.HasAttribute<TAttribute>(true));
         }
     }
 }

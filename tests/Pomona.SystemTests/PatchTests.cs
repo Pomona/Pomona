@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,24 +24,41 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common.Linq;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
-using Pomona.SystemTests.Linq;
 
 namespace Pomona.SystemTests
 {
     [TestFixture]
     public class PatchTests : ClientTestsBase
     {
+        public void PatchProtectedProperty_ThrowsBadRequestException_AndDoesNotAllowChangeOfProtectedProperty()
+        {
+            var critter = Save(new Critter());
+            var protectedValue = critter.Protected;
+            var c = client.Critters.Query(x => x.Id == critter.Id).First();
+            var ex =
+                Assert.Throws<BadRequestException<IErrorStatus>>(
+                    () => client.Critters.Patch(c, p => p.Protected = "HALLA MALLA NALLA"));
+
+            Assert.That(ex.Body, Is.Not.Null);
+            Assert.That(ex.Body.Member, Is.EqualTo("Protected"));
+            Assert.That(critter.Protected, Is.EqualTo(protectedValue));
+        }
+
+
         [Test]
         public void PatchCritter_AddNewFormToList()
         {
             var critter = new Critter();
-            critter.Weapons.Add(new Gun(critter, new WeaponModel {Name = "ExistingWeaponModel"}));
+            critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
             Save(critter);
 
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
@@ -52,6 +71,17 @@ namespace Pomona.SystemTests
                              }));
 
             Assert.That(critter.Weapons, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void PatchCritter_SetWriteOnlyProperty()
+        {
+            var critter = DataStore.CreateRandomCritter();
+            var resource = client.Critters.Query(x => x.Id == critter.Id).First();
+
+            client.Patch(resource, x => x.Password = "NewPassword");
+
+            Assert.That(critter.Password, Is.EqualTo("NewPassword"));
         }
 
         [Test]
@@ -101,6 +131,16 @@ namespace Pomona.SystemTests
                          x.BandName = "The Patched Sheeps");
 
             Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
+        }
+
+        [Test]
+        public void PatchUnpatchableThing_ThrowsInvalidOperationException()
+        {
+            var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
+            var ex =
+                Assert.Throws<InvalidOperationException>(
+                    () => client.UnpatchableThings.Patch(resource, x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
         }
 
         [Test]

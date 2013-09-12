@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +33,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Common.Logging;
 using DelegateDecompiler;
+using Nancy.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
 namespace Pomona
@@ -235,8 +241,11 @@ namespace Pomona
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            return
-                type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (ICollection<>));
+
+            Type _;
+            return type != typeof (string) &&
+                   type.UniqueToken() != typeof (IGrouping<,>).UniqueToken() &&
+                   type.TryGetEnumerableElementType(out _);
         }
 
 
@@ -267,7 +276,7 @@ namespace Pomona
         }
 
 
-        public bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
             return false;
@@ -296,6 +305,52 @@ namespace Pomona
         public virtual string GetPluralNameForType(Type type)
         {
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
+        }
+
+        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
+                                                                ParameterInfo ctorParameterInfo)
+        {
+            if (ctorParameterInfo != null)
+            {
+                return PropertyCreateMode.Required;
+            }
+
+            if (propertyInfo.PropertyType.IsCollection() ||
+                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+            {
+                return PropertyCreateMode.Optional;
+            }
+            return PropertyCreateMode.Excluded;
+        }
+
+        public virtual PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.PropertyType.IsCollection() ||
+                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+            {
+                return PropertyAccessMode.ReadWrite;
+            }
+            return PropertyAccessMode.ReadOnly;
+        }
+
+        public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        {
+            return null;
+        }
+
+        public virtual bool PostOfTypeIsAllowed(Type type)
+        {
+            return true;
+        }
+
+        public virtual bool PatchOfTypeIsAllowed(Type type)
+        {
+            return true;
+        }
+
+        public virtual Action<object> GetOnDeserializedHook(Type type)
+        {
+            return null;
         }
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)

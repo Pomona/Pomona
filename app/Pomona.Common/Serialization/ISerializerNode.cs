@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -35,5 +39,6 @@ namespace Pomona.Common.Serialization
         string Uri { get; }
         object Value { get; }
         IMappedType ValueType { get; }
+        ISerializerNode ParentNode { get; }
     }
 }

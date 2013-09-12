@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +48,7 @@ namespace Pomona.Common.Web
 
         public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
-            var webRequest = (HttpWebRequest) WebRequest.Create(request.Uri);
+            var webRequest = (HttpWebRequest)WebRequest.Create(request.Uri);
 
             if (Credentials != null)
                 webRequest.Credentials = Credentials;
@@ -97,10 +101,13 @@ namespace Pomona.Common.Web
             {
                 var responseBytes = responseStream.ReadAllBytes();
 
-                return new WebClientResponseMessage(webResponse.ResponseUri.ToString(), responseBytes,
-                                                    (HttpStatusCode) webResponse.StatusCode,
+                var responseUri = webResponse.ResponseUri ?? webRequest.RequestUri;
+                var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
+
+                return new WebClientResponseMessage(responseUri.ToString(), responseBytes,
+                                                    (HttpStatusCode)webResponse.StatusCode,
                                                     new HttpHeaders(ConvertHeaders(webResponse.Headers)),
-                                                    webResponse.ProtocolVersion.ToString());
+                                                    protocolVersion.ToString());
             }
         }
 
@@ -124,12 +131,14 @@ namespace Pomona.Common.Web
             try
             {
                 thrownException = null;
-                return (HttpWebResponse) request.GetResponse();
+                return (HttpWebResponse)request.GetResponse();
             }
             catch (WebException ex)
             {
+                if (ex.Response == null)
+                    throw;
                 thrownException = ex;
-                return (HttpWebResponse) ex.Response;
+                return (HttpWebResponse)ex.Response;
             }
         }
     }

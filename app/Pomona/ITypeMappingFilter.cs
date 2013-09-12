@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
 namespace Pomona
@@ -88,5 +93,13 @@ namespace Pomona
         LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyIsEtag(PropertyInfo propertyInfo);
         string GetPluralNameForType(Type type);
+        PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
+        PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
+        int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo);
+
+        bool PostOfTypeIsAllowed(Type type);
+        bool PatchOfTypeIsAllowed(Type type);
+
+        Action<object> GetOnDeserializedHook(Type type);
     }
 }

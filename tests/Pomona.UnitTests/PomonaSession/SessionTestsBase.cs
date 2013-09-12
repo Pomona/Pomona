@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,8 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using System.Linq;
 using NUnit.Framework;
+using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -31,9 +37,8 @@ namespace Pomona.UnitTests.PomonaSession
 {
     public abstract class SessionTestsBase
     {
-        private CritterDataSource dataSource;
+        private CritterDataStore dataStore;
         private Critter firstCritter;
-        private Pomona.PomonaSession session;
         private TypeMapper typeMapper;
 
         public Critter FirstCritter
@@ -48,7 +53,7 @@ namespace Pomona.UnitTests.PomonaSession
 
         public MusicalCritter MusicalCritter
         {
-            get { return dataSource.List<Critter>().OfType<MusicalCritter>().First(); }
+            get { return dataStore.List<Critter>().OfType<MusicalCritter>().First(); }
         }
 
         public int MusicalCritterId
@@ -56,14 +61,9 @@ namespace Pomona.UnitTests.PomonaSession
             get { return MusicalCritter.Id; }
         }
 
-        protected CritterDataSource DataSource
+        protected CritterDataStore DataStore
         {
-            get { return dataSource; }
-        }
-
-        protected Pomona.PomonaSession Session
-        {
-            get { return session; }
+            get { return dataStore; }
         }
 
         protected TypeMapper TypeMapper
@@ -76,14 +76,13 @@ namespace Pomona.UnitTests.PomonaSession
         public void SetUp()
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            dataSource = new CritterDataSource(typeMapper);
-            session = new Pomona.PomonaSession(dataSource, typeMapper, new DummyUriResolver());
-            firstCritter = dataSource.List<Critter>().First();
+            dataStore = new CritterDataStore(typeMapper);
+            firstCritter = dataStore.List<Critter>().First();
         }
 
         private class DummyUriResolver : IPomonaUriResolver
         {
-            public object GetResultByUri(string uri)
+            public object ResolveUri(string uri)
             {
                 return null;
             }
@@ -91,6 +90,21 @@ namespace Pomona.UnitTests.PomonaSession
             public string RelativeToAbsoluteUri(string uri)
             {
                 return "http://localhost/" + uri;
+            }
+
+            public string GetUriFor(object entity)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string GetUriFor(IPropertyInfo property, object entity)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ITypeMapper TypeMapper
+            {
+                get { throw new NotImplementedException(); }
             }
         }
     }

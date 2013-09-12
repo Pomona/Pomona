@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using System.Collections.Generic;
 
 namespace Pomona.Example
@@ -37,6 +42,11 @@ namespace Pomona.Example
         public override ITypeMappingFilter TypeMappingFilter
         {
             get { return new CritterTypeMappingFilter(); }
+        }
+
+        public override IEnumerable<Type> HandlerTypes
+        {
+            get { yield return typeof (CritterDataSource); }
         }
     }
 }

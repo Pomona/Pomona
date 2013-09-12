@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,9 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -49,7 +54,13 @@ namespace Pomona.FluentMapping
 
         public bool? PropertyFormulaIsDecompiled { get; set; }
 
+        public bool? AlwaysExpanded { get; set; }
+
         public int? ConstructorArgIndex { get; set; }
+
+        public PropertyAccessMode? AccessMode { get; internal set; }
+
+        public PropertyCreateMode? CreateMode { get; internal set; }
 
         public PropertyInclusionMode InclusionMode { get; internal set; }
         public bool? IsAttributesProperty { get; set; }

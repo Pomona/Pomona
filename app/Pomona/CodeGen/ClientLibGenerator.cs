@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +44,7 @@ namespace Pomona.CodeGen
     public class ClientLibGenerator
     {
         private readonly TypeMapper typeMapper;
+        private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
         private string assemblyName;
         private TypeDefinition clientInterface;
         private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
@@ -92,7 +97,7 @@ namespace Pomona.CodeGen
 
             if (PomonaClientEmbeddingEnabled)
             {
-                var readerParameters = new ReaderParameters {AssemblyResolver = assemblyResolver};
+                var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };
                 assembly = AssemblyDefinition.ReadAssembly(typeof (ResourceBase).Assembly.Location, readerParameters);
             }
             else
@@ -152,12 +157,14 @@ namespace Pomona.CodeGen
                 (info, def) => { info.LazyProxyType = def; });
 
             CreateProxies(
-                new UpdateProxyBuilder(this, MakeProxyTypesPublic),
-                (info, def) => { info.PutFormType = def; });
+                new PatchFormProxyBuilder(this, MakeProxyTypesPublic),
+                (info, def) => { info.PatchFormType = def; },
+                typeIsGeneratedPredicate: x => x.TransformedType.PatchAllowed);
 
             CreateProxies(
                 new PostFormProxyBuilder(this),
-                (info, def) => { info.PostFormType = def; });
+                (info, def) => { info.PostFormType = def; },
+                typeIsGeneratedPredicate: x => x.TransformedType.PostAllowed);
 
             CreateClientInterface("IClient");
             CreateClientType("Client");
@@ -175,6 +182,10 @@ namespace Pomona.CodeGen
             stream.Write(array, 0, array.Length);
 
             //assembly.Write(stream);
+        }
+
+        private void CreatePostToResourceExtensionMethods()
+        {
         }
 
         private void CreateClientInterface(string interfaceName)
@@ -201,14 +212,21 @@ namespace Pomona.CodeGen
         }
 
 
+        private PropertyDefinition AddAutomaticProperty(TypeDefinition declaringType, string name,
+                                                        TypeReference propertyType)
+        {
+            FieldDefinition _;
+            return AddAutomaticProperty(declaringType, name, propertyType, out _);
+        }
+
         private PropertyDefinition AddAutomaticProperty(
-            TypeDefinition declaringType, string name, TypeReference propertyType)
+            TypeDefinition declaringType, string name, TypeReference propertyType, out FieldDefinition propField)
         {
             var propertyDefinition = AddProperty(declaringType, name, propertyType);
 
-            var propField =
+            propField =
                 new FieldDefinition(
-                    "_" + name.Substring(0, 1).ToLower() + name.Substring(1),
+                    "_" + name.LowercaseFirstLetter(),
                     FieldAttributes.Private,
                     propertyType);
 
@@ -331,7 +349,7 @@ namespace Pomona.CodeGen
                     "PostFormType", new CustomAttributeArgument(typeTypeReference, typeInfo.PostFormType)));
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
-                    "PutFormType", new CustomAttributeArgument(typeTypeReference, typeInfo.PutFormType)));
+                    "PatchFormType", new CustomAttributeArgument(typeTypeReference, typeInfo.PatchFormType)));
 
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
@@ -340,6 +358,13 @@ namespace Pomona.CodeGen
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
                     "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
+
+            if (typeInfo.BaseType != null)
+            {
+                custAttr.Properties.Add(
+                    new CustomAttributeNamedArgument(
+                        "BaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.BaseType)));
+            }
 
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
@@ -437,7 +462,7 @@ namespace Pomona.CodeGen
 
             foreach (var kvp in clientTypeInfoDict)
             {
-                var type = (TransformedType) kvp.Key;
+                var type = (TransformedType)kvp.Key;
                 var typeInfo = kvp.Value;
                 var pocoDef = typeInfo.PocoType;
                 var interfaceDef = typeInfo.InterfaceType;
@@ -459,12 +484,14 @@ namespace Pomona.CodeGen
                     baseCtorReference = baseTypeInfo.PocoType.GetConstructors().First(x => x.Parameters.Count == 0);
 
                     interfaceDef.Interfaces.Add(baseTypeInfo.InterfaceType);
+                    typeInfo.BaseType = baseTypeInfo.InterfaceType;
                 }
                 else
                 {
                     interfaceDef.Interfaces.Add(resourceInterfaceRef);
                     pocoDef.BaseType = resourceBaseRef;
                     baseCtorReference = resourceBaseCtor;
+                    typeInfo.BaseType = null;
                 }
 
                 if (type.UriBaseType != null)
@@ -472,12 +499,7 @@ namespace Pomona.CodeGen
                     typeInfo.UriBaseType = clientTypeInfoDict[type.UriBaseType].InterfaceType;
                 }
 
-                var ctor = typeInfo.EmptyPocoCtor;
-                ctor.Body.MaxStackSize = 8;
-                var ctorIlProcessor = ctor.Body.GetILProcessor();
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+                var ctorIlActions = new List<Action<ILProcessor>>();
 
                 foreach (
                     var prop in
@@ -496,9 +518,70 @@ namespace Pomona.CodeGen
                     {
                         AddAttributeToProperty(interfacePropDef, typeof (ResourceEtagPropertyAttribute));
                     }
+                    if (prop.IsPrimaryKey)
+                    {
+                        AddAttributeToProperty(interfacePropDef, typeof (ResourceIdPropertyAttribute));
+                    }
 
-                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef);
+                    FieldDefinition backingField;
+                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
+                    AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
                 }
+
+                var ctor = typeInfo.EmptyPocoCtor;
+                ctor.Body.MaxStackSize = 8;
+                var ctorIlProcessor = ctor.Body.GetILProcessor();
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorReference));
+                foreach (var ilAction in ctorIlActions)
+                {
+                    ilAction(ctorIlProcessor);
+                }
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+            }
+        }
+
+        private void AddPropertyFieldInitialization(FieldDefinition backingField, IMappedType propertyType,
+                                                    List<Action<ILProcessor>> ctorIlActions)
+        {
+            if (propertyType.MappedAsValueObject)
+            {
+                var typeInfo = clientTypeInfoDict[propertyType];
+
+                ctorIlActions.Add(il =>
+                    {
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Newobj, typeInfo.EmptyPocoCtor);
+                        il.Emit(OpCodes.Stfld, backingField);
+                    });
+            }
+            else if (propertyType.IsCollection)
+            {
+                var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
+                var listReference = GetClientTypeReference(typeof (List<>));
+                var listCtor = listReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+                var listCtorInstance =
+                    module.Import(listCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments[0]));
+                ctorIlActions.Add(il =>
+                    {
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Newobj, listCtorInstance);
+                        il.Emit(OpCodes.Stfld, backingField);
+                    });
+            }
+            else if (propertyType.IsDictionary)
+            {
+                var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
+                var dictReference = GetClientTypeReference(typeof (Dictionary<,>));
+                var dictCtor = dictReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+                var dictCtorInstance =
+                    module.Import(dictCtor.MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments.ToArray()));
+                ctorIlActions.Add(il =>
+                    {
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Newobj, dictCtorInstance);
+                        il.Emit(OpCodes.Stfld, backingField);
+                    });
             }
         }
 
@@ -600,9 +683,12 @@ namespace Pomona.CodeGen
 
         private void CreateProxies(
             ProxyBuilder proxyBuilder,
-            Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated)
+            Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
+            Func<TypeCodeGenInfo, bool> typeIsGeneratedPredicate = null)
         {
-            foreach (var typeInfo in clientTypeInfoDict.Values)
+            typeIsGeneratedPredicate = typeIsGeneratedPredicate ?? (x => true);
+
+            foreach (var typeInfo in clientTypeInfoDict.Values.Where(typeIsGeneratedPredicate))
             {
                 var targetType = typeInfo.TransformedType;
                 var name = targetType.Name;
@@ -615,49 +701,25 @@ namespace Pomona.CodeGen
         }
 
 
-        private void GeneratePropertyProxyMethods(
-            PropertyDefinition targetProp,
-            PropertyDefinition proxyPropDef,
-            TypeReference proxyBaseDefinition,
-            TypeReference proxyTargetType)
-        {
-            var proxyOnPropertyGetMethod =
-                module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertyGet"));
-            var proxyOnPropertySetMethod =
-                module.Import(proxyBaseDefinition.Resolve().Methods.First(x => x.Name == "OnPropertySet"));
-
-            var getterOpcodes = proxyPropDef.GetMethod.Body.GetILProcessor();
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, targetProp.Name));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertyGetMethod));
-            if (targetProp.PropertyType.IsValueType)
-                getterOpcodes.Append(Instruction.Create(OpCodes.Unbox_Any, proxyPropDef.PropertyType));
-            else
-                getterOpcodes.Append(Instruction.Create(OpCodes.Castclass, proxyPropDef.PropertyType));
-            getterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-
-            var setterOpcodes = proxyPropDef.SetMethod.Body.GetILProcessor();
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_0));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldstr, targetProp.Name));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ldarg_1));
-            if (targetProp.PropertyType.IsValueType)
-                setterOpcodes.Append(Instruction.Create(OpCodes.Box, proxyPropDef.PropertyType));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Call, proxyOnPropertySetMethod));
-            setterOpcodes.Append(Instruction.Create(OpCodes.Ret));
-        }
-
-
         private TypeReference GetClientTypeReference(Type type)
         {
             TypeReference typeReference;
-            if (PomonaClientEmbeddingEnabled)
-            {
-                // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
-                typeReference = module.GetType(type.FullName);
-            }
-            else
-                typeReference = module.Import(type);
-            return typeReference;
+
+            return typeReferenceCache.GetOrCreate(type, () =>
+                {
+                    if (PomonaClientEmbeddingEnabled && type.Assembly == typeof (IPomonaClient).Assembly)
+                    {
+                        // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
+                        typeReference = module.GetType(type.FullName);
+                    }
+                    else
+                        typeReference = module.Import(type);
+
+                    if (typeReference == null)
+                        throw new InvalidOperationException("Did not expect to get null when resolving type.");
+
+                    return typeReference;
+                });
         }
 
 
@@ -777,13 +839,13 @@ namespace Pomona.CodeGen
                 else
                 {
                     var invalidOperationStrCtor =
-                        typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                        typeof (InvalidOperationException).GetConstructor(new[] { typeof (string) });
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
                     var getMethod = proxyProp.GetMethod;
                     var setMethod = proxyProp.SetMethod;
 
-                    foreach (var method in new[] {getMethod, setMethod})
+                    foreach (var method in new[] { getMethod, setMethod })
                     {
                         var ilproc = method.Body.GetILProcessor();
                         ilproc.Append(
@@ -820,22 +882,24 @@ namespace Pomona.CodeGen
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition PostFormType { get; set; }
-            public TypeDefinition PutFormType { get; set; }
+            public TypeDefinition PatchFormType { get; set; }
 
             public TransformedType TransformedType { get; set; }
             public TypeDefinition UriBaseType { get; set; }
+
+            public TypeDefinition BaseType { get; set; }
         }
 
         #endregion
 
         #region Nested type: UpdateProxyBuilder
 
-        private class UpdateProxyBuilder : WrappedPropertyProxyBuilder
+        private class PatchFormProxyBuilder : WrappedPropertyProxyBuilder
         {
             private readonly ClientLibGenerator owner;
 
 
-            public UpdateProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
+            public PatchFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
                 : base(
                     owner.module,
                     owner.GetProxyType("PutResourceBase"),
@@ -843,7 +907,7 @@ namespace Pomona.CodeGen
                     isPublic)
             {
                 this.owner = owner;
-                ProxyNameFormat = "{0}Update";
+                ProxyNameFormat = "{0}PatchForm";
             }
 
 
@@ -860,7 +924,7 @@ namespace Pomona.CodeGen
                 if (!propertyMapping.IsWriteable)
                 {
                     var invalidOperationStrCtor =
-                        typeof (InvalidOperationException).GetConstructor(new[] {typeof (string)});
+                        typeof (InvalidOperationException).GetConstructor(new[] { typeof (string) });
                     var invalidOperationStrCtorRef = Module.Import(invalidOperationStrCtor);
 
                     // Do not disable GETTING of collection types in update proxy, we might want to change
@@ -870,8 +934,8 @@ namespace Pomona.CodeGen
                                                  propertyMapping.PropertyType.IsDictionary;
 
                     var methodsToRestrict = allowReadingOfProperty
-                                                ? new[] {proxyProp.SetMethod}
-                                                : new[] {proxyProp.SetMethod, proxyProp.GetMethod};
+                                                ? new[] { proxyProp.SetMethod }
+                                                : new[] { proxyProp.SetMethod, proxyProp.GetMethod };
 
                     foreach (var method in methodsToRestrict)
                     {

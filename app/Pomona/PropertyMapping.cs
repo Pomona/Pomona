@@ -35,13 +35,6 @@ namespace Pomona
     {
         #region PropertyAccessMode enum
 
-        public enum PropertyAccessMode
-        {
-            ReadWrite,
-            ReadOnly,
-            WriteOnly
-        }
-
         #endregion
 
         private readonly TransformedType declaringType;
@@ -63,6 +56,7 @@ namespace Pomona
             this.name = name;
             LowerCaseName = name.ToLower();
             JsonName = name.Substring(0, 1).ToLower() + name.Substring(1);
+            UriName = NameUtils.ConvertCamelCaseToUri(name);
             this.declaringType = declaringType;
             this.propertyType = propertyType;
             this.propertyInfo = propertyInfo;
@@ -83,7 +77,6 @@ namespace Pomona
         public PropertyMapping ElementForeignKey { get; set; }
 
         public bool IsAttributesProperty { get; set; }
-        public bool IsEtagProperty { get; set; }
 
         public bool IsOneToManyCollection
         {
@@ -116,6 +109,10 @@ namespace Pomona
             }
         }
 
+        public string UriName { get; set; }
+
+        public bool IsEtagProperty { get; set; }
+
         public bool AlwaysExpand { get; set; }
         public PropertyCreateMode CreateMode { get; set; }
 
@@ -136,6 +133,16 @@ namespace Pomona
             get { return AccessMode == PropertyAccessMode.WriteOnly || AccessMode == PropertyAccessMode.ReadWrite; }
         }
 
+        public bool IsReadable
+        {
+            get { return AccessMode == PropertyAccessMode.ReadOnly || AccessMode == PropertyAccessMode.ReadWrite; }
+        }
+
+        public bool IsSerialized
+        {
+            get { return IsReadable; }
+        }
+
         public string JsonName { get; set; }
         public string LowerCaseName { get; private set; }
 
@@ -151,7 +158,6 @@ namespace Pomona
 
         public Action<object, object> Setter { get; set; }
 
-
         public Expression CreateGetterExpression(Expression instance)
         {
             if (Formula == null)
@@ -159,6 +165,11 @@ namespace Pomona
 
             // TODO: Make some assertions here..
             return FindAndReplaceVisitor.Replace(Formula.Body, Formula.Parameters[0], instance);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1}::{2}", PropertyType, DeclaringType, Name);
         }
     }
 }

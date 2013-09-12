@@ -23,11 +23,11 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Nancy;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -44,10 +44,15 @@ namespace Pomona
         {
             Default,
             First,
-            FirstOrDefault
+            FirstOrDefault,
+            Max,
+            Min,
+            Sum,
+            Count
         }
 
         private static readonly MethodInfo applyAndExecuteMethod;
+        private readonly IPomonaUriResolver uriResolver;
         private readonly TransformedType targetType;
 
 
@@ -58,12 +63,14 @@ namespace Pomona
         }
 
 
-        public PomonaQuery(TransformedType targetType)
+        public PomonaQuery(TransformedType targetType, IPomonaUriResolver uriResolver)
         {
             DebugInfoKeys = new HashSet<string>();
             if (targetType == null)
                 throw new ArgumentNullException("targetType");
+            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.targetType = targetType;
+            this.uriResolver = uriResolver;
         }
 
         public HashSet<string> DebugInfoKeys { get; set; }
@@ -100,10 +107,10 @@ namespace Pomona
             return DebugInfoKeys.Contains(debugKey.ToLower());
         }
 
-        public QueryResult ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
+        public PomonaResponse ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
             var totalQueryable = ApplyExpressions(queryable);
-            return (QueryResult) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
+            return (PomonaResponse) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
                 this, new object[] {totalQueryable, skipAndTakeAfterExecute});
         }
 
@@ -165,18 +172,75 @@ namespace Pomona
         }
 
 
-        private QueryResult ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
+        private PomonaResponse ApplyAndExecute<T>(IQueryable<T> totalQueryable, bool skipAndTakeAfterExecute)
         {
-            IEnumerable limitedQueryable;
-            var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
-            if (skipAndTakeAfterExecute)
+            switch (Projection)
             {
-                limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top);
-            }
-            else
-                limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
+                case ProjectionType.First:
+                    {
+                        object result;
+                        try
+                        {
+                            result = totalQueryable.First();
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            // We assume that this means no matching element.
+                            // Don't know another way to check this in a non-ambigious way, since null might be a valid return value.
+                            return new PomonaResponse(this, PomonaResponse.NoBodyEntity, uriResolver,
+                                                      HttpStatusCode.NotFound);
+                        }
+                        return new PomonaResponse(this, result, uriResolver);
+                    }
+                case ProjectionType.FirstOrDefault:
+                    return new PomonaResponse(this, totalQueryable.FirstOrDefault(), uriResolver);
+                case ProjectionType.Max:
+                    return new PomonaResponse(this, totalQueryable.Max(), uriResolver);
+                case ProjectionType.Min:
+                    return new PomonaResponse(this, totalQueryable.Min(), uriResolver);
+                case ProjectionType.Count:
+                    return new PomonaResponse(this, totalQueryable.Count(), uriResolver);
+                case ProjectionType.Sum:
+                    return ApplySum(totalQueryable);
+                default:
+                    {
+                        IList<T> limitedQueryable;
+                        var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
+                        if (skipAndTakeAfterExecute)
+                        {
+                            limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top).ToList();
+                        }
+                        else
+                            limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
 
-            return QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+                        var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+                        return new PomonaResponse(this, qr, uriResolver);
+                    }
+            }
+        }
+
+        private PomonaResponse ApplySum<T>(IQueryable<T> totalQueryable)
+        {
+            var intQueryable = totalQueryable as IQueryable<int>;
+            if (intQueryable != null)
+                return new PomonaResponse(this, intQueryable.Sum(), uriResolver);
+            var nullableIntQueryable = totalQueryable as IQueryable<int?>;
+            if (nullableIntQueryable != null)
+                return new PomonaResponse(this, nullableIntQueryable.Sum(), uriResolver);
+            var decimalQueryable = totalQueryable as IQueryable<decimal>;
+            if (decimalQueryable != null)
+                return new PomonaResponse(this, decimalQueryable.Sum(), uriResolver);
+            var nullableDecimalQueryable = totalQueryable as IQueryable<decimal?>;
+            if (nullableDecimalQueryable != null)
+                return new PomonaResponse(this, nullableDecimalQueryable.Sum(), uriResolver);
+            var doubleQueryable = totalQueryable as IQueryable<double>;
+            if (doubleQueryable != null)
+                return new PomonaResponse(this, doubleQueryable.Sum(), uriResolver);
+            var nullableDoubleQueryable = totalQueryable as IQueryable<double?>;
+            if (nullableDoubleQueryable != null)
+                return new PomonaResponse(this, nullableDoubleQueryable.Sum(), uriResolver);
+
+            throw new NotSupportedException("Unable to calculate sum of type " + typeof (T).Name);
         }
 
 

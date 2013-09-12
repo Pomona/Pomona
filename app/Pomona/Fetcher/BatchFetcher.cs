@@ -250,7 +250,7 @@ namespace Pomona.Fetcher
             elementType =
                 prop.PropertyType
                     .GetInterfaces()
-                    .Where(x => x.GetGenericTypeDefinition() == typeof (IEnumerable<>))
+                    .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof (IEnumerable<>))
                     .Select(x => x.GetGenericArguments()[0])
                     .FirstOrDefault();
 

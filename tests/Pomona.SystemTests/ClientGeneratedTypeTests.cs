@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,15 +24,39 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
+using Pomona.Common;
 
 namespace Pomona.SystemTests
 {
     [TestFixture]
     public class ClientGeneratedTypeTests
     {
+        [Test]
+        public void GeneratedPocoTypeInitializesDictionaryPropertyInConstructor()
+        {
+            var dictContainer = new DictionaryContainerResource();
+            Assert.That(dictContainer.Map, Is.Not.Null);
+        }
+
+        [Test]
+        public void GeneratedPocoTypeInitializesListPropertyInConstructor()
+        {
+            var critter = new CritterResource();
+            Assert.That(critter.Weapons, Is.Not.Null);
+        }
+
+        [Test]
+        public void GeneratedPocoTypeInitializesValueObjectPropertyInConstructor()
+        {
+            var critter = new CritterResource();
+            Assert.That(critter.CrazyValue, Is.Not.Null);
+        }
+
         [Test]
         public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
         {
@@ -40,9 +66,68 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PropertyGeneratedFromInheritedVirtualProperty_IsNotDuplicatedOnInheritedInterface()
+        {
+            Assert.That(typeof (IAbstractAnimal).GetProperty("TheVirtualProperty"), Is.Not.Null);
+            Assert.That(typeof (IBear).GetProperty("TheVirtualProperty"), Is.EqualTo(null));
+            Assert.That(typeof (IAbstractAnimal).GetProperty("TheAbstractProperty"), Is.Not.Null);
+            Assert.That(typeof (IBear).GetProperty("TheAbstractProperty"), Is.EqualTo(null));
+        }
+
+        [Test]
+        public void ResourceInfoAttributeOfGeneratedTypeHasCorrectEtagPropertySet()
+        {
+            var resInfo = typeof (IEtaggedEntity).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(resInfo.EtagProperty, Is.EqualTo(typeof (IEtaggedEntity).GetProperty("ETag")));
+        }
+
+        [Test]
+        public void ResourceInfoAttributeOfGeneratedTypeHasCorrectIdPropertySet()
+        {
+            var resInfo = typeof (ICritter).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(resInfo.EtagProperty, Is.EqualTo(typeof (IEtaggedEntity).GetProperty("Id")));
+        }
+
+        [Test]
+        public void ResourceInheritedFromResourceWithPostDeniedDoesNotHavePostResourceFormGenerated()
+        {
+            var typeInfo =
+                typeof (IInheritedUnpostableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(typeInfo.PostFormType, Is.Null);
+            Assert.That(
+                typeof (IInheritedUnpostableThing).Assembly.GetType("Critters.Client.InheritedUnpostableThingForm"),
+                Is.Null);
+        }
+
+        [Test]
+        public void ResourceWithPatchDeniedDoesNotHavePatchResourceFormGenerated()
+        {
+            var typeInfo = typeof (IUnpatchableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(typeInfo.PatchFormType, Is.Null);
+            Assert.That(typeof (IUnpatchableThing).Assembly.GetType("Critters.Client.UnpatchableThingPatchForm"),
+                        Is.Null);
+            Assert.That(typeof (IUnpatchableThing).Assembly.GetType("Critters.Client.CritterPatchForm"), Is.Not.Null);
+        }
+
+        [Test]
+        public void ResourceWithPostDeniedDoesNotHavePostResourceFormGenerated()
+        {
+            var typeInfo = typeof (IUnpostableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(typeInfo.PostFormType, Is.Null);
+            Assert.That(typeof (IUnpostableThing).Assembly.GetType("Critters.Client.UnpostableThingForm"), Is.Null);
+            Assert.That(typeof (IUnpostableThing).Assembly.GetType("Critters.Client.CritterForm"), Is.Not.Null);
+        }
+
+        [Test]
         public void ThingIndependentFromBase_DoesNotInheritEntityBase()
         {
             Assert.That(!typeof (IEntityBase).IsAssignableFrom(typeof (IThingIndependentFromBase)));
+        }
+
+        [Test]
+        public void ThingIndependentFromBase_IncludesPropertyFromEntityBase()
+        {
+            Assert.That(typeof (IThingIndependentFromBase).GetProperty("Id"), Is.Not.Null);
         }
     }
 }

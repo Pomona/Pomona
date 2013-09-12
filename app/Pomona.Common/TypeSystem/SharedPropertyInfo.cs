@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq.Expressions;
@@ -75,7 +79,18 @@ namespace Pomona.Common.TypeSystem
 
         public bool IsWriteable
         {
-            get { throw new NotImplementedException(); }
+            get { return propertyInfo.GetSetMethod() != null; }
+        }
+
+
+        public bool IsReadable
+        {
+            get { return propertyInfo.GetGetMethod() != null; }
+        }
+
+        public bool IsSerialized
+        {
+            get { return true; }
         }
 
         public string JsonName
@@ -106,6 +121,11 @@ namespace Pomona.Common.TypeSystem
         public bool IsPrimaryKey
         {
             get { return false; }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1}::{2}", PropertyType, DeclaringType, Name);
         }
 
         #endregion

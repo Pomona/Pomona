@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq.Expressions;
 
@@ -43,6 +47,10 @@ namespace Pomona.FluentMapping
             Expression<Func<TDeclaringType, TDeclaringType>> constructExpr);
 
 
+        ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+            Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> constructExpr);
+
+
         ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);
 
@@ -56,5 +64,11 @@ namespace Pomona.FluentMapping
 
         ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
         ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
+        ITypeMappingConfigurator<TDeclaringType> PostAllowed();
+        ITypeMappingConfigurator<TDeclaringType> PostDenied();
+        ITypeMappingConfigurator<TDeclaringType> PatchAllowed();
+        ITypeMappingConfigurator<TDeclaringType> PatchDenied();
+
+        ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action);
     }
 }

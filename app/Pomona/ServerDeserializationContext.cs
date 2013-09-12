@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
@@ -29,27 +34,57 @@ namespace Pomona
 {
     public class ServerDeserializationContext : IDeserializationContext
     {
-        private readonly PomonaSession pomonaSession;
+        private readonly ITypeMapper typeMapper;
+        private readonly IPomonaUriResolver uriResolver;
 
-        public ServerDeserializationContext(PomonaSession pomonaSession)
+        public ServerDeserializationContext(ITypeMapper typeMapper, IPomonaUriResolver uriResolver)
         {
-            this.pomonaSession = pomonaSession;
+            this.typeMapper = typeMapper;
+            this.uriResolver = uriResolver;
+        }
+
+        public IMappedType GetClassMapping(Type type)
+        {
+            return typeMapper.GetClassMapping(type);
         }
 
         public object CreateReference(IMappedType type, string uri)
         {
-            return pomonaSession.GetResultByUri(uri);
+            return uriResolver.ResolveUri(uri);
         }
 
         public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
             where TReader : ISerializerReader
         {
             deserializer.DeserializeNode(node, reader);
+
+            var transformedType = node.ValueType as TransformedType;
+            if (transformedType != null && transformedType.OnDeserialized != null && node.Value != null)
+            {
+                transformedType.OnDeserialized(node.Value);
+            }
         }
+
 
         public IMappedType GetTypeByName(string typeName)
         {
-            return pomonaSession.TypeMapper.GetClassMapping(typeName);
+            return typeMapper.GetClassMapping(typeName);
+        }
+
+        public void SetProperty(IDeserializerNode targetNode, IPropertyInfo property, object propertyValue)
+        {
+            if (!property.IsWriteable)
+            {
+                var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)
+                                   ? property.Name
+                                   : targetNode.ExpandPath + "." + property.Name;
+                throw new ResourceValidationException(
+                    string.Format("Property {0} of resource {1} is not writable.", property.Name,
+                                  targetNode.ValueType.Name), propPath,
+                    targetNode.ValueType.Name, null);
+            }
+
+            property.Setter(targetNode.Value, propertyValue);
         }
     }
 }

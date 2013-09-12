@@ -32,6 +32,6 @@ namespace Pomona
     /// </summary>
     public interface IHttpQueryTransformer
     {
-        PomonaQuery TransformRequest(Request request, NancyContext nancyContext, TransformedType rootType);
+        PomonaQuery TransformRequest(Request request, NancyContext nancyContext, IPomonaUriResolver uriResolver, TransformedType rootType);
     }
 }

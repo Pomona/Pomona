@@ -45,8 +45,11 @@ namespace Pomona.Common.Serialization.Csv
 
             var elementType = node.ExpectedBaseType.ElementType;
             var valueProperties =
-                elementType.Properties.Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
+                elementType.Properties
+                           .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
+                           .Where(x => node.Context.PropertyIsSerialized(x))
                            .ToList();
+
             foreach (var item in (IEnumerable) node.Value)
             {
                 var colIndex = 0;
@@ -68,7 +71,7 @@ namespace Pomona.Common.Serialization.Csv
                                          IMappedType elementType)
         {
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
-                                                       string.Empty, fetchContext);
+                                                       string.Empty, fetchContext, null);
             itemNode.Serialize(this, writer);
         }
 

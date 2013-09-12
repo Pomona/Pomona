@@ -45,7 +45,15 @@ namespace Pomona.Common
                     {
                         SharedType sharedType;
                         if (typeof (IClientResource).IsAssignableFrom(type) && type != typeof (IClientResource))
-                            sharedType = new ClientType(GetResourceNonProxyInterfaceType(type), this);
+                        {
+                            var interfaceType = GetResourceNonProxyInterfaceType(type);
+                            if (interfaceType == type)
+                                sharedType = new ClientType(interfaceType, this);
+                            else
+                            {
+                                sharedType = (ClientType) GetClassMapping(interfaceType);
+                            }
+                        }
                         else
                             sharedType = new SharedType(type, this);
 

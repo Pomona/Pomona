@@ -57,6 +57,11 @@ namespace Pomona
 
         #region IMappedType Members
 
+        public bool MappedAsValueObject
+        {
+            get { return false; }
+        }
+
         public object Create(IDictionary<IPropertyInfo, object> args)
         {
             throw new NotImplementedException();

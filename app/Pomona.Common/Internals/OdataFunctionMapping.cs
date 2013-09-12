@@ -47,6 +47,7 @@ namespace Pomona.Common.Internals
 
         public static readonly MethodInfo DictStringStringGetMethod;
         public static readonly MethodInfo EnumerableContainsMethod;
+        public static readonly MethodInfo ListContainsMethod;
         public static readonly MethodInfo SafeGetMethod;
 
         private static readonly Dictionary<UniqueMemberToken, MemberMapping> metadataTokenToMemberMappingDict =
@@ -61,6 +62,8 @@ namespace Pomona.Common.Internals
             DictStringStringGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
             EnumerableContainsMethod =
                 ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
+            ListContainsMethod =
+                ReflectionHelper.GetMethodDefinition<List<object>>(x => x.Contains(null));
             SafeGetMethod =
                 ReflectionHelper.GetMethodDefinition<IDictionary<object, object>>(x => x.SafeGet(null));
 
@@ -88,6 +91,7 @@ namespace Pomona.Common.Internals
             Add<DateTime>(x => x.Month, "month({0})");
             Add<DateTime>(x => x.Second, "second({0})");
             Add<DateTime>(x => x.Year, "year({0})");
+            Add<DateTime>(x => x.Date, "date({0})");
 
             // TODO Math functions, these are static
             Add<double>(x => Math.Sqrt(x), "sqrt({0})");
