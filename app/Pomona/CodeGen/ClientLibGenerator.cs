@@ -812,7 +812,7 @@ namespace Pomona.CodeGen
             public PostFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
                 : base(
                     owner.module,
-                    owner.GetProxyType("PutResourceBase"),
+                    owner.GetProxyType("PostResourceBase"),
                     owner.GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve(),
                     isPublic)
             {
@@ -902,7 +902,7 @@ namespace Pomona.CodeGen
             public PatchFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
                 : base(
                     owner.module,
-                    owner.GetProxyType("PutResourceBase"),
+                    owner.GetProxyType("PostResourceBase"),
                     owner.GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve(),
                     isPublic)
             {
