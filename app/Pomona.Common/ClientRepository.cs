@@ -70,7 +70,7 @@ namespace Pomona.Common
         }
 
         public TPostResponseResource Post<TPostForm>(TPostForm form)
-            where TPostForm : PutResourceBase, TResource
+            where TPostForm : PostResourceBase, TResource
         {
             return (TPostResponseResource) client.Post<TResource>(Uri, form);
         }
@@ -93,7 +93,7 @@ namespace Pomona.Common
             return (TPostResponseResource) client.Post(Uri, postAction);
         }
 
-        public object Post<TPostForm>(TResource resource, TPostForm form) where TPostForm : PutResourceBase, IClientResource
+        public object Post<TPostForm>(TResource resource, TPostForm form) where TPostForm : PostResourceBase, IClientResource
         {
             if (resource == null) throw new ArgumentNullException("resource");
             if (form == null) throw new ArgumentNullException("form");

@@ -42,7 +42,7 @@ namespace Pomona.Common
             where TSubResource : class, TResource;
 
         TPostResponseResource Post<TPostForm>(TPostForm form)
-            where TPostForm : PutResourceBase, TResource;
+            where TPostForm : PostResourceBase, TResource;
 
         TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource;
@@ -50,7 +50,7 @@ namespace Pomona.Common
         TPostResponseResource Post(Action<TResource> postAction);
 
         object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : PutResourceBase, IClientResource;
+            where TPostForm : PostResourceBase, IClientResource;
 
         TResource Get(object id);
 

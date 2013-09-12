@@ -96,7 +96,7 @@
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ResourceAttributesPropertyAttribute.cs" />
     <Compile Include="ResourceBase.cs" />
-    <Compile Include="Proxies\PutResourceBase.cs" />
+    <Compile Include="Proxies\PostResourceBase.cs" />
     <Compile Include="ResourceEtagPropertyAttribute.cs" />
     <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />

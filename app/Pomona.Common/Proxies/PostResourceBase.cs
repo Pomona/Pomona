@@ -30,7 +30,7 @@ using System.Linq;
 
 namespace Pomona.Common.Proxies
 {
-    public class PutResourceBase : IPomonaSerializable
+    public class PostResourceBase : IPomonaSerializable
     {
         protected Dictionary<string, bool> dirtyMap = new Dictionary<string, bool>();
         protected Dictionary<string, object> propMap = new Dictionary<string, object>();

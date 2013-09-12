@@ -24,7 +24,7 @@
 
 namespace Pomona.Common.Proxies
 {
-    public abstract class NewResourceBase : PutResourceBase
+    public abstract class NewResourceBase : PostResourceBase
     {
     }
 }

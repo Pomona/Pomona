@@ -28,7 +28,7 @@ using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {
-    public class ClientSideFormProxyBase : PutResourceBase
+    public class ClientSideFormProxyBase : PostResourceBase
     {
         private static readonly MethodInfo onGetAttributeMethod =
             ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(

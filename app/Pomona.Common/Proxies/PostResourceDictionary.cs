@@ -30,11 +30,11 @@ namespace Pomona.Common.Proxies
 {
     internal class PostResourceDictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        private readonly PutResourceBase owner;
+        private readonly PostResourceBase owner;
         private readonly string propertyName;
         private readonly IDictionary<TKey, TValue> wrapped = new Dictionary<TKey, TValue>();
 
-        internal PostResourceDictionary(PutResourceBase owner, string propertyName)
+        internal PostResourceDictionary(PostResourceBase owner, string propertyName)
         {
             if (owner == null) throw new ArgumentNullException("owner");
             this.owner = owner;
