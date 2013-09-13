@@ -687,17 +687,35 @@ namespace Pomona.CodeGen
             Func<TypeCodeGenInfo, bool> typeIsGeneratedPredicate = null)
         {
             typeIsGeneratedPredicate = typeIsGeneratedPredicate ?? (x => true);
+            var generatedTypeDict = new Dictionary<TypeCodeGenInfo, TypeDefinition>();
 
             foreach (var typeInfo in clientTypeInfoDict.Values.Where(typeIsGeneratedPredicate))
             {
-                var targetType = typeInfo.TransformedType;
-                var name = targetType.Name;
-
-                var proxyType = proxyBuilder.CreateProxyType(name, typeInfo.InterfaceType.WrapAsEnumerable());
-
-                if (onTypeGenerated != null)
-                    onTypeGenerated(typeInfo, proxyType);
+                generatedTypeDict.GetOrCreate(typeInfo, () => CreateProxy(proxyBuilder, onTypeGenerated, typeInfo, generatedTypeDict));
             }
+        }
+
+        private TypeDefinition CreateProxy(ProxyBuilder proxyBuilder, Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated, TypeCodeGenInfo typeInfo, Dictionary<TypeCodeGenInfo, TypeDefinition> generatedTypeDict)
+        {
+            var targetType = typeInfo.TransformedType;
+            var name = targetType.Name;
+
+            TypeDefinition baseTypeDef = null;
+            var tt = typeInfo.TransformedType;
+            if (tt.UriBaseType != null && tt.UriBaseType != tt)
+            {
+                var baseTypeInfo = clientTypeInfoDict[tt.BaseType];
+                baseTypeDef = generatedTypeDict.GetOrCreate(baseTypeInfo,
+                                                            () =>
+                                                            CreateProxy(proxyBuilder, onTypeGenerated, typeInfo,
+                                                                        generatedTypeDict));
+            }
+            var proxyType = proxyBuilder.CreateProxyType(name, typeInfo.InterfaceType.WrapAsEnumerable(), baseTypeDef);
+
+            if (onTypeGenerated != null)
+                onTypeGenerated(typeInfo, proxyType);
+
+            return proxyType;
         }
 
 
