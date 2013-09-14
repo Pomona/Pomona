@@ -572,7 +572,7 @@ namespace Pomona
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal, matchingCtorArg);
                 propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
-
+                propDef.ExposedAsRepository = filter.ClientPropertyIsExposedAsRepository(propInfoLocal);
                 propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
 
                 var formula = filter.GetPropertyFormula(propInfo);

@@ -525,7 +525,8 @@ namespace Pomona.CodeGen
 
                     FieldDefinition backingField;
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
-                    AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
+                    if (!prop.ExposedAsRepository)
+                        AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
                 }
 
                 var ctor = typeInfo.EmptyPocoCtor;
@@ -758,8 +759,7 @@ namespace Pomona.CodeGen
         private TypeReference GetPropertyTypeReference(PropertyMapping prop)
         {
             TypeReference propTypeRef;
-            if (prop.IsOneToManyCollection
-                && typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
+            if (prop.IsOneToManyCollection && prop.ExposedAsRepository)
             {
                 var resourceInfo = clientTypeInfoDict[prop.PropertyType.ElementType];
                 var elementTypeReference = resourceInfo.InterfaceType;

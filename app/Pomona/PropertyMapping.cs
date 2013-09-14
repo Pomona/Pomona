@@ -111,6 +111,7 @@ namespace Pomona
 
         public string UriName { get; set; }
 
+        public bool ExposedAsRepository { get; set; }
         public bool IsEtagProperty { get; set; }
 
         public bool AlwaysExpand { get; set; }
