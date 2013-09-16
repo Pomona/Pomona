@@ -1,4 +1,5 @@
-Preliminary JSON PATCH specification:
+JSON PATCH Specification
+====================================
 
 Example document:
 ```json
@@ -11,7 +12,7 @@ Example document:
 }
 ```
 
-We want to change info (an object):
+Changing 'info' (an object):
 ```json
 {
     "*info" : { "foo" : "miauu" }
