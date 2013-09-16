@@ -33,35 +33,42 @@ Replace the whole `info` property:
 }
 ```
 
-Remove Joe:
+Remove Joe from the `people` array:
 ```json
 {
     "-people" : [{ "@id" : 1 }]
 }
 ```
 
-Change Peter:
+Change Peter in the `people` array:
 ```json
 {
     "*people" : [{ "@id" : 2, "name" : "Peter Pan" }]
 }
 ```
 
-Add Nancy to `people`:
+Another way to change Peter in the `people` array (before renaming him to "Peter Pan" as per the above example):
+```json
+{
+    "*people" : [{ "@name" : "Peter", "name" : "Peter Pan" }]
+}
+```
+
+Add Nancy to the `people` array:
 ```json
 {
     "+people" : [{ "name" : "Nancy" }]
 }
 ```
 
-As adding is the default operation for arrays, the following will also add Nancy:
+As adding is the default operation for arrays, the following will also add Nancy to the `people` array:
 ```json
 {
     "people" : [{ "name" : "Nancy" }]
 }
 ```
 
-Replace the whole 'people' property:
+Replace the whole `people` property:
 ```json
 {
     "!people" : [{ "name" : "Peter Pan" }]
