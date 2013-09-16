@@ -1,4 +1,4 @@
-﻿# Pōmōna. The DTO-free way to REST for lazy people!
+# Pōmōna. The DTO-free way to REST for lazy people!
 
 Pōmōna is all about exposing your domain model as a REST API. With less pain.
 
@@ -49,16 +49,16 @@ A huge "thank you" to all the authors of these projects.
 
 So if you really want to check this stuff out, here's how you get started.
 
-1. Implement your own IPōmōnaDataSource
+1. Implement your own `IPomonaDataSource`
 2. Inherit from TypeMappingFilterBase, and at a minimum implement GetSourceTypes() and GetIdFor().
    They're abstract, so you can't miss them.
    GetSourceTypes() must return the list of what Types to expose to web service.
-3. Inherit PōmōnaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
+3. Inherit PomonaModule (which is a Nancy module), and treat this as you normally would treat a Nancy module.
    Which could mean zero configuration. Just because Nancy is THAT awesome!
 
 Look at the Critter example in the source code for details.
 
-If you fire up the Pōmōna.Example.ServerApp exe, it expose the critters on port 2211.
+If you fire up the `Pomona.Example.ServerApp.exe`, it expose the critters on port 2211.
 When ServerApp is running go here with a web browser to see what Pōmōna is all about:
 
 * http://localhost:2211/critters
@@ -75,8 +75,8 @@ Or PUT to http//localhost:2211/critter/someid to update the values of a critter.
 
 Features:
 * Add tests for serialization and deserialization on client DONE
-* Create IPōmōnaDataSource, for retrieval of data. DONE
-* Create PōmōnaSession and PōmōnaSessionFactory that will bind everything together.
+* Create IPomonaDataSource, for retrieval of data. DONE
+* Create PomonaSession and PōmōnaSessionFactory that will bind everything together.
 * Write correct metadata for generated client dll (AssemblyInfo etc..)
 * Implement support for value types (which is always expanded, and don't have URI). 90% DONE.
 * Implement simple query mechanism (Linq? relinq? something simpler?) 90% DONE.
