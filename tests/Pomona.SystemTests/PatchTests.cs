@@ -125,7 +125,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchMusicalInheritedCritter_UpdateProperty()
         {
-            var critter = Save(new MusicalCritter());
+            var critter = Save(new MusicalCritter("lalala"));
             var resource = client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
             client.Patch(resource,
                          x =>

@@ -56,6 +56,11 @@ namespace Pomona.Example
             map.PatchDenied();
         }
 
+        public void Map(ITypeMappingConfigurator<MusicalCritter> map)
+        {
+            map.ConstructedUsing((x, c) => new MusicalCritter(c.Optional(x.OnlyWritableByInheritedResource)));
+        }
+
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
         {
             map.Include(x => x.ReallyUglyPropertyName, o => o.Named("BeautifulAndExposed"));

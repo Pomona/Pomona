@@ -283,11 +283,7 @@ namespace Pomona.Common
 
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
-            while (type != null)
-            {
-                yield return type;
-                type = type.BaseType;
-            }
+            return type.WalkTree(x => x.BaseType);
         }
 
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)

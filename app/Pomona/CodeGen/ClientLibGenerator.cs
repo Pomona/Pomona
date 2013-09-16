@@ -1052,9 +1052,13 @@ namespace Pomona.CodeGen
                 TypeReference rootProxyTargetType)
             {
                 var propertyMapping = owner.GetPropertyMapping(targetProp, rootProxyTargetType);
+                var mergedProperties =
+                    propertyMapping.WrapAsEnumerable()
+                                   .Concat(
+                                       propertyMapping.ReflectedType.MergedTypes.Select(
+                                           x => x.Properties.First(y => y.Name == propertyMapping.Name)));
 
-                if (propertyMapping.CreateMode == PropertyCreateMode.Required ||
-                    propertyMapping.CreateMode == PropertyCreateMode.Optional)
+                if (mergedProperties.Any(x => x.CreateMode == PropertyCreateMode.Required || x.CreateMode == PropertyCreateMode.Optional))
                 {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);

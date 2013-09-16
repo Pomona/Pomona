@@ -255,7 +255,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostOrderWithItems()
         {
-            var orderResponse = client.Orders.Post(new OrderForm { Items = { new OrderItemForm { Name = "blah" } } });
+            var orderResponse = client.Orders.Post(new PurchaseOrderForm { Items = { new OrderItemForm { Name = "blah" } } });
             Assert.That(orderResponse.Order.Items, Has.Count.EqualTo(1));
             Assert.That(orderResponse.Order.Items[0].Name, Is.EqualTo("blah"));
         }

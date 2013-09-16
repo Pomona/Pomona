@@ -39,21 +39,24 @@ namespace Pomona
 
         private readonly TransformedType declaringType;
         private readonly string name;
+        private readonly TransformedType reflectedType;
         private readonly PropertyInfo propertyInfo;
         private readonly IMappedType propertyType;
         private PropertyInfo normalizedPropertyInfo;
 
 
         public PropertyMapping(
-            string name, TransformedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
+            string name, TransformedType reflectedType, TransformedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
+            if (reflectedType == null) throw new ArgumentNullException("reflectedType");
             if (declaringType == null)
                 throw new ArgumentNullException("declaringType");
             if (propertyType == null)
                 throw new ArgumentNullException("propertyType");
             this.name = name;
+            this.reflectedType = reflectedType;
             LowerCaseName = name.ToLower();
             JsonName = name.Substring(0, 1).ToLower() + name.Substring(1);
             UriName = NameUtils.ConvertCamelCaseToUri(name);
@@ -109,6 +112,7 @@ namespace Pomona
             }
         }
 
+
         public string UriName { get; set; }
 
         public bool ExposedAsRepository { get; set; }
@@ -158,6 +162,11 @@ namespace Pomona
         }
 
         public Action<object, object> Setter { get; set; }
+
+        public TransformedType ReflectedType
+        {
+            get { return reflectedType; }
+        }
 
         public Expression CreateGetterExpression(Expression instance)
         {

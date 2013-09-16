@@ -326,7 +326,7 @@ namespace Pomona.Example
             Critter critter;
             if (forceMusicalCritter || rng.NextDouble() > 0.76)
             {
-                var musicalCritter = new MusicalCritter
+                var musicalCritter = new MusicalCritter("written in the stars")
                     {
                         BandName = Words.GetBandName(rng),
                         Instrument = Save(new Instrument { Type = Words.GetCoolInstrument(rng) })

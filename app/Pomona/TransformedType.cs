@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -104,7 +100,12 @@ namespace Pomona
         /// </summary>
         public IEnumerable<TransformedType> MergedTypes
         {
-            get { return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
+            get
+            {
+                if (UriBaseType == null)
+                    return Enumerable.Empty<TransformedType>();
+                return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType);
+            }
         }
 
         public PropertyMapping ETagProperty
@@ -173,7 +174,7 @@ namespace Pomona
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] { }; }
+            get { return new IMappedType[] {}; }
         }
 
         public bool IsAlwaysExpanded
@@ -243,7 +244,7 @@ namespace Pomona
 
             foreach (var kvp in args)
             {
-                var propMapping = (PropertyMapping)kvp.Key;
+                var propMapping = (PropertyMapping) kvp.Key;
                 var ctorArgIndex = propMapping.ConstructorArgIndex;
 
                 if (ctorArgIndex == -1)
@@ -293,7 +294,7 @@ namespace Pomona
                     {
                         addItemsToDictionaryMethod.MakeGenericMethod(
                             prop.PropertyType.MappedTypeInstance.GetGenericArguments())
-                                                  .Invoke(this, new[] { kvp.Value, dict });
+                                                  .Invoke(this, new[] {kvp.Value, dict});
                         setPropertyToValue = false;
                     }
                 }
@@ -304,7 +305,7 @@ namespace Pomona
                     {
                         addValuesToCollectionMethod
                             .MakeGenericMethod(prop.PropertyType.ElementType.MappedTypeInstance)
-                            .Invoke(this, new[] { kvp.Value, collection });
+                            .Invoke(this, new[] {kvp.Value, collection});
                         setPropertyToValue = false;
                     }
                 }
@@ -393,7 +394,7 @@ namespace Pomona
                 if (pathType.IsCollection)
                     pathType = pathType.ElementType;
 
-                var nextType = (TransformedType)pathType;
+                var nextType = (TransformedType) pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;
@@ -498,10 +499,10 @@ namespace Pomona
             var propBaseDefinition = propertyInfo.GetBaseDefinition();
             var reflectedType = propertyInfo.ReflectedType;
             return reflectedType.GetFullTypeHierarchy()
-                             .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
-                             .TakeUntil(x => typeMapper.Filter.IsIndependentTypeRoot(x))
-                             .LastOrDefault(x => typeMapper.SourceTypes.Contains(x)) ??
-                             propBaseDefinition.DeclaringType;
+                                .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
+                                .TakeUntil(x => typeMapper.Filter.IsIndependentTypeRoot(x))
+                                .LastOrDefault(x => typeMapper.SourceTypes.Contains(x)) ??
+                   propBaseDefinition.DeclaringType;
         }
 
         internal void ScanProperties(Type type)
@@ -530,7 +531,8 @@ namespace Pomona
 
                 var propDef = new PropertyMapping(
                     typeMapper.Filter.GetPropertyMappedName(propInfo),
-                    (TransformedType)declaringType,
+                    this,
+                    (TransformedType) declaringType,
                     propertyTypeMapped,
                     propInfo);
 
