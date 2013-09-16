@@ -443,16 +443,30 @@ namespace Pomona.Common
 
         private void InstantiateClientRepositories()
         {
+            var generatedAssembly = GetType().Assembly;
+            var repositoryImplementations =
+                generatedAssembly.GetTypes()
+                                 .Where(x => typeof (IClientRepository).IsAssignableFrom(x) && !x.IsInterface)
+                                 .Select(
+                                     x =>
+                                     new
+                                         {
+                                             Interface =
+                                         x.GetInterfaces()
+                                          .First(y => y.Assembly == generatedAssembly && y.Name == "I" + x.Name),
+                                             Implementation = x
+                                         })
+                                 .ToDictionary(x => x.Interface, x => x.Implementation);
+
             foreach (
                 var prop in
-                    GetType().GetProperties().Where(x => typeof(IClientRepository).IsAssignableFrom(x.PropertyType)))
+                    GetType().GetProperties().Where(x => typeof (IClientRepository).IsAssignableFrom(x.PropertyType)))
             {
                 var repositoryInterface = prop.PropertyType;
-                var repositoryImplementation =
-                    repositoryInterface.Assembly.GetTypes().First(x => repositoryInterface.IsAssignableFrom(x) && !x.IsInterface);
+                var repositoryImplementation = repositoryImplementations[repositoryInterface];
 
                 Type[] typeArgs;
-                if (!repositoryInterface.TryExtractTypeArguments(typeof(IQueryableRepository<>), out typeArgs))
+                if (!repositoryInterface.TryExtractTypeArguments(typeof (IQueryableRepository<>), out typeArgs))
                     throw new InvalidOperationException("Expected IQueryableRepository to inherit IClientRepository..");
 
                 var tResource = typeArgs[0];
