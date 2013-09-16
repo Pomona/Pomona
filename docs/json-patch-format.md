@@ -11,6 +11,11 @@ Example document:
     ]
 }
 ```
+Operators:
+* `!` - Replaces a property (object or array).
+* `-` - Removes an identified item from an array. Invalid on objects.
+* `*` - Modifies a property (object or array).
+* `+` - Adds an item to an array. Invalid on objects. Also the default operation on arrays, making it optional.
 
 Changing the `info` property (an object):
 ```json
