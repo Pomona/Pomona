@@ -56,13 +56,13 @@ So if you really want to check this stuff out, here's how you get started.
 Look at the Critter example in the source code for details. If you fire up the `Pomona.Example.ServerApp.exe`, it expose the critters on port 2211.
 When ServerApp is running go here with a web browser to see what Pōmōna is all about:
 
-* http://localhost:2211/critters
-* http://localhost:2211/critters?$expand=critter.hat
-* http://localhost:2211/Critters.Client.dll <-- this generates a client dll on-the-fly
-* http://localhost:2211/Critters.Client.1.0.0.0.nupkg <-- this generates a nupkg for client on-the-fly
-* http://localhost:2211/schemas <-- this returns the JSON schema for the transformed data model
-
-You can also POST to http://localhost:2211/critter create a new critter entity, or PUT to http//localhost:2211/critter/someid to update the values of a critter.
+* `http://localhost:2211/critters`
+* `http://localhost:2211/critters?$expand=critter.hat`
+* `http://localhost:2211/Critters.Client.dll` - Generates a client library on-the-fly
+* `http://localhost:2211/Critters.Client.1.0.0.0.nupkg` - Generates a [NuGet Package](http://www.nuget.org/) for the client library on-the-fly
+* `http://localhost:2211/schemas` - Returns the JSON schema for the transformed data model
+* 
+You can also `POST` to `http://localhost:2211/critter` create a new critter entity, or `PUT` to `http//localhost:2211/critter/<id>` to update the values of a critter.
 
 ## Roadmap for first release
 
@@ -109,10 +109,9 @@ For this to work we need to:
 ## Automated batching of queries to decrease N+1 performance problems
 
 The classic N+1 problem will appear when looping through a list, where we at each step
-access a reference to another object, which will then be loaded.
-
-Although Pōmōna supports sending a list of expanded paths to deal with these problems,
-it would be sorta cool if this could be detected runtime and fixed.
+access a reference to another object, which will then be loaded. Although Pōmōna supports
+sending a list of expanded paths to deal with these problems, it would be sorta cool if
+this could be detected runtime and fixed.
 
 This is one way to do it (by example). We got two simple entity types:
 
@@ -159,7 +158,7 @@ doubled again.
 
 Total query count: 4
 
-And so on..:
+And so on:
 
 Query 5: Order #7, #8, #9, #10, #11, #12, #13, #14 loaded
 Query 6: Order #15, #16, #17, #18, #19, #20, #21, #22, #23, #24 loaded
