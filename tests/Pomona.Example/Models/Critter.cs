@@ -42,8 +42,8 @@ namespace Pomona.Example.Models
 
             SimpleAttributes = new List<SimpleAttribute>
                 {
-                    new SimpleAttribute {Key = "MeaningOfLife", Value = "42"},
-                    new SimpleAttribute {Key = "IsCat", Value = "maybe"}
+                    new SimpleAttribute { Key = "MeaningOfLife", Value = "42" },
+                    new SimpleAttribute { Key = "IsCat", Value = "maybe" }
                 };
 
             Hat = new Hat();

@@ -30,6 +30,7 @@ using System;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
+using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
@@ -139,7 +140,7 @@ namespace Pomona.SystemTests
             var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
             var ex =
                 Assert.Throws<InvalidOperationException>(
-                    () => client.UnpatchableThings.Patch(resource, x => x.FooBar = "moo"));
+                    () => ((IPatchableRepository<IUnpatchableThing>)client.UnpatchableThings).Patch(resource, x => x.FooBar = "moo"));
             Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
         }
 

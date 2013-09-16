@@ -23,11 +23,17 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pomona.Common.Internals
 {
     public static class ObjectExtensions
     {
+        public static IEnumerable<T> ConcatOne<T>(this IEnumerable<T> source, T value)
+        {
+            return source.Concat(value.WrapAsEnumerable());
+        }
+
         public static IEnumerable<T> WrapAsEnumerable<T>(this T value)
         {
             yield return value;

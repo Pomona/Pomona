@@ -157,7 +157,7 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = client.DictionaryContainers.Post(
+            var dictionaryContainer = client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
                     {
                         x.Map.Add("CustomString", "Lalalala");
@@ -181,7 +181,7 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = client.DictionaryContainers.Post(
+            var dictionaryContainer = client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
                     {
                         x.Map.Add("CustomString", "Lalalala");
@@ -199,7 +199,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCustomTestEntity_UsingGroupBy_ReturnsCustomTestEntity()
         {
-            client.DictionaryContainers.Post(
+            client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
                     {
                         x.Map.Add("CustomString", "Lalalala");

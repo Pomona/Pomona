@@ -43,8 +43,8 @@ namespace Pomona.CodeGen
             foreach (var parameter in self.Parameters)
                 reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
 
-            foreach (var generic_parameter in self.GenericParameters)
-                reference.GenericParameters.Add(new GenericParameter(generic_parameter.Name, reference));
+            foreach (var genericParameter in self.GenericParameters)
+                reference.GenericParameters.Add(new GenericParameter(genericParameter.Name, reference));
 
             return reference;
         }

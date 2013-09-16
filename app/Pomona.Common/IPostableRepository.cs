@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,18 +26,17 @@
 
 #endregion
 
-namespace Pomona.Example.Models
+using System;
+
+namespace Pomona.Common
 {
-    public class Weapon : EntityBase
+    public interface IPostableRepository<TResource, TPostResponseResource>
+        where TResource : class, IClientResource
+        where TPostResponseResource : IClientResource
     {
-        public Weapon(WeaponModel model)
-        {
-            Model = model;
-        }
+        TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource;
 
-
-        public WeaponModel Model { get; set; }
-        public decimal Price { get; set; }
-        public double Strength { get; set; }
+        TPostResponseResource Post(Action<TResource> postAction);
     }
 }

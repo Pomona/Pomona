@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
@@ -40,7 +44,7 @@ namespace Pomona.Example
 
         public CritterDataSource CritterDataSource
         {
-            get { return (CritterDataSource) DataSource; }
+            get { return (CritterDataSource)DataSource; }
         }
 
         protected override PomonaError OnException(Exception exception)
@@ -52,7 +56,7 @@ namespace Pomona.Example
 
             if (exception is ResourceValidationException)
             {
-                var validationException = (ResourceValidationException) exception;
+                var validationException = (ResourceValidationException)exception;
                 return new PomonaError(HttpStatusCode.BadRequest,
                                        new ErrorStatus(validationException.Message, 0xdead,
                                                        validationException.MemberName));

@@ -445,16 +445,17 @@ namespace Pomona.Common
         {
             foreach (
                 var prop in
-                    GetType().GetProperties().Where(
-                        x =>
-                        x.PropertyType.IsGenericType
-                        && x.PropertyType.GetGenericTypeDefinition() == typeof (IClientRepository<,>)))
+                    GetType().GetProperties().Where(x => typeof(IClientRepository).IsAssignableFrom(x.PropertyType)))
             {
                 var repositoryInterface = prop.PropertyType;
                 var repositoryImplementation =
-                    typeof (ClientRepository<,>).MakeGenericType(repositoryInterface.GetGenericArguments());
+                    repositoryInterface.Assembly.GetTypes().First(x => repositoryInterface.IsAssignableFrom(x) && !x.IsInterface);
 
-                var tResource = repositoryInterface.GetGenericArguments()[0];
+                Type[] typeArgs;
+                if (!repositoryInterface.TryExtractTypeArguments(typeof(IQueryableRepository<>), out typeArgs))
+                    throw new InvalidOperationException("Expected IQueryableRepository to inherit IClientRepository..");
+
+                var tResource = typeArgs[0];
                 var uri = GetUriOfType(tResource);
                 prop.SetValue(this, Activator.CreateInstance(repositoryImplementation, this, uri), null);
             }
