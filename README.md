@@ -118,9 +118,9 @@ This is one way to do it (by example). We got two simple entity types:
 Customer example:
 ```json
 {
-    name: "The first name",
-    order: {
-        _ref: "http://blah/order/1"
+    "name" : "The first name",
+    "order" : {
+        "_ref" : "http://blah/order/1"
     }
 }
 ```
@@ -128,8 +128,8 @@ Customer example:
 Order example:
 ```json
 {
-    _uri: "http://blah/order/1",
-    description: "This is a order",
+    "_uri" : "http://blah/order/1",
+    "description" : "This is a order",
 }
 ```
 
