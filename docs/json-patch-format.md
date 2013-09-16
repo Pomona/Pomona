@@ -19,7 +19,7 @@ Changing the `info` property (an object):
 }
 ```
 
-Changing members that are not arrays is the default operation, so this does the same thing:
+As changing members that are not arrays is the default operation, this also changes the `info` property:
 ```json
 {
     "info" : { "foo" : "miauu" }
