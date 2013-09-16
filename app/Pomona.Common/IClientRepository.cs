@@ -26,37 +26,26 @@
 
 #endregion
 
-using System;
-using System.Linq;
 using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
-    public interface IClientRepository<TResource, TPostResponseResource>
+    public interface IClientRepository
+    {
+        string Uri { get; }
+    }
+
+    public interface IClientRepository<TResource, TPostResponseResource> : IQueryableRepository<TResource>,
+                                                                           IPatchableRepository<TResource>,
+                                                                           IPostableRepository
+                                                                               <TResource, TPostResponseResource>,
+                                                                           IClientRepository
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
-        string Uri { get; }
+        TPostResponseResource Post(PostResourceBase form);
 
-        TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
-            where TSubResource : class, TResource;
-
-        TPostResponseResource Post<TPostForm>(TPostForm form)
-            where TPostForm : PutResourceBase, TResource;
-
-        TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
-            where TSubResource : class, TResource;
-
-        TPostResponseResource Post(Action<TResource> postAction);
-
-        object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : PutResourceBase, IClientResource;
 
         TResource Get(object id);
-
-        IQueryable<TResource> Query();
-
-        IQueryable<TSubResource> Query<TSubResource>()
-            where TSubResource : TResource;
     }
 }

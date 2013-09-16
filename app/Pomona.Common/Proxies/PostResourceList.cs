@@ -30,11 +30,11 @@ namespace Pomona.Common.Proxies
 {
     internal class PostResourceList<T> : IList<T>
     {
-        private readonly PutResourceBase owner;
+        private readonly PostResourceBase owner;
         private readonly string propertyName;
         private readonly List<T> wrapped = new List<T>();
 
-        internal PostResourceList(PutResourceBase owner, string propertyName)
+        internal PostResourceList(PostResourceBase owner, string propertyName)
         {
             if (owner == null)
                 throw new ArgumentNullException("owner");

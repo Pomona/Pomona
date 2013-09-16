@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,18 +26,16 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace Pomona.Example.Models
 {
-    public class Weapon : EntityBase
+    public class PurchaseOrder : Order
     {
-        public Weapon(WeaponModel model)
+        public PurchaseOrder(IEnumerable<OrderItem> items) : base(items)
         {
-            Model = model;
         }
 
-
-        public WeaponModel Model { get; set; }
-        public decimal Price { get; set; }
-        public double Strength { get; set; }
+        public string ThePurchaseInfo { get; set; }
     }
 }

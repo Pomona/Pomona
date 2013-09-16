@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +45,7 @@ namespace Pomona.CodeGen
         private readonly Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference>
             onGeneratePropertyMethodsFunc;
 
-        private readonly TypeReference proxyBaseTypeDef;
+        private readonly TypeReference proxySuperBaseTypeDef;
 
         private readonly string proxyNamespace;
         private string proxyNameFormat;
@@ -50,7 +54,7 @@ namespace Pomona.CodeGen
         public ProxyBuilder(
             ModuleDefinition module,
             string proxyNameFormat,
-            TypeReference proxyBaseTypeDef,
+            TypeReference proxySuperBaseTypeDef,
             bool isPublic,
             Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference> onGeneratePropertyMethodsFunc =
                 null,
@@ -58,7 +62,7 @@ namespace Pomona.CodeGen
         {
             this.proxyNamespace = proxyNamespace ?? module.Assembly.Name.Name;
             this.module = module;
-            this.proxyBaseTypeDef = proxyBaseTypeDef;
+            this.proxySuperBaseTypeDef = proxySuperBaseTypeDef;
             this.onGeneratePropertyMethodsFunc = onGeneratePropertyMethodsFunc;
             this.proxyNameFormat = proxyNameFormat;
             this.isPublic = isPublic;
@@ -79,10 +83,11 @@ namespace Pomona.CodeGen
 
         public TypeDefinition CreateProxyType(
             string nameBase,
-            IEnumerable<TypeDefinition> interfacesToImplement)
+            IEnumerable<TypeDefinition> interfacesToImplement,
+            TypeDefinition proxyBase)
         {
-            MethodReference proxyBaseCtor =
-                proxyBaseTypeDef.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
+            proxyBase = proxyBase ?? proxySuperBaseTypeDef.Resolve();
+            MethodReference proxyBaseCtor = proxyBase.GetConstructors().First(x => x.Parameters.Count == 0);
             proxyBaseCtor = Module.Import(proxyBaseCtor);
 
             var proxyTypeName = string.Format(proxyNameFormat, nameBase);
@@ -96,7 +101,7 @@ namespace Pomona.CodeGen
                     proxyNamespace,
                     proxyTypeName,
                     typeAttributes,
-                    module.Import(proxyBaseTypeDef));
+                    module.Import(proxyBase));
             Module.Types.Add(proxyType);
 
             foreach (var interfaceDef in interfacesToImplement)
@@ -117,15 +122,20 @@ namespace Pomona.CodeGen
 
             proxyType.Methods.Add(ctor);
 
-            var interfaces = interfacesToImplement.SelectMany(GetAllInterfacesRecursive).Distinct().ToList();
+            var interfaces =
+                interfacesToImplement.SelectMany(GetAllInterfacesRecursive)
+                                     .Except(proxyBase.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())))
+                                     .Distinct()
+                                     .ToList();
 
-            foreach (var targetProp in interfaces.SelectMany(x => x.Properties))
+            var propertiesToCreate = interfaces.SelectMany(x => x.Properties).ToList();
+            foreach (var targetProp in propertiesToCreate)
             {
                 var proxyPropDef = AddProperty(proxyType, targetProp.Name, module.Import(targetProp.PropertyType));
                 OnGeneratePropertyMethods(
                     targetProp,
                     proxyPropDef,
-                    proxyBaseTypeDef,
+                    proxySuperBaseTypeDef,
                     module.Import(targetProp.DeclaringType),
                     interfacesToImplement.First());
             }

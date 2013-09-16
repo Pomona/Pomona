@@ -35,11 +35,8 @@ namespace Pomona.Common.Linq
             return client.Query<T>().Where(predicate);
         }
 
-        public static IQueryable<TResource> Query<TResource, TPostResponseResource>(
-            this IClientRepository<TResource, TPostResponseResource> repository,
-            Expression<Func<TResource, bool>> predicate)
+        public static IQueryable<TResource> Query<TResource>(this IQueryableRepository<TResource> repository, Expression<Func<TResource, bool>> predicate)
             where TResource : class, IClientResource
-            where TPostResponseResource : IClientResource
         {
             return repository.Query().Where(predicate);
         }

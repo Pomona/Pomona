@@ -40,6 +40,14 @@ namespace Pomona.UnitTests
 
         private TypeMapper typeMapper;
 
+        [Test]
+        public void DoesNotDuplicatePropertiesWhenDerivedFromHiddenBaseClassInMiddle()
+        {
+            var tt = typeMapper.GetClassMapping<InheritsFromHiddenBase>();
+            Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
+            var idProp = tt.Properties.First(x => x.Name == "Id");
+            Assert.That(idProp.DeclaringType, Is.EqualTo(typeMapper.GetClassMapping<EntityBase>()));
+        }
 
         [Test]
         public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +63,7 @@ namespace Pomona.Example
 
         public override object GetIdFor(object entity)
         {
-            return ((EntityBase) entity).Id;
+            return ((EntityBase)entity).Id;
         }
 
 
@@ -73,12 +77,14 @@ namespace Pomona.Example
 
         public override IEnumerable<Type> GetSourceTypes()
         {
-            return CritterDataStore.GetEntityTypes().Concat(new[] {typeof (GenericBaseClass<int>)});
+            return CritterDataStore.GetEntityTypes().Concat(new[] { typeof (GenericBaseClass<int>) });
         }
 
 
         public override Type GetUriBaseType(Type type)
         {
+            if (typeof (Order).IsAssignableFrom(type))
+                return typeof (Order);
             if (typeof (Weapon).IsAssignableFrom(type))
                 return typeof (Weapon);
             if (type == typeof (MusicalCritter))

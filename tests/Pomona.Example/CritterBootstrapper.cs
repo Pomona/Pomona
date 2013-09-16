@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.TinyIoc;
@@ -38,7 +42,7 @@ namespace Pomona.Example
         public CritterBootstrapper(CritterDataStore dataSource = null)
         {
             typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.dataStore = dataSource ?? new CritterDataStore(typeMapper);
+            dataStore = dataSource ?? new CritterDataStore(typeMapper);
         }
 
         public CritterDataStore DataStore

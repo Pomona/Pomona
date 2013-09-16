@@ -493,20 +493,15 @@ namespace Pomona
 
         private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
         {
+            // Hack, IGrouping
+
             var propBaseDefinition = propertyInfo.GetBaseDefinition();
             var reflectedType = propertyInfo.ReflectedType;
-
-            while (
-                       !typeMapper.Filter.IsIndependentTypeRoot(reflectedType) &&
-                       reflectedType.BaseType != null &&
-                       reflectedType != propBaseDefinition.DeclaringType &&
-                       typeMapper.SourceTypes.Contains(reflectedType.BaseType)
-                   )
-            {
-                reflectedType = reflectedType.BaseType;
-            }
-
-            return reflectedType;
+            return reflectedType.GetFullTypeHierarchy()
+                             .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
+                             .TakeUntil(x => typeMapper.Filter.IsIndependentTypeRoot(x))
+                             .LastOrDefault(x => typeMapper.SourceTypes.Contains(x)) ??
+                             propBaseDefinition.DeclaringType;
         }
 
         internal void ScanProperties(Type type)
@@ -572,7 +567,7 @@ namespace Pomona
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal, matchingCtorArg);
                 propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
-
+                propDef.ExposedAsRepository = filter.ClientPropertyIsExposedAsRepository(propInfoLocal);
                 propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
 
                 var formula = filter.GetPropertyFormula(propInfo);

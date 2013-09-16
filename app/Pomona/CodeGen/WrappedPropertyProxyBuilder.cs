@@ -37,9 +37,9 @@ namespace Pomona.CodeGen
 
         public WrappedPropertyProxyBuilder(
             ModuleDefinition module,
-            TypeReference proxyBaseTypeDef,
+            TypeReference proxySuperBaseTypeDef,
             TypeDefinition propertyWrapperType,
-            bool isPublic = true) : base(module, "{0}LazyProxy", proxyBaseTypeDef, isPublic)
+            bool isPublic = true) : base(module, "{0}LazyProxy", proxySuperBaseTypeDef, isPublic)
         {
             this.propertyWrapperType = propertyWrapperType;
         }

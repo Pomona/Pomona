@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -67,7 +63,7 @@ namespace Pomona
 
         #region ITypeMappingFilter Members
 
-        public bool IsIndependentTypeRoot(Type type)
+        public virtual bool IsIndependentTypeRoot(Type type)
         {
             return false;
         }
@@ -186,6 +182,9 @@ namespace Pomona
         public virtual Type GetUriBaseType(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
+            if (TypeIsMappedAsValueObject(type))
+                return null;
+
             return type;
         }
 
@@ -272,7 +271,7 @@ namespace Pomona
         public virtual bool TypeIsExposedAsRepository(Type type)
         {
             if (type == null) throw new ArgumentNullException("type");
-            return true;
+            return GetUriBaseType(type) != null;
         }
 
 

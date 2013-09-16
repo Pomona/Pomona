@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,11 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using Pomona.Example.Models;
 using System.Linq;
+using System.Linq.Expressions;
+using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
@@ -39,13 +42,15 @@ namespace Pomona.Example
         {
             if (typeof (EntityBase).IsAssignableFrom(node.Expression.Type))
             {
-                MemberInfo memberInfo = node.Member;
+                var memberInfo = node.Member;
                 if (memberInfo.GetCustomAttributes(true).OfType<NotKnownToDataSourceAttribute>().Any())
                 {
-                    throw new InvalidOperationException("Property " + memberInfo.Name + " of entity "+ memberInfo.DeclaringType.Name + " is read-only, and shouldn't be used in search.");
+                    throw new InvalidOperationException("Property " + memberInfo.Name + " of entity " +
+                                                        memberInfo.DeclaringType.Name +
+                                                        " is read-only, and shouldn't be used in search.");
                 }
             }
             return base.VisitMember(node);
-        }
+        }
     }
 }

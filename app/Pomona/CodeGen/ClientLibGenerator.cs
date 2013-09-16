@@ -33,6 +33,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using NuGet;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -172,6 +173,8 @@ namespace Pomona.CodeGen
             foreach (var typeInfo in clientTypeInfoDict.Values)
                 AddResourceInfoAttribute(typeInfo);
 
+            //AddRepositoryPostExtensionMethods();
+
             // Copy types from running assembly
 
             var memstream = new MemoryStream();
@@ -283,17 +286,22 @@ namespace Pomona.CodeGen
 
         private void AddRepositoryPropertiesToClientType(TypeDefinition clientTypeDefinition)
         {
-            foreach (
-                var resourceTypeInfo in
-                    clientTypeInfoDict.Values.Where(
-                        x => x.UriBaseType == x.InterfaceType && x.TransformedType.IsExposedAsRepository))
+            foreach (var resourceTypeInfo in GetAllUriBaseTypesExposedAsRepositories())
             {
                 var transformedType = resourceTypeInfo.TransformedType;
                 var repoPropName = transformedType.PluralName;
                 var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
-                var repoPropType =
+                TypeReference repoPropType =
                     GetClientTypeReference(typeof (IClientRepository<,>)).MakeGenericInstanceType(
                         resourceTypeInfo.InterfaceType, postReturnTypeRef);
+
+                resourceTypeInfo.RepositoryTypeRef = (GenericInstanceType)repoPropType;
+
+                if (resourceTypeInfo.CustomRepositoryInterface == null)
+                {
+                    CreateRepositoryInterfaceAndImplementation(resourceTypeInfo);
+                }
+                repoPropType = resourceTypeInfo.CustomRepositoryInterface;
 
                 if (clientTypeDefinition.IsInterface)
                 {
@@ -307,8 +315,200 @@ namespace Pomona.CodeGen
             }
         }
 
+        private void CreateRepositoryInterfaceAndImplementation(TypeCodeGenInfo resourceTypeInfo)
+        {
+            var queryableRepoType =
+                GetClientTypeReference(typeof (IQueryableRepository<>))
+                    .MakeGenericInstanceType(resourceTypeInfo.InterfaceType);
 
-        private void AddAttributeToProperty(PropertyDefinition interfacePropDef, Type attributeType)
+            var interfacesToImplement = new List<TypeReference> { queryableRepoType };
+
+            var tt = resourceTypeInfo.TransformedType;
+            if (tt.PatchAllowed || tt.MergedTypes.Any(x => x.PatchAllowed))
+            {
+                interfacesToImplement.Add(
+                    GetClientTypeReference(typeof (IPatchableRepository<>))
+                        .MakeGenericInstanceType(resourceTypeInfo.InterfaceType));
+            }
+
+            if (tt.PostAllowed ||
+                tt.MergedTypes.Any(x => x.PostAllowed))
+            {
+                interfacesToImplement.Add(
+                    GetClientTypeReference(typeof (IPostableRepository<,>))
+                        .MakeGenericInstanceType(resourceTypeInfo.InterfaceType,
+                                                 clientTypeInfoDict[tt.PostReturnType]
+                                                     .InterfaceType));
+            }
+
+            var repoInterface = CreateRepositoryType(resourceTypeInfo,
+                                                     MethodAttributes.Abstract |
+                                                     MethodAttributes.HideBySig |
+                                                     MethodAttributes.NewSlot |
+                                                     MethodAttributes.Virtual |
+                                                     MethodAttributes.Public, "I{0}Repository",
+                                                     TypeAttributes.Interface | TypeAttributes.Public |
+                                                     TypeAttributes.Abstract,
+                                                     false,
+                                                     interfacesToImplement);
+
+            var postReturnTypeRef = clientTypeInfoDict[tt.PostReturnType].InterfaceType;
+            var clientRepoBaseTypeRef =
+                GetClientTypeReference(typeof (ClientRepository<,>))
+                    .MakeGenericInstanceType(resourceTypeInfo.InterfaceType, postReturnTypeRef);
+
+            var repoImplementation = CreateRepositoryType(resourceTypeInfo,
+                                                          MethodAttributes.NewSlot |
+                                                          MethodAttributes.HideBySig
+                                                          | MethodAttributes.Virtual |
+                                                          MethodAttributes.Public, "{0}Repository",
+                                                          TypeAttributes.Public, true, repoInterface.WrapAsEnumerable(),
+                                                          clientRepoBaseTypeRef);
+
+            resourceTypeInfo.CustomRepositoryInterface = repoInterface;
+        }
+
+        private IEnumerable<TypeCodeGenInfo> GetAllUriBaseTypesExposedAsRepositories()
+        {
+            return clientTypeInfoDict.Values.Where(
+                x => x.UriBaseType == x.InterfaceType && x.TransformedType.IsExposedAsRepository);
+        }
+
+        private TypeDefinition CreateRepositoryType(TypeCodeGenInfo rti, MethodAttributes methodAttributes,
+                                                    string repoTypeNameFormat, TypeAttributes typeAttributes,
+                                                    bool isImplementation,
+                                                    IEnumerable<TypeReference> interfacesToImplement = null,
+                                                    TypeReference baseClass = null)
+        {
+            var tt = rti.TransformedType;
+            var repoTypeDef = new TypeDefinition(assemblyName,
+                                                 string.Format(repoTypeNameFormat, rti.TransformedType.Name),
+                                                 typeAttributes, baseClass);
+
+            repoTypeDef.Interfaces.AddRange(interfacesToImplement ?? Enumerable.Empty<TypeReference>());
+            var baseTypeGenericDef = module.Import(typeof (ClientRepository<,>)).Resolve();
+            var baseTypeGenericArgs = rti.RepositoryTypeRef.GenericArguments.ToArray();
+
+            foreach (var subType in tt.MergedTypes.ConcatOne(tt))
+            {
+                if (subType.PostAllowed)
+                {
+                    AddRepositoryFormPostMethod(methodAttributes, isImplementation, subType, repoTypeDef,
+                                                baseTypeGenericDef,
+                                                baseTypeGenericArgs);
+                }
+            }
+            if (tt.PrimaryId != null)
+            {
+                AddRepositoryGetByIdMethod(rti, methodAttributes, isImplementation, tt, repoTypeDef, baseTypeGenericDef,
+                                           baseTypeGenericArgs);
+            }
+
+            // Constructor
+            if (isImplementation)
+            {
+                var baseCtorRef =
+                    module.Import(baseTypeGenericDef.Resolve()
+                                                    .GetConstructors()
+                                                    .First(x => x.Parameters.Count == 2)
+                                                    .MakeHostInstanceGeneric(baseTypeGenericArgs));
+
+                var ctor = new MethodDefinition(
+                    ".ctor",
+                    MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
+                    | MethodAttributes.Public,
+                    VoidTypeRef);
+
+                ctor.Parameters.Add(new ParameterDefinition("client", ParameterAttributes.None,
+                                                            GetClientTypeReference(typeof (ClientBase))));
+                ctor.Parameters.Add(new ParameterDefinition("uri", ParameterAttributes.None, StringTypeRef));
+
+                ctor.Body.MaxStackSize = 8;
+                var ctorIlProcessor = ctor.Body.GetILProcessor();
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorRef));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+                repoTypeDef.Methods.Add(ctor);
+            }
+
+            module.Types.Add(repoTypeDef);
+            return repoTypeDef;
+        }
+
+        private void AddRepositoryGetByIdMethod(TypeCodeGenInfo rti, MethodAttributes methodAttributes,
+                                                bool isImplementation,
+                                                TransformedType tt, TypeDefinition repoTypeDef,
+                                                TypeDefinition baseTypeGenericDef, TypeReference[] baseTypeGenericArgs)
+        {
+            var method = new MethodDefinition("Get", methodAttributes, rti.InterfaceType);
+            var idType = tt.PrimaryId.PropertyType;
+            if (!(idType is SharedType))
+                throw new NotSupportedException("Id needs to be a shared type.");
+            var idTypeRef = GetClientTypeReference(idType.MappedTypeInstance);
+            method.Parameters.Add(new ParameterDefinition(tt.PrimaryId.LowerCaseName, 0,
+                                                          idTypeRef));
+            repoTypeDef.Methods.Add(method);
+
+            if (isImplementation)
+            {
+                var baseGetMethodRef =
+                    module.Import(baseTypeGenericDef.Methods.First(x => x.Name == "Get")
+                                                    .MakeHostInstanceGeneric(baseTypeGenericArgs));
+                var ilproc = method.Body.GetILProcessor();
+
+                ilproc.Emit(OpCodes.Ldarg_0);
+                ilproc.Emit(OpCodes.Ldarg_1);
+                if (idType.MappedTypeInstance.IsValueType)
+                {
+                    ilproc.Emit(OpCodes.Box, idTypeRef);
+                }
+                else
+                {
+                    ilproc.Emit(OpCodes.Castclass, idTypeRef);
+                }
+                ilproc.Emit(OpCodes.Callvirt, baseGetMethodRef);
+                ilproc.Emit(OpCodes.Ret);
+            }
+        }
+
+        private void AddRepositoryFormPostMethod(MethodAttributes methodAttributes, bool isImplementation,
+                                                 TransformedType subType,
+                                                 TypeDefinition repoTypeDef, TypeDefinition baseTypeGenericDef,
+                                                 TypeReference[] baseTypeGenericArgs)
+        {
+            var postReturnTypeRef = clientTypeInfoDict[subType.PostReturnType].InterfaceType;
+            var method = new MethodDefinition("Post",
+                                              methodAttributes,
+                                              postReturnTypeRef);
+            method.Parameters.Add(new ParameterDefinition("form", 0, clientTypeInfoDict[subType].PostFormType));
+            repoTypeDef.Methods.Add(method);
+
+            if (isImplementation)
+            {
+                var basePostMethodRef =
+                    module.Import(
+                        baseTypeGenericDef.GetMethods()
+                                          .Single(
+                                              x =>
+                                              x.Name == "Post" && x.Parameters.Count == 1 &&
+                                              x.Parameters[0].Name == "form")
+                                          .MakeHostInstanceGeneric(baseTypeGenericArgs));
+
+                var ilproc = method.Body.GetILProcessor();
+
+                ilproc.Emit(OpCodes.Ldarg_0);
+                ilproc.Emit(OpCodes.Ldarg_1);
+
+                ilproc.Emit(OpCodes.Callvirt, basePostMethodRef);
+
+                ilproc.Emit(OpCodes.Castclass, postReturnTypeRef);
+                ilproc.Emit(OpCodes.Ret);
+            }
+        }
+
+        private void AddAttribute(ICustomAttributeProvider interfacePropDef, Type attributeType)
         {
             var attr = GetClientTypeReference(attributeType);
             var ctor =
@@ -512,20 +712,21 @@ namespace Pomona.CodeGen
 
                     if (prop.IsAttributesProperty)
                     {
-                        AddAttributeToProperty(interfacePropDef, typeof (ResourceAttributesPropertyAttribute));
+                        AddAttribute(interfacePropDef, typeof (ResourceAttributesPropertyAttribute));
                     }
                     if (prop.IsEtagProperty)
                     {
-                        AddAttributeToProperty(interfacePropDef, typeof (ResourceEtagPropertyAttribute));
+                        AddAttribute(interfacePropDef, typeof (ResourceEtagPropertyAttribute));
                     }
                     if (prop.IsPrimaryKey)
                     {
-                        AddAttributeToProperty(interfacePropDef, typeof (ResourceIdPropertyAttribute));
+                        AddAttribute(interfacePropDef, typeof (ResourceIdPropertyAttribute));
                     }
 
                     FieldDefinition backingField;
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
-                    AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
+                    if (!prop.ExposedAsRepository)
+                        AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
                 }
 
                 var ctor = typeInfo.EmptyPocoCtor;
@@ -687,17 +888,40 @@ namespace Pomona.CodeGen
             Func<TypeCodeGenInfo, bool> typeIsGeneratedPredicate = null)
         {
             typeIsGeneratedPredicate = typeIsGeneratedPredicate ?? (x => true);
+            var generatedTypeDict = new Dictionary<TypeCodeGenInfo, TypeDefinition>();
 
             foreach (var typeInfo in clientTypeInfoDict.Values.Where(typeIsGeneratedPredicate))
             {
-                var targetType = typeInfo.TransformedType;
-                var name = targetType.Name;
-
-                var proxyType = proxyBuilder.CreateProxyType(name, typeInfo.InterfaceType.WrapAsEnumerable());
-
-                if (onTypeGenerated != null)
-                    onTypeGenerated(typeInfo, proxyType);
+                generatedTypeDict.GetOrCreate(typeInfo,
+                                              () =>
+                                              CreateProxy(proxyBuilder, onTypeGenerated, typeInfo, generatedTypeDict));
             }
+        }
+
+        private TypeDefinition CreateProxy(ProxyBuilder proxyBuilder,
+                                           Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
+                                           TypeCodeGenInfo typeInfo,
+                                           Dictionary<TypeCodeGenInfo, TypeDefinition> generatedTypeDict)
+        {
+            var targetType = typeInfo.TransformedType;
+            var name = targetType.Name;
+
+            TypeDefinition baseTypeDef = null;
+            var tt = typeInfo.TransformedType;
+            if (tt.UriBaseType != null && tt.UriBaseType != tt)
+            {
+                var baseTypeInfo = clientTypeInfoDict[tt.BaseType];
+                baseTypeDef = generatedTypeDict.GetOrCreate(baseTypeInfo,
+                                                            () =>
+                                                            CreateProxy(proxyBuilder, onTypeGenerated, typeInfo,
+                                                                        generatedTypeDict));
+            }
+            var proxyType = proxyBuilder.CreateProxyType(name, typeInfo.InterfaceType.WrapAsEnumerable(), baseTypeDef);
+
+            if (onTypeGenerated != null)
+                onTypeGenerated(typeInfo, proxyType);
+
+            return proxyType;
         }
 
 
@@ -740,8 +964,7 @@ namespace Pomona.CodeGen
         private TypeReference GetPropertyTypeReference(PropertyMapping prop)
         {
             TypeReference propTypeRef;
-            if (prop.IsOneToManyCollection
-                && typeMapper.Filter.ClientPropertyIsExposedAsRepository(prop.PropertyInfo))
+            if (prop.IsOneToManyCollection && prop.ExposedAsRepository)
             {
                 var resourceInfo = clientTypeInfoDict[prop.PropertyType.ElementType];
                 var elementTypeReference = resourceInfo.InterfaceType;
@@ -812,7 +1035,7 @@ namespace Pomona.CodeGen
             public PostFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
                 : base(
                     owner.module,
-                    owner.GetProxyType("PutResourceBase"),
+                    owner.GetProxyType("PostResourceBase"),
                     owner.GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve(),
                     isPublic)
             {
@@ -888,6 +1111,10 @@ namespace Pomona.CodeGen
             public TypeDefinition UriBaseType { get; set; }
 
             public TypeDefinition BaseType { get; set; }
+
+            public GenericInstanceType RepositoryTypeRef { get; set; }
+
+            public TypeDefinition CustomRepositoryInterface { get; set; }
         }
 
         #endregion
@@ -902,7 +1129,7 @@ namespace Pomona.CodeGen
             public PatchFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
                 : base(
                     owner.module,
-                    owner.GetProxyType("PutResourceBase"),
+                    owner.GetProxyType("PostResourceBase"),
                     owner.GetClientTypeReference(typeof (PropertyWrapper<,>)).Resolve(),
                     isPublic)
             {

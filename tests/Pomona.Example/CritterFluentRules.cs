@@ -87,6 +87,12 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Order> map)
         {
             map.PostReturns<OrderResponse>();
+            map.AsUriBaseType();
+        }
+
+        public void Map(ITypeMappingConfigurator<OrderResponse> map)
+        {
+            map.AsValueObject();
         }
 
         public void Map(ITypeMappingConfigurator<Loner> map)

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,12 @@ namespace Pomona.Example.Models
 {
     public class ThingWithCustomIList : EntityBase
     {
-        private IList<Loner> loners;
+        private readonly IList<Loner> loners;
 
 
         public ThingWithCustomIList()
         {
-            loners = new CustomListWrapper<Loner> {new Loner("Hooha", 387, "lalala")};
+            loners = new CustomListWrapper<Loner> { new Loner("Hooha", 387, "lalala") };
         }
 
 

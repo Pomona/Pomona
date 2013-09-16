@@ -68,7 +68,7 @@ namespace Pomona.Common.Serialization
         public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
             where TWriter : ISerializerWriter
         {
-            if (node.Value is IClientResource && !(node.Value is PutResourceBase))
+            if (node.Value is IClientResource && !(node.Value is PostResourceBase))
             {
                 node.SerializeAsReference = true;
             }

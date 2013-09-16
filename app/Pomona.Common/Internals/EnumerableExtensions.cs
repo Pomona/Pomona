@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,18 +26,21 @@
 
 #endregion
 
-namespace Pomona.Example.Models
+using System;
+using System.Collections.Generic;
+
+namespace Pomona.Common.Internals
 {
-    public class Weapon : EntityBase
+    public static class EnumerableExtensions
     {
-        public Weapon(WeaponModel model)
+        public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
-            Model = model;
+            foreach (var item in source)
+            {
+                yield return item;
+                if (predicate(item))
+                    yield break;
+            }
         }
-
-
-        public WeaponModel Model { get; set; }
-        public decimal Price { get; set; }
-        public double Strength { get; set; }
     }
 }

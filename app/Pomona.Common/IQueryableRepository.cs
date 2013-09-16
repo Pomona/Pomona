@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,27 +24,23 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using NUnit.Framework;
-using Nancy.Responses.Negotiation;
-using Nancy.Testing;
-using Pomona.Example;
+#endregion
 
-namespace Pomona.UnitTests
+using System.Linq;
+using Pomona.Common.Proxies;
+
+namespace Pomona.Common
 {
-    [TestFixture]
-    public class PomonaModuleTests
+    public interface IQueryableRepository<TResource> : IClientRepository
+        where TResource : class, IClientResource
     {
-         [Test]
-         public void TESTTEST()
-         {
-             var bootstrapper = new CritterBootstrapper();
-             var browser = new Browser(bootstrapper);
-             Console.WriteLine(browser.Get("/critters", bc =>
-                 {
-                     bc.HttpRequest();
-                     bc.Accept(MediaRange.FromString("application/xml"));
-                 }).Body.AsString().ToString());
-         }
+        IQueryable<TResource> Query();
+
+        IQueryable<TSubResource> Query<TSubResource>()
+            where TSubResource : TResource;
+
+
+        object Post<TPostForm>(TResource resource, TPostForm form)
+            where TPostForm : PostResourceBase, IClientResource;
     }
 }

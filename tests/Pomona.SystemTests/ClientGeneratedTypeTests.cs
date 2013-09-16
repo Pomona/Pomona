@@ -26,6 +26,9 @@
 
 #endregion
 
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -63,6 +66,48 @@ namespace Pomona.SystemTests
             Assert.That(typeof (IInheritsFromHiddenBase).GetInterfaces(), Has.Member(typeof (IEntityBase)));
             Assert.That(typeof (Client).Assembly.GetTypes().Count(x => x.Name == "IHiddenBaseInMiddle"), Is.EqualTo(0));
             Assert.That(typeof (IInheritsFromHiddenBase).GetProperty("ExposedFromDerivedResource"), Is.Not.Null);
+        }
+
+        [Test]
+        public void PeVerify_HasExitCode0()
+        {
+            var programFilesX86Path = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ??
+                                      Environment.GetEnvironmentVariable("ProgramFiles");
+            Assert.NotNull(programFilesX86Path);
+
+            var peverifyPath = Path.Combine(programFilesX86Path,
+                                            @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
+            if (!File.Exists(peverifyPath))
+                Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
+
+            var clientDllPath = string.Format("\"{0}\" /md /il",
+                                              typeof (ICritter).Assembly.Location.Replace("\"", "\\\""));
+
+            var proc = new Process
+                {
+                    StartInfo =
+                        new ProcessStartInfo(peverifyPath, clientDllPath)
+                            {
+                                CreateNoWindow = true,
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = true,
+                                UseShellExecute = false
+                            }
+                };
+            proc.Start();
+            while (!proc.StandardOutput.EndOfStream || !proc.StandardError.EndOfStream)
+            {
+                if (!proc.StandardError.EndOfStream)
+                {
+                    Console.Write(proc.StandardError.ReadLine());
+                }
+                if (!proc.StandardOutput.EndOfStream)
+                {
+                    Console.Write(proc.StandardOutput.ReadLine());
+                }
+            }
+            proc.WaitForExit();
+            Assert.That(proc.ExitCode, Is.EqualTo(0), "PEVerify returned error code " + proc.ExitCode);
         }
 
         [Test]

@@ -80,7 +80,6 @@
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
-    <Compile Include="PomonaModuleTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queries\ParseExpressionTests.cs" />
