@@ -6,7 +6,14 @@ Example document:
 {
     "info": { "foo": "fighter", "crow" : "bar" },
     "people" : [
-        { "id" : 1, "name" : "Joe" },
+        {
+            "id" : 1,
+            "name" : "Joe",
+            "pets" : [
+                { "race" : "Cat", "name" : "Wendy", "color" : "Black" },
+                { "race" : "Dog", "name" : "Nana", "color" : "Brown" }
+            ]
+        },
         { "id" : 2, "name" : "Peter" }
     ]
 }
@@ -77,5 +84,22 @@ Replace the whole `people` property:
 ```json
 {
     "!people" : [{ "name" : "Peter Pan" }]
+}
+```
+
+Changing the color of the pet Wendy from black to red and adding the mouse Kipper:
+```json
+{
+    "*people" : [
+        {
+            "@id" : 1,
+            "*pets" : [
+                { "@name" : "Wendy", "color" : "Red" }
+            ],
+            "+pets" : [
+                { "race" : "Mouse", "name" : "Kipper", "color" : "Gray" }
+            ]
+        }
+    ]
 }
 ```
