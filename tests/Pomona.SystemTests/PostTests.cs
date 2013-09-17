@@ -227,7 +227,7 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(DataStore.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
+            Assert.That(this.Repository.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
         }
 
         [Test]
@@ -249,7 +249,7 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(DataStore.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
+            Assert.That(this.Repository.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
         }
 
         [Test]

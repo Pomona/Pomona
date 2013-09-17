@@ -33,9 +33,9 @@ namespace Pomona.Example
 {
     public class CritterDataSource : IPomonaDataSource
     {
-        private readonly CritterDataStore store;
+        private readonly CritterRepository store;
 
-        public CritterDataSource(CritterDataStore store)
+        public CritterDataSource(CritterRepository store)
         {
             this.store = store;
         }
