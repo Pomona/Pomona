@@ -1055,10 +1055,12 @@ namespace Pomona.CodeGen
                 var mergedProperties =
                     propertyMapping.WrapAsEnumerable()
                                    .Concat(
-                                       propertyMapping.ReflectedType.MergedTypes.Select(
+                                       propertyMapping.ReflectedType.SubTypes.Select(
                                            x => x.Properties.First(y => y.Name == propertyMapping.Name)));
 
-                if (mergedProperties.Any(x => x.CreateMode == PropertyCreateMode.Required || x.CreateMode == PropertyCreateMode.Optional))
+                if (
+                    mergedProperties.Any(
+                        x => x.CreateMode == PropertyCreateMode.Required || x.CreateMode == PropertyCreateMode.Optional))
                 {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
