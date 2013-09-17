@@ -189,17 +189,19 @@ namespace Pomona.Common.Proxies
                 il.Emit(OpCodes.Ldloc_0);
                 il.Emit(OpCodes.Callvirt, proxyOnGetMethod);
 
-                if (method.ReturnType != typeof (void))
+                if (method.ReturnType == typeof (void))
                 {
-                    if (method.ReturnType.IsValueType)
-                    {
-                        il.Emit(OpCodes.Unbox_Any, method.ReturnType);
-                    }
-                    else if (method.ReturnType != typeof (object))
-                    {
-                        il.Emit(OpCodes.Castclass, method.ReturnType);
-                    }
+                    il.Emit(OpCodes.Pop);
                 }
+                else if (method.ReturnType.IsValueType)
+                {
+                    il.Emit(OpCodes.Unbox_Any, method.ReturnType);
+                }
+                else if (method.ReturnType != typeof (object))
+                {
+                    il.Emit(OpCodes.Castclass, method.ReturnType);
+                }
+
                 il.Emit(OpCodes.Ret);
             }
         }
