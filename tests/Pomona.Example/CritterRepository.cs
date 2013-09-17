@@ -37,7 +37,7 @@ using Pomona.Internals;
 
 namespace Pomona.Example
 {
-    public class CritterDataStore
+    public class CritterRepository
     {
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
@@ -53,22 +53,22 @@ namespace Pomona.Example
 
         private bool notificationsEnabled;
 
-        static CritterDataStore()
+        static CritterRepository()
         {
             queryMethod =
-                ReflectionHelper.GetMethodDefinition<CritterDataStore>(x => x.Query<object, object>(null));
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.Query<object, object>(null));
             saveCollectionMethod =
-                ReflectionHelper.GetMethodDefinition<CritterDataStore>(
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(
                     x => x.SaveCollection((ICollection<EntityBase>)null));
             saveDictionaryMethod =
-                ReflectionHelper.GetMethodDefinition<CritterDataStore>(
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(
                     x => x.SaveDictionary((IDictionary<object, EntityBase>)null));
             saveInternalMethod =
-                ReflectionHelper.GetMethodDefinition<CritterDataStore>(x => x.SaveInternal<EntityBase>(null));
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.SaveInternal<EntityBase>(null));
         }
 
 
-        public CritterDataStore(TypeMapper typeMapper)
+        public CritterRepository(TypeMapper typeMapper)
         {
             if (typeMapper == null) throw new ArgumentNullException("typeMapper");
             this.typeMapper = typeMapper;
@@ -326,7 +326,7 @@ namespace Pomona.Example
             Critter critter;
             if (forceMusicalCritter || rng.NextDouble() > 0.76)
             {
-                var musicalCritter = new MusicalCritter
+                var musicalCritter = new MusicalCritter("written in the stars")
                     {
                         BandName = Words.GetBandName(rng),
                         Instrument = Save(new Instrument { Type = Words.GetCoolInstrument(rng) })

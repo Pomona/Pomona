@@ -389,7 +389,7 @@ namespace Pomona.CodeGen
             var baseTypeGenericDef = module.Import(typeof (ClientRepository<,>)).Resolve();
             var baseTypeGenericArgs = rti.RepositoryTypeRef.GenericArguments.ToArray();
 
-            foreach (var subType in tt.MergedTypes.ConcatOne(tt))
+            foreach (var subType in tt.MergedTypes.Concat(tt))
             {
                 if (subType.PostAllowed)
                 {
@@ -1052,9 +1052,15 @@ namespace Pomona.CodeGen
                 TypeReference rootProxyTargetType)
             {
                 var propertyMapping = owner.GetPropertyMapping(targetProp, rootProxyTargetType);
+                var mergedProperties =
+                    propertyMapping.WrapAsEnumerable()
+                                   .Concat(
+                                       propertyMapping.ReflectedType.SubTypes.Select(
+                                           x => x.Properties.First(y => y.Name == propertyMapping.Name)));
 
-                if (propertyMapping.CreateMode == PropertyCreateMode.Required ||
-                    propertyMapping.CreateMode == PropertyCreateMode.Optional)
+                if (
+                    mergedProperties.Any(
+                        x => x.CreateMode == PropertyCreateMode.Required || x.CreateMode == PropertyCreateMode.Optional))
                 {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);

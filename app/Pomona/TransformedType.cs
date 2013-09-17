@@ -99,12 +99,26 @@ namespace Pomona
             get { return UriBaseType == this; }
         }
 
+        public IEnumerable<TransformedType> SubTypes
+        {
+            get
+            {
+                return
+                    typeMapper.TransformedTypes.Where(x => x.BaseType == this).SelectMany(x => x.SubTypes.Concat(x));
+            }
+        }
+
         /// <summary>
         /// Other types having the same URI as this type. (in same inheritance chain)
         /// </summary>
         public IEnumerable<TransformedType> MergedTypes
         {
-            get { return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType); }
+            get
+            {
+                if (UriBaseType == null)
+                    return Enumerable.Empty<TransformedType>();
+                return typeMapper.TransformedTypes.Where(x => x != this && x.UriBaseType == UriBaseType);
+            }
         }
 
         public PropertyMapping ETagProperty
@@ -498,10 +512,10 @@ namespace Pomona
             var propBaseDefinition = propertyInfo.GetBaseDefinition();
             var reflectedType = propertyInfo.ReflectedType;
             return reflectedType.GetFullTypeHierarchy()
-                             .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
-                             .TakeUntil(x => typeMapper.Filter.IsIndependentTypeRoot(x))
-                             .LastOrDefault(x => typeMapper.SourceTypes.Contains(x)) ??
-                             propBaseDefinition.DeclaringType;
+                                .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
+                                .TakeUntil(x => typeMapper.Filter.IsIndependentTypeRoot(x))
+                                .LastOrDefault(x => typeMapper.SourceTypes.Contains(x)) ??
+                   propBaseDefinition.DeclaringType;
         }
 
         internal void ScanProperties(Type type)
@@ -530,6 +544,7 @@ namespace Pomona
 
                 var propDef = new PropertyMapping(
                     typeMapper.Filter.GetPropertyMappedName(propInfo),
+                    this,
                     (TransformedType)declaringType,
                     propertyTypeMapped,
                     propInfo);

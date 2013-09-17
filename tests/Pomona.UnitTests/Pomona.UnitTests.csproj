@@ -82,6 +82,7 @@
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Proxies\IlEmitBasedProxyBuilderTests.cs" />
     <Compile Include="Queries\ParseExpressionTests.cs" />
     <Compile Include="Queries\ParseFilterTests.cs" />
     <Compile Include="Queries\ParseSelectTests.cs" />

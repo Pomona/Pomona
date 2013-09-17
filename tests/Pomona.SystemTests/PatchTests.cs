@@ -77,7 +77,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
-            var critter = DataStore.CreateRandomCritter();
+            var critter = this.Repository.CreateRandomCritter();
             var resource = client.Critters.Query(x => x.Id == critter.Id).First();
 
             client.Patch(resource, x => x.Password = "NewPassword");
@@ -125,7 +125,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchMusicalInheritedCritter_UpdateProperty()
         {
-            var critter = Save(new MusicalCritter());
+            var critter = Save(new MusicalCritter("lalala"));
             var resource = client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
             client.Patch(resource,
                          x =>

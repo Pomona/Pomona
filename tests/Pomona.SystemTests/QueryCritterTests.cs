@@ -56,7 +56,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_IdInArray_ReturnsCorrectCritters()
         {
-            DataStore.CreateRandomData(critterCount: 10);
+            this.Repository.CreateRandomData(critterCount: 10);
             var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
             TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
         }
@@ -64,7 +64,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_IdInList_ReturnsCorrectCritters()
         {
-            DataStore.CreateRandomData(critterCount: 10);
+            this.Repository.CreateRandomData(critterCount: 10);
             var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToList();
             TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
         }
@@ -178,7 +178,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = DataStore.List<Critter>().First();
+            var firstCritter = this.Repository.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
             var fetchedCritter = client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
 
@@ -214,7 +214,7 @@ namespace Pomona.SystemTests
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                DataStore.List<Critter>().Skip(1).First().Name;
+                this.Repository.List<Critter>().Skip(1).First().Name;
 
             var critters =
                 client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);

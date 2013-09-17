@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CritterBootstrapper.cs" />
-    <Compile Include="CritterDataStore.cs" />
+    <Compile Include="CritterRepository.cs" />
     <Compile Include="CritterFluentRules.cs" />
     <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />

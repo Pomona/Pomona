@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 
@@ -42,14 +38,16 @@ namespace Pomona.Example.Models
 
             SimpleAttributes = new List<SimpleAttribute>
                 {
-                    new SimpleAttribute { Key = "MeaningOfLife", Value = "42" },
-                    new SimpleAttribute { Key = "IsCat", Value = "maybe" }
+                    new SimpleAttribute {Key = "MeaningOfLife", Value = "42"},
+                    new SimpleAttribute {Key = "IsCat", Value = "maybe"}
                 };
 
+            OnlyWritableByInheritedResource = "blabla not writable";
             Hat = new Hat();
             Protected = Guid.NewGuid().ToString();
         }
 
+        public string OnlyWritableByInheritedResource { get; protected set; }
 
         public bool IsCaptured { get; internal set; }
 

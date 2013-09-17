@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,12 +22,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 namespace Pomona.Example.Models
 {
     public class MusicalCritter : Critter
     {
+        public MusicalCritter(string onlyWritableByInheritedResource)
+        {
+            OnlyWritableByInheritedResource = onlyWritableByInheritedResource;
+        }
+
         public string BandName { get; set; }
         public Instrument Instrument { get; set; }
     }

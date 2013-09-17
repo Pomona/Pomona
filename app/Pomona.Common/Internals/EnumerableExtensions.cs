@@ -28,11 +28,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pomona.Common.Internals
 {
     public static class EnumerableExtensions
     {
+        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
+        {
+            return source.Concat((IEnumerable<T>)value);
+        }
+
+
+        public static IEnumerable<T> WalkTree<T>(this T o, Func<T, T> nextNodeSelector)
+            where T : class
+        {
+            while (o != null)
+            {
+                yield return o;
+                o = nextNodeSelector(o);
+            }
+        }
+
         public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             foreach (var item in source)

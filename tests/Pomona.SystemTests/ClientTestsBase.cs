@@ -43,7 +43,7 @@ namespace Pomona.SystemTests
     {
         public const bool UseSelfHostedHttpServerDefault = false;
         private static Client cachedNancyTestingClient;
-        private static CritterDataStore cachedNancyTestingClientDataStore;
+        private static Pomona.Example.CritterRepository cachedNancyTestingClientRepository;
         private string baseUri;
 
         protected Client client;
@@ -59,16 +59,16 @@ namespace Pomona.SystemTests
             get { return baseUri; }
         }
 
-        public CritterDataStore DataStore { get; private set; }
+        public Pomona.Example.CritterRepository Repository { get; private set; }
 
         protected ICollection<Critter> CritterEntities
         {
-            get { return DataStore.List<Critter>(); }
+            get { return this.Repository.List<Critter>(); }
         }
 
         protected T Save<T>(T entity)
         {
-            return DataStore.Save(entity);
+            return this.Repository.Save(entity);
         }
 
 
@@ -103,7 +103,7 @@ namespace Pomona.SystemTests
                 critterHost = new CritterHost(new Uri(baseUri));
                 critterHost.Start();
                 client = new Client(baseUri, CreateWebClient());
-                DataStore = critterHost.DataSource;
+                this.Repository = critterHost.Repository;
             }
             else
             {
@@ -112,12 +112,12 @@ namespace Pomona.SystemTests
                 if (cachedNancyTestingClient == null)
                 {
                     var critterBootstrapper = new CritterBootstrapper();
-                    cachedNancyTestingClientDataStore = critterBootstrapper.DataStore;
+                    cachedNancyTestingClientRepository = critterBootstrapper.Repository;
                     var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
                     cachedNancyTestingClient = new Client(baseUri, nancyTestingWebClient);
                 }
                 client = cachedNancyTestingClient;
-                DataStore = cachedNancyTestingClientDataStore;
+                this.Repository = cachedNancyTestingClientRepository;
             }
 
             client.RequestCompleted += ClientOnRequestCompleted;
@@ -141,7 +141,7 @@ namespace Pomona.SystemTests
         [SetUp]
         public void SetUp()
         {
-            DataStore.ResetTestData();
+            this.Repository.ResetTestData();
         }
 
 
@@ -157,7 +157,7 @@ namespace Pomona.SystemTests
             var callingMethod = callingStackFrame.GetMethod();
             Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof (TEntity).Name));
 
-            var allEntities = DataStore.List<TEntity>();
+            var allEntities = this.Repository.List<TEntity>();
             var entities =
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
             var fetchedResources = client.Query<TResource>().Where(resourcePredicate).Take(1024*1024).ToList();
