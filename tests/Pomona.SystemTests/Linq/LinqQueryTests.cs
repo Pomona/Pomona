@@ -66,14 +66,14 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_Count_ReturnsCount()
         {
-            var expected = DataStore.List<Critter>().Count;
+            var expected = this.Repository.List<Critter>().Count;
             Assert.That(client.Critters.Query().Count(), Is.EqualTo(expected));
         }
 
         [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
-            DataStore.CreateRandomCritter(new Random());
+            this.Repository.CreateRandomCritter(new Random());
             var expected = CritterEntities.First(x => x.Id%2 == 0);
             var lazyCritter = client.Query<ICritter>().Where(x => x.Id%2 == 0).FirstLazy();
             var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
@@ -90,7 +90,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_GetMaxId_ReturnsMaxId()
         {
-            var expected = DataStore.List<Critter>().Max(x => x.Id);
+            var expected = this.Repository.List<Critter>().Max(x => x.Id);
             Assert.That(client.Critters.Query().Max(x => x.Id), Is.EqualTo(expected));
             Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
@@ -99,7 +99,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
         {
-            var expected = DataStore.List<Critter>().Min(x => x.Id);
+            var expected = this.Repository.List<Critter>().Min(x => x.Id);
 
             Assert.That(client.Critters.Query().Min(x => x.Id), Is.EqualTo(expected));
             Assert.That(client.Critters.Query().Select(x => x.Id).Min(), Is.EqualTo(expected));
@@ -240,7 +240,7 @@ namespace Pomona.SystemTests.Linq
             // Result of below query not important..
             client.Critters.Query().Where(x => x.Id == 666).ToList();
 
-            var query = DataStore.QueryLog.Last();
+            var query = this.Repository.QueryLog.Last();
             var binExpr = query.FilterExpression.Body as BinaryExpression;
             Assert.That(binExpr, Is.Not.Null);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.Equal));
@@ -303,7 +303,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
         {
-            var critter = DataStore.CreateRandomCritter();
+            var critter = this.Repository.CreateRandomCritter();
             TestIntProperty = critter.Id;
             var result = client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
             Assert.That(result, Is.Not.Null);
@@ -407,7 +407,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
         {
             client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
-            var query = DataStore.QueryLog.Last();
+            var query = this.Repository.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
@@ -437,7 +437,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WithHandledGeneratedProperty_UsesPropertyFormula()
         {
             client.Critters.Query(x => x.HandledGeneratedProperty == 3).ToList();
-            var query = DataStore.QueryLog.Last();
+            var query = this.Repository.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id%6) == 3;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
@@ -483,7 +483,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WriteOnlyProperty_IsNotReturned()
         {
-            var critter = DataStore.CreateRandomCritter();
+            var critter = this.Repository.CreateRandomCritter();
             critter.Password = "HUSH";
             var jobject = client.Critters.Query().Where(x => x.Id == critter.Id).ToJson();
             var items = jobject.AssertHasPropertyWithArray("items");
@@ -506,7 +506,7 @@ namespace Pomona.SystemTests.Linq
         {
             for (var i = 1; i <= 8; i++)
             {
-                DataStore.Save(new StringToObjectDictionaryContainer { Map = { { "square", i*i } } });
+                this.Repository.Save(new StringToObjectDictionaryContainer { Map = { { "square", i*i } } });
             }
 
             // Should get 36, 49 and 64

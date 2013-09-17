@@ -260,7 +260,7 @@ namespace Pomona.UnitTests.FluentMapping
         {
             var code =
                 FluentTypeMappingFilter.BuildPropertyMappingTemplate(
-                    CritterDataStore.GetEntityTypes().Where(x => !x.IsEnum));
+                    CritterRepository.GetEntityTypes().Where(x => !x.IsEnum));
             Console.Write(code);
         }
     }
