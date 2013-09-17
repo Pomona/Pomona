@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +34,9 @@ namespace Pomona.Common.Internals
 {
     public static class EnumerableExtensions
     {
-        public static IEnumerable<T> ConcatOne<T>(this IEnumerable<T> source, T value)
+        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
         {
-            return source.Concat(value.WrapAsEnumerable());
+            return source.Concat((IEnumerable<T>)value);
         }
 
 

@@ -52,32 +52,6 @@ namespace Pomona.Common.Proxies
 
             proxyType = typeDef.CreateType();
 
-            /*
-            var type = typeof (T);
-            var typeName = type.Name;
-            var assemblyName = typeName + "Proxy" + Guid.NewGuid().ToString();
-            var assembly =
-                AssemblyDefinition.CreateAssembly(
-                    new AssemblyNameDefinition(assemblyName, new Version(1, 0)), assemblyName, ModuleKind.Dll);
-
-            var module = assembly.MainModule;
-
-            var builder = new WrappedPropertyProxyBuilder(
-                module, module.Import(typeof (TProxyBase)), module.Import(typeof (PropertyWrapper<,>)).Resolve());
-
-            var typeDef = builder.CreateProxyType(typeName, module.Import(type).Resolve().WrapAsEnumerable());
-
-            byte[] assemblyBlob;
-
-            using (var memoryStream = new MemoryStream())
-            {
-                assembly.Write(memoryStream);
-                assemblyBlob = memoryStream.ToArray();
-            }
-
-            var loadedAssembly = AppDomain.CurrentDomain.Load(assemblyBlob);
-            proxyType = loadedAssembly.GetType(typeDef.FullName);
-                 */
         }
 
 

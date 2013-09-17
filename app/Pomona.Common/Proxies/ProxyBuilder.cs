@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -126,9 +130,101 @@ namespace Pomona.Common.Proxies
                     interfacesToImplement.First());
             }
 
+            GenerateProxyMethods(interfaces, proxyType);
+
             OnPropertyGenerationComplete(proxyType);
 
             return proxyType;
+        }
+
+        private void GenerateProxyMethods(List<Type> interfaces, TypeDefinition proxyType)
+        {
+            foreach (
+                var targetMethod in
+                    interfaces.SelectMany(x => x.GetMethods().Except(x.GetProperties().SelectMany(GetPropertyMethods))))
+            {
+                var baseDef = proxyBaseTypeDef;
+                if (BaseTypeHasMatchingPublicMethod(baseDef, targetMethod))
+                {
+                    continue;
+                }
+
+                var proxyOnGetMethod =
+                    baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                           .First(x => x.Name == "OnInvokeMethod");
+
+                var parameters = targetMethod.GetParameters();
+                var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
+                var method = proxyType.DefineMethod(
+                    targetMethod.Name,
+                    MethodAttributes.NewSlot | MethodAttributes.HideBySig | MethodAttributes.Virtual |
+                    MethodAttributes.Public,
+                    targetMethod.ReturnType,
+                    paramTypes);
+
+
+                var il = method.GetILGenerator();
+                var argsLocal = il.DeclareLocal(typeof (object[]));
+
+                il.Emit(OpCodes.Ldc_I4, paramTypes.Length);
+                il.Emit(OpCodes.Newarr, typeof (object));
+                il.Emit(OpCodes.Stloc, argsLocal);
+
+                foreach (var param in parameters)
+                {
+                    il.Emit(OpCodes.Ldloc, argsLocal);
+                    il.Emit(OpCodes.Ldc_I4, param.Position);
+                    il.Emit(OpCodes.Ldarg, param.Position + 1); // +1 since Ldarg0 means this
+                    if (param.ParameterType.IsValueType)
+                    {
+                        il.Emit(OpCodes.Box, param.ParameterType);
+                    }
+                    il.Emit(OpCodes.Stelem_Ref);
+                }
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, typeof (MethodBase).GetMethod("GetCurrentMethod"));
+                il.Emit(OpCodes.Castclass, typeof (MethodInfo));
+                //il.Emit(OpCodes.Ldstr, targetMethod.Name);
+                il.Emit(OpCodes.Ldloc_0);
+                il.Emit(OpCodes.Callvirt, proxyOnGetMethod);
+
+                if (method.ReturnType != typeof (void))
+                {
+                    if (method.ReturnType.IsValueType)
+                    {
+                        il.Emit(OpCodes.Unbox_Any, method.ReturnType);
+                    }
+                    else if (method.ReturnType != typeof (object))
+                    {
+                        il.Emit(OpCodes.Castclass, method.ReturnType);
+                    }
+                }
+                il.Emit(OpCodes.Ret);
+            }
+        }
+
+        private static bool BaseTypeHasMatchingPublicMethod(Type baseDef, MethodInfo targetMethod)
+        {
+            return baseDef.GetMethods()
+                          .Any(
+                              x =>
+                              x.Name == targetMethod.Name &&
+                              x.ReturnType == targetMethod.ReturnType &&
+                              x.GetParameters()
+                               .Select(y => y.ParameterType)
+                               .SequenceEqual(targetMethod.GetParameters().Select(y => y.ParameterType)));
+        }
+
+        private static IEnumerable<MethodInfo> GetPropertyMethods(PropertyInfo propertyInfo)
+        {
+            var getMethod = propertyInfo.GetGetMethod();
+            var setMethod = propertyInfo.GetSetMethod();
+
+            if (getMethod != null)
+                yield return getMethod;
+            if (setMethod != null)
+                yield return setMethod;
         }
 
         protected virtual void OnPropertyGenerationComplete(TypeDefinition proxyType)
@@ -180,7 +276,7 @@ namespace Pomona.Common.Proxies
                 MethodAttributes.NewSlot | MethodAttributes.SpecialName |
                 MethodAttributes.HideBySig
                 | MethodAttributes.Virtual | MethodAttributes.Public,
-                null, new[] {propertyType});
+                null, new[] { propertyType });
 
             proxyPropSetter.DefineParameter(0, ParameterAttributes.None, "value");
 

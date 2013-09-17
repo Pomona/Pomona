@@ -389,7 +389,7 @@ namespace Pomona.CodeGen
             var baseTypeGenericDef = module.Import(typeof (ClientRepository<,>)).Resolve();
             var baseTypeGenericArgs = rti.RepositoryTypeRef.GenericArguments.ToArray();
 
-            foreach (var subType in tt.MergedTypes.ConcatOne(tt))
+            foreach (var subType in tt.MergedTypes.Concat(tt))
             {
                 if (subType.PostAllowed)
                 {
