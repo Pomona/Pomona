@@ -28,54 +28,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
 using Nancy;
 
 namespace Pomona
 {
     [Serializable]
-    public class PomonaException : ApplicationException
+    public class UnknownTypeException : PomonaException
     {
-        private readonly List<KeyValuePair<string, string>> responseHeaders;
-        private readonly HttpStatusCode statusCode;
-
-        public PomonaException()
+        public UnknownTypeException(string message, Exception innerException = null,
+                                    HttpStatusCode statusCode = HttpStatusCode.BadRequest,
+                                    IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+            : base(message, innerException, statusCode, responseHeaders)
         {
         }
 
-        public PomonaException(string message) : base(message)
+        protected UnknownTypeException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            statusCode = HttpStatusCode.InternalServerError;
-        }
-
-        public PomonaException(string message, Exception innerException) : base(message, innerException)
-        {
-            statusCode = HttpStatusCode.InternalServerError;
-        }
-
-        public PomonaException(string message, Exception innerException, HttpStatusCode statusCode,
-                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
-            : base(message, innerException)
-        {
-            if (responseHeaders != null)
-                this.responseHeaders = responseHeaders.ToList();
-
-            this.statusCode = statusCode;
-        }
-
-        protected PomonaException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-
-        public List<KeyValuePair<string, string>> ResponseHeaders
-        {
-            get { return responseHeaders; }
-        }
-
-        public HttpStatusCode StatusCode
-        {
-            get { return statusCode; }
         }
     }
 }
