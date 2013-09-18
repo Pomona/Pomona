@@ -26,6 +26,7 @@
 
 #endregion
 
+using System.Linq;
 using Pomona.Common.Proxies;
 
 namespace Pomona.Common
@@ -38,8 +39,7 @@ namespace Pomona.Common
     public interface IClientRepository<TResource, TPostResponseResource> : IQueryableRepository<TResource>,
                                                                            IPatchableRepository<TResource>,
                                                                            IPostableRepository
-                                                                               <TResource, TPostResponseResource>,
-                                                                           IClientRepository
+                                                                               <TResource, TPostResponseResource>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {

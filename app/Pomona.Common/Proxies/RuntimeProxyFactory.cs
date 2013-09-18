@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,8 +24,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using Pomona.Common.Internals;
@@ -45,19 +48,21 @@ namespace Pomona.Common.Proxies
             var asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var modBuilder = asmBuilder.DefineDynamicModule(assemblyNameString, false);
 
-            var proxyBuilder = new WrappedPropertyProxyBuilder(modBuilder, typeof (TProxyBase),
-                                                                     typeof (PropertyWrapper<,>));
+            var proxyBaseType = typeof (TProxyBase);
+            var proxyBuilder = new WrappedPropertyProxyBuilder(modBuilder, proxyBaseType,
+                                                               typeof (PropertyWrapper<,>),
+                                                               typeNameFormat: "{0}_" + proxyBaseType.Name,
+                                                               proxyNamespace: proxyBaseType.Namespace);
 
             var typeDef = proxyBuilder.CreateProxyType(typeName, type.WrapAsEnumerable());
 
             proxyType = typeDef.CreateType();
-
         }
 
 
         public static T Create()
         {
-            return (T) Activator.CreateInstance(proxyType);
+            return (T)Activator.CreateInstance(proxyType);
         }
     }
 }
