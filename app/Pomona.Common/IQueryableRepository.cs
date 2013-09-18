@@ -31,7 +31,7 @@ using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
-    public interface IQueryableRepository<TResource> : IClientRepository
+    public interface IQueryableRepository<TResource> : IClientRepository, IQueryable<TResource>
         where TResource : class, IClientResource
     {
         IQueryable<TResource> Query();

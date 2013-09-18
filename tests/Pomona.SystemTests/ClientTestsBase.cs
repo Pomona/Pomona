@@ -202,6 +202,7 @@ namespace Pomona.SystemTests
             return assembly == typeof (object).Assembly ||
                    assembly == typeof (ICritter).Assembly ||
                    assembly == typeof (ClientBase).Assembly ||
+                   assembly == typeof (IQueryProvider).Assembly ||
                    assembly == typeof (Uri).Assembly;
         }
 

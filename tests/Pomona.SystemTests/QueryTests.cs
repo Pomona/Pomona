@@ -64,6 +64,13 @@ namespace Pomona.SystemTests
             Assert.That(noCritters, Has.Count.EqualTo(0));
         }
 
+        [Test]
+        public void QueryAgainstEntityWithRepositoryProperty_WithPredicateOnRepositoryProperty()
+        {
+            var firstCritterName = CritterEntities.First().Name;
+            var farm = client.Farms.Where(x => x.Critters.Any(y => y.Name == firstCritterName)).ToList();
+        }
+
 
         [Test]
         public void QueryClientSideInheritedResource_ReturnsCorrectResults()
@@ -171,7 +178,7 @@ namespace Pomona.SystemTests
         {
             var musicalCritter = (MusicalCritter) this.Repository.CreateRandomCritter(forceMusicalCritter: true);
             var farms =
-                client.Farms.Query(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
+                client.Farms.Where(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
             Assert.That(farms.Any(x => x.MusicalCritters.Select(y => y.Id).Contains(musicalCritter.Id)));
         }
 

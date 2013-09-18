@@ -27,14 +27,17 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
     public class ClientRepository<TResource, TPostResponseResource> :
-        IClientRepository<TResource, TPostResponseResource>
+        IClientRepository<TResource, TPostResponseResource>, IQueryable<TResource>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -71,14 +74,14 @@ namespace Pomona.Common
 
         public TPostResponseResource Post(PostResourceBase form)
         {
-            return (TPostResponseResource) client.Post(Uri, (TResource)((object)form));
+            return (TPostResponseResource)client.Post(Uri, (TResource)((object)form));
         }
 
 
         public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            return (TPostResponseResource) client.Post(Uri, postAction);
+            return (TPostResponseResource)client.Post(Uri, postAction);
         }
 
         public IQueryable<TSubResource> Query<TSubResource>()
@@ -89,15 +92,16 @@ namespace Pomona.Common
 
         public TPostResponseResource Post(Action<TResource> postActionBlah)
         {
-            return (TPostResponseResource) client.Post(Uri, postActionBlah);
+            return (TPostResponseResource)client.Post(Uri, postActionBlah);
         }
 
-        public object Post<TPostForm>(TResource resource, TPostForm form) where TPostForm : PostResourceBase, IClientResource
+        public object Post<TPostForm>(TResource resource, TPostForm form)
+            where TPostForm : PostResourceBase, IClientResource
         {
             if (resource == null) throw new ArgumentNullException("resource");
             if (form == null) throw new ArgumentNullException("form");
 
-            return client.Post(((IHasResourceUri) resource).Uri, form);
+            return client.Post(((IHasResourceUri)resource).Uri, form);
         }
 
         public TResource Get(object id)
@@ -108,6 +112,31 @@ namespace Pomona.Common
         public IQueryable<TResource> Query()
         {
             return new RestQuery<TResource>(new RestQueryProvider(client, typeof (TResource), Uri));
+        }
+
+        public IEnumerator<TResource> GetEnumerator()
+        {
+            return Query().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public Expression Expression
+        {
+            get { return Expression.Constant(Query()); }
+        }
+
+        public Type ElementType
+        {
+            get { return typeof (TResource); }
+        }
+
+        public IQueryProvider Provider
+        {
+            get { return new RestQueryProvider(client, ElementType, Uri); }
         }
     }
 }
