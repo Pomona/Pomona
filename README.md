@@ -52,6 +52,7 @@ So if you really want to check this stuff out, here's how you get started.
    `GetSourceTypes()` must return the list of what Types to expose to web service.
 3. Inherit `PomonaModule` (which is a Nancy module), and treat this as you normally would treat a Nancy module.
    Which could mean zero configuration. Just because Nancy is *that* awesome!
+4. Inherit PomonaConfigurationBase and fill in the abstracts.
 
 Look at the Critter example in the source code for details. If you fire up the `Pomona.Example.ServerApp.exe`, it expose the critters on port 2211.
 When ServerApp is running go here with a web browser to see what Pōmōna is all about:

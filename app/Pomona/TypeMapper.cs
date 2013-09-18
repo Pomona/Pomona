@@ -125,7 +125,12 @@ namespace Pomona
 
         public IMappedType GetClassMapping(string typeName)
         {
-            return typeNameMap[typeName.ToLower()];
+            IMappedType type;
+            if (!typeNameMap.TryGetValue(typeName.ToLower(), out type))
+            {
+                throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
+            }
+            return type;
         }
 
         private void ScanHandlerForPomonaMethods()
@@ -207,7 +212,7 @@ namespace Pomona
 
             if (type.IsEnum)
             {
-                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int) x);
+                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int)x);
                 var newEnumType = new EnumType(type, this, values);
                 mappings[type] = newEnumType;
                 return newEnumType;
@@ -242,7 +247,7 @@ namespace Pomona
                 else
                 {
                     if (uriBaseType != type)
-                        classDefinition.UriBaseType = (TransformedType) GetClassMapping(uriBaseType);
+                        classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
                     else
                         classDefinition.UriBaseType = classDefinition;
 
@@ -251,7 +256,7 @@ namespace Pomona
                 }
 
 
-                classDefinition.PostReturnType = (TransformedType) GetClassMapping(filter.GetPostReturnType(type));
+                classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
                 classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
 
                 classDefinition.PostAllowed = filter.PostOfTypeIsAllowed(type);

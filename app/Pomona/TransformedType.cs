@@ -104,7 +104,7 @@ namespace Pomona
             get
             {
                 return
-                    typeMapper.TransformedTypes.Where(x => x.BaseType == this).SelectMany(x => x.SubTypes.ConcatOne(x));
+                    typeMapper.TransformedTypes.Where(x => x.BaseType == this).SelectMany(x => x.SubTypes.Concat(x));
             }
         }
 

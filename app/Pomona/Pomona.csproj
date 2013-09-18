@@ -214,6 +214,7 @@
     <Compile Include="PropertyMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeMappingFilterBase.cs" />
+    <Compile Include="UnknownTypeException.cs" />
     <Compile Include="Visitors\FindAndReplaceVisitor.cs" />
   </ItemGroup>
   <ItemGroup>

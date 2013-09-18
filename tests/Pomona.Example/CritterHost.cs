@@ -48,7 +48,7 @@ namespace Pomona.Example
             get { return baseUri; }
         }
 
-        public CritterDataStore DataSource { get; private set; }
+        public CritterRepository Repository { get; private set; }
 
         public NancyHost Host
         {
@@ -59,7 +59,7 @@ namespace Pomona.Example
         public void Start()
         {
             var bootstrapper = new CritterBootstrapper();
-            DataSource = bootstrapper.DataStore;
+            this.Repository = bootstrapper.Repository;
             host = new NancyHost(baseUri, bootstrapper);
             host.Start();
         }
