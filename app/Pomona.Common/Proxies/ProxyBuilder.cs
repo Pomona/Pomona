@@ -151,7 +151,12 @@ namespace Pomona.Common.Proxies
 
                 var proxyOnGetMethod =
                     baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                           .First(x => x.Name == "OnInvokeMethod");
+                           .FirstOrDefault(x => x.Name == "OnInvokeMethod");
+
+                if (proxyOnGetMethod == null)
+                    throw new InvalidOperationException("Unable to generate proxy for " +
+                                                        targetMethod.DeclaringType + ":" + targetMethod.Name + " using " +
+                                                        baseDef.FullName + " as base: base is missing OnInvokeMethod.");
 
                 var parameters = targetMethod.GetParameters();
                 var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
