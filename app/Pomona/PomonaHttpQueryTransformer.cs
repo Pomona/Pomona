@@ -74,7 +74,7 @@ namespace Pomona
             }
 
             string filter = null;
-            var top = 10;
+            var top = 100;
             var skip = 0;
 
             if (request.Query["$totalcount"].HasValue && ((string) request.Query["$totalcount"]).ToLower() == "true")
