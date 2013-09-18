@@ -167,6 +167,10 @@ namespace Pomona.Common.Proxies
                     targetMethod.ReturnType,
                     paramTypes);
 
+                foreach (var parameter in parameters)
+                {
+                    method.DefineParameter(parameter.Position, parameter.Attributes, parameter.Name);
+                }
 
                 var il = method.GetILGenerator();
                 var argsLocal = il.DeclareLocal(typeof (object[]));
