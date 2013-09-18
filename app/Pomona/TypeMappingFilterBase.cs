@@ -216,10 +216,10 @@ namespace Pomona
             //
 
             // Lets just try this for now:
-            if (sourceTypesCached.Contains(type))
+            if (SourceTypes.Contains(type))
                 return type;
 
-            if (type.BaseType != null && sourceTypesCached.Contains(type.BaseType))
+            if (type.BaseType != null && SourceTypes.Contains(type.BaseType))
                 return type.BaseType;
 
             return type;
