@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
+    <Compile Include="Documentation\XmlDocTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />

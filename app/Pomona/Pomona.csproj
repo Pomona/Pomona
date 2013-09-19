@@ -124,6 +124,9 @@
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="CodeGen\ProxyBuilder.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
+    <Compile Include="Documentation\XmlDoc.cs" />
+    <Compile Include="Documentation\XmlDocAssembly.cs" />
+    <Compile Include="Documentation\XmlDocMember.cs" />
     <Compile Include="EnumType.cs" />
     <Compile Include="Fetcher\BatchFetcher.cs">
       <SubType>Code</SubType>

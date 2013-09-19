@@ -79,6 +79,9 @@ namespace Pomona.Example.Models
             get { return Id%6; }
         }
 
+        /// <summary>
+        /// Name of the critter!
+        /// </summary>
         public string Name { get; set; }
 
         public IList<SimpleAttribute> SimpleAttributes { get; set; }
