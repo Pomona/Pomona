@@ -58,7 +58,7 @@ namespace Pomona.UnitTests.Documentation
         {
             var xdoc = LoadXmlDoc();
             Assert.That(xdoc.Assembly.Name, Is.EqualTo("Pomona.Example"));
-            Assert.That(xdoc.Members.Length, Is.GreaterThan(0));
+            Assert.That(xdoc.Members.Count, Is.GreaterThan(0));
             Assert.That(xdoc.Members.Any(x => x.Summary != null));
         }
 

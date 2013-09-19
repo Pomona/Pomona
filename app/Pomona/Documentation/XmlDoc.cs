@@ -26,6 +26,7 @@
 
 #endregion
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
@@ -35,12 +36,18 @@ namespace Pomona.Documentation
     [XmlRoot("doc")]
     public class XmlDoc
     {
+        public XmlDoc()
+        {
+            Assembly = new XmlDocAssembly();
+            Members = new List<XmlDocMember>();
+        }
+
         [XmlElement("assembly")]
         public XmlDocAssembly Assembly { get; set; }
 
         [XmlArray("members")]
         [XmlArrayItem("member")]
-        public XmlDocMember[] Members { get; set; }
+        public List<XmlDocMember> Members { get; set; }
 
         public string GetSummary(PropertyInfo propertyInfo)
         {
@@ -51,7 +58,9 @@ namespace Pomona.Documentation
 
             return
                 Members.Where(
-                    x => string.Equals(x.Name, "P:" + propertyInfo.ReflectedType.FullName + "." + propertyInfo.Name))
+                    x =>
+                    string.Equals(x.Name,
+                                  string.Format("P:{0}.{1}", propertyInfo.ReflectedType.FullName, propertyInfo.Name)))
                        .Select(x => x.Summary)
                        .FirstOrDefault();
         }

@@ -197,6 +197,11 @@ namespace Pomona.FluentMapping
             return FromMappingOrDefault(type, x => x.OnDeserialized, () => wrappedFilter.GetOnDeserializedHook(type));
         }
 
+        public string GetPropertyDescription(PropertyInfo property)
+        {
+            return wrappedFilter.GetPropertyDescription(property);
+        }
+
         public Type GetPropertyType(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyType(propertyInfo);
@@ -412,7 +417,7 @@ namespace TestNs
                 {
                     var typeMapping = GetTypeMapping(subType);
                     var configurator = typeMapping.GetConfigurator(ruleMethod.AppliesToType);
-                    ruleMethod.Method.Invoke(ruleMethod.Instance, new[] {configurator});
+                    ruleMethod.Method.Invoke(ruleMethod.Instance, new[] { configurator });
                 }
             }
         }
@@ -422,7 +427,7 @@ namespace TestNs
             Type type, Func<TypeMappingOptions, T?> ifMappingExist, Func<T> ifMappingMissing)
             where T : struct
         {
-            var result = FromMappingOrDefault(type, ifMappingExist, () => (T?) ifMappingMissing());
+            var result = FromMappingOrDefault(type, ifMappingExist, () => (T?)ifMappingMissing());
             if (!result.HasValue)
                 throw new InvalidOperationException("Expected a non-null value here.");
             return result.Value;
@@ -438,7 +443,7 @@ namespace TestNs
                 result = ifMappingExist(typeMappingOptions);
             if (result == null)
                 return ifMappingMissing();
-            return (T) result;
+            return (T)result;
         }
 
 
@@ -455,7 +460,7 @@ namespace TestNs
             if (result == null)
                 return ifMappingMissing();
 
-            return (T) result;
+            return (T)result;
         }
 
 
@@ -473,7 +478,7 @@ namespace TestNs
             if (result == null)
                 return ifMappingMissing();
 
-            return (T) result;
+            return (T)result;
         }
 
         private bool TryGetTypeMappingAndPropertyOptions(

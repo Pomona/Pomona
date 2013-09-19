@@ -39,6 +39,7 @@ using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
+using Pomona.Documentation;
 
 namespace Pomona.CodeGen
 {
@@ -46,6 +47,7 @@ namespace Pomona.CodeGen
     {
         private readonly TypeMapper typeMapper;
         private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
+        private readonly XmlDoc xmlDoc = new XmlDoc();
         private string assemblyName;
         private TypeDefinition clientInterface;
         private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
@@ -60,6 +62,11 @@ namespace Pomona.CodeGen
             this.typeMapper = typeMapper;
 
             PomonaClientEmbeddingEnabled = true;
+        }
+
+        public XmlDoc XmlDoc
+        {
+            get { return xmlDoc; }
         }
 
 
@@ -85,7 +92,7 @@ namespace Pomona.CodeGen
         }
 
 
-        public void CreateClientDll(Stream stream)
+        public void CreateClientDll(Stream stream, Action<XmlDoc> onXmlDocCompleted = null)
         {
             var transformedTypes = typeMapper.TransformedTypes.ToList();
 
@@ -116,6 +123,7 @@ namespace Pomona.CodeGen
             }
 
             assembly.Name = new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0));
+            xmlDoc.Assembly.Name = assembly.Name.Name;
 
             //var assembly =
             //    AssemblyDefinition.CreateAssembly(
@@ -183,6 +191,9 @@ namespace Pomona.CodeGen
             var array = memstream.ToArray();
 
             stream.Write(array, 0, array.Length);
+
+            if (xmlDoc.Members.Count > 0 && onXmlDocCompleted != null)
+                onXmlDocCompleted(xmlDoc);
 
             //assembly.Write(stream);
         }
@@ -710,6 +721,8 @@ namespace Pomona.CodeGen
                     // For interface getters and setters
                     var interfacePropDef = AddInterfaceProperty(interfaceDef, prop.Name, propTypeRef);
 
+                    AddDocumentationToXmlDoc(prop, interfacePropDef);
+
                     if (prop.IsAttributesProperty)
                     {
                         AddAttribute(interfacePropDef, typeof (ResourceAttributesPropertyAttribute));
@@ -740,6 +753,18 @@ namespace Pomona.CodeGen
                 }
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
             }
+        }
+
+        private void AddDocumentationToXmlDoc(PropertyMapping prop, PropertyDefinition propDef)
+        {
+            if (prop.Description == null)
+                return;
+
+            xmlDoc.Members.Add(new XmlDocMember
+                {
+                    Name = "P:" + propDef.DeclaringType.FullName + "." + propDef.Name,
+                    Summary = prop.Description
+                });
         }
 
         private void AddPropertyFieldInitialization(FieldDefinition backingField, IMappedType propertyType,

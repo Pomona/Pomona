@@ -101,5 +101,7 @@ namespace Pomona
         bool PatchOfTypeIsAllowed(Type type);
 
         Action<object> GetOnDeserializedHook(Type type);
+
+        string GetPropertyDescription(PropertyInfo property);
     }
 }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Xml.Serialization;
 using Common.Logging;
 using DelegateDecompiler;
 using Nancy.Extensions;
@@ -35,6 +41,7 @@ using Newtonsoft.Json.Converters;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Documentation;
 using Pomona.FluentMapping;
 
 namespace Pomona
@@ -62,6 +69,8 @@ namespace Pomona
         }
 
         #region ITypeMappingFilter Members
+
+        private readonly Dictionary<string, XmlDoc> xmlDocs = new Dictionary<string, XmlDoc>();
 
         public virtual bool IsIndependentTypeRoot(Type type)
         {
@@ -350,6 +359,27 @@ namespace Pomona
         public virtual Action<object> GetOnDeserializedHook(Type type)
         {
             return null;
+        }
+
+        public virtual string GetPropertyDescription(PropertyInfo property)
+        {
+            var xdoc = xmlDocs.GetOrCreate(property.DeclaringType.Assembly.FullName, () =>
+                {
+                    var xmlDocFileName = property.ReflectedType.Assembly.GetName().Name + ".xml";
+                    if (File.Exists(xmlDocFileName))
+                    {
+                        using (var stream = File.OpenRead(xmlDocFileName))
+                        {
+                            return (XmlDoc)(new XmlSerializer(typeof (XmlDoc)).Deserialize(stream));
+                        }
+                    }
+                    return null;
+                });
+
+            if (xdoc == null)
+                return null;
+
+            return xdoc.GetSummary(property);
         }
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)

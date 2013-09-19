@@ -26,10 +26,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using Mono.Cecil;
 using Newtonsoft.Json;
 using NuGet;
 using Pomona.Common;
+using Pomona.Documentation;
 
 namespace Pomona.CodeGen
 {
@@ -131,7 +133,14 @@ namespace Pomona.CodeGen
             using (var stream = File.Create(dllPath))
             {
                 clientLibGen.PomonaClientEmbeddingEnabled = false;
-                clientLibGen.CreateClientDll(stream);
+                clientLibGen.CreateClientDll(stream, xmlDoc =>
+                    {
+                        var pomonaClientXmlDocPath = Path.Combine(dllDir, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
+                        using (var xmlDocStream = File.OpenWrite(pomonaClientXmlDocPath))
+                        {
+                            (new XmlSerializer(typeof(XmlDoc))).Serialize(xmlDocStream, xmlDoc);
+                        }
+                    });
             }
 
             var pomonaClientAssemblySourcePath = typeof (ClientBase<>).Assembly.Location;

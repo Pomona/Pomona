@@ -54,6 +54,7 @@ namespace Pomona
                 x => x.AddValuesToCollection<object>(null, null));
 
         private readonly List<HandlerInfo> declaredPostHandlers = new List<HandlerInfo>();
+        private readonly Dictionary<string, object> extraData = new Dictionary<string, object>();
 
         private readonly Type mappedType;
         private readonly string name;
@@ -73,6 +74,11 @@ namespace Pomona
             UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
+        }
+
+        public Dictionary<string, object> ExtraData
+        {
+            get { return extraData; }
         }
 
         public IList<HandlerInfo> DeclaredPostHandlers
@@ -592,6 +598,12 @@ namespace Pomona
                     formula = filter.GetDecompiledPropertyFormula(propInfo);
                 }
                 propDef.Formula = formula;
+
+                var propertyDescription = filter.GetPropertyDescription(propInfo);
+                if (propertyDescription != null)
+                {
+                    propDef.Description = propertyDescription;
+                }
 
                 properties.Add(propDef);
             }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,7 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common;
@@ -38,15 +43,17 @@ namespace Pomona
         #endregion
 
         private readonly TransformedType declaringType;
+        private readonly Dictionary<string, object> extraData = new Dictionary<string, object>();
         private readonly string name;
-        private readonly TransformedType reflectedType;
         private readonly PropertyInfo propertyInfo;
         private readonly IMappedType propertyType;
+        private readonly TransformedType reflectedType;
         private PropertyInfo normalizedPropertyInfo;
 
 
         public PropertyMapping(
-            string name, TransformedType reflectedType, TransformedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
+            string name, TransformedType reflectedType, TransformedType declaringType, IMappedType propertyType,
+            PropertyInfo propertyInfo)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
@@ -86,6 +93,19 @@ namespace Pomona
             get { return propertyType.IsCollection; }
         }
 
+
+        public Dictionary<string, object> ExtraData
+        {
+            get { return extraData; }
+        }
+
+        public string Description
+        {
+            get { return ExtraData.SafeGet("Description") as string; }
+            set { ExtraData["Description"] = value; }
+        }
+
+
         public PropertyInfo PropertyInfo
         {
             get { return propertyInfo; }
@@ -116,6 +136,12 @@ namespace Pomona
         public string UriName { get; set; }
 
         public bool ExposedAsRepository { get; set; }
+
+        public TransformedType ReflectedType
+        {
+            get { return reflectedType; }
+        }
+
         public bool IsEtagProperty { get; set; }
 
         public bool AlwaysExpand { get; set; }
@@ -162,11 +188,6 @@ namespace Pomona
         }
 
         public Action<object, object> Setter { get; set; }
-
-        public TransformedType ReflectedType
-        {
-            get { return reflectedType; }
-        }
 
         public Expression CreateGetterExpression(Expression instance)
         {
