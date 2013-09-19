@@ -171,6 +171,8 @@
     <Compile Include="Queries\LambdaNode.cs" />
     <Compile Include="Queries\MethodCallNode.cs" />
     <Compile Include="Queries\NotNode.cs" />
+    <Compile Include="Queries\PomonaQueryLexer.cs" />
+    <Compile Include="Queries\PomonaQueryParser.cs" />
     <Compile Include="Queries\QueryParseException.cs" />
     <Compile Include="Queries\TypeNameNode.cs" />
     <Compile Include="ResourceNotFoundException.cs" />
@@ -188,8 +190,6 @@
     <Compile Include="Queries\NodeBase.cs" />
     <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
     <Compile Include="Queries\NodeType.cs" />
-    <Compile Include="Queries\PomonaQueryLexer.Placeholder.cs" />
-    <Compile Include="Queries\PomonaQueryParser.Placeholder.cs" />
     <Compile Include="Queries\QueryTypeResolver.cs" />
     <Compile Include="Queries\QueryExpressionParser.cs" />
     <Compile Include="Queries\PomonaQueryTreeParser.cs" />
@@ -254,6 +254,7 @@
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
     <!-- Folder containing AntlrBuildTask.dll -->
+    <AntlrOutputPath>$(MSBuildProjectDirectory)\Queries</AntlrOutputPath>
     <AntlrBuildTaskPath>$(SolutionDir)\tools\AntlrDotnet</AntlrBuildTaskPath>
     <!-- Path to the ANTLR Tool itself. -->
     <AntlrToolPath>$(SolutionDir)\tools\AntlrDotnet\Antlr3.exe</AntlrToolPath>

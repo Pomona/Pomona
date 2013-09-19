@@ -65,3 +65,4 @@ packages/
 
 # visual studio database projects
 *.dbmdl
+app/Pomona/QueriesPomona.csproj.AntlrGeneratedCodeFileListAbsolute.txt

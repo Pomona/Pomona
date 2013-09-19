@@ -88,7 +88,7 @@
   </ItemDefinitionGroup>
 
   <Target Name="AntlrCompileReadGeneratedFileList">
-    <ReadLinesFromFile File="$(IntermediateOutputPath)$(AntlrGenCodeFileNames)">
+    <ReadLinesFromFile File="$(AntlrOutputPath)$(AntlrGenCodeFileNames)">
       <Output TaskParameter="Lines" ItemName="AntlrOutputCodeFilesList"/>
     </ReadLinesFromFile>
   </Target>
@@ -113,7 +113,7 @@
           Condition="'@(Antlr3)' != ''"
           Inputs="@(Antlr3);@(AntlrTokens);@(AntlrAbstractGrammar)"
           Outputs="@(AntlrOutputCodeFilesList);
-                  $(IntermediateOutputPath)$(AntlrGenCodeFileNames);">
+                  $(AntlrOutputPath)$(AntlrGenCodeFileNames);">
 
     <ItemGroup>
       <AntlrGeneratedCodeFiles Remove="@(AntlrGeneratedCodeFiles)" />
@@ -126,7 +126,7 @@
     <AntlrClassGenerationTask
       AntlrToolPath="$(AntlrToolLocation)"
       BuildTaskPath="$(AntlrBuildTaskLocation)"
-      OutputPath="$(IntermediateOutputPath)"
+      OutputPath="$(AntlrOutputPath)"
       TargetLanguage="%(Antlr3.TargetLanguage)"
       SourceCodeFiles="@(Antlr3)"
       ContinueOnError="$(_IntellisenseOnlyCompile)"
@@ -141,7 +141,7 @@
 
     <WriteLinesToFile
       Condition="'$(_IntellisenseOnlyCompile)' != 'true'"
-      File="$(IntermediateOutputPath)$(AntlrGenCodeFileNames)"
+      File="$(AntlrOutputPath)$(AntlrGenCodeFileNames)"
       Lines="@(AntlrGeneratedCodeFiles)"
       Overwrite="true"/>
   </Target>
@@ -156,7 +156,7 @@
 
     <ItemGroup>
       <FileWrites Include="@(AntlrGeneratedCodeFiles);
-                           $(IntermediateOutputPath)$(AntlrGenCodeFileNames);" />
+                           $(AntlrOutputPath)$(AntlrGenCodeFileNames);" />
     </ItemGroup>
 
     <ItemGroup>
