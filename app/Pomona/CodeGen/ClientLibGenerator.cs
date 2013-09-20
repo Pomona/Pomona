@@ -389,7 +389,9 @@ namespace Pomona.CodeGen
             if (tt.PrimaryId != null)
             {
                 AddRepositoryGetByIdMethod(rti, methodAttributes, isImplementation, tt, repoTypeDef, baseTypeGenericDef,
-                                           baseTypeGenericArgs);
+                                           baseTypeGenericArgs, "Get");
+                AddRepositoryGetByIdMethod(rti, methodAttributes, isImplementation, tt, repoTypeDef, baseTypeGenericDef,
+                                           baseTypeGenericArgs, "GetLazy");
             }
 
             // Constructor
@@ -428,9 +430,9 @@ namespace Pomona.CodeGen
         private void AddRepositoryGetByIdMethod(TypeCodeGenInfo rti, MethodAttributes methodAttributes,
                                                 bool isImplementation,
                                                 TransformedType tt, TypeDefinition repoTypeDef,
-                                                TypeDefinition baseTypeGenericDef, TypeReference[] baseTypeGenericArgs)
+                                                TypeDefinition baseTypeGenericDef, TypeReference[] baseTypeGenericArgs, string methodName)
         {
-            var method = new MethodDefinition("Get", methodAttributes, rti.InterfaceType);
+            var method = new MethodDefinition(methodName, methodAttributes, rti.InterfaceType);
             var idType = tt.PrimaryId.PropertyType;
             if (!(idType is SharedType))
                 throw new NotSupportedException("Id needs to be a shared type.");
@@ -442,7 +444,7 @@ namespace Pomona.CodeGen
             if (isImplementation)
             {
                 var baseGetMethodRef =
-                    module.Import(baseTypeGenericDef.Methods.First(x => x.Name == "Get")
+                    module.Import(baseTypeGenericDef.Methods.First(x => x.Name == methodName)
                                                     .MakeHostInstanceGeneric(baseTypeGenericArgs));
                 var ilproc = method.Body.GetILProcessor();
 

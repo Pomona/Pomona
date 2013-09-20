@@ -101,7 +101,7 @@ namespace Pomona.Common.Proxies
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("This is just a proxy, use Patch to modify a resource.");
         }
     }
 }
