@@ -137,18 +137,6 @@ namespace Pomona.CodeGen
 
             BuildInterfacesAndPocoTypes(transformedTypes);
 
-            // Add attribute with resource info
-
-            // Create proxy types
-
-            //CreateProxies(
-            //    new ProxyBuilder(
-            //        module,
-            //        "{0}OldProxy",
-            //        GetProxyType("LazyProxyBase"),
-            //        MakeProxyTypesPublic,
-            //        GeneratePropertyProxyMethods),
-            //    (info, def) => { info.LazyProxyType = def; });
 
             CreateProxies(
                 new WrappedPropertyProxyBuilder(
