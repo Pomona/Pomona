@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.Routing;
@@ -87,7 +89,7 @@ namespace Pomona
             var route = routeMatch.Route;
             var dynamicDict = routeMatch.Parameters;
 
-            var pomonaResponse = (PomonaResponse) route.Action((dynamic) dynamicDict);
+            var pomonaResponse = (PomonaResponse)((Task<dynamic>)route.Action((dynamic)dynamicDict, CancellationToken.None)).Result;
 
             return pomonaResponse.Entity;
         }
