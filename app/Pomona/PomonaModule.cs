@@ -264,7 +264,7 @@ namespace Pomona
             IPropertyInfo keyIdProp = key.PropertyType.PrimaryId;
             query.FilterExpression =
                 Expression.Lambda(
-                    Expression.And(
+                    Expression.AndAlso(
                         Expression.Equal(keyIdProp.CreateGetterExpression(key.CreateGetterExpression(filterParam)),
                                          Expression.Constant(Convert.ChangeType(id, keyIdProp.PropertyType.MappedTypeInstance))),
                         query.FilterExpression.Body), filterParam);
