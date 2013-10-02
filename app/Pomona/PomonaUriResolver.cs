@@ -76,7 +76,7 @@ namespace Pomona
             url.Path = modulePath;
             url.Query = uri.Query;
 
-            var innerRequest = new Request("GET", url);
+            var innerRequest = new Request("GET", url,ip:Context.Request.UserHostAddress);
             var innerContext = new NancyContext
                 {
                     Culture = Context.Culture,
