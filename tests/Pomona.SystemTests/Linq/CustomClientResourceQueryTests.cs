@@ -52,6 +52,12 @@ namespace Pomona.SystemTests.Linq
             DateTime? Time { get; set; }
         }
 
+
+        public interface ICustomTestEntityWithBoolean : IStringToObjectDictionaryContainer
+        {
+            bool? TheBool { get; set; }
+        }
+
         public interface ITestClientResource : IStringToObjectDictionaryContainer
         {
             string Jalla { get; set; }
@@ -151,6 +157,21 @@ namespace Pomona.SystemTests.Linq
             Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
         }
 
+
+        [Test]
+        public void QueryCustomTestEntityWithBoolean_ReturnsCustomTestEntity()
+        {
+            var dictContainer =
+                this.Repository.Save(new StringToObjectDictionaryContainer() { Map = { { "TheBool", true } } });
+
+            var results = client.Query<ICustomTestEntityWithBoolean>()
+                                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value == true)
+                                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+            Assert.That(result.TheBool, Is.True);
+        }
 
         [Test]
         public void QueryCustomTestEntity_ReturnsCustomTestEntity()
