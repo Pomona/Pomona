@@ -27,6 +27,7 @@ using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Example.Models;
+using Pomona.Common.Linq;
 
 namespace Pomona.SystemTests.Linq
 {
@@ -157,6 +158,28 @@ namespace Pomona.SystemTests.Linq
             Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
         }
 
+
+        [Test]
+        public void QueryCustomTestEntity3_ToQueryResult_ReturnsQueryResultOfCustomTestEntity()
+        {
+            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
+            var dictContainer = this.Repository.Save(new StringToObjectDictionaryContainer
+            {
+                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+            });
+
+            var results = client.Query<ICustomTestEntity3>()
+                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                                .IncludeTotalCount()
+                                .ToQueryResult();
+
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Number, Is.EqualTo(32));
+            Assert.That(result.Text, Is.EqualTo("foobar"));
+            Assert.That(result.Time, Is.EqualTo(timeValue));
+            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+        }
 
         [Test]
         public void QueryCustomTestEntityWithBoolean_ReturnsCustomTestEntity()
