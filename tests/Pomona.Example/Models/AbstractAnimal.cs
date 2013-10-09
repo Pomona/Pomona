@@ -32,5 +32,6 @@ namespace Pomona.Example.Models
     {
         public virtual string TheVirtualProperty { get; set; }
         public abstract string TheAbstractProperty { get; set; }
+        public virtual bool PublicAndReadOnlyThroughApi { get; set; }
     }
 }

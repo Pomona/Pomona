@@ -24,6 +24,7 @@
 
 using System.Linq;
 using NUnit.Framework;
+using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -39,6 +40,14 @@ namespace Pomona.UnitTests
         }
 
         private TypeMapper typeMapper;
+
+        [Test]
+        public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        {
+            var tt = (PropertyMapping)typeMapper.GetClassMapping<Critter>().Properties.First(x => x.Name == "PublicAndReadOnlyThroughApi");
+            Assert.That(tt.IsWriteable, Is.False);
+            Assert.That(tt.CreateMode, Is.EqualTo(PropertyCreateMode.Excluded));
+        }
 
         [Test]
         public void DoesNotDuplicatePropertiesWhenDerivedFromHiddenBaseClassInMiddle()

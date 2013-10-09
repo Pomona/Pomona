@@ -35,79 +35,86 @@ namespace Pomona.FluentMapping
     internal class PropertyOptionsBuilder<TDeclaringType, TPropertyType>
         : IPropertyOptionsBuilder<TDeclaringType, TPropertyType>
     {
-        private readonly PropertyMappingOptions propertyMappingOptions;
+        private readonly PropertyMappingOptions options;
 
 
-        public PropertyOptionsBuilder(PropertyMappingOptions propertyMappingOptions)
+        public PropertyOptionsBuilder(PropertyMappingOptions options)
         {
-            if (propertyMappingOptions == null)
-                throw new ArgumentNullException("propertyMappingConfigurator");
-            this.propertyMappingOptions = propertyMappingOptions;
+            if (options == null)
+                throw new ArgumentNullException("options");
+            this.options = options;
         }
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
         {
-            propertyMappingOptions.CreateMode = PropertyCreateMode.Optional;
-            propertyMappingOptions.AccessMode = PropertyAccessMode.ReadWrite;
+            options.CreateMode = PropertyCreateMode.Optional;
+            options.AccessMode = PropertyAccessMode.ReadWrite;
+            return this;
+        }
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
+        {
+            options.CreateMode = PropertyCreateMode.Excluded;
+            options.AccessMode = PropertyAccessMode.ReadOnly;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
         {
-            propertyMappingOptions.CreateMode = createMode;
+            options.CreateMode = createMode;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
         {
-            propertyMappingOptions.AccessMode = accessMode;
+            options.AccessMode = accessMode;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
         {
-            propertyMappingOptions.AlwaysExpanded = true;
+            options.AlwaysExpanded = true;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
         {
-            propertyMappingOptions.IsEtagProperty = true;
+            options.IsEtagProperty = true;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {
-            propertyMappingOptions.Formula = formula;
+            options.Formula = formula;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
         {
-            propertyMappingOptions.IsPrimaryKey = true;
+            options.IsPrimaryKey = true;
             return this;
         }
 
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
         {
-            propertyMappingOptions.Name = name;
+            options.Name = name;
             return this;
         }
 
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
         {
-            propertyMappingOptions.IsAttributesProperty = true;
+            options.IsAttributesProperty = true;
             return this;
         }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
         {
-            propertyMappingOptions.PropertyFormulaIsDecompiled = true;
+            options.PropertyFormulaIsDecompiled = true;
             return this;
         }
 
