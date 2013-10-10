@@ -57,6 +57,7 @@ namespace Pomona.Common
         public abstract int Skip { get; }
         public abstract int TotalCount { get; }
         public abstract bool TryGetPage(int offset, out Uri pageUri);
+        public abstract string Url { get; }
 
 
         public static QueryResult Create(IEnumerable source, int skip, int totalCount, string url)
@@ -122,7 +123,7 @@ namespace Pomona.Common
             get { return totalCount; }
         }
 
-        public string Url
+        public override string Url
         {
             get { return url; }
         }

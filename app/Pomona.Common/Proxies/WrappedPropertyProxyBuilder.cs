@@ -46,7 +46,9 @@ namespace Pomona.Common.Proxies
             ModuleDefinition module,
             TypeReference proxyBaseTypeDef,
             TypeReference propertyWrapperType,
-            bool isPublic = true) : base(module, "Fast{0}Proxy", proxyBaseTypeDef, isPublic)
+            bool isPublic = true,
+            string typeNameFormat = "Fast{0}Proxy",
+            string proxyNamespace = null) : base(module, typeNameFormat , proxyBaseTypeDef, isPublic, proxyNamespace : proxyNamespace)
         {
             this.propertyWrapperType = propertyWrapperType;
         }

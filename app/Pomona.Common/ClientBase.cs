@@ -92,6 +92,9 @@ namespace Pomona.Common
 
         internal abstract object Post<T>(string uri, T postForm)
             where T : class, IClientResource;
+
+        public abstract T GetLazy<T>(string uri)
+            where T : class, IClientResource;
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -191,6 +194,16 @@ namespace Pomona.Common
         public override T Get<T>(string uri)
         {
             return (T)Deserialize(DownloadFromUri(uri), typeof (T));
+        }
+
+        public override T GetLazy<T>(string uri)
+        {
+            var typeInfo = this.GetResourceInfoForType(typeof (T));
+            var proxy = (LazyProxyBase)Activator.CreateInstance(typeInfo.LazyProxyType);
+            proxy.Uri = uri;
+            proxy.Client = this;
+            proxy.ProxyTargetType = typeInfo.PocoType;
+            return (T)((object)proxy);
         }
 
 

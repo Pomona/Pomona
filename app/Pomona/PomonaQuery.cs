@@ -183,7 +183,7 @@ namespace Pomona
                         {
                             result = totalQueryable.First();
                         }
-                        catch (InvalidOperationException ex)
+                        catch (InvalidOperationException)
                         {
                             // We assume that this means no matching element.
                             // Don't know another way to check this in a non-ambigious way, since null might be a valid return value.

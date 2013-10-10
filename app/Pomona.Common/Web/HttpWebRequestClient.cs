@@ -51,7 +51,10 @@ namespace Pomona.Common.Web
             var webRequest = (HttpWebRequest)WebRequest.Create(request.Uri);
 
             if (Credentials != null)
+            {
                 webRequest.Credentials = Credentials;
+                webRequest.PreAuthenticate = true;
+            }
 
             foreach (var h in headers.Concat(request.Headers))
             {

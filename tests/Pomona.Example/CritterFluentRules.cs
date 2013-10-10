@@ -45,6 +45,11 @@ namespace Pomona.Example
             map.PostDenied();
         }
 
+        public void Map(ITypeMappingConfigurator<AbstractAnimal> map)
+        {
+            map.Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly());
+        }
+
         public void Map(ITypeMappingConfigurator<UnpostableThingOnServer> map)
         {
             map.WithPluralName("UnpostableThingsOnServer");
@@ -126,6 +131,7 @@ namespace Pomona.Example
                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly))
+               .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
                .OnDeserialized(c => c.FixParentReferences());
         }
 

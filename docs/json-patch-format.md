@@ -23,6 +23,7 @@ Operators:
 * `-` - Removes an identified item from an array. Invalid on objects.
 * `*` - Modifies a property (object or array).
 * `+` - Adds an item to an array. Invalid on objects. Also the default operation on arrays, making it optional.
+* `@` - Identification prefix used to indicate that the property name that follows and its assigned value is the key and value that identifies the item in the array that should be performed an action on.
 
 Changing the `info` property (an object):
 ```json

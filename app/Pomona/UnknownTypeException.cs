@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,9 +24,27 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-namespace Pomona.Queries
+#endregion
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Nancy;
+
+namespace Pomona
 {
-    public partial class PomonaQueryLexer
+    [Serializable]
+    public class UnknownTypeException : PomonaException
     {
+        public UnknownTypeException(string message, Exception innerException = null,
+                                    HttpStatusCode statusCode = HttpStatusCode.BadRequest,
+                                    IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+            : base(message, innerException, statusCode, responseHeaders)
+        {
+        }
+
+        protected UnknownTypeException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
 }

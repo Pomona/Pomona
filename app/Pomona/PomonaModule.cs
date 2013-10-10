@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,10 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.Practices.ServiceLocation;
 using Nancy;
@@ -46,10 +51,10 @@ namespace Pomona
             ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
 
         private static readonly MethodInfo postGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePost((object) null));
+            ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePost((object)null));
 
         private static readonly MethodInfo patchGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePatch((object) null));
+            ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePatch((object)null));
 
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
@@ -137,14 +142,14 @@ namespace Pomona
 
         private object InvokeDataSourcePatch<T>(T entity)
         {
-            if (!((TransformedType) typeMapper.GetClassMapping<T>()).PatchAllowed)
+            if (!((TransformedType)typeMapper.GetClassMapping<T>()).PatchAllowed)
                 throw new PomonaException("Method PATCH not allowed", null, HttpStatusCode.MethodNotAllowed);
             return dataSource.Patch(entity);
         }
 
         private object InvokeDataSourcePost<T>(T entity)
         {
-            if (!((TransformedType) typeMapper.GetClassMapping<T>()).PostAllowed)
+            if (!((TransformedType)typeMapper.GetClassMapping<T>()).PostAllowed)
                 throw new PomonaException("Method POST not allowed", null, HttpStatusCode.MethodNotAllowed);
             return dataSource.Post(entity);
         }
@@ -166,7 +171,7 @@ namespace Pomona
             var postResource = Deserialize(transformedType, body, patchedObject);
             var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
             var postResponse = method.MakeGenericMethod(postResource.GetType())
-                                     .Invoke(this, new[] {postResource});
+                                     .Invoke(this, new[] { postResource });
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
 
@@ -177,7 +182,7 @@ namespace Pomona
         public object GetById(TransformedType transformedType, object id)
         {
             return getByIdMethod.MakeGenericMethod(transformedType.MappedTypeInstance)
-                                .Invoke(dataSource, new[] {id});
+                                .Invoke(dataSource, new[] { id });
         }
 
 
@@ -188,7 +193,7 @@ namespace Pomona
             propertyName = propertyName.ToLower();
 
             var o = GetById(transformedType, id);
-            var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+            var mappedType = (TransformedType)typeMapper.GetClassMapping(o.GetType());
 
             var property =
                 mappedType.Properties.OfType<PropertyMapping>()
@@ -251,18 +256,20 @@ namespace Pomona
             // TODO: Fix that this only works if primary key is named Id [KNS]
 
             // Fetch entity first to see if entity with id actually exists.
-            GetAsJson((TransformedType) key.PropertyType, id, null);
+            GetById((TransformedType)key.PropertyType, id);
 
-            if (Request.Query["$filter"].HasValue)
-            {
-                Request.Query["$filter"] = String.Format(
-                    "{0}.{1} eq {2} and ({3})", key.JsonName, key.PropertyType.PrimaryId.JsonName, id,
-                    Request.Query["$filter"]);
-            }
-            else
-                Request.Query["$filter"] = String.Format("{0}.id eq {1}", key.JsonName, id);
+            var query = queryTransformer.TransformRequest(Request, Context, UriResolver, type);
 
-            return Query(type);
+            var filterParam = query.FilterExpression.Parameters[0];
+            IPropertyInfo keyIdProp = key.PropertyType.PrimaryId;
+            query.FilterExpression =
+                Expression.Lambda(
+                    Expression.AndAlso(
+                        Expression.Equal(keyIdProp.CreateGetterExpression(key.CreateGetterExpression(filterParam)),
+                                         Expression.Constant(Convert.ChangeType(id, keyIdProp.PropertyType.MappedTypeInstance))),
+                        query.FilterExpression.Body), filterParam);
+
+            return Query(query);
         }
 
 
@@ -374,7 +381,7 @@ namespace Pomona
             }
             if (exception is PomonaException)
             {
-                return new PomonaError(((PomonaException) exception).StatusCode);
+                return new PomonaError(((PomonaException)exception).StatusCode);
             }
             return null;
         }
@@ -385,9 +392,9 @@ namespace Pomona
                 {
                     try
                     {
-                        var pomonaResponse = (PomonaResponse) handler(x);
+                        var pomonaResponse = (PomonaResponse)handler(x);
 
-                        if ((int) pomonaResponse.StatusCode >= 400)
+                        if ((int)pomonaResponse.StatusCode >= 400)
                             SetErrorHandled();
 
                         return pomonaResponse;
@@ -423,7 +430,7 @@ namespace Pomona
                 if (transformedProp != null && transformedProp.IsOneToManyCollection
                     && transformedProp.ElementForeignKey != null)
                 {
-                    var collectionElementType = (TransformedType) prop.PropertyType.ElementType;
+                    var collectionElementType = (TransformedType)prop.PropertyType.ElementType;
                     var elementForeignKey = transformedProp.ElementForeignKey;
 
                     Register(Get, path + "/{id}/" + transformedProp.UriName,
@@ -445,7 +452,7 @@ namespace Pomona
         private PomonaResponse PostToResource(TransformedType type, object id, string actionName = "")
         {
             var o = GetById(type, id);
-            var mappedType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+            var mappedType = (TransformedType)typeMapper.GetClassMapping(o.GetType());
             var form = Deserialize(null, Request.Body);
 
             var handlers =
@@ -462,7 +469,7 @@ namespace Pomona
                     "TODO: Overload resolution not fully implemented when posting to a resource.");
 
             var handler = handlers[0];
-            var result = handler.Method.Invoke(DataSource, new[] {o, form});
+            var result = handler.Method.Invoke(DataSource, new[] { o, form });
 
             return new PomonaResponse(result, UriResolver);
         }
@@ -483,13 +490,13 @@ namespace Pomona
                 if (etagProp == null)
                     throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
 
-                if ((string) etagProp.Getter(o) != ifMatch)
+                if ((string)etagProp.Getter(o) != ifMatch)
                 {
                     throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
                 }
             }
 
-            var objType = (TransformedType) typeMapper.GetClassMapping(o.GetType());
+            var objType = (TransformedType)typeMapper.GetClassMapping(o.GetType());
             return PostOrPatch(objType, Request.Body, o);
         }
 

@@ -29,10 +29,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using Nancy;
 
 namespace Pomona
 {
+    [Serializable]
     public class PomonaException : ApplicationException
     {
         private readonly List<KeyValuePair<string, string>> responseHeaders;
@@ -60,6 +62,10 @@ namespace Pomona
                 this.responseHeaders = responseHeaders.ToList();
 
             this.statusCode = statusCode;
+        }
+
+        protected PomonaException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
         }
 
         public List<KeyValuePair<string, string>> ResponseHeaders

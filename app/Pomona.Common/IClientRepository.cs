@@ -38,8 +38,7 @@ namespace Pomona.Common
     public interface IClientRepository<TResource, TPostResponseResource> : IQueryableRepository<TResource>,
                                                                            IPatchableRepository<TResource>,
                                                                            IPostableRepository
-                                                                               <TResource, TPostResponseResource>,
-                                                                           IClientRepository
+                                                                               <TResource, TPostResponseResource>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -47,5 +46,6 @@ namespace Pomona.Common
 
 
         TResource Get(object id);
+        TResource GetLazy(object id);
     }
 }

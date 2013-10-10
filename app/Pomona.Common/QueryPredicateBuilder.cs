@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections;
@@ -51,19 +55,19 @@ namespace Pomona.Common
         {
             var binExprDict = new Dictionary<ExpressionType, string>
                 {
-                    {ExpressionType.AndAlso, "and"},
-                    {ExpressionType.OrElse, "or"},
-                    {ExpressionType.Equal, "eq"},
-                    {ExpressionType.NotEqual, "ne"},
-                    {ExpressionType.GreaterThan, "gt"},
-                    {ExpressionType.GreaterThanOrEqual, "ge"},
-                    {ExpressionType.LessThan, "lt"},
-                    {ExpressionType.LessThanOrEqual, "le"},
-                    {ExpressionType.Subtract, "sub"},
-                    {ExpressionType.Add, "add"},
-                    {ExpressionType.Multiply, "mul"},
-                    {ExpressionType.Divide, "div"},
-                    {ExpressionType.Modulo, "mod"}
+                    { ExpressionType.AndAlso, "and" },
+                    { ExpressionType.OrElse, "or" },
+                    { ExpressionType.Equal, "eq" },
+                    { ExpressionType.NotEqual, "ne" },
+                    { ExpressionType.GreaterThan, "gt" },
+                    { ExpressionType.GreaterThanOrEqual, "ge" },
+                    { ExpressionType.LessThan, "lt" },
+                    { ExpressionType.LessThanOrEqual, "le" },
+                    { ExpressionType.Subtract, "sub" },
+                    { ExpressionType.Add, "add" },
+                    { ExpressionType.Multiply, "mul" },
+                    { ExpressionType.Divide, "div" },
+                    { ExpressionType.Modulo, "mod" }
                 };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);
@@ -139,9 +143,9 @@ namespace Pomona.Common
             // We must always include . to make sure number gets interpreted as double and not int.
             // Yeah, there's probably a more elegant way to do this, but don't care about finding it out right now.
             // This should work.
-            return value != (long) value
+            return value != (long)value
                        ? value.ToString("R", CultureInfo.InvariantCulture)
-                       : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long) value);
+                       : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
         }
 
         private string GetExternalTypeName(Type typeOperand)
@@ -273,14 +277,14 @@ namespace Pomona.Common
 
         private Expression FixBinaryComparisonConversion(Expression expr)
         {
-            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression) expr).Operand.Type == typeof (object))
+            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression)expr).Operand.Type == typeof (object))
             {
-                return ((UnaryExpression) expr).Operand;
+                return ((UnaryExpression)expr).Operand;
             }
             else if (expr.NodeType == ExpressionType.Convert && expr.Type.IsNullable() &&
-                     Nullable.GetUnderlyingType(expr.Type) == ((UnaryExpression) expr).Operand.Type)
+                     Nullable.GetUnderlyingType(expr.Type) == ((UnaryExpression)expr).Operand.Type)
             {
-                return ((UnaryExpression) expr).Operand;
+                return ((UnaryExpression)expr).Operand;
             }
             return expr;
         }
@@ -339,7 +343,7 @@ namespace Pomona.Common
             {
                 var constantKeyExpr = callExpr.Arguments[1] as ConstantExpression;
                 if (constantKeyExpr != null && constantKeyExpr.Type == typeof (string) &&
-                    IsValidSymbolString((string) constantKeyExpr.Value))
+                    IsValidSymbolString((string)constantKeyExpr.Value))
                 {
                     return string.Format("{0}.{1}", Build(callExpr.Arguments[0]), constantKeyExpr.Value);
                 }
@@ -464,7 +468,7 @@ namespace Pomona.Common
                 var elements = string
                     .Join(
                         ",",
-                        ((IEnumerable) value)
+                        ((IEnumerable)value)
                             .Cast<object>()
                             .Select(x => GetEncodedConstant(enumerableElementType, x)));
 
@@ -479,27 +483,27 @@ namespace Pomona.Common
                     // Note: char will be interpreted as string on other end.
                     return EncodeString(value.ToString());
                 case TypeCode.String:
-                    return EncodeString((string) value);
+                    return EncodeString((string)value);
                 case TypeCode.Int32:
                     return value.ToString();
                 case TypeCode.DateTime:
-                    return string.Format("datetime'{0}'", DateTimeToString((DateTime) value));
+                    return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
                 case TypeCode.Double:
-                    return DoubleToString((double) value);
+                    return DoubleToString((double)value);
                 case TypeCode.Single:
-                    return ((float) value).ToString("R", CultureInfo.InvariantCulture) + "f";
+                    return ((float)value).ToString("R", CultureInfo.InvariantCulture) + "f";
                 case TypeCode.Decimal:
-                    return ((decimal) value).ToString(CultureInfo.InvariantCulture) + "m";
+                    return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
                     if (value == null)
                         return "null";
                     if (value is Guid)
-                        return string.Format("guid'{0}'", ((Guid) value));
+                        return string.Format("guid'{0}'", ((Guid)value));
                     if (value is Type)
-                        return GetExternalTypeName((Type) value);
+                        return GetExternalTypeName((Type)value);
                     break;
                 case TypeCode.Boolean:
-                    return ((bool) value) ? "true" : "false";
+                    return ((bool)value) ? "true" : "false";
                 default:
                     break;
             }
@@ -516,9 +520,9 @@ namespace Pomona.Common
             {
                 if (right.Type == typeof (Int32) && right.NodeType == ExpressionType.Constant)
                 {
-                    var rightConstant = (ConstantExpression) right;
+                    var rightConstant = (ConstantExpression)right;
                     left = unaryLeft.Operand;
-                    right = Expression.Constant(Enum.ToObject(left.Type, (int) rightConstant.Value), left.Type);
+                    right = Expression.Constant(Enum.ToObject(left.Type, (int)rightConstant.Value), left.Type);
                     return;
                 }
             }
@@ -527,10 +531,21 @@ namespace Pomona.Common
                 TryDetectAndConvertEnumComparison(ref right, ref left, false);
         }
 
+        private static Type GetFuncInExpression(Type t)
+        {
+            Type[] typeArgs;
+            if (t.TryExtractTypeArguments(typeof (IQueryable<>), out typeArgs))
+            {
+                return typeof (IEnumerable<>).MakeGenericType(typeArgs[0]);
+            }
+            return t.TryExtractTypeArguments(typeof (Expression<>), out typeArgs) ? typeArgs[0] : t;
+        }
 
         private bool TryMapKnownOdataFunction(
             MemberInfo member, IEnumerable<Expression> arguments, out string odataExpression)
         {
+            ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref member, ref arguments);
+
             OdataFunctionMapping.MemberMapping memberMapping;
             if (!OdataFunctionMapping.TryGetMemberMapping(member, out memberMapping))
             {
@@ -547,6 +562,47 @@ namespace Pomona.Common
             return true;
         }
 
+        private static void ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref MemberInfo member,
+                                                                                    ref IEnumerable<Expression>
+                                                                                        arguments)
+        {
+            var firstArg = arguments.First();
+            Type[] queryableTypeArgs;
+            var method = member as MethodInfo;
+            if (method != null && method.IsStatic &&
+                firstArg.Type.TryExtractTypeArguments(typeof (IQueryable<>), out queryableTypeArgs))
+            {
+                // Try to find matching method taking IEnumerable instead
+                var wantedArgs =
+                    method.GetGenericMethodDefinition()
+                          .GetParameters()
+                          .Select(x => GetFuncInExpression(x.ParameterType))
+                          .ToArray();
+
+                var enumerableMethod =
+                    typeof (Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                                       .FirstOrDefault(x => x.Name == method.Name &&
+                                                            x.GetParameters()
+                                                             .Select(y => y.ParameterType)
+                                                             .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
+                                                             .All(y => y));
+
+                if (enumerableMethod != null)
+                {
+                    arguments =
+                        arguments.Select(x => x.NodeType == ExpressionType.Quote ? ((UnaryExpression)x).Operand : x);
+                    if (enumerableMethod.IsGenericMethodDefinition)
+                    {
+                        member = enumerableMethod.MakeGenericMethod(((MethodInfo)member).GetGenericArguments());
+                    }
+                    else
+                    {
+                        member = enumerableMethod;
+                    }
+                }
+            }
+        }
+
         #region Nested type: PreBuildVisitor
 
         private class PreBuildVisitor : EvaluateClosureMemberVisitor
@@ -556,7 +612,7 @@ namespace Pomona.Common
 
             static PreBuildVisitor()
             {
-                concatMethod = typeof (string).GetMethod("Concat", new[] {typeof (string), typeof (string)});
+                concatMethod = typeof (string).GetMethod("Concat", new[] { typeof (string), typeof (string) });
             }
 
 
