@@ -26,7 +26,6 @@
 
 #endregion
 
-using System.Linq;
 using Pomona.Common.Proxies;
 
 namespace Pomona.Common
@@ -47,5 +46,6 @@ namespace Pomona.Common
 
 
         TResource Get(object id);
+        TResource GetLazy(object id);
     }
 }

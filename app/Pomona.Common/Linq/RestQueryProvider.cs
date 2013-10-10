@@ -287,12 +287,15 @@ namespace Pomona.Common.Linq
             if (transformedExpression.Type.TryGetEnumerableElementType(out elementType)
                 && elementType == serverKnownType)
             {
+                var wrappedResults = (result as IEnumerable).Cast<object>().Select(x => CreateClientSideResourceProxy<TCustomClientType>(dictProp, x));
                 // Map back to customClientType
-                var resultsWrapper =
-                    (result as IEnumerable).Cast<object>().Select(
-                        x => CreateClientSideResourceProxy<TCustomClientType>(dictProp, x)).ToList();
-
-                return resultsWrapper;
+                if (result is QueryResult)
+                {
+                    var resultAsQueryResult = (QueryResult)result;
+                    return new QueryResult<TCustomClientType>(wrappedResults, resultAsQueryResult.Skip,
+                                                              resultAsQueryResult.TotalCount, resultAsQueryResult.Url);
+                }
+                return wrappedResults.ToList();
             }
             // TODO!
             return result;

@@ -106,7 +106,7 @@ namespace Pomona.Common
 
         public TResource Get(object id)
         {
-            return client.Get<TResource>(string.Format("{0}/{1}", uri, id));
+            return client.Get<TResource>(GetResourceUri(id));
         }
 
         public IQueryable<TResource> Query()
@@ -137,6 +137,16 @@ namespace Pomona.Common
         public IQueryProvider Provider
         {
             get { return new RestQueryProvider(client, ElementType, Uri); }
+        }
+
+        public TResource GetLazy(object id)
+        {
+            return client.GetLazy<TResource>(GetResourceUri(id));
+        }
+
+        private string GetResourceUri(object id)
+        {
+            return string.Format("{0}/{1}", uri, id);
         }
     }
 }

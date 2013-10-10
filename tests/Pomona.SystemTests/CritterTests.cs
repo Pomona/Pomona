@@ -103,7 +103,6 @@ namespace Pomona.SystemTests
                 Assert.Fail("Found the following errors on generated client lib: {0}\r\n", errors);
         }
 
-
         [Test]
         public void GetMusicalCritter()
         {

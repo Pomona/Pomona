@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,10 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System.Linq;
 using NUnit.Framework;
+using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -45,9 +42,26 @@ namespace Pomona.UnitTests
         private TypeMapper typeMapper;
 
         [Test]
+        public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        {
+            var tt = (PropertyMapping)typeMapper.GetClassMapping<Critter>().Properties.First(x => x.Name == "PublicAndReadOnlyThroughApi");
+            Assert.That(tt.IsWriteable, Is.False);
+            Assert.That(tt.CreateMode, Is.EqualTo(PropertyCreateMode.Excluded));
+        }
+
+        [Test]
+        public void DoesNotDuplicatePropertiesWhenDerivedFromHiddenBaseClassInMiddle()
+        {
+            var tt = typeMapper.GetClassMapping<InheritsFromHiddenBase>();
+            Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
+            var idProp = tt.Properties.First(x => x.Name == "Id");
+            Assert.That(idProp.DeclaringType, Is.EqualTo(typeMapper.GetClassMapping<EntityBase>()));
+        }
+
+        [Test]
         public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
         {
-            var transformedType = (TransformedType)typeMapper.GetClassMapping<ThingWithRenamedProperties>();
+            var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedProperties>();
             var internalPath = typeMapper.ConvertToInternalPropertyPath(
                 transformedType,
                 "DiscoFunky.BeautifulAndExposed");
@@ -67,23 +81,6 @@ namespace Pomona.UnitTests
                 typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
                 Is.False,
                 "Excluded thing should not have been part of transformed types");
-        }
-
-        [Test]
-        public void DoesNotDuplicatePropertiesWhenDerivedFromHiddenBaseClassInMiddle()
-        {
-            var tt = typeMapper.GetClassMapping<InheritsFromHiddenBase>();
-            Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
-            var idProp = tt.Properties.First(x => x.Name == "Id");
-            Assert.That(idProp.DeclaringType, Is.EqualTo(typeMapper.GetClassMapping<EntityBase>()));
-        }
-
-        [Test]
-        public void ReadsXmlDocumentationWhenAvailableAndSetsPropertyDescription()
-        {
-            var tt = typeMapper.GetClassMapping<Critter>();
-            var prop = tt.Properties.OfType<PropertyMapping>().First(x => x.Name == "Name");
-            Assert.That(prop.Description, Is.StringContaining("Name of the critter!"));
         }
     }
 }

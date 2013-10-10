@@ -120,6 +120,19 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PropertyOfPostForm_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        {
+            Assert.That(typeof (CritterForm).GetProperty("PublicAndReadOnlyThroughApi"), Is.Null);
+        }
+
+
+        [Test]
+        public void PropertyOfPostFormOfAbstractType_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        {
+            Assert.That(typeof(AbstractAnimalForm).GetProperty("PublicAndReadOnlyThroughApi"), Is.Null);
+        }
+
+        [Test]
         public void ResourceInfoAttributeOfGeneratedTypeHasCorrectEtagPropertySet()
         {
             var resInfo = typeof (IEtaggedEntity).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();

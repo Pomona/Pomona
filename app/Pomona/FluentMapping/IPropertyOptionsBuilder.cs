@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq.Expressions;
@@ -47,7 +51,7 @@ namespace Pomona.FluentMapping
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name);
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula();
 
-
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode);
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode);

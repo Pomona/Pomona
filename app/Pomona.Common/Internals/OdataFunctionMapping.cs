@@ -104,6 +104,9 @@ namespace Pomona.Common.Internals
             Add<double>(x => Math.Ceiling(x), "ceiling({0})");
             Add<decimal>(x => decimal.Ceiling(x), "ceiling({0})");
 
+            Add<WildcardStructType?>(x => x.HasValue, "hasValue({0})", MethodCallStyle.Chained);
+            Add<WildcardStructType?>(x => x.Value, "value({0})", MethodCallStyle.Chained);
+
             // Custom functions, not odata standard
             Add<IEnumerable<WildcardType>>(x => x.Any(), "any({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
@@ -427,7 +430,8 @@ namespace Pomona.Common.Internals
 
                 var genericArguments = type.GetGenericArguments();
                 var wildcardType = typeof (WildcardType);
-                return genericArguments.Any(x => x == wildcardType) || genericArguments.Any(HasWildcardArgument);
+                var wildcardStructType = typeof (WildcardStructType);
+                return genericArguments.Any(x => x == wildcardType || x == wildcardStructType) || genericArguments.Any(HasWildcardArgument);
             }
         }
 
@@ -539,6 +543,10 @@ namespace Pomona.Common.Internals
         #endregion
 
         #region Nested type: WildcardType
+
+        private struct WildcardStructType
+        {
+        }
 
         private class WildcardType
         {
