@@ -79,7 +79,6 @@ namespace Pomona
                 };
 
             this.dataSource = dataSource;
-            dataSource.Module = this;
 
             this.typeMapper = typeMapper;
             this.serviceLocator = serviceLocator;
