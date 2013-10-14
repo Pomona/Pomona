@@ -40,6 +40,12 @@ namespace Pomona.SystemTests
     public class ClientGeneratedTypeTests
     {
         [Test]
+        public void AssemblyVersionSetToApiVersionFromTypeMappingFilter()
+        {
+            Assert.That(typeof(Client).Assembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
+        }
+
+        [Test]
         public void GeneratedPocoTypeInitializesDictionaryPropertyInConstructor()
         {
             var dictContainer = new DictionaryContainerResource();
