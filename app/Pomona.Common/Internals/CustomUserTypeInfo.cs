@@ -59,7 +59,12 @@ namespace Pomona.Common.Internals
         internal static bool TryGetCustomUserTypeInfo(Type clientType, IPomonaClient client, out CustomUserTypeInfo info)
         {
             info = null;
-            var serverType = client.GetMostInheritedResourceInterface(clientType);
+            var serverTypeInfo = client.GetMostInheritedResourceInterfaceInfo(clientType);
+            if (serverTypeInfo == null)
+                return false;
+
+            var serverType = serverTypeInfo.InterfaceType;
+
             if (serverType == clientType)
                 return false;
 

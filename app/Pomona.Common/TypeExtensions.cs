@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -275,10 +279,10 @@ namespace Pomona.Common
                 return memberInfo;
 
             return
-                (TMemberInfo) memberInfo.DeclaringType.GetMember(memberInfo.Name,
-                                                                 BindingFlags.Instance | BindingFlags.NonPublic |
-                                                                 BindingFlags.Public)
-                                        .First(x => x.MetadataToken == memberInfo.MetadataToken);
+                (TMemberInfo)memberInfo.DeclaringType.GetMember(memberInfo.Name,
+                                                                BindingFlags.Instance | BindingFlags.NonPublic |
+                                                                BindingFlags.Public)
+                                       .First(x => x.MetadataToken == memberInfo.MetadataToken);
         }
 
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
@@ -294,6 +298,17 @@ namespace Pomona.Common
                     .Concat(sourceType.GetInterfaces())
                     .SelectMany(x => x.GetProperties())
                     .Distinct();
+        }
+
+        public static Type GetPropertyOrFieldType(this MemberInfo memberInfo)
+        {
+            var propInfo = memberInfo as PropertyInfo;
+            if (propInfo != null)
+                return propInfo.PropertyType;
+            var fieldInfo = memberInfo as FieldInfo;
+            if (fieldInfo != null)
+                return fieldInfo.FieldType;
+            throw new NotSupportedException("Can only get type from property or field.");
         }
 
         public static object GetPropertyOrFieldValue(this MemberInfo memberInfo, object obj)

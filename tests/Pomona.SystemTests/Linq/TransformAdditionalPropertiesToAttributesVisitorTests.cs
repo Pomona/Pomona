@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,41 +24,29 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
+#endregion
+
 using System.Linq;
-using System.Reflection;
-using NSubstitute;
+using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
-using Pomona.Internals;
 
-namespace Pomona.UnitTests.Linq
+namespace Pomona.SystemTests.Linq
 {
     [TestFixture]
-    public class TransformAdditionalPropertiesToAttributesVisitorTests
+    public class TransformAdditionalPropertiesToAttributesVisitorTests : ClientTestsBase
     {
-        public interface ICustomUserEntity : IServerKnownEntity
+        public interface ICustomUserEntity : IStringToObjectDictionaryContainer
         {
             string CustomString { get; set; }
             string OtherCustom { get; set; }
         }
 
-        public interface IServerKnownEntity
-        {
-            IDictionary<string, string> Attributes { get; }
-        }
-
-
         [Test]
         public void TransformsQueryCorrect()
         {
-            var client = Substitute.For<IPomonaClient>();
-
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(
-                typeof (ICustomUserEntity),
-                typeof (IServerKnownEntity),
-                (PropertyInfo) ReflectionHelper.GetInstanceMemberInfo<IServerKnownEntity>(x => x.Attributes));
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(client);
 
             var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(client,
                                                                                        typeof (ICustomUserEntity)))
@@ -64,11 +54,13 @@ namespace Pomona.UnitTests.Linq
                 .Where(x => x.OtherCustom == "Blob rob")
                 .Select(x => x.OtherCustom);
 
-            var expectedQuery = new RestQuery<IServerKnownEntity>(new RestQueryProvider(client,
-                                                                                        typeof (IServerKnownEntity)))
-                .Where(x => x.Attributes.SafeGet("CustomString") == "Lalalala")
-                .Where(x => x.Attributes.SafeGet("OtherCustom") == "Blob rob")
-                .Select(x => x.Attributes.SafeGet("OtherCustom"));
+            var expectedQuery = new RestQuery<IStringToObjectDictionaryContainer>(new RestQueryProvider(client,
+                                                                                                        typeof (
+                                                                                                            IStringToObjectDictionaryContainer
+                                                                                                            )))
+                .Where(x => (x.Map.SafeGet("CustomString") as string) == "Lalalala")
+                .Where(x => (x.Map.SafeGet("OtherCustom") as string) == "Blob rob")
+                .Select(x => (x.Map.SafeGet("OtherCustom") as string));
 
             var expectedQueryExpr = expectedQuery.Expression;
 

@@ -26,10 +26,18 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace Pomona.Example.Models
 {
     public class HasReferenceToDictionaryContainer : EntityBase
     {
+        public HasReferenceToDictionaryContainer()
+        {
+            OtherContainers = new List<StringToObjectDictionaryContainer>();
+        }
+
         public StringToObjectDictionaryContainer Container { get; set; }
+        public IList<StringToObjectDictionaryContainer> OtherContainers { get; set; }
     }
 }

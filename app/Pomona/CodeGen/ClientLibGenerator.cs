@@ -96,6 +96,7 @@ namespace Pomona.CodeGen
 
             var assemblyResolver = GetAssemblyResolver();
 
+            var version = new Version(typeMapper.Filter.ApiVersion);
             if (PomonaClientEmbeddingEnabled)
             {
                 var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };
@@ -110,12 +111,12 @@ namespace Pomona.CodeGen
                     };
                 assembly =
                     AssemblyDefinition.CreateAssembly(
-                        new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0)),
+                        new AssemblyNameDefinition(assemblyName, version),
                         assemblyName,
                         moduleParameters);
             }
 
-            assembly.Name = new AssemblyNameDefinition(assemblyName, new Version(1, 0, 0, 0));
+            assembly.Name = new AssemblyNameDefinition(assemblyName, version);
 
             //var assembly =
             //    AssemblyDefinition.CreateAssembly(

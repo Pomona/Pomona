@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,67 +24,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Reflection;
-using Pomona.Internals;
+#endregion
+
+using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Proxies
 {
-    public class ClientSideFormProxyBase : PostResourceBase
+    public class ClientSideFormProxyBase : ClientSideResourceProxyBase, IPostForm
     {
-        private static readonly MethodInfo onGetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
-                x => x.OnGetAttribute<object, object, object>(null));
-
-        private static readonly MethodInfo onSetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
-                x => x.OnSetAttribute<object, object, object>(null, null));
-
-        public object ProxyTarget { get; internal set; }
-        internal PropertyInfo AttributesProperty { get; set; }
-
-        protected override TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
         {
-            if (IsServerKnownProperty(property))
-                return property.Get((TOwner) ProxyTarget);
+            var targetSerializable = ProxyTarget as IPomonaSerializable;
+            if (targetSerializable == null)
+                return false;
 
-            var dictValueType = AttributesProperty.PropertyType.GetGenericArguments()[1];
-            return
-                (TPropType)
-                onGetAttributeMethod.MakeGenericMethod(typeof (TOwner), typeof (TPropType), dictValueType)
-                                    .Invoke(this, new object[] {property});
-        }
-
-        private TPropType OnGetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property)
-        {
-            var dict = (IDictionary<string, TDictValue>) AttributesProperty.GetValue(ProxyTarget, null);
-            return (TPropType) ((object) dict[property.Name]);
-        }
-
-        private bool OnSetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property,
-                                                                   TPropType value)
-        {
-            var dict = (IDictionary<string, TDictValue>) AttributesProperty.GetValue(ProxyTarget, null);
-            dict[property.Name] = (TDictValue) ((object) value);
-            return false;
-        }
-
-        private bool IsServerKnownProperty<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
-        {
-            return property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget);
-        }
-
-        protected override void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
-        {
-            if (IsServerKnownProperty(property))
-            {
-                property.Set((TOwner) ProxyTarget, value);
-                return;
-            }
-
-            var dictValueType = AttributesProperty.PropertyType.GetGenericArguments()[1];
-            onSetAttributeMethod.MakeGenericMethod(typeof (TOwner), typeof (TPropType), dictValueType)
-                                .Invoke(this, new object[] {property, value});
+            return targetSerializable.PropertyIsSerialized(propertyName);
         }
     }
 }
