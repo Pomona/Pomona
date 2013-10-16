@@ -87,6 +87,7 @@
     <Compile Include="Linq\CustomClientResourceQueryTests.cs" />
     <Compile Include="Linq\LinqQueryTests.cs" />
     <Compile Include="Linq\RestQueryTreeParserTests.cs" />
+    <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="PatchTests.cs" />
     <Compile Include="PostTests.cs" />
     <Compile Include="PostToResourceTests.cs" />

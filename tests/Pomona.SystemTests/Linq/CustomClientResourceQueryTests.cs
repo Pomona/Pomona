@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,12 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
-using Pomona.Example.Models;
 using Pomona.Common.Linq;
+using Pomona.Example.Models;
 
 namespace Pomona.SystemTests.Linq
 {
@@ -64,9 +69,18 @@ namespace Pomona.SystemTests.Linq
             string Jalla { get; set; }
         }
 
+        public interface IDecoratedWeapon : IWeapon
+        {
+        }
+
+        public interface IDecoratedCritter : ICritter
+        {
+        }
+
         public interface ITestParentClientResource : IHasReferenceToDictionaryContainer
         {
             new ITestClientResource Container { get; set; }
+            new IList<ITestClientResource> OtherContainers { get; set; }
         }
 
         [Test]
@@ -74,7 +88,7 @@ namespace Pomona.SystemTests.Linq
         {
             var entity = new StringToObjectDictionaryContainer
                 {
-                    Map = {{"Text", "testtest"}}
+                    Map = { { "Text", "testtest" } }
                 };
             Save(entity);
 
@@ -90,7 +104,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void PostCustomTestEntity()
         {
-            var response = (ICustomTestEntity3) client.Post<ICustomTestEntity3>(x =>
+            var response = (ICustomTestEntity3)client.Post<ICustomTestEntity3>(x =>
                 {
                     x.Number = 123;
                     x.Text = "foobar";
@@ -108,11 +122,11 @@ namespace Pomona.SystemTests.Linq
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
             var subtypedDictionaryContainer = new SubtypedDictionaryContainer
                 {
-                    Map = {{"CustomString", "Lalalala"}, {"OtherCustom", "Blob rob"}},
+                    Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
                     SomethingExtra = "Hahahohohihi"
                 };
 
-            this.Repository.Save<DictionaryContainer>(subtypedDictionaryContainer);
+            Repository.Save<DictionaryContainer>(subtypedDictionaryContainer);
 
             // Post does not yet work on subtypes
             //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
@@ -137,36 +151,15 @@ namespace Pomona.SystemTests.Linq
             Assert.That(result.CustomString, Is.EqualTo(subtypedDictionaryContainer.Map["CustomString"]));
         }
 
-        [Test]
-        public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
-        {
-            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
-            var dictContainer = this.Repository.Save(new StringToObjectDictionaryContainer
-                {
-                    Map = {{"Text", "foobar"}, {"Number", 32}, {"Time", timeValue}}
-                });
-
-            var results = client.Query<ICustomTestEntity3>()
-                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
-                                .ToList();
-
-            Assert.That(results, Has.Count.EqualTo(1));
-            var result = results.First();
-            Assert.That(result.Number, Is.EqualTo(32));
-            Assert.That(result.Text, Is.EqualTo("foobar"));
-            Assert.That(result.Time, Is.EqualTo(timeValue));
-            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
-        }
-
 
         [Test]
         public void QueryCustomTestEntity3_ToQueryResult_ReturnsQueryResultOfCustomTestEntity()
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
-            var dictContainer = this.Repository.Save(new StringToObjectDictionaryContainer
-            {
-                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
-            });
+            var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
+                {
+                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+                });
 
             var results = client.Query<ICustomTestEntity3>()
                                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
@@ -182,13 +175,34 @@ namespace Pomona.SystemTests.Linq
         }
 
         [Test]
+        public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
+        {
+            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
+            var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
+                {
+                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+                });
+
+            var results = client.Query<ICustomTestEntity3>()
+                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                                .ToList();
+
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Number, Is.EqualTo(32));
+            Assert.That(result.Text, Is.EqualTo("foobar"));
+            Assert.That(result.Time, Is.EqualTo(timeValue));
+            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+        }
+
+        [Test]
         public void QueryCustomTestEntityWithBoolean_ReturnsCustomTestEntity()
         {
             var dictContainer =
-                this.Repository.Save(new StringToObjectDictionaryContainer() { Map = { { "TheBool", true } } });
+                Repository.Save(new StringToObjectDictionaryContainer { Map = { { "TheBool", true } } });
 
             var results = client.Query<ICustomTestEntityWithBoolean>()
-                                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value == true)
+                                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
                                 .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
@@ -254,7 +268,7 @@ namespace Pomona.SystemTests.Linq
                 client.Query<ICustomTestEntity>()
                       .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
                       .GroupBy(x => x.CustomString)
-                      .Select(x => new {x.Key})
+                      .Select(x => new { x.Key })
                       .ToList();
 
             Assert.That(result.Count, Is.EqualTo(1));
@@ -268,18 +282,38 @@ namespace Pomona.SystemTests.Linq
             Assert.Fail("Test not implemented, correct behaviour not yet defined.");
         }
 
-        [Category("TODO")]
-        [Test(Description = "TODO: Functionality not yet implemented.")]
+
+        [Test]
         public void Query_ClientResourceWithReferenceToAnotherClientResource_First()
         {
-            var child = Save(new StringToObjectDictionaryContainer {Map = {{"Jalla", "booohoo"}}});
-            var parent = Save(new HasReferenceToDictionaryContainer {Container = child});
+            var child = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "booohoo" } } });
+            var parent = Save(new HasReferenceToDictionaryContainer { Container = child });
 
-            var resource = client.Query<ITestParentClientResource>().First(x => x.Id == parent.Id);
+            var resource =
+                client.Query<ITestParentClientResource>()
+                      .First(x => x.Id == parent.Id && x.Container.Jalla == "booohoo");
             Assert.That(resource.Container, Is.Not.Null);
             Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
+        }
 
-            Assert.Fail("Test not completed");
+        [Test]
+        public void Query_ClientResourceWithReferenceToListOfClientResources_First()
+        {
+            var child = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "booohoo" } } });
+            var otherChild = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "blabla" } } });
+            var parent =
+                Save(new HasReferenceToDictionaryContainer { Container = child, OtherContainers = { otherChild } });
+
+            var resource =
+                client.Query<ITestParentClientResource>()
+                      .First(
+                          x =>
+                          x.Id == parent.Id && x.Container.Jalla == "booohoo" &&
+                          x.OtherContainers.Any(y => y.Jalla == "blabla"));
+
+            Assert.That(resource.Container, Is.Not.Null);
+            Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
+            Assert.That(resource.OtherContainers[0].Jalla, Is.EqualTo("blabla"));
         }
     }
 }
