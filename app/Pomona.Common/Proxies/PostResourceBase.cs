@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,15 +24,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Pomona.Common.Serialization;
-using System.Linq;
 
 namespace Pomona.Common.Proxies
 {
-    public class PostResourceBase : IPomonaSerializable
+    public interface IPostForm : IPomonaSerializable
+    {
+    }
+
+    public class PostResourceBase : IPostForm
     {
         protected Dictionary<string, bool> dirtyMap = new Dictionary<string, bool>();
         protected Dictionary<string, object> propMap = new Dictionary<string, object>();
@@ -50,9 +58,9 @@ namespace Pomona.Common.Proxies
                     var newDict = Activator.CreateInstance(newDictType,
                                                            BindingFlags.Instance | BindingFlags.NonPublic |
                                                            BindingFlags.CreateInstance, null,
-                                                           new object[] {this, property.Name}, null);
+                                                           new object[] { this, property.Name }, null);
                     propMap[property.Name] = newDict;
-                    return (TPropType) newDict;
+                    return (TPropType)newDict;
                 }
                 if (propertyType.IsGenericInstanceOf(typeof (ICollection<>), typeof (IList<>)))
                 {
@@ -60,9 +68,9 @@ namespace Pomona.Common.Proxies
                     var newList = Activator.CreateInstance(newListType,
                                                            BindingFlags.Instance | BindingFlags.NonPublic |
                                                            BindingFlags.CreateInstance, null,
-                                                           new object[] {this, property.Name}, null);
+                                                           new object[] { this, property.Name }, null);
                     propMap[property.Name] = newList;
-                    return (TPropType) newList;
+                    return (TPropType)newList;
                 }
                 if (typeof (IClientResource).IsAssignableFrom(propertyType))
                 {
@@ -76,13 +84,13 @@ namespace Pomona.Common.Proxies
                         var valueObjectForm = Activator.CreateInstance(resourceInfo.PatchFormType);
                         propMap[property.Name] = valueObjectForm;
                         dirtyMap[property.Name] = true;
-                        return (TPropType) valueObjectForm;
+                        return (TPropType)valueObjectForm;
                     }
                 }
                 throw new InvalidOperationException("Update value for " + property.Name + " has not been set");
             }
 
-            return (TPropType) value;
+            return (TPropType)value;
         }
 
 

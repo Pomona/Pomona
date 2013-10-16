@@ -41,6 +41,6 @@ namespace Pomona.Common
 
 
         object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : PostResourceBase, IClientResource;
+            where TPostForm : class, IPostForm, IClientResource;
     }
 }

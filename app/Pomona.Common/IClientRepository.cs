@@ -42,7 +42,7 @@ namespace Pomona.Common
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
-        TPostResponseResource Post(PostResourceBase form);
+        TPostResponseResource Post(IPostForm form);
 
 
         TResource Get(object id);

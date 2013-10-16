@@ -67,11 +67,26 @@ namespace Pomona.Common.Proxies
                 }));
         }
 
+
+        private static readonly MethodInfo onGetAttributeMethod =
+            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
+                x => x.OnGetAttribute<object, object, object>(null));
+
+
+        private static readonly MethodInfo onSetAttributeMethod =
+            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
+                x => x.OnSetAttribute<object, object, object>(null, null));
+
         private Dictionary<string, object> nestedProxyCache = new Dictionary<string, object>();
+
+        private bool IsServerKnownProperty<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            return property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget);
+        }
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget))
+            if (IsServerKnownProperty(property))
                 return property.Getter((TOwner) ProxyTarget);
 
             // Check if this is a new'ed property on interface that is client type:
@@ -115,19 +130,40 @@ namespace Pomona.Common.Proxies
             if (UserTypeInfo.DictProperty == null)
                 throw new InvalidOperationException("No attributes property to map client-side property to!");
 
-            var dictTypeInstance =
-                UserTypeInfo.DictProperty.PropertyType.GetInterfacesOfGeneric(typeof (IDictionary<,>)).First();
-            var dict = UserTypeInfo.DictProperty.GetValue(ProxyTarget, null);
-            var attrKey = property.PropertyInfo.Name;
-            return (TPropType)
-                   OdataFunctionMapping.SafeGetMethod.MakeGenericMethod(dictTypeInstance.GetGenericArguments())
-                                       .Invoke(null, new[] {dict, attrKey});
+            var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];
+            return
+                (TPropType)
+                onGetAttributeMethod.MakeGenericMethod(typeof(TOwner), typeof(TPropType), dictValueType)
+                                    .Invoke(this, new object[] { property });
         }
 
 
+        private TPropType OnGetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(ProxyTarget, null);
+            return (TPropType)((object)dict[property.Name]);
+        }
+
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
-            throw new NotImplementedException();
+            if (IsServerKnownProperty(property))
+            {
+                property.Set((TOwner)ProxyTarget, value);
+                return;
+            }
+
+            var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];
+            onSetAttributeMethod.MakeGenericMethod(typeof(TOwner), typeof(TPropType), dictValueType)
+                                .Invoke(this, new object[] { property, value });
+        }
+
+
+        protected virtual bool OnSetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property,
+                                                                   TPropType value)
+        {
+            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(ProxyTarget, null);
+            dict[property.Name] = (TDictValue)((object)value);
+            return false;
         }
     }
 }

@@ -304,16 +304,13 @@ namespace Pomona.Common
                 if (form != null)
                     throw new NotImplementedException("Only supports form set to null (created by action) for now.");
 
-                var proxy =
-                    (ClientSideFormProxyBase)((object)RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
-                proxy.AttributesProperty = customUserTypeInfo.DictProperty;
-
                 var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
 
                 var typeGetter = formTypeGetter(resourceInfo);
                 var wrappedForm = Activator.CreateInstance(typeGetter);
-
-                proxy.ProxyTarget = wrappedForm;
+                var proxy =
+                    (ClientSideFormProxyBase)((object)RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
+                proxy.Initialize(this, customUserTypeInfo, wrappedForm);
 
                 if (postAction != null)
                 {

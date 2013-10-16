@@ -87,7 +87,6 @@
     <Compile Include="Proxies\RuntimeProxyFactory.cs" />
     <Compile Include="Proxies\LazyListProxy.cs" />
     <Compile Include="Proxies\LazyProxyBase.cs" />
-    <Compile Include="Proxies\NewResourceBase.cs" />
     <Compile Include="PomonaResourceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxies\PropertyWrapper.cs" />
