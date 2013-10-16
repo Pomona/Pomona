@@ -330,8 +330,8 @@ namespace Pomona.Common
                 var responseProxy =
                     (ClientSideResourceProxyBase)
                     ((object)RuntimeProxyFactory<ClientSideResourceProxyBase, T>.Create());
-                responseProxy.AttributesProperty = customUserTypeInfo.DictProperty;
-                responseProxy.ProxyTarget = innerResponse;
+
+                responseProxy.Initialize(this, customUserTypeInfo, innerResponse);
                 return responseProxy;
             }
             else

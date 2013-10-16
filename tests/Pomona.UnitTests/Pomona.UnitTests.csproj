@@ -75,7 +75,6 @@
     <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
-    <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -110,6 +109,9 @@
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
       <Name>Pomona</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Linq\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

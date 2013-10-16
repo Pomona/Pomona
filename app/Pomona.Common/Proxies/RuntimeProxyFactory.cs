@@ -30,9 +30,26 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 using Pomona.Common.Internals;
+using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {
+    public static class RuntimeProxyFactory
+    {
+        private static readonly MethodInfo createMethod =
+            ReflectionHelper.GetMethodDefinition<object>(o => Create<object, object>());
+
+        public static T Create<TProxyBase, T>()
+        {
+            return RuntimeProxyFactory<TProxyBase, T>.Create();
+        }
+
+        public static object Create(Type proxyBase, Type proxyTarget)
+        {
+            return createMethod.MakeGenericMethod(proxyBase, proxyTarget).Invoke(null, null);
+        }
+    }
+
     public static class RuntimeProxyFactory<TProxyBase, T>
     {
         private static readonly Type proxyType;
