@@ -122,6 +122,11 @@ namespace Pomona.Common.Serialization
             get { return parentNode; }
         }
 
+        public bool IsRemoved
+        {
+            get { return false; }
+        }
+
         #endregion
 
         public IPropertyInfo Property

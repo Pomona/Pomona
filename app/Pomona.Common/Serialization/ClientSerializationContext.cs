@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using Pomona.Common.Proxies;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -68,7 +73,8 @@ namespace Pomona.Common.Serialization
         public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
             where TWriter : ISerializerWriter
         {
-            if (node.Value is IClientResource && !(node.Value is PostResourceBase))
+            if (node.Value is IClientResource && !(node.Value is PostResourceBase) && !(node.Value is IDelta) &&
+                !node.IsRemoved)
             {
                 node.SerializeAsReference = true;
             }

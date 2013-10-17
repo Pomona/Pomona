@@ -35,11 +35,19 @@ namespace Pomona.Common.TypeSystem
     public class SharedPropertyInfo : IPropertyInfo
     {
         private readonly PropertyInfo propertyInfo;
+
+        public PropertyInfo PropertyInfo
+        {
+            get { return propertyInfo; }
+        }
+
         private readonly ITypeMapper typeMapper;
 
 
         internal SharedPropertyInfo(PropertyInfo propertyInfo, ITypeMapper typeMapper)
         {
+            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
             this.propertyInfo = propertyInfo;
             this.typeMapper = typeMapper;
         }

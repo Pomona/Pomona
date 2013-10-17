@@ -76,6 +76,7 @@
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
+    <Compile Include="Patch\DeltaTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxies\IlEmitBasedProxyBuilderTests.cs" />

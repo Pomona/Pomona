@@ -322,6 +322,15 @@ namespace Pomona.Common
             throw new NotSupportedException("Can only get value from property or field.");
         }
 
+        public static bool TryGetPropertyByName(this IMappedType type, string name, out IPropertyInfo property)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+            if (name == null) throw new ArgumentNullException("name");
+
+            property = type.Properties.FirstOrDefault(x => x.Name == name);
+            return property != null;
+        }
+
         public static bool IsAnonymous(this IMappedType type)
         {
             return type.Name.StartsWith("<>f__AnonymousType");

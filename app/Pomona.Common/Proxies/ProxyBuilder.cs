@@ -92,7 +92,7 @@ namespace Pomona.Common.Proxies
             IEnumerable<TypeReference> interfacesToImplement)
         {
             var proxyBaseCtor =
-                proxyBaseTypeDef.GetConstructors().First(x => x.GetParameters().Length == 0);
+                proxyBaseTypeDef.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).First(x => x.GetParameters().Length == 0);
 
             var proxyTypeName = string.Format(proxyNameFormat, nameBase);
 

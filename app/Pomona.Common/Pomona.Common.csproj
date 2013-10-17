@@ -122,6 +122,7 @@
     <Compile Include="Serialization\Json\PomonaJsonSerializer.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerFactory.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerTypeEntry.cs" />
+    <Compile Include="Serialization\Patch\Delta.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
     <Compile Include="Serialization\SerializerExtensions.cs" />
