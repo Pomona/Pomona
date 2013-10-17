@@ -88,17 +88,16 @@ Replace the whole `people` property:
 }
 ```
 
-Changing the color of the pet Wendy from black to red and adding the mouse Kipper:
+Changing the color of the pet Wendy from black to red, adding the mouse Kipper and deleting Karl:
 ```json
 {
     "*people" : [
         {
             "@id" : 1,
-            "*pets" : [
-                { "@name" : "Wendy", "color" : "Red" }
-            ],
-            "+pets" : [
-                { "race" : "Mouse", "name" : "Kipper", "color" : "Gray" }
+            "pets" : [
+                { "race" : "Mouse", "name" : "Kipper", "color" : "Gray" },
+                { "*@name" : "Wendy", "color" : "Red" },
+                { "-@name" : "Karl" }
             ]
         }
     ]

@@ -33,6 +33,7 @@ namespace Pomona.Common.Serialization
         string ExpandPath { get; }
         string Uri { get; set; }
         object Value { get; set; }
+        IDeserializerNode Parent { get; }
         IMappedType ValueType { get; }
         void SetValueType(string typeName);
         void SetProperty(IPropertyInfo property, object propertyValue);

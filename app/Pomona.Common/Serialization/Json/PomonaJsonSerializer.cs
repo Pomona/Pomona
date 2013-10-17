@@ -306,7 +306,7 @@ namespace Pomona.Common.Serialization.Json
             if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
             {
                 var primaryId = node.ValueType.PrimaryId;
-                jsonWriter.WritePropertyName((node.IsRemoved ? "-" : "@") + primaryId.JsonName);
+                jsonWriter.WritePropertyName((node.IsRemoved ? "-@" : "*@") + primaryId.JsonName);
                 jsonWriter.WriteValue(primaryId.Getter(node.Value));
                 if (node.IsRemoved)
                     return;

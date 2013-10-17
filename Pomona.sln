@@ -30,8 +30,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.SystemTests.ConsoleA
 		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1} = {9D098F08-B3CA-4122-A7F6-3090F8A17CA1}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1FB04DDF-0A84-4B2A-808D-F4BC25D9C68A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1FB04DDF-0A84-4B2A-808D-F4BC25D9C68A}"
 	ProjectSection(SolutionItems) = preProject
+		docs\json-patch-format.md = docs\json-patch-format.md
 		README.md = README.md
 	EndProjectSection
 EndProject

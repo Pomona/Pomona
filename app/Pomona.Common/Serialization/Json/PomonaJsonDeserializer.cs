@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -197,7 +198,7 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jitem in jarr)
             {
-                var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath);
+                var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath, node);
                 itemNode.Deserialize(this, new Reader(jitem));
                 collection.Add((TElement) itemNode.Value);
             }
@@ -224,8 +225,24 @@ namespace Pomona.Common.Serialization.Json
 
             IDictionary<IPropertyInfo, object> propertyValueMap = new Dictionary<IPropertyInfo, object>();
 
+            foreach (var jprop in jobj.Properties().Where(IsIdentifierProperty))
+            {
+                // Starts with "-@" or "*@"
+                var identifyPropName = jprop.Name.Substring(2);
+                var identifyProp = node.ValueType.Properties.FirstOrDefault(x => x.JsonName == identifyPropName);
+                if (identifyProp == null)
+                    throw new PomonaSerializationException("Unable to find predicate property " + jprop.Name + " in object");
+                var identifyValue = jprop.Value.Value<int>();
+                node.Value =
+                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => (int)identifyProp.Getter(x) == (int)identifyValue);
+
+            }
+
             foreach (var jprop in jobj.Properties())
             {
+                // Patch by default! (maybe not for value objects though??)
+                bool patchWhenPossible = true;
+
                 if (jprop.Name == "_type")
                     continue;
                 if (jprop.Name == "_uri")
@@ -236,6 +253,13 @@ namespace Pomona.Common.Serialization.Json
                     continue;
                 }
                 var name = jprop.Name;
+                if (name.StartsWith("!"))
+                {
+                    patchWhenPossible = false;
+                    name = name.Substring(1);
+                }
+
+                // TODO: Accelerate lookup of properties
                 var prop = node.ValueType.Properties.FirstOrDefault(x => x.JsonName == name);
                 if (prop == null)
                     continue;
@@ -243,7 +267,7 @@ namespace Pomona.Common.Serialization.Json
                 var propNode = new PropertyValueDeserializerNode(node, prop);
 
                 object oldPropValue = null;
-                if (node.Value != null)
+                if (patchWhenPossible && node.Value != null)
                 {
                     // If value is set we PATCH an existing object instead of creating a new one.
                     oldPropValue = propNode.Value = prop.Getter(node.Value);
@@ -266,6 +290,12 @@ namespace Pomona.Common.Serialization.Json
                     node.SetProperty(entry.Key, entry.Value);
                 }
             }
+        }
+
+        private bool IsIdentifierProperty(JProperty jProperty)
+        {
+            var name = jProperty.Name;
+            return (name.StartsWith("-@") || name.StartsWith("*@"));
         }
 
 

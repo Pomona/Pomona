@@ -91,6 +91,8 @@ namespace Pomona.Common.Serialization
         }
 
 
+        public IDeserializerNode Parent { get { return parent; } }
+
         public IMappedType ValueType
         {
             get { return valueType; }

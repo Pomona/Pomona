@@ -39,6 +39,7 @@ using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 using Pomona.Internals;
@@ -255,9 +256,12 @@ namespace Pomona.Common
                 modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
             }
 
+            var form = ObjectDeltaProxyBase.CreateDeltaProxy(target, typeMapper.GetClassMapping(typeof (T)), typeMapper,
+                                                             null);
+
             return
                 (T)
-                PostOrPatch(((IHasResourceUri)target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
+                PostOrPatch(((IHasResourceUri)target).Uri, (T)form, updateAction, "PATCH", x => form.GetType(),
                             modifyResponse);
         }
 

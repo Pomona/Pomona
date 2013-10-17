@@ -75,6 +75,14 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PatchCritter_AddSubscription()
+        {
+            var critter = client.Critters.Get(this.Repository.CreateRandomCritter().Id);
+            client.Patch(critter, x => x.Weapons.First().Strength += 30);
+            Assert.Fail("SUCCESS. Wellll not quite, test not completed.");
+        }
+
+        [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
             var critter = this.Repository.CreateRandomCritter();
@@ -92,7 +100,7 @@ namespace Pomona.SystemTests
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
             client.Patch(resource,
                          x =>
-                         x.CrazyValue.Sickness = "Just crazy thats all");
+                         x.CrazyValue = new CrazyValueObjectForm() { Sickness = "Just crazy thats all" });
 
             Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
         }

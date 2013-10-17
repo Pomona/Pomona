@@ -34,14 +34,16 @@ namespace Pomona.Common.Serialization
     {
         private readonly IDeserializationContext context;
         private readonly string expandPath;
+        private readonly IDeserializerNode parent;
         private readonly IMappedType expectedBaseType;
         public IMappedType valueType;
 
         #region Implementation of IDeserializerNode
 
         public ItemValueDeserializerNode(IMappedType expectedBaseType, IDeserializationContext context,
-                                         string expandPath = "")
+                                         string expandPath = "", IDeserializerNode parent = null)
         {
+            this.parent = parent;
             this.expectedBaseType = expectedBaseType;
             this.context = context;
             this.expandPath = expandPath;
@@ -67,6 +69,8 @@ namespace Pomona.Common.Serialization
         public string Uri { get; set; }
 
         public object Value { get; set; }
+
+        public IDeserializerNode Parent { get { return parent; } }
 
         public IMappedType ValueType
         {
