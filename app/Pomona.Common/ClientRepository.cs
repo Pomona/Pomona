@@ -33,6 +33,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
+using Pomona.Common.Serialization;
 
 namespace Pomona.Common
 {
@@ -66,10 +67,15 @@ namespace Pomona.Common
         }
 
 
+        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IPatchOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return client.Patch(resource, patchAction, options);
+        }
+
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
             where TSubResource : class, TResource
         {
-            return client.Patch(resource, patchAction);
+            return Patch(resource, patchAction, null);
         }
 
         public TPostResponseResource Post(IPostForm form)

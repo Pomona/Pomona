@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Linq;
@@ -118,7 +122,9 @@ namespace Pomona.SystemTests
         public void GetWeaponsLazy_FromCritter()
         {
             var critter = client.List<ICritter>().First();
+            Assert.False(critter.Weapons.IsLoaded());
             var weapons = critter.Weapons.ToList();
+            Assert.True(critter.Weapons.IsLoaded());
         }
     }
 }

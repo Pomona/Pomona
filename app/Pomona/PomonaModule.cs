@@ -173,8 +173,9 @@ namespace Pomona
                                      .Invoke(this, new[] { postResource });
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
+            var expandedPaths = string.Join(",", Request.Headers["X-Pomona-Expand"]);
 
-            return new PomonaResponse(postResponse, UriResolver, successStatusCode);
+            return new PomonaResponse(postResponse, UriResolver, successStatusCode, expandedPaths);
         }
 
 
