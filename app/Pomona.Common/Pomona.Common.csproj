@@ -49,6 +49,7 @@
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
+    <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPatchableRepository.cs" />
+    <Compile Include="IPatchOptions.cs" />
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="IPostableRepository.cs" />
     <Compile Include="IQueryableRepository.cs" />
@@ -79,9 +81,11 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="PatchOptions.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ClientSideFormProxyBase.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />
+    <Compile Include="Proxies\ILazyProxy.cs" />
     <Compile Include="Proxies\PostResourceDictionary.cs" />
     <Compile Include="Proxies\PostResourceList.cs" />
     <Compile Include="Proxies\RuntimeProxyFactory.cs" />

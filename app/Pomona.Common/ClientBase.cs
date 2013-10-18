@@ -70,7 +70,7 @@ namespace Pomona.Common
             where T : class, IClientResource;
 
 
-        public abstract T Patch<T>(T target, Action<T> updateAction)
+        public abstract T Patch<T>(T target, Action<T> updateAction, Action<IPatchOptions<T>> options = null)
             where T : class, IClientResource;
 
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
@@ -243,22 +243,39 @@ namespace Pomona.Common
         }
 
 
-        public override T Patch<T>(T target, Action<T> updateAction)
+        public override T Patch<T>(T target, Action<T> updateAction, Action<IPatchOptions<T>> options = null)
         {
             Action<WebClientRequestMessage> modifyResponse = null;
             ResourceInfoAttribute resourceInfo;
 
-            // Set etag to target resources' etag (optimistic concurrency)
-            if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            var patchOptions = new PatchOptions<T>();
+            if (options != null)
             {
-                var etagValue = (string)resourceInfo.EtagProperty.GetValue(target, null);
-                modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
+                options(patchOptions);
             }
 
+            string etagValue = null;
+            if (TryGetResourceInfoForType(typeof(T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            {
+                 etagValue = (string)resourceInfo.EtagProperty.GetValue(target, null);
+            }
+
+            modifyResponse = request =>
+            {
+                if (etagValue != null)
+                    request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue));
+
+                if (!string.IsNullOrEmpty(patchOptions.ExpandedPaths))
+                {
+                    request.Headers.Add("X-Pomona-Expand", patchOptions.ExpandedPaths);
+                }
+            };
+            // Set etag to target resources' etag (optimistic concurrency)
+
+            var uri = ((IHasResourceUri)target).Uri;
             return
                 (T)
-                PostOrPatch(((IHasResourceUri)target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
-                            modifyResponse);
+                PostOrPatch(uri, null, updateAction, "PATCH", x => x.PatchFormType, modifyResponse);
         }
 
 
@@ -341,7 +358,6 @@ namespace Pomona.Common
                 if (formType == null)
                     throw new InvalidOperationException("Method " + httpMethod + " is not allowed for uri.");
 
-                expectedBaseType = resourceInfo.UriBaseType;
                 if (form == null)
                 {
                     form = (T)Activator.CreateInstance(formType);

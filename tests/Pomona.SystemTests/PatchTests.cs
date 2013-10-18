@@ -32,6 +32,7 @@ using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Proxies;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
 
@@ -72,6 +73,26 @@ namespace Pomona.SystemTests
                              }));
 
             Assert.That(critter.Weapons, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void PatchCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
+        {
+            var critter = new Critter();
+            critter.Weapons.Add(new Gun(new WeaponModel { Name = "ExistingWeaponModel" }));
+            Save(critter);
+
+            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
+            var patchResponse = client.Patch(resource,
+                         x => x.Weapons.Add(new WeaponForm
+                         {
+                             Price = 3.4m,
+                             Model = new WeaponModelForm { Name = "balala" },
+                             Strength = 3.5
+                         }), o => o.Expand(x => x.Weapons));
+
+
+            Assert.That(patchResponse.Weapons.IsLoaded());
         }
 
         [Test]
