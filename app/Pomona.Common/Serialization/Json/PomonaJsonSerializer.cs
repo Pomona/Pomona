@@ -289,6 +289,7 @@ namespace Pomona.Common.Serialization.Json
         private void SerializeExpanded(ISerializerNode node, Writer writer)
         {
             var jsonWriter = writer.JsonWriter;
+            var serializingDelta = node.Value is IDelta;
 
             jsonWriter.WriteStartObject();
             if (node.ValueType.HasUri)
@@ -296,20 +297,22 @@ namespace Pomona.Common.Serialization.Json
                 jsonWriter.WritePropertyName("_uri");
                 jsonWriter.WriteValue(node.Uri);
             }
-            if (node.ExpectedBaseType != node.ValueType && !node.ValueType.IsAnonymous())
+            if (node.ExpectedBaseType != node.ValueType && !node.ValueType.IsAnonymous() && !serializingDelta && !node.IsRemoved)
             {
                 jsonWriter.WritePropertyName("_type");
                 jsonWriter.WriteValue(node.ValueType.Name);
             }
 
-            var serializingDelta = node.Value is IDelta;
             if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
             {
                 var primaryId = node.ValueType.PrimaryId;
                 jsonWriter.WritePropertyName((node.IsRemoved ? "-@" : "*@") + primaryId.JsonName);
                 jsonWriter.WriteValue(primaryId.Getter(node.Value));
                 if (node.IsRemoved)
+                {
+                    jsonWriter.WriteEndObject();
                     return;
+                }
             }
 
             PomonaJsonSerializerTypeEntry cacheTypeEntry;

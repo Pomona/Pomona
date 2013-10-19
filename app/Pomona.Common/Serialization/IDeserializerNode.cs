@@ -37,5 +37,6 @@ namespace Pomona.Common.Serialization
         IMappedType ValueType { get; }
         void SetValueType(string typeName);
         void SetProperty(IPropertyInfo property, object propertyValue);
+        bool IsRemoved { get; set; }
     }
 }

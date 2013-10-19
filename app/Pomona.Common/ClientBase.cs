@@ -328,8 +328,8 @@ namespace Pomona.Common
 
                 var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
 
-                var typeGetter = formTypeGetter(resourceInfo);
-                var wrappedForm = Activator.CreateInstance(typeGetter);
+                var formType = formTypeGetter(resourceInfo);
+                var wrappedForm = Activator.CreateInstance(formType);
                 var proxy =
                     (ClientSideFormProxyBase)((object)RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
                 proxy.Initialize(this, customUserTypeInfo, wrappedForm);

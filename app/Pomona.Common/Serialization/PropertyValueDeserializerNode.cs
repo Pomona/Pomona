@@ -90,8 +90,13 @@ namespace Pomona.Common.Serialization
             context.SetProperty(this, property, propertyValue);
         }
 
+        public bool IsRemoved { get; set; }
 
-        public IDeserializerNode Parent { get { return parent; } }
+
+        public IDeserializerNode Parent
+        {
+            get { return parent; }
+        }
 
         public IMappedType ValueType
         {

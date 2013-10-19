@@ -88,6 +88,8 @@ namespace Pomona.Common.Serialization
             context.SetProperty(this, property, propertyValue);
         }
 
+        public bool IsRemoved { get; set; }
+
         #endregion
     }
 }

@@ -200,7 +200,16 @@ namespace Pomona.Common.Serialization.Json
             {
                 var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath, node);
                 itemNode.Deserialize(this, new Reader(jitem));
-                collection.Add((TElement) itemNode.Value);
+                var value = (TElement)itemNode.Value;
+                if (itemNode.IsRemoved)
+                {
+                    collection.Remove(value);
+                }
+                else
+                {
+                    if (!collection.Contains(value))
+                        collection.Add(value);
+                }
             }
 
             if (node.Value == null)
@@ -235,7 +244,11 @@ namespace Pomona.Common.Serialization.Json
                 var identifyValue = jprop.Value.Value<int>();
                 node.Value =
                     ((IEnumerable)node.Parent.Value).Cast<object>().First(x => (int)identifyProp.Getter(x) == (int)identifyValue);
-
+                if (jprop.Name[0] == '-')
+                {
+                    node.IsRemoved = true;
+                    return;
+                }
             }
 
             foreach (var jprop in jobj.Properties())

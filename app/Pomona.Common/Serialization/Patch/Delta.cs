@@ -91,6 +91,7 @@ namespace Pomona.Common.Serialization.Patch
         public void Clear()
         {
             TrackedItems.Clear();
+            SetDirty();
         }
 
         public bool Contains(TElement item)
@@ -106,6 +107,7 @@ namespace Pomona.Common.Serialization.Patch
         public bool Remove(TElement item)
         {
             RemoveItem(item);
+            SetDirty();
             return true;
         }
 
@@ -127,11 +129,13 @@ namespace Pomona.Common.Serialization.Patch
         public void Insert(int index, TElement item)
         {
             TrackedItems.Insert(index, item);
+            SetDirty();
         }
 
         public void RemoveAt(int index)
         {
             TrackedItems.RemoveAt(index);
+            SetDirty();
         }
 
         public TElement this[int index]
@@ -144,6 +148,7 @@ namespace Pomona.Common.Serialization.Patch
                     return;
                 DetachFromParent(oldItem);
                 TrackedItems[index] = value;
+                SetDirty();
             }
         }
 

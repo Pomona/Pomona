@@ -75,10 +75,19 @@ namespace Pomona.SystemTests
             Assert.That(critter.Weapons, Has.Count.EqualTo(2));
         }
 
-        [Test]        public void PatchCritter_AddSubscription()
+        [Test]
+        public void PatchCritter_RemoveWeapon()
+        {
+            var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
+            client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
+            Assert.Fail("SUCCESS. Wellll not quite, test not completed.");
+        }
+
+        [Test]
+        public void PatchCritter_ModifyWeapon()
         {
             var critter = client.Critters.Get(this.Repository.CreateRandomCritter().Id);
-            client.Patch(critter, x => x.Weapons.First().Strength += 30);
+            client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
             Assert.Fail("SUCCESS. Wellll not quite, test not completed.");
         }
 
