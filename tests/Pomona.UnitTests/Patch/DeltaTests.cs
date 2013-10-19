@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,13 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -38,6 +35,7 @@ using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
+using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.Patch
 {
@@ -48,16 +46,48 @@ namespace Pomona.UnitTests.Patch
         {
             private static readonly PropertyWrapper<ITestResource, int> idPropWrapper =
                 new PropertyWrapper<ITestResource, int>("Id");
-            readonly static PropertyWrapper<ITestResource, string> infoPropWrapper = new PropertyWrapper<ITestResource, string>("Info");
-            readonly static PropertyWrapper<ITestResource, ITestResource> spousePropWrapper = new PropertyWrapper<ITestResource, ITestResource>("Spouse");
-            readonly static PropertyWrapper<ITestResource, ITestResource> friendPropWrapper = new PropertyWrapper<ITestResource, ITestResource>("Friend");
-            readonly static PropertyWrapper<ITestResource, IList<ITestResource>> childrenPropWrapper = new PropertyWrapper<ITestResource, IList<ITestResource>>("Children");
 
-            public int Id { get { return base.OnGet(idPropWrapper); } set { base.OnSet(idPropWrapper, value); } }
-            public string Info { get { return base.OnGet(infoPropWrapper); } set { base.OnSet(infoPropWrapper, value); } }
-            public ITestResource Spouse { get { return base.OnGet(spousePropWrapper); } set { base.OnSet(spousePropWrapper, value); } }
-            public ITestResource Friend { get { return base.OnGet(friendPropWrapper); } set { base.OnSet(friendPropWrapper, value); } }
-            public IList<ITestResource> Children { get { return base.OnGet(childrenPropWrapper); } set { base.OnSet(childrenPropWrapper, value); } }
+            private static readonly PropertyWrapper<ITestResource, string> infoPropWrapper =
+                new PropertyWrapper<ITestResource, string>("Info");
+
+            private static readonly PropertyWrapper<ITestResource, ITestResource> spousePropWrapper =
+                new PropertyWrapper<ITestResource, ITestResource>("Spouse");
+
+            private static readonly PropertyWrapper<ITestResource, ITestResource> friendPropWrapper =
+                new PropertyWrapper<ITestResource, ITestResource>("Friend");
+
+            private static readonly PropertyWrapper<ITestResource, IList<ITestResource>> childrenPropWrapper =
+                new PropertyWrapper<ITestResource, IList<ITestResource>>("Children");
+
+            public int Id
+            {
+                get { return base.OnGet(idPropWrapper); }
+                set { base.OnSet(idPropWrapper, value); }
+            }
+
+            public string Info
+            {
+                get { return base.OnGet(infoPropWrapper); }
+                set { base.OnSet(infoPropWrapper, value); }
+            }
+
+            public ITestResource Spouse
+            {
+                get { return base.OnGet(spousePropWrapper); }
+                set { base.OnSet(spousePropWrapper, value); }
+            }
+
+            public ITestResource Friend
+            {
+                get { return base.OnGet(friendPropWrapper); }
+                set { base.OnSet(friendPropWrapper, value); }
+            }
+
+            public IList<ITestResource> Children
+            {
+                get { return base.OnGet(childrenPropWrapper); }
+                set { base.OnSet(childrenPropWrapper, value); }
+            }
         }
 
         public class TestResource : ITestResource
@@ -75,11 +105,13 @@ namespace Pomona.UnitTests.Patch
         }
 
         [ResourceInfo(InterfaceType = typeof (ITestResource), JsonTypeName = "TestResource",
-            PocoType = typeof (TestResource), PostFormType  = typeof(TestResourcePostForm),  UriBaseType = typeof (ITestResource), UrlRelativePath = "test-resources")]
+            PocoType = typeof (TestResource), PostFormType = typeof (TestResourcePostForm),
+            UriBaseType = typeof (ITestResource), UrlRelativePath = "test-resources")]
         public interface ITestResource : IClientResource
         {
             [ResourceIdProperty]
             int Id { get; set; }
+
             string Info { get; set; }
 
             ITestResource Spouse { get; set; }
@@ -94,18 +126,22 @@ namespace Pomona.UnitTests.Patch
             var original = new TestResource
                 {
                     Info = "Hei",
-                    Children = { new TestResource { Info = "Childbar", Id = 1}, new TestResource { Info = "ChildToRemove", Id = 2} },
-                    Spouse = new TestResource { Info = "Jalla", Id = 3},
-                    Friend = new TestResource { Info = "good friend", Id = 4},
+                    Children =
+                        {
+                            new TestResource {Info = "Childbar", Id = 1},
+                            new TestResource {Info = "ChildToRemove", Id = 2}
+                        },
+                    Spouse = new TestResource {Info = "Jalla", Id = 3},
+                    Friend = new TestResource {Info = "good friend", Id = 4},
                     Id = 5
                 };
 
-            var proxy = (ITestResource)ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                                                                             typeMapper.GetClassMapping(
-                                                                                 typeof (ITestResource)),
-                                                                             typeMapper, null);
+            var proxy = (ITestResource) ObjectDeltaProxyBase.CreateDeltaProxy(original,
+                                                                              typeMapper.GetClassMapping(
+                                                                                  typeof (ITestResource)),
+                                                                              typeMapper, null);
 
-            Assert.IsFalse(((Delta)proxy).IsDirty);
+            Assert.IsFalse(((Delta) proxy).IsDirty);
             return proxy;
         }
 
@@ -117,11 +153,11 @@ namespace Pomona.UnitTests.Patch
             proxy.Children.First().Info = "Modified child";
             var childToRemove = proxy.Children.First(x => x.Info == "ChildToRemove");
             proxy.Children.Remove(childToRemove);
-            proxy.Children.Add(new TestResourcePostForm() { Info = "Version2" });
-            proxy.Spouse = new TestResourcePostForm() { Info = "BetterWife" };
+            proxy.Children.Add(new TestResourcePostForm {Info = "Version2"});
+            proxy.Spouse = new TestResourcePostForm {Info = "BetterWife"};
             proxy.Friend.Info = "ModifiedFriend";
 
-            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
+            var childCollectionDelta = (CollectionDelta<ITestResource>) proxy.Children;
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(1));
             Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
             return proxy;
@@ -131,23 +167,26 @@ namespace Pomona.UnitTests.Patch
         public void AddItemToChildren_IsInAddedItemsAndMarksParentAsDirty()
         {
             var proxy = GetObjectProxy();
-            proxy.Children.Add(new TestResource { Info = "AddedChild" });
-            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
+            proxy.Children.Add(new TestResource {Info = "AddedChild"});
+            var childCollectionDelta = (CollectionDelta<ITestResource>) proxy.Children;
             Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(1));
             Assert.That(childCollectionDelta.AddedItems.First().Info, Is.EqualTo("AddedChild"));
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
             Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
-            Assert.That(((Delta)proxy).IsDirty);
+            Assert.That(((Delta) proxy).IsDirty);
         }
 
         [Test]
-        public void CreateDeltaProxy_IsSuccessful_NOCOMMIT()
+        public void ApplyChanges_IsSuccessful()
         {
-            var proxy = GetObjectWithAllDeltaOperations();
+            var expected = GetObjectWithAllDeltaOperations();
+            var proxy = (IDelta<ITestResource>) GetObjectWithAllDeltaOperations();
 
-            ((Delta)proxy).Apply();
+            proxy.Apply();
 
-            var original = ((Delta)proxy).Original;
+            var actual = proxy.Original;
+            Assert.That(actual.Friend.Info, Is.EqualTo(expected.Friend.Info));
+            Assert.That(actual.Info, Is.EqualTo(expected.Info));
         }
 
         [Test]
@@ -155,30 +194,30 @@ namespace Pomona.UnitTests.Patch
         {
             var proxy = GetObjectProxy();
             proxy.Children.First().Info = "WASMODIFIED";
-            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
+            var childCollectionDelta = (CollectionDelta<ITestResource>) proxy.Children;
             Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(0));
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
             Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(1));
             Assert.That(childCollectionDelta.ModifiedItems.First().Info, Is.EqualTo("WASMODIFIED"));
-            Assert.That(((Delta)proxy).IsDirty);
+            Assert.That(((Delta) proxy).IsDirty);
         }
 
         [Test]
         public void RemoveItemFromChildren_IsInRemovedItemsAndMarksParentAsDirty()
         {
             var proxy = GetObjectProxy();
-            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
+            var childCollectionDelta = (CollectionDelta<ITestResource>) proxy.Children;
             var childToRemove = proxy.Children.First(x => x.Info == "ChildToRemove");
             proxy.Children.Remove(childToRemove);
             Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(0));
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(1));
             Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
             Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
-            Assert.That(((Delta)proxy).IsDirty);
+            Assert.That(((Delta) proxy).IsDirty);
         }
 
         [Test]
-        public void TestSerialization_NOCOMMIT()
+        public void TestSerialization()
         {
             var jsonSerializer = new PomonaJsonSerializerFactory().GetSerialier();
             using (var stringWriter = new StringWriter())
@@ -186,9 +225,12 @@ namespace Pomona.UnitTests.Patch
                 jsonSerializer.Serialize(new ClientSerializationContext(typeMapper), GetObjectWithAllDeltaOperations(),
                                          stringWriter, typeMapper.GetClassMapping(typeof (ITestResource)));
                 Console.WriteLine(stringWriter.ToString());
+                var jobject = JObject.Parse(stringWriter.ToString());
+                jobject.AssertHasPropertyWithValue("info", "Lalalala");
+                var spouseReplacement = jobject.AssertHasPropertyWithObject("!spouse");
+                spouseReplacement.AssertHasPropertyWithValue("info", "BetterWife");
+                // TODO: More assertions here!
             }
-
-            Assert.Fail();
         }
     }
 }

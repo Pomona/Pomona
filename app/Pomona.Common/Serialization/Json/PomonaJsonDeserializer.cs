@@ -201,13 +201,13 @@ namespace Pomona.Common.Serialization.Json
                 var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath, node);
                 itemNode.Deserialize(this, new Reader(jitem));
                 var value = (TElement)itemNode.Value;
-                if (itemNode.IsRemoved)
+                if (itemNode.Operation == DeserializerNodeOperation.Remove)
                 {
                     collection.Remove(value);
                 }
                 else
                 {
-                    if (!collection.Contains(value))
+                    if (itemNode.Operation != DeserializerNodeOperation.Modify)
                         collection.Add(value);
                 }
             }
@@ -243,12 +243,13 @@ namespace Pomona.Common.Serialization.Json
                     throw new PomonaSerializationException("Unable to find predicate property " + jprop.Name + " in object");
                 var identifyValue = jprop.Value.Value<int>();
                 node.Value =
-                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => (int)identifyProp.Getter(x) == (int)identifyValue);
+                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => identifyValue.Equals(identifyProp.Getter(x)));
                 if (jprop.Name[0] == '-')
                 {
-                    node.IsRemoved = true;
+                    node.Operation = DeserializerNodeOperation.Remove;
                     return;
                 }
+                node.Operation = DeserializerNodeOperation.Modify;
             }
 
             foreach (var jprop in jobj.Properties())

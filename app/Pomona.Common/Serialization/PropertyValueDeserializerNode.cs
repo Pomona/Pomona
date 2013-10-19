@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using Pomona.Common.TypeSystem;
 
@@ -90,8 +86,6 @@ namespace Pomona.Common.Serialization
             context.SetProperty(this, property, propertyValue);
         }
 
-        public bool IsRemoved { get; set; }
-
 
         public IDeserializerNode Parent
         {
@@ -102,6 +96,8 @@ namespace Pomona.Common.Serialization
         {
             get { return valueType; }
         }
+
+        public DeserializerNodeOperation Operation { get; set; }
 
         #endregion
     }

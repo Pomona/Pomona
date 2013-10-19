@@ -28,11 +28,14 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Net;
+using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
     public interface IPatchOptions<T>
     {
+        IPatchOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
         IPatchOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
     }
 }

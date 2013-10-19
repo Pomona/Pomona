@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,30 +22,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
-using System;
-using System.Linq.Expressions;
-using System.Text;
-using Pomona.Common.Internals;
-
-namespace Pomona.Common
+namespace Pomona.Common.Serialization.Patch
 {
-    internal class PatchOptions<T> : IPatchOptions<T>
+    public interface IDelta<T> : IDelta
     {
-        private readonly StringBuilder expandedPaths = new StringBuilder();
+        new T Original { get; }
+    }
 
-        public string ExpandedPaths
-        {
-            get { return expandedPaths.ToString(); }
-        }
-
-        public IPatchOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression)
-        {
-            if (expandedPaths.Length > 0)
-                expandedPaths.Append(',');
-            expandedPaths.Append(expression.GetPropertyPath(true));
-            return this;
-        }
+    public interface IDelta
+    {
+        void Apply();
+        bool IsDirty { get; }
+        object Original { get; }
     }
 }

@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,21 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common.TypeSystem;
+using System.Collections.Generic;
 
-namespace Pomona.Common.Serialization
+namespace Pomona.Common.Serialization.Patch
 {
-    public interface IDeserializerNode
+    public interface ICollectionDelta : IDelta
     {
-        IDeserializationContext Context { get; }
-        IMappedType ExpectedBaseType { get; }
-        string ExpandPath { get; }
-        string Uri { get; set; }
-        object Value { get; set; }
-        IDeserializerNode Parent { get; }
-        IMappedType ValueType { get; }
-        DeserializerNodeOperation Operation { get; set; }
-        void SetValueType(string typeName);
-        void SetProperty(IPropertyInfo property, object propertyValue);
+        IEnumerable<object> RemovedItems { get; }
+        IEnumerable<Delta> ModifiedItems { get; }
+        IEnumerable<object> AddedItems { get; }
     }
 }

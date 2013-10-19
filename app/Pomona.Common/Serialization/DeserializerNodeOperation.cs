@@ -22,21 +22,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common.TypeSystem;
-
 namespace Pomona.Common.Serialization
 {
-    public interface IDeserializerNode
+    public enum DeserializerNodeOperation
     {
-        IDeserializationContext Context { get; }
-        IMappedType ExpectedBaseType { get; }
-        string ExpandPath { get; }
-        string Uri { get; set; }
-        object Value { get; set; }
-        IDeserializerNode Parent { get; }
-        IMappedType ValueType { get; }
-        DeserializerNodeOperation Operation { get; set; }
-        void SetValueType(string typeName);
-        void SetProperty(IPropertyInfo property, object propertyValue);
+        Default,
+        Add,
+        Modify,
+        Remove
     }
 }

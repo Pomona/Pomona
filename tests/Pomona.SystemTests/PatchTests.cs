@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,15 +22,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
-using Pomona.Common.Proxies;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
 
@@ -76,45 +71,26 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PatchCritter_ModifyWeapon()
+        {
+            var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
+            var response = client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
+            Assert.That(response.Weapons.First().Strength, Is.EqualTo(1337.0));
+        }
+
+        [Test]
         public void PatchCritter_RemoveWeapon()
         {
             var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
-            client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
-            Assert.Fail("SUCCESS. Wellll not quite, test not completed.");
-        }
-
-        [Test]
-        public void PatchCritter_ModifyWeapon()
-        {
-            var critter = client.Critters.Get(this.Repository.CreateRandomCritter().Id);
-            client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
-            Assert.Fail("SUCCESS. Wellll not quite, test not completed.");
-        }
-
-        [Test]
-        public void PatchCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
-        {
-            var critter = new Critter();
-            critter.Weapons.Add(new Gun(new WeaponModel { Name = "ExistingWeaponModel" }));
-            Save(critter);
-
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            var patchResponse = client.Patch(resource,
-                         x => x.Weapons.Add(new WeaponForm
-                         {
-                             Price = 3.4m,
-                             Model = new WeaponModelForm { Name = "balala" },
-                             Strength = 3.5
-                         }), o => o.Expand(x => x.Weapons));
-
-
-            Assert.That(patchResponse.Weapons.IsLoaded());
+            Assert.That(critter.Weapons.Count, Is.GreaterThan(0));
+            var response = client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
+            Assert.That(response.Weapons.Count, Is.EqualTo(0));
         }
 
         [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
-            var critter = this.Repository.CreateRandomCritter();
+            var critter = Repository.CreateRandomCritter();
             var resource = client.Critters.Query(x => x.Id == critter.Id).First();
 
             client.Patch(resource, x => x.Password = "NewPassword");
@@ -129,7 +105,7 @@ namespace Pomona.SystemTests
             var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
             client.Patch(resource,
                          x =>
-                         x.CrazyValue = new CrazyValueObjectForm() { Sickness = "Just crazy thats all" });
+                         x.CrazyValue = new CrazyValueObjectForm {Sickness = "Just crazy thats all"});
 
             Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
         }
@@ -160,6 +136,26 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PatchCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
+        {
+            var critter = new Critter();
+            critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
+            Save(critter);
+
+            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
+            var patchResponse = client.Patch(resource,
+                                             x => x.Weapons.Add(new WeaponForm
+                                                 {
+                                                     Price = 3.4m,
+                                                     Model = new WeaponModelForm {Name = "balala"},
+                                                     Strength = 3.5
+                                                 }), o => o.Expand(x => x.Weapons));
+
+
+            Assert.That(patchResponse.Weapons.IsLoaded());
+        }
+
+        [Test]
         public void PatchMusicalInheritedCritter_UpdateProperty()
         {
             var critter = Save(new MusicalCritter("lalala"));
@@ -177,8 +173,17 @@ namespace Pomona.SystemTests
             var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
             var ex =
                 Assert.Throws<InvalidOperationException>(
-                    () => ((IPatchableRepository<IUnpatchableThing>)client.UnpatchableThings).Patch(resource, x => x.FooBar = "moo"));
+                    () =>
+                    ((IPatchableRepository<IUnpatchableThing>) client.UnpatchableThings).Patch(resource,
+                                                                                               x => x.FooBar = "moo"));
             Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
+        }
+
+        [Category("TODO")]
+        [Test]
+        public void Patch_RemoveItemFromCollectionWhereKeyTypeIsString_IsSuccessful()
+        {
+            Assert.Fail("Known to not be working yet, putting here as a reminder.");
         }
 
         [Test]

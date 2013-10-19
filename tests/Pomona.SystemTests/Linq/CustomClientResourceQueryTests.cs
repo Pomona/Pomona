@@ -88,7 +88,7 @@ namespace Pomona.SystemTests.Linq
         {
             var entity = new StringToObjectDictionaryContainer
                 {
-                    Map = { { "Text", "testtest" } }
+                    Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
                 };
             Save(entity);
 

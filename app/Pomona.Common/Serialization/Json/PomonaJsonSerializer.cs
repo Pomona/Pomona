@@ -265,7 +265,7 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private object SerializeDictionaryGeneric<TKey, TValue>(
+        private void SerializeDictionaryGeneric<TKey, TValue>(
             ISerializerNode node, Writer writer)
         {
             var jsonWriter = writer.JsonWriter;
@@ -273,16 +273,21 @@ namespace Pomona.Common.Serialization.Json
             var expectedValueType = node.ExpectedBaseType.DictionaryValueType;
 
             jsonWriter.WriteStartObject();
-            foreach (var kvp in dict)
+            var dictDelta = dict as IDictionaryDelta<TKey, TValue>;
+            var serializedKeyValuePairs = dictDelta != null ? dictDelta.ModifiedItems : dict;
+
+            if (dictDelta != null && dictDelta.RemovedKeys.Any())
+                throw new NotImplementedException("Removing members of dictionary through PATCH not yet implemented.");
+
+            foreach (var kvp in serializedKeyValuePairs)
             {
                 // TODO: Support other key types than string
                 jsonWriter.WritePropertyName((string) ((object) kvp.Key));
                 var itemNode = new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.Context, node);
                 itemNode.Serialize(this, writer);
             }
-            jsonWriter.WriteEndObject();
 
-            return null;
+            jsonWriter.WriteEndObject();
         }
 
 
