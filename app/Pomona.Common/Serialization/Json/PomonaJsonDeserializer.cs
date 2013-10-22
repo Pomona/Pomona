@@ -241,9 +241,13 @@ namespace Pomona.Common.Serialization.Json
                 var identifyProp = node.ValueType.Properties.FirstOrDefault(x => x.JsonName == identifyPropName);
                 if (identifyProp == null)
                     throw new PomonaSerializationException("Unable to find predicate property " + jprop.Name + " in object");
-                var identifyValue = jprop.Value.Value<int>();
+
+                var identifierNode = new ItemValueDeserializerNode(identifyProp.PropertyType, node.Context, parent : node);
+                identifierNode.Deserialize(this, new Reader(jprop.Value));
+                var identifierValue = identifierNode.Value;
+
                 node.Value =
-                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => identifyValue.Equals(identifyProp.Getter(x)));
+                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x)));
                 if (jprop.Name[0] == '-')
                 {
                     node.Operation = DeserializerNodeOperation.Remove;
