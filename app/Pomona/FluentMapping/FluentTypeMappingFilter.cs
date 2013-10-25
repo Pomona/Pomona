@@ -231,7 +231,7 @@ namespace Pomona.FluentMapping
 
         public bool TypeIsExposedAsRepository(Type type)
         {
-            return FromMappingOrDefault(type, x => x.IsUriBaseType, () => wrappedFilter.TypeIsExposedAsRepository(type));
+            return FromMappingOrDefault(type, x => x.IsExposedAsRepository, () => wrappedFilter.TypeIsExposedAsRepository(type));
         }
 
         public bool PropertyIsAttributes(PropertyInfo propertyInfo)
