@@ -85,7 +85,7 @@ namespace Pomona.Common
         internal abstract object Post<T>(string uri, Action<T> postAction)
             where T : class, IClientResource;
 
-        internal abstract object Post<T>(string uri, T postForm)
+        internal abstract object Post<T>(string uri, T form)
             where T : class, IClientResource;
 
         public abstract T GetLazy<T>(string uri)
@@ -424,31 +424,31 @@ namespace Pomona.Common
             return Deserialize(response, null);
         }
 
-        internal override object Post<T>(string uri, T postForm)
+        internal override object Post<T>(string uri, T form)
         {
             if (uri == null) throw new ArgumentNullException("uri");
-            if (postForm == null) throw new ArgumentNullException("postForm");
+            if (form == null) throw new ArgumentNullException("form");
 
             var type = typeof (T);
             CustomUserTypeInfo userTypeInfo;
             if (TryGetUserTypeInfo(type, out userTypeInfo))
             {
-                return PostUserType(uri, (ClientSideFormProxyBase) ((object) postForm));
+                return PostUserType(uri, (ClientSideFormProxyBase) ((object) form));
             }
 
-            return PostServerType(uri, postForm);
+            return PostServerType(uri, form);
         }
 
-        private T Patch<T>(T patchForm, RequestOptions requestOptions)
+        private T Patch<T>(T form, RequestOptions requestOptions)
             where T : class
         {
-            if (patchForm == null) throw new ArgumentNullException("patchForm");
-            if (patchForm is ClientSideFormProxyBase)
+            if (form == null) throw new ArgumentNullException("form");
+            if (form is ClientSideFormProxyBase)
             {
-                return (T) PatchUserType((ClientSideFormProxyBase) ((object) patchForm), requestOptions);
+                return (T) PatchUserType((ClientSideFormProxyBase) ((object) form), requestOptions);
             }
 
-            return PatchServerType(patchForm, requestOptions);
+            return PatchServerType(form, requestOptions);
         }
 
         private object PostUserType(string uri, ClientSideFormProxyBase postForm)
