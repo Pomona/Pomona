@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -187,7 +183,7 @@ namespace Pomona
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] { }; }
+            get { return new IMappedType[] {}; }
         }
 
         public bool IsAlwaysExpanded
@@ -248,6 +244,22 @@ namespace Pomona
 
         public object Create(IDictionary<IPropertyInfo, object> args)
         {
+            try
+            {
+                return CreateUnprotected(args);
+            }
+            catch (PomonaException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new PomonaException("An unknown error occured while trying to instantiate resource.", ex);
+            }
+        }
+
+        private object CreateUnprotected(IDictionary<IPropertyInfo, object> args)
+        {
             var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
             //var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
             var ctorParamCount = ConstructorInfo.GetParameters().Length;
@@ -257,7 +269,7 @@ namespace Pomona
 
             foreach (var kvp in args)
             {
-                var propMapping = (PropertyMapping)kvp.Key;
+                var propMapping = (PropertyMapping) kvp.Key;
                 var ctorArgIndex = propMapping.ConstructorArgIndex;
 
                 if (ctorArgIndex == -1)
@@ -307,7 +319,7 @@ namespace Pomona
                     {
                         addItemsToDictionaryMethod.MakeGenericMethod(
                             prop.PropertyType.MappedTypeInstance.GetGenericArguments())
-                                                  .Invoke(this, new[] { kvp.Value, dict });
+                                                  .Invoke(this, new[] {kvp.Value, dict});
                         setPropertyToValue = false;
                     }
                 }
@@ -318,7 +330,7 @@ namespace Pomona
                     {
                         addValuesToCollectionMethod
                             .MakeGenericMethod(prop.PropertyType.ElementType.MappedTypeInstance)
-                            .Invoke(this, new[] { kvp.Value, collection });
+                            .Invoke(this, new[] {kvp.Value, collection});
                         setPropertyToValue = false;
                     }
                 }
@@ -327,7 +339,6 @@ namespace Pomona
                 if (setPropertyToValue)
                     prop.Setter(instance, kvp.Value);
             }
-
             return instance;
         }
 
@@ -407,7 +418,7 @@ namespace Pomona
                 if (pathType.IsCollection)
                     pathType = pathType.ElementType;
 
-                var nextType = (TransformedType)pathType;
+                var nextType = (TransformedType) pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;
@@ -545,7 +556,7 @@ namespace Pomona
                 var propDef = new PropertyMapping(
                     typeMapper.Filter.GetPropertyMappedName(propInfo),
                     this,
-                    (TransformedType)declaringType,
+                    (TransformedType) declaringType,
                     propertyTypeMapped,
                     propInfo);
 
