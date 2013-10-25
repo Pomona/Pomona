@@ -44,7 +44,7 @@ namespace Pomona.Common.Serialization.Json
     {
         private static readonly MethodInfo deserializeDictionaryGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => x.DeserializeDictionaryGeneric<object, object>(null, null));
+                x => x.DeserializeDictionaryGeneric<object>(null, null));
 
         private static readonly MethodInfo deserializeArrayNodeGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
@@ -323,22 +323,29 @@ namespace Pomona.Common.Serialization.Json
                 return;
 
             var keyType = node.ExpectedBaseType.DictionaryKeyType;
+
+            if (keyType.MappedTypeInstance != typeof(string))
+            {
+                throw new NotImplementedException("Only supports deserialization to IDictionary<TKey,TValue> where TKey is of type string.");
+            }
+
             var valueType = node.ExpectedBaseType.DictionaryValueType;
 
             deserializeDictionaryGenericMethod
-                .MakeGenericMethod(keyType.MappedTypeInstance, valueType.MappedTypeInstance)
+                .MakeGenericMethod(valueType.MappedTypeInstance)
                 .Invoke(this, new object[] {node, reader});
         }
 
+        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
 
-        private object DeserializeDictionaryGeneric<TKey, TValue>(IDeserializerNode node, Reader reader)
+        private object DeserializeDictionaryGeneric<TValue>(IDeserializerNode node, Reader reader)
         {
-            IDictionary<TKey, TValue> dict;
+            IDictionary<string, TValue> dict;
 
             if (node.Value != null)
-                dict = (IDictionary<TKey, TValue>) node.Value;
+                dict = (IDictionary<string, TValue>) node.Value;
             else
-                dict = new Dictionary<TKey, TValue>();
+                dict = new Dictionary<string, TValue>();
 
             var jobj = reader.Token as JObject;
 
@@ -352,16 +359,40 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jprop in jobj.Properties())
             {
-                var itemNode = new ItemValueDeserializerNode(valueType, node.Context, node.ExpandPath + "." + jprop.Name);
-                itemNode.Deserialize(this, new Reader(jprop.Value));
-                object key = jprop.Name;
-                dict[(TKey) key] = (TValue) itemNode.Value;
+                var jpropName = jprop.Name;
+                if (jpropName.Length > 0 && reservedFirstCharacters.Contains(jpropName[0]))
+                {
+                    if (jpropName[0] == '-')
+                    {
+                        // Removal operation
+                        var unescapedPropertyName = UnescapePropertyName(jpropName.Substring(1));
+                        dict.Remove(unescapedPropertyName);
+                    }
+                    else
+                    {
+                        throw new PomonaSerializationException("Unexpected character in json property name. Have propertie names been correctly escaped?");
+                    }
+                }
+                else
+                {
+                    string unescapedPropertyName = UnescapePropertyName(jpropName);
+                    var itemNode = new ItemValueDeserializerNode(valueType, node.Context, node.ExpandPath + "." + unescapedPropertyName);
+                    itemNode.Deserialize(this, new Reader(jprop.Value));
+                    dict[unescapedPropertyName] = (TValue)itemNode.Value;
+                }
             }
 
             if (node.Value == null)
                 node.Value = dict;
 
             return null;
+        }
+
+        private static string UnescapePropertyName(string value)
+        {
+            if (value.StartsWith("^"))
+                return value.Substring(1);
+            return value;
         }
 
 

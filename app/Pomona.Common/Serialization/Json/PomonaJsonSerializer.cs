@@ -50,7 +50,7 @@ namespace Pomona.Common.Serialization.Json
 
         private static readonly MethodInfo serializeDictionaryGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
-                x => x.SerializeDictionaryGeneric<object, object>(null, null));
+                x => x.SerializeDictionaryGeneric<object>(null, null));
 
         public Writer CreateWriter(TextWriter textWriter)
         {
@@ -258,36 +258,57 @@ namespace Pomona.Common.Serialization.Json
         private void SerializeDictionary(ISerializerNode node, Writer writer)
         {
             var keyMappedType = node.ExpectedBaseType.DictionaryKeyType.MappedTypeInstance;
+
+            if (keyMappedType != typeof (string))
+                throw new NotImplementedException(
+                    "Does not support serialization of dictionaries where key is not string.");
+
             var valueMappedType = node.ExpectedBaseType.DictionaryValueType.MappedTypeInstance;
             serializeDictionaryGenericMethod
-                .MakeGenericMethod(keyMappedType, valueMappedType)
+                .MakeGenericMethod(valueMappedType)
                 .Invoke(this, new object[] {node, writer});
         }
 
 
-        private void SerializeDictionaryGeneric<TKey, TValue>(
+        private void SerializeDictionaryGeneric<TValue>(
             ISerializerNode node, Writer writer)
         {
             var jsonWriter = writer.JsonWriter;
-            var dict = (IDictionary<TKey, TValue>) node.Value;
+            var dict = (IDictionary<string, TValue>) node.Value;
             var expectedValueType = node.ExpectedBaseType.DictionaryValueType;
 
             jsonWriter.WriteStartObject();
-            var dictDelta = dict as IDictionaryDelta<TKey, TValue>;
+            var dictDelta = dict as IDictionaryDelta<string, TValue>;
             var serializedKeyValuePairs = dictDelta != null ? dictDelta.ModifiedItems : dict;
 
             if (dictDelta != null && dictDelta.RemovedKeys.Any())
-                throw new NotImplementedException("Removing members of dictionary through PATCH not yet implemented.");
+            {
+                foreach (var removed in dictDelta.RemovedKeys)
+                {
+                    jsonWriter.WritePropertyName("-" + EscapePropertyName(removed));
+                    jsonWriter.WriteStartObject();
+                    jsonWriter.WriteEndObject();
+                }
+            }
 
             foreach (var kvp in serializedKeyValuePairs)
             {
                 // TODO: Support other key types than string
-                jsonWriter.WritePropertyName((string) ((object) kvp.Key));
+                jsonWriter.WritePropertyName(EscapePropertyName(kvp.Key));
                 var itemNode = new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.Context, node);
                 itemNode.Serialize(this, writer);
             }
 
             jsonWriter.WriteEndObject();
+        }
+
+        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
+
+        private string EscapePropertyName(string propName)
+        {
+            if (propName.Length > 0 && reservedFirstCharacters.Contains(propName[0]))
+                return "^" + propName;
+            return propName;
         }
 
 

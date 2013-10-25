@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
@@ -30,6 +31,7 @@ using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
+using Pomona.Common.Internals;
 
 namespace Pomona.SystemTests
 {
@@ -68,6 +70,32 @@ namespace Pomona.SystemTests
                              }));
 
             Assert.That(critter.Weapons, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void PatchStringToStringDictionary_SetValueForKey()
+        {
+            var result = client.Patch(CreateDictionaryResource(), d => d.Map.Add("foo", "bar"));
+            Assert.That(result.Map, Contains.Item(new KeyValuePair<string, string>("foo", "bar")));
+        }
+
+        [Test]
+        public void PatchStringToStringDictionary_RemoveKey()
+        {
+            var result = client.Patch(CreateDictionaryResource(new [] {new KeyValuePair<string, string>("foo", "bar"), }), d => d.Map.Remove("foo"));
+            Assert.That(result.Map, Is.Not.Contains(new KeyValuePair<string, string>("foo", "bar")));
+        }
+
+        private IDictionaryContainer CreateDictionaryResource(IEnumerable<KeyValuePair<string, string>> items = null)
+        {
+            var dictContainer = new DictionaryContainer();
+            foreach (var kvp in items.EmptyIfNull())
+            {
+                dictContainer.Map.Add(kvp);
+            }
+            Save(dictContainer);
+            var dictResource = client.DictionaryContainers.Get(dictContainer.Id);
+            return dictResource;
         }
 
         [Test]
