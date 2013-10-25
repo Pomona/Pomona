@@ -252,6 +252,13 @@ namespace Pomona
             {
                 throw;
             }
+            catch (TargetInvocationException tie)
+            {
+                // Let exception from constructors trickle down
+                if (tie.InnerException != null)
+                    throw tie.InnerException;
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new PomonaException("An unknown error occured while trying to instantiate resource.", ex);
@@ -299,17 +306,7 @@ namespace Pomona
                 }
             }
 
-            object instance;
-            try
-            {
-                instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
-            }
-            catch (TargetInvocationException targetInvocationException)
-            {
-                if (targetInvocationException.InnerException != null)
-                    throw targetInvocationException.InnerException;
-                throw;
-            }
+            var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
 
             foreach (var kvp in propValues)
             {
