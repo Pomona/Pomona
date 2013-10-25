@@ -299,7 +299,17 @@ namespace Pomona
                 }
             }
 
-            var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
+            object instance;
+            try
+            {
+                instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
+            }
+            catch (TargetInvocationException targetInvocationException)
+            {
+                if (targetInvocationException.InnerException != null)
+                    throw targetInvocationException.InnerException;
+                throw;
+            }
 
             foreach (var kvp in propValues)
             {
