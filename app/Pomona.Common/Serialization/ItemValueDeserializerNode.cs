@@ -46,6 +46,7 @@ namespace Pomona.Common.Serialization
             valueType = expectedBaseType;
         }
 
+
         public IDeserializationContext Context
         {
             get { return context; }
@@ -64,6 +65,11 @@ namespace Pomona.Common.Serialization
         public string Uri { get; set; }
 
         public object Value { get; set; }
+
+        public void CheckAccessRights(PropertyAccessMode accessMode)
+        {
+        }
+
 
         public IDeserializerNode Parent
         {

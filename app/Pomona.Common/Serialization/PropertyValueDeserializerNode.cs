@@ -87,6 +87,12 @@ namespace Pomona.Common.Serialization
         }
 
 
+        public void CheckAccessRights(PropertyAccessMode accessMode)
+        {
+            Context.CheckPropertyAccessRights(property, accessMode);
+        }
+
+
         public IDeserializerNode Parent
         {
             get { return parent; }

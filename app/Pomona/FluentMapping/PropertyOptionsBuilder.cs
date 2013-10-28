@@ -29,7 +29,8 @@
 using System;
 using System.Linq.Expressions;
 
-using Pomona.Common;
+using Nancy.Extensions;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -49,30 +50,44 @@ namespace Pomona.FluentMapping
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
         {
-            options.CreateMode = PropertyCreateMode.Optional;
-            SetAccessModeFlag(PropertyAccessMode.IsWritable);
+            this.options.AlwaysExpanded = true;
             return this;
         }
 
 
-        private void SetAccessModeFlag(PropertyAccessMode accessMode)
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
         {
-            this.options.AccessMode |= accessMode;
-            this.options.AccessModeMask |= accessMode;
+            this.options.IsAttributesProperty = true;
+            return this;
         }
 
-        private void ClearAccessModeFlag(PropertyAccessMode accessMode)
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
         {
-            this.options.AccessMode &= ~accessMode;
-            this.options.AccessModeMask |= accessMode;
+            this.options.IsEtagProperty = true;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
+        {
+            this.options.IsPrimaryKey = true;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
+        {
+            this.options.Name = name;
+            return this;
         }
 
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
-            options.CreateMode = PropertyCreateMode.Excluded;
+            this.options.CreateMode = PropertyCreateMode.Excluded;
             SetAccessModeFlag(PropertyAccessMode.IsReadable);
             ClearAccessModeFlag(PropertyAccessMode.IsWritable);
             ClearAccessModeFlag(PropertyAccessMode.ItemChangeable);
@@ -81,62 +96,61 @@ namespace Pomona.FluentMapping
             return this;
         }
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
         {
-            options.CreateMode = createMode;
+            this.options.PropertyFormulaIsDecompiled = true;
             return this;
         }
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
-        {
-            options.AccessModeMask = ~(default(PropertyAccessMode));
-            options.AccessMode = accessMode;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
-        {
-            options.AlwaysExpanded = true;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
-        {
-            options.IsEtagProperty = true;
-            return this;
-        }
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {
-            options.Formula = formula;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
-        {
-            options.IsPrimaryKey = true;
+            this.options.Formula = formula;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
         {
-            options.Name = name;
+            this.options.AccessModeMask = ~(default(PropertyAccessMode));
+            this.options.AccessMode = accessMode;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
         {
-            options.IsAttributesProperty = true;
+            this.options.CreateMode = createMode;
             return this;
         }
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
         {
-            options.PropertyFormulaIsDecompiled = true;
+            this.options.CreateMode = PropertyCreateMode.Optional;
+            if (typeof(TPropertyType).IsCollection())
+            {
+                SetAccessModeFlag(PropertyAccessMode.ItemChangeable | PropertyAccessMode.ItemInsertable
+                                  | PropertyAccessMode.ItemRemovable);
+            }
+            SetAccessModeFlag(PropertyAccessMode.IsWritable);
             return this;
+        }
+
+
+        private void ClearAccessModeFlag(PropertyAccessMode accessMode)
+        {
+            this.options.AccessMode &= ~accessMode;
+            this.options.AccessModeMask |= accessMode;
+        }
+
+
+        private void SetAccessModeFlag(PropertyAccessMode accessMode)
+        {
+            this.options.AccessMode |= accessMode;
+            this.options.AccessModeMask |= accessMode;
         }
 
         #endregion

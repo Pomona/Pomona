@@ -186,14 +186,17 @@ namespace Pomona.Common.Serialization.Json
 
             var elementType = node.ExpectedBaseType.ElementType;
 
+            bool isPatching;
             ICollection<TElement> collection;
             if (node.Value == null)
             {
                 collection = new List<TElement>();
+                isPatching = false;
             }
             else
             {
                 collection = (ICollection<TElement>) node.Value;
+                isPatching = true;
             }
 
             foreach (var jitem in jarr)
@@ -221,7 +224,7 @@ namespace Pomona.Common.Serialization.Json
                         {
                             itemNode.Operation = DeserializerNodeOperation.Remove;
                         }
-                        else if (jprop.Name[1] == '*')
+                        else if (jprop.Name[0] == '*')
                         {
                             itemNode.Operation = DeserializerNodeOperation.Modify;
                         }
@@ -235,13 +238,23 @@ namespace Pomona.Common.Serialization.Json
 
                 if (itemNode.Operation == DeserializerNodeOperation.Remove)
                 {
+                    node.CheckAccessRights(PropertyAccessMode.ItemRemovable);
                     collection.Remove((TElement)itemNode.Value);
                 }
                 else
                 {
+                    if (itemNode.Operation == DeserializerNodeOperation.Modify)
+                        node.CheckAccessRights(PropertyAccessMode.ItemChangeable);
+                    else if (isPatching)
+                    {
+                        node.CheckAccessRights(PropertyAccessMode.ItemInsertable);
+                    }
+
                     itemNode.Deserialize(this, new Reader(jitem));
                     if (itemNode.Operation != DeserializerNodeOperation.Modify)
+                    {
                         collection.Add((TElement)itemNode.Value);
+                    }
                 }
             }
 

@@ -36,23 +36,28 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly PropertyInfo propertyInfo;
 
-        public PropertyInfo PropertyInfo
-        {
-            get { return propertyInfo; }
-        }
-
         private readonly ITypeMapper typeMapper;
 
 
         internal SharedPropertyInfo(PropertyInfo propertyInfo, ITypeMapper typeMapper)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             this.propertyInfo = propertyInfo;
             this.typeMapper = typeMapper;
         }
 
         #region Implementation of IPropertyInfo
+
+        public PropertyAccessMode AccessMode
+        {
+            get
+            {
+                return PropertyAccessMode.IsReadable | PropertyAccessMode.IsWritable | PropertyAccessMode.ItemInsertable;
+            }
+        }
 
         public bool AlwaysExpand
         {
@@ -66,12 +71,12 @@ namespace Pomona.Common.TypeSystem
 
         public IMappedType DeclaringType
         {
-            get { return typeMapper.GetClassMapping(propertyInfo.DeclaringType); }
+            get { return this.typeMapper.GetClassMapping(this.propertyInfo.DeclaringType); }
         }
 
         public Func<object, object> Getter
         {
-            get { return x => propertyInfo.GetValue(x, null); }
+            get { return x => this.propertyInfo.GetValue(x, null); }
         }
 
         public bool IsEtagProperty
@@ -79,26 +84,24 @@ namespace Pomona.Common.TypeSystem
             get { return false; }
         }
 
-        public Expression CreateGetterExpression(Expression instance)
+        public bool IsPrimaryKey
         {
-            throw new NotImplementedException();
+            get { return false; }
         }
-
-
-        public bool IsWriteable
-        {
-            get { return propertyInfo.GetSetMethod() != null; }
-        }
-
 
         public bool IsReadable
         {
-            get { return propertyInfo.GetGetMethod() != null; }
+            get { return this.propertyInfo.GetGetMethod() != null; }
         }
 
         public bool IsSerialized
         {
             get { return true; }
+        }
+
+        public bool IsWriteable
+        {
+            get { return this.propertyInfo.GetSetMethod() != null; }
         }
 
         public string JsonName
@@ -113,29 +116,36 @@ namespace Pomona.Common.TypeSystem
 
         public string Name
         {
-            get { return propertyInfo.Name; }
+            get { return this.propertyInfo.Name; }
         }
 
         public IMappedType PropertyType
         {
-            get { return typeMapper.GetClassMapping(propertyInfo.PropertyType); }
+            get { return this.typeMapper.GetClassMapping(this.propertyInfo.PropertyType); }
         }
 
         public Action<object, object> Setter
         {
-            get { return (o, v) => propertyInfo.SetValue(o, v, null); }
+            get { return (o, v) => this.propertyInfo.SetValue(o, v, null); }
         }
 
-        public bool IsPrimaryKey
-        {
-            get { return false; }
-        }
 
         public override string ToString()
         {
             return string.Format("{0} {1}::{2}", PropertyType, DeclaringType, Name);
         }
 
+
+        public Expression CreateGetterExpression(Expression instance)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
+
+        public PropertyInfo PropertyInfo
+        {
+            get { return this.propertyInfo; }
+        }
     }
 }
