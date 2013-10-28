@@ -28,6 +28,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
 namespace Pomona.Schemas
@@ -143,6 +144,22 @@ namespace Pomona.Schemas
                     continue;
                 }
 
+                if (oldPropEntry.Readable && !newPropEntry.Readable)
+                {
+                    isBackwardsCompatible = false;
+                    errorLog.Write(
+                        "Making previosly readable property {0} of type {1} non-readable breaks compability.\r\n",
+                        propName, typeName);
+                }
+
+                if (oldPropEntry.Writable && !newPropEntry.Writable)
+                {
+                    isBackwardsCompatible = false;
+                    errorLog.Write(
+                        "Making previosly writable property {0} of type {1} non-writable breaks compability.\r\n",
+                        propName, typeName);
+                }
+
                 if (!oldPropEntry.Required && newPropEntry.Required)
                 {
                     isBackwardsCompatible = false;
@@ -190,7 +207,8 @@ namespace Pomona.Schemas
                         {
                             ContractResolver = new CamelCasePropertyNamesContractResolver(),
                             NullValueHandling = NullValueHandling.Ignore,
-                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
+                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                            Converters = { new StringEnumConverter() }
                         });
             serializer.Formatting = Formatting.Indented;
             return serializer;

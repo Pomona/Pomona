@@ -48,11 +48,14 @@ namespace Pomona
             if (mappedType.IsCollection)
                 return "array";
 
+            if (mappedType.IsDictionary && mappedType.DictionaryKeyType.MappedTypeInstance == typeof(string))
+                return "dictionary";
+
             if (mappedType.IsNullable)
                 return GetSchemaTypeName(mappedType.ElementType);
 
             var sharedType = mappedType as SharedType;
-            if (sharedType != null && sharedType.IsBasicWireType)
+            if (sharedType != null)
             {
                 var targetType = sharedType.MappedType;
                 if (numberTypes.Contains(targetType))

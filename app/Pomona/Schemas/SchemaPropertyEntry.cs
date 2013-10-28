@@ -25,6 +25,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Schemas
 {
     public class SchemaPropertyEntry
@@ -36,8 +38,8 @@ namespace Pomona.Schemas
         public string Name { get; set; }
 
         public bool Required { get; set; }
-
-        public bool ReadOnly { get; set; }
+        public bool Readable { get; set; }
+        public bool Writable { get; set; }
         public string Type { get; set; }
     }
 }

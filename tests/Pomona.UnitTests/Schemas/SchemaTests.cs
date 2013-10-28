@@ -72,6 +72,25 @@ namespace Pomona.UnitTests.Schemas
                     Properties =
                         {
                             {
+                                "wasReadonly",
+                                new SchemaPropertyEntry()
+                                {
+                                    Name = "wasReadonly",
+                                    Writable = false,
+                                    Readable = true,
+                                    Type = "string"
+                                }
+                            },
+                            {
+                                "wasWritable",
+                                new SchemaPropertyEntry()
+                                {
+                                    Name = "wasWritable",
+                                    Writable = true,
+                                    Type = "string"
+                                }
+                            },
+                            {
                                 "fooRequired",
                                 new SchemaPropertyEntry
                                     {
@@ -108,6 +127,20 @@ namespace Pomona.UnitTests.Schemas
                                                                       Type = "string",
                                                                       Required = false
                                                                   }));
+        }
+
+        [Test]
+        public void IsBackwardsCompatibleWith_OnSchemaHavingWritablePropertyMadeReadOnly_ReturnsFalse()
+        {
+            AssertBreaksBackwardsCompability(s => s.Types.First(x => x.Name == "Class")
+                                              .Properties["wasWritable"].Writable = false);
+        }
+
+        [Test]
+        public void IsBackwardsCompatibleWith_OnSchemaHavingReadOnlyPropertyMadeWritable_ReturnsTrue()
+        {
+            AssertIsBackwardsCompatible(s => s.Types.First(x => x.Name == "Class")
+                                              .Properties["wasReadonly"].Writable = true);
         }
 
         [Test]

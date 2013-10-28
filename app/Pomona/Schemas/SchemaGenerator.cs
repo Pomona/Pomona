@@ -62,7 +62,8 @@ namespace Pomona.Schemas
                     Required = propertyInfo.CreateMode == PropertyCreateMode.Required,
                     Name = propertyInfo.Name,
                     Generated = propertyInfo.CreateMode == PropertyCreateMode.Excluded,
-                    ReadOnly = !propertyInfo.IsWriteable,
+                    Writable = propertyInfo.IsWriteable,
+                    Readable = propertyInfo.IsReadable,
                     Type = propType.GetSchemaTypeName()
                 };
 
@@ -72,6 +73,13 @@ namespace Pomona.Schemas
                     {
                         new SchemaArrayItem {Type = propType.ElementType.GetSchemaTypeName()}
                     };
+            }
+            if (propType.IsDictionary && propEntry.Type == "dictionary")
+            {
+                propEntry.Items = new List<SchemaArrayItem>()
+                {
+                    new SchemaArrayItem() { Type = propType.DictionaryValueType.GetSchemaTypeName() }
+                };
             }
 
             return propEntry;
