@@ -130,14 +130,18 @@ namespace Pomona.Example
                .Include(x => x.Subscriptions, o => o.AlwaysExpanded())
                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
-               .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.WriteOnly))
+               .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.IsWritable))
                .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
                .OnDeserialized(c => c.FixParentReferences());
         }
 
         public void Map(ITypeMappingConfigurator<HasReadOnlyDictionaryProperty> map)
         {
-            map.Include(x => x.Map, o => o.AsAttributes().WithAccessMode(PropertyAccessMode.ReadWrite));
+            map.Include(x => x.Map,
+                o =>
+                    o.AsAttributes().WithAccessMode(PropertyAccessMode.IsReadable | PropertyAccessMode.ItemInsertable
+                                                    | PropertyAccessMode.ItemRemovable
+                                                    | PropertyAccessMode.ItemChangeable));
         }
 
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)

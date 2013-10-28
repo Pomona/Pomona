@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common;
@@ -44,6 +45,12 @@ namespace Pomona
         private readonly IMappedType propertyType;
         private PropertyInfo normalizedPropertyInfo;
 
+
+        private IDictionary<string, object> metadata;
+        public IDictionary<string, object> Metadata
+        {
+            get { return this.metadata ?? (this.metadata = new Dictionary<string, object>()); }
+        }
 
         public PropertyMapping(
             string name, TransformedType reflectedType, TransformedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
@@ -91,7 +98,37 @@ namespace Pomona
             get { return propertyInfo; }
         }
 
-        public LambdaExpression Formula { get; set; }
+        private T GetMetadata<T>(string key, Func<T> initializer = null)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+
+            object result;
+            if (!Metadata.TryGetValue(key, out result))
+            {
+                if (initializer != null)
+                {
+                    result = initializer();
+                    Metadata[key] = result;
+                }
+                else
+                {
+                    result = default(T);
+                }
+            }
+            return (T)result;
+        }
+
+
+        private void SetMetadata(string key, object value)
+        {
+            if (value == null)
+                Metadata.Remove(key);
+            else
+                Metadata[key] = value;
+        }
+
+        public LambdaExpression Formula { get { return GetMetadata<LambdaExpression>("Formula"); } set { SetMetadata("Formula", value); } }
 
         public TypeMapper TypeMapper
         {
@@ -135,12 +172,12 @@ namespace Pomona
 
         public bool IsWriteable
         {
-            get { return AccessMode == PropertyAccessMode.WriteOnly || AccessMode == PropertyAccessMode.ReadWrite; }
+            get { return AccessMode.HasFlag(PropertyAccessMode.IsWritable); }
         }
 
         public bool IsReadable
         {
-            get { return AccessMode == PropertyAccessMode.ReadOnly || AccessMode == PropertyAccessMode.ReadWrite; }
+            get { return AccessMode.HasFlag(PropertyAccessMode.IsReadable); }
         }
 
         public bool IsSerialized

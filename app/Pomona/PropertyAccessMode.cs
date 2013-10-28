@@ -22,12 +22,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
+
 namespace Pomona
 {
+    [Flags]
     public enum PropertyAccessMode
     {
-        ReadWrite,
-        ReadOnly,
-        WriteOnly
+        IsReadable = 1,
+        IsWritable = 1 << 1,
+
+        ItemInsertable = 1 << 10,
+        ItemRemovable = 1 << 11,
+        ItemChangeable = 1 << 12
     }
 }

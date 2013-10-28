@@ -29,6 +29,7 @@
 using System;
 using System.IO;
 using System.Linq;
+
 using Pomona.CodeGen;
 using Pomona.Example;
 
@@ -45,11 +46,10 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             var protectedPropertyOfCritter =
                 typeMapper.TransformedTypes.First(x => x.Name == "Critter")
-                          .Properties.OfType<PropertyMapping>()
-                          .First(x => x.Name == "Protected");
+                    .Properties.OfType<PropertyMapping>()
+                    .First(x => x.Name == "Protected");
 
-            protectedPropertyOfCritter.AccessMode = PropertyAccessMode.ReadWrite;
-
+            protectedPropertyOfCritter.AccessMode = PropertyAccessMode.IsReadable | PropertyAccessMode.IsWritable;
 
             // Modify UnpostableThingOnServer to generate form type for post.
             // This is to check that server generates correct status code.
@@ -59,14 +59,15 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
             }
 
             using (
                 var file = new FileStream(
-                    @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
+                    @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll",
+                    FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: true);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : true);
             }
 
             Console.WriteLine("Wrote client dll.");

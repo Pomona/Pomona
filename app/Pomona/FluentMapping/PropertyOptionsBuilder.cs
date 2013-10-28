@@ -50,14 +50,32 @@ namespace Pomona.FluentMapping
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
         {
             options.CreateMode = PropertyCreateMode.Optional;
-            options.AccessMode = PropertyAccessMode.ReadWrite;
+            SetAccessModeFlag(PropertyAccessMode.IsWritable);
             return this;
         }
+
+
+        private void SetAccessModeFlag(PropertyAccessMode accessMode)
+        {
+            this.options.AccessMode |= accessMode;
+            this.options.AccessModeMask |= accessMode;
+        }
+
+        private void ClearAccessModeFlag(PropertyAccessMode accessMode)
+        {
+            this.options.AccessMode &= ~accessMode;
+            this.options.AccessModeMask |= accessMode;
+        }
+
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
             options.CreateMode = PropertyCreateMode.Excluded;
-            options.AccessMode = PropertyAccessMode.ReadOnly;
+            SetAccessModeFlag(PropertyAccessMode.IsReadable);
+            ClearAccessModeFlag(PropertyAccessMode.IsWritable);
+            ClearAccessModeFlag(PropertyAccessMode.ItemChangeable);
+            ClearAccessModeFlag(PropertyAccessMode.ItemInsertable);
+            ClearAccessModeFlag(PropertyAccessMode.ItemRemovable);
             return this;
         }
 
@@ -69,6 +87,7 @@ namespace Pomona.FluentMapping
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
         {
+            options.AccessModeMask = ~(default(PropertyAccessMode));
             options.AccessMode = accessMode;
             return this;
         }

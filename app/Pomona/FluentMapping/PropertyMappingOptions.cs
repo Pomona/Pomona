@@ -58,7 +58,8 @@ namespace Pomona.FluentMapping
 
         public int? ConstructorArgIndex { get; set; }
 
-        public PropertyAccessMode? AccessMode { get; internal set; }
+        public PropertyAccessMode AccessMode { get; internal set; }
+        public PropertyAccessMode AccessModeMask { get; internal set; }
 
         public PropertyCreateMode? CreateMode { get; internal set; }
 

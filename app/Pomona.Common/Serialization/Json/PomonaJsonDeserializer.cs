@@ -246,14 +246,15 @@ namespace Pomona.Common.Serialization.Json
                 identifierNode.Deserialize(this, new Reader(jprop.Value));
                 var identifierValue = identifierNode.Value;
 
-                node.Value =
-                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x)));
                 if (jprop.Name[0] == '-')
                 {
                     node.Operation = DeserializerNodeOperation.Remove;
                     return;
                 }
+
                 node.Operation = DeserializerNodeOperation.Modify;
+                node.Value =
+                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x)));
             }
 
             foreach (var jprop in jobj.Properties())

@@ -324,12 +324,8 @@ namespace Pomona
 
         public virtual PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
         {
-            if (propertyInfo.PropertyType.IsCollection() ||
-                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
-            {
-                return PropertyAccessMode.ReadWrite;
-            }
-            return PropertyAccessMode.ReadOnly;
+            PropertyAccessMode mode = (propertyInfo.CanRead ? PropertyAccessMode.IsReadable : 0) | ((propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null) ? PropertyAccessMode.IsWritable : 0);
+            return mode;
         }
 
         public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
