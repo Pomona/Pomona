@@ -29,8 +29,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 
@@ -53,11 +56,10 @@ namespace Pomona.SystemTests.Linq
 
         public interface ICustomTestEntity3 : IStringToObjectDictionaryContainer
         {
-            string Text { get; set; }
             int? Number { get; set; }
+            string Text { get; set; }
             DateTime? Time { get; set; }
         }
-
 
         public interface ICustomTestEntityWithBoolean : IStringToObjectDictionaryContainer
         {
@@ -83,13 +85,14 @@ namespace Pomona.SystemTests.Linq
             new IList<ITestClientResource> OtherContainers { get; set; }
         }
 
+
         [Test]
         public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
         {
             var entity = new StringToObjectDictionaryContainer
-                {
-                    Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
-                };
+            {
+                Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
+            };
             Save(entity);
 
             var resource = client.Query<ICustomTestEntity3>().First(x => x.Id == entity.Id);
@@ -97,34 +100,35 @@ namespace Pomona.SystemTests.Linq
             var patchedResource =
                 client.Patch(resource, x => { x.Text = "UPDATED!"; });
 
-
             Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
         }
+
 
         [Test]
         public void PostCustomTestEntity()
         {
             var response = (ICustomTestEntity3)client.Post<ICustomTestEntity3>(x =>
-                {
-                    x.Number = 123;
-                    x.Text = "foobar";
-                    x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
-                });
+            {
+                x.Number = 123;
+                x.Text = "foobar";
+                x.Time = new DateTime(2030, 3, 4, 5, 3, 2);
+            });
 
             Assert.That(response.Number, Is.EqualTo(123));
             Assert.That(response.Text, Is.EqualTo("foobar"));
             Assert.That(response.Time, Is.EqualTo(new DateTime(2030, 3, 4, 5, 3, 2)));
         }
 
+
         [Test]
         public void QueryCustomTestEntity2_WhereDictIsOnBaseInterface_ReturnsCustomTestEntity2()
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
             var subtypedDictionaryContainer = new SubtypedDictionaryContainer
-                {
-                    Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
-                    SomethingExtra = "Hahahohohihi"
-                };
+            {
+                Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
+                SomethingExtra = "Hahahohohihi"
+            };
 
             Repository.Save<DictionaryContainer>(subtypedDictionaryContainer);
 
@@ -138,11 +142,11 @@ namespace Pomona.SystemTests.Linq
             //    });
 
             var results = client.Query<ICustomTestEntity2>()
-                                .Where(
-                                    x =>
-                                    x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
-                                    x.SomethingExtra == "Hahahohohihi")
-                                .ToList();
+                .Where(
+                    x =>
+                        x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
+                        x.SomethingExtra == "Hahahohohihi")
+                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
@@ -157,14 +161,14 @@ namespace Pomona.SystemTests.Linq
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
             var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
-                {
-                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
-                });
+            {
+                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+            });
 
             var results = client.Query<ICustomTestEntity3>()
-                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
-                                .IncludeTotalCount()
-                                .ToQueryResult();
+                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                .IncludeTotalCount()
+                .ToQueryResult();
 
             Assert.That(results, Has.Count.EqualTo(1));
             var result = results.First();
@@ -173,19 +177,20 @@ namespace Pomona.SystemTests.Linq
             Assert.That(result.Time, Is.EqualTo(timeValue));
             Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
         }
+
 
         [Test]
         public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
             var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
-                {
-                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
-                });
+            {
+                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+            });
 
             var results = client.Query<ICustomTestEntity3>()
-                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
-                                .ToList();
+                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                .ToList();
 
             Assert.That(results, Has.Count.EqualTo(1));
             var result = results.First();
@@ -194,6 +199,7 @@ namespace Pomona.SystemTests.Linq
             Assert.That(result.Time, Is.EqualTo(timeValue));
             Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
         }
+
 
         [Test]
         public void QueryCustomTestEntityWithBoolean_ReturnsCustomTestEntity()
@@ -202,13 +208,14 @@ namespace Pomona.SystemTests.Linq
                 Repository.Save(new StringToObjectDictionaryContainer { Map = { { "TheBool", true } } });
 
             var results = client.Query<ICustomTestEntityWithBoolean>()
-                                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
-                                .ToList();
+                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
+                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
             Assert.That(result.TheBool, Is.True);
         }
+
 
         [Test]
         public void QueryCustomTestEntity_ReturnsCustomTestEntity()
@@ -217,14 +224,14 @@ namespace Pomona.SystemTests.Linq
 
             var dictionaryContainer = client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
-                    {
-                        x.Map.Add("CustomString", "Lalalala");
-                        x.Map.Add("OtherCustom", "Blob rob");
-                    });
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
 
             var results = client.Query<ICustomTestEntity>()
-                                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
-                                .ToList();
+                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
@@ -241,39 +248,41 @@ namespace Pomona.SystemTests.Linq
 
             var dictionaryContainer = client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
-                    {
-                        x.Map.Add("CustomString", "Lalalala");
-                        x.Map.Add("OtherCustom", "Blob rob");
-                    });
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
 
             var result =
                 client.Query<ICustomTestEntity>()
-                      .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
+                    .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
             Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
         }
+
 
         [Test]
         public void QueryCustomTestEntity_UsingGroupBy_ReturnsCustomTestEntity()
         {
             client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
-                    {
-                        x.Map.Add("CustomString", "Lalalala");
-                        x.Map.Add("OtherCustom", "Blob rob");
-                    });
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
 
             var result =
                 client.Query<ICustomTestEntity>()
-                      .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
-                      .GroupBy(x => x.CustomString)
-                      .Select(x => new { x.Key })
-                      .ToList();
+                    .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                    .GroupBy(x => x.CustomString)
+                    .Select(x => new { x.Key })
+                    .ToList();
 
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Key, Is.EqualTo("Lalalala"));
         }
+
 
         [Category("TODO")]
         [Test(Description = "TODO: Reminder for func to be implemented.")]
@@ -291,10 +300,11 @@ namespace Pomona.SystemTests.Linq
 
             var resource =
                 client.Query<ITestParentClientResource>()
-                      .First(x => x.Id == parent.Id && x.Container.Jalla == "booohoo");
+                    .First(x => x.Id == parent.Id && x.Container.Jalla == "booohoo");
             Assert.That(resource.Container, Is.Not.Null);
             Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
         }
+
 
         [Test]
         public void Query_ClientResourceWithReferenceToListOfClientResources_First()
@@ -306,14 +316,22 @@ namespace Pomona.SystemTests.Linq
 
             var resource =
                 client.Query<ITestParentClientResource>()
-                      .First(
-                          x =>
-                          x.Id == parent.Id && x.Container.Jalla == "booohoo" &&
-                          x.OtherContainers.Any(y => y.Jalla == "blabla"));
+                    .First(
+                        x =>
+                            x.Id == parent.Id && x.Container.Jalla == "booohoo" &&
+                            x.OtherContainers.Any(y => y.Jalla == "blabla"));
 
             Assert.That(resource.Container, Is.Not.Null);
             Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
             Assert.That(resource.OtherContainers[0].Jalla, Is.EqualTo("blabla"));
+        }
+
+
+        [Test]
+        public void Query_ClientSideResourceReturningNoResults_FirstOrDefaultReturnsNull()
+        {
+            Assert.That(client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
+                Is.Null);
         }
     }
 }

@@ -285,7 +285,7 @@ namespace Pomona.Common.Linq
 
             if (transformedExpression.Type == userTypeInfo.ServerType)
             {
-                return CreateClientSideResourceProxy<TCustomClientType>(userTypeInfo, result);
+                return result != null ? (object)CreateClientSideResourceProxy<TCustomClientType>(userTypeInfo, result) : null;
             }
 
             if (transformedExpression.Type.TryGetEnumerableElementType(out elementType)
