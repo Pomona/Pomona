@@ -198,17 +198,50 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var jitem in jarr)
             {
+                var jobj = jitem as JObject;
                 var itemNode = new ItemValueDeserializerNode(elementType, node.Context, node.ExpandPath, node);
-                itemNode.Deserialize(this, new Reader(jitem));
-                var value = (TElement)itemNode.Value;
+                if (jobj != null)
+                {
+                    foreach (var jprop in jobj.Properties().Where(IsIdentifierProperty))
+                    {
+                        // Starts with "-@" or "*@"
+                        var identifyPropName = jprop.Name.Substring(2);
+                        var identifyProp = itemNode.ValueType.Properties.FirstOrDefault(x => x.JsonName == identifyPropName);
+                        if (identifyProp == null)
+                            throw new PomonaSerializationException("Unable to find predicate property " + jprop.Name
+                                                                   + " in object");
+
+                        var identifierNode = new ItemValueDeserializerNode(identifyProp.PropertyType,
+                            itemNode.Context,
+                            parent: itemNode);
+                        identifierNode.Deserialize(this, new Reader(jprop.Value));
+                        var identifierValue = identifierNode.Value;
+
+                        if (jprop.Name[0] == '-')
+                        {
+                            itemNode.Operation = DeserializerNodeOperation.Remove;
+                        }
+                        else if (jprop.Name[1] == '*')
+                        {
+                            itemNode.Operation = DeserializerNodeOperation.Modify;
+                        }
+                        else
+                        {
+                            throw new PomonaSerializationException("Unexpected json patch identifier property.");
+                        }
+                        itemNode.Value = collection.Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x)));
+                    }
+                }
+
                 if (itemNode.Operation == DeserializerNodeOperation.Remove)
                 {
-                    collection.Remove(value);
+                    collection.Remove((TElement)itemNode.Value);
                 }
                 else
                 {
+                    itemNode.Deserialize(this, new Reader(jitem));
                     if (itemNode.Operation != DeserializerNodeOperation.Modify)
-                        collection.Add(value);
+                        collection.Add((TElement)itemNode.Value);
                 }
             }
 
@@ -234,28 +267,6 @@ namespace Pomona.Common.Serialization.Json
 
             IDictionary<IPropertyInfo, object> propertyValueMap = new Dictionary<IPropertyInfo, object>();
 
-            foreach (var jprop in jobj.Properties().Where(IsIdentifierProperty))
-            {
-                // Starts with "-@" or "*@"
-                var identifyPropName = jprop.Name.Substring(2);
-                var identifyProp = node.ValueType.Properties.FirstOrDefault(x => x.JsonName == identifyPropName);
-                if (identifyProp == null)
-                    throw new PomonaSerializationException("Unable to find predicate property " + jprop.Name + " in object");
-
-                var identifierNode = new ItemValueDeserializerNode(identifyProp.PropertyType, node.Context, parent : node);
-                identifierNode.Deserialize(this, new Reader(jprop.Value));
-                var identifierValue = identifierNode.Value;
-
-                if (jprop.Name[0] == '-')
-                {
-                    node.Operation = DeserializerNodeOperation.Remove;
-                    return;
-                }
-
-                node.Operation = DeserializerNodeOperation.Modify;
-                node.Value =
-                    ((IEnumerable)node.Parent.Value).Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x)));
-            }
 
             foreach (var jprop in jobj.Properties())
             {
