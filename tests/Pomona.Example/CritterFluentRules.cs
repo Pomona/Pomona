@@ -26,6 +26,8 @@
 
 #endregion
 
+using Pomona.Common;
+using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
 

@@ -24,7 +24,7 @@
 
 using System;
 
-namespace Pomona
+namespace Pomona.Common.TypeSystem
 {
     [Flags]
     public enum PropertyAccessMode

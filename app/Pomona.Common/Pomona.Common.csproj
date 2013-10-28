@@ -148,6 +148,7 @@
     <Compile Include="TypeSystem\IMappedType.cs" />
     <Compile Include="TypeSystem\IPropertyInfo.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
+    <Compile Include="TypeSystem\PropertyAccessMode.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
     <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />

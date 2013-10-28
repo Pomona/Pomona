@@ -29,6 +29,8 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping

@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 

@@ -165,7 +165,6 @@
     <Compile Include="PomonaResponseProcessorBase.cs" />
     <Compile Include="PomonaUriResolver.cs" />
     <Compile Include="PomonaXmlResponseProcessor.cs" />
-    <Compile Include="PropertyAccessMode.cs" />
     <Compile Include="Queries\ArrayNode.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />
     <Compile Include="Queries\LambdaNode.cs" />
