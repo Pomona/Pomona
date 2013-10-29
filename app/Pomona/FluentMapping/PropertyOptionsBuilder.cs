@@ -88,11 +88,9 @@ namespace Pomona.FluentMapping
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
             this.options.CreateMode = PropertyCreateMode.Excluded;
-            SetAccessModeFlag(PropertyAccessMode.IsReadable);
-            ClearAccessModeFlag(PropertyAccessMode.IsWritable);
-            ClearAccessModeFlag(PropertyAccessMode.ItemChangeable);
-            ClearAccessModeFlag(PropertyAccessMode.ItemInsertable);
-            ClearAccessModeFlag(PropertyAccessMode.ItemRemovable);
+            SetAccessModeFlag(HttpAccessMode.Get);
+            ClearAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
+                                | HttpAccessMode.Put);
             return this;
         }
 
@@ -112,9 +110,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpAccessMode accessMode)
         {
-            this.options.AccessModeMask = ~(default(PropertyAccessMode));
+            this.options.AccessModeMask = ~(default(HttpAccessMode));
             this.options.AccessMode = accessMode;
             return this;
         }
@@ -132,25 +130,44 @@ namespace Pomona.FluentMapping
             this.options.CreateMode = PropertyCreateMode.Optional;
             if (typeof(TPropertyType).IsCollection())
             {
-                SetAccessModeFlag(PropertyAccessMode.ItemChangeable | PropertyAccessMode.ItemInsertable
-                                  | PropertyAccessMode.ItemRemovable);
+                SetItemAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete);
             }
-            SetAccessModeFlag(PropertyAccessMode.IsWritable);
+            else
+            {
+                if (options.PropertyInfo.CanWrite)
+                {
+                    SetAccessModeFlag(HttpAccessMode.Put);
+                }
+            }
+            SetAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post);
             return this;
         }
 
 
-        private void ClearAccessModeFlag(PropertyAccessMode accessMode)
+        private void ClearAccessModeFlag(HttpAccessMode accessMode)
         {
             this.options.AccessMode &= ~accessMode;
             this.options.AccessModeMask |= accessMode;
         }
 
 
-        private void SetAccessModeFlag(PropertyAccessMode accessMode)
+        private void SetAccessModeFlag(HttpAccessMode accessMode)
         {
             this.options.AccessMode |= accessMode;
             this.options.AccessModeMask |= accessMode;
+        }
+
+        private void ClearItemAccessModeFlag(HttpAccessMode accessMode)
+        {
+            this.options.ItemAccessMode &= ~accessMode;
+            this.options.ItemAccessModeMask |= accessMode;
+        }
+
+
+        private void SetItemAccessModeFlag(HttpAccessMode accessMode)
+        {
+            this.options.ItemAccessMode |= accessMode;
+            this.options.ItemAccessModeMask |= accessMode;
         }
 
         #endregion

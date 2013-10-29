@@ -27,8 +27,8 @@ namespace Pomona.Common.Serialization
     public enum DeserializerNodeOperation
     {
         Default,
-        Add,
-        Modify,
-        Remove
+        Post,
+        Patch,
+        Delete
     }
 }

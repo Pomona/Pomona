@@ -51,11 +51,14 @@ namespace Pomona.Common.TypeSystem
 
         #region Implementation of IPropertyInfo
 
-        public PropertyAccessMode AccessMode
+        public HttpAccessMode AccessMode
         {
             get
             {
-                return PropertyAccessMode.IsReadable | PropertyAccessMode.IsWritable | PropertyAccessMode.ItemInsertable;
+                var mode = this.propertyInfo.CanRead ? HttpAccessMode.Get : default(HttpAccessMode);
+                if (this.propertyInfo.CanWrite)
+                    mode |= HttpAccessMode.Patch | HttpAccessMode.Put | HttpAccessMode.Post;
+                return mode;
             }
         }
 
@@ -102,6 +105,15 @@ namespace Pomona.Common.TypeSystem
         public bool IsWriteable
         {
             get { return this.propertyInfo.GetSetMethod() != null; }
+        }
+
+        public HttpAccessMode ItemAccessMode
+        {
+            get
+            {
+                return HttpAccessMode.Get | HttpAccessMode.Delete | HttpAccessMode.Post | HttpAccessMode.Put
+                       | HttpAccessMode.Delete;
+            }
         }
 
         public string JsonName

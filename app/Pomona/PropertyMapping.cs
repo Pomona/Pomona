@@ -74,7 +74,8 @@ namespace Pomona
         }
 
 
-        public PropertyAccessMode AccessMode { get; set; }
+        public HttpAccessMode AccessMode { get; set; }
+        public HttpAccessMode ItemAccessMode { get; set; }
 
         public int ConstructorArgIndex { get; set; }
 
@@ -172,12 +173,12 @@ namespace Pomona
 
         public bool IsWriteable
         {
-            get { return AccessMode.HasFlag(PropertyAccessMode.IsWritable); }
+            get { return AccessMode.HasFlag(HttpAccessMode.Patch) || AccessMode.HasFlag(HttpAccessMode.Post); }
         }
 
         public bool IsReadable
         {
-            get { return AccessMode.HasFlag(PropertyAccessMode.IsReadable); }
+            get { return AccessMode.HasFlag(HttpAccessMode.Get); }
         }
 
         public bool IsSerialized

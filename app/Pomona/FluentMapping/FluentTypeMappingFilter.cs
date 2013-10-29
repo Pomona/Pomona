@@ -146,6 +146,12 @@ namespace TestNs
         }
 
 
+        public HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        {
+            return wrappedFilter.GetPropertyItemAccessMode(propertyInfo);
+        }
+
+
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
             return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
@@ -167,7 +173,7 @@ namespace TestNs
         }
 
 
-        public PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        public HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(propertyInfo,
                 x =>

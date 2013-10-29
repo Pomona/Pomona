@@ -36,7 +36,7 @@ namespace Pomona.Common.Serialization
         string ExpandPath { get; }
         IMappedType ExpectedBaseType { get; }
         DeserializerNodeOperation Operation { get; set; }
-        void CheckAccessRights(PropertyAccessMode accessMode);
+        void CheckItemAccessRights(HttpAccessMode accessMode);
         IDeserializerNode Parent { get; }
         string Uri { get; set; }
         object Value { get; set; }

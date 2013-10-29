@@ -70,6 +70,7 @@ namespace Pomona.Common.Serialization.Json
                                   object patchedObject)
         {
             var node = new ItemValueDeserializerNode(expectedBaseType, context);
+            node.Operation = patchedObject != null ? DeserializerNodeOperation.Patch : DeserializerNodeOperation.Post;
             if (patchedObject != null)
                 node.Value = patchedObject;
 
@@ -222,11 +223,11 @@ namespace Pomona.Common.Serialization.Json
 
                         if (jprop.Name[0] == '-')
                         {
-                            itemNode.Operation = DeserializerNodeOperation.Remove;
+                            itemNode.Operation = DeserializerNodeOperation.Delete;
                         }
                         else if (jprop.Name[0] == '*')
                         {
-                            itemNode.Operation = DeserializerNodeOperation.Modify;
+                            itemNode.Operation = DeserializerNodeOperation.Patch;
                         }
                         else
                         {
@@ -236,22 +237,22 @@ namespace Pomona.Common.Serialization.Json
                     }
                 }
 
-                if (itemNode.Operation == DeserializerNodeOperation.Remove)
+                if (itemNode.Operation == DeserializerNodeOperation.Delete)
                 {
-                    node.CheckAccessRights(PropertyAccessMode.ItemRemovable);
+                    node.CheckItemAccessRights(HttpAccessMode.Delete);
                     collection.Remove((TElement)itemNode.Value);
                 }
                 else
                 {
-                    if (itemNode.Operation == DeserializerNodeOperation.Modify)
-                        node.CheckAccessRights(PropertyAccessMode.ItemChangeable);
+                    if (itemNode.Operation == DeserializerNodeOperation.Patch)
+                        node.CheckItemAccessRights(HttpAccessMode.Patch);
                     else if (isPatching)
                     {
-                        node.CheckAccessRights(PropertyAccessMode.ItemInsertable);
+                        node.CheckItemAccessRights(HttpAccessMode.Post);
                     }
 
                     itemNode.Deserialize(this, new Reader(jitem));
-                    if (itemNode.Operation != DeserializerNodeOperation.Modify)
+                    if (itemNode.Operation != DeserializerNodeOperation.Patch)
                     {
                         collection.Add((TElement)itemNode.Value);
                     }
@@ -314,6 +315,11 @@ namespace Pomona.Common.Serialization.Json
                 {
                     // If value is set we PATCH an existing object instead of creating a new one.
                     oldPropValue = propNode.Value = prop.Getter(node.Value);
+                    propNode.Operation = DeserializerNodeOperation.Patch;
+                }
+                else
+                {
+                    propNode.Operation = DeserializerNodeOperation.Post;
                 }
 
                 propNode.Deserialize(this, new Reader(jprop.Value));

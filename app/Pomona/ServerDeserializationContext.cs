@@ -47,9 +47,9 @@ namespace Pomona
         }
 
 
-        public void CheckPropertyAccessRights(IPropertyInfo property, PropertyAccessMode accessMode)
+        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpAccessMode accessMode)
         {
-            if (!property.AccessMode.HasFlag(accessMode))
+            if (!property.ItemAccessMode.HasFlag(accessMode))
                 throw new PomonaSerializationException("Unable to deserialize because of missing access: " + accessMode);
         }
 
@@ -85,7 +85,16 @@ namespace Pomona
 
         public void SetProperty(IDeserializerNode targetNode, IPropertyInfo property, object propertyValue)
         {
-            if (!property.IsWriteable)
+            if (targetNode.Operation == DeserializerNodeOperation.Default)
+                throw new InvalidOperationException("Invalid deserializer node operation default");
+            if ((targetNode.Operation == DeserializerNodeOperation.Post
+                 && property.AccessMode.HasFlag(HttpAccessMode.Post)) ||
+                (targetNode.Operation == DeserializerNodeOperation.Patch
+                 && property.AccessMode.HasFlag(HttpAccessMode.Put)))
+            {
+                property.Setter(targetNode.Value, propertyValue);
+            }
+            else
             {
                 var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)
                     ? property.Name
@@ -98,8 +107,6 @@ namespace Pomona
                     targetNode.ValueType.Name,
                     null);
             }
-
-            property.Setter(targetNode.Value, propertyValue);
         }
     }
 }

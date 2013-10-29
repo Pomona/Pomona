@@ -1,7 +1,8 @@
+﻿#region License
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -21,36 +22,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+#endregion
 
 using System;
-using System.Linq.Expressions;
+using System.Collections.Generic;
 
-namespace Pomona.Common.TypeSystem
+using Pomona.Common.TypeSystem;
+
+namespace Pomona.FluentMapping
 {
-    /// <summary>
-    /// This is the pomona way of representing a property.
-    /// 
-    /// Can't use PropertyInfo directly, since the transformed types might not exist
-    /// as Type in server context.
-    /// </summary>
-    public interface IPropertyInfo
+    public static class PropertyOptionsBuilderExtensions
     {
-        bool AlwaysExpand { get; }
-        PropertyCreateMode CreateMode { get; }
-        IMappedType DeclaringType { get; }
-        Func<object, object> Getter { get; }
-        bool IsWriteable { get; }
-        bool IsReadable { get; }
-        bool IsSerialized { get; }
-        string JsonName { get; }
-        string LowerCaseName { get; }
-        string Name { get; }
-        IMappedType PropertyType { get; }
-        Action<object, object> Setter { get; }
-        bool IsPrimaryKey { get; }
-        bool IsEtagProperty { get; }
-        Expression CreateGetterExpression(Expression instance);
-        HttpAccessMode AccessMode { get; }
-        HttpAccessMode ItemAccessMode { get; }
+        public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> SetItemAccessMode
+            <TDeclaringType, TPropertyType, TItem>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> o,  HttpAccessMode itemAccessMode)
+            where TPropertyType : ICollection<TItem>
+        {
+            throw new NotImplementedException();
+        }
     }
 }

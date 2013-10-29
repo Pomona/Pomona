@@ -132,7 +132,7 @@ namespace Pomona.Example
                .Include(x => x.Subscriptions, o => o.AlwaysExpanded().Writable())
                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
-               .Include(x => x.Password, o => o.WithAccessMode(PropertyAccessMode.IsWritable))
+               .Include(x => x.Password, o => o.WithAccessMode(HttpAccessMode.Post | HttpAccessMode.Put))
                .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
                .Include(x => x.Weapons, o => o.Writable())
                .OnDeserialized(c => c.FixParentReferences());
@@ -142,9 +142,7 @@ namespace Pomona.Example
         {
             map.Include(x => x.Map,
                 o =>
-                    o.AsAttributes().WithAccessMode(PropertyAccessMode.IsReadable | PropertyAccessMode.ItemInsertable
-                                                    | PropertyAccessMode.ItemRemovable
-                                                    | PropertyAccessMode.ItemChangeable));
+                    o.AsAttributes().WithAccessMode(HttpAccessMode.Get));
         }
 
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)

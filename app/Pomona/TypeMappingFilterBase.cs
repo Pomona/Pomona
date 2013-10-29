@@ -322,9 +322,23 @@ namespace Pomona
             return PropertyCreateMode.Excluded;
         }
 
-        public virtual PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+
+        public virtual HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
         {
-            PropertyAccessMode mode = (propertyInfo.CanRead ? PropertyAccessMode.IsReadable : 0) | ((propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null) ? PropertyAccessMode.IsWritable : 0);
+            if (propertyInfo.PropertyType.IsCollection())
+            {
+                return HttpAccessMode.All;
+            }
+            return default(HttpAccessMode);
+        }
+
+        public virtual HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        {
+            HttpAccessMode mode = (propertyInfo.CanRead ? HttpAccessMode.Get : 0);
+            if ((propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+            {
+                mode |= HttpAccessMode.Put | HttpAccessMode.Post | HttpAccessMode.Patch;
+            }
             return mode;
         }
 

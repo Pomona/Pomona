@@ -51,7 +51,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                     .Properties.OfType<PropertyMapping>()
                     .First(x => x.Name == "Protected");
 
-            protectedPropertyOfCritter.AccessMode = PropertyAccessMode.IsReadable | PropertyAccessMode.IsWritable;
+            protectedPropertyOfCritter.AccessMode = HttpAccessMode.Get | HttpAccessMode.Put;
 
             // Modify UnpostableThingOnServer to generate form type for post.
             // This is to check that server generates correct status code.
