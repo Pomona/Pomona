@@ -88,9 +88,9 @@ namespace Pomona.FluentMapping
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
             this.options.CreateMode = PropertyCreateMode.Excluded;
-            SetAccessModeFlag(HttpAccessMode.Get);
-            ClearAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
-                                | HttpAccessMode.Put);
+            this.options.SetAccessModeFlag(HttpAccessMode.Get);
+            this.options.ClearAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
+                                             | HttpAccessMode.Put);
             return this;
         }
 
@@ -129,45 +129,14 @@ namespace Pomona.FluentMapping
         {
             this.options.CreateMode = PropertyCreateMode.Optional;
             if (typeof(TPropertyType).IsCollection())
-            {
-                SetItemAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete);
-            }
+                this.options.SetItemAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete);
             else
             {
-                if (options.PropertyInfo.CanWrite)
-                {
-                    SetAccessModeFlag(HttpAccessMode.Put);
-                }
+                if (this.options.PropertyInfo.CanWrite)
+                    this.options.SetAccessModeFlag(HttpAccessMode.Put);
             }
-            SetAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post);
+            this.options.SetAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post);
             return this;
-        }
-
-
-        private void ClearAccessModeFlag(HttpAccessMode accessMode)
-        {
-            this.options.AccessMode &= ~accessMode;
-            this.options.AccessModeMask |= accessMode;
-        }
-
-
-        private void SetAccessModeFlag(HttpAccessMode accessMode)
-        {
-            this.options.AccessMode |= accessMode;
-            this.options.AccessModeMask |= accessMode;
-        }
-
-        private void ClearItemAccessModeFlag(HttpAccessMode accessMode)
-        {
-            this.options.ItemAccessMode &= ~accessMode;
-            this.options.ItemAccessModeMask |= accessMode;
-        }
-
-
-        private void SetItemAccessModeFlag(HttpAccessMode accessMode)
-        {
-            this.options.ItemAccessMode |= accessMode;
-            this.options.ItemAccessModeMask |= accessMode;
         }
 
         #endregion
