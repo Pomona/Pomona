@@ -589,6 +589,8 @@ namespace Pomona
                                 string.Format("Unable to locate parameter with position {0} in ctor.",
                                               constructorArgIndex.Value));
                         propDef.ConstructorArgIndex = constructorArgIndex.Value;
+                        // Constructor arguments need to have Post access rights
+                        propDef.AccessMode |= HttpAccessMode.Post;
                     }
                     else
                     {
@@ -596,13 +598,15 @@ namespace Pomona
                         if (matchingCtorArg != null)
                         {
                             propDef.ConstructorArgIndex = matchingCtorArg.Position;
+                            // Constructor arguments need to have Post access rights
+                            propDef.AccessMode |= HttpAccessMode.Post;
                         }
                     }
                 }
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal, matchingCtorArg);
-                propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
+                propDef.AccessMode |= filter.GetPropertyAccessMode(propInfoLocal);
 
                 if (propertyTypeMapped.IsCollection || propertyTypeMapped.IsDictionary)
                     propDef.ItemAccessMode = filter.GetPropertyItemAccessMode(propInfoLocal);
