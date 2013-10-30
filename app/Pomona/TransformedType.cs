@@ -69,6 +69,7 @@ namespace Pomona
             UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
+            AllowedMethods = HttpAccessMode.Get;
         }
 
         public IList<HandlerInfo> DeclaredPostHandlers
@@ -127,9 +128,11 @@ namespace Pomona
         /// </summary>
         public Action<object> OnDeserialized { get; set; }
 
-        public bool PatchAllowed { get; set; }
+        public HttpAccessMode AllowedMethods { get; set; }
 
-        public bool PostAllowed { get; set; }
+        public bool PatchAllowed { get {return AllowedMethods.HasFlag(HttpAccessMode.Patch); } }
+
+        public bool PostAllowed { get { return AllowedMethods.HasFlag(HttpAccessMode.Post); } }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.

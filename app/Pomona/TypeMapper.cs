@@ -259,8 +259,8 @@ namespace Pomona
                 classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
                 classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
 
-                classDefinition.PostAllowed = filter.PostOfTypeIsAllowed(type);
-                classDefinition.PatchAllowed = filter.PatchOfTypeIsAllowed(type);
+                classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpAccessMode.Post : 0;
+                classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpAccessMode.Patch : 0;
 
                 classDefinition.OnDeserialized = filter.GetOnDeserializedHook(type);
 

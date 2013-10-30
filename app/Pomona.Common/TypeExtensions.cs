@@ -212,6 +212,14 @@ namespace Pomona.Common
             return true;
         }
 
+
+        public static bool IsGenericTypeInstance(this Type typeInstance, Type genTypeDef)
+        {
+            Type[] tmp;
+            return TryExtractTypeArguments(typeInstance, genTypeDef, out tmp);
+        }
+
+
         /// <summary>
         /// This method attempts to extract the type parameters of a given type, when viewed as a particular generic type.
         /// </summary>

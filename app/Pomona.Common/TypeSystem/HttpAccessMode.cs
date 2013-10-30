@@ -44,8 +44,6 @@ namespace Pomona.Common.TypeSystem
         
         Patch = 1 << 3,
 
-        Delete = 1 << 4,
-
-        All = Get | Post | Patch | Delete | Put
+        Delete = 1 << 4
     }
 }

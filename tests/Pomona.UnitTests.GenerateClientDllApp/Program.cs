@@ -57,7 +57,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             // This is to check that server generates correct status code.
 
             var unpostableThing = typeMapper.TransformedTypes.First(x => x.Name == "UnpostableThingOnServer");
-            unpostableThing.PostAllowed = true;
+            unpostableThing.AllowedMethods |= HttpAccessMode.Post | HttpAccessMode.Post;
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
