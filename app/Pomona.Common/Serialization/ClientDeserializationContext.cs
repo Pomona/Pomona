@@ -82,6 +82,13 @@ namespace Pomona.Common.Serialization
         }
 
 
+        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpAccessMode accessMode)
+        {
+            if (accessMode == HttpAccessMode.Patch || accessMode == HttpAccessMode.Put || accessMode == HttpAccessMode.Delete)
+                throw new PomonaSerializationException("Patch format not accepted from server to client.");
+        }
+
+
         public IMappedType GetClassMapping(Type type)
         {
             return typeMapper.GetClassMapping(type);

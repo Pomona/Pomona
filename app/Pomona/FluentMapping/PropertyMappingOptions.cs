@@ -29,6 +29,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -48,29 +49,57 @@ namespace Pomona.FluentMapping
             Name = propertyInfo.Name;
         }
 
-        public LambdaExpression Formula { get; set; }
 
-        public bool? IsEtagProperty { get; set; }
-
-        public bool? PropertyFormulaIsDecompiled { get; set; }
-
+        public HttpAccessMode AccessMode { get; internal set; }
+        public HttpAccessMode AccessModeMask { get; internal set; }
         public bool? AlwaysExpanded { get; set; }
 
         public int? ConstructorArgIndex { get; set; }
 
-        public PropertyAccessMode? AccessMode { get; internal set; }
-
         public PropertyCreateMode? CreateMode { get; internal set; }
+        public LambdaExpression Formula { get; set; }
 
         public PropertyInclusionMode InclusionMode { get; internal set; }
         public bool? IsAttributesProperty { get; set; }
+        public bool? IsEtagProperty { get; set; }
 
         public bool? IsPrimaryKey { get; set; }
+        public HttpAccessMode ItemAccessMode { get; internal set; }
+        public HttpAccessMode ItemAccessModeMask { get; internal set; }
         public string Name { get; set; }
+        public bool? PropertyFormulaIsDecompiled { get; set; }
 
         public PropertyInfo PropertyInfo
         {
-            get { return propertyInfo; }
+            get { return this.propertyInfo; }
+        }
+
+
+        internal void ClearAccessModeFlag(HttpAccessMode accessMode)
+        {
+            AccessMode &= ~accessMode;
+            AccessModeMask |= accessMode;
+        }
+
+
+        internal void ClearItemAccessModeFlag(HttpAccessMode accessMode)
+        {
+            ItemAccessMode &= ~accessMode;
+            ItemAccessModeMask |= accessMode;
+        }
+
+
+        internal void SetAccessModeFlag(HttpAccessMode accessMode)
+        {
+            AccessMode |= accessMode;
+            AccessModeMask |= accessMode;
+        }
+
+
+        internal void SetItemAccessModeFlag(HttpAccessMode accessMode)
+        {
+            ItemAccessMode |= accessMode;
+            ItemAccessModeMask |= accessMode;
         }
     }
 }

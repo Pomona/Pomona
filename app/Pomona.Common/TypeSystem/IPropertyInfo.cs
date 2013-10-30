@@ -50,5 +50,7 @@ namespace Pomona.Common.TypeSystem
         bool IsPrimaryKey { get; }
         bool IsEtagProperty { get; }
         Expression CreateGetterExpression(Expression instance);
+        HttpAccessMode AccessMode { get; }
+        HttpAccessMode ItemAccessMode { get; }
     }
 }

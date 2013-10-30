@@ -30,6 +30,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
@@ -49,7 +50,7 @@ namespace Pomona.Common.Serialization.Json
 
         private static readonly MethodInfo serializeDictionaryGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
-                x => x.SerializeDictionaryGeneric<object, object>(null, null));
+                x => x.SerializeDictionaryGeneric<object>(null, null));
 
         public Writer CreateWriter(TextWriter textWriter)
         {
@@ -214,11 +215,29 @@ namespace Pomona.Common.Serialization.Json
             else
             {
                 jsonWriter.WriteStartArray();
-                var elementType = node.ExpectedBaseType.ElementType;
-                foreach (var item in (IEnumerable) node.Value)
+                var baseElementType = node.ExpectedBaseType.ElementType;
+
+                var delta = node.Value as ICollectionDelta;
+                if (delta != null)
                 {
-                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
-                    itemNode.Serialize(this, writer);
+                    foreach (var item in delta.AddedItems.Concat(delta.ModifiedItems))
+                    {
+                        var itemNode = new ItemValueSerializerNode(item, baseElementType, node.ExpandPath, node.Context, node);
+                        itemNode.Serialize(this, writer);
+                    }
+                    foreach (var item in delta.RemovedItems)
+                    {
+                        var itemNode = new ItemValueSerializerNode(item, baseElementType, node.ExpandPath, node.Context, node, true);
+                        itemNode.Serialize(this, writer);
+                    }
+                }
+                else
+                {
+                    foreach (var item in (IEnumerable)node.Value)
+                    {
+                        var itemNode = new ItemValueSerializerNode(item, baseElementType, node.ExpandPath, node.Context, node);
+                        itemNode.Serialize(this, writer);
+                    }
                 }
                 jsonWriter.WriteEndArray();
             }
@@ -239,37 +258,64 @@ namespace Pomona.Common.Serialization.Json
         private void SerializeDictionary(ISerializerNode node, Writer writer)
         {
             var keyMappedType = node.ExpectedBaseType.DictionaryKeyType.MappedTypeInstance;
+
+            if (keyMappedType != typeof (string))
+                throw new NotImplementedException(
+                    "Does not support serialization of dictionaries where key is not string.");
+
             var valueMappedType = node.ExpectedBaseType.DictionaryValueType.MappedTypeInstance;
             serializeDictionaryGenericMethod
-                .MakeGenericMethod(keyMappedType, valueMappedType)
+                .MakeGenericMethod(valueMappedType)
                 .Invoke(this, new object[] {node, writer});
         }
 
 
-        private object SerializeDictionaryGeneric<TKey, TValue>(
+        private void SerializeDictionaryGeneric<TValue>(
             ISerializerNode node, Writer writer)
         {
             var jsonWriter = writer.JsonWriter;
-            var dict = (IDictionary<TKey, TValue>) node.Value;
+            var dict = (IDictionary<string, TValue>) node.Value;
             var expectedValueType = node.ExpectedBaseType.DictionaryValueType;
 
             jsonWriter.WriteStartObject();
-            foreach (var kvp in dict)
+            var dictDelta = dict as IDictionaryDelta<string, TValue>;
+            var serializedKeyValuePairs = dictDelta != null ? dictDelta.ModifiedItems : dict;
+
+            if (dictDelta != null && dictDelta.RemovedKeys.Any())
+            {
+                foreach (var removed in dictDelta.RemovedKeys)
+                {
+                    jsonWriter.WritePropertyName("-" + EscapePropertyName(removed));
+                    jsonWriter.WriteStartObject();
+                    jsonWriter.WriteEndObject();
+                }
+            }
+
+            foreach (var kvp in serializedKeyValuePairs)
             {
                 // TODO: Support other key types than string
-                jsonWriter.WritePropertyName((string) ((object) kvp.Key));
+                jsonWriter.WritePropertyName(EscapePropertyName(kvp.Key));
                 var itemNode = new ItemValueSerializerNode(kvp.Value, expectedValueType, node.ExpandPath, node.Context, node);
                 itemNode.Serialize(this, writer);
             }
-            jsonWriter.WriteEndObject();
 
-            return null;
+            jsonWriter.WriteEndObject();
+        }
+
+        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
+
+        private string EscapePropertyName(string propName)
+        {
+            if (propName.Length > 0 && reservedFirstCharacters.Contains(propName[0]))
+                return "^" + propName;
+            return propName;
         }
 
 
         private void SerializeExpanded(ISerializerNode node, Writer writer)
         {
             var jsonWriter = writer.JsonWriter;
+            var serializingDelta = node.Value is IDelta;
 
             jsonWriter.WriteStartObject();
             if (node.ValueType.HasUri)
@@ -277,10 +323,22 @@ namespace Pomona.Common.Serialization.Json
                 jsonWriter.WritePropertyName("_uri");
                 jsonWriter.WriteValue(node.Uri);
             }
-            if (node.ExpectedBaseType != node.ValueType && !node.ValueType.IsAnonymous())
+            if (node.ExpectedBaseType != node.ValueType && !node.ValueType.IsAnonymous() && !serializingDelta && !node.IsRemoved)
             {
                 jsonWriter.WritePropertyName("_type");
                 jsonWriter.WriteValue(node.ValueType.Name);
+            }
+
+            if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
+            {
+                var primaryId = node.ValueType.PrimaryId;
+                jsonWriter.WritePropertyName((node.IsRemoved ? "-@" : "*@") + primaryId.JsonName);
+                jsonWriter.WriteValue(primaryId.Getter(node.Value));
+                if (node.IsRemoved)
+                {
+                    jsonWriter.WriteEndObject();
+                    return;
+                }
             }
 
             PomonaJsonSerializerTypeEntry cacheTypeEntry;
@@ -304,8 +362,16 @@ namespace Pomona.Common.Serialization.Json
 
             foreach (var prop in propertiesToSerialize)
             {
-                jsonWriter.WritePropertyName(prop.JsonName);
                 var propNode = new PropertyValueSerializerNode(node, prop);
+                if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Complex &&
+                    !(propNode.Value is IDelta))
+                {
+                    jsonWriter.WritePropertyName("!" + prop.JsonName);                    
+                }
+                else
+                {
+                    jsonWriter.WritePropertyName(prop.JsonName);
+                }
                 propNode.Serialize(this, writer);
             }
             jsonWriter.WriteEndObject();

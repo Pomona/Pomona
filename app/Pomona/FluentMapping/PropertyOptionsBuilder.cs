@@ -28,6 +28,9 @@
 
 using System;
 using System.Linq.Expressions;
+
+using Nancy.Extensions;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -47,74 +50,92 @@ namespace Pomona.FluentMapping
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
-        {
-            options.CreateMode = PropertyCreateMode.Optional;
-            options.AccessMode = PropertyAccessMode.ReadWrite;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
-        {
-            options.CreateMode = PropertyCreateMode.Excluded;
-            options.AccessMode = PropertyAccessMode.ReadOnly;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
-        {
-            options.CreateMode = createMode;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode)
-        {
-            options.AccessMode = accessMode;
-            return this;
-        }
-
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
         {
-            options.AlwaysExpanded = true;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
-        {
-            options.IsEtagProperty = true;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
-            Expression<Func<TDeclaringType, TPropertyType>> formula)
-        {
-            options.Formula = formula;
-            return this;
-        }
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
-        {
-            options.IsPrimaryKey = true;
-            return this;
-        }
-
-
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
-        {
-            options.Name = name;
+            this.options.AlwaysExpanded = true;
             return this;
         }
 
 
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
         {
-            options.IsAttributesProperty = true;
+            this.options.IsAttributesProperty = true;
             return this;
         }
 
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
+        {
+            this.options.IsEtagProperty = true;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
+        {
+            this.options.IsPrimaryKey = true;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
+        {
+            this.options.Name = name;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
+        {
+            this.options.CreateMode = PropertyCreateMode.Excluded;
+            this.options.SetAccessModeFlag(HttpAccessMode.Get);
+            this.options.ClearAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
+                                             | HttpAccessMode.Put);
+            return this;
+        }
+
+
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
         {
-            options.PropertyFormulaIsDecompiled = true;
+            this.options.PropertyFormulaIsDecompiled = true;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
+            Expression<Func<TDeclaringType, TPropertyType>> formula)
+        {
+            this.options.Formula = formula;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpAccessMode accessMode)
+        {
+            this.options.AccessModeMask = ~(default(HttpAccessMode));
+            this.options.AccessMode = accessMode;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
+        {
+            this.options.CreateMode = createMode;
+            return this;
+        }
+
+
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
+        {
+            this.options.CreateMode = PropertyCreateMode.Optional;
+            if (typeof(TPropertyType).IsCollection())
+                this.options.SetItemAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete);
+            else
+            {
+                if (this.options.PropertyInfo.CanWrite)
+                    this.options.SetAccessModeFlag(HttpAccessMode.Put);
+            }
+            this.options.SetAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post);
             return this;
         }
 

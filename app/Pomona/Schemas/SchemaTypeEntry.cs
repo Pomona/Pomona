@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,7 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
+
+using Newtonsoft.Json;
+
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
 {
@@ -33,9 +41,22 @@ namespace Pomona.Schemas
             Properties = new Dictionary<string, SchemaPropertyEntry>();
         }
 
-        public string Uri { get; set; }
-        public string Name { get; set; }
+        public bool Abstract { get; set; }
+
+        [JsonIgnore]
+        public HttpAccessMode AllowedMethods { get; set; }
+
+        [JsonProperty(PropertyName = "methods")]
+        public string[] AllowedMethodsAsArray
+        {
+            get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }
+            set { this.AllowedMethods = Schema.MethodsArrayToHttpAccessMode(value); }
+        }
+
         public string Extends { get; set; }
+        public string Name { get; set; }
+
         public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
+        public string Uri { get; set; }
     }
 }

@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,9 +32,13 @@ namespace Pomona.Common.Internals
     {
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
         {
-            return source.Concat((IEnumerable<T>)value);
+            return source.Concat((IEnumerable<T>) value);
         }
 
+        public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> source)
+        {
+            return source ?? Enumerable.Empty<T>();
+        }
 
         public static IEnumerable<T> WalkTree<T>(this T o, Func<T, T> nextNodeSelector)
             where T : class

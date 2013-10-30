@@ -53,6 +53,7 @@
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
+    <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPatchableRepository.cs" />
+    <Compile Include="IPatchOptions.cs" />
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="IPostableRepository.cs" />
     <Compile Include="IQueryableRepository.cs" />
@@ -83,9 +85,11 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="RequestOptions.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ClientSideFormProxyBase.cs" />
     <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />
+    <Compile Include="Proxies\ILazyProxy.cs" />
     <Compile Include="Proxies\PostResourceDictionary.cs" />
     <Compile Include="Proxies\PostResourceList.cs" />
     <Compile Include="Proxies\RuntimeProxyFactory.cs" />
@@ -112,6 +116,7 @@
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializerFactory.cs" />
     <Compile Include="Serialization\DeserializerNodeExtensions.cs" />
+    <Compile Include="Serialization\DeserializerNodeOperation.cs" />
     <Compile Include="Serialization\IDeserializationContext.cs" />
     <Compile Include="Serialization\IDeserializerNode.cs" />
     <Compile Include="Serialization\IPomonaSerializable.cs" />
@@ -126,6 +131,14 @@
     <Compile Include="Serialization\Json\PomonaJsonSerializer.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerFactory.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerTypeEntry.cs" />
+    <Compile Include="Serialization\Patch\CollectionDelta.cs" />
+    <Compile Include="Serialization\Patch\Delta.cs" />
+    <Compile Include="Serialization\Patch\DictionaryDelta.cs" />
+    <Compile Include="Serialization\Patch\ICollectionDelta.cs" />
+    <Compile Include="Serialization\Patch\IDelta.cs" />
+    <Compile Include="Serialization\Patch\IDictionaryDelta.cs" />
+    <Compile Include="Serialization\Patch\ObjectDelta.cs" />
+    <Compile Include="Serialization\Patch\ObjectDeltaProxyBase.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
     <Compile Include="Serialization\SerializerExtensions.cs" />
@@ -139,6 +152,7 @@
     <Compile Include="TypeSystem\IMappedType.cs" />
     <Compile Include="TypeSystem\IPropertyInfo.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
+    <Compile Include="TypeSystem\HttpAccessMode.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
     <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />

@@ -212,7 +212,6 @@ namespace Pomona.Common.TypeSystem
             get { return mappedType.Name; }
         }
 
-
         public bool MappedAsValueObject
         {
             get { return false; }
@@ -253,7 +252,11 @@ namespace Pomona.Common.TypeSystem
 
         public IPropertyInfo PrimaryId
         {
-            get { return null; }
+            get
+            {
+                return
+                    Properties.Cast<SharedPropertyInfo>().FirstOrDefault(x => x.PropertyInfo.IsDefined(typeof (ResourceIdPropertyAttribute), true));
+            }
         }
 
         public IList<IPropertyInfo> Properties

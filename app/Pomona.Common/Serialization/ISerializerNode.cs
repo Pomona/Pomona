@@ -40,5 +40,6 @@ namespace Pomona.Common.Serialization
         object Value { get; }
         IMappedType ValueType { get; }
         ISerializerNode ParentNode { get; }
+        bool IsRemoved { get; }
     }
 }

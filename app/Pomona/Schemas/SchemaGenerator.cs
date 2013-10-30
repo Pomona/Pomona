@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 using System.Linq;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -44,34 +49,49 @@ namespace Pomona.Schemas
         public Schema Generate()
         {
             var typeSchemas =
-                typeMapper.SourceTypes.Select(typeMapper.GetClassMapping).OfType<TransformedType>().Select(
+                this.typeMapper.SourceTypes.Select(this.typeMapper.GetClassMapping).OfType<TransformedType>().Select(
                     GenerateForType);
             return new Schema
-                {
-                    Types = typeSchemas.ToList(),
-                    Version = typeMapper.Filter.ApiVersion
-                };
+            {
+                Types = typeSchemas.ToList(),
+                Version = this.typeMapper.Filter.ApiVersion
+            };
         }
+
 
         private SchemaPropertyEntry GenerateForProperty(IPropertyInfo propertyInfo)
         {
             var propType = propertyInfo.PropertyType;
 
             var propEntry = new SchemaPropertyEntry
-                {
-                    Required = propertyInfo.CreateMode == PropertyCreateMode.Required,
-                    Name = propertyInfo.Name,
-                    Generated = propertyInfo.CreateMode == PropertyCreateMode.Excluded,
-                    ReadOnly = !propertyInfo.IsWriteable,
-                    Type = propType.GetSchemaTypeName()
-                };
+            {
+                Required = propertyInfo.CreateMode == PropertyCreateMode.Required,
+                Access = propertyInfo.AccessMode,
+                Name = propertyInfo.Name,
+                Type = propType.GetSchemaTypeName()
+            };
 
             if (propType.IsCollection)
             {
                 propEntry.Items = new List<SchemaArrayItem>
+                {
+                    new SchemaArrayItem
                     {
-                        new SchemaArrayItem {Type = propType.ElementType.GetSchemaTypeName()}
-                    };
+                        Type = propType.ElementType.GetSchemaTypeName(),
+                        Access = propertyInfo.ItemAccessMode
+                    }
+                };
+            }
+            if (propType.IsDictionary && propEntry.Type == "dictionary")
+            {
+                propEntry.Items = new List<SchemaArrayItem>()
+                {
+                    new SchemaArrayItem()
+                    {
+                        Type = propType.DictionaryValueType.GetSchemaTypeName(),
+                        Access = propertyInfo.ItemAccessMode
+                    }
+                };
             }
 
             return propEntry;
@@ -92,14 +112,19 @@ namespace Pomona.Schemas
             var typeName = transformedType.Name;
 
             var schemaTypeEntry = new SchemaTypeEntry
-                {
-                    Extends = extends,
-                    Name = typeName,
-                    Properties = properties.Select(GenerateForProperty).ToDictionary(x => x.Name, x => x)
-                };
+            {
+                Extends = extends,
+                Name = typeName,
+                Properties = properties.Select(GenerateForProperty).ToDictionary(x => x.Name, x => x),
+                // TODO: Expose IsAbstract on IMappedType
+                Abstract = transformedType.MappedTypeInstance != null && transformedType.MappedTypeInstance.IsAbstract
+            };
 
             if (!string.IsNullOrEmpty(transformedType.UriRelativePath))
+            {
                 schemaTypeEntry.Uri = transformedType.UriRelativePath;
+                schemaTypeEntry.AllowedMethods = transformedType.AllowedMethods;
+            }
 
             return schemaTypeEntry;
         }

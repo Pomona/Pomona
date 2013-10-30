@@ -28,6 +28,8 @@
 
 using System;
 using System.Linq.Expressions;
+
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -54,7 +56,7 @@ namespace Pomona.FluentMapping
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode);
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(PropertyAccessMode accessMode);
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpAccessMode accessMode);
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
     }

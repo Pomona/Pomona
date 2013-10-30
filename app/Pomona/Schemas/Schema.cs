@@ -28,7 +28,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
 {
@@ -37,6 +40,27 @@ namespace Pomona.Schemas
         public Schema()
         {
             Types = new List<SchemaTypeEntry>();
+        }
+
+
+        internal static HttpAccessMode MethodsArrayToHttpAccessMode(string[] methods)
+        {
+            if (methods == null)
+                return default(HttpAccessMode);
+
+            return methods.Select(x => (HttpAccessMode)Enum.Parse(typeof(HttpAccessMode), x, true))
+                .Aggregate(
+                    default(HttpAccessMode),
+                    (a, b) => a | b);
+        }
+
+
+        internal static string[] HttpAccessModeToMethodsArray(HttpAccessMode httpAccessMode)
+        {
+            if (httpAccessMode == 0)
+                return new string[] { };
+            return httpAccessMode.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(
+                        x => x.Trim().ToUpperInvariant()).ToArray();
         }
 
         public IList<SchemaTypeEntry> Types { get; set; }
@@ -143,6 +167,16 @@ namespace Pomona.Schemas
                     continue;
                 }
 
+                var lostRights = oldPropEntry.Access ^ (newPropEntry.Access & oldPropEntry.Access);
+
+                if (lostRights != 0)
+                {
+                    isBackwardsCompatible = false;
+                    errorLog.Write(
+                        "The property access rights {0} has been removed from property, which breaks backwards compatibility.",
+                        lostRights);
+                }
+
                 if (!oldPropEntry.Required && newPropEntry.Required)
                 {
                     isBackwardsCompatible = false;
@@ -190,7 +224,8 @@ namespace Pomona.Schemas
                         {
                             ContractResolver = new CamelCasePropertyNamesContractResolver(),
                             NullValueHandling = NullValueHandling.Ignore,
-                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
+                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                            Converters = { new StringEnumConverter() }
                         });
             serializer.Formatting = Formatting.Indented;
             return serializer;

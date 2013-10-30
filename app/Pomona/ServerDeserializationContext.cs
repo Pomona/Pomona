@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+
+using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
@@ -37,21 +39,26 @@ namespace Pomona
         private readonly ITypeMapper typeMapper;
         private readonly IPomonaUriResolver uriResolver;
 
+
         public ServerDeserializationContext(ITypeMapper typeMapper, IPomonaUriResolver uriResolver)
         {
             this.typeMapper = typeMapper;
             this.uriResolver = uriResolver;
         }
 
-        public IMappedType GetClassMapping(Type type)
+
+        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpAccessMode accessMode)
         {
-            return typeMapper.GetClassMapping(type);
+            if (!property.ItemAccessMode.HasFlag(accessMode))
+                throw new PomonaSerializationException("Unable to deserialize because of missing access: " + accessMode);
         }
+
 
         public object CreateReference(IMappedType type, string uri)
         {
-            return uriResolver.ResolveUri(uri);
+            return this.uriResolver.ResolveUri(uri);
         }
+
 
         public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
             where TReader : ISerializerReader
@@ -60,31 +67,46 @@ namespace Pomona
 
             var transformedType = node.ValueType as TransformedType;
             if (transformedType != null && transformedType.OnDeserialized != null && node.Value != null)
-            {
                 transformedType.OnDeserialized(node.Value);
-            }
+        }
+
+
+        public IMappedType GetClassMapping(Type type)
+        {
+            return this.typeMapper.GetClassMapping(type);
         }
 
 
         public IMappedType GetTypeByName(string typeName)
         {
-            return typeMapper.GetClassMapping(typeName);
+            return this.typeMapper.GetClassMapping(typeName);
         }
+
 
         public void SetProperty(IDeserializerNode targetNode, IPropertyInfo property, object propertyValue)
         {
-            if (!property.IsWriteable)
+            if (targetNode.Operation == DeserializerNodeOperation.Default)
+                throw new InvalidOperationException("Invalid deserializer node operation default");
+            if ((targetNode.Operation == DeserializerNodeOperation.Post
+                 && property.AccessMode.HasFlag(HttpAccessMode.Post)) ||
+                (targetNode.Operation == DeserializerNodeOperation.Patch
+                 && property.AccessMode.HasFlag(HttpAccessMode.Put)))
+            {
+                property.Setter(targetNode.Value, propertyValue);
+            }
+            else
             {
                 var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)
-                                   ? property.Name
-                                   : targetNode.ExpandPath + "." + property.Name;
+                    ? property.Name
+                    : targetNode.ExpandPath + "." + property.Name;
                 throw new ResourceValidationException(
-                    string.Format("Property {0} of resource {1} is not writable.", property.Name,
-                                  targetNode.ValueType.Name), propPath,
-                    targetNode.ValueType.Name, null);
+                    string.Format("Property {0} of resource {1} is not writable.",
+                        property.Name,
+                        targetNode.ValueType.Name),
+                    propPath,
+                    targetNode.ValueType.Name,
+                    null);
             }
-
-            property.Setter(targetNode.Value, propertyValue);
         }
     }
 }

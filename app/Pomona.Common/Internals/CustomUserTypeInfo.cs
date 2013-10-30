@@ -60,7 +60,7 @@ namespace Pomona.Common.Internals
         {
             info = null;
             var serverTypeInfo = client.GetMostInheritedResourceInterfaceInfo(clientType);
-            if (serverTypeInfo == null)
+            if (!clientType.IsInterface || serverTypeInfo == null)
                 return false;
 
             var serverType = serverTypeInfo.InterfaceType;

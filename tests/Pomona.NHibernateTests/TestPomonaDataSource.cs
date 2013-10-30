@@ -67,7 +67,7 @@ namespace PomonaNHibernateTest
 
         public PomonaModule Module { get; set; }
 
-        public T GetById<T>(object id)
+        public T GetById<T>(object id) where T : class
         {
             return
                 (T) getEntityByIdMethod.MakeGenericMethod(typeof (T)).Invoke(this, new object[] {Convert.ToInt32(id)});
@@ -82,12 +82,12 @@ namespace PomonaNHibernateTest
         }
 
 
-        public object Post<T>(T newObject)
+        public object Post<T>(T newObject) where T : class
         {
             throw new NotImplementedException();
         }
 
-        public object Patch<T>(T updatedObject)
+        public object Patch<T>(T updatedObject) where T : class
         {
             session.SaveOrUpdate(updatedObject);
             return updatedObject;

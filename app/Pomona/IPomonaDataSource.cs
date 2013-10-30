@@ -30,9 +30,9 @@ namespace Pomona
 {
     public interface IPomonaDataSource
     {
-        T GetById<T>(object id);
+        T GetById<T>(object id) where T:class;
         PomonaResponse Query(PomonaQuery query);
-        object Post<T>(T newObject);
-        object Patch<T>(T updatedObject);
+        object Post<T>(T newObject) where T : class;
+        object Patch<T>(T updatedObject) where T : class;
     }
 }

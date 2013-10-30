@@ -26,6 +26,8 @@ using System;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
+
+using Pomona.Common.TypeSystem;
 using Pomona.Schemas;
 
 namespace Pomona.UnitTests.Schemas
@@ -72,10 +74,27 @@ namespace Pomona.UnitTests.Schemas
                     Properties =
                         {
                             {
+                                "wasReadonly",
+                                new SchemaPropertyEntry()
+                                {
+                                    Name = "wasReadonly",
+                                    Access = HttpAccessMode.Get,
+                                    Type = "string"
+                                }
+                            },
+                            {
+                                "wasWritable",
+                                new SchemaPropertyEntry()
+                                {
+                                    Name = "wasWritable",
+                                    Access = HttpAccessMode.Get | HttpAccessMode.Put | HttpAccessMode.Post | HttpAccessMode.Patch,
+                                    Type = "string"
+                                }
+                            },
+                            {
                                 "fooRequired",
                                 new SchemaPropertyEntry
                                     {
-                                        Generated = false,
                                         Name = "fooRequired",
                                         Required = true,
                                         Type = "string"
@@ -85,7 +104,6 @@ namespace Pomona.UnitTests.Schemas
                                 "barOptional",
                                 new SchemaPropertyEntry
                                     {
-                                        Generated = false,
                                         Name = "barOptional",
                                         Required = false,
                                         Type = "string"
@@ -108,6 +126,23 @@ namespace Pomona.UnitTests.Schemas
                                                                       Type = "string",
                                                                       Required = false
                                                                   }));
+        }
+
+        [Test]
+        public void IsBackwardsCompatibleWith_OnSchemaHavingWritablePropertyMadeReadOnly_ReturnsFalse()
+        {
+            AssertBreaksBackwardsCompability(s =>
+            {
+                s.Types.First(x => x.Name == "Class")
+                    .Properties["wasWritable"].Access = HttpAccessMode.Get;
+            });
+        }
+
+        [Test]
+        public void IsBackwardsCompatibleWith_OnSchemaHavingReadOnlyPropertyMadeWritable_ReturnsTrue()
+        {
+            AssertIsBackwardsCompatible(s => s.Types.First(x => x.Name == "Class")
+                                              .Properties["wasReadonly"].Access |= HttpAccessMode.Post);
         }
 
         [Test]

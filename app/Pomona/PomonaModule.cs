@@ -139,14 +139,14 @@ namespace Pomona
             return dataSource.Query(query);
         }
 
-        private object InvokeDataSourcePatch<T>(T entity)
+        private object InvokeDataSourcePatch<T>(T entity) where T:class
         {
             if (!((TransformedType)typeMapper.GetClassMapping<T>()).PatchAllowed)
                 throw new PomonaException("Method PATCH not allowed", null, HttpStatusCode.MethodNotAllowed);
             return dataSource.Patch(entity);
         }
 
-        private object InvokeDataSourcePost<T>(T entity)
+        private object InvokeDataSourcePost<T>(T entity) where T : class
         {
             if (!((TransformedType)typeMapper.GetClassMapping<T>()).PostAllowed)
                 throw new PomonaException("Method POST not allowed", null, HttpStatusCode.MethodNotAllowed);
@@ -173,8 +173,9 @@ namespace Pomona
                                      .Invoke(this, new[] { postResource });
 
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
+            var expandedPaths = string.Join(",", Request.Headers["X-Pomona-Expand"]);
 
-            return new PomonaResponse(postResponse, UriResolver, successStatusCode);
+            return new PomonaResponse(postResponse, UriResolver, successStatusCode, expandedPaths);
         }
 
 

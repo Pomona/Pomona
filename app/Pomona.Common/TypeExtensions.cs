@@ -212,6 +212,14 @@ namespace Pomona.Common
             return true;
         }
 
+
+        public static bool IsGenericTypeInstance(this Type typeInstance, Type genTypeDef)
+        {
+            Type[] tmp;
+            return TryExtractTypeArguments(typeInstance, genTypeDef, out tmp);
+        }
+
+
         /// <summary>
         /// This method attempts to extract the type parameters of a given type, when viewed as a particular generic type.
         /// </summary>
@@ -320,6 +328,15 @@ namespace Pomona.Common
             if (fieldInfo != null)
                 return fieldInfo.GetValue(obj);
             throw new NotSupportedException("Can only get value from property or field.");
+        }
+
+        public static bool TryGetPropertyByName(this IMappedType type, string name, out IPropertyInfo property)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+            if (name == null) throw new ArgumentNullException("name");
+
+            property = type.Properties.FirstOrDefault(x => x.Name == name);
+            return property != null;
         }
 
         public static bool IsAnonymous(this IMappedType type)

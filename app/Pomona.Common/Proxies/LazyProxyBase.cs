@@ -26,7 +26,7 @@ using System;
 
 namespace Pomona.Common.Proxies
 {
-    public class LazyProxyBase : IHasResourceUri
+    public class LazyProxyBase : IHasResourceUri, ILazyProxy
     {
         private IPomonaClient client;
 
@@ -103,5 +103,7 @@ namespace Pomona.Common.Proxies
         {
             throw new InvalidOperationException("This is just a proxy, use Patch to modify a resource.");
         }
+
+        public bool IsLoaded { get { return proxyTarget != null; } }
     }
 }

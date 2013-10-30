@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Newtonsoft.Json;
+
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
@@ -94,12 +96,13 @@ namespace Pomona
         bool PropertyIsEtag(PropertyInfo propertyInfo);
         string GetPluralNameForType(Type type);
         PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
-        PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
+        HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
         int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo);
 
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
 
         Action<object> GetOnDeserializedHook(Type type);
+        HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo);
     }
 }

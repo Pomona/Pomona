@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,8 +21,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
-#endregion
 
 using System;
 using System.Collections.Generic;
@@ -73,6 +69,7 @@ namespace Pomona
             UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
+            AllowedMethods = HttpAccessMode.Get;
         }
 
         public IList<HandlerInfo> DeclaredPostHandlers
@@ -131,9 +128,11 @@ namespace Pomona
         /// </summary>
         public Action<object> OnDeserialized { get; set; }
 
-        public bool PatchAllowed { get; set; }
+        public HttpAccessMode AllowedMethods { get; set; }
 
-        public bool PostAllowed { get; set; }
+        public bool PatchAllowed { get {return AllowedMethods.HasFlag(HttpAccessMode.Patch); } }
+
+        public bool PostAllowed { get { return AllowedMethods.HasFlag(HttpAccessMode.Post); } }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.
@@ -187,7 +186,7 @@ namespace Pomona
 
         public IList<IMappedType> GenericArguments
         {
-            get { return new IMappedType[] { }; }
+            get { return new IMappedType[] {}; }
         }
 
         public bool IsAlwaysExpanded
@@ -248,6 +247,29 @@ namespace Pomona
 
         public object Create(IDictionary<IPropertyInfo, object> args)
         {
+            try
+            {
+                return CreateUnprotected(args);
+            }
+            catch (PomonaException)
+            {
+                throw;
+            }
+            catch (TargetInvocationException tie)
+            {
+                // Let exception from constructors trickle down
+                if (tie.InnerException != null)
+                    throw tie.InnerException;
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new PomonaException("An unknown error occured while trying to instantiate resource.", ex);
+            }
+        }
+
+        private object CreateUnprotected(IDictionary<IPropertyInfo, object> args)
+        {
             var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
             //var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
             var ctorParamCount = ConstructorInfo.GetParameters().Length;
@@ -257,7 +279,7 @@ namespace Pomona
 
             foreach (var kvp in args)
             {
-                var propMapping = (PropertyMapping)kvp.Key;
+                var propMapping = (PropertyMapping) kvp.Key;
                 var ctorArgIndex = propMapping.ConstructorArgIndex;
 
                 if (ctorArgIndex == -1)
@@ -307,7 +329,7 @@ namespace Pomona
                     {
                         addItemsToDictionaryMethod.MakeGenericMethod(
                             prop.PropertyType.MappedTypeInstance.GetGenericArguments())
-                                                  .Invoke(this, new[] { kvp.Value, dict });
+                                                  .Invoke(this, new[] {kvp.Value, dict});
                         setPropertyToValue = false;
                     }
                 }
@@ -318,7 +340,7 @@ namespace Pomona
                     {
                         addValuesToCollectionMethod
                             .MakeGenericMethod(prop.PropertyType.ElementType.MappedTypeInstance)
-                            .Invoke(this, new[] { kvp.Value, collection });
+                            .Invoke(this, new[] {kvp.Value, collection});
                         setPropertyToValue = false;
                     }
                 }
@@ -327,7 +349,6 @@ namespace Pomona
                 if (setPropertyToValue)
                     prop.Setter(instance, kvp.Value);
             }
-
             return instance;
         }
 
@@ -407,7 +428,7 @@ namespace Pomona
                 if (pathType.IsCollection)
                     pathType = pathType.ElementType;
 
-                var nextType = (TransformedType)pathType;
+                var nextType = (TransformedType) pathType;
                 return internalPropertyName + "." + nextType.ConvertToInternalPropertyPath(remainingExternalPath);
             }
             return internalPropertyName;
@@ -545,7 +566,7 @@ namespace Pomona
                 var propDef = new PropertyMapping(
                     typeMapper.Filter.GetPropertyMappedName(propInfo),
                     this,
-                    (TransformedType)declaringType,
+                    (TransformedType) declaringType,
                     propertyTypeMapped,
                     propInfo);
 
@@ -568,6 +589,8 @@ namespace Pomona
                                 string.Format("Unable to locate parameter with position {0} in ctor.",
                                               constructorArgIndex.Value));
                         propDef.ConstructorArgIndex = constructorArgIndex.Value;
+                        // Constructor arguments need to have Post access rights
+                        propDef.AccessMode |= HttpAccessMode.Post;
                     }
                     else
                     {
@@ -575,13 +598,19 @@ namespace Pomona
                         if (matchingCtorArg != null)
                         {
                             propDef.ConstructorArgIndex = matchingCtorArg.Position;
+                            // Constructor arguments need to have Post access rights
+                            propDef.AccessMode |= HttpAccessMode.Post;
                         }
                     }
                 }
 
                 // TODO: Fix this for transformed properties with custom get/set methods.
                 propDef.CreateMode = filter.GetPropertyCreateMode(propInfoLocal, matchingCtorArg);
-                propDef.AccessMode = filter.GetPropertyAccessMode(propInfoLocal);
+                propDef.AccessMode |= filter.GetPropertyAccessMode(propInfoLocal);
+
+                if (propertyTypeMapped.IsCollection || propertyTypeMapped.IsDictionary)
+                    propDef.ItemAccessMode = filter.GetPropertyItemAccessMode(propInfoLocal);
+                
                 propDef.ExposedAsRepository = filter.ClientPropertyIsExposedAsRepository(propInfoLocal);
                 propDef.IsEtagProperty = filter.PropertyIsEtag(propInfo);
 

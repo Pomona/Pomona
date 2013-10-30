@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -29,22 +33,26 @@ namespace Pomona.Common.Serialization
     public class ItemValueSerializerNode : ISerializerNode
     {
         private readonly ISerializationContext context;
-        private readonly ISerializerNode parentNode;
+
         private readonly string expandPath;
         private readonly IMappedType expectedBaseType;
+        private readonly bool isRemoved;
+        private readonly ISerializerNode parentNode;
         private readonly object value;
         private IMappedType valueType;
 
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext context, ISerializerNode parentNode)
+            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext context,
+            ISerializerNode parentNode, bool isRemoved = false)
         {
             this.value = value;
             this.expectedBaseType = expectedBaseType;
             this.expandPath = expandPath;
             this.context = context;
             this.parentNode = parentNode;
+            this.isRemoved = isRemoved;
         }
 
 
@@ -63,8 +71,7 @@ namespace Pomona.Common.Serialization
             get { return expectedBaseType; }
         }
 
-        public bool SerializeAsReference { get; set; //get { return !(this.expectedBaseType.IsAlwaysExpanded || this.context.PathToBeExpanded(this.expandPath)); }
-        }
+        public bool SerializeAsReference { get; set; }
 
         public string Uri
         {
@@ -92,5 +99,10 @@ namespace Pomona.Common.Serialization
         }
 
         #endregion
+
+        public bool IsRemoved
+        {
+            get { return isRemoved; }
+        }
     }
 }

@@ -29,7 +29,10 @@
 using System;
 using System.IO;
 using System.Linq;
+
 using Pomona.CodeGen;
+using Pomona.Common;
+using Pomona.Common.TypeSystem;
 using Pomona.Example;
 
 namespace Pomona.UnitTests.GenerateClientDllApp
@@ -45,28 +48,28 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             var protectedPropertyOfCritter =
                 typeMapper.TransformedTypes.First(x => x.Name == "Critter")
-                          .Properties.OfType<PropertyMapping>()
-                          .First(x => x.Name == "Protected");
+                    .Properties.OfType<PropertyMapping>()
+                    .First(x => x.Name == "Protected");
 
-            protectedPropertyOfCritter.AccessMode = PropertyAccessMode.ReadWrite;
-
+            protectedPropertyOfCritter.AccessMode = HttpAccessMode.Get | HttpAccessMode.Put;
 
             // Modify UnpostableThingOnServer to generate form type for post.
             // This is to check that server generates correct status code.
 
             var unpostableThing = typeMapper.TransformedTypes.First(x => x.Name == "UnpostableThingOnServer");
-            unpostableThing.PostAllowed = true;
+            unpostableThing.AllowedMethods |= HttpAccessMode.Post | HttpAccessMode.Post;
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
             }
 
             using (
                 var file = new FileStream(
-                    @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll", FileMode.OpenOrCreate))
+                    @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll",
+                    FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: true);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : true);
             }
 
             Console.WriteLine("Wrote client dll.");

@@ -28,7 +28,7 @@ using System.Collections.Generic;
 
 namespace Pomona.Common.Proxies
 {
-    public abstract class LazyListProxy
+    public abstract class LazyListProxy : ILazyProxy
     {
         protected readonly IPomonaClient clientBase;
         protected readonly string uri;
@@ -47,6 +47,8 @@ namespace Pomona.Common.Proxies
         {
             return Activator.CreateInstance(typeof (LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
         }
+
+        public abstract bool IsLoaded { get; }
     }
 
     public class LazyListProxy<T> : LazyListProxy, IList<T>
@@ -149,5 +151,10 @@ namespace Pomona.Common.Proxies
         }
 
         #endregion
+
+        public override bool IsLoaded
+        {
+            get { return dontTouchwrappedList != null; }
+        }
     }
 }

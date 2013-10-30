@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,16 +24,25 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Reflection;
+
 using Common.Logging;
+
 using DelegateDecompiler;
+
 using Nancy.Extensions;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -42,7 +53,7 @@ namespace Pomona
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
-        private readonly ILog log = LogManager.GetLogger(typeof (TypeMappingFilterBase));
+        private readonly ILog log = LogManager.GetLogger(typeof(TypeMappingFilterBase));
         private HashSet<Type> sourceTypesCached;
 
 
@@ -51,22 +62,23 @@ namespace Pomona
             jsonSupportedNativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
         }
 
+
+        public virtual string ApiVersion
+        {
+            get { return "0.1.0"; }
+        }
+
         private HashSet<Type> SourceTypes
         {
             get
             {
-                if (sourceTypesCached == null)
-                    sourceTypesCached = new HashSet<Type>(GetSourceTypes());
-                return sourceTypesCached;
+                if (this.sourceTypesCached == null)
+                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
+                return this.sourceTypesCached;
             }
         }
 
         #region ITypeMappingFilter Members
-
-        public virtual bool IsIndependentTypeRoot(Type type)
-        {
-            return false;
-        }
 
         public abstract object GetIdFor(object entity);
 
@@ -75,7 +87,8 @@ namespace Pomona
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return false;
         }
 
@@ -88,38 +101,100 @@ namespace Pomona
 
         public virtual Type GetClientLibraryType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return null;
+        }
+
+
+        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            var getMethod = propertyInfo.GetGetMethod(true);
+            var decompiled = getMethod.Decompile();
+            return decompiled;
         }
 
 
         public virtual JsonConverter GetJsonConverterForType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             if (IsNullableType(type) && type.GetGenericArguments()[0].IsEnum)
                 return new StringEnumConverter();
             return null;
         }
 
 
+        public virtual Action<object> GetOnDeserializedHook(Type type)
+        {
+            return null;
+        }
+
+
+        public virtual string GetPluralNameForType(Type type)
+        {
+            return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
+        }
+
+
         public virtual Type GetPostReturnType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return type;
+        }
+
+
+        public virtual HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        {
+            var mode = (propertyInfo.CanRead ? HttpAccessMode.Get : 0);
+            if ((propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+                mode |= HttpAccessMode.Put | HttpAccessMode.Post;
+            return mode;
+        }
+
+
+        public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
+        {
+            return null;
+        }
+
+
+        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
+            ParameterInfo ctorParameterInfo)
+        {
+            if (ctorParameterInfo != null)
+                return PropertyCreateMode.Required;
+
+            if (propertyInfo.PropertyType.IsCollection() ||
+                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
+                return PropertyCreateMode.Optional;
+            return PropertyCreateMode.Excluded;
+        }
+
+
+        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            return null;
         }
 
 
         public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            var selfParam = Expression.Parameter(typeof (object), "x");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            var selfParam = Expression.Parameter(typeof(object), "x");
             var expr = Expression.Lambda<Func<object, object>>(
                 Expression.Convert(
                     Expression.MakeMemberAccess(
                         Expression.Convert(selfParam, propertyInfo.DeclaringType),
                         propertyInfo
                         ),
-                    typeof (object)
+                    typeof(object)
                     ),
                 selfParam
                 );
@@ -128,27 +203,39 @@ namespace Pomona
         }
 
 
+        public virtual HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.PropertyType.IsGenericInstanceOf(typeof(IDictionary<,>)))
+                return HttpAccessMode.Delete | HttpAccessMode.Put | HttpAccessMode.Get | HttpAccessMode.Post | HttpAccessMode.Patch;
+            if (propertyInfo.PropertyType.IsCollection())
+                return HttpAccessMode.Delete | HttpAccessMode.Get | HttpAccessMode.Patch | HttpAccessMode.Post;
+            return HttpAccessMode.Get;
+        }
+
+
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return propertyInfo.Name;
         }
 
 
         public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             if (!propertyInfo.CanWrite)
             {
                 return (obj, value) =>
-                    {
-                        throw new InvalidOperationException(
-                            "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
-                    };
+                {
+                    throw new InvalidOperationException(
+                        "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
+                };
             }
 
-            var selfParam = Expression.Parameter(typeof (object), "x");
-            var valueParam = Expression.Parameter(typeof (object), "value");
+            var selfParam = Expression.Parameter(typeof(object), "x");
+            var valueParam = Expression.Parameter(typeof(object), "value");
             var expr = Expression.Lambda<Action<object, object>>(
                 Expression.Assign(
                     Expression.Property(
@@ -166,14 +253,16 @@ namespace Pomona
 
         public virtual Type GetPropertyType(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return propertyInfo.PropertyType;
         }
 
 
         public virtual ConstructorInfo GetTypeConstructor(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             // Find longest (most specific) public constructor
             return type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
         }
@@ -181,7 +270,8 @@ namespace Pomona
 
         public virtual Type GetUriBaseType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             if (TypeIsMappedAsValueObject(type))
                 return null;
 
@@ -189,23 +279,68 @@ namespace Pomona
         }
 
 
+        public virtual bool IsIndependentTypeRoot(Type type)
+        {
+            return false;
+        }
+
+
+        public virtual bool PatchOfTypeIsAllowed(Type type)
+        {
+            return true;
+        }
+
+
+        public virtual bool PostOfTypeIsAllowed(Type type)
+        {
+            return true;
+        }
+
+
+        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            return false;
+        }
+
+
         public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return propertyInfo.DeclaringType.IsAnonymous();
+        }
+
+
+        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            return false;
+        }
+
+
+        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            return false;
         }
 
 
         public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return propertyInfo.GetGetMethod(true).IsPublic;
         }
 
 
         public virtual Type ResolveRealTypeForProxy(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             // TODO: Implement some crude heuristics to check whether a type is a proxy type,
             //       that should be treated as its base type.
             //
@@ -226,9 +361,18 @@ namespace Pomona
         }
 
 
+        public virtual bool TypeIsExposedAsRepository(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return GetUriBaseType(type) != null;
+        }
+
+
         public virtual bool TypeIsMapped(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
                    IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type)
@@ -237,135 +381,58 @@ namespace Pomona
         }
 
 
+        public virtual bool TypeIsMapped()
+        {
+            return TypeIsMapped(null);
+        }
+
+
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
 
             Type _;
-            return type != typeof (string) &&
-                   type.UniqueToken() != typeof (IGrouping<,>).UniqueToken() &&
+            return type != typeof(string) &&
+                   type.UniqueToken() != typeof(IGrouping<,>).UniqueToken() &&
                    type.TryGetEnumerableElementType(out _);
         }
 
 
         public virtual bool TypeIsMappedAsSharedType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return type.IsEnum || IsNativelySupportedType(type) || TypeIsMappedAsCollection(type);
         }
 
 
         public virtual bool TypeIsMappedAsTransformedType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return SourceTypes.Contains(type) || type.IsAnonymous() || TypeIsIGrouping(type);
         }
 
 
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return type.IsAnonymous();
-        }
-
-        public virtual bool TypeIsExposedAsRepository(Type type)
-        {
-            if (type == null) throw new ArgumentNullException("type");
-            return GetUriBaseType(type) != null;
-        }
-
-
-        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            return false;
-        }
-
-        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            return false;
-        }
-
-        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            var getMethod = propertyInfo.GetGetMethod(true);
-            var decompiled = getMethod.Decompile();
-            return decompiled;
-        }
-
-        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            return false;
-        }
-
-        public virtual string GetPluralNameForType(Type type)
-        {
-            return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
-        }
-
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
-                                                                ParameterInfo ctorParameterInfo)
-        {
-            if (ctorParameterInfo != null)
-            {
-                return PropertyCreateMode.Required;
-            }
-
-            if (propertyInfo.PropertyType.IsCollection() ||
-                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
-            {
-                return PropertyCreateMode.Optional;
-            }
-            return PropertyCreateMode.Excluded;
-        }
-
-        public virtual PropertyAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo.PropertyType.IsCollection() ||
-                (propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
-            {
-                return PropertyAccessMode.ReadWrite;
-            }
-            return PropertyAccessMode.ReadOnly;
-        }
-
-        public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
-        {
-            return null;
-        }
-
-        public virtual bool PostOfTypeIsAllowed(Type type)
-        {
-            return true;
-        }
-
-        public virtual bool PatchOfTypeIsAllowed(Type type)
-        {
-            return true;
-        }
-
-        public virtual Action<object> GetOnDeserializedHook(Type type)
-        {
-            return null;
-        }
-
-        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            return null;
         }
 
 
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
-            if (collectionProperty == null) throw new ArgumentNullException("collectionProperty");
+            if (collectionProperty == null)
+                throw new ArgumentNullException("collectionProperty");
             Type[] genericArguments;
             if (
                 !TypeUtils.TryGetTypeArguments(
-                    collectionProperty.PropertyType, typeof (IEnumerable<>), out genericArguments))
+                    collectionProperty.PropertyType,
+                    typeof(IEnumerable<>),
+                    out genericArguments))
                 return null;
 
             var elementType = genericArguments[0];
@@ -374,7 +441,7 @@ namespace Pomona
                 elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
             if (foreignPropCandicates.Count > 1)
             {
-                log.Warn(
+                this.log.Warn(
                     "Not mapping foreign key relation of one-to-many collection property " + collectionProperty.Name
                     + " of type "
                     + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
@@ -387,20 +454,17 @@ namespace Pomona
 
         public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return propertyInfo.Name.ToLower() == "id";
-        }
-
-        public virtual bool TypeIsMapped()
-        {
-            return TypeIsMapped(null);
         }
 
 
         private bool TypeIsIGrouping(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
-            return type.UniqueToken() == typeof (IGrouping<,>).UniqueToken();
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return type.UniqueToken() == typeof(IGrouping<,>).UniqueToken();
         }
 
         #endregion
@@ -411,29 +475,27 @@ namespace Pomona
         }
 
 
-        public virtual string ApiVersion
-        {
-            get { return "0.1.0"; }
-        }
-
         private static bool IsNullableType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof (Nullable<>));
+                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
         }
 
 
         private bool IsNativelySupportedType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
         }
 
 
         private bool IsNullableAllowedNativeType(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null)
+                throw new ArgumentNullException("type");
             return IsNullableType(type) &&
                    TypeIsMapped(type.GetGenericArguments()[0]);
         }

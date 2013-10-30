@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -40,6 +36,7 @@ using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 using Pomona.Internals;
@@ -72,7 +69,7 @@ namespace Pomona.Common
             where T : class, IClientResource;
 
 
-        public abstract T Patch<T>(T target, Action<T> updateAction)
+        public abstract T Patch<T>(T target, Action<T> updateAction, Action<IPatchOptions<T>> options = null)
             where T : class, IClientResource;
 
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
@@ -90,7 +87,7 @@ namespace Pomona.Common
         internal abstract object Post<T>(string uri, Action<T> postAction)
             where T : class, IClientResource;
 
-        internal abstract object Post<T>(string uri, T postForm)
+        internal abstract object Post<T>(string uri, T form)
             where T : class, IClientResource;
 
         public abstract T GetLazy<T>(string uri)
@@ -111,9 +108,11 @@ namespace Pomona.Common
 
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
 
-        private static readonly MethodInfo postOrPatchMethod =
-            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(
-                x => x.PostOrPatch("", "", null, "POST", null, null));
+        private static readonly MethodInfo postServerTypeMethod =
+            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PostServerType<object>(null, null));
+
+        private static readonly MethodInfo patchServerTypeMethod =
+            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PatchServerType<object>(null, null));
 
         private readonly string baseUri;
         private readonly ISerializer serializer;
@@ -193,17 +192,17 @@ namespace Pomona.Common
 
         public override T Get<T>(string uri)
         {
-            return (T)Deserialize(DownloadFromUri(uri), typeof (T));
+            return (T) Deserialize(DownloadFromUri(uri), typeof (T));
         }
 
         public override T GetLazy<T>(string uri)
         {
             var typeInfo = this.GetResourceInfoForType(typeof (T));
-            var proxy = (LazyProxyBase)Activator.CreateInstance(typeInfo.LazyProxyType);
+            var proxy = (LazyProxyBase) Activator.CreateInstance(typeInfo.LazyProxyType);
             proxy.Uri = uri;
             proxy.Client = this;
             proxy.ProxyTargetType = typeInfo.PocoType;
-            return (T)((object)proxy);
+            return (T) ((object) proxy);
         }
 
 
@@ -250,22 +249,16 @@ namespace Pomona.Common
         }
 
 
-        public override T Patch<T>(T target, Action<T> updateAction)
+        public override T Patch<T>(T target, Action<T> updateAction, Action<IPatchOptions<T>> options = null)
         {
-            Action<WebClientRequestMessage> modifyResponse = null;
-            ResourceInfoAttribute resourceInfo;
+            var patchForm = (T) CreatePatchForm(typeof (T), target);
+            updateAction(patchForm);
 
-            // Set etag to target resources' etag (optimistic concurrency)
-            if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
-            {
-                var etagValue = (string)resourceInfo.EtagProperty.GetValue(target, null);
-                modifyResponse = request => { request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)); };
-            }
+            var requestOptions = new RequestOptions<T>();
+            if (options != null)
+                options(requestOptions);
 
-            return
-                (T)
-                PostOrPatch(((IHasResourceUri)target).Uri, null, updateAction, "PATCH", x => x.PatchFormType,
-                            modifyResponse);
+            return Patch(patchForm, requestOptions);
         }
 
 
@@ -286,12 +279,71 @@ namespace Pomona.Common
             return new RestQuery<T>(new RestQueryProvider(this, typeof (T)));
         }
 
-        internal override object Post<T>(string uri, Action<T> postAction)
+        private object CreatePostForm(Type resourceType)
         {
-            return PostOrPatch(uri, null, postAction, "POST", x => x.PostFormType, null);
+            CustomUserTypeInfo userTypeInfo;
+            var isClientResource = TryGetUserTypeInfo(resourceType, out userTypeInfo);
+            var resourceInfo = this.GetResourceInfoForType(isClientResource ? userTypeInfo.ServerType : resourceType);
+            if (resourceInfo.PostFormType == null)
+            {
+                throw new InvalidOperationException("Method POST is not allowed for uri.");
+            }
+            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
+
+            if (isClientResource)
+            {
+                var userPostForm =
+                    (ClientSideFormProxyBase) RuntimeProxyFactory.Create(typeof (ClientSideFormProxyBase), resourceType);
+                userPostForm.Initialize(this, userTypeInfo, serverPostForm);
+                return userPostForm;
+            }
+            return serverPostForm;
         }
 
-        private object PostOrPatch<T>(string uri, T form, Action<T> postAction, string httpMethod,
+        private object CreatePatchForm(Type resourceType, object original)
+        {
+            var originalClientSideProxy = original as ClientSideResourceProxyBase;
+            var isClientResource = originalClientSideProxy != null;
+            var userTypeInfo = isClientResource ? originalClientSideProxy.UserTypeInfo : null;
+            var resourceInfo = this.GetResourceInfoForType(isClientResource ? userTypeInfo.ServerType : resourceType);
+            if (resourceInfo.PatchFormType == null)
+            {
+                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
+            }
+
+            if (isClientResource)
+            {
+                // We want to patch the wrapped proxy!
+                original = originalClientSideProxy.ProxyTarget;
+            }
+
+            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
+                                                                        typeMapper.GetClassMapping(
+                                                                            resourceInfo.InterfaceType),
+                                                                        typeMapper, null);
+
+            if (isClientResource)
+            {
+                var userPostForm =
+                    (ClientSideFormProxyBase) RuntimeProxyFactory.Create(typeof (ClientSideFormProxyBase), resourceType);
+                userPostForm.Initialize(this, userTypeInfo, serverPatchForm);
+                return userPostForm;
+            }
+            return serverPatchForm;
+        }
+
+        internal override object Post<T>(string uri, Action<T> postAction)
+        {
+            var postForm = (T) CreatePostForm(typeof (T));
+            postAction(postForm);
+            return Post(uri, postForm);
+        }
+
+
+#if false
+
+    // TODO JUST REMOVE THIS METHOD!!! JUST KEEPING IT TEMPORARILY FOR COPYING FROM ;)
+        private object PostOrPatchOldRemoveMe<T>(string uri, T form, Action<T> postAction, string httpMethod,
                                       Func<ResourceInfoAttribute, Type> formTypeGetter,
                                       Action<WebClientRequestMessage> modifyRequestHandler)
             where T : class
@@ -313,8 +365,8 @@ namespace Pomona.Common
 
                 var resourceInfo = this.GetResourceInfoForType(customUserTypeInfo.ServerType);
 
-                var typeGetter = formTypeGetter(resourceInfo);
-                var wrappedForm = Activator.CreateInstance(typeGetter);
+                var formType = formTypeGetter(resourceInfo);
+                var wrappedForm = Activator.CreateInstance(formType);
                 var proxy =
                     (ClientSideFormProxyBase)((object)RuntimeProxyFactory<ClientSideFormProxyBase, T>.Create());
                 proxy.Initialize(this, customUserTypeInfo, wrappedForm);
@@ -348,7 +400,6 @@ namespace Pomona.Common
                 if (formType == null)
                     throw new InvalidOperationException("Method " + httpMethod + " is not allowed for uri.");
 
-                expectedBaseType = resourceInfo.UriBaseType;
                 if (form == null)
                 {
                     form = (T)Activator.CreateInstance(formType);
@@ -367,20 +418,102 @@ namespace Pomona.Common
             return Deserialize(response, null);
         }
 
-        internal override object Post<T>(string uri, T postForm)
+#endif
+
+        private object PostOrPatch<T>(string uri, T form, string httpMethod, RequestOptions options)
+            where T : class
+        {
+            if (form == null) throw new ArgumentNullException("form");
+
+
+            var response = SendHttpRequest(uri, httpMethod, form, null, options);
+
+            return Deserialize(response, null);
+        }
+
+        internal override object Post<T>(string uri, T form)
         {
             if (uri == null) throw new ArgumentNullException("uri");
-            if (postForm == null) throw new ArgumentNullException("postForm");
+            if (form == null) throw new ArgumentNullException("form");
+
             var type = typeof (T);
-            Func<ResourceInfoAttribute, Type> formTypeGetter = x => x.PostFormType;
-            if (!type.IsInterface)
+            CustomUserTypeInfo userTypeInfo;
+            if (TryGetUserTypeInfo(type, out userTypeInfo))
             {
-                var interfaceType = this.GetMostInheritedResourceInterface(type);
-                return postOrPatchMethod
-                    .MakeGenericMethod(interfaceType)
-                    .Invoke(this, new object[] { uri, postForm, null, "POST", formTypeGetter, null });
+                return PostUserType(uri, (ClientSideFormProxyBase) ((object) form));
             }
-            return PostOrPatch(uri, postForm, null, "POST", formTypeGetter, null);
+
+            return PostServerType(uri, form);
+        }
+
+        private T Patch<T>(T form, RequestOptions requestOptions)
+            where T : class
+        {
+            if (form == null) throw new ArgumentNullException("form");
+            if (form is ClientSideFormProxyBase)
+            {
+                return (T) PatchUserType((ClientSideFormProxyBase) ((object) form), requestOptions);
+            }
+
+            return PatchServerType(form, requestOptions);
+        }
+
+        private object PostUserType(string uri, ClientSideFormProxyBase postForm)
+        {
+            var userTypeInfo = postForm.UserTypeInfo;
+            var serverTypeResult = postServerTypeMethod.MakeGenericMethod(userTypeInfo.ServerType)
+                                                       .Invoke(this, new[] {uri, postForm.ProxyTarget});
+            var resultProxy =
+                (ClientSideResourceProxyBase)
+                RuntimeProxyFactory.Create(typeof (ClientSideResourceProxyBase), userTypeInfo.ClientType);
+            resultProxy.Initialize(this, userTypeInfo, serverTypeResult);
+            return resultProxy;
+        }
+
+        private object PostServerType<T>(string uri, T postForm)
+            where T : class
+        {
+            return PostOrPatch(uri, postForm, "POST", null);
+        }
+
+        private object PatchUserType(ClientSideFormProxyBase patchForm, RequestOptions requestOptions)
+        {
+            var userTypeInfo = patchForm.UserTypeInfo;
+            var serverTypeResult = patchServerTypeMethod.MakeGenericMethod(userTypeInfo.ServerType)
+                                                        .Invoke(this, new[] {patchForm.ProxyTarget, requestOptions});
+            var resultProxy =
+                (ClientSideResourceProxyBase)
+                RuntimeProxyFactory.Create(typeof (ClientSideResourceProxyBase), userTypeInfo.ClientType);
+            resultProxy.Initialize(this, userTypeInfo, serverTypeResult);
+            return resultProxy;
+        }
+
+        private T PatchServerType<T>(T postForm, RequestOptions requestOptions)
+            where T : class
+        {
+            var uri = ((IHasResourceUri) ((IDelta) postForm).Original).Uri;
+            AddIfMatchToPatch(postForm, requestOptions);
+
+            return (T) PostOrPatch(uri, postForm, "PATCH", requestOptions);
+        }
+
+        private void AddIfMatchToPatch<T>(T postForm, RequestOptions requestOptions) where T : class
+        {
+            string etagValue = null;
+            ResourceInfoAttribute resourceInfo;
+            if (TryGetResourceInfoForType(typeof (T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            {
+                etagValue = (string) resourceInfo.EtagProperty.GetValue(postForm, null);
+            }
+
+            if (etagValue != null)
+                requestOptions.ModifyRequest(
+                    request => request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)));
+        }
+
+        private bool TryGetUserTypeInfo(Type type, out CustomUserTypeInfo userTypeInfo)
+        {
+            return CustomUserTypeInfo.TryGetCustomUserTypeInfo(type, this, out userTypeInfo);
         }
 
 
@@ -404,16 +537,16 @@ namespace Pomona.Common
                 JToken typeValue;
                 if (jObject.TryGetValue("_type", out typeValue))
                 {
-                    if (typeValue.Type == JTokenType.String && (string)((JValue)typeValue).Value == "__result__")
+                    if (typeValue.Type == JTokenType.String && (string) ((JValue) typeValue).Value == "__result__")
                     {
                         JToken itemsToken;
                         if (!jObject.TryGetValue("items", out itemsToken))
                             throw new InvalidOperationException("Got result object, but lacking items");
 
-                        var totalCount = (int)jObject.GetValue("totalCount");
+                        var totalCount = (int) jObject.GetValue("totalCount");
 
                         var deserializedItems = Deserialize(itemsToken.ToString(), expectedType);
-                        return QueryResult.Create((IEnumerable)deserializedItems, /* TODO */ 0, totalCount,
+                        return QueryResult.Create((IEnumerable) deserializedItems, /* TODO */ 0, totalCount,
                                                   "http://todo");
                     }
                 }
@@ -565,7 +698,7 @@ namespace Pomona.Common
 
         private string SendHttpRequest(string uri, string httpMethod, object requestBodyEntity = null,
                                        IMappedType requestBodyBaseType = null,
-                                       Action<WebClientRequestMessage> modifyRequestHandler = null)
+                                       RequestOptions options = null)
         {
             byte[] requestBytes = null;
             WebClientResponseMessage response = null;
@@ -582,15 +715,15 @@ namespace Pomona.Common
             Exception thrownException = null;
             try
             {
-                if (modifyRequestHandler != null)
-                    modifyRequestHandler(request);
+                if (options != null)
+                    options.ApplyRequestModifications(request);
 
                 response = webClient.Send(request);
                 responseString = (response.Data != null && response.Data.Length > 0)
                                      ? Encoding.UTF8.GetString(response.Data)
                                      : null;
 
-                if ((int)response.StatusCode >= 400)
+                if ((int) response.StatusCode >= 400)
                 {
                     var gotJsonResponseBody = responseString != null &&
                                               response.Headers.GetValues("Content-Type")

@@ -42,7 +42,7 @@ namespace Pomona.Example
 
         public PomonaModule Module { get; set; }
 
-        public T GetById<T>(object id)
+        public T GetById<T>(object id) where T : class
         {
             return store.GetById<T>(id);
         }
@@ -52,7 +52,7 @@ namespace Pomona.Example
             return store.Query(query);
         }
 
-        public object Post<T>(T newObject)
+        public object Post<T>(T newObject) where T : class
         {
             var newCritter = newObject as Critter;
             if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
@@ -63,7 +63,7 @@ namespace Pomona.Example
             return store.Post(newObject);
         }
 
-        public object Patch<T>(T updatedObject)
+        public object Patch<T>(T updatedObject) where T : class
         {
             return store.Patch(updatedObject);
         }
