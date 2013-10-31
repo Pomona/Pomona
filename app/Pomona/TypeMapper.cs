@@ -238,26 +238,27 @@ namespace Pomona
 
                 if (filter.TypeIsMappedAsValueObject(type))
                     classDefinition.MappedAsValueObject = true;
-
-                var uriBaseType = filter.GetUriBaseType(type);
-                if (uriBaseType == null)
-                {
-                    classDefinition.UriBaseType = null;
-                }
                 else
                 {
-                    if (uriBaseType != type)
-                        classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
+                    var uriBaseType = filter.GetUriBaseType(type);
+                    if (uriBaseType == null)
+                    {
+                        classDefinition.UriBaseType = null;
+                    }
                     else
-                        classDefinition.UriBaseType = classDefinition;
+                    {
+                        if (uriBaseType != type)
+                            classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
+                        else
+                            classDefinition.UriBaseType = classDefinition;
 
-                    classDefinition.UriRelativePath =
-                        NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
+                        classDefinition.UriRelativePath =
+                            NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
+                    }
+
+                    classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
+                    classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
                 }
-
-
-                classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
-                classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
 
                 classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpAccessMode.Post : 0;
                 classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpAccessMode.Patch : 0;
