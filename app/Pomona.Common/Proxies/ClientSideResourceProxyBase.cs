@@ -141,7 +141,10 @@ namespace Pomona.Common.Proxies
         private TPropType OnGetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property)
         {
             var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(ProxyTarget, null);
-            return (TPropType)((object)dict[property.Name]);
+            TDictValue value;
+            if (dict.TryGetValue(property.Name, out value))
+                return (TPropType)((object)value);
+            return default(TPropType);
         }
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
