@@ -46,7 +46,7 @@ namespace Pomona.Schemas
         [JsonIgnore]
         public HttpAccessMode AllowedMethods { get; set; }
 
-        [JsonProperty(PropertyName = "methods")]
+        [JsonProperty(PropertyName = "access")]
         public string[] AllowedMethodsAsArray
         {
             get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }

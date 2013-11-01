@@ -123,13 +123,13 @@ namespace Pomona.Schemas
                     .Select(GenerateForProperty)
                     .ToDictionary(x => x.Name, x => x)),
                 // TODO: Expose IsAbstract on IMappedType
-                Abstract = transformedType.MappedTypeInstance != null && transformedType.MappedTypeInstance.IsAbstract
+                Abstract = transformedType.MappedTypeInstance != null && transformedType.MappedTypeInstance.IsAbstract,
+                AllowedMethods = transformedType.AllowedMethods
             };
 
             if (!string.IsNullOrEmpty(transformedType.UriRelativePath))
             {
                 schemaTypeEntry.Uri = transformedType.UriRelativePath;
-                schemaTypeEntry.AllowedMethods = transformedType.AllowedMethods;
             }
 
             return schemaTypeEntry;
