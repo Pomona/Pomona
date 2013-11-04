@@ -88,9 +88,14 @@ namespace Pomona.FluentMapping
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
             this.options.CreateMode = PropertyCreateMode.Excluded;
+            
+            HttpAccessMode allMutatingMethods = HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
+                                            | HttpAccessMode.Put;
+
             this.options.SetAccessModeFlag(HttpAccessMode.Get);
-            this.options.ClearAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
-                                             | HttpAccessMode.Put);
+            this.options.ClearAccessModeFlag(allMutatingMethods);
+            this.options.SetItemAccessModeFlag(HttpAccessMode.Get);
+            this.options.ClearItemAccessModeFlag(allMutatingMethods);
             return this;
         }
 

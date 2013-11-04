@@ -148,7 +148,11 @@ namespace TestNs
 
         public HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
         {
-            return wrappedFilter.GetPropertyItemAccessMode(propertyInfo);
+            return FromMappingOrDefault(propertyInfo,
+                x =>
+                    (x.ItemAccessMode & x.ItemAccessModeMask)
+                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.ItemAccessModeMask)),
+                () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 
 

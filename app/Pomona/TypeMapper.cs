@@ -237,7 +237,9 @@ namespace Pomona
                 mappings[type] = classDefinition;
 
                 if (filter.TypeIsMappedAsValueObject(type))
+                {
                     classDefinition.MappedAsValueObject = true;
+                }
                 else
                 {
                     var uriBaseType = filter.GetUriBaseType(type);
