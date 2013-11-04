@@ -89,8 +89,8 @@ namespace Pomona.Example.Models
 
         public IList<SimpleAttribute> SimpleAttributes { get; set; }
 
-        public IList<Subscription> Subscriptions { get; set; }
-        public IList<Weapon> Weapons { get; set; }
+        public IList<Subscription> Subscriptions { get; protected set; }
+        public IList<Weapon> Weapons { get; protected set; }
 
         /// <summary>
         /// To check that property scanning works properly on entities having explicit prop implementations.

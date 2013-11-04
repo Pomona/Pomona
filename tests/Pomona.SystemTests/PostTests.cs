@@ -146,7 +146,9 @@ namespace Pomona.SystemTests
         {
             var o =
                 client.HasConstructorInitializedReadOnlyProperties.Post(
-                    x => x.Crazy = new CrazyValueObjectForm { Info = "bam!", Sickness = "adhd" });
+                    x => { x.Crazy.Info = "bam!";
+                             x.Crazy.Sickness = "adhd";
+                    });
             Assert.That(o.Crazy.Info, Is.EqualTo("bam!"));
             Assert.That(o.Crazy.Sickness, Is.EqualTo("adhd"));
         }

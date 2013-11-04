@@ -107,6 +107,7 @@
     <Compile Include="ResourceEtagPropertyAttribute.cs" />
     <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
+    <Compile Include="ResourcePropertyAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />

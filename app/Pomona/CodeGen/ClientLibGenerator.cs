@@ -499,7 +499,7 @@ namespace Pomona.CodeGen
             }
         }
 
-        private void AddAttribute(ICustomAttributeProvider interfacePropDef, Type attributeType)
+        private CustomAttribute AddAttribute(ICustomAttributeProvider interfacePropDef, Type attributeType)
         {
             var attr = GetClientTypeReference(attributeType);
             var ctor =
@@ -508,6 +508,7 @@ namespace Pomona.CodeGen
                 new CustomAttribute(ctor);
 
             interfacePropDef.CustomAttributes.Add(custAttr);
+            return custAttr;
         }
 
 
@@ -713,6 +714,10 @@ namespace Pomona.CodeGen
                     {
                         AddAttribute(interfacePropDef, typeof (ResourceIdPropertyAttribute));
                     }
+                    AddAttribute(interfacePropDef, typeof(ResourcePropertyAttribute)).Properties.Add(
+                        new CustomAttributeNamedArgument("AccessMode",
+                            new CustomAttributeArgument(GetClientTypeReference(typeof(HttpAccessMode)),
+                                prop.AccessMode)));
 
                     FieldDefinition backingField;
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
@@ -1085,7 +1090,8 @@ namespace Pomona.CodeGen
                     getMethod.Attributes = exlicitMethodAttrs;
                     setMethod.Attributes = exlicitMethodAttrs;
                     getMethod.Overrides.Add(Module.Import(targetProp.GetMethod));
-                    setMethod.Overrides.Add(Module.Import(targetProp.SetMethod));
+                    if (targetProp.SetMethod != null)
+                        setMethod.Overrides.Add(Module.Import(targetProp.SetMethod));
                 }
             }
         }
