@@ -546,7 +546,7 @@ namespace Pomona
             var scannedProperties = GetPropertiesToScanOrderedByName(type).ToList();
 
             // Find longest (most specific) public constructor
-            var constructor = typeMapper.Filter.GetTypeConstructor(type);
+            var constructor = PostAllowed ? typeMapper.Filter.GetTypeConstructor(type) : null;
             var ctorParams = constructor != null ? constructor.GetParameters() : null;
             ConstructorInfo = constructor;
 
