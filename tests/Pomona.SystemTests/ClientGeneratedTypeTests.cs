@@ -33,6 +33,7 @@ using System.Linq;
 using Critters.Client;
 using NUnit.Framework;
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.SystemTests
 {
@@ -57,6 +58,16 @@ namespace Pomona.SystemTests
         {
             var critter = new CritterResource();
             Assert.That(critter.Weapons, Is.Not.Null);
+        }
+
+
+        [Test]
+        public void GeneratedPropertyHasResourcePropertyAttributeWithAccessDeclared()
+        {
+            var prop = typeof(ICritter).GetProperty("Name");
+            Assert.That(prop, Is.Not.Null);
+            var attr = prop.GetCustomAttributes(true).OfType<ResourcePropertyAttribute>().First();
+            Assert.That(attr.AccessMode, Is.EqualTo(HttpAccessMode.Post | HttpAccessMode.Put | HttpAccessMode.Get));
         }
 
         [Test]
