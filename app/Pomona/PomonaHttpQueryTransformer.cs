@@ -165,7 +165,7 @@ namespace Pomona
 
         private void ParseGroupByExpression(PomonaQuery query, string groupby)
         {
-            query.GroupByExpression = parser.Parse(query.TargetType.MappedTypeInstance, groupby);
+            query.GroupByExpression = parser.ParseSelectList(query.TargetType.MappedTypeInstance, groupby);
         }
 
 

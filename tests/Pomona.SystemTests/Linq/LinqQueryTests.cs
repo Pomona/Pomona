@@ -179,6 +179,7 @@ namespace Pomona.SystemTests.Linq
                     .Select(
                         x => new
                             {
+                                x.Key,
                                 Count = x.Count(),
                                 WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
                             })
@@ -192,6 +193,7 @@ namespace Pomona.SystemTests.Linq
                       .Select(
                           x => new
                               {
+                                  x.Key,
                                   Count = x.Count(),
                                   WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
                               })
@@ -201,6 +203,42 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual.SequenceEqual(expected));
         }
 
+
+        [Test]
+        public void QueryCritter_GroupByMultiplePropertiesThenSelectAnonymousClass_ReturnsCorrectValues()
+        {
+            // Just take some random critter
+            // Search by its name
+            var expected =
+                CritterEntities
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => new { x.Farm.Id, x.Weapons.Count })
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .Take(1)
+                    .ToList();
+
+            var actual =
+                client.Query<ICritter>()
+                      .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => new { x.Farm.Id, x.Weapons.Count })
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .Take(1)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
         [Test]
         public void QueryCritter_OfType()
         {
