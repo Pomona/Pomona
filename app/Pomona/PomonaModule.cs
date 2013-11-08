@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -422,23 +423,27 @@ namespace Pomona
             var path = "/" + type.UriRelativePath;
             //Console.WriteLine("Registering path " + path);
 
-            Register(Get, path + "/{id}", x => GetAsJson(type, x.id));
+            //Register(Get, path + "/{id}", x => GetAsJson(type, x.id));
 
-            foreach (var prop in type.Properties)
-            {
-                var transformedProp = prop as PropertyMapping;
-                if (transformedProp != null && transformedProp.IsOneToManyCollection
-                    && transformedProp.ElementForeignKey != null)
-                {
-                    var collectionElementType = (TransformedType)prop.PropertyType.ElementType;
-                    var elementForeignKey = transformedProp.ElementForeignKey;
+            //foreach (var prop in type.Properties)
+            //{
+            //    var transformedProp = prop as PropertyMapping;
+            //    if (transformedProp != null && transformedProp.IsOneToManyCollection
+            //        && transformedProp.ElementForeignKey != null)
+            //    {
+            //        var collectionElementType = (TransformedType)prop.PropertyType.ElementType;
+            //        var elementForeignKey = transformedProp.ElementForeignKey;
 
-                    Register(Get, path + "/{id}/" + transformedProp.UriName,
-                             x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
-                }
-            }
+            //        Register(Get, path + "/{id}/" + transformedProp.UriName,
+            //                 x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
+            //    }
+            //}
 
-            Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
+            //Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
+
+            //Register(Get, path, x => Query(type));
+            Register(Get, path + "/{remaining*}", x => GetResource(type, new LinkedList<string>(((string)x.remaining).Split('/')).First));
+            Register(Get, path, x => GetResource(type, null));
 
             Register(Post, path + "/{id}", x => PostToResource(type, x.id));
 
@@ -446,8 +451,69 @@ namespace Pomona
 
             Register(Post, path, x => PostFromJson(type));
 
-            Register(Get, path, x => Query(type));
         }
+
+
+        private PomonaResponse GetSubResource(object target, LinkedListNode<string> currentNode)
+        {
+            var type = (ResourceType)typeMapper.GetClassMapping(target.GetType());
+            var property =
+                type.Properties.FirstOrDefault(
+                    x =>
+                        string.Equals(x.UriName,
+                            currentNode.Value,
+                            StringComparison.InvariantCultureIgnoreCase));
+
+            if (property == null)
+                throw new ResourceNotFoundException("Resource not found. TODO: improve error messsage");
+
+            var propertyValue = property.Getter(target);
+
+            if (property.IsOneToManyCollection && propertyValue != null)
+            {
+                var collectionResourceType = property.PropertyType.ElementType as ResourceType;
+                if (collectionResourceType != null)
+                {
+                    if (currentNode.Next != null)
+                    {
+                        currentNode = currentNode.Next;
+                        // Get subresource by id
+                        var idToFind = Convert.ChangeType(currentNode.Value,
+                            collectionResourceType.PrimaryId.PropertyType.MappedTypeInstance);
+                        var subResource = ((IEnumerable)propertyValue).Cast<object>().FirstOrDefault(x => idToFind.Equals(collectionResourceType.PrimaryId.Getter(x)));
+                        if (subResource == null)
+                            throw new ResourceNotFoundException("Resource not found. TODO: improve error message.");
+
+                        if (currentNode.Next != null)
+                            return GetSubResource(subResource, currentNode.Next);
+
+                        return new PomonaResponse(subResource, UriResolver, HttpStatusCode.OK, GetExpandedPaths());
+
+                    }
+
+                    var query = queryTransformer.TransformRequest(Request, Context, UriResolver, collectionResourceType);
+                    return query.ApplyAndExecute(((IEnumerable)propertyValue).AsQueryable());
+                }
+            }
+
+            return new PomonaResponse(propertyValue, UriResolver, expandedPaths : GetExpandedPaths(), resultType : property.PropertyType);
+        }
+
+        private PomonaResponse GetResource(TransformedType type, LinkedListNode<string> pathNodes)
+        {
+            if (pathNodes == null)
+            {
+                return Query(type);
+            }
+            var id = Convert.ChangeType(pathNodes.Value, type.PrimaryId.PropertyType.MappedTypeInstance);
+            if (pathNodes.Next == null)
+                return GetAsJson(type, id);
+            else
+            {
+                return GetSubResource(GetById(type, id), pathNodes.Next);
+            }
+        }
+
 
         private PomonaResponse PostToResource(TransformedType type, object id, string actionName = "")
         {

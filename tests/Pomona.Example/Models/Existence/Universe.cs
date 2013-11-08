@@ -26,57 +26,49 @@
 
 #endregion
 
-using System;
-using System.Linq;
+using System.Collections.Generic;
 
-using Nancy.Validation;
-using Pomona.Example.Models;
-using Pomona.Example.Models.Existence;
-
-namespace Pomona.Example
+namespace Pomona.Example.Models.Existence
 {
-    public class CritterDataSource : IPomonaDataSource
+    // /galaxies/milkyway/planetary-systems/solar/planets/pluto/moons/earthmoon
+
+    public abstract class CelestialObject : EntityBase
     {
-        private readonly CritterRepository store;
+        public string Name { get; set; }
+    }
 
-        public CritterDataSource(CritterRepository store)
+    public class Galaxy : CelestialObject
+    {
+        private ICollection<PlanetarySystem> planetarySystems = new List<PlanetarySystem>();
+
+        public ICollection<PlanetarySystem> PlanetarySystems { get { return planetarySystems; }}
+    }
+
+    public class PlanetarySystem : CelestialObject
+    {
+        public Galaxy Galaxy { get; set; }
+
+        private ICollection<Planet> planets = new List<Planet>();
+
+        public ICollection<Planet> Planets
         {
-            this.store = store;
+            get { return this.planets; }
+        }
+    }
+
+    public class Planet : CelestialObject
+    {
+        private ICollection<Moon> moons = new List<Moon>();
+
+        public ICollection<Moon> Moons
+        {
+            get { return this.moons; }
         }
 
-        public PomonaModule Module { get; set; }
+        public PlanetarySystem PlanetarySystem { get; set; }
+    }
 
-        public T GetById<T>(object id) where T : class
-        {
-            return store.GetById<T>(id);
-        }
-
-        public PomonaResponse Query(PomonaQuery query)
-        {
-            return store.Query(query);
-        }
-
-        public object Post<T>(T newObject) where T : class
-        {
-            var newCritter = newObject as Critter;
-            if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
-            {
-                throw new ModelValidationException("Critter can't have name longer than 50 characters.");
-            }
-
-            return store.Post(newObject);
-        }
-
-        public object Patch<T>(T updatedObject) where T : class
-        {
-            return store.Patch(updatedObject);
-        }
-
-        [PomonaMethod("POST")]
-        public object Capture(Critter critter, CaptureCommand captureCommand)
-        {
-            critter.IsCaptured = true;
-            return critter;
-        }
+    public class Moon : CelestialObject
+    {
     }
 }

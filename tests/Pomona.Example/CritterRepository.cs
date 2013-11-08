@@ -33,6 +33,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common.Internals;
 using Pomona.Example.Models;
+using Pomona.Example.Models.Existence;
 using Pomona.Internals;
 
 namespace Pomona.Example
@@ -85,8 +86,15 @@ namespace Pomona.Example
                 object entity;
                 try
                 {
-                    var idInt = Convert.ToInt32(id);
-                    entity = GetEntityList<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == idInt);
+                    if (typeof(CelestialObject).IsAssignableFrom(typeof(T)))
+                    {
+                        entity = GetEntityList<T>().Cast<CelestialObject>().FirstOrDefault(x => x.Name == (string)id);
+                    }
+                    else
+                    {
+                        var idInt = Convert.ToInt32(id);
+                        entity = GetEntityList<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == idInt);
+                    }
                 }
                 catch (Exception)
                 {
@@ -197,7 +205,7 @@ namespace Pomona.Example
         {
             return
                 typeof (CritterModule).Assembly.GetTypes()
-                                      .Where(x => x.Namespace == "Pomona.Example.Models" && !x.IsGenericTypeDefinition);
+                                      .Where(x => (x.Namespace == "Pomona.Example.Models" || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models"))) && !x.IsGenericTypeDefinition);
         }
 
 
@@ -234,7 +242,7 @@ namespace Pomona.Example
         public T Save<T>(T entity)
         {
             var transformedType = (TransformedType)typeMapper.GetClassMapping<T>();
-            var saveMethodInstance = saveInternalMethod.MakeGenericMethod(transformedType.UriBaseType.MappedTypeInstance);
+            var saveMethodInstance = saveInternalMethod.MakeGenericMethod((transformedType.UriBaseType ?? transformedType).MappedTypeInstance);
             return (T)saveMethodInstance.Invoke(this, new object[] { entity });
         }
 

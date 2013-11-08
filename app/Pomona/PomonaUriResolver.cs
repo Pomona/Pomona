@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Practices.ServiceLocation;
@@ -108,19 +109,48 @@ namespace Pomona
 
         public string GetUriFor(IPropertyInfo property, object entity)
         {
-            return GetUriFor(entity) + "/" + ((PropertyMapping) property).UriName;
+            return RelativeToAbsoluteUri(BuildRelativeUri(entity, property));
         }
 
 
+        private string BuildRelativeUri(object entity, IPropertyInfo property)
+        {
+            var sb = new StringBuilder();
+            BuildRelativeUri(entity, property, sb);
+            return sb.ToString();
+        }
+
+        private void BuildRelativeUri(object entity, IPropertyInfo property, StringBuilder sb)
+        {
+            var type = typeMapper.GetClassMapping(entity.GetType()) as ResourceType;
+            if (type == null)
+                throw new InvalidOperationException("Can only get Uri for a ResourceType.");
+
+            if (type.ParentResourceType != null)
+            {
+                var parentEntity = type.ChildToParentProperty.Getter(entity);
+                if (parentEntity != null)
+                {
+                    BuildRelativeUri(parentEntity, type.ParentToChildProperty, sb);
+                }
+            }
+            else
+            {
+                sb.Append(type.UriRelativePath);
+            }
+            sb.Append('/');
+
+            sb.Append(type.GetId(entity));
+            if (property != null)
+            {
+                sb.Append('/');
+                sb.Append(((PropertyMapping)property).UriName);
+            }
+        }
+
         public string GetUriFor(object entity)
         {
-            if (entity == null)
-                throw new ArgumentNullException("entity");
-            var transformedType = (TransformedType) TypeMapper.GetClassMapping(entity.GetType());
-
-            return
-                RelativeToAbsoluteUri(String.Format("{0}/{1}", transformedType.UriRelativePath,
-                                                    transformedType.GetId(entity)));
+            return RelativeToAbsoluteUri(BuildRelativeUri(entity, null));
         }
 
         public ITypeMapper TypeMapper

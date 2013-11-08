@@ -257,6 +257,22 @@ namespace TestNs
         }
 
 
+        public PropertyInfo GetParentToChildProperty(Type type)
+        {
+            return FromMappingOrDefault(type,
+                x => x.ParentToChildProperty,
+                () => wrappedFilter.GetParentToChildProperty(type));
+        }
+
+
+        public PropertyInfo GetChildToParentProperty(Type type)
+        {
+            return FromMappingOrDefault(type,
+                x => x.ChildToParentProperty,
+                () => wrappedFilter.GetChildToParentProperty(type));
+        }
+
+
         public bool IsIndependentTypeRoot(Type type)
         {
             return FromMappingOrDefault(type,

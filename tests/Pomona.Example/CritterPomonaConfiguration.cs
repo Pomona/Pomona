@@ -35,7 +35,11 @@ namespace Pomona.Example
     {
         public override IEnumerable<object> FluentRuleObjects
         {
-            get { yield return new CritterFluentRules(); }
+            get
+            {
+                yield return new CritterFluentRules();
+                yield return new GalaxyRules();
+            }
         }
 
 

@@ -159,7 +159,9 @@ namespace Pomona
         public bool AlwaysExpand { get; set; }
         public PropertyCreateMode CreateMode { get; set; }
 
-        public IMappedType DeclaringType
+        public TransformedType DeclaringType {get { return declaringType; }}
+
+        IMappedType IPropertyInfo.DeclaringType
         {
             get { return declaringType; }
         }

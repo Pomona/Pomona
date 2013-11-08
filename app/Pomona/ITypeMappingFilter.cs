@@ -78,6 +78,9 @@ namespace Pomona
         Type GetUriBaseType(Type type);
 
 
+        PropertyInfo GetParentToChildProperty(Type type);
+        PropertyInfo GetChildToParentProperty(Type type);
+
         bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo);
 
         bool PropertyIsIncluded(PropertyInfo propertyInfo);

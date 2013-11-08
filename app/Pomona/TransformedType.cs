@@ -36,6 +36,33 @@ using Pomona.Internals;
 
 namespace Pomona
 {
+    public class ResourceType : TransformedType
+    {
+        internal ResourceType(Type mappedType, string name, TypeMapper typeMapper)
+            : base(mappedType, name, typeMapper)
+        {
+        }
+
+
+        public IEnumerable<ResourceType> ChildResourceTypes
+        {
+            get
+            {
+                return TypeMapper
+                    .TransformedTypes
+                    .OfType<ResourceType>()
+                    .Where(x => x.ParentResourceType == this)
+                    .Concat((UriBaseType != null && UriBaseType != this)
+                        ? UriBaseType.ChildResourceTypes
+                        : Enumerable.Empty<ResourceType>());
+            }
+        }
+
+        public ResourceType ParentResourceType { get { return ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null; } }
+        public PropertyMapping ParentToChildProperty { get; set; }
+        public PropertyMapping ChildToParentProperty { get; set; }
+    }
+
     /// <summary>
     /// Represents a type that is transformed
     /// </summary>
@@ -66,7 +93,6 @@ namespace Pomona
             this.name = name;
             this.typeMapper = typeMapper;
 
-            UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
             AllowedMethods = HttpAccessMode.Get;
@@ -147,7 +173,7 @@ namespace Pomona
 
         public bool IsExposedAsRepository { get; set; }
 
-        public TransformedType UriBaseType { get; set; }
+        public ResourceType UriBaseType { get; set; }
 
         public string UriRelativePath { get; set; }
 
@@ -389,7 +415,9 @@ namespace Pomona
 
         public IPropertyInfo PrimaryId { get; set; }
 
-        public IList<IPropertyInfo> Properties
+        public IList<PropertyMapping> Properties { get { return properties; } }
+
+        IList<IPropertyInfo> IMappedType.Properties
         {
             get { return new CastingListWrapper<IPropertyInfo>(properties); }
         }
@@ -489,7 +517,7 @@ namespace Pomona
 
         public object GetId(object entity)
         {
-            return typeMapper.Filter.GetIdFor(entity);
+            return PrimaryId.Getter(entity);
         }
 
 

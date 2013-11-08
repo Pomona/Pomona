@@ -110,6 +110,8 @@ namespace Pomona.FluentMapping
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {
+            if (formula == null)
+                throw new ArgumentNullException("formula");
             this.options.Formula = formula;
             return this;
         }

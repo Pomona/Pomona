@@ -67,7 +67,7 @@ namespace Pomona.FluentMapping
         public HttpAccessMode ItemAccessMode { get; internal set; }
         public HttpAccessMode ItemAccessModeMask { get; internal set; }
         public string Name { get; set; }
-        public bool? PropertyFormulaIsDecompiled { get; set; }
+        public bool? PropertyFormulaIsDecompiled { get; internal set; }
 
         public PropertyInfo PropertyInfo
         {

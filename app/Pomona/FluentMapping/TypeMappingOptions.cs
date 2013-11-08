@@ -85,6 +85,9 @@ namespace Pomona.FluentMapping
             set { this.defaultPropertyInclusionMode = value; }
         }
 
+        public PropertyInfo ChildToParentProperty { get; set; }
+        public PropertyInfo ParentToChildProperty { get; internal set; }
+
         public bool? IsExposedAsRepository
         {
             get { return this.isExposedAsRepository; }
@@ -279,8 +282,22 @@ namespace Pomona.FluentMapping
             }
 
 
+            public ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(Expression<Func<TDeclaringType, TParent>> parentProperty, Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty)
+            {
+                if (parentProperty == null)
+                    throw new ArgumentNullException("parentProperty");
+                if (collectionProperty == null)
+                    throw new ArgumentNullException("collectionProperty");
+                owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
+                owner.ParentToChildProperty = collectionProperty.ExtractPropertyInfo();
+                return this;
+            }
+
+
             public ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property)
             {
+                if (property == null)
+                    throw new ArgumentNullException("property");
                 var propOptions = this.owner.GetPropertyOptions(property);
                 propOptions.InclusionMode = PropertyInclusionMode.Excluded;
                 return this;
@@ -300,6 +317,8 @@ namespace Pomona.FluentMapping
                     <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
                         IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
             {
+                if (property == null)
+                    throw new ArgumentNullException("property");
                 var propOptions = this.owner.GetPropertyOptions(property);
 
                 propOptions.InclusionMode = PropertyInclusionMode.Included;
@@ -313,6 +332,8 @@ namespace Pomona.FluentMapping
 
             public ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action)
             {
+                if (action == null)
+                    throw new ArgumentNullException("action");
                 this.owner.onDeserialized = x => action((TDeclaringType)x);
                 return this;
             }

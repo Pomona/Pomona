@@ -279,6 +279,18 @@ namespace Pomona
         }
 
 
+        public PropertyInfo GetParentToChildProperty(Type type)
+        {
+            return null;
+        }
+
+
+        public PropertyInfo GetChildToParentProperty(Type type)
+        {
+            return null;
+        }
+
+
         public virtual bool IsIndependentTypeRoot(Type type)
         {
             return false;
@@ -452,7 +464,7 @@ namespace Pomona
         }
 
 
-        public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
