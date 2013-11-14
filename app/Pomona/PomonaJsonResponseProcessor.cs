@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using Nancy;
 using Nancy.Responses.Negotiation;
 using Pomona.Common.Serialization.Json;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
@@ -35,7 +36,7 @@ namespace Pomona
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
             new[] {new Tuple<string, MediaRange>("json", MediaRange.FromString("application/json"))};
 
-        public PomonaJsonResponseProcessor() : base(new PomonaJsonSerializerFactory())
+        public PomonaJsonResponseProcessor(TypeMapper typeMapper) : base(new PomonaJsonSerializerFactory(), typeMapper)
         {
         }
 

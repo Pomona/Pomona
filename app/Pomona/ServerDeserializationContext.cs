@@ -37,13 +37,13 @@ namespace Pomona
     public class ServerDeserializationContext : IDeserializationContext
     {
         private readonly ITypeMapper typeMapper;
-        private readonly IPomonaUriResolver uriResolver;
+        private readonly IResourceResolver resourceResolver;
 
 
-        public ServerDeserializationContext(ITypeMapper typeMapper, IPomonaUriResolver uriResolver)
+        public ServerDeserializationContext(ITypeMapper typeMapper, IResourceResolver resourceResolver)
         {
             this.typeMapper = typeMapper;
-            this.uriResolver = uriResolver;
+            this.resourceResolver = resourceResolver;
         }
 
 
@@ -56,7 +56,7 @@ namespace Pomona
 
         public object CreateReference(IMappedType type, string uri)
         {
-            return this.uriResolver.ResolveUri(uri);
+            return this.resourceResolver.ResolveUri(uri);
         }
 
 

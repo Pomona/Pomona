@@ -37,62 +37,23 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class PomonaUriResolver : IPomonaUriResolver
+    public class UriResolver : IUriResolver
     {
-        private readonly NancyContext context;
-        private readonly IServiceLocator serviceLocator;
-        private readonly ITypeMapper typeMapper;
-
-        public PomonaUriResolver(ITypeMapper typeMapper, NancyContext context, IServiceLocator serviceLocator)
+        public UriResolver(ITypeMapper typeMapper, NancyContext context)
         {
             if (typeMapper == null) throw new ArgumentNullException("typeMapper");
             if (context == null) throw new ArgumentNullException("context");
             //if (routeResolver == null) throw new ArgumentNullException("routeResolver");
             this.typeMapper = typeMapper;
             this.context = context;
-            this.serviceLocator = serviceLocator;
         }
 
+
+        private readonly NancyContext context;
+        private readonly ITypeMapper typeMapper;
         public NancyContext Context
         {
             get { return context; }
-        }
-
-        private Request Request
-        {
-            get { return context.Request; }
-        }
-
-
-        public object ResolveUri(string uriString)
-        {
-            var uri = new Uri(uriString, UriKind.Absolute);
-
-            var modulePath = uri.AbsolutePath;
-            var basePath = Request.Url.BasePath ?? String.Empty;
-            if (modulePath.StartsWith(basePath))
-                modulePath = modulePath.Substring(basePath.Length);
-
-            var url = Request.Url.Clone();
-            url.Path = modulePath;
-            url.Query = uri.Query;
-
-            var innerRequest = new Request("GET", url,ip:Context.Request.UserHostAddress);
-            var innerContext = new NancyContext
-                {
-                    Culture = Context.Culture,
-                    CurrentUser = Context.CurrentUser,
-                    Request = innerRequest
-                };
-
-            var routeResolver = serviceLocator.GetInstance<IRouteResolver>();
-            var routeMatch = routeResolver.Resolve(innerContext);
-            var route = routeMatch.Route;
-            var dynamicDict = routeMatch.Parameters;
-
-            var pomonaResponse = (PomonaResponse)((Task<dynamic>)route.Action((dynamic)dynamicDict, CancellationToken.None)).Result;
-
-            return pomonaResponse.Entity;
         }
 
 
@@ -167,5 +128,73 @@ namespace Pomona
 
             return new Uri(uriString);
         }
+    }
+
+    public class ResourceResolver : IResourceResolver
+    {
+        private readonly NancyContext context;
+        private readonly IServiceLocator serviceLocator;
+        private readonly ITypeMapper typeMapper;
+
+        public ResourceResolver(ITypeMapper typeMapper, NancyContext context, IServiceLocator serviceLocator)
+        {
+            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
+            if (context == null) throw new ArgumentNullException("context");
+            if (serviceLocator == null)
+                throw new ArgumentNullException("serviceLocator");
+            //if (routeResolver == null) throw new ArgumentNullException("routeResolver");
+            this.typeMapper = typeMapper;
+            this.context = context;
+            this.serviceLocator = serviceLocator;
+        }
+
+        public NancyContext Context
+        {
+            get { return context; }
+        }
+
+        private Request Request
+        {
+            get { return context.Request; }
+        }
+
+
+        public object ResolveUri(string uriString)
+        {
+            var uri = new Uri(uriString, UriKind.Absolute);
+
+            var modulePath = uri.AbsolutePath;
+            var basePath = Request.Url.BasePath ?? String.Empty;
+            if (modulePath.StartsWith(basePath))
+                modulePath = modulePath.Substring(basePath.Length);
+
+            var url = Request.Url.Clone();
+            url.Path = modulePath;
+            url.Query = uri.Query;
+
+            var innerRequest = new Request("GET", url,ip:Context.Request.UserHostAddress);
+            var innerContext = new NancyContext
+                {
+                    Culture = Context.Culture,
+                    CurrentUser = Context.CurrentUser,
+                    Request = innerRequest
+                };
+
+            var routeResolver = serviceLocator.GetInstance<IRouteResolver>();
+            var routeMatch = routeResolver.Resolve(innerContext);
+            var route = routeMatch.Route;
+            var dynamicDict = routeMatch.Parameters;
+
+            var pomonaResponse = (PomonaResponse)((Task<dynamic>)route.Action((dynamic)dynamicDict, CancellationToken.None)).Result;
+
+            return pomonaResponse.Entity;
+        }
+
+
+        public ITypeMapper TypeMapper
+        {
+            get { return typeMapper; }
+        }
+
     }
 }

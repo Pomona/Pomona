@@ -59,8 +59,9 @@ namespace Pomona
         }
 
         public ResourceType ParentResourceType { get { return ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null; } }
-        public PropertyMapping ParentToChildProperty { get; set; }
-        public PropertyMapping ChildToParentProperty { get; set; }
+        public PropertyMapping ParentToChildProperty { get; internal set; }
+        public PropertyMapping ChildToParentProperty { get; internal set; }
+        public bool IsRootResource { get { return ParentToChildProperty == null; }  }
     }
 
     /// <summary>

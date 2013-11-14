@@ -1,4 +1,8 @@
-﻿using Pomona.Example.Models.Existence;
+﻿using System.Linq;
+
+using Nancy.Session;
+
+using Pomona.Example.Models.Existence;
 using Pomona.FluentMapping;
 
 namespace Pomona.Example

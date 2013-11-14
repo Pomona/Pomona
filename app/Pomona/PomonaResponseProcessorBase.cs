@@ -33,6 +33,8 @@ using System.Text;
 using Nancy;
 using Nancy.Responses.Negotiation;
 using Pomona.Common.Serialization;
+using Pomona.Common.TypeSystem;
+
 using ISerializer = Pomona.Common.Serialization.ISerializer;
 
 namespace Pomona
@@ -41,10 +43,17 @@ namespace Pomona
     {
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
+        private readonly ITypeMapper typeMapper;
 
-        protected PomonaResponseProcessorBase(ISerializerFactory serializerFactory)
+
+        protected PomonaResponseProcessorBase(ISerializerFactory serializerFactory, TypeMapper typeMapper)
         {
+            if (serializerFactory == null)
+                throw new ArgumentNullException("serializerFactory");
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             this.serializerFactory = serializerFactory;
+            this.typeMapper = typeMapper;
             serializer = serializerFactory.GetSerialier();
         }
 
@@ -75,7 +84,7 @@ namespace Pomona
             using (var strWriter = new StringWriter())
             {
                 var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,
-                                                                          pomonaResponse.UriResolver);
+                                                                          new UriResolver(typeMapper, context));
                 serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pomonaResponse.ResultType);
                 jsonString = strWriter.ToString();
             }

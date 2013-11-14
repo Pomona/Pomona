@@ -39,13 +39,13 @@ namespace Pomona
         private readonly HashSet<string> expandedPaths;
 
         private readonly ITypeMapper typeMapper;
-        private readonly IPomonaUriResolver uriResolver;
+        private readonly IUriResolver uriResolver;
 
 
         public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
-            IPomonaUriResolver uriResolver)
+            IUriResolver uriResolver)
         {
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;

@@ -36,10 +36,10 @@ namespace Pomona
     public class PomonaHttpQueryTransformer : IHttpQueryTransformer
     {
         private readonly QueryExpressionParser parser;
-        private readonly TypeMapper typeMapper;
+        private readonly ITypeMapper typeMapper;
 
 
-        public PomonaHttpQueryTransformer(TypeMapper typeMapper, QueryExpressionParser parser)
+        public PomonaHttpQueryTransformer(ITypeMapper typeMapper, QueryExpressionParser parser)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -51,8 +51,9 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public PomonaQuery TransformRequest(Request request, NancyContext nancyContext, IPomonaUriResolver uriResolver, TransformedType rootType)
+        public PomonaQuery TransformRequest(NancyContext nancyContext, TransformedType rootType)
         {
+            var request = nancyContext.Request;
             if (request == null)
                 throw new ArgumentNullException("request");
             if (nancyContext == null)
@@ -60,12 +61,13 @@ namespace Pomona
             if (rootType == null)
                 throw new ArgumentNullException("rootType");
 
+            TransformedType ofType = null;
             if (request.Query["$oftype"].HasValue)
             {
-                rootType = (TransformedType) typeMapper.GetClassMapping((string) request.Query["$oftype"]);
+                ofType = (TransformedType) typeMapper.GetClassMapping((string) request.Query["$oftype"]);
             }
 
-            var query = new PomonaQuery(rootType, uriResolver);
+            var query = new PomonaQuery(rootType, ofType);
 
             if (request.Query["$debug"].HasValue)
             {
@@ -90,7 +92,7 @@ namespace Pomona
                 filter = (string) request.Query["$filter"];
 
             ParseFilterExpression(query, filter);
-            var selectSourceType = query.TargetType.MappedTypeInstance;
+            var selectSourceType = query.OfType.MappedTypeInstance;
 
             if (request.Query["$groupby"].HasValue)
             {
@@ -140,7 +142,7 @@ namespace Pomona
 
         private void UpdateResultType(PomonaQuery query)
         {
-            IMappedType elementType = query.TargetType;
+            IMappedType elementType = query.OfType;
             if (query.SelectExpression != null)
                 elementType = typeMapper.GetClassMapping(query.SelectExpression.ReturnType);
 
@@ -159,13 +161,13 @@ namespace Pomona
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = parser.Parse(query.TargetType.MappedTypeInstance, filter);
+            query.FilterExpression = parser.Parse(query.OfType.MappedTypeInstance, filter);
         }
 
 
         private void ParseGroupByExpression(PomonaQuery query, string groupby)
         {
-            query.GroupByExpression = parser.ParseSelectList(query.TargetType.MappedTypeInstance, groupby);
+            query.GroupByExpression = parser.ParseSelectList(query.OfType.MappedTypeInstance, groupby);
         }
 
 
@@ -194,7 +196,7 @@ namespace Pomona
             }
             else
             {
-                orderedType = query.TargetType.MappedTypeInstance;
+                orderedType = query.OfType.MappedTypeInstance;
             }
 
             query.OrderByExpression = parser.Parse(orderedType, orderby);

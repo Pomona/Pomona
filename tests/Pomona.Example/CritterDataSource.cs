@@ -27,14 +27,50 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
+using Nancy;
 using Nancy.Validation;
+
+using Pomona.Common.Serialization.Patch;
+using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.Example.Models.Existence;
+using Pomona.Handlers;
+using Pomona.Internals;
 
 namespace Pomona.Example
 {
+
+
+    public class Root
+    {
+        private readonly CritterRepository critterRepository;
+
+
+        public Root(CritterRepository critterRepository)
+        {
+            this.critterRepository = critterRepository;
+        }
+
+        public IQueryable<Critter> Critters { get { return critterRepository.List<Critter>().AsQueryable(); } }
+
+
+        public IQueryable<Critter> Query(Root root)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IQueryable<TEntity> Query<TEntity>(Root root)
+        {
+            throw new NotImplementedException();
+        }
+
+    }
     public class CritterDataSource : IPomonaDataSource
     {
         private readonly CritterRepository store;
@@ -51,9 +87,10 @@ namespace Pomona.Example
             return store.GetById<T>(id);
         }
 
-        public PomonaResponse Query(PomonaQuery query)
+        public IQueryable<T> Query<T>()
+            where T : class
         {
-            return store.Query(query);
+            return store.Query<T>();
         }
 
         public object Post<T>(T newObject) where T : class

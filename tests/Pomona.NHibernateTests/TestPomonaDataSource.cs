@@ -41,7 +41,6 @@ namespace PomonaNHibernateTest
 {
     public class TestPomonaDataSource : IPomonaDataSource, IDisposable
     {
-        private static readonly MethodInfo queryMethod;
         private static readonly MethodInfo getEntityByIdMethod;
         private readonly ISession session;
 
@@ -55,7 +54,6 @@ namespace PomonaNHibernateTest
 
             getEntityByIdMethod =
                 ReflectionHelper.GetMethodDefinition<TestPomonaDataSource>(x => x.GetEntityById<EntityBase>(0));
-            queryMethod = ReflectionHelper.GetMethodDefinition<TestPomonaDataSource>(x => x.Query<object>(null));
         }
 
         public TestPomonaDataSource(ISessionFactory sessionFactory)
@@ -74,12 +72,11 @@ namespace PomonaNHibernateTest
         }
 
 
-        public PomonaResponse Query(PomonaQuery query)
+        public IQueryable<T> Query<T>() where T : class
         {
-            return
-                (PomonaResponse)
-                queryMethod.MakeGenericMethod(query.TargetType.MappedTypeInstance).Invoke(this, new object[] {query});
+            throw new NotImplementedException();
         }
+
 
 
         public object Post<T>(T newObject) where T : class
@@ -101,6 +98,7 @@ namespace PomonaNHibernateTest
 
         private PomonaResponse Query<T>(PomonaQuery query)
         {
+            throw new NotImplementedException();
             Console.WriteLine("ORIG FETCH START");
             var qres = query.ApplyAndExecute(LinqExtensionMethods.Query<T>(session));
             Console.WriteLine("ORIG FETCH STOP");
@@ -110,7 +108,7 @@ namespace PomonaNHibernateTest
                 batchFetcher.Expand(qres,
                                     query.SelectExpression != null
                                         ? query.SelectExpression.ReturnType
-                                        : query.TargetType.MappedTypeInstance);
+                                        : query.OfType.MappedTypeInstance);
             }
             return qres;
         }

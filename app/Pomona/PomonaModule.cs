@@ -124,9 +124,9 @@ namespace Pomona
             get { return typeMapper; }
         }
 
-        public virtual IPomonaUriResolver UriResolver
+        public virtual IResourceResolver ResourceResolver
         {
-            get { return new PomonaUriResolver(typeMapper, Context, serviceLocator); }
+            get { return new ResourceResolver(typeMapper, Context, serviceLocator); }
         }
 
 
@@ -137,7 +137,8 @@ namespace Pomona
 
         public PomonaResponse Query(PomonaQuery query)
         {
-            return dataSource.Query(query);
+            throw new NotImplementedException();
+            //return dataSource.Query(query);
         }
 
         private object InvokeDataSourcePatch<T>(T entity) where T:class
@@ -159,7 +160,7 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                var deserializationContext = new ServerDeserializationContext(TypeMapper, UriResolver);
+                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.ResourceResolver);
                 return deserializer.Deserialize(textReader, expectedBaseType, deserializationContext,
                                                 patchedObject);
             }
@@ -176,7 +177,7 @@ namespace Pomona
             var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
             var expandedPaths = string.Join(",", Request.Headers["X-Pomona-Expand"]);
 
-            return new PomonaResponse(postResponse, UriResolver, successStatusCode, expandedPaths);
+            return new PomonaResponse(postResponse, successStatusCode, expandedPaths);
         }
 
 
@@ -208,7 +209,7 @@ namespace Pomona
             var propertyType = property.PropertyType;
 
             return
-                new PomonaResponse(propertyValue, UriResolver, expandedPaths: expand, resultType: propertyType);
+                new PomonaResponse(propertyValue, expandedPaths: expand, resultType: propertyType);
         }
 
 
@@ -235,42 +236,12 @@ namespace Pomona
                     () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName), "text/html");
         }
 
-        private PomonaResponse GetAsJson(TransformedType transformedType, object id)
-        {
-            var expand = GetExpandedPaths().ToLower();
-
-            return GetAsJson(transformedType, id, expand);
-        }
-
 
         public PomonaResponse GetAsJson(TransformedType transformedType, object id, string expand)
         {
             var o = GetById(transformedType, id);
             return
-                new PomonaResponse(o, UriResolver, expandedPaths: expand, resultType: transformedType);
-        }
-
-
-        private PomonaResponse GetByForeignKeyPropertyAsJson(TransformedType type, PropertyMapping key, object id)
-        {
-            // HACK: This is quite hacky, I'll gladly admit that [KNS]
-            // TODO: Fix that this only works if primary key is named Id [KNS]
-
-            // Fetch entity first to see if entity with id actually exists.
-            GetById((TransformedType)key.PropertyType, id);
-
-            var query = queryTransformer.TransformRequest(Request, Context, UriResolver, type);
-
-            var filterParam = query.FilterExpression.Parameters[0];
-            IPropertyInfo keyIdProp = key.PropertyType.PrimaryId;
-            query.FilterExpression =
-                Expression.Lambda(
-                    Expression.AndAlso(
-                        Expression.Equal(keyIdProp.CreateGetterExpression(key.CreateGetterExpression(filterParam)),
-                                         Expression.Constant(Convert.ChangeType(id, keyIdProp.PropertyType.MappedTypeInstance))),
-                        query.FilterExpression.Body), filterParam);
-
-            return Query(query);
+                new PomonaResponse(o, expandedPaths: expand, resultType: transformedType);
         }
 
 
@@ -305,30 +276,6 @@ namespace Pomona
         }
 
 
-        private string GetExpandedPaths()
-        {
-            string expand = null;
-
-            try
-            {
-                expand = Request.Query["$expand"];
-            }
-            catch (Exception)
-            {
-            }
-
-            return expand ?? String.Empty;
-        }
-
-
-        private PomonaResponse GetPropertyFromEntityAsJson(TransformedType transformedType, object id, string propname)
-        {
-            var expand = GetExpandedPaths().ToLower();
-
-            return GetPropertyAsJson(transformedType, id, propname, expand);
-        }
-
-
         private Response GetSchemas()
         {
             var res = new Response();
@@ -351,7 +298,9 @@ namespace Pomona
 
         private PomonaResponse Query(TransformedType transformedType)
         {
-            var query = queryTransformer.TransformRequest(Request, Context, UriResolver, transformedType);
+            // REMOVE THIS
+
+            var query = queryTransformer.TransformRequest(Context, transformedType);
 
             return Query(query);
         }
@@ -407,7 +356,7 @@ namespace Pomona
                             throw;
 
                         SetErrorHandled();
-                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity, UriResolver,
+                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
                                                   error.StatusCode, responseHeaders: error.ResponseHeaders);
                     }
                 };
@@ -442,8 +391,8 @@ namespace Pomona
             //Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
 
             //Register(Get, path, x => Query(type));
-            Register(Get, path + "/{remaining*}", x => GetResource(type, new LinkedList<string>(((string)x.remaining).Split('/')).First));
-            Register(Get, path, x => GetResource(type, null));
+            Register(Get, path + "/{remaining*}", x => GetResource());
+            Register(Get, path, x => GetResource());
 
             Register(Post, path + "/{id}", x => PostToResource(type, x.id));
 
@@ -453,65 +402,19 @@ namespace Pomona
 
         }
 
-
-        private PomonaResponse GetSubResource(object target, LinkedListNode<string> currentNode)
+        private PomonaResponse GetResource()
         {
-            var type = (ResourceType)typeMapper.GetClassMapping(target.GetType());
-            var property =
-                type.Properties.FirstOrDefault(
-                    x =>
-                        string.Equals(x.UriName,
-                            currentNode.Value,
-                            StringComparison.InvariantCultureIgnoreCase));
-
-            if (property == null)
-                throw new ResourceNotFoundException("Resource not found. TODO: improve error messsage");
-
-            var propertyValue = property.Getter(target);
-
-            if (property.IsOneToManyCollection && propertyValue != null)
+            var pathNodes = new LinkedList<string>(Request.Url.Path.Split('/')).First;
+            var rootNode = new DataSourceRootNode(TypeMapper, dataSource);
+            PathNode node = rootNode;
+            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Skip(1).Select(x => x.Value))
             {
-                var collectionResourceType = property.PropertyType.ElementType as ResourceType;
-                if (collectionResourceType != null)
-                {
-                    if (currentNode.Next != null)
-                    {
-                        currentNode = currentNode.Next;
-                        // Get subresource by id
-                        var idToFind = Convert.ChangeType(currentNode.Value,
-                            collectionResourceType.PrimaryId.PropertyType.MappedTypeInstance);
-                        var subResource = ((IEnumerable)propertyValue).Cast<object>().FirstOrDefault(x => idToFind.Equals(collectionResourceType.PrimaryId.Getter(x)));
-                        if (subResource == null)
-                            throw new ResourceNotFoundException("Resource not found. TODO: improve error message.");
-
-                        if (currentNode.Next != null)
-                            return GetSubResource(subResource, currentNode.Next);
-
-                        return new PomonaResponse(subResource, UriResolver, HttpStatusCode.OK, GetExpandedPaths());
-
-                    }
-
-                    var query = queryTransformer.TransformRequest(Request, Context, UriResolver, collectionResourceType);
-                    return query.ApplyAndExecute(((IEnumerable)propertyValue).AsQueryable());
-                }
+                node = node.GetChildNode(pathPart);
             }
 
-            return new PomonaResponse(propertyValue, UriResolver, expandedPaths : GetExpandedPaths(), resultType : property.PropertyType);
-        }
-
-        private PomonaResponse GetResource(TransformedType type, LinkedListNode<string> pathNodes)
-        {
-            if (pathNodes == null)
-            {
-                return Query(type);
-            }
-            var id = Convert.ChangeType(pathNodes.Value, type.PrimaryId.PropertyType.MappedTypeInstance);
-            if (pathNodes.Next == null)
-                return GetAsJson(type, id);
-            else
-            {
-                return GetSubResource(GetById(type, id), pathNodes.Next);
-            }
+            var pomonaRequest = new PomonaRequest(node, Context);
+            var processor = new DefaultGetRequestProcessor();
+            return processor.Process(pomonaRequest);
         }
 
 
@@ -537,7 +440,7 @@ namespace Pomona
             var handler = handlers[0];
             var result = handler.Method.Invoke(DataSource, new[] { o, form });
 
-            return new PomonaResponse(result, UriResolver);
+            return new PomonaResponse(result);
         }
 
 

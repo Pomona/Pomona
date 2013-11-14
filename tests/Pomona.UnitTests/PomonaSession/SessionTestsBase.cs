@@ -80,7 +80,7 @@ namespace Pomona.UnitTests.PomonaSession
             firstCritter = this.repository.List<Critter>().First();
         }
 
-        private class DummyUriResolver : IPomonaUriResolver
+        private class DummyUriResolver : IUriResolver
         {
             public object ResolveUri(string uri)
             {

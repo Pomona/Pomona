@@ -57,7 +57,7 @@ namespace Pomona.Example
         static CritterRepository()
         {
             queryMethod =
-                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.Query<object, object>(null));
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.Query<object, object>());
             saveCollectionMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(
                     x => x.SaveCollection((ICollection<EntityBase>)null));
@@ -136,16 +136,17 @@ namespace Pomona.Example
             return updatedObject;
         }
 
-        public PomonaResponse Query(PomonaQuery query)
+        public IQueryable<T> Query<T>()
+            where T : class
         {
             lock (syncLock)
             {
-                var entityType = query.TargetType.MappedTypeInstance;
-                var entityUriBaseType = query.TargetType.UriBaseType.MappedTypeInstance;
+                var entityType = typeof(T);
+                var entityUriBaseType = ((ResourceType)typeMapper.GetClassMapping(typeof(T))).UriBaseType.MappedTypeInstance;
 
                 return
-                    (PomonaResponse)
-                    queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, new object[] { query });
+                    (IQueryable<T>)
+                        queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, null);
             }
         }
 
@@ -157,17 +158,15 @@ namespace Pomona.Example
             }
         }
 
-        private PomonaResponse Query<TEntityBase, TEntity>(PomonaQuery pq)
+        private IQueryable<TEntity> Query<TEntityBase, TEntity>()
         {
-            queryLog.Add(pq);
+            //var visitor = new MakeDictAccessesSafeVisitor();
+            //pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
 
-            var visitor = new MakeDictAccessesSafeVisitor();
-            pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
+            //var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
+            //throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
 
-            var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
-            throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
-
-            return pq.ApplyAndExecute(new EnumerableQuery<TEntity>(GetEntityList<TEntityBase>().OfType<TEntity>()));
+            return GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
         }
 
 
@@ -241,9 +240,16 @@ namespace Pomona.Example
 
         public T Save<T>(T entity)
         {
-            var transformedType = (TransformedType)typeMapper.GetClassMapping<T>();
-            var saveMethodInstance = saveInternalMethod.MakeGenericMethod((transformedType.UriBaseType ?? transformedType).MappedTypeInstance);
+            var mappedTypeInstance = GetBaseUriType<T>();
+            var saveMethodInstance = saveInternalMethod.MakeGenericMethod(mappedTypeInstance);
             return (T)saveMethodInstance.Invoke(this, new object[] { entity });
+        }
+
+        private Type GetBaseUriType<T>()
+        {
+            var transformedType = (TransformedType) typeMapper.GetClassMapping<T>();
+            var mappedTypeInstance = (transformedType.UriBaseType ?? transformedType).MappedTypeInstance;
+            return mappedTypeInstance;
         }
 
         public T SaveInternal<T>(T entity)

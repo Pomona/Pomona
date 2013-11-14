@@ -147,6 +147,7 @@
     <Compile Include="Handlers\HandlerInfo.cs" />
     <Compile Include="Handlers\PomonaMethodScanner.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
+    <Compile Include="HttpMethod.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
@@ -175,6 +176,7 @@
     <Compile Include="Queries\PomonaQueryParser.cs" />
     <Compile Include="Queries\QueryParseException.cs" />
     <Compile Include="Queries\TypeNameNode.cs" />
+    <Compile Include="ResourceNode.cs" />
     <Compile Include="ResourceNotFoundException.cs" />
     <Compile Include="PomonaMappingException.cs" />
     <Compile Include="PomonaModule.cs" />
