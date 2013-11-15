@@ -58,7 +58,7 @@ namespace Pomona.Common.Web
 
         public async Task<WebClientResponseMessage> SendAsync(WebClientRequestMessage requestMessage)
         {
-            var httpRequestMessage = new HttpRequestMessage(new HttpMethod(requestMessage.Method), requestMessage.Uri);
+            var httpRequestMessage = new HttpRequestMessage(new System.Net.Http.HttpMethod(requestMessage.Method), requestMessage.Uri);
 
             if (Credentials != null)
                 throw new NotImplementedException("Authentication not yet implemented in async web client!");
