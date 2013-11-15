@@ -167,21 +167,6 @@ namespace Pomona
             }
         }
 
-        private PomonaResponse PostOrPatch(TransformedType transformedType, Stream body,
-                                           object patchedObject = null)
-        {
-            var postResource = Deserialize(transformedType, body, patchedObject);
-            var method = patchedObject != null ? patchGenericMethod : postGenericMethod;
-            var postResponse = method.MakeGenericMethod(postResource.GetType())
-                                     .Invoke(this, new[] { postResource });
-
-            var successStatusCode = patchedObject != null ? HttpStatusCode.OK : HttpStatusCode.Created;
-            var expandedPaths = string.Join(",", Request.Headers["X-Pomona-Expand"]);
-
-            return new PomonaResponse(postResponse, successStatusCode, expandedPaths);
-        }
-
-
         public object GetById(TransformedType transformedType, object id)
         {
             return getByIdMethod.MakeGenericMethod(transformedType.MappedTypeInstance)
