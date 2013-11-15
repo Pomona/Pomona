@@ -50,7 +50,7 @@ namespace Pomona
             get { return this.type.AllowedMethods; }
         }
 
-        public override IMappedType Type
+        public new ResourceType Type
         {
             get { return this.type; }
         }
@@ -69,6 +69,12 @@ namespace Pomona
 
             var value = property.Getter(Value);
             return CreateNode(TypeMapper, this, name, value, property.PropertyType);
+        }
+
+
+        protected override IMappedType OnGetType()
+        {
+            return this.type;
         }
     }
 }

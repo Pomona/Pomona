@@ -52,15 +52,8 @@ namespace Pomona
         private static readonly MethodInfo getByIdMethod =
             ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
 
-        private static readonly MethodInfo postGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePost((object)null));
-
-        private static readonly MethodInfo patchGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaModule>(dst => dst.InvokeDataSourcePatch((object)null));
-
         private readonly IPomonaDataSource dataSource;
         private readonly IDeserializer deserializer;
-        private readonly IHttpQueryTransformer queryTransformer;
         private readonly IServiceLocator serviceLocator;
         private readonly TypeMapper typeMapper;
 
@@ -84,9 +77,6 @@ namespace Pomona
 
             this.typeMapper = typeMapper;
             this.serviceLocator = serviceLocator;
-
-            queryTransformer = new PomonaHttpQueryTransformer(
-                this.typeMapper, new QueryExpressionParser(new QueryTypeResolver(this.typeMapper)));
 
             deserializer = typeMapper.SerializerFactory.GetDeserializer();
 

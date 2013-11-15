@@ -58,16 +58,18 @@ namespace Pomona.RequestProcessing
         public virtual PomonaResponse Process(PomonaRequest request)
         {
             var queryableNode = request.Node as QueryableNode;
-            if (request.Method == HttpMethod.Post && queryableNode != null
-                && queryableNode.ItemResourceType.IsRootResource)
+            var resourceNode = request.Node as ResourceNode;
+            if (request.Method == HttpMethod.Post)
             {
-                var form = request.Bind();
-                return
-                    (PomonaResponse)
-                        this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+                if (queryableNode != null && queryableNode.ItemResourceType.IsRootResource)
+                {
+                    var form = request.Bind();
+                    return
+                        (PomonaResponse)
+                            this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+                }
             }
 
-            var resourceNode = request.Node as ResourceNode;
             if (request.Method == HttpMethod.Patch && resourceNode != null)
             {
                 var patchedObject = request.Bind();

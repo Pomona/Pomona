@@ -71,7 +71,10 @@ namespace Pomona
             get { return this.parent; }
         }
 
-        public abstract IMappedType Type { get; }
+
+        protected abstract IMappedType OnGetType();
+
+        public IMappedType Type { get { return OnGetType(); } }
 
         public ITypeMapper TypeMapper
         {

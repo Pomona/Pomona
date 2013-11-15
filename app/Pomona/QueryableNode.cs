@@ -118,11 +118,6 @@ namespace Pomona
             get { return (ResourceType)this.collectionType.ElementType; }
         }
 
-        public override IMappedType Type
-        {
-            get { return this.collectionType; }
-        }
-
         public override object Value
         {
             get { return this.value; }
@@ -142,6 +137,12 @@ namespace Pomona
         public IQueryable GetAsQueryable()
         {
             return GetQueryableResolver().Resolve(this);
+        }
+
+
+        protected override IMappedType OnGetType()
+        {
+            return this.collectionType;
         }
 
 

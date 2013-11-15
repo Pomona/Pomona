@@ -54,10 +54,11 @@ namespace Pomona
         }
 
 
-        public override IMappedType Type
+        protected override IMappedType OnGetType()
         {
-            get { return null; }
+            return null;
         }
+
 
         public override object Value
         {

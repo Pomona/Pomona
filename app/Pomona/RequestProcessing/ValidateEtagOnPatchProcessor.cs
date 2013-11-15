@@ -43,7 +43,7 @@ namespace Pomona.RequestProcessing
                 || (ifMatch = GetIfMatchFromRequest(request)) == null)
                 return null;
 
-            var resourceType = (ResourceType)resourceNode.Type;
+            var resourceType = resourceNode.Type;
             var etagProp = resourceType.ETagProperty;
             if (etagProp == null)
                 throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
