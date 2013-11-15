@@ -27,21 +27,19 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
+
 using Microsoft.Practices.ServiceLocation;
+
 using Nancy;
+
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
-using Pomona.Queries;
 using Pomona.RequestProcessing;
 using Pomona.Schemas;
 
@@ -49,11 +47,7 @@ namespace Pomona
 {
     public abstract class PomonaModule : NancyModule
     {
-        private static readonly MethodInfo getByIdMethod =
-            ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(dst => dst.GetById<object>(null));
-
         private readonly IPomonaDataSource dataSource;
-        private readonly IDeserializer deserializer;
         private readonly IServiceLocator serviceLocator;
         private readonly TypeMapper typeMapper;
 
@@ -65,29 +59,23 @@ namespace Pomona
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
-                {
-                    if (String.IsNullOrEmpty(ctx.Request.Url.HostName))
-                    {
-                        ctx.Request.Url.HostName = "test";
-                    }
-                    return null;
-                };
+            {
+                if (String.IsNullOrEmpty(ctx.Request.Url.HostName))
+                    ctx.Request.Url.HostName = "test";
+                return null;
+            };
 
             this.dataSource = dataSource;
 
             this.typeMapper = typeMapper;
             this.serviceLocator = serviceLocator;
 
-            deserializer = typeMapper.SerializerFactory.GetDeserializer();
-
             foreach (var transformedType in this.typeMapper
-                                                .TransformedTypes
-                                                .Select(x => x.UriBaseType)
-                                                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous())
-                                                .Distinct())
-            {
+                .TransformedTypes
+                .Select(x => x.UriBaseType)
+                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous())
+                .Distinct())
                 RegisterRoutesFor(transformedType);
-            }
 
             Get["/schemas"] = x => GetSchemas();
 
@@ -104,120 +92,44 @@ namespace Pomona
             RegisterResourceContent("QueryEditor.js");
         }
 
-        public IPomonaDataSource DataSource
-        {
-            get { return dataSource; }
-        }
-
-
-        public ITypeMapper TypeMapper
-        {
-            get { return typeMapper; }
-        }
 
         public virtual IResourceResolver ResourceResolver
         {
-            get { return new ResourceResolver(typeMapper, Context, serviceLocator); }
+            get { return new ResourceResolver(this.typeMapper, Context, this.serviceLocator); }
+        }
+
+        public IPomonaDataSource DataSource
+        {
+            get { return this.dataSource; }
+        }
+
+        public ITypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
         }
 
 
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
-            ClientLibGenerator.WriteClientLibrary(typeMapper, stream, embedPomonaClient);
-        }
-
-        public PomonaResponse Query(PomonaQuery query)
-        {
-            throw new NotImplementedException();
-            //return dataSource.Query(query);
-        }
-
-        private object InvokeDataSourcePatch<T>(T entity) where T:class
-        {
-            if (!((TransformedType)typeMapper.GetClassMapping<T>()).PatchAllowed)
-                throw new PomonaException("Method PATCH not allowed", null, HttpStatusCode.MethodNotAllowed);
-            return dataSource.Patch(entity);
-        }
-
-        private object InvokeDataSourcePost<T>(T entity) where T : class
-        {
-            if (!((TransformedType)typeMapper.GetClassMapping<T>()).PostAllowed)
-                throw new PomonaException("Method POST not allowed", null, HttpStatusCode.MethodNotAllowed);
-            return dataSource.Post(entity);
+            ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, embedPomonaClient);
         }
 
 
-        public object Deserialize(TransformedType expectedBaseType, Stream body, object patchedObject = null)
+        protected virtual PomonaError OnException(Exception exception)
         {
-            using (var textReader = new StreamReader(body))
-            {
-                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.ResourceResolver);
-                return deserializer.Deserialize(textReader, expectedBaseType, deserializationContext,
-                                                patchedObject);
-            }
-        }
-
-        public object GetById(TransformedType transformedType, object id)
-        {
-            return getByIdMethod.MakeGenericMethod(transformedType.MappedTypeInstance)
-                                .Invoke(dataSource, new[] { id });
+            if (exception is PomonaSerializationException)
+                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
+            if (exception is PomonaException)
+                return new PomonaError(((PomonaException)exception).StatusCode);
+            return null;
         }
 
 
-        public PomonaResponse GetPropertyAsJson(
-            TransformedType transformedType, object id, string propertyName, string expand)
+        protected virtual Exception UnwrapException(Exception exception)
         {
-            // Note this is NOT optimized, as we should make the API in a way where it's possible to select by parent id.
-            propertyName = propertyName.ToLower();
-
-            var o = GetById(transformedType, id);
-            var mappedType = (TransformedType)typeMapper.GetClassMapping(o.GetType());
-
-            var property =
-                mappedType.Properties.OfType<PropertyMapping>()
-                          .FirstOrDefault(
-                              x => String.Equals(propertyName, x.UriName, StringComparison.InvariantCultureIgnoreCase));
-
-            if (property == null)
-                throw new ResourceNotFoundException("Resource not found.");
-
-            var propertyValue = property.Getter(o);
-            var propertyType = property.PropertyType;
-
-            return
-                new PomonaResponse(propertyValue, expandedPaths: expand, resultType: propertyType);
-        }
-
-
-        private void RegisterResourceContent(string name)
-        {
-            var mediaType = "text/html";
-            if (name.EndsWith(".js"))
-                mediaType = "text/javascript";
-            if (name.EndsWith(".css"))
-                mediaType = "text/css";
-
-            var resourceName = "Pomona.Content." + name;
-            Get["/" + name] = x =>
-                              Response.FromStream(
-                                  () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
-                                  mediaType);
-        }
-
-        private object GetJsonBrowserHtmlResponse()
-        {
-            var resourceName = "Pomona.Content.jsonbrowser.html";
-            return
-                Response.FromStream(
-                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName), "text/html");
-        }
-
-
-        public PomonaResponse GetAsJson(TransformedType transformedType, object id, string expand)
-        {
-            var o = GetById(transformedType, id);
-            return
-                new PomonaResponse(o, expandedPaths: expand, resultType: transformedType);
+            if (exception is TargetInvocationException || exception is RequestExecutionException)
+                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
+            return exception;
         }
 
 
@@ -236,150 +148,49 @@ namespace Pomona
         {
             var response = new Response();
 
-            var packageBuilder = new ClientNugetPackageBuilder(typeMapper);
+            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
             response.Contents = stream =>
+            {
+                using (var memstream = new MemoryStream())
                 {
-                    using (var memstream = new MemoryStream())
-                    {
-                        packageBuilder.BuildPackage(memstream);
-                        var bytes = memstream.ToArray();
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-                };
+                    packageBuilder.BuildPackage(memstream);
+                    var bytes = memstream.ToArray();
+                    stream.Write(bytes, 0, bytes.Length);
+                }
+            };
             response.ContentType = "binary/octet-stream";
 
             return response;
         }
 
 
-        private Response GetSchemas()
+        private object GetJsonBrowserHtmlResponse()
         {
-            var res = new Response();
-
-            var schemas = new SchemaGenerator(typeMapper).Generate().ToJson();
-            res.ContentsFromString(schemas);
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
+            var resourceName = "Pomona.Content.jsonbrowser.html";
+            return
+                Response.FromStream(
+                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
+                    "text/html");
         }
 
-        private void RegisterClientNugetPackageRoute()
-        {
-            var packageBuilder = new ClientNugetPackageBuilder(typeMapper);
-            Get["/client.nupkg"] = x => Response.AsRedirect(packageBuilder.PackageFileName);
-            Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
-        }
-
-
-        protected virtual Exception UnwrapException(Exception exception)
-        {
-            if (exception is TargetInvocationException || exception is RequestExecutionException)
-            {
-                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
-            }
-            return exception;
-        }
-
-        protected virtual PomonaError OnException(Exception exception)
-        {
-            if (exception is PomonaSerializationException)
-            {
-                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
-            }
-            if (exception is PomonaException)
-            {
-                return new PomonaError(((PomonaException)exception).StatusCode);
-            }
-            return null;
-        }
-
-        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, PomonaResponse> handler)
-        {
-            routeBuilder[path] = x =>
-                {
-                    try
-                    {
-                        var pomonaResponse = (PomonaResponse)handler(x);
-
-                        if ((int)pomonaResponse.StatusCode >= 400)
-                            SetErrorHandled();
-
-                        return pomonaResponse;
-                    }
-                    catch (Exception ex)
-                    {
-                        var error = OnException(UnwrapException(ex));
-                        if (error == null)
-                            throw;
-
-                        SetErrorHandled();
-                        return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
-                                                  error.StatusCode, responseHeaders: error.ResponseHeaders);
-                    }
-                };
-        }
-
-        private void SetErrorHandled()
-        {
-            Context.Items["ERROR_HANDLED"] = true;
-        }
-
-        private void RegisterRoutesFor(TransformedType type)
-        {
-            var path = "/" + type.UriRelativePath;
-            //Console.WriteLine("Registering path " + path);
-
-            //Register(Get, path + "/{id}", x => GetAsJson(type, x.id));
-
-            //foreach (var prop in type.Properties)
-            //{
-            //    var transformedProp = prop as PropertyMapping;
-            //    if (transformedProp != null && transformedProp.IsOneToManyCollection
-            //        && transformedProp.ElementForeignKey != null)
-            //    {
-            //        var collectionElementType = (TransformedType)prop.PropertyType.ElementType;
-            //        var elementForeignKey = transformedProp.ElementForeignKey;
-
-            //        Register(Get, path + "/{id}/" + transformedProp.UriName,
-            //                 x => GetByForeignKeyPropertyAsJson(collectionElementType, elementForeignKey, x.id));
-            //    }
-            //}
-
-            //Register(Get, path + "/{id}/{propname}", x => GetPropertyFromEntityAsJson(type, x.id, x.propname));
-
-            //Register(Get, path, x => Query(type));
-            Register(Get, path + "/{remaining*}", x => GetResource());
-            Register(Get, path, x => GetResource());
-            Register(Post, path, x => GetResource());
-            Register(Patch, path + "/{remaining*}", x => GetResource());
-
-            Register(Post, path + "/{id}", x => PostToResource(type, x.id));
-
-
-
-        }
 
         private PomonaResponse GetResource()
         {
             var pathNodes = new LinkedList<string>(Request.Url.Path.Split('/')).First;
-            var rootNode = new DataSourceRootNode(TypeMapper, dataSource);
+            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource);
             PathNode node = rootNode;
             foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Skip(1).Select(x => x.Value))
-            {
                 node = node.GetChildNode(pathPart);
-            }
 
             var pomonaRequest = new PomonaRequest(node, Context, ResourceResolver);
 
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
 
-            IEnumerable<IPomonaRequestProcessor> processors = Enumerable.Empty<IPomonaRequestProcessor>();
+            var processors = Enumerable.Empty<IPomonaRequestProcessor>();
 
             if (pomonaRequest.Method == HttpMethod.Patch)
-            {
                 processors = processors.Concat(new ValidateEtagOnPatchProcessor());
-            }
 
             processors = processors.Concat(
                 node.GetRequestProcessors(pomonaRequest).Concat(
@@ -392,30 +203,87 @@ namespace Pomona
         }
 
 
-        private PomonaResponse PostToResource(TransformedType type, object id, string actionName = "")
+        private Response GetSchemas()
         {
-            var o = GetById(type, id);
-            var mappedType = (TransformedType)typeMapper.GetClassMapping(o.GetType());
-            var form = Deserialize(null, Request.Body);
+            var res = new Response();
 
-            var handlers =
-                mappedType.PostHandlers.Where(
-                    x => String.Equals(actionName, x.UriName ?? "", StringComparison.InvariantCultureIgnoreCase))
-                          .Where(x => x.FormType.MappedTypeInstance.IsInstanceOfType(form))
-                          .ToList();
+            var schemas = new SchemaGenerator(this.typeMapper).Generate().ToJson();
+            res.ContentsFromString(schemas);
+            res.ContentType = "text/plain; charset=utf-8";
 
-            if (handlers.Count < 1)
-                throw new ResourceNotFoundException("TODO: Should throw method not allowed..");
-
-            if (handlers.Count > 1)
-                throw new NotImplementedException(
-                    "TODO: Overload resolution not fully implemented when posting to a resource.");
-
-            var handler = handlers[0];
-            var result = handler.Method.Invoke(DataSource, new[] { o, form });
-
-            return new PomonaResponse(result);
+            return res;
         }
+
+
+        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, PomonaResponse> handler)
+        {
+            routeBuilder[path] = x =>
+            {
+                try
+                {
+                    var pomonaResponse = (PomonaResponse)handler(x);
+
+                    if ((int)pomonaResponse.StatusCode >= 400)
+                        SetErrorHandled();
+
+                    return pomonaResponse;
+                }
+                catch (Exception ex)
+                {
+                    var error = OnException(UnwrapException(ex));
+                    if (error == null)
+                        throw;
+
+                    SetErrorHandled();
+                    return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
+                        error.StatusCode,
+                        responseHeaders : error.ResponseHeaders);
+                }
+            };
+        }
+
+
+        private void RegisterClientNugetPackageRoute()
+        {
+            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            Get["/client.nupkg"] = x => Response.AsRedirect(packageBuilder.PackageFileName);
+            Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
+        }
+
+
+        private void RegisterResourceContent(string name)
+        {
+            var mediaType = "text/html";
+            if (name.EndsWith(".js"))
+                mediaType = "text/javascript";
+            if (name.EndsWith(".css"))
+                mediaType = "text/css";
+
+            var resourceName = "Pomona.Content." + name;
+            Get["/" + name] = x =>
+                Response.FromStream(
+                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
+                    mediaType);
+        }
+
+
+        private void RegisterRoutesFor(TransformedType type)
+        {
+            var path = "/" + type.UriRelativePath;
+
+            Register(Get, path + "/{remaining*}", x => GetResource());
+            Register(Get, path, x => GetResource());
+            Register(Post, path, x => GetResource());
+            Register(Patch, path + "/{remaining*}", x => GetResource());
+            Register(Post, path + "/{remaining*}", x => GetResource());
+        }
+
+
+        private void SetErrorHandled()
+        {
+            Context.Items["ERROR_HANDLED"] = true;
+        }
+
 
         private void ThrowMethodNotAllowedForType(HttpMethod allowedMethods)
         {
@@ -425,8 +293,10 @@ namespace Pomona
 
             var allowHeader = new KeyValuePair<string, string>("Allow", allowedMethodsString);
 
-            throw new PomonaException("Method " + Context.Request.Method + " not allowed!", null,
-                                      HttpStatusCode.MethodNotAllowed, allowHeader.WrapAsEnumerable());
+            throw new PomonaException("Method " + Context.Request.Method + " not allowed!",
+                null,
+                HttpStatusCode.MethodNotAllowed,
+                allowHeader.WrapAsEnumerable());
         }
     }
 }

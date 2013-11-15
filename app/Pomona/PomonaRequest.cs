@@ -111,10 +111,7 @@ namespace Pomona
                     type = TypeMapper.GetClassMapping(patchedObject.GetType());
             }
 
-            var transformedType = type as TransformedType;
-            if (transformedType == null)
-                throw new NotSupportedException("Only knows how to deserialize a TransformedType");
-            return Deserialize(transformedType, NancyRequest.Body, patchedObject);
+            return Deserialize(type as TransformedType, NancyRequest.Body, patchedObject);
         }
 
 

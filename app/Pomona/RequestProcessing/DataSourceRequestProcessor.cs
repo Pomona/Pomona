@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Reflection;
 
 using Nancy;
@@ -67,6 +68,32 @@ namespace Pomona.RequestProcessing
                     return
                         (PomonaResponse)
                             this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+                }
+                if (resourceNode != null)
+                {
+                    // Post to resource..
+                    var o = resourceNode.Value;
+                    var mappedType = (TransformedType)resourceNode.TypeMapper.GetClassMapping(o.GetType());
+                    var form = request.Bind();
+
+                    var handlers =
+                        mappedType.PostHandlers.Where(
+                            x => string.IsNullOrEmpty(x.UriName))
+                                  .Where(x => x.FormType.MappedTypeInstance.IsInstanceOfType(form))
+                                  .ToList();
+
+                    if (handlers.Count < 1)
+                        throw new ResourceNotFoundException("TODO: Should throw method not allowed..");
+
+                    if (handlers.Count > 1)
+                        throw new NotImplementedException(
+                            "TODO: Overload resolution not fully implemented when posting to a resource.");
+
+                    var handler = handlers[0];
+                    var result = handler.Method.Invoke(dataSource, new[] { o, form });
+
+                    return new PomonaResponse(result);
+
                 }
             }
 
