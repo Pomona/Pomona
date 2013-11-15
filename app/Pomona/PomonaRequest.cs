@@ -28,7 +28,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 
 using Nancy;
 
@@ -139,24 +138,6 @@ namespace Pomona
                     deserializationContext,
                     patchedObject);
             }
-        }
-
-
-        private string GetIfMatchFromRequest()
-        {
-            var ifMatch = NancyRequest.Headers.IfMatch.FirstOrDefault();
-            if (ifMatch != null)
-            {
-                ifMatch = ifMatch.Trim();
-                if (ifMatch.Length < 2 || ifMatch[0] != '"' || ifMatch[ifMatch.Length - 1] != '"')
-                {
-                    throw new NotImplementedException(
-                        "Only recognized If-Match with quotes around, * not yet supported (TODO).");
-                }
-
-                ifMatch = ifMatch.Substring(1, ifMatch.Length - 2);
-            }
-            return ifMatch;
         }
     }
 }
