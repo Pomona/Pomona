@@ -134,9 +134,9 @@ namespace Pomona
         }
 
 
-        public IQueryable GetAsQueryable()
+        public IQueryable GetAsQueryable(IMappedType ofType = null)
         {
-            return GetQueryableResolver().Resolve(this);
+            return GetQueryableResolver().Resolve(this, ofType);
         }
 
 

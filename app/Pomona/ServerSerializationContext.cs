@@ -117,6 +117,9 @@ namespace Pomona
 
         private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
         {
+            if (node.ExpectedBaseType.IsCollection && node.ExpectedBaseType.ElementType.IsAlwaysExpanded)
+                return true;
+
             if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
                 IsAlwaysExpandedPropertyNode(node.ParentNode))
             {

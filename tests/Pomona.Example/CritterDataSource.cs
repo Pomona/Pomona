@@ -63,12 +63,6 @@ namespace Pomona.Example
         }
 
 
-        public T GetById<T>(object id) where T : class
-        {
-            return this.store.GetById<T>(id);
-        }
-
-
         public object Patch<T>(T updatedObject) where T : class
         {
             return this.store.Patch(updatedObject);

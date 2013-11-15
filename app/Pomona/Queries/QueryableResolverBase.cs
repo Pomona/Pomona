@@ -29,6 +29,7 @@
 using System.Linq;
 using System.Reflection;
 
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
 namespace Pomona.Queries
@@ -36,19 +37,21 @@ namespace Pomona.Queries
     public abstract class QueryableResolverBase : IQueryableResolver
     {
         private static MethodInfo resolveMethod =
-            ReflectionHelper.GetMethodDefinition<QueryableResolverBase>(x => x.Resolve<object>(null));
+            ReflectionHelper.GetMethodDefinition<QueryableResolverBase>(x => x.Resolve<object, object>(null));
 
 
-        public virtual IQueryable Resolve(QueryableNode node)
+        public virtual IQueryable Resolve(QueryableNode node, IMappedType ofType)
         {
             return
                 (IQueryable)
-                    resolveMethod.MakeGenericMethod(node.ItemResourceType.MappedTypeInstance).Invoke(this,
-                        new object[] { node });
+                    resolveMethod.MakeGenericMethod((ofType ?? node.ItemResourceType).MappedTypeInstance,
+                        node.ItemResourceType.MappedTypeInstance).Invoke(this,
+                            new object[] { node });
         }
 
 
-        protected abstract IQueryable<TResource> Resolve<TResource>(QueryableNode<TResource> node)
-            where TResource : class;
+        protected abstract IQueryable<TResource> Resolve<TResource, TBaseResource>(QueryableNode<TBaseResource> node)
+            where TResource : class, TBaseResource
+            where TBaseResource : class;
     }
 }

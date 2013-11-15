@@ -122,7 +122,7 @@ namespace Pomona
 
         public IQueryable ApplyExpressions(IQueryable queryable)
         {
-            if (SourceType != OfType)
+            if (queryable.ElementType != OfType.MappedTypeInstance)
             {
                 queryable =
                     (IQueryable)

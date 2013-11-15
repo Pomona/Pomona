@@ -26,6 +26,8 @@
 
 #endregion
 
+using System.Linq;
+
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
@@ -47,7 +49,12 @@ namespace Pomona
 
         public override HttpMethod AllowedMethods
         {
-            get { return this.type.AllowedMethods; }
+            get
+            {
+                // TODO: Currently there's no good way to define that POST to a resource is allowed while POST to collection is not allowed.
+                // The code below is a workaround: if there's any defined PostHandlers we will allow POST.
+                return this.type.AllowedMethods | (type.PostHandlers.Any() ? HttpMethod.Post : 0);
+            }
         }
 
         public new ResourceType Type

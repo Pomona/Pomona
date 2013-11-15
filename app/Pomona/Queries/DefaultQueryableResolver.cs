@@ -31,11 +31,14 @@ using System.Linq;
 
 namespace Pomona.Queries
 {
-    public class DefaultQueryableResolver : IQueryableResolver
+    public class DefaultQueryableResolver : QueryableResolverBase
     {
-        public IQueryable Resolve(QueryableNode node)
+        protected override IQueryable<TResource> Resolve<TResource, TBaseResource>(QueryableNode<TBaseResource> node)
         {
-            return ((IEnumerable)node.Value).AsQueryable();
+            var queryable = ((IEnumerable)node.Value).AsQueryable();
+            if (queryable is IQueryable<TResource>)
+                return (IQueryable<TResource>)queryable;
+            return queryable.OfType<TResource>();
         }
     }
 }

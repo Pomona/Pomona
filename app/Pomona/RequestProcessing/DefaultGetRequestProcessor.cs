@@ -53,7 +53,10 @@ namespace Pomona.RequestProcessing
 
             var queryableNode = request.Node as QueryableNode;
             if (queryableNode != null)
-                return this.queryExecutor.ApplyAndExecute(queryableNode.GetAsQueryable(), request.ParseQuery());
+            {
+                var pomonaQuery = request.ParseQuery();
+                return this.queryExecutor.ApplyAndExecute(queryableNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
+            }
             var resourceNode = request.Node as ResourceNode;
             if (resourceNode != null)
                 return new PomonaResponse(resourceNode.Value, expandedPaths : request.ExpandedPaths);

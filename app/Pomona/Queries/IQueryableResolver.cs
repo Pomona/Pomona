@@ -28,6 +28,8 @@
 
 using System.Linq;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Queries
 {
     public interface IQueryableResolver
@@ -36,7 +38,8 @@ namespace Pomona.Queries
         /// Get the QueryableNode as IQueryable
         /// </summary>
         /// <param name="node">The node to get corresponding IQueryable for.</param>
+        /// <param name="ofType">Optional: The subclass to get.</param>
         /// <returns>The resulting IQueryable if success, null if not.</returns>
-        IQueryable Resolve(QueryableNode node);
+        IQueryable Resolve(QueryableNode node, IMappedType ofType = null);
     }
 }

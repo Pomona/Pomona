@@ -95,39 +95,6 @@ namespace Pomona.Example
             }
         }
 
-        public T GetById<T>(object id)
-        {
-            lock (syncLock)
-            {
-                object entity;
-                try
-                {
-                    if (typeof(CelestialObject).IsAssignableFrom(typeof(T)))
-                    {
-                        entity = GetEntityList<T>().Cast<CelestialObject>().FirstOrDefault(x => x.Name == (string)id);
-                    }
-                    else
-                    {
-                        var idInt = Convert.ToInt32(id);
-                        entity = GetEntityList<T>().Cast<EntityBase>().FirstOrDefault(x => x.Id == idInt);
-                    }
-                }
-                catch (Exception)
-                {
-                    entity = null;
-                }
-
-                if (entity == null)
-                {
-                    throw new ResourceNotFoundException(
-                        string.Format("No entity of type {0} with id {1} found.", typeof (T).Name, id));
-                }
-
-                return (T)entity;
-            }
-        }
-
-
         public object Post<T>(T newObject)
         {
             lock (syncLock)
