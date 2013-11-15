@@ -61,7 +61,7 @@ namespace Pomona.RequestProcessing
                 var form = request.Bind();
                 return
                     (PomonaResponse)
-                        this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { request.Bind(), request });
+                        this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
             }
             return null;
         }
