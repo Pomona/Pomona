@@ -40,6 +40,9 @@ namespace Pomona.RequestProcessing
     {
         private readonly IPomonaDataSource dataSource;
 
+        private readonly MethodInfo patchMethod =
+            ReflectionHelper.GetMethodDefinition<DataSourceRequestProcessor>(x => x.Patch<object>(null, null));
+
         private readonly MethodInfo postMethod =
             ReflectionHelper.GetMethodDefinition<DataSourceRequestProcessor>(x => x.Post<object>(null, null));
 
@@ -63,7 +66,23 @@ namespace Pomona.RequestProcessing
                     (PomonaResponse)
                         this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
             }
+
+            var resourceNode = request.Node as ResourceNode;
+            if (request.Method == HttpMethod.Patch && resourceNode != null)
+            {
+                var patchedObject = request.Bind();
+                return (PomonaResponse)
+                    this.patchMethod.MakeGenericMethod(patchedObject.GetType()).Invoke(this,
+                        new[] { patchedObject, request });
+            }
             return null;
+        }
+
+
+        public PomonaResponse Patch<T>(T form, PomonaRequest request)
+            where T : class
+        {
+            return new PomonaResponse(this.dataSource.Patch(form), HttpStatusCode.OK, request.ExpandedPaths);
         }
 
 

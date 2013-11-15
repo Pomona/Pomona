@@ -28,10 +28,12 @@
 
 using System;
 using System.IO;
+using System.Linq;
 
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
@@ -40,6 +42,7 @@ namespace Pomona
     public class PomonaRequest
     {
         private readonly NancyContext context;
+        private readonly HttpMethod method;
         private readonly PathNode node;
         private readonly IResourceResolver resourceResolver;
 
@@ -55,17 +58,29 @@ namespace Pomona
             this.node = node;
             this.context = context;
             this.resourceResolver = resourceResolver;
+            this.method = (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
         }
 
 
         public string ExpandedPaths
         {
-            get { return NancyRequest.Query["$expand"].HasValue ? NancyRequest.Query["$expand"] : string.Empty; }
+            get
+            {
+                var expansions = NancyRequest.Headers["X-Pomona-Expand"];
+                if (NancyRequest.Query["$expand"].HasValue)
+                    expansions = expansions.Concat((string)NancyRequest.Query["$expand"]);
+                return string.Join(",", expansions);
+            }
+        }
+
+        public RequestHeaders Headers
+        {
+            get { return NancyRequest.Headers; }
         }
 
         public HttpMethod Method
         {
-            get { return (HttpMethod)Enum.Parse(typeof(HttpMethod), NancyRequest.Method, true); }
+            get { return this.method; }
         }
 
         public Request NancyRequest
@@ -84,21 +99,22 @@ namespace Pomona
         }
 
 
-        public object Bind()
+        public object Bind(IMappedType type = null, object patchedObject = null)
         {
-            if (Method != HttpMethod.Post)
-                throw new NotImplementedException("Only knows how to deserialize without specifying type on Post.");
-            return Bind(Node.ExpectedPostType);
-        }
+            if (Method == HttpMethod.Post)
+                type = type ?? Node.ExpectedPostType;
 
+            if (Method == HttpMethod.Patch)
+            {
+                patchedObject = patchedObject ?? Node.Value;
+                if (patchedObject != null)
+                    type = TypeMapper.GetClassMapping(patchedObject.GetType());
+            }
 
-        public object Bind(IMappedType type)
-        {
-            // TODO: Refactor binding, currently hard-coded to JSON
             var transformedType = type as TransformedType;
             if (transformedType == null)
                 throw new NotSupportedException("Only knows how to deserialize a TransformedType");
-            return Deserialize(transformedType, NancyRequest.Body);
+            return Deserialize(transformedType, NancyRequest.Body, patchedObject);
         }
 
 
@@ -126,6 +142,24 @@ namespace Pomona
                     deserializationContext,
                     patchedObject);
             }
+        }
+
+
+        private string GetIfMatchFromRequest()
+        {
+            var ifMatch = NancyRequest.Headers.IfMatch.FirstOrDefault();
+            if (ifMatch != null)
+            {
+                ifMatch = ifMatch.Trim();
+                if (ifMatch.Length < 2 || ifMatch[0] != '"' || ifMatch[ifMatch.Length - 1] != '"')
+                {
+                    throw new NotImplementedException(
+                        "Only recognized If-Match with quotes around, * not yet supported (TODO).");
+                }
+
+                ifMatch = ifMatch.Substring(1, ifMatch.Length - 2);
+            }
+            return ifMatch;
         }
     }
 }

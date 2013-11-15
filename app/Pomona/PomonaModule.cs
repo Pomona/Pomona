@@ -288,25 +288,6 @@ namespace Pomona
             return res;
         }
 
-
-        private PomonaResponse PostFromJson(TransformedType transformedType)
-        {
-            if (!transformedType.PostAllowed)
-                ThrowMethodNotAllowedForType(transformedType.AllowedMethods);
-
-            return PostOrPatch(transformedType, Request.Body);
-        }
-
-        private PomonaResponse Query(TransformedType transformedType)
-        {
-            // REMOVE THIS
-
-            var query = queryTransformer.TransformRequest(Context, transformedType);
-
-            return Query(query);
-        }
-
-
         private void RegisterClientNugetPackageRoute()
         {
             var packageBuilder = new ClientNugetPackageBuilder(typeMapper);
@@ -394,12 +375,12 @@ namespace Pomona
             //Register(Get, path, x => Query(type));
             Register(Get, path + "/{remaining*}", x => GetResource());
             Register(Get, path, x => GetResource());
+            Register(Post, path, x => GetResource());
+            Register(Patch, path + "/{remaining*}", x => GetResource());
 
             Register(Post, path + "/{id}", x => PostToResource(type, x.id));
 
-            Register(Patch, path + "/{id}", x => PatchFromJson(type, x.id));
 
-            Register(Post, path, x => GetResource());
 
         }
 
@@ -418,10 +399,21 @@ namespace Pomona
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
 
-            var processors =
+            IEnumerable<IPomonaRequestProcessor> processors = Enumerable.Empty<IPomonaRequestProcessor>();
+
+            if (pomonaRequest.Method == HttpMethod.Patch)
+            {
+                processors = processors.Concat(new ValidateEtagOnPatchProcessor());
+            }
+
+            processors = processors.Concat(
                 node.GetRequestProcessors(pomonaRequest).Concat(
-                    new DefaultGetRequestProcessor(node.GetQueryExecutor()));
-            return processors.Select(x => x.Process(pomonaRequest)).FirstOrDefault(x => x != null);
+                    new DefaultGetRequestProcessor(node.GetQueryExecutor())));
+
+            var response = processors.Select(x => x.Process(pomonaRequest)).FirstOrDefault(x => x != null);
+            if (response == null)
+                throw new PomonaException("Unable to find RequestProcessor able to handle request.");
+            return response;
         }
 
 
@@ -448,47 +440,6 @@ namespace Pomona
             var result = handler.Method.Invoke(DataSource, new[] { o, form });
 
             return new PomonaResponse(result);
-        }
-
-
-        private PomonaResponse PatchFromJson(TransformedType transformedType, object id)
-        {
-            if (!transformedType.PatchAllowed)
-                ThrowMethodNotAllowedForType(transformedType.AllowedMethods);
-
-            var ifMatch = GetIfMatchFromRequest();
-
-            var o = GetById(transformedType, id);
-
-            if (o != null && ifMatch != null)
-            {
-                var etagProp = transformedType.ETagProperty;
-                if (etagProp == null)
-                    throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
-
-                if ((string)etagProp.Getter(o) != ifMatch)
-                {
-                    throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
-                }
-            }
-
-            var objType = (TransformedType)typeMapper.GetClassMapping(o.GetType());
-            return PostOrPatch(objType, Request.Body, o);
-        }
-
-        private string GetIfMatchFromRequest()
-        {
-            var ifMatch = Request.Headers.IfMatch.FirstOrDefault();
-            if (ifMatch != null)
-            {
-                ifMatch = ifMatch.Trim();
-                if (ifMatch.Length < 2 || ifMatch[0] != '"' || ifMatch[ifMatch.Length - 1] != '"')
-                    throw new NotImplementedException(
-                        "Only recognized If-Match with quotes around, * not yet supported (TODO).");
-
-                ifMatch = ifMatch.Substring(1, ifMatch.Length - 2);
-            }
-            return ifMatch;
         }
 
         private void ThrowMethodNotAllowedForType(HttpMethod allowedMethods)
