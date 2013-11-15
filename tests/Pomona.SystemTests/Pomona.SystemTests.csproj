@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncClientQueryTests.cs" />
+    <Compile Include="ChildResourceTests.cs" />
     <Compile Include="ClientGeneratedTypeTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />

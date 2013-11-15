@@ -51,13 +51,13 @@ namespace Pomona.Common.TypeSystem
 
         #region Implementation of IPropertyInfo
 
-        public HttpAccessMode AccessMode
+        public HttpMethod AccessMode
         {
             get
             {
-                var mode = this.propertyInfo.CanRead ? HttpAccessMode.Get : default(HttpAccessMode);
+                var mode = this.propertyInfo.CanRead ? HttpMethod.Get : default(HttpMethod);
                 if (this.propertyInfo.CanWrite)
-                    mode |= HttpAccessMode.Patch | HttpAccessMode.Put | HttpAccessMode.Post;
+                    mode |= HttpMethod.Patch | HttpMethod.Put | HttpMethod.Post;
                 return mode;
             }
         }
@@ -107,12 +107,12 @@ namespace Pomona.Common.TypeSystem
             get { return this.propertyInfo.GetSetMethod() != null; }
         }
 
-        public HttpAccessMode ItemAccessMode
+        public HttpMethod ItemAccessMode
         {
             get
             {
-                return HttpAccessMode.Get | HttpAccessMode.Delete | HttpAccessMode.Post | HttpAccessMode.Put
-                       | HttpAccessMode.Delete;
+                return HttpMethod.Get | HttpMethod.Delete | HttpMethod.Post | HttpMethod.Put
+                       | HttpMethod.Delete;
             }
         }
 

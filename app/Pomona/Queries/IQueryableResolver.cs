@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,28 +24,22 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
+#endregion
 
-namespace Pomona.Common.TypeSystem
+using System.Linq;
+
+using Pomona.Common.TypeSystem;
+
+namespace Pomona.Queries
 {
-    [Flags]
-    public enum HttpAccessMode
+    public interface IQueryableResolver
     {
-
         /// <summary>
-        /// Property is readable.
+        /// Get the QueryableNode as IQueryable
         /// </summary>
-        Get = 1,
-
-        Post = 1 << 1,
-
-        /// <summary>
-        /// Property is settable, always implies that Post is also allowed.
-        /// </summary>
-        Put = 1 << 2,
-        
-        Patch = 1 << 3,
-
-        Delete = 1 << 4
+        /// <param name="node">The node to get corresponding IQueryable for.</param>
+        /// <param name="ofType">Optional: The subclass to get.</param>
+        /// <returns>The resulting IQueryable if success, null if not.</returns>
+        IQueryable Resolve(QueryableNode node, IMappedType ofType = null);
     }
 }

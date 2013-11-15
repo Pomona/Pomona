@@ -146,9 +146,13 @@ namespace TestNs
         }
 
 
-        public HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        public HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
         {
-            return wrappedFilter.GetPropertyItemAccessMode(propertyInfo);
+            return FromMappingOrDefault(propertyInfo,
+                x =>
+                    (x.ItemMethod & x.ItemMethodMask)
+                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
+                () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 
 
@@ -173,12 +177,12 @@ namespace TestNs
         }
 
 
-        public HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        public HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(propertyInfo,
                 x =>
-                    (x.AccessMode & x.AccessModeMask)
-                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.AccessModeMask)),
+                    (x.Method & x.MethodMask)
+                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.MethodMask)),
                 () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 
@@ -250,6 +254,22 @@ namespace TestNs
         {
             // TODO: Support this convention, not completely sure how it will work :/ [KNS]
             return this.wrappedFilter.GetUriBaseType(type);
+        }
+
+
+        public PropertyInfo GetParentToChildProperty(Type type)
+        {
+            return FromMappingOrDefault(type,
+                x => x.ParentToChildProperty,
+                () => wrappedFilter.GetParentToChildProperty(type));
+        }
+
+
+        public PropertyInfo GetChildToParentProperty(Type type)
+        {
+            return FromMappingOrDefault(type,
+                x => x.ChildToParentProperty,
+                () => wrappedFilter.GetChildToParentProperty(type));
         }
 
 

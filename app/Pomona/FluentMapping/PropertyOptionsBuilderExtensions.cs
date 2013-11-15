@@ -26,16 +26,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using Microsoft.Practices.ServiceLocation;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
     public static class PropertyOptionsBuilderExtensions
     {
+        public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ToQueryableUsing
+            <TDeclaringType, TPropertyType, TItem>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> o,
+                                                   Func<TDeclaringType, IQueryable<TItem>> formula)
+            where TPropertyType : IEnumerable<TItem>
+            where TItem : class
+        {
+            throw new NotImplementedException();
+        }
+        public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ToQueryableUsing
+            <TDeclaringType, TPropertyType, TItem>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> o,
+                                                   Func<TDeclaringType, IServiceLocator, IQueryable<TItem>> formula)
+            where TPropertyType : IEnumerable<TItem>
+            where TItem : class
+        {
+            throw new NotImplementedException();
+        }
         public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> SetItemAccessMode
-            <TDeclaringType, TPropertyType, TItem>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> o,  HttpAccessMode itemAccessMode)
+            <TDeclaringType, TPropertyType, TItem>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> o,  HttpMethod itemMethod)
             where TPropertyType : ICollection<TItem>
+            where TItem : class
         {
             throw new NotImplementedException();
         }

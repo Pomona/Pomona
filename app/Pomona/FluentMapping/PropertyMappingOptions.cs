@@ -30,6 +30,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -50,8 +51,8 @@ namespace Pomona.FluentMapping
         }
 
 
-        public HttpAccessMode AccessMode { get; internal set; }
-        public HttpAccessMode AccessModeMask { get; internal set; }
+        public HttpMethod Method { get; internal set; }
+        public HttpMethod MethodMask { get; internal set; }
         public bool? AlwaysExpanded { get; set; }
 
         public int? ConstructorArgIndex { get; set; }
@@ -64,10 +65,10 @@ namespace Pomona.FluentMapping
         public bool? IsEtagProperty { get; set; }
 
         public bool? IsPrimaryKey { get; set; }
-        public HttpAccessMode ItemAccessMode { get; internal set; }
-        public HttpAccessMode ItemAccessModeMask { get; internal set; }
+        public HttpMethod ItemMethod { get; internal set; }
+        public HttpMethod ItemMethodMask { get; internal set; }
         public string Name { get; set; }
-        public bool? PropertyFormulaIsDecompiled { get; set; }
+        public bool? PropertyFormulaIsDecompiled { get; internal set; }
 
         public PropertyInfo PropertyInfo
         {
@@ -75,31 +76,31 @@ namespace Pomona.FluentMapping
         }
 
 
-        internal void ClearAccessModeFlag(HttpAccessMode accessMode)
+        internal void ClearAccessModeFlag(HttpMethod method)
         {
-            AccessMode &= ~accessMode;
-            AccessModeMask |= accessMode;
+            this.Method &= ~method;
+            this.MethodMask |= method;
         }
 
 
-        internal void ClearItemAccessModeFlag(HttpAccessMode accessMode)
+        internal void ClearItemAccessModeFlag(HttpMethod method)
         {
-            ItemAccessMode &= ~accessMode;
-            ItemAccessModeMask |= accessMode;
+            this.ItemMethod &= ~method;
+            this.ItemMethodMask |= method;
         }
 
 
-        internal void SetAccessModeFlag(HttpAccessMode accessMode)
+        internal void SetAccessModeFlag(HttpMethod method)
         {
-            AccessMode |= accessMode;
-            AccessModeMask |= accessMode;
+            this.Method |= method;
+            this.MethodMask |= method;
         }
 
 
-        internal void SetItemAccessModeFlag(HttpAccessMode accessMode)
+        internal void SetItemAccessModeFlag(HttpMethod method)
         {
-            ItemAccessMode |= accessMode;
-            ItemAccessModeMask |= accessMode;
+            this.ItemMethod |= method;
+            this.ItemMethodMask |= method;
         }
     }
 }

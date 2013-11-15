@@ -61,6 +61,8 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo sumDouble;
         private static readonly MethodInfo sumDecimalWithSelector;
         private static readonly MethodInfo sumDecimal;
+        private static readonly MethodInfo ofType;
+
 
         static QueryableMethods()
         {
@@ -94,6 +96,7 @@ namespace Pomona.Common.Internals
             includeTotalCount = GetMethodInfo(x => x.IncludeTotalCount());
             toUri = GetMethodInfo(x => x.ToUri());
             firstLazy = GetMethodInfo(x => x.FirstLazy());
+            ofType = GetMethodInfo(x => x.OfType<object>());
         }
 
         public static MethodInfo SumDoubleWithSelector
@@ -200,6 +203,11 @@ namespace Pomona.Common.Internals
         public static MethodInfo GroupBy
         {
             get { return groupBy; }
+        }
+        
+        public static MethodInfo OfType
+        {
+            get { return ofType; }
         }
 
         public static MethodInfo OrderBy

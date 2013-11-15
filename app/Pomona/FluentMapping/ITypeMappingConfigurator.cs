@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Pomona.FluentMapping
@@ -50,6 +51,9 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
             Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> constructExpr);
 
+
+        ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
+            Expression<Func<TDeclaringType, TParent>> parentProperty, Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty);
 
         ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);

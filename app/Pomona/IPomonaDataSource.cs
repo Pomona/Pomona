@@ -26,12 +26,13 @@
 
 #endregion
 
+using System.Linq;
+
 namespace Pomona
 {
     public interface IPomonaDataSource
     {
-        T GetById<T>(object id) where T:class;
-        PomonaResponse Query(PomonaQuery query);
+        IQueryable<T> Query<T>() where T : class;
         object Post<T>(T newObject) where T : class;
         object Patch<T>(T updatedObject) where T : class;
     }

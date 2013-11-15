@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,10 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -57,28 +63,17 @@ namespace Pomona
 
         #region IMappedType Members
 
-        public bool MappedAsValueObject
-        {
-            get { return false; }
-        }
-
-        public object Create(IDictionary<IPropertyInfo, object> args)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public IMappedType BaseType
         {
             get { return null; }
         }
 
+        public Type CustomClientLibraryType { get; set; }
+
         public IMappedType ElementType
         {
             get { throw new NotSupportedException(); }
         }
-
-        public Type CustomClientLibraryType { get; set; }
 
         public IList<IMappedType> GenericArguments
         {
@@ -100,11 +95,6 @@ namespace Pomona
             get { return false; }
         }
 
-        public bool IsNullable
-        {
-            get { return false; }
-        }
-
         public bool IsDictionary
         {
             get { return false; }
@@ -120,14 +110,14 @@ namespace Pomona
             get { return false; }
         }
 
-        public bool IsValueType
+        public bool IsNullable
         {
             get { return false; }
         }
 
-        public string PluralName
+        public bool IsValueType
         {
-            get { return null; }
+            get { return false; }
         }
 
         public JsonConverter JsonConverter
@@ -135,14 +125,24 @@ namespace Pomona
             get { return new StringEnumConverter(); }
         }
 
+        public bool MappedAsValueObject
+        {
+            get { return false; }
+        }
+
         public Type MappedTypeInstance
         {
-            get { return mappedType; }
+            get { return this.mappedType; }
         }
 
         public string Name
         {
-            get { return mappedType.Name; }
+            get { return this.mappedType.Name; }
+        }
+
+        public string PluralName
+        {
+            get { return null; }
         }
 
         public IPropertyInfo PrimaryId
@@ -172,7 +172,7 @@ namespace Pomona
 
         IList<IPropertyInfo> IMappedType.Properties
         {
-            get { return new IPropertyInfo[] {}; }
+            get { return new IPropertyInfo[] { }; }
         }
 
         TypeSerializationMode IMappedType.SerializationMode
@@ -180,16 +180,22 @@ namespace Pomona
             get { return TypeSerializationMode.Value; }
         }
 
+
+        public object Create(IDictionary<IPropertyInfo, object> args)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         public Dictionary<string, int> EnumValues
         {
-            get { return enumValues; }
+            get { return this.enumValues; }
         }
 
         public Type MappedType
         {
-            get { return mappedType; }
+            get { return this.mappedType; }
         }
     }
 }

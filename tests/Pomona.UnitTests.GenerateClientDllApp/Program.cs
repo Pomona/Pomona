@@ -51,13 +51,13 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                     .Properties.OfType<PropertyMapping>()
                     .First(x => x.Name == "Protected");
 
-            protectedPropertyOfCritter.AccessMode = HttpAccessMode.Get | HttpAccessMode.Put;
+            protectedPropertyOfCritter.AccessMode = HttpMethod.Get | HttpMethod.Put;
 
             // Modify UnpostableThingOnServer to generate form type for post.
             // This is to check that server generates correct status code.
 
             var unpostableThing = typeMapper.TransformedTypes.First(x => x.Name == "UnpostableThingOnServer");
-            unpostableThing.AllowedMethods |= HttpAccessMode.Post | HttpAccessMode.Post;
+            unpostableThing.AllowedMethods |= HttpMethod.Post | HttpMethod.Post;
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -44,9 +45,9 @@ namespace Pomona.Schemas
         public bool Abstract { get; set; }
 
         [JsonIgnore]
-        public HttpAccessMode AllowedMethods { get; set; }
+        public HttpMethod AllowedMethods { get; set; }
 
-        [JsonProperty(PropertyName = "methods")]
+        [JsonProperty(PropertyName = "access")]
         public string[] AllowedMethodsAsArray
         {
             get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }

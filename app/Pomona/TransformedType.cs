@@ -36,6 +36,34 @@ using Pomona.Internals;
 
 namespace Pomona
 {
+    public class ResourceType : TransformedType
+    {
+        internal ResourceType(Type mappedType, string name, TypeMapper typeMapper)
+            : base(mappedType, name, typeMapper)
+        {
+        }
+
+
+        public IEnumerable<ResourceType> ChildResourceTypes
+        {
+            get
+            {
+                return TypeMapper
+                    .TransformedTypes
+                    .OfType<ResourceType>()
+                    .Where(x => x.ParentResourceType == this)
+                    .Concat((UriBaseType != null && UriBaseType != this)
+                        ? UriBaseType.ChildResourceTypes
+                        : Enumerable.Empty<ResourceType>());
+            }
+        }
+
+        public ResourceType ParentResourceType { get { return ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null; } }
+        public PropertyMapping ParentToChildProperty { get; internal set; }
+        public PropertyMapping ChildToParentProperty { get; internal set; }
+        public bool IsRootResource { get { return ParentToChildProperty == null; }  }
+    }
+
     /// <summary>
     /// Represents a type that is transformed
     /// </summary>
@@ -66,10 +94,9 @@ namespace Pomona
             this.name = name;
             this.typeMapper = typeMapper;
 
-            UriBaseType = this;
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
-            AllowedMethods = HttpAccessMode.Get;
+            AllowedMethods = HttpMethod.Get;
         }
 
         public IList<HandlerInfo> DeclaredPostHandlers
@@ -128,11 +155,11 @@ namespace Pomona
         /// </summary>
         public Action<object> OnDeserialized { get; set; }
 
-        public HttpAccessMode AllowedMethods { get; set; }
+        public HttpMethod AllowedMethods { get; set; }
 
-        public bool PatchAllowed { get {return AllowedMethods.HasFlag(HttpAccessMode.Patch); } }
+        public bool PatchAllowed { get {return AllowedMethods.HasFlag(HttpMethod.Patch); } }
 
-        public bool PostAllowed { get { return AllowedMethods.HasFlag(HttpAccessMode.Post); } }
+        public bool PostAllowed { get { return AllowedMethods.HasFlag(HttpMethod.Post); } }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.
@@ -147,7 +174,7 @@ namespace Pomona
 
         public bool IsExposedAsRepository { get; set; }
 
-        public TransformedType UriBaseType { get; set; }
+        public ResourceType UriBaseType { get; set; }
 
         public string UriRelativePath { get; set; }
 
@@ -249,6 +276,8 @@ namespace Pomona
         {
             try
             {
+                if (ConstructorInfo == null)
+                    throw new PomonaException("Unable to create type " + Name);
                 return CreateUnprotected(args);
             }
             catch (PomonaException)
@@ -389,7 +418,9 @@ namespace Pomona
 
         public IPropertyInfo PrimaryId { get; set; }
 
-        public IList<IPropertyInfo> Properties
+        public IList<PropertyMapping> Properties { get { return properties; } }
+
+        IList<IPropertyInfo> IMappedType.Properties
         {
             get { return new CastingListWrapper<IPropertyInfo>(properties); }
         }
@@ -489,7 +520,7 @@ namespace Pomona
 
         public object GetId(object entity)
         {
-            return typeMapper.Filter.GetIdFor(entity);
+            return PrimaryId.Getter(entity);
         }
 
 
@@ -546,7 +577,7 @@ namespace Pomona
             var scannedProperties = GetPropertiesToScanOrderedByName(type).ToList();
 
             // Find longest (most specific) public constructor
-            var constructor = typeMapper.Filter.GetTypeConstructor(type);
+            var constructor = PostAllowed ? typeMapper.Filter.GetTypeConstructor(type) : null;
             var ctorParams = constructor != null ? constructor.GetParameters() : null;
             ConstructorInfo = constructor;
 
@@ -590,7 +621,7 @@ namespace Pomona
                                               constructorArgIndex.Value));
                         propDef.ConstructorArgIndex = constructorArgIndex.Value;
                         // Constructor arguments need to have Post access rights
-                        propDef.AccessMode |= HttpAccessMode.Post;
+                        propDef.AccessMode |= HttpMethod.Post;
                     }
                     else
                     {
@@ -599,7 +630,7 @@ namespace Pomona
                         {
                             propDef.ConstructorArgIndex = matchingCtorArg.Position;
                             // Constructor arguments need to have Post access rights
-                            propDef.AccessMode |= HttpAccessMode.Post;
+                            propDef.AccessMode |= HttpMethod.Post;
                         }
                     }
                 }

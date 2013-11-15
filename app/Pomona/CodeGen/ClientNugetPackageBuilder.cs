@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -90,7 +91,7 @@ namespace Pomona.CodeGen
                     new[]
                         {
                             // CreatePackageDependency<TypeDefinition>(4), <-- Dependency on Cecil no longer needed.
-                            CreatePackageDependency<JsonSerializer>(3)
+                            CreatePackageDependency<JsonSerializer>(2)
                         }));
 
             packageBuilder.Save(stream);
@@ -101,8 +102,19 @@ namespace Pomona.CodeGen
             var assembly = typeof (TInAssembly).Assembly;
             var packageName = assembly.GetName().Name;
             var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            var strippedVersion = string.Join(".", fvi.FileVersion.Split('.').Take(versionPartCount));
-            return new PackageDependency(packageName, new VersionSpec(new SemanticVersion(strippedVersion)));
+            var versionParts = fvi.FileVersion.Split('.').Take(versionPartCount).Select(int.Parse).ToList();
+            var startVersion = string.Join(".", versionParts);
+            versionParts[versionParts.Count - 1]++;
+            var endVersion = string.Join(".", versionParts);
+            var versionSpec = new VersionSpec()
+            {
+                IsMinInclusive = true,
+                IsMaxInclusive = false,
+                MinVersion = new SemanticVersion(startVersion),
+                MaxVersion = new SemanticVersion(endVersion)
+            };
+            return new PackageDependency(packageName,
+                versionSpec);
         }
 
 

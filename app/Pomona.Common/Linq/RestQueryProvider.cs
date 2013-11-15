@@ -185,7 +185,10 @@ namespace Pomona.Common.Linq
                     "$orderby", parser.OrderKeySelector, x => sortOrder == SortOrder.Descending ? x + " desc" : x);
             }
             if (parser.GroupByKeySelector != null)
-                builder.AppendExpressionParameter("$groupby", parser.GroupByKeySelector);
+            {
+                var selectBuilder = new QuerySelectBuilder(parser.GroupByKeySelector);
+                builder.AppendParameter("$groupby", selectBuilder);
+            }
             if (parser.SelectExpression != null)
             {
                 var selectBuilder = new QuerySelectBuilder(parser.SelectExpression);

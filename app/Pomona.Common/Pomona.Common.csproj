@@ -57,6 +57,7 @@
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="GenericMethodCaller.cs" />
+    <Compile Include="HttpAccessMode.cs" />
     <Compile Include="HttpEncoder.cs" />
     <Compile Include="HttpUtility.cs" />
     <Compile Include="IClientRepository.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="ResourceEtagPropertyAttribute.cs" />
     <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
+    <Compile Include="ResourcePropertyAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />
@@ -152,7 +154,6 @@
     <Compile Include="TypeSystem\IMappedType.cs" />
     <Compile Include="TypeSystem\IPropertyInfo.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
-    <Compile Include="TypeSystem\HttpAccessMode.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
     <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />

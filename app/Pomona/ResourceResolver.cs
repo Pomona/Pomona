@@ -36,16 +36,18 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class PomonaUriResolver : IPomonaUriResolver
+    public class ResourceResolver : IResourceResolver
     {
         private readonly NancyContext context;
         private readonly IServiceLocator serviceLocator;
         private readonly ITypeMapper typeMapper;
 
-        public PomonaUriResolver(ITypeMapper typeMapper, NancyContext context, IServiceLocator serviceLocator)
+        public ResourceResolver(ITypeMapper typeMapper, NancyContext context, IServiceLocator serviceLocator)
         {
             if (typeMapper == null) throw new ArgumentNullException("typeMapper");
             if (context == null) throw new ArgumentNullException("context");
+            if (serviceLocator == null)
+                throw new ArgumentNullException("serviceLocator");
             //if (routeResolver == null) throw new ArgumentNullException("routeResolver");
             this.typeMapper = typeMapper;
             this.context = context;
@@ -95,47 +97,10 @@ namespace Pomona
         }
 
 
-        public virtual string RelativeToAbsoluteUri(string path)
-        {
-            if (String.IsNullOrEmpty(context.Request.Url.HostName))
-            {
-                return path;
-            }
-
-            return String.Format("{0}{1}", GetBaseUri(), path);
-        }
-
-
-        public string GetUriFor(IPropertyInfo property, object entity)
-        {
-            return GetUriFor(entity) + "/" + ((PropertyMapping) property).UriName;
-        }
-
-
-        public string GetUriFor(object entity)
-        {
-            if (entity == null)
-                throw new ArgumentNullException("entity");
-            var transformedType = (TransformedType) TypeMapper.GetClassMapping(entity.GetType());
-
-            return
-                RelativeToAbsoluteUri(String.Format("{0}/{1}", transformedType.UriRelativePath,
-                                                    transformedType.GetId(entity)));
-        }
-
         public ITypeMapper TypeMapper
         {
             get { return typeMapper; }
         }
 
-        protected virtual Uri GetBaseUri()
-        {
-            var request = context.Request;
-            var appUrl = request.Url.BasePath ?? string.Empty;
-            var uriString = String.Format("{0}://{1}:{2}{3}{4}", request.Url.Scheme, request.Url.HostName,
-                                          request.Url.Port, appUrl, appUrl.EndsWith("/") ? String.Empty : "/");
-
-            return new Uri(uriString);
-        }
     }
 }

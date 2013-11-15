@@ -147,11 +147,11 @@ namespace Pomona
         }
 
 
-        public virtual HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        public virtual HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo)
         {
-            var mode = (propertyInfo.CanRead ? HttpAccessMode.Get : 0);
+            var mode = (propertyInfo.CanRead ? HttpMethod.Get : 0);
             if ((propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
-                mode |= HttpAccessMode.Put | HttpAccessMode.Post;
+                mode |= HttpMethod.Put | HttpMethod.Post;
             return mode;
         }
 
@@ -203,13 +203,13 @@ namespace Pomona
         }
 
 
-        public virtual HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        public virtual HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
         {
             if (propertyInfo.PropertyType.IsGenericInstanceOf(typeof(IDictionary<,>)))
-                return HttpAccessMode.Delete | HttpAccessMode.Put | HttpAccessMode.Get | HttpAccessMode.Post | HttpAccessMode.Patch;
+                return HttpMethod.Delete | HttpMethod.Put | HttpMethod.Get | HttpMethod.Post | HttpMethod.Patch;
             if (propertyInfo.PropertyType.IsCollection())
-                return HttpAccessMode.Delete | HttpAccessMode.Get | HttpAccessMode.Patch | HttpAccessMode.Post;
-            return HttpAccessMode.Get;
+                return HttpMethod.Delete | HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post;
+            return HttpMethod.Get;
         }
 
 
@@ -276,6 +276,18 @@ namespace Pomona
                 return null;
 
             return type;
+        }
+
+
+        public PropertyInfo GetParentToChildProperty(Type type)
+        {
+            return null;
+        }
+
+
+        public PropertyInfo GetChildToParentProperty(Type type)
+        {
+            return null;
         }
 
 
@@ -452,7 +464,7 @@ namespace Pomona
         }
 
 
-        public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");

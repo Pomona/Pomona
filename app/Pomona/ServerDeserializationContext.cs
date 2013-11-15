@@ -37,26 +37,26 @@ namespace Pomona
     public class ServerDeserializationContext : IDeserializationContext
     {
         private readonly ITypeMapper typeMapper;
-        private readonly IPomonaUriResolver uriResolver;
+        private readonly IResourceResolver resourceResolver;
 
 
-        public ServerDeserializationContext(ITypeMapper typeMapper, IPomonaUriResolver uriResolver)
+        public ServerDeserializationContext(ITypeMapper typeMapper, IResourceResolver resourceResolver)
         {
             this.typeMapper = typeMapper;
-            this.uriResolver = uriResolver;
+            this.resourceResolver = resourceResolver;
         }
 
 
-        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpAccessMode accessMode)
+        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpMethod method)
         {
-            if (!property.ItemAccessMode.HasFlag(accessMode))
-                throw new PomonaSerializationException("Unable to deserialize because of missing access: " + accessMode);
+            if (!property.ItemAccessMode.HasFlag(method))
+                throw new PomonaSerializationException("Unable to deserialize because of missing access: " + method);
         }
 
 
         public object CreateReference(IMappedType type, string uri)
         {
-            return this.uriResolver.ResolveUri(uri);
+            return this.resourceResolver.ResolveUri(uri);
         }
 
 
@@ -88,9 +88,9 @@ namespace Pomona
             if (targetNode.Operation == DeserializerNodeOperation.Default)
                 throw new InvalidOperationException("Invalid deserializer node operation default");
             if ((targetNode.Operation == DeserializerNodeOperation.Post
-                 && property.AccessMode.HasFlag(HttpAccessMode.Post)) ||
+                 && property.AccessMode.HasFlag(HttpMethod.Post)) ||
                 (targetNode.Operation == DeserializerNodeOperation.Patch
-                 && property.AccessMode.HasFlag(HttpAccessMode.Put)))
+                 && property.AccessMode.HasFlag(HttpMethod.Put)))
             {
                 property.Setter(targetNode.Value, propertyValue);
             }

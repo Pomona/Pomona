@@ -40,20 +40,16 @@ namespace Pomona
 
         private readonly object entity;
         private readonly string expandedPaths;
-        private readonly PomonaQuery query;
         private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly IMappedType resultType;
-        private readonly IPomonaUriResolver uriResolver;
         private readonly HttpStatusCode statusCode;
 
-        public PomonaResponse(object entity, IPomonaUriResolver uriResolver, HttpStatusCode statusCode = HttpStatusCode.OK,
+        public PomonaResponse(object entity, HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               IMappedType resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
-            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
             this.entity = entity;
-            this.uriResolver = uriResolver;
             this.statusCode = statusCode;
             this.expandedPaths = expandedPaths;
             this.resultType = resultType;
@@ -62,18 +58,15 @@ namespace Pomona
                 this.responseHeaders = responseHeaders.ToList();
         }
 
-        public PomonaResponse(PomonaQuery query, object entity, IPomonaUriResolver uriResolver)
-            : this(query, entity, uriResolver, HttpStatusCode.OK)
+        public PomonaResponse(PomonaQuery query, object entity)
+            : this(query, entity, HttpStatusCode.OK)
         {
         }
 
-        public PomonaResponse(PomonaQuery query, object entity, IPomonaUriResolver uriResolver, HttpStatusCode statusCode)
+        public PomonaResponse(PomonaQuery query, object entity, HttpStatusCode statusCode)
         {
             if (query == null) throw new ArgumentNullException("query");
-            if (uriResolver == null) throw new ArgumentNullException("uriResolver");
-            this.query = query;
             this.entity = entity;
-            this.uriResolver = uriResolver;
             this.statusCode = statusCode;
             expandedPaths = query.ExpandedPaths;
             resultType = query.ResultType;
@@ -97,11 +90,6 @@ namespace Pomona
         public object Entity
         {
             get { return entity; }
-        }
-
-        public IPomonaUriResolver UriResolver
-        {
-            get { return uriResolver; }
         }
 
         public HttpStatusCode StatusCode

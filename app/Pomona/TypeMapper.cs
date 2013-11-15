@@ -72,6 +72,8 @@ namespace Pomona
                 var type = GetClassMapping(sourceType);
                 typeNameMap[type.Name.ToLower()] = type;
             }
+
+            MapParentChildRelations();
             MapForeignKeys();
 
             serializerFactory = configuration.SerializerFactory;
@@ -231,36 +233,43 @@ namespace Pomona
 
             if (filter.TypeIsMappedAsTransformedType(type))
             {
-                var classDefinition = new TransformedType(type, type.Name, this);
+                bool typeIsMappedAsValueObject = filter.TypeIsMappedAsValueObject(type);
+                var classDefinition = typeIsMappedAsValueObject
+                    ? new TransformedType(type, type.Name, this)
+                    : new ResourceType(type, type.Name, this);
+                var resourceDefinition = classDefinition as ResourceType;
 
                 // Add to cache before filling out, in case of self-references
                 mappings[type] = classDefinition;
 
-                if (filter.TypeIsMappedAsValueObject(type))
-                    classDefinition.MappedAsValueObject = true;
-
-                var uriBaseType = filter.GetUriBaseType(type);
-                if (uriBaseType == null)
+                if (typeIsMappedAsValueObject)
                 {
-                    classDefinition.UriBaseType = null;
+                    classDefinition.MappedAsValueObject = true;
                 }
                 else
                 {
-                    if (uriBaseType != type)
-                        classDefinition.UriBaseType = (TransformedType)GetClassMapping(uriBaseType);
+                    var uriBaseType = filter.GetUriBaseType(type);
+                    if (uriBaseType == null)
+                    {
+                        classDefinition.UriBaseType = null;
+                    }
                     else
-                        classDefinition.UriBaseType = classDefinition;
+                    {
+                        if (uriBaseType != type)
+                            classDefinition.UriBaseType = (ResourceType)GetClassMapping(uriBaseType);
+                        else
+                            classDefinition.UriBaseType = resourceDefinition;
 
-                    classDefinition.UriRelativePath =
-                        NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
+                        classDefinition.UriRelativePath =
+                            NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
+                    }
+
+                    classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
+                    classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
                 }
 
-
-                classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
-                classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
-
-                classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpAccessMode.Post : 0;
-                classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpAccessMode.Patch : 0;
+                classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpMethod.Post : 0;
+                classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpMethod.Patch : 0;
 
                 classDefinition.OnDeserialized = filter.GetOnDeserializedHook(type);
 
@@ -269,12 +278,38 @@ namespace Pomona
                 if (filter.IsIndependentTypeRoot(type))
                     classDefinition.BaseType = null;
 
+
                 return classDefinition;
             }
 
             throw new InvalidOperationException("Don't know how to map " + type.FullName);
         }
 
+
+        private void MapParentChildRelations()
+        {
+            foreach (
+                var resourceType in TransformedTypes.OfType<ResourceType>().Where(x => x.MappedTypeInstance != null))
+            {
+                var type = resourceType.MappedTypeInstance;
+                var childToParentProperty = filter.GetChildToParentProperty(type);
+                var parentToChildProperty = filter.GetParentToChildProperty(type);
+
+                if ((childToParentProperty == null) != (parentToChildProperty == null))
+                    throw new InvalidOperationException("Unable to map type " + type.Name
+                                                        + ", has to have both ChildToParentProperty and ParentToChildProperty set to a property, or both set to null.");
+
+                if (childToParentProperty != null)
+                {
+                    resourceType.ChildToParentProperty =
+                        resourceType.GetPropertyByName(childToParentProperty.Name, false);
+                    resourceType.ParentToChildProperty =
+                        ((ResourceType)GetClassMapping(parentToChildProperty.DeclaringType)).GetPropertyByName(
+                            parentToChildProperty.Name,
+                            false);
+                }
+            }
+        }
 
         private void MapForeignKeys()
         {

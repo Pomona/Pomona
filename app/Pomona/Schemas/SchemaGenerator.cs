@@ -49,8 +49,12 @@ namespace Pomona.Schemas
         public Schema Generate()
         {
             var typeSchemas =
-                this.typeMapper.SourceTypes.Select(this.typeMapper.GetClassMapping).OfType<TransformedType>().Select(
-                    GenerateForType);
+                this.typeMapper
+                    .SourceTypes
+                    .Select(this.typeMapper.GetClassMapping)
+                    .OfType<TransformedType>()
+                    .OrderBy(x => x.Name)
+                    .Select(GenerateForType);
             return new Schema
             {
                 Types = typeSchemas.ToList(),
@@ -115,15 +119,17 @@ namespace Pomona.Schemas
             {
                 Extends = extends,
                 Name = typeName,
-                Properties = properties.Select(GenerateForProperty).ToDictionary(x => x.Name, x => x),
+                Properties = new SortedDictionary<string, SchemaPropertyEntry>(properties
+                    .Select(GenerateForProperty)
+                    .ToDictionary(x => x.Name, x => x)),
                 // TODO: Expose IsAbstract on IMappedType
-                Abstract = transformedType.MappedTypeInstance != null && transformedType.MappedTypeInstance.IsAbstract
+                Abstract = transformedType.MappedTypeInstance != null && transformedType.MappedTypeInstance.IsAbstract,
+                AllowedMethods = transformedType.AllowedMethods
             };
 
             if (!string.IsNullOrEmpty(transformedType.UriRelativePath))
             {
                 schemaTypeEntry.Uri = transformedType.UriRelativePath;
-                schemaTypeEntry.AllowedMethods = transformedType.AllowedMethods;
             }
 
             return schemaTypeEntry;

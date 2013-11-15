@@ -338,6 +338,20 @@ namespace Pomona.Common
             property = type.Properties.FirstOrDefault(x => x.Name == name);
             return property != null;
         }
+        public static bool TryGetPropertyByUriName(this IMappedType type, string name, out IPropertyInfo property)
+        {
+            if (type == null) throw new ArgumentNullException("type");
+            if (name == null) throw new ArgumentNullException("name");
+
+            property =
+                type.Properties.FirstOrDefault(
+                    x =>
+                        string.Equals(name,
+                            NameUtils.ConvertCamelCaseToUri(x.Name),
+                            StringComparison.InvariantCultureIgnoreCase));
+
+            return property != null;
+        }
 
         public static bool IsAnonymous(this IMappedType type)
         {
