@@ -96,7 +96,7 @@ namespace Pomona
 
             PluralName = typeMapper.Filter.GetPluralNameForType(mappedType);
             PostReturnType = this;
-            AllowedMethods = HttpAccessMode.Get;
+            AllowedMethods = HttpMethod.Get;
         }
 
         public IList<HandlerInfo> DeclaredPostHandlers
@@ -155,11 +155,11 @@ namespace Pomona
         /// </summary>
         public Action<object> OnDeserialized { get; set; }
 
-        public HttpAccessMode AllowedMethods { get; set; }
+        public HttpMethod AllowedMethods { get; set; }
 
-        public bool PatchAllowed { get {return AllowedMethods.HasFlag(HttpAccessMode.Patch); } }
+        public bool PatchAllowed { get {return AllowedMethods.HasFlag(HttpMethod.Patch); } }
 
-        public bool PostAllowed { get { return AllowedMethods.HasFlag(HttpAccessMode.Post); } }
+        public bool PostAllowed { get { return AllowedMethods.HasFlag(HttpMethod.Post); } }
 
         /// <summary>
         /// What type will be returned when this type is POST'ed.
@@ -276,6 +276,8 @@ namespace Pomona
         {
             try
             {
+                if (ConstructorInfo == null)
+                    throw new PomonaException("Unable to create type " + Name);
                 return CreateUnprotected(args);
             }
             catch (PomonaException)
@@ -619,7 +621,7 @@ namespace Pomona
                                               constructorArgIndex.Value));
                         propDef.ConstructorArgIndex = constructorArgIndex.Value;
                         // Constructor arguments need to have Post access rights
-                        propDef.AccessMode |= HttpAccessMode.Post;
+                        propDef.AccessMode |= HttpMethod.Post;
                     }
                     else
                     {
@@ -628,7 +630,7 @@ namespace Pomona
                         {
                             propDef.ConstructorArgIndex = matchingCtorArg.Position;
                             // Constructor arguments need to have Post access rights
-                            propDef.AccessMode |= HttpAccessMode.Post;
+                            propDef.AccessMode |= HttpMethod.Post;
                         }
                     }
                 }

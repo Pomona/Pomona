@@ -7,6 +7,6 @@ namespace Pomona.Common
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Interface)]
     public class ResourcePropertyAttribute : Attribute
     {
-        public HttpAccessMode AccessMode { get; set; }
+        public HttpMethod Method { get; set; }
     }
 }

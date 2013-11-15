@@ -367,6 +367,7 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual.Select(x => x.Id), Is.EquivalentTo(expected.Select(x => x.Id)));
         }
 
+        [Ignore("For performance testing!")]
         [Test]
         public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues_ManyTimes()
         {

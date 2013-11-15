@@ -31,6 +31,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -43,23 +44,23 @@ namespace Pomona.Schemas
         }
 
 
-        internal static HttpAccessMode MethodsArrayToHttpAccessMode(string[] methods)
+        internal static HttpMethod MethodsArrayToHttpAccessMode(string[] methods)
         {
             if (methods == null)
-                return default(HttpAccessMode);
+                return default(HttpMethod);
 
-            return methods.Select(x => (HttpAccessMode)Enum.Parse(typeof(HttpAccessMode), x, true))
+            return methods.Select(x => (HttpMethod)Enum.Parse(typeof(HttpMethod), x, true))
                 .Aggregate(
-                    default(HttpAccessMode),
+                    default(HttpMethod),
                     (a, b) => a | b);
         }
 
 
-        internal static string[] HttpAccessModeToMethodsArray(HttpAccessMode httpAccessMode)
+        internal static string[] HttpAccessModeToMethodsArray(HttpMethod httpMethod)
         {
-            if (httpAccessMode == 0)
+            if (httpMethod == 0)
                 return new string[] { };
-            return httpAccessMode.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(
+            return httpMethod.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(
                         x => x.Trim().ToUpperInvariant()).ToArray();
         }
 

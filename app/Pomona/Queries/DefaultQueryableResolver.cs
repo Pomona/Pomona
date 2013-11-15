@@ -26,38 +26,16 @@
 
 #endregion
 
-using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
 
-using Newtonsoft.Json;
-
-using Pomona.Common;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.Schemas
+namespace Pomona.Queries
 {
-    public class SchemaTypeEntry
+    public class DefaultQueryableResolver : IQueryableResolver
     {
-        public SchemaTypeEntry()
+        public IQueryable Resolve(QueryableNode node)
         {
-            Properties = new Dictionary<string, SchemaPropertyEntry>();
+            return ((IEnumerable)node.Value).AsQueryable();
         }
-
-        public bool Abstract { get; set; }
-
-        [JsonIgnore]
-        public HttpMethod AllowedMethods { get; set; }
-
-        [JsonProperty(PropertyName = "access")]
-        public string[] AllowedMethodsAsArray
-        {
-            get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }
-            set { this.AllowedMethods = Schema.MethodsArrayToHttpAccessMode(value); }
-        }
-
-        public string Extends { get; set; }
-        public string Name { get; set; }
-
-        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
-        public string Uri { get; set; }
     }
 }

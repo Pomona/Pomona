@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,40 +22,28 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System;
 
-using System.Collections.Generic;
-
-using Newtonsoft.Json;
-
-using Pomona.Common;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.Schemas
+namespace Pomona.Common
 {
-    public class SchemaTypeEntry
+    [Flags]
+    public enum HttpMethod
     {
-        public SchemaTypeEntry()
-        {
-            Properties = new Dictionary<string, SchemaPropertyEntry>();
-        }
 
-        public bool Abstract { get; set; }
+        /// <summary>
+        /// Property is readable.
+        /// </summary>
+        Get = 1,
 
-        [JsonIgnore]
-        public HttpMethod AllowedMethods { get; set; }
+        Post = 1 << 1,
 
-        [JsonProperty(PropertyName = "access")]
-        public string[] AllowedMethodsAsArray
-        {
-            get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }
-            set { this.AllowedMethods = Schema.MethodsArrayToHttpAccessMode(value); }
-        }
+        /// <summary>
+        /// Property is settable, always implies that Post is also allowed.
+        /// </summary>
+        Put = 1 << 2,
+        
+        Patch = 1 << 3,
 
-        public string Extends { get; set; }
-        public string Name { get; set; }
-
-        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
-        public string Uri { get; set; }
+        Delete = 1 << 4
     }
 }

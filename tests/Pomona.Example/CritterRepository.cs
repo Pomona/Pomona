@@ -79,6 +79,22 @@ namespace Pomona.Example
 
         #region IPomonaDataSource Members
 
+        public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery pq)
+        {
+            lock (syncLock)
+            {
+                queryLog.Add(pq);
+
+                var visitor = new MakeDictAccessesSafeVisitor();
+                pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
+
+                var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
+                throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
+
+                return pq.ApplyAndExecute(queryable);
+            }
+        }
+
         public T GetById<T>(object id)
         {
             lock (syncLock)

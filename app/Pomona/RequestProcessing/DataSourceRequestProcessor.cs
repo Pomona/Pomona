@@ -26,42 +26,51 @@
 
 #endregion
 
-using System.Linq;
+using System;
+using System.Reflection;
 
-using Critters.Client;
-
-using NUnit.Framework;
+using Nancy;
 
 using Pomona.Common;
-using Pomona.Common.Linq;
-using Pomona.Example.Models.Existence;
+using Pomona.Internals;
 
-namespace Pomona.SystemTests
+namespace Pomona.RequestProcessing
 {
-    [TestFixture]
-    public class ChildResourceTests : ClientTestsBase
+    public class DataSourceRequestProcessor : IPomonaRequestProcessor
     {
-        public void CreateTestData()
+        private readonly IPomonaDataSource dataSource;
+
+        private readonly MethodInfo postMethod =
+            ReflectionHelper.GetMethodDefinition<DataSourceRequestProcessor>(x => x.Post<object>(null, null));
+
+
+        public DataSourceRequestProcessor(IPomonaDataSource dataSource)
         {
-            var galaxy = new Galaxy() { Name = "milkyway" };
-            var planetarySystem = new PlanetarySystem() { Name = "solar", Galaxy = galaxy };
-            galaxy.PlanetarySystems.Add(planetarySystem);
-            var planet = new Planet() { Name = "earth", PlanetarySystem = planetarySystem };
-            planetarySystem.Planets.Add(planet);
-            Save(galaxy);
+            if (dataSource == null)
+                throw new ArgumentNullException("dataSource");
+            this.dataSource = dataSource;
         }
 
 
-        [Test]
-        public void ChildResourcesGetsCorrectUrl()
+        public virtual PomonaResponse Process(PomonaRequest request)
         {
-            CreateTestData();
-            var galaxy = client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();
-            var planet = galaxy.PlanetarySystems.First().Planets.First();
-            var planetUri = ((IHasResourceUri)planet).Uri;
+            var queryableNode = request.Node as QueryableNode;
+            if (request.Method == HttpMethod.Post && queryableNode != null
+                && queryableNode.ItemResourceType.IsRootResource)
+            {
+                var form = request.Bind();
+                return
+                    (PomonaResponse)
+                        this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { request.Bind(), request });
+            }
+            return null;
+        }
 
-            Assert.That(planetUri, Is.EqualTo("http://test/galaxies/milkyway/planetary-systems/solar/planets/earth"));
-            client.Get<IPlanet>(planetUri);
+
+        public PomonaResponse Post<T>(T form, PomonaRequest request)
+            where T : class
+        {
+            return new PomonaResponse(this.dataSource.Post(form), HttpStatusCode.Created, request.ExpandedPaths);
         }
     }
 }

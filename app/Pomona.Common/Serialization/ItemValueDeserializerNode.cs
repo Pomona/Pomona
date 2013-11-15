@@ -66,7 +66,7 @@ namespace Pomona.Common.Serialization
 
         public object Value { get; set; }
 
-        public void CheckItemAccessRights(HttpAccessMode accessMode)
+        public void CheckItemAccessRights(HttpMethod method)
         {
         }
 

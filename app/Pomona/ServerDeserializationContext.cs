@@ -47,10 +47,10 @@ namespace Pomona
         }
 
 
-        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpAccessMode accessMode)
+        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpMethod method)
         {
-            if (!property.ItemAccessMode.HasFlag(accessMode))
-                throw new PomonaSerializationException("Unable to deserialize because of missing access: " + accessMode);
+            if (!property.ItemAccessMode.HasFlag(method))
+                throw new PomonaSerializationException("Unable to deserialize because of missing access: " + method);
         }
 
 
@@ -88,9 +88,9 @@ namespace Pomona
             if (targetNode.Operation == DeserializerNodeOperation.Default)
                 throw new InvalidOperationException("Invalid deserializer node operation default");
             if ((targetNode.Operation == DeserializerNodeOperation.Post
-                 && property.AccessMode.HasFlag(HttpAccessMode.Post)) ||
+                 && property.AccessMode.HasFlag(HttpMethod.Post)) ||
                 (targetNode.Operation == DeserializerNodeOperation.Patch
-                 && property.AccessMode.HasFlag(HttpAccessMode.Put)))
+                 && property.AccessMode.HasFlag(HttpMethod.Put)))
             {
                 property.Setter(targetNode.Value, propertyValue);
             }

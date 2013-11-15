@@ -716,7 +716,7 @@ namespace Pomona.CodeGen
                     }
                     AddAttribute(interfacePropDef, typeof(ResourcePropertyAttribute)).Properties.Add(
                         new CustomAttributeNamedArgument("AccessMode",
-                            new CustomAttributeArgument(GetClientTypeReference(typeof(HttpAccessMode)),
+                            new CustomAttributeArgument(GetClientTypeReference(typeof(HttpMethod)),
                                 prop.AccessMode)));
 
                     FieldDefinition backingField;

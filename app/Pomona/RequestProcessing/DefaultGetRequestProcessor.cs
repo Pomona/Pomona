@@ -26,38 +26,38 @@
 
 #endregion
 
-using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System;
 
 using Pomona.Common;
-using Pomona.Common.TypeSystem;
+using Pomona.Queries;
 
-namespace Pomona.Schemas
+namespace Pomona.RequestProcessing
 {
-    public class SchemaTypeEntry
+    public class DefaultGetRequestProcessor : IPomonaRequestProcessor
     {
-        public SchemaTypeEntry()
+        private readonly IQueryExecutor queryExecutor;
+
+
+        public DefaultGetRequestProcessor(IQueryExecutor queryExecutor)
         {
-            Properties = new Dictionary<string, SchemaPropertyEntry>();
+            if (queryExecutor == null)
+                throw new ArgumentNullException("queryExecutor");
+            this.queryExecutor = queryExecutor;
         }
 
-        public bool Abstract { get; set; }
 
-        [JsonIgnore]
-        public HttpMethod AllowedMethods { get; set; }
-
-        [JsonProperty(PropertyName = "access")]
-        public string[] AllowedMethodsAsArray
+        public PomonaResponse Process(PomonaRequest request)
         {
-            get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }
-            set { this.AllowedMethods = Schema.MethodsArrayToHttpAccessMode(value); }
+            if (request.Method != HttpMethod.Get)
+                return null;
+
+            var queryableNode = request.Node as QueryableNode;
+            if (queryableNode != null)
+                return this.queryExecutor.ApplyAndExecute(queryableNode.GetAsQueryable(), request.ParseQuery());
+            var resourceNode = request.Node as ResourceNode;
+            if (resourceNode != null)
+                return new PomonaResponse(resourceNode.Value, expandedPaths : request.ExpandedPaths);
+            return null;
         }
-
-        public string Extends { get; set; }
-        public string Name { get; set; }
-
-        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
-        public string Uri { get; set; }
     }
 }

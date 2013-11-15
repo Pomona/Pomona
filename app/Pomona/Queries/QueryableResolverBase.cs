@@ -26,38 +26,29 @@
 
 #endregion
 
-using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
-using Newtonsoft.Json;
+using Pomona.Internals;
 
-using Pomona.Common;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.Schemas
+namespace Pomona.Queries
 {
-    public class SchemaTypeEntry
+    public abstract class QueryableResolverBase : IQueryableResolver
     {
-        public SchemaTypeEntry()
+        private static MethodInfo resolveMethod =
+            ReflectionHelper.GetMethodDefinition<QueryableResolverBase>(x => x.Resolve<object>(null));
+
+
+        public virtual IQueryable Resolve(QueryableNode node)
         {
-            Properties = new Dictionary<string, SchemaPropertyEntry>();
+            return
+                (IQueryable)
+                    resolveMethod.MakeGenericMethod(node.ItemResourceType.MappedTypeInstance).Invoke(this,
+                        new object[] { node });
         }
 
-        public bool Abstract { get; set; }
 
-        [JsonIgnore]
-        public HttpMethod AllowedMethods { get; set; }
-
-        [JsonProperty(PropertyName = "access")]
-        public string[] AllowedMethodsAsArray
-        {
-            get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }
-            set { this.AllowedMethods = Schema.MethodsArrayToHttpAccessMode(value); }
-        }
-
-        public string Extends { get; set; }
-        public string Name { get; set; }
-
-        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
-        public string Uri { get; set; }
+        protected abstract IQueryable<TResource> Resolve<TResource>(QueryableNode<TResource> node)
+            where TResource : class;
     }
 }

@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,36 +28,17 @@
 
 using System.Collections.Generic;
 
-using Newtonsoft.Json;
-
-using Pomona.Common;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.Schemas
+namespace Pomona.Example.Models.Existence
 {
-    public class SchemaTypeEntry
+    public class Planet : CelestialObject
     {
-        public SchemaTypeEntry()
+        private ICollection<Moon> moons = new List<Moon>();
+
+        public ICollection<Moon> Moons
         {
-            Properties = new Dictionary<string, SchemaPropertyEntry>();
+            get { return this.moons; }
         }
 
-        public bool Abstract { get; set; }
-
-        [JsonIgnore]
-        public HttpMethod AllowedMethods { get; set; }
-
-        [JsonProperty(PropertyName = "access")]
-        public string[] AllowedMethodsAsArray
-        {
-            get { return AllowedMethods != 0 ? Schema.HttpAccessModeToMethodsArray(this.AllowedMethods) : null; }
-            set { this.AllowedMethods = Schema.MethodsArrayToHttpAccessMode(value); }
-        }
-
-        public string Extends { get; set; }
-        public string Name { get; set; }
-
-        public IDictionary<string, SchemaPropertyEntry> Properties { get; set; }
-        public string Uri { get; set; }
+        public PlanetarySystem PlanetarySystem { get; set; }
     }
 }

@@ -146,12 +146,12 @@ namespace TestNs
         }
 
 
-        public HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        public HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(propertyInfo,
                 x =>
-                    (x.ItemAccessMode & x.ItemAccessModeMask)
-                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.ItemAccessModeMask)),
+                    (x.ItemMethod & x.ItemMethodMask)
+                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
                 () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 
@@ -177,12 +177,12 @@ namespace TestNs
         }
 
 
-        public HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo)
+        public HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(propertyInfo,
                 x =>
-                    (x.AccessMode & x.AccessModeMask)
-                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.AccessModeMask)),
+                    (x.Method & x.MethodMask)
+                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.MethodMask)),
                 () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
         }
 

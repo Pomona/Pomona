@@ -44,6 +44,6 @@ namespace Pomona.Common.Serialization
         IMappedType GetTypeByName(string typeName);
 
         void SetProperty(IDeserializerNode target, IPropertyInfo property, object propertyValue);
-        void CheckPropertyItemAccessRights(IPropertyInfo property, HttpAccessMode accessMode);
+        void CheckPropertyItemAccessRights(IPropertyInfo property, HttpMethod method);
     }
 }

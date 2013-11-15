@@ -239,16 +239,16 @@ namespace Pomona.Common.Serialization.Json
 
                 if (itemNode.Operation == DeserializerNodeOperation.Delete)
                 {
-                    node.CheckItemAccessRights(HttpAccessMode.Delete);
+                    node.CheckItemAccessRights(HttpMethod.Delete);
                     collection.Remove((TElement)itemNode.Value);
                 }
                 else
                 {
                     if (itemNode.Operation == DeserializerNodeOperation.Patch)
-                        node.CheckItemAccessRights(HttpAccessMode.Patch);
+                        node.CheckItemAccessRights(HttpMethod.Patch);
                     else if (isPatching)
                     {
-                        node.CheckItemAccessRights(HttpAccessMode.Post);
+                        node.CheckItemAccessRights(HttpMethod.Post);
                     }
 
                     itemNode.Deserialize(this, new Reader(jitem));

@@ -421,7 +421,7 @@ namespace Pomona.FluentMapping
                             propOptions.CreateMode = PropertyCreateMode.Optional;
 
                         propOptions.ConstructorArgIndex = ctorArgIndex;
-                        propOptions.SetAccessModeFlag(HttpAccessMode.Post);
+                        propOptions.SetAccessModeFlag(HttpMethod.Post);
                     }
                     catch (Exception exception)
                     {

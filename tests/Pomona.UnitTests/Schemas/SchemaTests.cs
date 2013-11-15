@@ -27,6 +27,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Schemas;
 
@@ -78,7 +79,7 @@ namespace Pomona.UnitTests.Schemas
                                 new SchemaPropertyEntry()
                                 {
                                     Name = "wasReadonly",
-                                    Access = HttpAccessMode.Get,
+                                    Access = HttpMethod.Get,
                                     Type = "string"
                                 }
                             },
@@ -87,7 +88,7 @@ namespace Pomona.UnitTests.Schemas
                                 new SchemaPropertyEntry()
                                 {
                                     Name = "wasWritable",
-                                    Access = HttpAccessMode.Get | HttpAccessMode.Put | HttpAccessMode.Post | HttpAccessMode.Patch,
+                                    Access = HttpMethod.Get | HttpMethod.Put | HttpMethod.Post | HttpMethod.Patch,
                                     Type = "string"
                                 }
                             },
@@ -134,7 +135,7 @@ namespace Pomona.UnitTests.Schemas
             AssertBreaksBackwardsCompability(s =>
             {
                 s.Types.First(x => x.Name == "Class")
-                    .Properties["wasWritable"].Access = HttpAccessMode.Get;
+                    .Properties["wasWritable"].Access = HttpMethod.Get;
             });
         }
 
@@ -142,7 +143,7 @@ namespace Pomona.UnitTests.Schemas
         public void IsBackwardsCompatibleWith_OnSchemaHavingReadOnlyPropertyMadeWritable_ReturnsTrue()
         {
             AssertIsBackwardsCompatible(s => s.Types.First(x => x.Name == "Class")
-                                              .Properties["wasReadonly"].Access |= HttpAccessMode.Post);
+                                              .Properties["wasReadonly"].Access |= HttpMethod.Post);
         }
 
         [Test]

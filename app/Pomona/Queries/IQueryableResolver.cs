@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,49 +26,17 @@
 
 #endregion
 
-using System.Collections.Generic;
+using System.Linq;
 
-namespace Pomona.Example.Models.Existence
+namespace Pomona.Queries
 {
-    // /galaxies/milkyway/planetary-systems/solar/planets/pluto/moons/earthmoon
-
-    public abstract class CelestialObject : EntityBase
+    public interface IQueryableResolver
     {
-        public string Name { get; set; }
-    }
-
-    public class Galaxy : CelestialObject
-    {
-        private ICollection<PlanetarySystem> planetarySystems = new List<PlanetarySystem>();
-
-        public ICollection<PlanetarySystem> PlanetarySystems { get { return planetarySystems; }}
-    }
-
-    public class PlanetarySystem : CelestialObject
-    {
-        public Galaxy Galaxy { get; set; }
-
-        private ICollection<Planet> planets = new List<Planet>();
-
-        public ICollection<Planet> Planets
-        {
-            get { return this.planets; }
-        }
-    }
-
-    public class Planet : CelestialObject
-    {
-        private ICollection<Moon> moons = new List<Moon>();
-
-        public ICollection<Moon> Moons
-        {
-            get { return this.moons; }
-        }
-
-        public PlanetarySystem PlanetarySystem { get; set; }
-    }
-
-    public class Moon : CelestialObject
-    {
+        /// <summary>
+        /// Get the QueryableNode as IQueryable
+        /// </summary>
+        /// <param name="node">The node to get corresponding IQueryable for.</param>
+        /// <returns>The resulting IQueryable if success, null if not.</returns>
+        IQueryable Resolve(QueryableNode node);
     }
 }

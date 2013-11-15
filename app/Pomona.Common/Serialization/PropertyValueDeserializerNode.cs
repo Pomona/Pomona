@@ -87,9 +87,9 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public void CheckItemAccessRights(HttpAccessMode accessMode)
+        public void CheckItemAccessRights(HttpMethod method)
         {
-            Context.CheckPropertyItemAccessRights(property, accessMode);
+            Context.CheckPropertyItemAccessRights(property, method);
         }
 
 

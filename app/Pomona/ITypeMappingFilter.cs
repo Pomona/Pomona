@@ -99,13 +99,13 @@ namespace Pomona
         bool PropertyIsEtag(PropertyInfo propertyInfo);
         string GetPluralNameForType(Type type);
         PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
-        HttpAccessMode GetPropertyAccessMode(PropertyInfo propertyInfo);
+        HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo);
         int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo);
 
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
 
         Action<object> GetOnDeserializedHook(Type type);
-        HttpAccessMode GetPropertyItemAccessMode(PropertyInfo propertyInfo);
+        HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
     }
 }

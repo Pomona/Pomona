@@ -268,8 +268,8 @@ namespace Pomona
                     classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
                 }
 
-                classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpAccessMode.Post : 0;
-                classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpAccessMode.Patch : 0;
+                classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpMethod.Post : 0;
+                classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpMethod.Patch : 0;
 
                 classDefinition.OnDeserialized = filter.GetOnDeserializedHook(type);
 

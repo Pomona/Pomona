@@ -31,6 +31,7 @@ using System.Linq.Expressions;
 
 using Nancy.Extensions;
 
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -89,12 +90,12 @@ namespace Pomona.FluentMapping
         {
             this.options.CreateMode = PropertyCreateMode.Excluded;
             
-            HttpAccessMode allMutatingMethods = HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete
-                                            | HttpAccessMode.Put;
+            HttpMethod allMutatingMethods = HttpMethod.Patch | HttpMethod.Post | HttpMethod.Delete
+                                            | HttpMethod.Put;
 
-            this.options.SetAccessModeFlag(HttpAccessMode.Get);
+            this.options.SetAccessModeFlag(HttpMethod.Get);
             this.options.ClearAccessModeFlag(allMutatingMethods);
-            this.options.SetItemAccessModeFlag(HttpAccessMode.Get);
+            this.options.SetItemAccessModeFlag(HttpMethod.Get);
             this.options.ClearItemAccessModeFlag(allMutatingMethods);
             return this;
         }
@@ -117,10 +118,10 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpAccessMode accessMode)
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpMethod method)
         {
-            this.options.AccessModeMask = ~(default(HttpAccessMode));
-            this.options.AccessMode = accessMode;
+            this.options.MethodMask = ~(default(HttpMethod));
+            this.options.Method = method;
             return this;
         }
 
@@ -136,13 +137,13 @@ namespace Pomona.FluentMapping
         {
             this.options.CreateMode = PropertyCreateMode.Optional;
             if (typeof(TPropertyType).IsCollection())
-                this.options.SetItemAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post | HttpAccessMode.Delete);
+                this.options.SetItemAccessModeFlag(HttpMethod.Patch | HttpMethod.Post | HttpMethod.Delete);
             else
             {
                 if (this.options.PropertyInfo.CanWrite)
-                    this.options.SetAccessModeFlag(HttpAccessMode.Put);
+                    this.options.SetAccessModeFlag(HttpMethod.Put);
             }
-            this.options.SetAccessModeFlag(HttpAccessMode.Patch | HttpAccessMode.Post);
+            this.options.SetAccessModeFlag(HttpMethod.Patch | HttpMethod.Post);
             return this;
         }
 

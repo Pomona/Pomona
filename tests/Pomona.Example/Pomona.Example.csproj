@@ -81,7 +81,11 @@
     <Compile Include="Models\ErrorStatus.cs" />
     <Compile Include="Models\EtaggedEntity.cs" />
     <Compile Include="Models\ExcludedThing.cs" />
-    <Compile Include="Models\Existence\Universe.cs" />
+    <Compile Include="Models\Existence\CelestialObject.cs" />
+    <Compile Include="Models\Existence\Galaxy.cs" />
+    <Compile Include="Models\Existence\Planet.cs" />
+    <Compile Include="Models\Existence\PlanetarySystem.cs" />
+    <Compile Include="Models\Existence\Moon.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />

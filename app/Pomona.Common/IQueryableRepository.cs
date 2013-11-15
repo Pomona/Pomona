@@ -39,7 +39,6 @@ namespace Pomona.Common
         IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource;
 
-
         object Post<TPostForm>(TResource resource, TPostForm form)
             where TPostForm : class, IPostForm, IClientResource;
     }

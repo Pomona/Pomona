@@ -80,7 +80,7 @@ namespace Pomona.SystemTests
             var prop = typeof(ICritter).GetProperty("Name");
             Assert.That(prop, Is.Not.Null);
             var attr = prop.GetCustomAttributes(true).OfType<ResourcePropertyAttribute>().First();
-            Assert.That(attr.AccessMode, Is.EqualTo(HttpAccessMode.Post | HttpAccessMode.Put | HttpAccessMode.Get));
+            Assert.That(attr.Method, Is.EqualTo(HttpMethod.Post | HttpMethod.Put | HttpMethod.Get));
         }
 
 
