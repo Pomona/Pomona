@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,28 +22,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common;
+using System.Collections.Generic;
 
 namespace Pomona.RequestProcessing
 {
-    public class DefaultGetRequestProcessor : IPomonaRequestProcessor
+    public interface IRequestProcessorPipeline
     {
-        public PomonaResponse Process(PomonaRequest request)
-        {
-            if (request.Method != HttpMethod.Get)
-                return null;
-
-            var queryableNode = request.Node as QueryableNode;
-            if (queryableNode != null)
-            {
-                var pomonaQuery = request.ParseQuery();
-                return request.Node.GetQueryExecutor()
-                              .ApplyAndExecute(queryableNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
-            }
-            var resourceNode = request.Node as ResourceNode;
-            if (resourceNode != null)
-                return new PomonaResponse(resourceNode.Value, expandedPaths: request.ExpandedPaths);
-            return null;
-        }
+        IEnumerable<IPomonaRequestProcessor> Before { get; }
+        IEnumerable<IPomonaRequestProcessor> After { get; }
     }
 }

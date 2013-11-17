@@ -180,6 +180,8 @@
     <Compile Include="QueryableNode.cs" />
     <Compile Include="RequestProcessing\DataSourceRequestProcessor.cs" />
     <Compile Include="RequestProcessing\DefaultGetRequestProcessor.cs" />
+    <Compile Include="RequestProcessing\DefaultRequestProcessorPipeline.cs" />
+    <Compile Include="RequestProcessing\IRequestProcessorPipeline.cs" />
     <Compile Include="RequestProcessing\ValidateEtagOnPatchProcessor.cs" />
     <Compile Include="ResourceNode.cs" />
     <Compile Include="ResourceResolver.cs" />

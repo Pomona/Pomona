@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,28 +22,32 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Pomona.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pomona.Queries;
 
 namespace Pomona.RequestProcessing
 {
-    public class DefaultGetRequestProcessor : IPomonaRequestProcessor
+    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline, IPomonaRequestProcessor
     {
         public PomonaResponse Process(PomonaRequest request)
         {
-            if (request.Method != HttpMethod.Get)
-                return null;
+            return
+                Before.Concat(request.Node.GetRequestProcessors(request))
+                      .Concat(After)
+                      .Select(x => x.Process(request))
+                      .FirstOrDefault(response => response != null);
+        }
 
-            var queryableNode = request.Node as QueryableNode;
-            if (queryableNode != null)
-            {
-                var pomonaQuery = request.ParseQuery();
-                return request.Node.GetQueryExecutor()
-                              .ApplyAndExecute(queryableNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
-            }
-            var resourceNode = request.Node as ResourceNode;
-            if (resourceNode != null)
-                return new PomonaResponse(resourceNode.Value, expandedPaths: request.ExpandedPaths);
-            return null;
+        public virtual IEnumerable<IPomonaRequestProcessor> Before
+        {
+            get { yield return new ValidateEtagOnPatchProcessor(); }
+        }
+
+        public IEnumerable<IPomonaRequestProcessor> After
+        {
+            get { yield return new DefaultGetRequestProcessor(); }
         }
     }
 }
