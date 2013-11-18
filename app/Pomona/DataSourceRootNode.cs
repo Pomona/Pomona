@@ -72,6 +72,10 @@ namespace Pomona
                 x =>
                     x.IsUriBaseType && x.IsRootResource
                     && string.Equals(x.UriRelativePath, name, StringComparison.InvariantCultureIgnoreCase));
+
+            if (type == null)
+                throw new ResourceNotFoundException("Unable to locate root resource.");
+
             var queryable = queryMethod.MakeGenericMethod(type.MappedTypeInstance).Invoke(this.dataSource, null);
             return CreateNode(TypeMapper, this, name, queryable, type);
         }
