@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using Pomona.Common;
@@ -35,15 +36,27 @@ namespace Pomona
 {
     public class ResourceNode : PathNode
     {
-        private readonly ResourceType type;
-        private readonly object value;
+        private readonly ResourceType expectedType;
+        private readonly Lazy<ResourceType> type;
+        private readonly Lazy<object> value;
 
 
-        public ResourceNode(ITypeMapper typeMapper, PathNode parent, string name, object value, ResourceType type)
+        public ResourceNode(ITypeMapper typeMapper,
+            PathNode parent,
+            string name,
+            Func<object> valueFetcher,
+            ResourceType expectedType)
             : base(typeMapper, parent, name)
         {
-            this.value = value;
-            this.type = type;
+            this.value = new Lazy<object>(valueFetcher);
+            this.expectedType = expectedType;
+            this.type = new Lazy<ResourceType>(() =>
+            {
+                var localValue = Value;
+                if (Value == null)
+                    return expectedType;
+                return (ResourceType)typeMapper.GetClassMapping(localValue.GetType());
+            });
         }
 
 
@@ -53,35 +66,46 @@ namespace Pomona
             {
                 // TODO: Currently there's no good way to define that POST to a resource is allowed while POST to collection is not allowed.
                 // The code below is a workaround: if there's any defined PostHandlers we will allow POST.
-                return this.type.AllowedMethods | (type.PostHandlers.Any() ? HttpMethod.Post : 0);
+                return Type.AllowedMethods | (Type.PostHandlers.Any() ? HttpMethod.Post : 0);
             }
+        }
+
+        public override bool Exists
+        {
+            get { return Value != null; }
+        }
+
+        public override bool IsLoaded
+        {
+            get { return this.value.IsValueCreated; }
         }
 
         public new ResourceType Type
         {
-            get { return this.type; }
+            get { return this.type.Value; }
         }
 
         public override object Value
         {
-            get { return this.value; }
+            get { return this.value.Value; }
         }
 
 
         public override PathNode GetChildNode(string name)
         {
             IPropertyInfo property;
-            if (!Type.TryGetPropertyByUriName(name, out property))
+            if (
+                !(this.expectedType.TryGetPropertyByUriName(name, out property)
+                  || Type.TryGetPropertyByUriName(name, out property)))
                 throw new ResourceNotFoundException("Resource not found");
 
-            var value = property.Getter(Value);
-            return CreateNode(TypeMapper, this, name, value, property.PropertyType);
+            return CreateNode(TypeMapper, this, name, () => property.Getter(Value), property.PropertyType);
         }
 
 
         protected override IMappedType OnGetType()
         {
-            return this.type;
+            return Type;
         }
     }
 }

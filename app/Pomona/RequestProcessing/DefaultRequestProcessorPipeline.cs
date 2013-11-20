@@ -33,8 +33,8 @@ namespace Pomona.RequestProcessing
     {
         public PomonaResponse Process(PomonaRequest request)
         {
-            return
-                Before.Concat(request.Node.GetRequestProcessors(request))
+            return    Before
+                      .Concat(request.Node.GetRequestProcessors(request))
                       .Concat(After)
                       .Select(x => x.Process(request))
                       .FirstOrDefault(response => response != null);

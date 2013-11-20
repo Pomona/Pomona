@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -60,6 +61,11 @@ namespace Pomona
         }
 
 
+        public override bool IsLoaded
+        {
+            get { return true; }
+        }
+
         public override object Value
         {
             get { return this.dataSource; }
@@ -77,13 +83,23 @@ namespace Pomona
                 throw new ResourceNotFoundException("Unable to locate root resource.");
 
             var queryable = queryMethod.MakeGenericMethod(type.MappedTypeInstance).Invoke(this.dataSource, null);
-            return CreateNode(TypeMapper, this, name, queryable, type);
+            return CreateNode(TypeMapper,
+                this,
+                name,
+                () => queryable,
+                TypeMapper.GetClassMapping(typeof(ICollection<>).MakeGenericType(type.MappedTypeInstance)));
         }
 
 
         public override IQueryExecutor GetQueryExecutor()
         {
             return this.dataSource as IQueryExecutor ?? base.GetQueryExecutor();
+        }
+
+
+        public override bool Exists
+        {
+            get { return true; }
         }
 
 

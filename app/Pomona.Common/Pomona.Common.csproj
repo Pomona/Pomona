@@ -67,6 +67,7 @@
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\PomonaClientExtensions.cs" />
     <Compile Include="Internals\StreamExtensions.cs" />
+    <Compile Include="Internals\StringConversion.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPatchableRepository.cs" />

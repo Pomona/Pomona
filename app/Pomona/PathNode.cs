@@ -61,6 +61,9 @@ namespace Pomona
             get { return 0; }
         }
 
+        public abstract bool Exists { get; }
+        public abstract bool IsLoaded { get; }
+
         public string Name
         {
             get { return this.name; }
@@ -71,10 +74,10 @@ namespace Pomona
             get { return this.parent; }
         }
 
-
-        protected abstract IMappedType OnGetType();
-
-        public IMappedType Type { get { return OnGetType(); } }
+        public IMappedType Type
+        {
+            get { return OnGetType(); }
+        }
 
         public ITypeMapper TypeMapper
         {
@@ -110,20 +113,22 @@ namespace Pomona
         }
 
 
+        protected abstract IMappedType OnGetType();
+
+
         protected static PathNode CreateNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            object value,
+            Func<object> valueFetcher,
             IMappedType expectedType)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
-            var actualType = value == null ? expectedType : typeMapper.GetClassMapping(value.GetType());
-            if (actualType is ResourceType)
-                return new ResourceNode(typeMapper, parent, name, value, (ResourceType)actualType);
-            if (actualType.IsCollection && actualType.ElementType is ResourceType)
+            if (expectedType is ResourceType)
+                return new ResourceNode(typeMapper, parent, name, valueFetcher, (ResourceType)expectedType);
+            if (expectedType.IsCollection && expectedType.ElementType is ResourceType)
             {
-                var elementType = (ResourceType)actualType.ElementType;
+                var elementType = (ResourceType)expectedType.ElementType;
 
                 if (elementType.PrimaryId == null)
                 {
@@ -137,8 +142,8 @@ namespace Pomona
                     typeMapper,
                     parent,
                     name,
-                    value,
-                    actualType);
+                    valueFetcher,
+                    expectedType);
             }
 
             throw new NotImplementedException();

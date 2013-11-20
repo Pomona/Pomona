@@ -33,6 +33,9 @@ namespace Pomona.RequestProcessing
             if (request.Method != HttpMethod.Get)
                 return null;
 
+            if (!request.Node.Exists)
+                throw new ResourceNotFoundException("Resource not found.");
+
             var queryableNode = request.Node as QueryableNode;
             if (queryableNode != null)
             {

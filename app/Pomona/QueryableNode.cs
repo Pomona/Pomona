@@ -27,12 +27,11 @@
 #endregion
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -43,10 +42,16 @@ namespace Pomona
         public QueryableNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            IEnumerable<TItem> value,
+            Func<object> valueFetcher,
             IMappedType collectionType)
-            : base(typeMapper, parent, name, value, collectionType)
+            : base(typeMapper, parent, name, valueFetcher, collectionType)
         {
+        }
+
+
+        public override bool Exists
+        {
+            get { return true; }
         }
 
 
@@ -55,18 +60,21 @@ namespace Pomona
             if (ItemResourceType.PrimaryId == null)
                 throw new ArgumentException("Resource in collection needs to have a primary id.");
 
+            return CreateNode(TypeMapper, this, name, () => GetChildNodeFromQueryableById(name), ItemResourceType);
+        }
+
+
+        private TItem GetChildNodeFromQueryableById(string name)
+        {
             var id = (TId)ParseId(name);
             var predicateParam = Expression.Parameter(typeof(TItem));
             var predicate = Expression.Lambda<Func<TItem, bool>>(
                 Expression.Equal(ItemResourceType.PrimaryId.CreateGetterExpression(predicateParam),
                     Expression.Constant(id)),
                 predicateParam);
-            var queryable = ((IQueryable<TItem>)GetAsQueryable()).Where(predicate);
+            var queryable = ((IQueryable<TItem>)GetAsQueryable()).EmptyIfNull().Where(predicate);
             var result = queryable.FirstOrDefault();
-            if (result == null)
-                throw new ResourceNotFoundException("Resource not found");
-
-            return CreateNode(TypeMapper, this, name, result, ItemResourceType);
+            return result;
         }
     }
 
@@ -75,9 +83,9 @@ namespace Pomona
         protected QueryableNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            IEnumerable value,
+            Func<object> valueFetcher,
             IMappedType collectionType)
-            : base(typeMapper, parent, name, value, collectionType)
+            : base(typeMapper, parent, name, valueFetcher, collectionType)
         {
         }
     }
@@ -85,25 +93,25 @@ namespace Pomona
     public abstract class QueryableNode : PathNode
     {
         private readonly IMappedType collectionType;
-        private readonly IEnumerable value;
+        private readonly Lazy<object> valueLazy;
 
 
         protected QueryableNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            IEnumerable value,
+            Func<object> valueFetcher,
             IMappedType collectionType)
             : base(typeMapper, parent, name)
         {
-            if (value == null)
-                throw new ArgumentNullException("value");
+            if (valueFetcher == null)
+                throw new ArgumentNullException("valueFetcher");
             if (collectionType == null)
                 throw new ArgumentNullException("collectionType");
 
             if (!collectionType.IsCollection || !(collectionType.ElementType is ResourceType))
                 throw new ArgumentException("Need to be collection of resources.", "collectionType");
 
-            this.value = value;
+            this.valueLazy = new Lazy<object>(valueFetcher);
             this.collectionType = collectionType;
         }
 
@@ -113,6 +121,11 @@ namespace Pomona
             get { return ItemResourceType.AllowedMethods; }
         }
 
+        public override bool IsLoaded
+        {
+            get { return this.valueLazy.IsValueCreated; }
+        }
+
         public ResourceType ItemResourceType
         {
             get { return (ResourceType)this.collectionType.ElementType; }
@@ -120,7 +133,7 @@ namespace Pomona
 
         public override object Value
         {
-            get { return this.value; }
+            get { return this.valueLazy.Value; }
         }
 
         protected IMappedType ItemIdType
