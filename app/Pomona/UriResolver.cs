@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text;
 
 using Nancy;
@@ -71,7 +72,7 @@ namespace Pomona
             }
             sb.Append('/');
 
-            sb.Append(type.GetId(entity));
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}", type.GetId(entity));
             if (property != null)
             {
                 sb.Append('/');
