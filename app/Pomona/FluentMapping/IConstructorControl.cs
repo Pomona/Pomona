@@ -26,10 +26,14 @@
 
 #endregion
 
+using System;
+
 namespace Pomona.FluentMapping
 {
     public interface IConstructorControl
     {
         T Optional<T>(T val);
+        T Parent<T>();
+        T Context<T>();
     }
 }
