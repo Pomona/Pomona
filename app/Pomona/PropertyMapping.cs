@@ -28,11 +28,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
-using Pomona.Visitors;
 
 namespace Pomona
 {
-    public class PropertyMapping : IPropertyInfo
+#if false
+    public class PropertyMapping : PropertySpec
     {
         #region PropertyAccessMode enum
 
@@ -42,7 +42,7 @@ namespace Pomona
         private readonly string name;
         private readonly TransformedType reflectedType;
         private readonly PropertyInfo propertyInfo;
-        private readonly IMappedType propertyType;
+        private readonly TypeSpec propertyType;
         private PropertyInfo normalizedPropertyInfo;
 
 
@@ -53,7 +53,7 @@ namespace Pomona
         }
 
         public PropertyMapping(
-            string name, TransformedType reflectedType, TransformedType declaringType, IMappedType propertyType, PropertyInfo propertyInfo)
+            string name, TransformedType reflectedType, TransformedType declaringType, TypeSpec propertyType, PropertyInfo propertyInfo)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
@@ -78,14 +78,6 @@ namespace Pomona
         public HttpMethod ItemAccessMode { get; set; }
 
         public int ConstructorArgIndex { get; set; }
-
-        /// <summary>
-        /// For one-to-many collection properties this defines which property on the
-        /// many side refers to the one side of the relation.
-        /// 
-        /// This only applies to one-to-many collections..
-        /// </summary>
-        public PropertyMapping ElementForeignKey { get; set; }
 
         public bool IsAttributesProperty { get; set; }
 
@@ -161,7 +153,7 @@ namespace Pomona
 
         public TransformedType DeclaringType {get { return declaringType; }}
 
-        IMappedType IPropertyInfo.DeclaringType
+        TypeSpec PropertySpec.DeclaringType
         {
             get { return declaringType; }
         }
@@ -196,7 +188,7 @@ namespace Pomona
             get { return name; }
         }
 
-        public IMappedType PropertyType
+        public TypeSpec PropertyType
         {
             get { return propertyType; }
         }
@@ -222,4 +214,5 @@ namespace Pomona
             return string.Format("{0} {1}::{2}", PropertyType, DeclaringType, Name);
         }
     }
+#endif
 }

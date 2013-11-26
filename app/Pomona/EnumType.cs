@@ -36,7 +36,8 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class EnumType : IMappedType
+#if false
+    public class EnumType : TypeSpec
     {
         private readonly Dictionary<string, int> enumValues;
         private readonly Type mappedType;
@@ -61,21 +62,21 @@ namespace Pomona
             this.enumValues = enumValues;
         }
 
-        #region IMappedType Members
+        #region TypeSpec Members
 
-        public IMappedType BaseType
+        public TypeSpec BaseType
         {
             get { return null; }
         }
 
         public Type CustomClientLibraryType { get; set; }
 
-        public IMappedType ElementType
+        public TypeSpec ElementType
         {
             get { throw new NotSupportedException(); }
         }
 
-        public IList<IMappedType> GenericArguments
+        public IList<TypeSpec> GenericArguments
         {
             get { throw new NotSupportedException(); }
         }
@@ -145,43 +146,43 @@ namespace Pomona
             get { return null; }
         }
 
-        public IPropertyInfo PrimaryId
+        public PropertySpec PrimaryId
         {
             get { return null; }
         }
 
-        IMappedType IMappedType.DictionaryKeyType
+        TypeSpec TypeSpec.DictionaryKeyType
         {
             get { throw new NotSupportedException(); }
         }
 
-        IMappedType IMappedType.DictionaryType
+        TypeSpec TypeSpec.DictionaryType
         {
             get { throw new NotSupportedException(); }
         }
 
-        IMappedType IMappedType.DictionaryValueType
+        TypeSpec TypeSpec.DictionaryValueType
         {
             get { throw new NotSupportedException(); }
         }
 
-        bool IMappedType.HasUri
+        bool TypeSpec.HasUri
         {
             get { throw new NotSupportedException(); }
         }
 
-        IList<IPropertyInfo> IMappedType.Properties
+        IList<PropertySpec> TypeSpec.Properties
         {
-            get { return new IPropertyInfo[] { }; }
+            get { return new PropertySpec[] { }; }
         }
 
-        TypeSerializationMode IMappedType.SerializationMode
+        TypeSerializationMode TypeSpec.SerializationMode
         {
             get { return TypeSerializationMode.Value; }
         }
 
 
-        public object Create(IDictionary<IPropertyInfo, object> args)
+        public object Create(IDictionary<PropertySpec, object> args)
         {
             throw new NotImplementedException();
         }
@@ -198,4 +199,5 @@ namespace Pomona
             get { return this.mappedType; }
         }
     }
+#endif
 }

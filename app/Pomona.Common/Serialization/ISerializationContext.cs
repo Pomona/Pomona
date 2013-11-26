@@ -29,15 +29,15 @@ namespace Pomona.Common.Serialization
 {
     public interface ISerializationContext
     {
-        IMappedType GetClassMapping(Type type);
+        TypeSpec GetClassMapping(Type type);
         string GetUri(object value);
-        string GetUri(IPropertyInfo property, object value);
+        string GetUri(PropertySpec property, object value);
         bool PathToBeExpanded(string expandPath);
 
 
         void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
             where TWriter : ISerializerWriter;
 
-        bool PropertyIsSerialized(IPropertyInfo property);
+        bool PropertyIsSerialized(PropertySpec property);
     }
 }

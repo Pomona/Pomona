@@ -33,6 +33,7 @@ using System.Reflection;
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
 namespace Pomona.RequestProcessing
@@ -71,6 +72,8 @@ namespace Pomona.RequestProcessing
                 }
                 if (resourceNode != null)
                 {
+                    throw new NotImplementedException();
+#if false
                     // Post to resource..
                     var o = resourceNode.Value;
                     var mappedType = (TransformedType)resourceNode.TypeMapper.GetClassMapping(o.GetType());
@@ -79,7 +82,7 @@ namespace Pomona.RequestProcessing
                     var handlers =
                         mappedType.PostHandlers.Where(
                             x => string.IsNullOrEmpty(x.UriName))
-                                  .Where(x => x.FormType.MappedTypeInstance.IsInstanceOfType(form))
+                                  .Where(x => x.FormType.Type.IsInstanceOfType(form))
                                   .ToList();
 
                     if (handlers.Count < 1)
@@ -93,7 +96,7 @@ namespace Pomona.RequestProcessing
                     var result = handler.Method.Invoke(dataSource, new[] { o, form });
 
                     return new PomonaResponse(result);
-
+#endif
                 }
             }
 

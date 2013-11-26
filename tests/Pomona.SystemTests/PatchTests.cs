@@ -102,6 +102,7 @@ namespace Pomona.SystemTests
         public void PatchCritter_ModifyWeapon()
         {
             var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
+            var TMPweapons = critter.Weapons.ToList(); // REMOVE THIS
             var response = client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
             Assert.That(response.Weapons.First().Strength, Is.EqualTo(1337.0));
         }

@@ -51,7 +51,7 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
-        public CollectionDelta(object original, IMappedType type, ITypeMapper typeMapper, Delta parent = null)
+        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }
@@ -106,11 +106,11 @@ namespace Pomona.Common.Serialization.Patch
             get { return OriginalItems.Except(TrackedOriginalItems); }
         }
 
-        internal static object CreateTypedCollectionDelta(object original, IMappedType type, ITypeMapper typeMapper,
+        internal static object CreateTypedCollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper,
                                                           Delta parent)
         {
-            var collectionType = typeof (CollectionDelta<,>).MakeGenericType(type.ElementType.MappedTypeInstance,
-                                                                             type.MappedTypeInstance);
+            var collectionType = typeof (CollectionDelta<,>).MakeGenericType(type.ElementType.Type,
+                                                                             type.Type);
             return Activator.CreateInstance(collectionType, original, type, typeMapper, parent);
         }
 
@@ -157,7 +157,7 @@ namespace Pomona.Common.Serialization.Patch
                 if (nonGenericList != null)
                     nonGenericList.Remove(item);
                 else
-                    removeOriginalItem.MakeGenericMethod(Type.ElementType.MappedTypeInstance)
+                    removeOriginalItem.MakeGenericMethod(Type.ElementType.Type)
                                       .Invoke(this, new[] {item});
             }
             foreach (var item in addedItems)
@@ -165,7 +165,7 @@ namespace Pomona.Common.Serialization.Patch
                 if (nonGenericList != null)
                     nonGenericList.Add(item);
                 else
-                    addOriginalItem.MakeGenericMethod(Type.ElementType.MappedTypeInstance)
+                    addOriginalItem.MakeGenericMethod(Type.ElementType.Type)
                                    .Invoke(this, new[] {item});
             }
             foreach (var item in modifiedItems)
@@ -208,7 +208,7 @@ namespace Pomona.Common.Serialization.Patch
 
     public abstract class CollectionDelta<TElement> : CollectionDelta, IList<TElement>
     {
-        public CollectionDelta(object original, IMappedType type, ITypeMapper typeMapper, Delta parent = null)
+        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
             if (!type.IsCollection)
@@ -309,7 +309,7 @@ namespace Pomona.Common.Serialization.Patch
             }
         }
 
-        protected override object CreateNestedDelta(object propValue, IMappedType propValueType)
+        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType)
         {
             return ObjectDeltaProxyBase.CreateDeltaProxy(propValue, propValueType, TypeMapper, this);
         }
@@ -317,7 +317,7 @@ namespace Pomona.Common.Serialization.Patch
 
     public class CollectionDelta<TElement, TCollection> : CollectionDelta<TElement>, IDelta<TCollection>
     {
-        public CollectionDelta(object original, IMappedType type, ITypeMapper typeMapper, Delta parent = null)
+        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }

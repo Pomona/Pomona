@@ -36,6 +36,7 @@ using Pomona.Internals;
 
 namespace Pomona
 {
+#if false
     public class ResourceType : TransformedType
     {
         internal ResourceType(Type mappedType, string name, TypeMapper typeMapper)
@@ -67,7 +68,7 @@ namespace Pomona
     /// <summary>
     /// Represents a type that is transformed
     /// </summary>
-    public class TransformedType : IMappedType
+    public class TransformedType : TypeSpec
     {
         private static readonly MethodInfo addItemsToDictionaryMethod =
             ReflectionHelper.GetMethodDefinition<TransformedType>(
@@ -178,31 +179,31 @@ namespace Pomona
 
         public string UriRelativePath { get; set; }
 
-        #region IMappedType Members
+        #region TypeSpec Members
 
-        public IMappedType BaseType { get; set; }
+        public TypeSpec BaseType { get; set; }
 
         public Type CustomClientLibraryType
         {
             get { return null; }
         }
 
-        public IMappedType DictionaryKeyType
+        public TypeSpec DictionaryKeyType
         {
             get { throw new NotSupportedException(); }
         }
 
-        public IMappedType DictionaryType
+        public TypeSpec DictionaryType
         {
             get { throw new NotSupportedException(); }
         }
 
-        public IMappedType DictionaryValueType
+        public TypeSpec DictionaryValueType
         {
             get { throw new NotSupportedException(); }
         }
 
-        public IMappedType ElementType
+        public TypeSpec ElementType
         {
             get
             {
@@ -211,9 +212,9 @@ namespace Pomona
             }
         }
 
-        public IList<IMappedType> GenericArguments
+        public IList<TypeSpec> GenericArguments
         {
-            get { return new IMappedType[] {}; }
+            get { return new TypeSpec[] {}; }
         }
 
         public bool IsAlwaysExpanded
@@ -261,7 +262,7 @@ namespace Pomona
             get { return null; }
         }
 
-        public Type MappedTypeInstance
+        public Type Type
         {
             get { return mappedType; }
         }
@@ -272,7 +273,7 @@ namespace Pomona
         }
 
 
-        public object Create(IDictionary<IPropertyInfo, object> args)
+        public object Create(IDictionary<PropertySpec, object> args)
         {
             try
             {
@@ -297,7 +298,7 @@ namespace Pomona
             }
         }
 
-        private object CreateUnprotected(IDictionary<IPropertyInfo, object> args)
+        private object CreateUnprotected(IDictionary<PropertySpec, object> args)
         {
             var propValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
             //var ctorValues = new List<KeyValuePair<PropertyMapping, object>>(args.Count);
@@ -338,7 +339,7 @@ namespace Pomona
                 }
             }
 
-            var instance = Activator.CreateInstance(MappedTypeInstance, ctorArgs);
+            var instance = Activator.CreateInstance(this.Type, ctorArgs);
 
             foreach (var kvp in propValues)
             {
@@ -357,7 +358,7 @@ namespace Pomona
                     if (dict != null)
                     {
                         addItemsToDictionaryMethod.MakeGenericMethod(
-                            prop.PropertyType.MappedTypeInstance.GetGenericArguments())
+                            prop.PropertyType.Type.GetGenericArguments())
                                                   .Invoke(this, new[] {kvp.Value, dict});
                         setPropertyToValue = false;
                     }
@@ -368,7 +369,7 @@ namespace Pomona
                     if (collection != null)
                     {
                         addValuesToCollectionMethod
-                            .MakeGenericMethod(prop.PropertyType.ElementType.MappedTypeInstance)
+                            .MakeGenericMethod(prop.PropertyType.ElementType.Type)
                             .Invoke(this, new[] {kvp.Value, collection});
                         setPropertyToValue = false;
                     }
@@ -416,13 +417,13 @@ namespace Pomona
             get { return mappedType; }
         }
 
-        public IPropertyInfo PrimaryId { get; set; }
+        public PropertySpec PrimaryId { get; set; }
 
         public IList<PropertyMapping> Properties { get { return properties; } }
 
-        IList<IPropertyInfo> IMappedType.Properties
+        IEnumerable<PropertySpec> TypeSpec.Properties
         {
-            get { return new CastingListWrapper<IPropertyInfo>(properties); }
+            get { return new CastingListWrapper<PropertySpec>(properties); }
         }
 
         public TypeSerializationMode SerializationMode
@@ -676,4 +677,5 @@ namespace Pomona
                     x => x.Name).Where(x => x.GetIndexParameters().Count() == 0);
         }
     }
+#endif
 }

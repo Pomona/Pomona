@@ -31,17 +31,17 @@ namespace Pomona.Common.Serialization
     {
         private readonly ISerializationContext context;
         private readonly ISerializerNode parentNode;
-        private readonly IPropertyInfo property;
+        private readonly PropertySpec property;
         private string expandPath;
 
         private bool propertyIsLoaded;
         private object propertyValue;
-        private IMappedType propertyValueType;
+        private TypeSpec propertyValueType;
 
         #region Implementation of ISerializerNode
 
         public PropertyValueSerializerNode(
-            ISerializerNode parentNode, IPropertyInfo property)
+            ISerializerNode parentNode, PropertySpec property)
         {
             if (parentNode == null)
                 throw new ArgumentNullException("parentNode");
@@ -68,7 +68,7 @@ namespace Pomona.Common.Serialization
             }
         }
 
-        public IMappedType ExpectedBaseType
+        public TypeSpec ExpectedBaseType
         {
             get { return property.PropertyType; }
         }
@@ -103,7 +103,7 @@ namespace Pomona.Common.Serialization
             }
         }
 
-        public IMappedType ValueType
+        public TypeSpec ValueType
         {
             get
             {
@@ -129,7 +129,7 @@ namespace Pomona.Common.Serialization
 
         #endregion
 
-        public IPropertyInfo Property
+        public PropertySpec Property
         {
             get { return property; }
         }

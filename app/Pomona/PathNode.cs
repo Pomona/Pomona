@@ -32,12 +32,13 @@ using System.Linq;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
 namespace Pomona
 {
-    public abstract class PathNode
+    public abstract class PathNode : IResourceNode
     {
         private readonly string name;
         private readonly PathNode parent;
@@ -69,12 +70,17 @@ namespace Pomona
             get { return this.name; }
         }
 
+        IResourceNode IResourceNode.Parent
+        {
+            get { return Parent; }
+        }
+
         public PathNode Parent
         {
             get { return this.parent; }
         }
 
-        public IMappedType Type
+        public TypeSpec Type
         {
             get { return OnGetType(); }
         }
@@ -86,7 +92,7 @@ namespace Pomona
 
         public abstract object Value { get; }
 
-        protected internal virtual IMappedType ExpectedPostType
+        protected internal virtual TypeSpec ExpectedPostType
         {
             get { return null; }
         }
@@ -113,14 +119,14 @@ namespace Pomona
         }
 
 
-        protected abstract IMappedType OnGetType();
+        protected abstract TypeSpec OnGetType();
 
 
         protected static PathNode CreateNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
             Func<object> valueFetcher,
-            IMappedType expectedType)
+            TypeSpec expectedType)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -136,9 +142,9 @@ namespace Pomona
                         "Unable to create queryable of resource type without PrimaryId set.");
                 }
 
-                var idType = elementType.PrimaryId.PropertyType.MappedTypeInstance;
+                var idType = elementType.PrimaryId.PropertyType.Type;
                 return (PathNode)Activator.CreateInstance(
-                    typeof(QueryableNode<,>).MakeGenericType(new[] { elementType.MappedTypeInstance, idType }),
+                    typeof(QueryableNode<,>).MakeGenericType(new[] { elementType.Type, idType }),
                     typeMapper,
                     parent,
                     name,

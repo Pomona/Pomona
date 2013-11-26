@@ -34,13 +34,13 @@ namespace Pomona.Common.Serialization
     {
         private readonly IDeserializationContext context;
         private readonly IDeserializerNode parent;
-        private readonly IPropertyInfo property;
+        private readonly PropertySpec property;
 
         private string expandPath;
-        private IMappedType valueType;
+        private TypeSpec valueType;
 
 
-        public PropertyValueDeserializerNode(IDeserializerNode parent, IPropertyInfo property)
+        public PropertyValueDeserializerNode(IDeserializerNode parent, PropertySpec property)
         {
             this.parent = parent;
             this.property = property;
@@ -70,7 +70,7 @@ namespace Pomona.Common.Serialization
             }
         }
 
-        public IMappedType ExpectedBaseType
+        public TypeSpec ExpectedBaseType
         {
             get { return this.property.PropertyType; }
         }
@@ -83,9 +83,15 @@ namespace Pomona.Common.Serialization
         }
 
         public string Uri { get; set; }
+
+        IResourceNode IResourceNode.Parent
+        {
+            get { return Parent ?? Context.TargetNode; }
+        }
+
         public object Value { get; set; }
 
-        public IMappedType ValueType
+        public TypeSpec ValueType
         {
             get { return this.valueType; }
         }
@@ -97,7 +103,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public void SetProperty(IPropertyInfo property, object propertyValue)
+        public void SetProperty(PropertySpec property, object propertyValue)
         {
             this.context.SetProperty(this, property, propertyValue);
         }
@@ -108,9 +114,14 @@ namespace Pomona.Common.Serialization
             this.valueType = Context.GetTypeByName(typeName);
         }
 
+        public void CheckAccessRights(HttpMethod method)
+        {
+            Context.CheckAccessRights(this.property, method);
+        }
+
         #endregion
 
-        public IPropertyInfo Property
+        public PropertySpec Property
         {
             get { return this.property; }
         }

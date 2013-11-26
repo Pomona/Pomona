@@ -43,7 +43,7 @@ namespace Pomona
             PathNode parent,
             string name,
             Func<object> valueFetcher,
-            IMappedType collectionType)
+            TypeSpec collectionType)
             : base(typeMapper, parent, name, valueFetcher, collectionType)
         {
         }
@@ -84,7 +84,7 @@ namespace Pomona
             PathNode parent,
             string name,
             Func<object> valueFetcher,
-            IMappedType collectionType)
+            TypeSpec collectionType)
             : base(typeMapper, parent, name, valueFetcher, collectionType)
         {
         }
@@ -92,15 +92,15 @@ namespace Pomona
 
     public abstract class QueryableNode : PathNode
     {
-        private readonly IMappedType collectionType;
-        private readonly Lazy<object> valueLazy;
+        private readonly TypeSpec collectionType;
+        private readonly System.Lazy<object> valueLazy;
 
 
         protected QueryableNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
             Func<object> valueFetcher,
-            IMappedType collectionType)
+            TypeSpec collectionType)
             : base(typeMapper, parent, name)
         {
             if (valueFetcher == null)
@@ -111,7 +111,7 @@ namespace Pomona
             if (!collectionType.IsCollection || !(collectionType.ElementType is ResourceType))
                 throw new ArgumentException("Need to be collection of resources.", "collectionType");
 
-            this.valueLazy = new Lazy<object>(valueFetcher);
+            this.valueLazy = new System.Lazy<object>(valueFetcher);
             this.collectionType = collectionType;
         }
 
@@ -136,24 +136,24 @@ namespace Pomona
             get { return this.valueLazy.Value; }
         }
 
-        protected IMappedType ItemIdType
+        protected TypeSpec ItemIdType
         {
             get { return ItemResourceType.PrimaryId.PropertyType; }
         }
 
-        protected internal override IMappedType ExpectedPostType
+        protected internal override TypeSpec ExpectedPostType
         {
             get { return ItemResourceType; }
         }
 
 
-        public IQueryable GetAsQueryable(IMappedType ofType = null)
+        public IQueryable GetAsQueryable(TypeSpec ofType = null)
         {
             return GetQueryableResolver().Resolve(this, ofType);
         }
 
 
-        protected override IMappedType OnGetType()
+        protected override TypeSpec OnGetType()
         {
             return this.collectionType;
         }
@@ -161,7 +161,7 @@ namespace Pomona
 
         protected object ParseId(string id)
         {
-            return Convert.ChangeType(id, ItemIdType.MappedTypeInstance);
+            return Convert.ChangeType(id, ItemIdType.Type);
         }
     }
 }

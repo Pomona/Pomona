@@ -81,7 +81,7 @@ namespace Pomona.Common.Serialization.Xml
 
 
         public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, Writer writer,
-                                         IMappedType elementType)
+                                         TypeSpec elementType)
         {
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
                                                        string.Empty, fetchContext, null);
@@ -89,35 +89,36 @@ namespace Pomona.Common.Serialization.Xml
         }
 
         public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,
-                                         ISerializerWriter writer, IMappedType elementType)
+                                         ISerializerWriter writer, TypeSpec elementType)
         {
             SerializeQueryResult(queryResult, fetchContext, CastWriter(writer), elementType);
         }
 
         private void SerializeCollection(ISerializerNode node, Writer writer)
         {
-            var elementType = node.ExpectedBaseType.ElementType;
-            var outerArrayElementName = writer.NextElementName ?? GetXmlName(elementType.PluralName);
+            throw new NotImplementedException();
+            //var elementType = node.ExpectedBaseType.ElementType;
+            //var outerArrayElementName = writer.NextElementName ?? GetXmlName(elementType.PluralName);
 
-            writer.XmlWriter.WriteStartElement(outerArrayElementName);
+            //writer.XmlWriter.WriteStartElement(outerArrayElementName);
 
-            writer.NextElementName = GetXmlName(elementType);
+            //writer.NextElementName = GetXmlName(elementType);
 
-            var xmlWriter = writer.XmlWriter;
-            if (node.SerializeAsReference)
-            {
-                xmlWriter.WriteAttributeString("ref", node.Uri);
-            }
-            else
-            {
-                foreach (var item in (IEnumerable) node.Value)
-                {
-                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
-                    itemNode.Serialize(this, writer);
-                }
-            }
+            //var xmlWriter = writer.XmlWriter;
+            //if (node.SerializeAsReference)
+            //{
+            //    xmlWriter.WriteAttributeString("ref", node.Uri);
+            //}
+            //else
+            //{
+            //    foreach (var item in (IEnumerable) node.Value)
+            //    {
+            //        var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
+            //        itemNode.Serialize(this, writer);
+            //    }
+            //}
 
-            writer.XmlWriter.WriteEndElement();
+            //writer.XmlWriter.WriteEndElement();
         }
 
         private static string GetXmlName(string name)
@@ -125,12 +126,12 @@ namespace Pomona.Common.Serialization.Xml
             return NameUtils.ConvertCamelCaseToUri(name);
         }
 
-        private static string GetXmlName(IPropertyInfo property)
+        private static string GetXmlName(PropertySpec property)
         {
             return GetXmlName(property.Name);
         }
 
-        private static string GetXmlName(IMappedType type)
+        private static string GetXmlName(TypeSpec type)
         {
             return GetXmlName(type.Name);
         }
@@ -160,7 +161,7 @@ namespace Pomona.Common.Serialization.Xml
         {
             var jsonWriter = writer.XmlWriter;
 
-            if (node.ValueType.HasUri)
+            if (node.Uri != null)
             {
                 jsonWriter.WriteAttributeString("uri", node.Uri);
             }

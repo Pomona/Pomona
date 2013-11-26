@@ -40,11 +40,11 @@ namespace Pomona.Common.Serialization.Patch
             return TrackedProperties.TryGetValue(propertyName, out propValue) && ValueIsDirty(propValue);
         }
 
-        private static object Create(object original, IMappedType type, ITypeMapper typeMapper, Delta parent)
+        private static object Create(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent)
         {
             var proxy =
-                RuntimeProxyFactory.Create(typeof (ObjectDeltaProxyBase<>).MakeGenericType(type.MappedTypeInstance),
-                                           type.MappedTypeInstance);
+                RuntimeProxyFactory.Create(typeof (ObjectDeltaProxyBase<>).MakeGenericType(type.Type),
+                                           type.Type);
             var odpb = (ObjectDeltaProxyBase) proxy;
             odpb.Original = original;
             odpb.Type = type;
@@ -53,7 +53,7 @@ namespace Pomona.Common.Serialization.Patch
             return proxy;
         }
 
-        public static object CreateDeltaProxy(object original, IMappedType type, ITypeMapper typeMapper, Delta parent)
+        public static object CreateDeltaProxy(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent)
         {
             if (type.SerializationMode == TypeSerializationMode.Complex)
             {
@@ -63,7 +63,9 @@ namespace Pomona.Common.Serialization.Patch
                 return CollectionDelta.CreateTypedCollectionDelta(original, type, typeMapper, parent);
             if (type.IsDictionary)
             {
-                var dictTypeInstance = typeof (DictionaryDelta<,,>).MakeGenericType(type.DictionaryKeyType.MappedTypeInstance, type.DictionaryValueType.MappedTypeInstance, type.MappedTypeInstance);
+                var dictType = (DictionaryTypeSpec)type;
+
+                var dictTypeInstance = typeof (DictionaryDelta<,,>).MakeGenericType(dictType.KeyType, dictType.ValueType, type);
                 return Activator.CreateInstance(dictTypeInstance, original, type, typeMapper, parent);
             }
             throw new NotImplementedException();
@@ -80,7 +82,7 @@ namespace Pomona.Common.Serialization.Patch
             SetPropertyValue(property.Name, value);
         }
 
-        protected override object CreateNestedDelta(object propValue, IMappedType propValueType)
+        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType)
         {
             return CreateDeltaProxy(propValue, propValueType, TypeMapper, this);
         }

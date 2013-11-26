@@ -28,13 +28,58 @@ using System.Linq;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class ClientType : SharedType
+    public class ClientType : RuntimeTypeSpec
     {
+        public class ClientTypeFactory : ITypeFactory
+        {
+            public int Priority
+            {
+                get { return -20; }
+            }
+
+            public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
+            {
+                if (typeof(IClientResource).IsAssignableFrom(type) && type != typeof(IClientResource))
+                {
+                    var interfaceType = GetResourceNonProxyInterfaceType(type);
+                    if (interfaceType == type)
+                         return new ClientType(interfaceType, typeResolver);
+                    return typeResolver.FromType(interfaceType);
+                }
+
+                return null;
+            }
+
+
+            public Type GetResourceNonProxyInterfaceType(Type type)
+            {
+                if (!type.IsInterface)
+                {
+                    var interfaces =
+                        type.GetInterfaces().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToArray();
+                    IEnumerable<Type> exceptTheseInterfaces =
+                        interfaces.SelectMany(
+                            x => x.GetInterfaces().Where(y => typeof(IClientResource).IsAssignableFrom(y))).
+                                   Distinct().ToArray();
+                    var mostSubtypedInterface =
+                        interfaces
+                            .Except(
+                                exceptTheseInterfaces)
+                            .Single();
+
+                    type = mostSubtypedInterface;
+                }
+
+                return type;
+            }
+
+        }
+
         private readonly ResourceInfoAttribute resourceInfo;
 
-        public ClientType(Type mappedTypeInstance, ITypeMapper typeMapper) : base(mappedTypeInstance, typeMapper)
+        public ClientType(Type mappedTypeInstance, ITypeResolver typeMapper) : base(typeMapper, mappedTypeInstance)
         {
-            SerializationMode = TypeSerializationMode.Complex;
+            //SerializationMode = TypeSerializationMode.Complex;
 
             resourceInfo = mappedTypeInstance
                 .GetCustomAttributes(typeof (ResourceInfoAttribute), false)
@@ -42,11 +87,10 @@ namespace Pomona.Common.TypeSystem
                 .First();
         }
 
-        public override string Name
+        protected internal override string OnLoadName()
         {
-            get { return resourceInfo.JsonTypeName; }
+            return resourceInfo.JsonTypeName;
         }
-
 
         public ResourceInfoAttribute ResourceInfo
         {
@@ -54,7 +98,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override object Create(IDictionary<IPropertyInfo, object> args)
+        public override object Create(IDictionary<PropertySpec, object> args)
         {
             var instance = Activator.CreateInstance(resourceInfo.PocoType);
             foreach (var kvp in args)
@@ -63,17 +107,10 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected override IEnumerable<IPropertyInfo> OnGetProperties()
+        protected internal override IEnumerable<PropertySpec> OnLoadProperties()
         {
-            // Include properties of all base types too
-            var baseInterfaceProperties =
-                MappedTypeInstance
-                    .GetInterfaces()
-                    .Where(x => x.IsInterface && typeof (IClientResource).IsAssignableFrom(x))
-                    .SelectMany(x => x.GetProperties())
-                    .Select(x => new SharedPropertyInfo(x, TypeMapper));
-
-            return base.OnGetProperties().Concat(baseInterfaceProperties);
+            return base.OnLoadProperties();
         }
+
     }
 }

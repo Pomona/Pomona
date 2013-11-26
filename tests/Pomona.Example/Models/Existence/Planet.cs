@@ -26,12 +26,21 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 
 namespace Pomona.Example.Models.Existence
 {
     public class Planet : CelestialObject
     {
+        public Planet() {}
+
+        public Planet(string name, PlanetarySystem planetarySystem) : base(name)
+        {
+            PlanetarySystem = planetarySystem;
+            planetarySystem.Planets.Add(this);
+        }
+
         private ICollection<Moon> moons = new List<Moon>();
 
         public ICollection<Moon> Moons

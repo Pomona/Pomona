@@ -33,6 +33,8 @@ namespace Pomona.Common
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Interface)]
     public class ResourcePropertyAttribute : Attribute
     {
+        public bool Required { get; set; }
         public HttpMethod AccessMode { get; set; }
+        public HttpMethod ItemAccessMode { get; set; }
     }
 }

@@ -30,18 +30,19 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
-    public interface IDeserializerNode
+    public interface IDeserializerNode : IResourceNode
     {
         IDeserializationContext Context { get; }
         string ExpandPath { get; }
-        IMappedType ExpectedBaseType { get; }
+        TypeSpec ExpectedBaseType { get; }
         DeserializerNodeOperation Operation { get; set; }
         void CheckItemAccessRights(HttpMethod method);
-        IDeserializerNode Parent { get; }
+        new IDeserializerNode Parent { get; }
+        new object Value { get; set; }
         string Uri { get; set; }
-        object Value { get; set; }
-        IMappedType ValueType { get; }
-        void SetProperty(IPropertyInfo property, object propertyValue);
+        TypeSpec ValueType { get; }
+        void SetProperty(PropertySpec property, object propertyValue);
         void SetValueType(string typeName);
+        void CheckAccessRights(HttpMethod method);
     }
 }

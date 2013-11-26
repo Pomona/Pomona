@@ -34,11 +34,11 @@ namespace Pomona.Common.Serialization
     {
         ISerializationContext Context { get; }
         string ExpandPath { get; }
-        IMappedType ExpectedBaseType { get; }
+        TypeSpec ExpectedBaseType { get; }
         bool SerializeAsReference { get; set; }
         string Uri { get; }
         object Value { get; }
-        IMappedType ValueType { get; }
+        TypeSpec ValueType { get; }
         ISerializerNode ParentNode { get; }
         bool IsRemoved { get; }
     }

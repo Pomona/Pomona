@@ -53,6 +53,15 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PostPlanetToPlanetarySystem()
+        {
+            CreateTestData();
+            var planetarySystem = client.Galaxies.Query().First().PlanetarySystems.First();
+            planetarySystem.Planets.Post(new PlanetForm() { Name = "Jupiter", Moons = {new MoonForm() {Name = "jalla"}}});
+            Assert.Inconclusive();
+        }
+
+        [Test]
         public void ChildResourcesGetsCorrectUrl()
         {
             CreateTestData();

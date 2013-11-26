@@ -46,22 +46,22 @@ namespace Pomona.Handlers
             get { return method; }
         }
 
-        public IMappedType TargetResourceType
+        public TypeSpec TargetResourceType
         {
             get { return targetResourceType; }
         }
 
-        public IMappedType FormType
+        public TypeSpec FormType
         {
             get { return formType; }
         }
 
         private string uriName;
         private MethodInfo method;
-        private IMappedType targetResourceType;
-        private IMappedType formType;
+        private TypeSpec targetResourceType;
+        private TypeSpec formType;
 
-        public HandlerInfo(string httpMethod, string uriName, MethodInfo method, IMappedType targetResourceType, IMappedType formType)
+        public HandlerInfo(string httpMethod, string uriName, MethodInfo method, TypeSpec targetResourceType, TypeSpec formType)
         {
             this.httpMethod = httpMethod;
             this.uriName = uriName;

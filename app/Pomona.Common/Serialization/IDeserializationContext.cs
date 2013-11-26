@@ -33,17 +33,20 @@ namespace Pomona.Common.Serialization
 {
     public interface IDeserializationContext
     {
-        IMappedType GetClassMapping(Type type);
-        object CreateReference(IMappedType type, string uri);
+        TypeSpec GetClassMapping(Type type);
+        object CreateReference(TypeSpec type, string uri);
 
 
         void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
             where TReader : ISerializerReader;
 
+        IResourceNode TargetNode { get; }
 
-        IMappedType GetTypeByName(string typeName);
+        TypeSpec GetTypeByName(string typeName);
 
-        void SetProperty(IDeserializerNode target, IPropertyInfo property, object propertyValue);
-        void CheckPropertyItemAccessRights(IPropertyInfo property, HttpMethod method);
+        void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue);
+        void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method);
+        void CheckAccessRights(PropertySpec property, HttpMethod method);
+        void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp);
     }
 }

@@ -28,7 +28,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-
+using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -63,36 +63,39 @@ namespace Pomona.Schemas
         }
 
 
-        private SchemaPropertyEntry GenerateForProperty(IPropertyInfo propertyInfo)
+        private SchemaPropertyEntry GenerateForProperty(PropertyMapping propertyInfo)
         {
             var propType = propertyInfo.PropertyType;
 
             var propEntry = new SchemaPropertyEntry
             {
-                Required = propertyInfo.CreateMode == PropertyCreateMode.Required,
+                Required = propertyInfo.IsRequiredForConstructor,
                 Access = propertyInfo.AccessMode,
                 Name = propertyInfo.Name,
                 Type = propType.GetSchemaTypeName()
             };
 
-            if (propType.IsCollection)
+            var enumerablePropType = propType as EnumerableTypeSpec;
+            if (enumerablePropType != null)
             {
                 propEntry.Items = new List<SchemaArrayItem>
                 {
                     new SchemaArrayItem
                     {
-                        Type = propType.ElementType.GetSchemaTypeName(),
+                        Type = enumerablePropType.ItemType.GetSchemaTypeName(),
                         Access = propertyInfo.ItemAccessMode
                     }
                 };
             }
-            if (propType.IsDictionary && propEntry.Type == "dictionary")
+
+            var dictPropType = propType as DictionaryTypeSpec;
+            if (dictPropType != null && propEntry.Type == "dictionary")
             {
                 propEntry.Items = new List<SchemaArrayItem>()
                 {
                     new SchemaArrayItem()
                     {
-                        Type = propType.DictionaryValueType.GetSchemaTypeName(),
+                        Type = dictPropType.ValueType.GetSchemaTypeName(),
                         Access = propertyInfo.ItemAccessMode
                     }
                 };
@@ -105,8 +108,9 @@ namespace Pomona.Schemas
         private SchemaTypeEntry GenerateForType(TransformedType transformedType)
         {
             string extends = null;
-            IEnumerable<IPropertyInfo> properties = transformedType.Properties;
-            if (!transformedType.IsUriBaseType)
+            var resourceTypeSpec = transformedType as ResourceType;
+            IEnumerable<PropertyMapping> properties = transformedType.Properties;
+            if (resourceTypeSpec == null || !resourceTypeSpec.IsUriBaseType)
             {
                 extends = transformedType.BaseType.Name;
                 var propsOfBaseType = new HashSet<string>(transformedType.BaseType.Properties.Select(x => x.Name));
@@ -122,14 +126,14 @@ namespace Pomona.Schemas
                 Properties = new SortedDictionary<string, SchemaPropertyEntry>(properties
                     .Select(GenerateForProperty)
                     .ToDictionary(x => x.Name, x => x)),
-                // TODO: Expose IsAbstract on IMappedType
-                Abstract = transformedType.MappedTypeInstance != null && transformedType.MappedTypeInstance.IsAbstract,
+                // TODO: Expose IsAbstract on TypeSpec
+                Abstract = transformedType.Type != null && transformedType.Type.IsAbstract,
                 AllowedMethods = transformedType.AllowedMethods
             };
 
-            if (!string.IsNullOrEmpty(transformedType.UriRelativePath))
+            if (resourceTypeSpec != null)
             {
-                schemaTypeEntry.Uri = transformedType.UriRelativePath;
+                schemaTypeEntry.Uri = resourceTypeSpec.UriRelativePath;
             }
 
             return schemaTypeEntry;

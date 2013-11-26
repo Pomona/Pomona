@@ -66,7 +66,7 @@ namespace Pomona.Queries
             if (nativeTypes.TryGetValue(typeName.ToLower(), out type))
                 return type;
 
-            return typeMapper.GetClassMapping(typeName).MappedType;
+            return typeMapper.GetClassMapping(typeName).Type;
         }
 
         #endregion

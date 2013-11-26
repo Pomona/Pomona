@@ -32,6 +32,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Pomona.Example.Models;
+using Pomona.Example.Models.Existence;
 
 namespace Pomona.Example
 {
@@ -39,6 +40,10 @@ namespace Pomona.Example
     {
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
+            // TODO: Make this possible using fluent rules!
+            if (propertyInfo.DeclaringType == typeof(PlanetarySystem) && propertyInfo.Name == "Planets")
+                return true;
+
             if (propertyInfo.DeclaringType == typeof (Farm) && propertyInfo.Name == "Critters")
                 return true;
 

@@ -41,12 +41,12 @@ namespace Pomona
         private readonly object entity;
         private readonly string expandedPaths;
         private readonly List<KeyValuePair<string, string>> responseHeaders;
-        private readonly IMappedType resultType;
+        private readonly TypeSpec resultType;
         private readonly HttpStatusCode statusCode;
 
         public PomonaResponse(object entity, HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
-                              IMappedType resultType = null,
+                              TypeSpec resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
             this.entity = entity;
@@ -77,7 +77,7 @@ namespace Pomona
             get { return responseHeaders; }
         }
 
-        public IMappedType ResultType
+        public TypeSpec ResultType
         {
             get { return resultType; }
         }

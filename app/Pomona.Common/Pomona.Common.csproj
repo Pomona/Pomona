@@ -24,6 +24,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
+    <WarningsAsErrors>
+    </WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -118,6 +121,7 @@
     <Compile Include="Serialization\DeserializerNodeOperation.cs" />
     <Compile Include="Serialization\IDeserializationContext.cs" />
     <Compile Include="Serialization\IDeserializerNode.cs" />
+    <Compile Include="Serialization\IResourceNode.cs" />
     <Compile Include="Serialization\IPomonaSerializable.cs" />
     <Compile Include="Serialization\ISerializationContext.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
@@ -126,6 +130,8 @@
     <Compile Include="Serialization\ISerializerWriter.cs" />
     <Compile Include="Serialization\ItemValueDeserializerNode.cs" />
     <Compile Include="Serialization\ItemValueSerializerNode.cs" />
+    <Compile Include="Serialization\Json\CustomJsonConverterAttribute.cs" />
+    <Compile Include="Serialization\Json\CustomJsonConverterAttributeExtensions.cs" />
     <Compile Include="Serialization\Json\PomonaJsonDeserializer.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializer.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerFactory.cs" />
@@ -148,13 +154,38 @@
     <Compile Include="SortOrder.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="TypeSystem\ClientType.cs" />
-    <Compile Include="TypeSystem\IMappedType.cs" />
-    <Compile Include="TypeSystem\IPropertyInfo.cs" />
+    <Compile Include="TypeSystem\ConstructorSpec.cs" />
+    <Compile Include="TypeSystem\DictionaryTypeSpec.cs" />
+    <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
+    <Compile Include="TypeSystem\EnumTypeSpec.cs" />
+    <Compile Include="TypeSystem\ExportedPropertyDetails.cs" />
+    <Compile Include="TypeSystem\ExportedTypeDetails.cs" />
+    <Compile Include="TypeSystem\ExportedTypeResolverBase.cs" />
+    <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
+    <Compile Include="TypeSystem\IConstructorControl.cs" />
+    <Compile Include="TypeSystem\IExportedTypeResolver.cs" />
+    <Compile Include="TypeSystem\ITypeFactory.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
+    <Compile Include="TypeSystem\ITypeResolver.cs" />
+    <Compile Include="TypeSystem\Maybe.cs" />
+    <Compile Include="TypeSystem\MaybeExtensions.cs" />
+    <Compile Include="TypeSystem\MemberSpec.cs" />
+    <Compile Include="TypeSystem\PendingRemovalAttribute.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
-    <Compile Include="TypeSystem\SharedPropertyInfo.cs" />
+    <Compile Include="TypeSystem\PropertyFormulaAttribute.cs" />
+    <Compile Include="TypeSystem\PropertyFormulaAttributeExtensions.cs" />
+    <Compile Include="TypeSystem\PropertyMapping.cs" />
+    <Compile Include="TypeSystem\PropertySpec.cs" />
+    <Compile Include="TypeSystem\ResourceTypeDetails.cs" />
+    <Compile Include="TypeSystem\ResourceTypeSpec.cs" />
+    <Compile Include="TypeSystem\RuntimePropertySpec.cs" />
+    <Compile Include="TypeSystem\RuntimeTypeDetails.cs" />
+    <Compile Include="TypeSystem\RuntimeTypeSpec.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />
+    <Compile Include="TypeSystem\TransformedType.cs" />
+    <Compile Include="TypeSystem\TypeResolver.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
+    <Compile Include="TypeSystem\TypeSpec.cs" />
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />

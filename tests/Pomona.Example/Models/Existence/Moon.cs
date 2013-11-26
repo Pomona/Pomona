@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -24,11 +22,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 namespace Pomona.Example.Models.Existence
 {
     public class Moon : CelestialObject
     {
+        private readonly Planet planet;
+
+        public Moon(string name, Planet planet)
+        {
+            Name = name;
+            this.planet = planet;
+        }
+
+        public Planet Planet
+        {
+            get { return planet; }
+        }
     }
 }

@@ -151,8 +151,8 @@ namespace TestNs
             return FromMappingOrDefault(propertyInfo,
                 x =>
                     (x.ItemMethod & x.ItemMethodMask)
-                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
-                () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
+                    | (this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
+                () => this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo));
         }
 
 
@@ -177,21 +177,13 @@ namespace TestNs
         }
 
 
-        public HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo)
+        public HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec)
         {
             return FromMappingOrDefault(propertyInfo,
                 x =>
                     (x.Method & x.MethodMask)
-                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo) & ~(x.MethodMask)),
-                () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo));
-        }
-
-
-        public int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
-        {
-            return FromMappingOrDefault(propertyInfo,
-                x => x.ConstructorArgIndex,
-                () => this.wrappedFilter.GetPropertyConstructorArgIndex(propertyInfo));
+                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec) & ~(x.MethodMask)),
+                () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec));
         }
 
 
@@ -244,7 +236,7 @@ namespace TestNs
         }
 
 
-        public ConstructorInfo GetTypeConstructor(Type type)
+        public ConstructorSpec GetTypeConstructor(Type type)
         {
             return FromMappingOrDefault(type, x => x.Constructor, () => this.wrappedFilter.GetTypeConstructor(type));
         }

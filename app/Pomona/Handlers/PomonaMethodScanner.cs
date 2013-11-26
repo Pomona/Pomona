@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Handlers
 {
@@ -54,20 +55,25 @@ namespace Pomona.Handlers
 
         public void ScanPostToResourceHandlers(Type handlerClass)
         {
+            // TODO: MAKE THIS WORK AGAIN!
+            return;
+
+#if false
             foreach (var x in GetMethods(handlerClass)
                 .Where(x => x.IsPost)
                 .Where(x => x.Parameters.Length == 2))
             {
-                var targetType = typeMapper.GetClassMapping(x.Parameters[0].ParameterType) as TransformedType;
+                var targetType = typeMapper.GetClassMapping(x.Parameters[0].ParameterType) as ResourceType;
                 var formType = typeMapper.GetClassMapping(x.Parameters[1].ParameterType);
 
-                if (targetType == null || !targetType.HasUri)
+                if (targetType == null)
                     throw new InvalidOperationException(
                         "Target type of post-to-resource handler does not have a valid URL.");
 
                 targetType.DeclaredPostHandlers.Add(new HandlerInfo(x.Attribute.HttpMethod, x.Attribute.UriName,
                                                                     x.Method, targetType, formType));
             }
+#endif
         }
 
         private class PomonaMethodInfo

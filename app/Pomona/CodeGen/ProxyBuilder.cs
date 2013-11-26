@@ -174,6 +174,9 @@ namespace Pomona.CodeGen
         /// </summary>
         private PropertyDefinition AddProperty(TypeDefinition declaringType, string name, TypeReference propertyType)
         {
+            if (declaringType.Properties.Any(x => x.Name == name))
+                throw new InvalidOperationException("Duplicate method is not good...");
+
             var proxyPropDef = new PropertyDefinition(name, PropertyAttributes.None, propertyType);
             var proxyPropGetter = new MethodDefinition(
                 "get_" + name,

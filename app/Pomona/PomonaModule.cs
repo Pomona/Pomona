@@ -71,9 +71,9 @@ namespace Pomona
             this.serviceLocator = serviceLocator;
 
             foreach (var transformedType in this.typeMapper
-                .TransformedTypes
+                .TransformedTypes.OfType<ResourceType>()
                 .Select(x => x.UriBaseType)
-                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous() && x.IsRootResource)
+                .Where(x => x != null  && !x.IsAnonymous() && x.IsRootResource)
                 .Distinct())
                 RegisterRoutesFor(transformedType);
 
@@ -258,7 +258,7 @@ namespace Pomona
         }
 
 
-        private void RegisterRoutesFor(TransformedType type)
+        private void RegisterRoutesFor(ResourceType type)
         {
             var path = "/" + type.UriRelativePath;
 

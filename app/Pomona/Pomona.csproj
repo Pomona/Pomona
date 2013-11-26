@@ -124,7 +124,9 @@
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
+    <Compile Include="CodeGen\ClientLibraryTypeAttribute.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
+    <Compile Include="CodeGen\ClientTypeExtensions.cs" />
     <Compile Include="CodeGen\ProxyBuilder.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="DataSourceRootNode.cs" />
@@ -140,7 +142,6 @@
     </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
-    <Compile Include="FluentMapping\IConstructorControl.cs" />
     <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />
     <Compile Include="FluentMapping\ITypeMappingConfigurator.cs" />
     <Compile Include="FluentMapping\PropertyInclusionMode.cs" />
@@ -236,7 +237,6 @@
     <Compile Include="TypeMappingFilterBase.cs" />
     <Compile Include="UnknownTypeException.cs" />
     <Compile Include="UriResolver.cs" />
-    <Compile Include="Visitors\FindAndReplaceVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -255,6 +255,7 @@
   <ItemGroup>
     <Folder Include="CodeGen\XmlDoc\" />
     <Folder Include="TypeSystem\" />
+    <Folder Include="Visitors\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Content\jsonbrowser.html" />

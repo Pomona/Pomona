@@ -109,7 +109,7 @@ namespace PomonaNHibernateTest
                 batchFetcher.Expand(qres,
                     query.SelectExpression != null
                         ? query.SelectExpression.ReturnType
-                        : query.OfType.MappedTypeInstance);
+                        : query.OfType.Type);
             }
             return qres;
         }

@@ -40,6 +40,8 @@ using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 
+using ResourceType = Pomona.Common.TypeSystem.ResourceType;
+
 namespace Pomona.CodeGen
 {
     public class ClientLibGenerator
@@ -48,8 +50,8 @@ namespace Pomona.CodeGen
         private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
         private string assemblyName;
         private TypeDefinition clientInterface;
-        private Dictionary<IMappedType, TypeCodeGenInfo> clientTypeInfoDict;
-        private Dictionary<EnumType, TypeDefinition> enumClientTypeDict;
+        private Dictionary<TypeSpec, TypeCodeGenInfo> clientTypeInfoDict;
+        private Dictionary<EnumTypeSpec, TypeDefinition> enumClientTypeDict;
         private ModuleDefinition module;
 
 
@@ -131,8 +133,8 @@ namespace Pomona.CodeGen
                     clientHelperType.Namespace = assemblyName;
             }
 
-            clientTypeInfoDict = new Dictionary<IMappedType, TypeCodeGenInfo>();
-            enumClientTypeDict = new Dictionary<EnumType, TypeDefinition>();
+            clientTypeInfoDict = new Dictionary<TypeSpec, TypeCodeGenInfo>();
+            enumClientTypeDict = new Dictionary<EnumTypeSpec, TypeDefinition>();
 
             BuildEnumTypes();
 
@@ -277,7 +279,7 @@ namespace Pomona.CodeGen
         {
             foreach (var resourceTypeInfo in GetAllUriBaseTypesExposedAsRepositories())
             {
-                var transformedType = resourceTypeInfo.TransformedType;
+                var transformedType = (ResourceType)resourceTypeInfo.TransformedType;
                 var repoPropName = transformedType.PluralName;
                 var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
                 TypeReference repoPropType =
@@ -312,7 +314,7 @@ namespace Pomona.CodeGen
 
             var interfacesToImplement = new List<TypeReference> { queryableRepoType };
 
-            var tt = resourceTypeInfo.TransformedType;
+            var tt = resourceTypeInfo.TransformedType as ResourceType;
             if (tt.PatchAllowed || tt.MergedTypes.Any(x => x.PatchAllowed))
             {
                 interfacesToImplement.Add(
@@ -360,7 +362,7 @@ namespace Pomona.CodeGen
         private IEnumerable<TypeCodeGenInfo> GetAllUriBaseTypesExposedAsRepositories()
         {
             return clientTypeInfoDict.Values.Where(
-                x => x.UriBaseType == x.InterfaceType && x.TransformedType.IsExposedAsRepository);
+                x => x.UriBaseType == x.InterfaceType && x.TransformedType.Maybe().OfType<ResourceType>().Select(y => y.IsExposedAsRepository).OrDefault());
         }
 
         private TypeDefinition CreateRepositoryType(TypeCodeGenInfo rti, MethodAttributes methodAttributes,
@@ -369,7 +371,7 @@ namespace Pomona.CodeGen
                                                     IEnumerable<TypeReference> interfacesToImplement = null,
                                                     TypeReference baseClass = null)
         {
-            var tt = rti.TransformedType;
+            var tt = (ResourceType)rti.TransformedType;
             var repoTypeDef = new TypeDefinition(assemblyName,
                                                  string.Format(repoTypeNameFormat, rti.TransformedType.Name),
                                                  typeAttributes, baseClass);
@@ -401,7 +403,7 @@ namespace Pomona.CodeGen
                 var baseCtorRef =
                     module.Import(baseTypeGenericDef.Resolve()
                                                     .GetConstructors()
-                                                    .First(x => x.Parameters.Count == 2)
+                                                    .First(x => x.Parameters.Count == 3)
                                                     .MakeHostInstanceGeneric(baseTypeGenericArgs));
 
                 var ctor = new MethodDefinition(
@@ -419,6 +421,7 @@ namespace Pomona.CodeGen
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldnull));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorRef));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
                 repoTypeDef.Methods.Add(ctor);
@@ -435,9 +438,9 @@ namespace Pomona.CodeGen
         {
             var method = new MethodDefinition(methodName, methodAttributes, rti.InterfaceType);
             var idType = tt.PrimaryId.PropertyType;
-            if (!(idType is SharedType))
+            if (!(idType is TypeSpec))
                 throw new NotSupportedException("Id needs to be a shared type.");
-            var idTypeRef = GetClientTypeReference(idType.MappedTypeInstance);
+            var idTypeRef = GetClientTypeReference(idType.Type);
             method.Parameters.Add(new ParameterDefinition(tt.PrimaryId.LowerCaseName, 0,
                                                           idTypeRef));
             repoTypeDef.Methods.Add(method);
@@ -451,7 +454,7 @@ namespace Pomona.CodeGen
 
                 ilproc.Emit(OpCodes.Ldarg_0);
                 ilproc.Emit(OpCodes.Ldarg_1);
-                if (idType.MappedTypeInstance.IsValueType)
+                if (idType.Type.IsValueType)
                 {
                     ilproc.Emit(OpCodes.Box, idTypeRef);
                 }
@@ -465,7 +468,7 @@ namespace Pomona.CodeGen
         }
 
         private void AddRepositoryFormPostMethod(MethodAttributes methodAttributes, bool isImplementation,
-                                                 TransformedType subType,
+                                                 ResourceType subType,
                                                  TypeDefinition repoTypeDef, TypeDefinition baseTypeGenericDef,
                                                  TypeReference[] baseTypeGenericArgs)
         {
@@ -524,7 +527,7 @@ namespace Pomona.CodeGen
             var stringTypeReference = module.TypeSystem.String;
             custAttr.Properties.Add(
                 new CustomAttributeNamedArgument(
-                    "UrlRelativePath", new CustomAttributeArgument(stringTypeReference, type.UriRelativePath)));
+                    "UrlRelativePath", new CustomAttributeArgument(stringTypeReference, type.Maybe().OfType<ResourceType>().Select(x => x.UriRelativePath).OrDefault())));
 
             var typeTypeReference = module.Import(typeof (Type));
             custAttr.Properties.Add(
@@ -686,16 +689,19 @@ namespace Pomona.CodeGen
                     typeInfo.BaseType = null;
                 }
 
-                if (type.UriBaseType != null)
-                {
-                    typeInfo.UriBaseType = clientTypeInfoDict[type.UriBaseType].InterfaceType;
-                }
+                typeInfo.UriBaseType =
+                    type.Maybe()
+                    .OfType<ResourceType>()
+                    .Select(x => x.UriBaseType)
+                    .Select(x => clientTypeInfoDict[x].InterfaceType)
+                    .OrDefault();
+
 
                 var ctorIlActions = new List<Action<ILProcessor>>();
 
                 foreach (
                     var prop in
-                        classMapping.Properties.Cast<PropertyMapping>().Where(x => x.DeclaringType == classMapping))
+                        classMapping.Properties.Where(x => x.DeclaringType == classMapping))
                 {
                     var propTypeRef = GetPropertyTypeReference(prop);
 
@@ -738,10 +744,10 @@ namespace Pomona.CodeGen
             }
         }
 
-        private void AddPropertyFieldInitialization(FieldDefinition backingField, IMappedType propertyType,
+        private void AddPropertyFieldInitialization(FieldDefinition backingField, TypeSpec propertyType,
                                                     List<Action<ILProcessor>> ctorIlActions)
         {
-            if (propertyType.MappedAsValueObject)
+            if (propertyType.Maybe().OfType<TransformedType>().Select(x => x.MappedAsValueObject).OrDefault())
             {
                 var typeInfo = clientTypeInfoDict[propertyType];
 
@@ -904,7 +910,8 @@ namespace Pomona.CodeGen
 
             TypeDefinition baseTypeDef = null;
             var tt = typeInfo.TransformedType;
-            if (tt.UriBaseType != null && tt.UriBaseType != tt)
+            var rt = typeInfo.TransformedType as ResourceType;
+            if (rt != null && rt.UriBaseType != null && rt.UriBaseType != rt)
             {
                 var baseTypeInfo = clientTypeInfoDict[tt.BaseType];
                 baseTypeDef = generatedTypeDict.GetOrCreate(baseTypeInfo,
@@ -960,9 +967,12 @@ namespace Pomona.CodeGen
         private TypeReference GetPropertyTypeReference(PropertyMapping prop)
         {
             TypeReference propTypeRef;
-            if (prop.IsOneToManyCollection && prop.ExposedAsRepository)
+            if (prop.ExposedAsRepository)
             {
-                var resourceInfo = clientTypeInfoDict[prop.PropertyType.ElementType];
+                var propType = prop.PropertyType as EnumerableTypeSpec;
+                if (propType == null)
+                    throw new InvalidOperationException("Can only expose an enumerable type as repository.");
+                var resourceInfo = clientTypeInfoDict[propType.ItemType];
                 var elementTypeReference = resourceInfo.InterfaceType;
                 propTypeRef =
                     GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
@@ -983,26 +993,33 @@ namespace Pomona.CodeGen
         }
 
 
-        private TypeReference GetTypeReference(IMappedType type)
+        private TypeReference GetTypeReference(TypeSpec type)
         {
             // TODO: Cache typeRef
 
-            var sharedType = type as SharedType;
+            var sharedType = type as RuntimeTypeSpec;
             var transformedType = type as TransformedType;
-            var enumType = type as EnumType;
+            var enumType = type as EnumTypeSpec;
             TypeReference typeRef = null;
 
-            if (type.CustomClientLibraryType != null)
-                typeRef = module.Import(type.CustomClientLibraryType);
+            if (type.GetCustomClientLibraryType() != null)
+                typeRef = module.Import(type.GetCustomClientLibraryType());
             else if (enumType != null)
                 typeRef = enumClientTypeDict[enumType];
+            else if (transformedType != null)
+                typeRef = clientTypeInfoDict[transformedType].InterfaceType;
             else if (sharedType != null)
             {
-                typeRef = module.Import(sharedType.MappedType);
+                if (sharedType.Type.IsGenericType)
+                    typeRef = module.Import(sharedType.Type.GetGenericTypeDefinition());
+                else
+                {
+                    typeRef = module.Import(sharedType.Type);
+                }
 
                 if (sharedType.IsGenericType)
                 {
-                    if (sharedType.GenericArguments.Count != typeRef.GenericParameters.Count)
+                    if (sharedType.GenericArguments.Count() != typeRef.GenericParameters.Count)
                         throw new InvalidOperationException("Generic argument count not matching target type");
 
                     var typeRefInstance = new GenericInstanceType(typeRef);
@@ -1012,11 +1029,9 @@ namespace Pomona.CodeGen
                     typeRef = typeRefInstance;
                 }
             }
-            else if (transformedType != null)
-                typeRef = clientTypeInfoDict[transformedType].InterfaceType;
 
             if (typeRef == null)
-                throw new InvalidOperationException("Unable to get TypeReference for IMappedType");
+                throw new InvalidOperationException("Unable to get TypeReference for TypeSpec");
 
             return typeRef;
         }
@@ -1056,7 +1071,7 @@ namespace Pomona.CodeGen
 
                 if (
                     mergedProperties.Any(
-                        x => x.CreateMode == PropertyCreateMode.Required || x.CreateMode == PropertyCreateMode.Optional))
+                        x => x.AccessMode.HasFlag(HttpMethod.Post)))
                 {
                     base.OnGeneratePropertyMethods(
                         targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
@@ -1151,7 +1166,7 @@ namespace Pomona.CodeGen
                 var propertyMapping = owner.GetPropertyMapping(targetProp);
                 base.OnGeneratePropertyMethods(
                     targetProp, proxyProp, proxyBaseType, proxyTargetType, rootProxyTargetType);
-                if (!propertyMapping.IsWriteable)
+                if ((propertyMapping.AccessMode & (HttpMethod.Patch | HttpMethod.Put | HttpMethod.Post)) == 0)
                 {
                     var invalidOperationStrCtor =
                         typeof (InvalidOperationException).GetConstructor(new[] { typeof (string) });
@@ -1160,8 +1175,8 @@ namespace Pomona.CodeGen
                     // Do not disable GETTING of collection types in update proxy, we might want to change
                     // the collection itself.
 
-                    var allowReadingOfProperty = propertyMapping.PropertyType.IsCollection ||
-                                                 propertyMapping.PropertyType.IsDictionary;
+                    var allowReadingOfProperty = propertyMapping.PropertyType is EnumerableTypeSpec ||
+                                                 propertyMapping.PropertyType is DictionaryTypeSpec;
 
                     var methodsToRestrict = allowReadingOfProperty
                                                 ? new[] { proxyProp.SetMethod }

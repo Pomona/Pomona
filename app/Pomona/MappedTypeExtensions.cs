@@ -43,21 +43,22 @@ namespace Pomona
         }
 
 
-        public static string GetSchemaTypeName(this IMappedType mappedType)
+        public static string GetSchemaTypeName(this TypeSpec mappedType)
         {
             if (mappedType.IsCollection)
                 return "array";
 
-            if (mappedType.IsDictionary && mappedType.DictionaryKeyType.MappedTypeInstance == typeof(string))
+            var dictType = mappedType as DictionaryTypeSpec;
+            if (dictType != null && dictType.KeyType == typeof(string))
                 return "dictionary";
 
             if (mappedType.IsNullable)
                 return GetSchemaTypeName(mappedType.ElementType);
 
-            var sharedType = mappedType as SharedType;
+            var sharedType = mappedType as RuntimeTypeSpec;
             if (sharedType != null)
             {
-                var targetType = sharedType.MappedType;
+                var targetType = sharedType.Type;
                 if (numberTypes.Contains(targetType))
                 {
                     if (targetType == typeof (double) || targetType == typeof (float))

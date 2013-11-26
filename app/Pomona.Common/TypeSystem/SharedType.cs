@@ -29,17 +29,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Pomona.Common.TypeSystem
 {
+#if false
     /// <summary>
     /// Represents a type that is shared between server and client.
     /// strings, integers etc.. mapped like this
     /// </summary>
-    public class SharedType : IMappedType
+    public class SharedType : TypeSpec
     {
         private static readonly Type[] basicWireTypes =
             {
@@ -56,7 +59,7 @@ namespace Pomona.Common.TypeSystem
         private readonly Type mappedTypeInstance;
         private readonly ITypeMapper typeMapper;
 
-        private IList<IPropertyInfo> properties;
+        private IList<PropertySpec> properties;
 
         public SharedType(Type mappedTypeInstance, ITypeMapper typeMapper)
         {
@@ -93,7 +96,7 @@ namespace Pomona.Common.TypeSystem
             else
                 SerializationMode = TypeSerializationMode.Value;
 
-            GenericArguments = new List<IMappedType>();
+            GenericArguments = new List<TypeSpec>();
 
             if (mappedTypeInstance.IsEnum)
                 JsonConverter = stringEnumConverter.Value;
@@ -106,21 +109,21 @@ namespace Pomona.Common.TypeSystem
             get { return typeMapper; }
         }
 
-        #region IMappedType Members
+        #region TypeSpec Members
 
-        public IMappedType BaseType
+        public TypeSpec BaseType
         {
             get { return typeMapper.GetClassMapping(mappedType.BaseType); }
         }
 
         public Type CustomClientLibraryType { get; set; }
 
-        public IMappedType DictionaryKeyType
+        public TypeSpec DictionaryKeyType
         {
             get { return DictionaryType.GenericArguments[0]; }
         }
 
-        public IMappedType DictionaryType
+        public TypeSpec DictionaryType
         {
             get
             {
@@ -138,12 +141,12 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public IMappedType DictionaryValueType
+        public TypeSpec DictionaryValueType
         {
             get { return DictionaryType.GenericArguments[1]; }
         }
 
-        public IMappedType ElementType
+        public TypeSpec ElementType
         {
             get
             {
@@ -163,7 +166,7 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public IList<IMappedType> GenericArguments { get; private set; }
+        public IList<TypeSpec> GenericArguments { get; private set; }
 
         public bool IsAlwaysExpanded
         {
@@ -217,7 +220,7 @@ namespace Pomona.Common.TypeSystem
             get { return false; }
         }
 
-        public virtual object Create(IDictionary<IPropertyInfo, object> args)
+        public virtual object Create(IDictionary<PropertySpec, object> args)
         {
             if (MappedTypeInstance.IsAnonymous())
             {
@@ -250,7 +253,7 @@ namespace Pomona.Common.TypeSystem
             get { return mappedTypeInstance; }
         }
 
-        public IPropertyInfo PrimaryId
+        public PropertySpec PrimaryId
         {
             get
             {
@@ -259,21 +262,21 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public IList<IPropertyInfo> Properties
+        public IList<PropertySpec> Properties
         {
             get { return GetPropertiesLazy(); }
         }
 
         public TypeSerializationMode SerializationMode { get; set; }
 
-        protected virtual IEnumerable<IPropertyInfo> OnGetProperties()
+        protected virtual IEnumerable<PropertySpec> OnGetProperties()
         {
             return mappedTypeInstance.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(
                 x => new SharedPropertyInfo(x, typeMapper));
         }
 
 
-        private IList<IPropertyInfo> GetPropertiesLazy()
+        private IList<PropertySpec> GetPropertiesLazy()
         {
             if (properties == null)
                 properties = OnGetProperties().ToList();
@@ -307,4 +310,5 @@ namespace Pomona.Common.TypeSystem
             }
         }
     }
+#endif
 }

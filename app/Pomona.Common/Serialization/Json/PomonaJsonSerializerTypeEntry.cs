@@ -37,13 +37,13 @@ namespace Pomona.Common.Serialization.Json
     /// </summary>
     internal class PomonaJsonSerializerTypeEntry
     {
-        private readonly List<IPropertyInfo> manuallyWrittenProperties = new List<IPropertyInfo>();
-        private readonly IMappedType type;
+        private readonly List<PropertySpec> manuallyWrittenProperties = new List<PropertySpec>();
+        private readonly TypeSpec type;
         private Expression<Action<JsonWriter, object>> writePropertiesExpression;
         private Action<JsonWriter, object> writePropertiesFunc;
 
 
-        public PomonaJsonSerializerTypeEntry(IMappedType type)
+        public PomonaJsonSerializerTypeEntry(TypeSpec type)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -53,7 +53,7 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        public IEnumerable<IPropertyInfo> ManuallyWrittenProperties
+        public IEnumerable<PropertySpec> ManuallyWrittenProperties
         {
             get { return manuallyWrittenProperties; }
         }
@@ -64,7 +64,7 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private static bool TryGetJsonWriterMethodForWritingType(IMappedType type, out MethodInfo method)
+        private static bool TryGetJsonWriterMethodForWritingType(TypeSpec type, out MethodInfo method)
         {
             method = null;
             if (type.SerializationMode != TypeSerializationMode.Value)
@@ -74,7 +74,7 @@ namespace Pomona.Common.Serialization.Json
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                 .Where(x => x.Name == "WriteValue")
                 .FirstOrDefault(
-                    x => x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == type.MappedTypeInstance);
+                    x => x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == type.Type);
 
             return method != null;
         }
@@ -88,10 +88,10 @@ namespace Pomona.Common.Serialization.Json
             var expressions = new List<Expression>();
             var jsonWriterParam = Expression.Parameter(typeof (JsonWriter));
             var objValueParam = Expression.Parameter(typeof (object));
-            var valueVariable = Expression.Variable(type.MappedTypeInstance);
+            var valueVariable = Expression.Variable(type.Type);
 
             expressions.Add(
-                Expression.Assign(valueVariable, Expression.Convert(objValueParam, type.MappedTypeInstance)));
+                Expression.Assign(valueVariable, Expression.Convert(objValueParam, type.Type)));
 
             foreach (var prop in type.Properties.Where(p => p.IsSerialized))
             {

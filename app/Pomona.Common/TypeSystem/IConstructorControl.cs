@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,31 +24,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Linq.Expressions;
+#endregion
 
-namespace Pomona.Visitors
+using System;
+
+namespace Pomona.Common.TypeSystem
 {
-    internal class FindAndReplaceVisitor : ExpressionVisitor
+    public interface IConstructorControl<TDeclaringType>
     {
-        private readonly Expression expressionToReplace;
-        private readonly Expression replacementExpression;
-
-        public FindAndReplaceVisitor(Expression expressionToReplace, Expression replacementExpression)
-        {
-            this.expressionToReplace = expressionToReplace;
-            this.replacementExpression = replacementExpression;
-        }
-
-        public static Expression Replace(Expression searchedExpression, Expression expressionToReplace,
-                                         Expression replacementExpression)
-        {
-            var visitor = new FindAndReplaceVisitor(expressionToReplace, replacementExpression);
-            return visitor.Visit(searchedExpression);
-        }
-
-        public override Expression Visit(Expression node)
-        {
-            return node == expressionToReplace ? replacementExpression : base.Visit(node);
-        }
+        TDeclaringType Requires();
+        TDeclaringType Maybe();
+        TParentType Parent<TParentType>();
+        TContext Context<TContext>();
     }
 }

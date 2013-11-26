@@ -45,7 +45,7 @@ namespace Pomona.Common.Serialization
 
         #region Implementation of ISerializationContext
 
-        public IMappedType GetClassMapping(Type type)
+        public TypeSpec GetClassMapping(Type type)
         {
             return typeMapper.GetClassMapping(type);
         }
@@ -58,7 +58,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public string GetUri(IPropertyInfo property, object value)
+        public string GetUri(PropertySpec property, object value)
         {
             return "http://todo";
         }
@@ -81,7 +81,7 @@ namespace Pomona.Common.Serialization
             serializer.SerializeNode(node, writer);
         }
 
-        public bool PropertyIsSerialized(IPropertyInfo property)
+        public bool PropertyIsSerialized(PropertySpec property)
         {
             return property.IsSerialized;
         }
