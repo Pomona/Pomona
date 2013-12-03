@@ -66,7 +66,7 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<MusicalCritter> map)
         {
-            map.ConstructedUsing((c) => new MusicalCritter(c.Maybe().OnlyWritableByInheritedResource));
+            map.ConstructedUsing((c) => new MusicalCritter(c.Optional().OnlyWritableByInheritedResource));
         }
 
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
@@ -111,7 +111,7 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Loner> map)
         {
             map.ConstructedUsing(
-                (c) => new Loner(c.Requires().Name, c.Requires().Strength, c.Maybe().OptionalInfo, c.Maybe().OptionalDate));
+                (c) => new Loner(c.Requires().Name, c.Requires().Strength, c.Optional().OptionalInfo, c.Optional().OptionalDate));
         }
 
         public void Map(ITypeMappingConfigurator<ErrorStatus> map)

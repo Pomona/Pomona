@@ -86,7 +86,7 @@ namespace Pomona.UnitTests.TypeSystem
                         c.Requires().TheOverridable,
                         c.Requires().TheAbstract,
                         c.Requires().TheRequired,
-                        c.Maybe().TheOptional);
+                        c.Optional().TheOptional);
             var constructorSpec = new ConstructorSpec(expr);
             return constructorSpec;
         }
@@ -105,7 +105,7 @@ namespace Pomona.UnitTests.TypeSystem
                 throw new NotImplementedException();
             }
 
-            public Inherited Maybe()
+            public Inherited Optional()
             {
                 throw new NotImplementedException();
             }

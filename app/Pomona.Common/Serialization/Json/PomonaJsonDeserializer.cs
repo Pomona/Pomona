@@ -515,7 +515,7 @@ namespace Pomona.Common.Serialization.Json
             }
 
 
-            public T Maybe()
+            public T Optional()
             {
                 throw new InvalidOperationException("Unexpected error: Should be replaced by a call to GetValue.");
             }

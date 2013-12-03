@@ -45,7 +45,7 @@ namespace Pomona.Common.TypeSystem
     public class ConstructorSpec
     {
         private static readonly MethodInfo maybeMethod =
-            ReflectionHelper.GetMethodDefinition<IConstructorControl<object>>(x => x.Maybe());
+            ReflectionHelper.GetMethodDefinition<IConstructorControl<object>>(x => x.Optional());
 
         private static readonly MethodInfo requiresMethod =
             ReflectionHelper.GetMethodDefinition<IConstructorControl<object>>(x => x.Requires());
@@ -113,7 +113,7 @@ namespace Pomona.Common.TypeSystem
             }
 
             var requiresMethodInstance = constructorControlType.GetMethod("Requires");
-            var optionalMethodInstance = constructorControlType.GetMethod("Maybe");
+            var optionalMethodInstance = constructorControlType.GetMethod("Optional");
             var arguments =
                 mappedProperties.Select(
                     x =>

@@ -33,7 +33,7 @@ namespace Pomona.Common.TypeSystem
     public interface IConstructorControl<TDeclaringType>
     {
         TDeclaringType Requires();
-        TDeclaringType Maybe();
+        TDeclaringType Optional();
         TParentType Parent<TParentType>();
         TContext Context<TContext>();
     }

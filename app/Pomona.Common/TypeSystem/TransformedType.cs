@@ -71,7 +71,7 @@ namespace Pomona.Common.TypeSystem
                 throw new NotImplementedException();
             }
 
-            public T Maybe()
+            public T Optional()
             {
                 throw new NotImplementedException();
             }
