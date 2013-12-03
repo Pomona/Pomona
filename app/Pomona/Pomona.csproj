@@ -149,8 +149,6 @@
     <Compile Include="FluentMapping\PropertyOptionsBuilder.cs" />
     <Compile Include="FluentMapping\PropertyOptionsBuilderExtensions.cs" />
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
-    <Compile Include="Handlers\HandlerInfo.cs" />
-    <Compile Include="Handlers\PomonaMethodScanner.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
@@ -228,7 +226,6 @@
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TinyIoCServiceLocator.cs" />
     <Compile Include="TypeMapper.cs" />
-    <Compile Include="TransformedType.cs" />
     <Compile Include="ExpandPathsUtils.cs" />
     <Compile Include="MappingBase.cs" />
     <Compile Include="ServerSerializationContext.cs" />

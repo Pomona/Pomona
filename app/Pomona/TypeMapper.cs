@@ -38,7 +38,6 @@ using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
-using Pomona.Handlers;
 
 namespace Pomona
 {
@@ -78,7 +77,6 @@ namespace Pomona
 
             this.serializerFactory = configuration.SerializerFactory;
 
-            ScanHandlerForPomonaMethods();
             configuration.OnMappingComplete(this);
         }
 
@@ -314,14 +312,6 @@ namespace Pomona
         private TypeSpec CreateClassMapping(Type type)
         {
             return FromType(type);
-        }
-
-
-        private void ScanHandlerForPomonaMethods()
-        {
-            var scanner = new PomonaMethodScanner(this);
-            foreach (var handlerClass in this.configuration.HandlerTypes)
-                scanner.ScanPostToResourceHandlers(handlerClass);
         }
     }
 }

@@ -55,8 +55,7 @@ namespace Pomona.Example
         }
 
 
-        [PomonaMethod("POST")]
-        public object Capture(Critter critter, CaptureCommand captureCommand)
+        public object Post(Critter critter, CaptureCommand captureCommand)
         {
             critter.IsCaptured = true;
             return critter;
