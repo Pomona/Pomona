@@ -52,52 +52,13 @@ namespace Pomona.Common
 
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
-            var resa = GetBaseDefinition2(propertyInfo);
-            var resb = GetBaseDefinition3(propertyInfo);
-
-            if (resa != resb)
-            {
-            }
-            return resb;
-        }
-
-
-        public static PropertyInfo GetBaseDefinition2(this PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            var method = propertyInfo.GetAccessors(true)[0];
-            if (method == null)
-                return null;
-
-            var baseMethod = method.GetBaseDefinition();
-
-            if (baseMethod == method)
-                return propertyInfo.NormalizeReflectedType();
-
-            var allProperties = BindingFlags.Instance | BindingFlags.Public
-                                | BindingFlags.NonPublic | BindingFlags.Static;
-
-            var arguments = propertyInfo.GetIndexParameters().Select(p => p.ParameterType).ToArray();
-
-            return baseMethod.DeclaringType.GetProperty(propertyInfo.Name,
-                allProperties,
-                null,
-                propertyInfo.PropertyType,
-                arguments,
-                null);
-        }
-
-
-        public static PropertyInfo GetBaseDefinition3(this PropertyInfo propertyInfo)
-        {
             var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);
             if (method == null)
                 return propertyInfo.NormalizeReflectedType();
 
             var baseMethod = method.GetBaseDefinition();
             if (method == baseMethod)
-                return propertyInfo;
+                return propertyInfo.NormalizeReflectedType();
             return baseMethod.DeclaringType.GetProperty(propertyInfo.Name,
                 BindingFlags.Instance | BindingFlags.NonPublic |
                 BindingFlags.Public);
