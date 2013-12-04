@@ -159,7 +159,6 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.ETagProperty; }
         }
 
-        [PendingRemoval]
         public bool MappedAsValueObject
         {
             get { return ExportedTypeDetails.MappedAsValueObject; }
@@ -170,7 +169,6 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.AlwaysExpand; }
         }
 
-        [PendingRemoval]
         public Action<object> OnDeserialized
         {
             get { return ExportedTypeDetails.OnDeserialized; }
@@ -178,19 +176,16 @@ namespace Pomona.Common.TypeSystem
 
         public virtual HttpMethod AllowedMethods {get { return ExportedTypeDetails.AllowedMethods; }}
 
-        [PendingRemoval]
         public bool PatchAllowed
         {
             get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
         }
 
-        [PendingRemoval]
         public string PluralName
         {
             get { return ExportedTypeDetails.PluralName; }
         }
 
-        [PendingRemoval]
         public bool PostAllowed
         {
             get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
