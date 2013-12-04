@@ -124,12 +124,23 @@ namespace Pomona
                 this.filter.PropertyIsAttributes(propInfo),
                 this.filter.PropertyIsEtag(propInfo),
                 this.filter.PropertyIsPrimaryId(propInfo),
-                this.filter.GetPropertyAccessMode(propInfo, ((TransformedType)propertyMapping.DeclaringType).Constructor),
+                this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
                 this.filter.GetPropertyItemAccessMode(propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
                 NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propInfo)),
                 this.filter.PropertyIsAlwaysExpanded(propInfo));
             return details;
+        }
+
+
+        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            var transformedType = typeSpec as TransformedType;
+            if (transformedType != null)
+            {
+                return this.filter.GetTypeConstructor(transformedType);
+            }
+            return base.LoadConstructor(typeSpec);
         }
 
 
@@ -145,7 +156,6 @@ namespace Pomona
                 this.filter.GetPluralNameForType(type),
                 this.filter.GetOnDeserializedHook(type),
                 this.filter.TypeIsMappedAsValueObject(type),
-                this.filter.GetTypeConstructor(type),
                 this.filter.TypeIsMappedAsValueObject(type));
 
             return details;

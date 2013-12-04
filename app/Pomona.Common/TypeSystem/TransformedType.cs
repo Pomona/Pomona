@@ -154,11 +154,6 @@ namespace Pomona.Common.TypeSystem
             get { return base.Properties.Cast<PropertyMapping>(); }
         }
 
-        public ConstructorSpec Constructor
-        {
-            get { return ExportedTypeDetails.Constructor; }
-        }
-
         public PropertyMapping ETagProperty
         {
             get { return ExportedTypeDetails.ETagProperty; }

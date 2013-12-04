@@ -40,12 +40,18 @@ namespace Pomona.Common.TypeSystem
             if (typeSpec == null)
                 throw new ArgumentNullException("typeSpec");
             var transformedType = typeSpec as TransformedType;
-            if (transformedType != null && transformedType.Constructor != null)
+            if (transformedType != null)
             {
-                IEnumerable<PropertySpec> requiredProperties = transformedType.Constructor.ParameterSpecs.Where(x => x.IsRequired).Select(
-                    x => typeSpec.GetPropertyByName(x.PropertyInfo.Name, true)).ToList();
-                return
-                    requiredProperties;
+                if (!transformedType.PostAllowed)
+                    return Enumerable.Empty<PropertySpec>();
+                if (transformedType.Constructor != null)
+                {
+                    IEnumerable<PropertySpec> requiredProperties =
+                        transformedType.Constructor.ParameterSpecs.Where(x => x.IsRequired).Select(
+                            x => typeSpec.GetPropertyByName(x.PropertyInfo.Name, true)).ToList();
+                    return
+                        requiredProperties;
+                }
             }
 
             return base.LoadRequiredProperties(typeSpec);

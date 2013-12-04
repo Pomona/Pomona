@@ -54,5 +54,6 @@ namespace Pomona.Common.TypeSystem
         Action<object, object> LoadSetter(PropertySpec propertySpec);
         RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
         IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec);
+        ConstructorSpec LoadConstructor(TypeSpec typeSpec);
     }
 }

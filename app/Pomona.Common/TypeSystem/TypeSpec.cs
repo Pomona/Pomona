@@ -128,6 +128,7 @@ namespace Pomona.Common.TypeSystem
         public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
         public abstract TypeSerializationMode SerializationMode { get; }
         public abstract bool IsNullable { get; }
+        public abstract ConstructorSpec Constructor { get; }
 
         #region Overloaded operators
 
@@ -185,5 +186,6 @@ namespace Pomona.Common.TypeSystem
         protected internal abstract IEnumerable<PropertySpec> OnLoadRequiredProperties();
         protected internal abstract RuntimeTypeDetails OnLoadRuntimeTypeDetails();
         protected internal abstract PropertySpec OnWrapProperty(PropertyInfo property);
+        protected internal abstract ConstructorSpec OnLoadConstructor();
     }
 }

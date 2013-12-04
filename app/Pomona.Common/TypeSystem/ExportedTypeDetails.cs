@@ -35,7 +35,6 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly HttpMethod allowedMethods;
         private readonly bool alwaysExpand;
-        private readonly ConstructorSpec constructor;
 
         private readonly bool mappedAsValueObject;
         private readonly Action<object> onDeserialized;
@@ -48,7 +47,6 @@ namespace Pomona.Common.TypeSystem
             string pluralName,
             Action<object> onDeserialized,
             bool mappedAsValueObject,
-            ConstructorSpec constructor,
             bool alwaysExpand)
         {
             this.type = type;
@@ -57,7 +55,6 @@ namespace Pomona.Common.TypeSystem
             this.onDeserialized = onDeserialized;
             this.mappedAsValueObject = mappedAsValueObject;
             this.type = type;
-            this.constructor = constructor;
             this.alwaysExpand = alwaysExpand;
         }
 
@@ -70,11 +67,6 @@ namespace Pomona.Common.TypeSystem
         public bool AlwaysExpand
         {
             get { return this.alwaysExpand; }
-        }
-
-        public ConstructorSpec Constructor
-        {
-            get { return this.constructor; }
         }
 
         public PropertyMapping ETagProperty

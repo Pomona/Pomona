@@ -34,6 +34,9 @@ namespace Pomona.Common.TypeSystem
 {
     public class Lazy<T>
     {
+        [ThreadStatic]
+        private static int recursiveCallCounter;
+
         private readonly LazyThreadSafetyMode lazyThreadSafetyMode;
         private Func<T> factory;
         private bool isInitialized;
@@ -51,7 +54,16 @@ namespace Pomona.Common.TypeSystem
             {
                 if (!isInitialized)
                 {
-                    value = factory();
+                    try
+                    {
+                        if (recursiveCallCounter++ > 500)
+                            throw new InvalidOperationException("Seems like we're going to get a StackOverflowException here, lets fail early to avoid that.");
+                        value = factory();
+                    }
+                    finally
+                    {
+                        recursiveCallCounter--;
+                    }
                     Thread.MemoryBarrier();
                     isInitialized = true;
                 }

@@ -51,7 +51,7 @@ namespace Pomona.CodeGen
         private string assemblyName;
         private TypeDefinition clientInterface;
         private Dictionary<TypeSpec, TypeCodeGenInfo> clientTypeInfoDict;
-        private Dictionary<EnumTypeSpec, TypeDefinition> enumClientTypeDict;
+        private Dictionary<EnumTypeSpec, TypeReference> enumClientTypeDict;
         private ModuleDefinition module;
 
 
@@ -134,7 +134,7 @@ namespace Pomona.CodeGen
             }
 
             clientTypeInfoDict = new Dictionary<TypeSpec, TypeCodeGenInfo>();
-            enumClientTypeDict = new Dictionary<EnumTypeSpec, TypeDefinition>();
+            enumClientTypeDict = new Dictionary<EnumTypeSpec, TypeReference>();
 
             BuildEnumTypes();
 
@@ -916,7 +916,7 @@ namespace Pomona.CodeGen
                 var baseTypeInfo = clientTypeInfoDict[tt.BaseType];
                 baseTypeDef = generatedTypeDict.GetOrCreate(baseTypeInfo,
                                                             () =>
-                                                            CreateProxy(proxyBuilder, onTypeGenerated, typeInfo,
+                                                            CreateProxy(proxyBuilder, onTypeGenerated, baseTypeInfo,
                                                                         generatedTypeDict));
             }
             var proxyType = proxyBuilder.CreateProxyType(name, typeInfo.InterfaceType.WrapAsEnumerable(), baseTypeDef);
@@ -1005,7 +1005,12 @@ namespace Pomona.CodeGen
             if (type.GetCustomClientLibraryType() != null)
                 typeRef = module.Import(type.GetCustomClientLibraryType());
             else if (enumType != null)
-                typeRef = enumClientTypeDict[enumType];
+            {
+                if (!enumClientTypeDict.TryGetValue(enumType, out typeRef))
+                {
+                    throw new InvalidOperationException(string.Format("Generated property has a reference to {0}, but has probably not been included in SourceTypes.", enumType.Type.FullName));
+                }
+            }
             else if (transformedType != null)
                 typeRef = clientTypeInfoDict[transformedType].InterfaceType;
             else if (sharedType != null)

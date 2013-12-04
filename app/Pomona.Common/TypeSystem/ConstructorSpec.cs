@@ -86,7 +86,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public static ConstructorSpec FromConstructorInfo(ConstructorInfo constructorInfo, Type convertedType = null)
+        public static ConstructorSpec FromConstructorInfo(ConstructorInfo constructorInfo, Type convertedType = null, Func<ConstructorSpec> defaultFactory = null)
         {
             if (constructorInfo == null)
                 throw new ArgumentNullException("constructorInfo");
@@ -105,8 +105,11 @@ namespace Pomona.Common.TypeSystem
             var mappedProperties =
                 constructorInfo.GetParameters().Select(
                     x => new { x.Name, Param = x, Property = properties.SafeGet(x.Name) }).ToList();
-            if (mappedProperties.Any(x => x.Property == null))
+            if (mappedProperties.Any(x => x.Property == null || !x.Param.ParameterType.IsAssignableFrom(x.Property.PropertyType)))
             {
+                if (defaultFactory != null)
+                    return defaultFactory();
+
                 throw new InvalidOperationException(
                     "Unable to map properties to ctor, could not find properties for the following arguments: "
                     + string.Join(", ", mappedProperties.Select(x => x.Name)));
@@ -174,12 +177,12 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            protected override Expression VisitArgumentBinding(MemberExpression node, PropertyInfo property, bool isRequired, int position)
+            protected override Expression VisitArgumentBinding(Expression node, PropertyInfo property, bool isRequired, int position, Type convertedToType)
             {
-                base.VisitArgumentBinding(node, property, isRequired, position);
+                base.VisitArgumentBinding(node, property, isRequired, position, convertedToType);
 
-                var defaultFactory = !isRequired ? (Expression)Expression.Lambda(Expression.Default(property.PropertyType)) : Expression.Constant(null, typeof(Func<>).MakeGenericType(property.PropertyType));
-                return Expression.Call(newParam, getValueMethod.MakeGenericMethod(property.PropertyType),
+                var defaultFactory = !isRequired ? (Expression)Expression.Lambda(Expression.Default(convertedToType)) : Expression.Constant(null, typeof(Func<>).MakeGenericType(convertedToType));
+                return Expression.Call(newParam, getValueMethod.MakeGenericMethod(convertedToType),
                     Expression.Constant(property), defaultFactory);
             }
         }
@@ -194,13 +197,14 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            protected virtual Expression VisitArgumentBinding(MemberExpression node,
+            protected virtual Expression VisitArgumentBinding(Expression node,
                 PropertyInfo property,
                 bool isRequired,
-                int position)
+                int position,
+                Type convertedToType)
             {
                 this.parameterSpecs.Add(new ParameterSpec(isRequired, property, position));
-                return base.VisitMember(node);
+                return node;
             }
 
 
@@ -216,20 +220,55 @@ namespace Pomona.Common.TypeSystem
             }
 
 
+            protected override Expression VisitUnary(UnaryExpression node)
+            {
+                Expression result;
+                if (TryRecognizeMemberExpression(node, out result))
+                    return result;
+
+                return base.VisitUnary(node);
+            }
+
+
             protected override Expression VisitMember(MemberExpression node)
             {
-                var propInfo = node.Member as PropertyInfo;
-                var declaringType = node.Member.DeclaringType;
-                var objExpr = node.Expression as MethodCallExpression;
+                Expression result;
+                if (TryRecognizeMemberExpression(node, out result))
+                    return result;
+
+                return base.VisitMember(node);
+            }
+
+
+            private bool TryRecognizeMemberExpression(Expression node, out Expression result)
+            {
+                result = null;
+                var outerNode = node;
+                var convertedToType = node.Type;
+
+                while (node.NodeType == ExpressionType.Convert)
+                {
+                    node = ((UnaryExpression)node).Operand;
+                }
+
+                var memberExpr = node as MemberExpression;
+                if (memberExpr == null)
+                    return false;
+
+                var propInfo = memberExpr.Member as PropertyInfo;
+                var declaringType = memberExpr.Member.DeclaringType;
+                var objExpr = memberExpr.Expression as MethodCallExpression;
 
                 var isRequired = objExpr != null && objExpr.Method.UniqueToken() == requiresMethod.UniqueToken();
                 var isMaybe = objExpr != null && objExpr.Method.UniqueToken() == maybeMethod.UniqueToken();
 
                 if (propInfo != null && declaringType != null && objExpr != null && (isRequired || isMaybe)
                     && objExpr.Object is ParameterExpression)
-                    return VisitArgumentBinding(node, propInfo, isRequired, this.parameterSpecs.Count);
-
-                return base.VisitMember(node);
+                {
+                    result = VisitArgumentBinding(outerNode, propInfo, isRequired, this.parameterSpecs.Count, convertedToType);
+                    return true;
+                }
+                return false;
             }
         }
 

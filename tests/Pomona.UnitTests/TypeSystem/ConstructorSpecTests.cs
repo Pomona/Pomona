@@ -29,6 +29,7 @@ using System.Reflection;
 using NUnit.Framework;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.TypeSystem
 {
@@ -89,6 +90,41 @@ namespace Pomona.UnitTests.TypeSystem
                         c.Optional().TheOptional);
             var constructorSpec = new ConstructorSpec(expr);
             return constructorSpec;
+        }
+
+
+        public class MockedPropertySourceHavingZeroProperties<T> : IConstructorPropertySource<T>
+        {
+            public T Requires()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public T Optional()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TParentType Parent<TParentType>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TContext Context<TContext>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
+            {
+                if (defaultFactory == null)
+                    throw new NotImplementedException();
+                return defaultFactory();
+            }
         }
 
         public class MockedPropertySource : IConstructorPropertySource<Inherited>
@@ -184,6 +220,37 @@ namespace Pomona.UnitTests.TypeSystem
             var propInfo = typeof (Inherited).GetProperty("TheAbstract");
             var pspec = cspec.GetParameterSpec(propInfo);
             Assert.That(pspec, Is.Not.Null);
+        }
+
+        public class NullableTestClass
+        {
+            private int foo;
+
+            public NullableTestClass(int? foo)
+            {
+                this.foo = foo ?? 1337;
+            }
+
+            public int Foo
+            {
+                get { return this.foo; }
+            }
+        }
+
+
+        [Test]
+        public void
+            InjectingConstructorExpression_FromEntityWithNonNullablePropertyPairedWithNullableConstructorParam_BehavesCorrectly
+            ()
+        {
+            Expression<Func<IConstructorControl<NullableTestClass>, NullableTestClass>> cspecExpr =
+                c => new NullableTestClass(c.Optional().Foo);
+            var cspec = new ConstructorSpec(cspecExpr);
+            var func = ((
+                Expression<Func<IConstructorPropertySource<NullableTestClass>, NullableTestClass>>)
+                cspec.InjectingConstructorExpression).Compile();
+            var result = func(new MockedPropertySourceHavingZeroProperties<NullableTestClass>());
+            Assert.That(result.Foo, Is.EqualTo(1337));
         }
 
 

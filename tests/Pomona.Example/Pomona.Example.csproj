@@ -122,6 +122,7 @@
     <Compile Include="Models\ThingWithPropertyNamedUri.cs" />
     <Compile Include="Models\ThingWithRenamedProperties.cs" />
     <Compile Include="Models\ThingWithUri.cs" />
+    <Compile Include="Models\Unconstructable.cs" />
     <Compile Include="Models\UnpatchableThing.cs" />
     <Compile Include="Models\UnpostableThing.cs" />
     <Compile Include="Models\UnpostableThingOnServer.cs" />

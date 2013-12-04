@@ -179,6 +179,14 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public virtual ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            if (typeSpec == null)
+                throw new ArgumentNullException("typeSpec");
+            return typeSpec.OnLoadConstructor();
+        }
+
+
         public virtual IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
         {
             if (memberSpec == null)

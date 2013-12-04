@@ -85,8 +85,8 @@ namespace Pomona
         public virtual ConstructorSpec GetTypeConstructor(Type type)
         {
             return
-                type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault().Maybe().Select(
-                    x => ConstructorSpec.FromConstructorInfo(x)).OrDefault();
+                type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).Select(
+                    x => ConstructorSpec.FromConstructorInfo(x, defaultFactory : () => null)).FirstOrDefault(x => x != null);
         }
 
 

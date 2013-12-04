@@ -168,6 +168,24 @@ namespace Pomona.Common
         }
 
 
+        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            var ria = typeSpec.DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
+            if (ria == null)
+                return
+                    ConstructorSpec.FromConstructorInfo(
+                        typeSpec.Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public
+                                                      | BindingFlags.NonPublic).First(), defaultFactory: () => null);
+
+            if (ria.PocoType == null)
+                throw new NotSupportedException();
+
+            return ConstructorSpec.FromConstructorInfo(
+                ria.PocoType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic
+                                              | BindingFlags.Public).First(), ria.InterfaceType);
+        }
+
+
         [PendingReview]
         public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
         {
@@ -177,9 +195,6 @@ namespace Pomona.Common
                     null,
                     null,
                     true,
-                    ConstructorSpec.FromConstructorInfo(
-                        exportedType.Type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic
-                                                          | BindingFlags.Public).First()),
                     true);
 
             var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
@@ -190,7 +205,6 @@ namespace Pomona.Common
                 "??whatever??TODO",
                 null,   
                 ria.IsValueObject,
-                ConstructorSpec.FromConstructorInfo(ria.PocoType.GetConstructor(Type.EmptyTypes), ria.InterfaceType),
                 true);
         }
 

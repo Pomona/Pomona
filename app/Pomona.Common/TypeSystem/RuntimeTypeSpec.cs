@@ -42,6 +42,7 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<ReadOnlyCollection<TypeSpec>> interfaces;
         private readonly Lazy<ReadOnlyCollection<PropertySpec>> properties;
         private readonly Lazy<RuntimeTypeDetails> runtimeTypeDetails;
+        private readonly Lazy<ConstructorSpec> constructor;
 
         public RuntimeTypeSpec(ITypeResolver typeResolver,
             Type type,
@@ -55,6 +56,7 @@ namespace Pomona.Common.TypeSystem
             this.genericArguments =
                 CreateLazy(genericArguments ?? (() => typeResolver.LoadGenericArguments(this).ToList().AsReadOnly()));
             runtimeTypeDetails = CreateLazy(() => typeResolver.LoadRuntimeTypeDetails(this));
+            this.constructor = CreateLazy(() => typeResolver.LoadConstructor(this));
         }
 
 
@@ -92,6 +94,11 @@ namespace Pomona.Common.TypeSystem
         public override IEnumerable<PropertySpec> RequiredProperties
         {
             get { return this.TypeResolver.LoadRequiredProperties(this); }
+        }
+
+        public override ConstructorSpec Constructor
+        {
+            get { return constructor.Value; }
         }
 
 
@@ -155,6 +162,13 @@ namespace Pomona.Common.TypeSystem
         {
             return new RuntimePropertySpec(TypeResolver, property, () => this);
         }
+
+
+        protected internal override ConstructorSpec OnLoadConstructor()
+        {
+            return null;
+        }
+
 
         public override TypeSerializationMode SerializationMode
         {
