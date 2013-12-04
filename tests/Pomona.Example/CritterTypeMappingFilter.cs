@@ -32,6 +32,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Mono.Reflection;
+
 using Newtonsoft.Json;
 
 using Pomona.Example.Models;
@@ -73,6 +75,13 @@ namespace Pomona.Example
         {
             try
             {
+                try
+                {
+                    Console.WriteLine("Decompiled instructions:");
+                    var instructions = propertyInfo.GetGetMethod().GetInstructions();
+                    Console.WriteLine(string.Join("\r\n", instructions));
+                }
+                catch {}
                 return base.GetDecompiledPropertyFormula(propertyInfo);
             }
             catch (Exception ex)
