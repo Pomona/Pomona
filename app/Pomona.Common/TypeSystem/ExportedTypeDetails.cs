@@ -74,7 +74,6 @@ namespace Pomona.Common.TypeSystem
             get { return this.type.Properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
 
-        [PendingRemoval]
         public bool MappedAsValueObject
         {
             get { return this.mappedAsValueObject; }

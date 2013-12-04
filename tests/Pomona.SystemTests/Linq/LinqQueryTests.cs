@@ -31,6 +31,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Critters.Client;
+
+using DelegateDecompiler;
+
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using Pomona.Common;
@@ -434,6 +437,20 @@ namespace Pomona.SystemTests.Linq
         }
 
 
+        public void AssertDelegateDecompilerIsFunctional()
+        {
+            Func<int> func = () => 1337;
+            try
+            {
+                func.Decompile();
+            }
+            catch (Exception ex)
+            {
+                Assert.Inconclusive("DelegateDecompiler not working, probably running using compiler.: " + ex);
+            }
+        }
+
+
         [Test]
         public void QueryCritter_WithAttributeEquals_ReturnsCorrectCritter()
         {
@@ -445,6 +462,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
         {
+            AssertDelegateDecompilerIsFunctional();
             client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
             var query = this.Repository.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;

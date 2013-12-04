@@ -39,7 +39,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        [PendingRemoval]
         public override TypeSpec ElementType
         {
             get { return ItemType; }

@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,49 +34,37 @@ namespace Pomona.Common.TypeSystem
 {
     public class ResourceType : TransformedType
     {
-        private readonly Lazy<ResourceType> uriBaseType;
         private readonly Lazy<ResourceTypeDetails> resourceTypeDetails;
+        private readonly Lazy<ResourceType> uriBaseType;
 
-        public ResourceType(IExportedTypeResolver typeResolver, Type type) : base(typeResolver, type)
+
+        public ResourceType(IExportedTypeResolver typeResolver, Type type)
+            : base(typeResolver, type)
         {
-            uriBaseType = CreateLazy(() => typeResolver.LoadUriBaseType(this));
-            resourceTypeDetails = CreateLazy(() => typeResolver.LoadResourceTypeDetails(this));
+            this.uriBaseType = CreateLazy(() => typeResolver.LoadUriBaseType(this));
+            this.resourceTypeDetails = CreateLazy(() => typeResolver.LoadResourceTypeDetails(this));
         }
 
-
-        public ResourceType ParentResourceType { get { return ResourceTypeDetails.ParentResourceType; } }
-
-        public PropertyMapping ParentToChildProperty
-        {
-            get { return ResourceTypeDetails.ParentToChildProperty; }
-        }
 
         public PropertyMapping ChildToParentProperty
         {
             get { return ResourceTypeDetails.ChildToParentProperty; }
         }
-        protected ResourceTypeDetails ResourceTypeDetails {get { return resourceTypeDetails.Value; }}
 
-        [PendingRemoval]
-        public TransformedType PostReturnType {get { return ResourceTypeDetails.PostReturnType; }}
-
-        [PendingRemoval]
-        public bool IsExposedAsRepository {get { return ResourceTypeDetails.IsExposedAsRepository; } }
-
-        [PendingRemoval]
-        [Obsolete]
-        public bool IsRootResource { get { return true; }}
-
-        public string UriRelativePath
+        public bool IsExposedAsRepository
         {
-            get { return ResourceTypeDetails.UriRelativePath; }
+            get { return ResourceTypeDetails.IsExposedAsRepository; }
         }
 
-        public ResourceType UriBaseType
+        public bool IsRootResource
         {
-            get { return uriBaseType.Value; }
+            get { return ResourceTypeDetails.ParentResourceType == null; }
         }
 
+        public bool IsUriBaseType
+        {
+            get { return UriBaseType == this; }
+        }
 
         [PendingRemoval]
         public IEnumerable<ResourceType> MergedTypes
@@ -80,10 +72,36 @@ namespace Pomona.Common.TypeSystem
             get { return SubTypes.OfType<ResourceType>(); }
         }
 
-        public bool IsUriBaseType
+        public ResourceType ParentResourceType
         {
-            get { return UriBaseType == this; }
+            get { return ResourceTypeDetails.ParentResourceType; }
         }
+
+        public PropertyMapping ParentToChildProperty
+        {
+            get { return ResourceTypeDetails.ParentToChildProperty; }
+        }
+
+        public TransformedType PostReturnType
+        {
+            get { return ResourceTypeDetails.PostReturnType; }
+        }
+
+        public ResourceType UriBaseType
+        {
+            get { return this.uriBaseType.Value; }
+        }
+
+        public string UriRelativePath
+        {
+            get { return ResourceTypeDetails.UriRelativePath; }
+        }
+
+        protected ResourceTypeDetails ResourceTypeDetails
+        {
+            get { return this.resourceTypeDetails.Value; }
+        }
+
 
         protected internal virtual ResourceType OnLoadUriBaseType()
         {
