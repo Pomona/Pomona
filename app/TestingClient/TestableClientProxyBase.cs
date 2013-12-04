@@ -67,7 +67,7 @@ namespace Pomona.TestingClient
         private readonly Dictionary<string, object> repositoryCache = new Dictionary<string, object>();
 
         private readonly Dictionary<Type, object> resourceCollections = new Dictionary<Type, object>();
-        private int idCounter = 1;
+        private long idCounter = 1;
 
 
         public virtual object OnPost(IPostForm form)
@@ -311,13 +311,13 @@ namespace Pomona.TestingClient
         private void SaveInternal<TResource>(TResource resource)
             where TResource : IClientResource
         {
-            var entityResource = resource as IEntity;
-            if (entityResource != null && entityResource.Id == 0)
-                entityResource.Id = idCounter++;
+            var resInfo = this.GetResourceInfoForType(typeof(TResource));
+            if (resInfo.HasIdProperty && (resInfo.IdProperty.PropertyType == typeof(int) || resInfo.IdProperty.PropertyType == typeof(long)))
+            {
+                resInfo.IdProperty.SetValue(resource, Convert.ChangeType(idCounter++, resInfo.IdProperty.PropertyType), null);
+            }
 
             GetResourceCollection<TResource>().Add(resource);
         }
     }
 }
-
-// OFF WITH YOUR HEAD; DANCE 'TIL YOU'RE DEAD
