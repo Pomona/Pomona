@@ -311,10 +311,12 @@ namespace Pomona.TestingClient
         private void SaveInternal<TResource>(TResource resource)
             where TResource : IClientResource
         {
-            var resInfo = this.GetResourceInfoForType(typeof(TResource));
-            if (resInfo.HasIdProperty && (resInfo.IdProperty.PropertyType == typeof(int) || resInfo.IdProperty.PropertyType == typeof(long)))
+            var resInfo = this.GetResourceInfoForType(typeof (TResource));
+            if (resInfo.HasIdProperty &&
+                (resInfo.IdProperty.PropertyType == typeof (int) || resInfo.IdProperty.PropertyType == typeof (long)))
             {
-                resInfo.IdProperty.SetValue(resource, Convert.ChangeType(idCounter++, resInfo.IdProperty.PropertyType), null);
+                resInfo.IdProperty.SetValue(resource, Convert.ChangeType(idCounter++, resInfo.IdProperty.PropertyType),
+                    null);
             }
 
             GetResourceCollection<TResource>().Add(resource);
