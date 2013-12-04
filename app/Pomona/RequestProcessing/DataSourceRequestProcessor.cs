@@ -61,7 +61,7 @@ namespace Pomona.RequestProcessing
             var resourceNode = request.Node as ResourceNode;
             if (request.Method == HttpMethod.Post)
             {
-                if (queryableNode != null && queryableNode.ItemResourceType.IsRootResource)
+                if (queryableNode != null)
                 {
                     var form = request.Bind();
                     return
