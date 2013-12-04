@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("TestingClient")]
+[assembly: AssemblyTitle("Pomona.TestingClient")]
 [assembly: AssemblyDescription("Pomona client for testing code integrating against a pomona client")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

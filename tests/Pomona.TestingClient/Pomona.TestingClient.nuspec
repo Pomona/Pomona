@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>First development pre-release.</releaseNotes>
-    <copyright>Copyright Karsten N. Strand 2012</copyright>
+    <copyright>Copyright Karsten N. Strand 2013</copyright>
     <tags>REST linq mapping</tags>
   </metadata>
 </package>
