@@ -170,7 +170,6 @@
     <Compile Include="TypeSystem\Maybe.cs" />
     <Compile Include="TypeSystem\MaybeExtensions.cs" />
     <Compile Include="TypeSystem\MemberSpec.cs" />
-    <Compile Include="TypeSystem\PendingRemovalAttribute.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttribute.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttributeExtensions.cs" />
