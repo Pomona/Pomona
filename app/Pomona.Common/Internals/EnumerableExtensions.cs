@@ -40,6 +40,11 @@ namespace Pomona.Common.Internals
             return source ?? Enumerable.Empty<T>();
         }
 
+        public static IQueryable<T> EmptyIfNull<T>(this IQueryable<T> source)
+        {
+            return source ?? Enumerable.Empty<T>().AsQueryable();
+        }
+
         public static IEnumerable<T> WalkTree<T>(this T o, Func<T, T> nextNodeSelector)
             where T : class
         {

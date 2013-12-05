@@ -73,7 +73,7 @@ namespace Pomona
             foreach (var transformedType in this.typeMapper
                 .TransformedTypes
                 .Select(x => x.UriBaseType)
-                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous())
+                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous() && x.IsRootResource)
                 .Distinct())
                 RegisterRoutesFor(transformedType);
 
@@ -187,16 +187,7 @@ namespace Pomona
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
 
-            var processors = Enumerable.Empty<IPomonaRequestProcessor>();
-
-            if (pomonaRequest.Method == HttpMethod.Patch)
-                processors = processors.Concat(new ValidateEtagOnPatchProcessor());
-
-            processors = processors.Concat(
-                node.GetRequestProcessors(pomonaRequest).Concat(
-                    new DefaultGetRequestProcessor(node.GetQueryExecutor())));
-
-            var response = processors.Select(x => x.Process(pomonaRequest)).FirstOrDefault(x => x != null);
+            var response = new DefaultRequestProcessorPipeline().Process(pomonaRequest);
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
             return response;

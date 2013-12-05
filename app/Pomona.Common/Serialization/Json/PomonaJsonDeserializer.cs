@@ -281,6 +281,8 @@ namespace Pomona.Common.Serialization.Json
 
             IDictionary<IPropertyInfo, object> propertyValueMap = new Dictionary<IPropertyInfo, object>();
 
+            List<KeyValuePair<PropertyValueDeserializerNode, JToken>> requiredProperties = new List<KeyValuePair<PropertyValueDeserializerNode, JToken>>();
+            List<KeyValuePair<PropertyValueDeserializerNode, JToken>> settableProperties = new List<KeyValuePair<PropertyValueDeserializerNode, JToken>>();
 
             foreach (var jprop in jobj.Properties())
             {
@@ -293,7 +295,7 @@ namespace Pomona.Common.Serialization.Json
                 {
                     if (jprop.Value.Type != JTokenType.String)
                         throw new PomonaSerializationException("_uri property is expected to be of JSON type string");
-                    node.Uri = (string) ((JValue) jprop.Value).Value;
+                    node.Uri = (string)((JValue)jprop.Value).Value;
                     continue;
                 }
                 var name = jprop.Name;
@@ -308,13 +310,12 @@ namespace Pomona.Common.Serialization.Json
                 if (prop == null)
                     continue;
 
+
                 var propNode = new PropertyValueDeserializerNode(node, prop);
 
-                object oldPropValue = null;
-                if (patchWhenPossible && node.Value != null)
+                if (patchWhenPossible)
                 {
                     // If value is set we PATCH an existing object instead of creating a new one.
-                    oldPropValue = propNode.Value = prop.Getter(node.Value);
                     propNode.Operation = DeserializerNodeOperation.Patch;
                 }
                 else
@@ -322,22 +323,39 @@ namespace Pomona.Common.Serialization.Json
                     propNode.Operation = DeserializerNodeOperation.Post;
                 }
 
-                propNode.Deserialize(this, new Reader(jprop.Value));
-
-                if (node.Value == null || oldPropValue != propNode.Value)
-                    propertyValueMap[prop] = propNode.Value;
+                if (node.Value != null
+                    || (node.ValueType is SharedType && prop.IsWriteable) ||  (!(node.ValueType is SharedType) && prop.CreateMode == PropertyCreateMode.Optional && prop.AccessMode.HasFlag(HttpMethod.Put)))
+                {
+                    settableProperties.Add(new KeyValuePair<PropertyValueDeserializerNode, JToken>(propNode, jprop.Value));
+                }
+                else
+                {
+                    requiredProperties.Add(new KeyValuePair<PropertyValueDeserializerNode, JToken>(propNode, jprop.Value));
+                }
             }
+
+            if (node.Operation == DeserializerNodeOperation.Default)
+                node.Operation = node.Value == null ? DeserializerNodeOperation.Post : DeserializerNodeOperation.Patch;
 
             if (node.Value == null)
             {
-                node.Value = node.ValueType.Create(propertyValueMap);
+                node.Value =
+                    node.ValueType.Create(requiredProperties.ToDictionary(x => x.Key.Property,
+                        x =>
+                        {
+                            x.Key.Deserialize(this, new Reader(x.Value));
+                            return x.Key.Value;
+                        }));
             }
-            else
+
+            foreach (var propKvp in settableProperties)
             {
-                foreach (var entry in propertyValueMap)
-                {
-                    node.SetProperty(entry.Key, entry.Value);
-                }
+                var propNode = propKvp.Key;
+                var oldValue = propNode.Value = propNode.Property.Getter(node.Value);
+                propNode.Deserialize(this, new Reader(propKvp.Value));
+                var newValue = propNode.Value;
+                if (newValue != oldValue)
+                    node.SetProperty(propNode.Property, newValue);
             }
         }
 

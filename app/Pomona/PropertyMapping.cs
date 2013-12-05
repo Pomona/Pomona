@@ -175,7 +175,7 @@ namespace Pomona
 
         public bool IsWriteable
         {
-            get { return this.AccessMode.HasFlag(HttpMethod.Patch) || this.AccessMode.HasFlag(HttpMethod.Post); }
+            get { return this.AccessMode.HasFlag(HttpMethod.Patch) || this.AccessMode.HasFlag(HttpMethod.Post) || this.AccessMode.HasFlag(HttpMethod.Put); }
         }
 
         public bool IsReadable

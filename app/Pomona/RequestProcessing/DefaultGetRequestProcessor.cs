@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,42 +22,30 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
-using System;
-
 using Pomona.Common;
-using Pomona.Queries;
 
 namespace Pomona.RequestProcessing
 {
     public class DefaultGetRequestProcessor : IPomonaRequestProcessor
     {
-        private readonly IQueryExecutor queryExecutor;
-
-
-        public DefaultGetRequestProcessor(IQueryExecutor queryExecutor)
-        {
-            if (queryExecutor == null)
-                throw new ArgumentNullException("queryExecutor");
-            this.queryExecutor = queryExecutor;
-        }
-
-
         public PomonaResponse Process(PomonaRequest request)
         {
             if (request.Method != HttpMethod.Get)
                 return null;
 
+            if (!request.Node.Exists)
+                throw new ResourceNotFoundException("Resource not found.");
+
             var queryableNode = request.Node as QueryableNode;
             if (queryableNode != null)
             {
                 var pomonaQuery = request.ParseQuery();
-                return this.queryExecutor.ApplyAndExecute(queryableNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
+                return request.Node.GetQueryExecutor()
+                              .ApplyAndExecute(queryableNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
             }
             var resourceNode = request.Node as ResourceNode;
             if (resourceNode != null)
-                return new PomonaResponse(resourceNode.Value, expandedPaths : request.ExpandedPaths);
+                return new PomonaResponse(resourceNode.Value, expandedPaths: request.ExpandedPaths);
             return null;
         }
     }

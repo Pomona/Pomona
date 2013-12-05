@@ -1,3 +1,5 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -31,6 +35,7 @@ namespace Pomona.Common.Serialization
         private readonly IDeserializationContext context;
         private readonly IDeserializerNode parent;
         private readonly IPropertyInfo property;
+
         private string expandPath;
         private IMappedType valueType;
 
@@ -39,72 +44,75 @@ namespace Pomona.Common.Serialization
         {
             this.parent = parent;
             this.property = property;
-            valueType = property.PropertyType;
-            context = parent.Context;
+            this.valueType = property.PropertyType;
+            this.context = parent.Context;
         }
 
         #region Implementation of IDeserializerNode
 
         public IDeserializationContext Context
         {
-            get { return context; }
+            get { return this.context; }
         }
-
 
         public string ExpandPath
         {
             get
             {
-                if (expandPath == null)
+                if (this.expandPath == null)
                 {
-                    if (string.IsNullOrEmpty(parent.ExpandPath))
-                        return property.LowerCaseName;
+                    if (string.IsNullOrEmpty(this.parent.ExpandPath))
+                        return this.property.LowerCaseName;
 
-                    expandPath = string.Concat(parent.ExpandPath, ".", property.LowerCaseName);
+                    this.expandPath = string.Concat(this.parent.ExpandPath, ".", this.property.LowerCaseName);
                 }
-                return expandPath;
+                return this.expandPath;
             }
         }
 
-
         public IMappedType ExpectedBaseType
         {
-            get { return property.PropertyType; }
+            get { return this.property.PropertyType; }
         }
 
-        public object Value { get; set; }
+        public DeserializerNodeOperation Operation { get; set; }
+
+        public IDeserializerNode Parent
+        {
+            get { return this.parent; }
+        }
 
         public string Uri { get; set; }
+        public object Value { get; set; }
 
-        public void SetValueType(string typeName)
+        public IMappedType ValueType
         {
-            valueType = Context.GetTypeByName(typeName);
-        }
-
-        public void SetProperty(IPropertyInfo property, object propertyValue)
-        {
-            context.SetProperty(this, property, propertyValue);
+            get { return this.valueType; }
         }
 
 
         public void CheckItemAccessRights(HttpMethod method)
         {
-            Context.CheckPropertyItemAccessRights(property, method);
+            Context.CheckPropertyItemAccessRights(this.property, method);
         }
 
 
-        public IDeserializerNode Parent
+        public void SetProperty(IPropertyInfo property, object propertyValue)
         {
-            get { return parent; }
+            this.context.SetProperty(this, property, propertyValue);
         }
 
-        public IMappedType ValueType
+
+        public void SetValueType(string typeName)
         {
-            get { return valueType; }
+            this.valueType = Context.GetTypeByName(typeName);
         }
-
-        public DeserializerNodeOperation Operation { get; set; }
 
         #endregion
+
+        public IPropertyInfo Property
+        {
+            get { return this.property; }
+        }
     }
 }

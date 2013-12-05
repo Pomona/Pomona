@@ -1,7 +1,7 @@
-// ----------------------------------------------------------------------------
+ï»¿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright Â© 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,25 +22,32 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pomona.Queries;
 
-[assembly: AssemblyCompany("Karsten N. Strand")]
-[assembly: AssemblyProduct("Pomona")]
-[assembly: AssemblyCopyright("Copyright © Karsten N. Strand 2013")]
+namespace Pomona.RequestProcessing
+{
+    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline, IPomonaRequestProcessor
+    {
+        public PomonaResponse Process(PomonaRequest request)
+        {
+            return    Before
+                      .Concat(request.Node.GetRequestProcessors(request))
+                      .Concat(After)
+                      .Select(x => x.Process(request))
+                      .FirstOrDefault(response => response != null);
+        }
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+        public virtual IEnumerable<IPomonaRequestProcessor> Before
+        {
+            get { yield return new ValidateEtagOnPatchProcessor(); }
+        }
 
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.5.0.1")]
-[assembly: AssemblyInformationalVersion("0.5.0-alpha1")]
-[assembly: ComVisible(false)]
+        public IEnumerable<IPomonaRequestProcessor> After
+        {
+            get { yield return new DefaultGetRequestProcessor(); }
+        }
+    }
+}
