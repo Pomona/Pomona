@@ -67,53 +67,80 @@ namespace Pomona.Common.Serialization
             }
         }
 
+        public IResourceNode TargetNode
+        {
+            get { return null; }
+        }
 
-        public IMappedType GetTypeByName(string typeName)
+
+        public TypeSpec GetTypeByName(string typeName)
         {
             return typeMapper.GetClassMapping(typeName);
         }
 
-        public void SetProperty(IDeserializerNode target, IPropertyInfo property, object propertyValue)
+        public void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue)
         {
-            if (!property.IsWriteable)
+            if (!property.IsWritable)
                 throw new InvalidOperationException("Unable to set property.");
+
+            Type[] clientRepositoryTypeArgs;
+            if (property.PropertyType.Type.TryExtractTypeArguments(typeof(ClientRepository<,>),
+                out clientRepositoryTypeArgs))
+            {
+
+                property.Setter(target.Value,
+                    Activator.CreateInstance(typeof(ClientRepository<,>).MakeGenericType(clientRepositoryTypeArgs),
+                        client,
+                        target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
+                        propertyValue));
+                return;
+            }
 
             property.Setter(target.Value, propertyValue);
         }
 
 
-        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpMethod method)
+        public void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method)
         {
             if (method == HttpMethod.Patch || method == HttpMethod.Put || method == HttpMethod.Delete)
                 throw new PomonaSerializationException("Patch format not accepted from server to client.");
         }
 
+        public void CheckAccessRights(PropertySpec property, HttpMethod method)
+        {
+        }
 
-        public IMappedType GetClassMapping(Type type)
+
+        public void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp)
+        {
+        }
+
+
+        public TypeSpec GetClassMapping(Type type)
         {
             return typeMapper.GetClassMapping(type);
         }
 
-        public object CreateReference(IMappedType type, string uri)
+        public object CreateReference(TypeSpec type, string uri)
         {
+            if (type.Type.IsGenericType && type.Type.GetGenericTypeDefinition() == typeof(ClientRepository<,>))
+            {
+                return Activator.CreateInstance(type.Type, client, uri, null);
+            }
             if (type.SerializationMode == TypeSerializationMode.Array)
             {
-                var lazyListType = typeof (LazyListProxy<>).MakeGenericType(type.ElementType.MappedTypeInstance);
+                var lazyListType = typeof (LazyListProxy<>).MakeGenericType(type.ElementType.Type);
                 return Activator.CreateInstance(lazyListType, uri, client);
             }
-            if (type is ClientType && type.SerializationMode == TypeSerializationMode.Complex)
+            if (type is TransformedType && type.SerializationMode == TypeSerializationMode.Complex)
             {
-                var clientType = (ClientType) type;
+                var clientType = (TransformedType) type;
                 var proxyType = clientType.ResourceInfo.LazyProxyType;
                 var refobj = (LazyProxyBase) Activator.CreateInstance(proxyType);
                 refobj.Client = client;
                 refobj.ProxyTargetType = clientType.ResourceInfo.PocoType;
                 ((IHasResourceUri) refobj).Uri = uri;
                 return refobj;
-            }
-            if (type.MappedType == typeof (ClientRepository<,>))
-            {
-                return Activator.CreateInstance(type.MappedTypeInstance, client, uri);
             }
             throw new NotImplementedException("Don't know how to make reference to type " + type.Name + " yet!");
         }

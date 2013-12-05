@@ -27,12 +27,12 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Reflection;
 
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
 namespace Pomona.RequestProcessing
@@ -56,44 +56,71 @@ namespace Pomona.RequestProcessing
         }
 
 
+        private PomonaResponse ProcessQueryableNodeCallToHandler(PomonaRequest request, QueryableNode queryableNode)
+        {
+            ResourceType resourceType = queryableNode.ItemResourceType;
+            if (!resourceType.IsRootResource)
+            {
+                var parentType = resourceType.ParentResourceType;
+                // First attempt to locate handler with signature Post(ParentType, ResourceType)
+                var method = dataSource.GetType().GetMethod("Post",
+                    BindingFlags.Instance | BindingFlags.Public,
+                    null,
+                    new Type[] { parentType, resourceType },
+                    null);
+
+                if (method != null)
+                {
+                    var form = request.Bind(resourceType);
+                    var result =  method.Invoke(dataSource, new object[] { queryableNode.Parent.Value, form });
+                    if (!(result is PomonaResponse))
+                    {
+                        return new PomonaResponse(result, HttpStatusCode.Created, request.ExpandedPaths);
+                    }
+                    return (PomonaResponse)result;
+                }
+            }
+            return null;
+        }
+
+
+        private PomonaResponse ProcessQueryableNodeCallToDataSource(PomonaRequest request, QueryableNode queryableNode)
+        {
+            var form = request.Bind();
+            return
+                (PomonaResponse)
+                    this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+        }
+
         public virtual PomonaResponse Process(PomonaRequest request)
         {
             var queryableNode = request.Node as QueryableNode;
             var resourceNode = request.Node as ResourceNode;
             if (request.Method == HttpMethod.Post)
             {
-                if (queryableNode != null && queryableNode.ItemResourceType.IsRootResource)
+                if (queryableNode != null)
                 {
-                    var form = request.Bind();
-                    return
-                        (PomonaResponse)
-                            this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+                    return ProcessQueryableNodeCallToHandler(request, queryableNode)
+                           ?? ProcessQueryableNodeCallToDataSource(request, queryableNode);
                 }
                 if (resourceNode != null)
                 {
-                    // Post to resource..
-                    var o = resourceNode.Value;
-                    var mappedType = (TransformedType)resourceNode.TypeMapper.GetClassMapping(o.GetType());
+                    // Find post to resource methods
                     var form = request.Bind();
+                    var method = this.dataSource.GetType().GetMethod("Post",
+                        BindingFlags.Instance | BindingFlags.Public,
+                        null,
+                        new Type[] { resourceNode.Type, form.GetType() },
+                        null);
 
-                    var handlers =
-                        mappedType.PostHandlers.Where(
-                            x => string.IsNullOrEmpty(x.UriName))
-                                  .Where(x => x.FormType.MappedTypeInstance.IsInstanceOfType(form))
-                                  .ToList();
-
-                    if (handlers.Count < 1)
-                        throw new ResourceNotFoundException("TODO: Should throw method not allowed..");
-
-                    if (handlers.Count > 1)
-                        throw new NotImplementedException(
-                            "TODO: Overload resolution not fully implemented when posting to a resource.");
-
-                    var handler = handlers[0];
-                    var result = handler.Method.Invoke(dataSource, new[] { o, form });
-
+                    if (method == null)
+                    {
+                        throw new PomonaException("Method Post to resource not allowed for resource type",
+                            null,
+                            HttpStatusCode.BadRequest);
+                    }
+                    var result = method.Invoke(this.dataSource, new[] { resourceNode.Value, form });
                     return new PomonaResponse(result);
-
                 }
             }
 

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,52 +24,27 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Reflection;
+#endregion
+
+using Critters.Client;
+
+using NUnit.Framework;
+
+using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Handlers
+namespace Pomona.SystemTests.TypeSystem
 {
-    public class HandlerInfo
+    [TestFixture]
+    public class ClientTypeMapperTests
     {
-        private string httpMethod;
-
-        public string HttpMethod
+        [Test]
+        public void CritterType_ReturnsCorrectPluralName()
         {
-            get { return httpMethod; }
-        }
-
-        public string UriName
-        {
-            get { return uriName; }
-        }
-
-        public MethodInfo Method
-        {
-            get { return method; }
-        }
-
-        public IMappedType TargetResourceType
-        {
-            get { return targetResourceType; }
-        }
-
-        public IMappedType FormType
-        {
-            get { return formType; }
-        }
-
-        private string uriName;
-        private MethodInfo method;
-        private IMappedType targetResourceType;
-        private IMappedType formType;
-
-        public HandlerInfo(string httpMethod, string uriName, MethodInfo method, IMappedType targetResourceType, IMappedType formType)
-        {
-            this.httpMethod = httpMethod;
-            this.uriName = uriName;
-            this.method = method;
-            this.targetResourceType = targetResourceType;
-            this.formType = formType;
+            var clientTypeMapper = new ClientTypeMapper(typeof(ICritter).WrapAsEnumerable());
+            var critterType = (ResourceType)clientTypeMapper.FromType(typeof(ICritter));
+            Assert.That(critterType.PluralName, Is.EqualTo("Critters"));
         }
     }
 }

@@ -97,7 +97,7 @@ namespace Pomona.UnitTests.PomonaSession
                 throw new NotImplementedException();
             }
 
-            public string GetUriFor(IPropertyInfo property, object entity)
+            public string GetUriFor(PropertySpec property, object entity)
             {
                 throw new NotImplementedException();
             }

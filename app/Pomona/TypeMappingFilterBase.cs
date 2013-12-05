@@ -82,6 +82,14 @@ namespace Pomona
 
         public abstract object GetIdFor(object entity);
 
+        public virtual ConstructorSpec GetTypeConstructor(Type type)
+        {
+            return
+                type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).Select(
+                    x => ConstructorSpec.FromConstructorInfo(x, defaultFactory : () => null)).FirstOrDefault(x => x != null);
+        }
+
+
         public abstract IEnumerable<Type> GetSourceTypes();
 
 
@@ -146,19 +154,20 @@ namespace Pomona
             return type;
         }
 
-
-        public virtual HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo)
+        public virtual HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec)
         {
             var mode = (propertyInfo.CanRead ? HttpMethod.Get : 0);
             if ((propertyInfo.CanWrite && propertyInfo.GetSetMethod() != null))
                 mode |= HttpMethod.Put | HttpMethod.Post;
+            if (constructorSpec != null)
+            {
+                var paramSpec = constructorSpec.GetParameterSpec(propertyInfo);
+                if (paramSpec != null)
+                {
+                    mode |= HttpMethod.Post;
+                }
+            }
             return mode;
-        }
-
-
-        public virtual int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo)
-        {
-            return null;
         }
 
 
@@ -259,14 +268,6 @@ namespace Pomona
         }
 
 
-        public virtual ConstructorInfo GetTypeConstructor(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            // Find longest (most specific) public constructor
-            return type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).FirstOrDefault();
-        }
-
 
         public virtual Type GetUriBaseType(Type type)
         {
@@ -279,13 +280,13 @@ namespace Pomona
         }
 
 
-        public PropertyInfo GetParentToChildProperty(Type type)
+        public virtual PropertyInfo GetParentToChildProperty(Type type)
         {
             return null;
         }
 
 
-        public PropertyInfo GetChildToParentProperty(Type type)
+        public virtual PropertyInfo GetChildToParentProperty(Type type)
         {
             return null;
         }
@@ -423,6 +424,8 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
+            if (type.IsEnum)
+                return false;
             return SourceTypes.Contains(type) || type.IsAnonymous() || TypeIsIGrouping(type);
         }
 

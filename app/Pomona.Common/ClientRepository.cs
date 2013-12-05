@@ -45,14 +45,16 @@ namespace Pomona.Common
         private readonly ClientBase client;
 
         private readonly string uri;
+        private readonly IEnumerable<TResource> results;
 
 
-        public ClientRepository(ClientBase client, string uri)
+        public ClientRepository(ClientBase client, string uri, IEnumerable<TResource> results)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
             this.client = client;
             this.uri = uri;
+            this.results = results;
         }
 
 
@@ -122,7 +124,7 @@ namespace Pomona.Common
 
         public IEnumerator<TResource> GetEnumerator()
         {
-            return Query().GetEnumerator();
+            return results != null ? results.GetEnumerator() : Query().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

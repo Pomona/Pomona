@@ -36,7 +36,7 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
-        protected Delta(object original, IMappedType type, ITypeMapper typeMapper, Delta parent = null)
+        protected Delta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
         {
             if (original == null) throw new ArgumentNullException("original");
             if (type == null) throw new ArgumentNullException("type");
@@ -49,7 +49,7 @@ namespace Pomona.Common.Serialization.Patch
 
         public object Original { get; internal set; }
 
-        public IMappedType Type { get; internal set; }
+        public TypeSpec Type { get; internal set; }
 
         public Delta Parent
         {
@@ -77,7 +77,7 @@ namespace Pomona.Common.Serialization.Patch
                 oldDeltaValue.Parent = null;
         }
 
-        protected virtual object CreateNestedDelta(object propValue, IMappedType propValueType)
+        protected virtual object CreateNestedDelta(object propValue, TypeSpec propValueType)
         {
             if (propValueType.SerializationMode == TypeSerializationMode.Complex)
             {

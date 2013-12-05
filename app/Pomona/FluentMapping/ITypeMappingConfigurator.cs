@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -45,12 +46,11 @@ namespace Pomona.FluentMapping
 
 
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
-            Expression<Func<TDeclaringType, TDeclaringType>> constructExpr);
+            Expression<Func<IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr);
 
 
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
-            Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> constructExpr);
-
+            Expression<Func<TDeclaringType, IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr);
 
         ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
             Expression<Func<TDeclaringType, TParent>> parentProperty, Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty);

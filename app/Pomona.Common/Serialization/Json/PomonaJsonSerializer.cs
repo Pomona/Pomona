@@ -29,7 +29,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 using Pomona.Internals;
@@ -41,16 +45,16 @@ namespace Pomona.Common.Serialization.Json
     public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializer.Writer>
     {
         // TODO enable type cache for faster serialization, disabled for now need to think a bit more about this. [KNS]
-        public const bool TypeCacheEnabled = false;
+        public static bool TypeCacheEnabled = false;
 
-        private static readonly ConcurrentDictionary<IMappedType, PomonaJsonSerializerTypeEntry> typeEntryDict =
-            new ConcurrentDictionary<IMappedType, PomonaJsonSerializerTypeEntry>();
+        private static readonly ConcurrentDictionary<TypeSpec, PomonaJsonSerializerTypeEntry> typeEntryDict =
+            new ConcurrentDictionary<TypeSpec, PomonaJsonSerializerTypeEntry>();
 
         #region Implementation of ISerializer<PomonaJsonSerializerState>
 
         private static readonly MethodInfo serializeDictionaryGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
-                x => x.SerializeDictionaryGeneric<object>(null, null));
+                x => x.SerializeDictionaryGeneric<object>(null, null, null));
 
         public Writer CreateWriter(TextWriter textWriter)
         {
@@ -58,9 +62,20 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
+        private ThreadLocal<int> loopDetector = new ThreadLocal<int>();
+
         public void SerializeNode(ISerializerNode node, ISerializerWriter writer)
         {
-            SerializeNode(node, CastWriter(writer));
+            try
+            {
+                if (loopDetector.Value++ > 300)
+                    throw new InvalidOperationException("Deep recursion detected, trying to avoid stack overflow.");
+                SerializeNode(node, CastWriter(writer));
+            }
+            finally
+            {
+                loopDetector.Value--;
+            }
         }
 
 
@@ -93,14 +108,14 @@ namespace Pomona.Common.Serialization.Json
 
         public void SerializeQueryResult(
             QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer,
-            IMappedType elementType)
+            TypeSpec elementType)
         {
             SerializeQueryResult(queryResult, fetchContext, CastWriter(writer), elementType);
         }
 
 
         public void SerializeQueryResult(
-            QueryResult queryResult, ISerializationContext fetchContext, Writer writer, IMappedType elementType)
+            QueryResult queryResult, ISerializationContext fetchContext, Writer writer, TypeSpec elementType)
         {
             var jsonWriter = writer.JsonWriter;
             jsonWriter.WriteStartObject();
@@ -154,7 +169,7 @@ namespace Pomona.Common.Serialization.Json
             var value = node.Value;
 
             var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
-                                       node.ExpectedBaseType.MappedTypeInstance == typeof (object) &&
+                                       node.ExpectedBaseType.Type == typeof (object) &&
                                        (!(node.Value is string));
 
             if (boxValueWithTypeSpec)
@@ -165,7 +180,10 @@ namespace Pomona.Common.Serialization.Json
                 writer.JsonWriter.WritePropertyName("value");
             }
 
-            var jsonConverter = node.ValueType.JsonConverter;
+            var jsonConverter = node.ValueType.GetCustomJsonConverter();
+            if (node.ValueType is EnumTypeSpec)
+                jsonConverter = new StringEnumConverter();
+
             if (jsonConverter != null)
                 jsonConverter.WriteJson(writer.JsonWriter, value, null);
             else
@@ -257,25 +275,29 @@ namespace Pomona.Common.Serialization.Json
 
         private void SerializeDictionary(ISerializerNode node, Writer writer)
         {
-            var keyMappedType = node.ExpectedBaseType.DictionaryKeyType.MappedTypeInstance;
+            var dictType = node.ExpectedBaseType as DictionaryTypeSpec;
+            if (dictType == null)
+                throw new PomonaSerializationException("Unable to serialize dictionary of typespec " + node.ExpectedBaseType.GetType());
 
-            if (keyMappedType != typeof (string))
+            var keyMappedType = dictType.KeyType.Type;
+
+            if (keyMappedType != typeof(string))
                 throw new NotImplementedException(
                     "Does not support serialization of dictionaries where key is not string.");
 
-            var valueMappedType = node.ExpectedBaseType.DictionaryValueType.MappedTypeInstance;
+            var valueMappedType = dictType.ValueType.Type;
             serializeDictionaryGenericMethod
                 .MakeGenericMethod(valueMappedType)
-                .Invoke(this, new object[] {node, writer});
+                .Invoke(this, new object[] { node, writer, dictType });
         }
 
 
         private void SerializeDictionaryGeneric<TValue>(
-            ISerializerNode node, Writer writer)
+            ISerializerNode node, Writer writer, DictionaryTypeSpec dictType)
         {
             var jsonWriter = writer.JsonWriter;
-            var dict = (IDictionary<string, TValue>) node.Value;
-            var expectedValueType = node.ExpectedBaseType.DictionaryValueType;
+            var dict = (IDictionary<string, TValue>)node.Value;
+            var expectedValueType = dictType.ValueType;
 
             jsonWriter.WriteStartObject();
             var dictDelta = dict as IDictionaryDelta<string, TValue>;
@@ -318,7 +340,7 @@ namespace Pomona.Common.Serialization.Json
             var serializingDelta = node.Value is IDelta;
 
             jsonWriter.WriteStartObject();
-            if (node.ValueType.HasUri)
+            if (node.ValueType is ResourceType && node.Uri != null)
             {
                 jsonWriter.WritePropertyName("_uri");
                 jsonWriter.WriteValue(node.Uri);
@@ -331,7 +353,10 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
             {
-                var primaryId = node.ValueType.PrimaryId;
+                var primaryId = node.ValueType.Maybe().OfType<TransformedType>().Select(x => x.PrimaryId).OrDefault();
+                if (primaryId == null)
+                    throw new PomonaSerializationException("When we are removing complex object a primary id is required.");
+
                 jsonWriter.WritePropertyName((node.IsRemoved ? "-@" : "*@") + primaryId.JsonName);
                 jsonWriter.WriteValue(primaryId.Getter(node.Value));
                 if (node.IsRemoved)
@@ -343,7 +368,7 @@ namespace Pomona.Common.Serialization.Json
 
             PomonaJsonSerializerTypeEntry cacheTypeEntry;
 
-            IEnumerable<IPropertyInfo> propertiesToSerialize = null;
+            IEnumerable<PropertySpec> propertiesToSerialize = null;
             var pomonaSerializable = node.Value as IPomonaSerializable;
             if (pomonaSerializable == null && TryGetTypeEntry(node.ValueType, out cacheTypeEntry))
             {
@@ -379,7 +404,7 @@ namespace Pomona.Common.Serialization.Json
 
         #endregion
 
-        private static bool TryGetTypeEntry(IMappedType mappedType, out PomonaJsonSerializerTypeEntry typeEntry)
+        private static bool TryGetTypeEntry(TypeSpec mappedType, out PomonaJsonSerializerTypeEntry typeEntry)
         {
             typeEntry = null;
             if (TypeCacheEnabled)

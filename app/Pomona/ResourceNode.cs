@@ -37,8 +37,8 @@ namespace Pomona
     public class ResourceNode : PathNode
     {
         private readonly ResourceType expectedType;
-        private readonly Lazy<ResourceType> type;
-        private readonly Lazy<object> value;
+        private readonly System.Lazy<ResourceType> type;
+        private readonly System.Lazy<object> value;
 
 
         public ResourceNode(ITypeMapper typeMapper,
@@ -48,9 +48,9 @@ namespace Pomona
             ResourceType expectedType)
             : base(typeMapper, parent, name)
         {
-            this.value = new Lazy<object>(valueFetcher);
+            this.value = new System.Lazy<object>(valueFetcher);
             this.expectedType = expectedType;
-            this.type = new Lazy<ResourceType>(() =>
+            this.type = new System.Lazy<ResourceType>(() =>
             {
                 var localValue = Value;
                 if (Value == null)
@@ -66,7 +66,8 @@ namespace Pomona
             {
                 // TODO: Currently there's no good way to define that POST to a resource is allowed while POST to collection is not allowed.
                 // The code below is a workaround: if there's any defined PostHandlers we will allow POST.
-                return Type.AllowedMethods | (Type.PostHandlers.Any() ? HttpMethod.Post : 0);
+                return HttpMethod.Delete | HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post | HttpMethod.Put;
+                //return Type.AllowedMethods | (Type.PostHandlers.Any() ? HttpMethod.Post : 0);
             }
         }
 
@@ -93,7 +94,7 @@ namespace Pomona
 
         public override PathNode GetChildNode(string name)
         {
-            IPropertyInfo property;
+            PropertySpec property;
             if (
                 !(this.expectedType.TryGetPropertyByUriName(name, out property)
                   || Type.TryGetPropertyByUriName(name, out property)))
@@ -103,7 +104,7 @@ namespace Pomona
         }
 
 
-        protected override IMappedType OnGetType()
+        protected override TypeSpec OnGetType()
         {
             return Type;
         }

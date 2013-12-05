@@ -39,20 +39,20 @@ namespace Pomona
         }
 
 
-        public string GetUriFor(IPropertyInfo property, object entity)
+        public string GetUriFor(PropertySpec property, object entity)
         {
             return RelativeToAbsoluteUri(BuildRelativeUri(entity, property));
         }
 
 
-        private string BuildRelativeUri(object entity, IPropertyInfo property)
+        private string BuildRelativeUri(object entity, PropertySpec property)
         {
             var sb = new StringBuilder();
             BuildRelativeUri(entity, property, sb);
             return sb.ToString();
         }
 
-        private void BuildRelativeUri(object entity, IPropertyInfo property, StringBuilder sb)
+        private void BuildRelativeUri(object entity, PropertySpec property, StringBuilder sb)
         {
             var type = this.typeMapper.GetClassMapping(entity.GetType()) as ResourceType;
             if (type == null)

@@ -51,7 +51,7 @@ namespace Pomona.Common.Serialization
         }
 
         public static void Serialize(this ISerializer serializer, ISerializationContext serializationContext, object obj,
-                                     TextWriter textWriter, IMappedType expectedBaseType)
+                                     TextWriter textWriter, TypeSpec expectedBaseType)
         {
             if (serializer == null) throw new ArgumentNullException("serializer");
             if (textWriter == null) throw new ArgumentNullException("textWriter");

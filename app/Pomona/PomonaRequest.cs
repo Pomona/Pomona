@@ -98,7 +98,7 @@ namespace Pomona
         }
 
 
-        public object Bind(IMappedType type = null, object patchedObject = null)
+        public object Bind(TypeSpec type = null, object patchedObject = null)
         {
             if (Method == HttpMethod.Post)
                 type = type ?? Node.ExpectedPostType;
@@ -132,7 +132,7 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.resourceResolver);
+                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.resourceResolver, node);
                 return TypeMapper.SerializerFactory.GetDeserializer().Deserialize(textReader,
                     expectedBaseType,
                     deserializationContext,

@@ -40,6 +40,10 @@
     <Reference Include="Microsoft.Practices.ServiceLocation">
       <HintPath>..\..\packages\CommonServiceLocator.1.0\lib\NET35\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Reflection, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Mono.Reflection.1.0.0.0\lib\Mono.Reflection.dll</HintPath>
+    </Reference>
     <Reference Include="Nancy, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Nancy.0.20.0\lib\net40\Nancy.dll</HintPath>
@@ -89,6 +93,7 @@
     <Compile Include="Models\Existence\Planet.cs" />
     <Compile Include="Models\Existence\PlanetarySystem.cs" />
     <Compile Include="Models\Existence\Moon.cs" />
+    <Compile Include="Models\FailingThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
@@ -125,6 +130,7 @@
     <Compile Include="Models\ThingWithPropertyNamedUri.cs" />
     <Compile Include="Models\ThingWithRenamedProperties.cs" />
     <Compile Include="Models\ThingWithUri.cs" />
+    <Compile Include="Models\Unconstructable.cs" />
     <Compile Include="Models\UnpatchableThing.cs" />
     <Compile Include="Models\UnpostableThing.cs" />
     <Compile Include="Models\UnpostableThingOnServer.cs" />

@@ -27,25 +27,53 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
+using Pomona.Example.Models;
+using Pomona.FluentMapping;
 
 namespace Pomona.UnitTests.GenerateClientDllApp
 {
+
     internal class Program
     {
+        internal class ModifiedFluentRules
+        {
+            public void Map(ITypeMappingConfigurator<UnpostableThingOnServer> map)
+            {
+                map.PostAllowed();
+            }
+
+
+            public void Map(ITypeMappingConfigurator<Critter> map)
+            {
+                map.Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly());
+            }
+        }
+
+        private class ModifiedCritterPomonaConfiguration : CritterPomonaConfiguration
+        {
+            public override IEnumerable<object> FluentRuleObjects
+            {
+                get { return base.FluentRuleObjects.Concat(new ModifiedFluentRules()); }
+            }
+        }
         private static void Main(string[] args)
         {
-            var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            var typeMapper = new TypeMapper(new ModifiedCritterPomonaConfiguration());
 
             // Modify property Protected of class Critter to not be protected in client dll.
             // This is to test setting a protected property will throw exception on server.
+#if false
 
+            Console.WriteLine("Test");
             var protectedPropertyOfCritter =
                 typeMapper.TransformedTypes.First(x => x.Name == "Critter")
                     .Properties.OfType<PropertyMapping>()
@@ -57,8 +85,8 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             // This is to check that server generates correct status code.
 
             var unpostableThing = typeMapper.TransformedTypes.First(x => x.Name == "UnpostableThingOnServer");
-            unpostableThing.AllowedMethods |= HttpMethod.Post | HttpMethod.Post;
-
+            unpostableThing.AllowedMethods |= HttpMethod.Post;
+#endif
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
                 ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);

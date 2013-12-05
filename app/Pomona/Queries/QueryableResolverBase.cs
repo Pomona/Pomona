@@ -40,12 +40,12 @@ namespace Pomona.Queries
             ReflectionHelper.GetMethodDefinition<QueryableResolverBase>(x => x.Resolve<object, object>(null));
 
 
-        public virtual IQueryable Resolve(QueryableNode node, IMappedType ofType)
+        public virtual IQueryable Resolve(QueryableNode node, TypeSpec ofType)
         {
             return
                 (IQueryable)
-                    resolveMethod.MakeGenericMethod((ofType ?? node.ItemResourceType).MappedTypeInstance,
-                        node.ItemResourceType.MappedTypeInstance).Invoke(this,
+                    resolveMethod.MakeGenericMethod((ofType ?? node.ItemResourceType).Type,
+                        node.ItemResourceType.Type).Invoke(this,
                             new object[] { node });
         }
 

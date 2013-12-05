@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,65 +24,49 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
-    public class ClientTypeMapper : ITypeMapper
+    public class ClientTypeMapper : ExportedTypeResolverBase, ITypeMapper
     {
-        private readonly Dictionary<Type, SharedType> typeDict = new Dictionary<Type, SharedType>();
-        private readonly Dictionary<string, IMappedType> typeNameMap;
+        private readonly Dictionary<string, TypeSpec> typeNameMap;
 
         #region Implementation of ITypeMapper
 
-        public IMappedType GetClassMapping(Type type)
+        public TypeSpec GetClassMapping(Type type)
         {
-            return typeDict.GetOrCreate(
-                type,
-                () =>
-                    {
-                        SharedType sharedType;
-                        if (typeof (IClientResource).IsAssignableFrom(type) && type != typeof (IClientResource))
-                        {
-                            var interfaceType = GetResourceNonProxyInterfaceType(type);
-                            if (interfaceType == type)
-                                sharedType = new ClientType(interfaceType, this);
-                            else
-                            {
-                                sharedType = (ClientType) GetClassMapping(interfaceType);
-                            }
-                        }
-                        else
-                            sharedType = new SharedType(type, this);
-
-                        if (sharedType.MappedType == typeof (ClientRepository<,>) ||
-                            sharedType.MappedTypeInstance.IsAnonymous())
-                            sharedType.SerializationMode = TypeSerializationMode.Complex;
-
-                        return sharedType;
-                    });
+            return FromType(GetResourceNonProxyInterfaceType(type));
         }
 
 
-        public IMappedType GetClassMapping(string typeName)
+        public TypeSpec GetClassMapping(string typeName)
         {
-            return typeNameMap[typeName];
+            return this.typeNameMap[typeName];
         }
+
 
         public Type GetResourceNonProxyInterfaceType(Type type)
         {
+            if (!typeof(IClientResource).IsAssignableFrom(type))
+                return type;
+
             if (!type.IsInterface)
             {
                 var interfaces =
-                    type.GetInterfaces().Where(x => typeof (IClientResource).IsAssignableFrom(x)).ToArray();
+                    type.GetInterfaces().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToArray();
                 IEnumerable<Type> exceptTheseInterfaces =
                     interfaces.SelectMany(
-                        x => x.GetInterfaces().Where(y => typeof (IClientResource).IsAssignableFrom(y))).
-                               Distinct().ToArray();
+                        x => x.GetInterfaces().Where(y => typeof(IClientResource).IsAssignableFrom(y))).
+                        Distinct().ToArray();
                 var mostSubtypedInterface =
                     interfaces
                         .Except(
@@ -98,15 +84,146 @@ namespace Pomona.Common
         public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
         {
             var mappedTypes = clientResourceTypes.Union(TypeUtils.GetNativeTypes());
-            typeNameMap =
+            this.typeNameMap =
                 mappedTypes
                     .Select(GetClassMapping)
                     .ToDictionary(GetJsonTypeName, x => x);
         }
 
-        private static string GetJsonTypeName(IMappedType type)
+
+        public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {
-            var clientType = type as ClientType;
+            return this.typeNameMap.Values.OfType<TransformedType>();
+        }
+
+
+        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            var ria = typeSpec.DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
+            if (ria == null)
+            {
+                return
+                    ConstructorSpec.FromConstructorInfo(
+                        typeSpec.Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public
+                                                      | BindingFlags.NonPublic).First(),
+                        defaultFactory : () => null);
+            }
+
+            if (ria.PocoType == null)
+                throw new NotSupportedException();
+
+            return ConstructorSpec.FromConstructorInfo(
+                ria.PocoType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic
+                                             | BindingFlags.Public).First(),
+                ria.InterfaceType);
+        }
+
+
+        public override ExportedPropertyDetails LoadExportedPropertyDetails(PropertyMapping propertyMapping)
+        {
+            var propInfo = propertyMapping.PropertyInfo;
+
+            var isAttributes = propInfo.HasAttribute<ResourceAttributesPropertyAttribute>(true);
+            var isPrimaryId = propInfo.HasAttribute<ResourceIdPropertyAttribute>(true);
+            var isEtagProperty = propInfo.HasAttribute<ResourceEtagPropertyAttribute>(true);
+            var info =
+                propInfo.GetCustomAttributes(typeof(ResourcePropertyAttribute), true).OfType<ResourcePropertyAttribute>()
+                    .FirstOrDefault()
+                ?? new ResourcePropertyAttribute()
+                {
+                    AccessMode = HttpMethod.Get,
+                    ItemAccessMode = HttpMethod.Get,
+                    Required = false
+                };
+
+            return new ExportedPropertyDetails(isAttributes,
+                isEtagProperty,
+                isPrimaryId,
+                info.AccessMode,
+                info.ItemAccessMode,
+                false,
+                NameUtils.ConvertCamelCaseToUri(propertyMapping.Name),
+                true /* ??AlwaysExpand should be true on client, right? */);
+        }
+
+
+        public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
+        {
+            if (exportedType.IsAnonymous())
+            {
+                return new ExportedTypeDetails(exportedType,
+                    HttpMethod.Get,
+                    null,
+                    null,
+                    true,
+                    true);
+            }
+
+            var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
+            var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
+                                 | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
+            return new ExportedTypeDetails(exportedType,
+                allowedMethods,
+                ria.UrlRelativePath != null ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath) : null,
+                null,
+                ria.IsValueObject,
+                true);
+        }
+
+
+        public override string LoadName(MemberSpec memberSpec)
+        {
+            var transformedType = memberSpec as TransformedType;
+            if (transformedType != null && transformedType.ResourceInfo != null)
+                return transformedType.ResourceInfo.JsonTypeName;
+
+            return base.LoadName(memberSpec);
+        }
+
+
+        public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
+        {
+            var ria =
+                typeSpec.Type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
+                    .FirstOrDefault();
+            if (ria == null)
+                return base.LoadProperties(typeSpec);
+            return
+                typeSpec.Type.GetProperties()
+                    .Concat(typeSpec.Type.GetInterfaces().SelectMany(x => x.GetProperties()))
+                    .Select(x => WrapProperty(typeSpec, x));
+        }
+
+
+        public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
+        {
+            var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
+
+            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null);
+        }
+
+
+        protected override TypeSpec CreateType(Type type)
+        {
+            var ria =
+                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
+                    .FirstOrDefault();
+            if (ria != null && typeof(IClientResource).IsAssignableFrom(type))
+            {
+                if (ria.IsValueObject)
+                    return new TransformedType(this, type);
+                return new ResourceType(this, type);
+            }
+            if (type.IsAnonymous())
+                return new TransformedType(this, type);
+            return base.CreateType(type);
+        }
+
+
+        private static string GetJsonTypeName(TypeSpec type)
+        {
+            var clientType = type as TransformedType;
+
             if (clientType != null)
                 return clientType.ResourceInfo.JsonTypeName;
 

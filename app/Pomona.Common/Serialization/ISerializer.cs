@@ -33,7 +33,7 @@ namespace Pomona.Common.Serialization
         void SerializeNode(ISerializerNode node, ISerializerWriter writer);
 
         void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, ISerializerWriter writer,
-                                  IMappedType elementType);
+                                  TypeSpec elementType);
     }
 
     public interface ISerializer<TWriter> : ISerializer
@@ -43,7 +43,7 @@ namespace Pomona.Common.Serialization
         void SerializeNode(ISerializerNode node, TWriter writer);
 
         void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, TWriter writer,
-                                  IMappedType elementType);
+                                  TypeSpec elementType);
     }
 
     public interface ISerializerReader
@@ -54,7 +54,7 @@ namespace Pomona.Common.Serialization
     {
         ISerializerReader CreateReader(TextReader textReader);
 
-        object Deserialize(TextReader textReader, IMappedType expectedBaseType, IDeserializationContext context,
+        object Deserialize(TextReader textReader, TypeSpec expectedBaseType, IDeserializationContext context,
                            object patchedObject = null);
 
         void DeserializeNode(IDeserializerNode node, ISerializerReader reader);

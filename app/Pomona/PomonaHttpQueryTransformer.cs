@@ -92,7 +92,7 @@ namespace Pomona
                 filter = (string) request.Query["$filter"];
 
             ParseFilterExpression(query, filter);
-            var selectSourceType = query.OfType.MappedTypeInstance;
+            var selectSourceType = query.OfType.Type;
 
             if (request.Query["$groupby"].HasValue)
             {
@@ -142,7 +142,7 @@ namespace Pomona
 
         private void UpdateResultType(PomonaQuery query)
         {
-            IMappedType elementType = query.OfType;
+            TypeSpec elementType = query.OfType;
             if (query.SelectExpression != null)
                 elementType = typeMapper.GetClassMapping(query.SelectExpression.ReturnType);
 
@@ -161,13 +161,13 @@ namespace Pomona
         private void ParseFilterExpression(PomonaQuery query, string filter)
         {
             filter = filter ?? "true";
-            query.FilterExpression = parser.Parse(query.OfType.MappedTypeInstance, filter);
+            query.FilterExpression = parser.Parse(query.OfType.Type, filter);
         }
 
 
         private void ParseGroupByExpression(PomonaQuery query, string groupby)
         {
-            query.GroupByExpression = parser.ParseSelectList(query.OfType.MappedTypeInstance, groupby);
+            query.GroupByExpression = parser.ParseSelectList(query.OfType.Type, groupby);
         }
 
 
@@ -196,7 +196,7 @@ namespace Pomona
             }
             else
             {
-                orderedType = query.OfType.MappedTypeInstance;
+                orderedType = query.OfType.Type;
             }
 
             query.OrderByExpression = parser.Parse(orderedType, orderby);

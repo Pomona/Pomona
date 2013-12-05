@@ -68,7 +68,7 @@ namespace Pomona
                 ReflectionHelper.GetMethodDefinition<PomonaQuery>(x => x.ApplyAndExecute<object>(null, false));
         }
 
-
+        
         public PomonaQuery(TransformedType sourceType, TransformedType ofType = null)
         {
             if (sourceType == null)
@@ -95,7 +95,7 @@ namespace Pomona
 
         #region PomonaQuery Members
 
-        public IMappedType ResultType { get; internal set; }
+        public TypeSpec ResultType { get; internal set; }
         public string ExpandedPaths { get; set; }
 
         public TransformedType OfType
@@ -122,11 +122,11 @@ namespace Pomona
 
         public IQueryable ApplyExpressions(IQueryable queryable)
         {
-            if (queryable.ElementType != OfType.MappedTypeInstance)
+            if (queryable.ElementType != OfType.Type)
             {
                 queryable =
                     (IQueryable)
-                        QueryableMethods.OfType.MakeGenericMethod(ofType.MappedTypeInstance).Invoke(null,
+                        QueryableMethods.OfType.MakeGenericMethod(ofType.Type).Invoke(null,
                             new object[] { queryable });
             }
 

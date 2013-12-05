@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 
 using Nancy.Session;
-
+using Pomona.Common;
 using Pomona.Example.Models.Existence;
 using Pomona.FluentMapping;
 
@@ -25,7 +25,9 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<Moon> map)
         {
-            map.AsUriBaseType();
+            map.AsUriBaseType()
+                .AsChildResourceOf(x => x.Planet, x => x.Moons)
+                .ConstructedUsing(x => new Moon(x.Requires().Name, x.Parent<Planet>()));
         }
 
         public void Map(ITypeMappingConfigurator<Galaxy> map)
@@ -36,7 +38,10 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Planet> map)
         {
             map.AsUriBaseType();
-            map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets);
+            map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets)
+                .ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()))
+                .Include(x => x.Moons, o => o.Writable());
+
         }
     }
 }

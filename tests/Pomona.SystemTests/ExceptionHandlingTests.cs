@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,31 +24,32 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Linq.Expressions;
+#endregion
 
-namespace Pomona.Visitors
+using Critters.Client;
+
+using NUnit.Framework;
+
+using Pomona.Common.Web;
+
+namespace Pomona.SystemTests
 {
-    internal class FindAndReplaceVisitor : ExpressionVisitor
+    [TestFixture]
+    public class ExceptionHandlingTests : ClientTestsBase
     {
-        private readonly Expression expressionToReplace;
-        private readonly Expression replacementExpression;
-
-        public FindAndReplaceVisitor(Expression expressionToReplace, Expression replacementExpression)
+        [Test]
+        public void Get_CritterAtNonExistingUrl_ThrowsWebClientException()
         {
-            this.expressionToReplace = expressionToReplace;
-            this.replacementExpression = replacementExpression;
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => client.Get<ICritter>(client.BaseUri + "critters/38473833"));
         }
 
-        public static Expression Replace(Expression searchedExpression, Expression expressionToReplace,
-                                         Expression replacementExpression)
-        {
-            var visitor = new FindAndReplaceVisitor(expressionToReplace, replacementExpression);
-            return visitor.Visit(searchedExpression);
-        }
 
-        public override Expression Visit(Expression node)
+        [Test]
+        public void Post_FailingThing_ThrowsWebClientException()
         {
-            return node == expressionToReplace ? replacementExpression : base.Visit(node);
+            var ex = Assert.Throws<WebClientException>(() => client.FailingThings.Post(new FailingThingForm()));
+            Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
     }
 }

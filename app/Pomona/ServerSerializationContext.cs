@@ -28,6 +28,8 @@
 
 using System;
 using System.Collections.Generic;
+
+using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
@@ -70,13 +72,13 @@ namespace Pomona
         }
 
 
-        public IMappedType GetClassMapping(Type type)
+        public TypeSpec GetClassMapping(Type type)
         {
             return typeMapper.GetClassMapping(type);
         }
 
 
-        public string GetUri(IPropertyInfo property, object entity)
+        public string GetUri(PropertySpec property, object entity)
         {
             return uriResolver.GetUriFor(property, entity);
         }
@@ -110,8 +112,11 @@ namespace Pomona
             serializer.SerializeNode(node, writer);
         }
 
-        public bool PropertyIsSerialized(IPropertyInfo property)
+        public bool PropertyIsSerialized(PropertySpec property)
         {
+            var propMapping = property as PropertyMapping;
+            if (propMapping != null && !propMapping.AccessMode.HasFlag(HttpMethod.Get))
+                return false;
             return property.IsSerialized;
         }
 

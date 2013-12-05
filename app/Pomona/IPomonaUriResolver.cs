@@ -38,7 +38,7 @@ namespace Pomona
     {
         string RelativeToAbsoluteUri(string uri);
         string GetUriFor(object entity);
-        string GetUriFor(IPropertyInfo property, object entity);
+        string GetUriFor(PropertySpec property, object entity);
         ITypeMapper TypeMapper { get; }
     }
 }

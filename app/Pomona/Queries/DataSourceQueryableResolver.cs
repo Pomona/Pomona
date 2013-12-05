@@ -31,6 +31,8 @@ using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Queries
 {
     public class DataSourceQueryableResolver : QueryableResolverBase
@@ -81,7 +83,7 @@ namespace Pomona.Queries
                     Expression.Equal(
                         parentIdProperty.CreateGetterExpression(
                             itemResourceType.ChildToParentProperty.CreateGetterExpression(predicateParam)),
-                        Expression.Constant(parentId, parentIdProperty.PropertyType.MappedTypeInstance)),
+                        Expression.Constant(parentId, parentIdProperty.PropertyType.Type)),
                     predicateParam);
             return queryable.Where(predicate);
         }

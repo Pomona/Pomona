@@ -22,11 +22,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+
+using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
+using Pomona.FluentMapping;
 
 namespace Pomona.UnitTests
 {
@@ -45,8 +50,7 @@ namespace Pomona.UnitTests
         public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
         {
             var tt = (PropertyMapping)typeMapper.GetClassMapping<Critter>().Properties.First(x => x.Name == "PublicAndReadOnlyThroughApi");
-            Assert.That(tt.IsWriteable, Is.False);
-            Assert.That(tt.CreateMode, Is.EqualTo(PropertyCreateMode.Excluded));
+            Assert.That(!tt.AccessMode.HasFlag(HttpMethod.Post));
         }
 
         [Test]
@@ -56,31 +60,6 @@ namespace Pomona.UnitTests
             Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
             var idProp = tt.Properties.First(x => x.Name == "Id");
             Assert.That(idProp.DeclaringType, Is.EqualTo(typeMapper.GetClassMapping<EntityBase>()));
-        }
-
-        [Test]
-        public void ConvertToInternalPropertyPath_MapsRenamedPropertyNamesCorrect()
-        {
-            var transformedType = (TransformedType) typeMapper.GetClassMapping<ThingWithRenamedProperties>();
-            var internalPath = typeMapper.ConvertToInternalPropertyPath(
-                transformedType,
-                "DiscoFunky.BeautifulAndExposed");
-            Assert.AreEqual("Junky.ReallyUglyPropertyName", internalPath);
-
-            var internalPathToCollection = typeMapper.ConvertToInternalPropertyPath(
-                transformedType,
-                "PrettyThings.BeautifulAndExposed");
-            Assert.AreEqual("RelatedJunks.ReallyUglyPropertyName", internalPathToCollection);
-        }
-
-
-        [Test]
-        public void DoesNotCreateTransformedTypeForExcludedClass()
-        {
-            Assert.That(
-                typeMapper.TransformedTypes.Any(x => x.Name == "ExcludedThing"),
-                Is.False,
-                "Excluded thing should not have been part of transformed types");
         }
     }
 }

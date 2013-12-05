@@ -29,25 +29,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Common.Logging;
+using System.Reflection;
+
+using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
+using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
-using Pomona.Handlers;
 
 namespace Pomona
 {
-    public class TypeMapper : ITypeMapper
+    public class TypeMapper : ExportedTypeResolverBase, ITypeMapper
     {
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
-        private readonly Dictionary<Type, IMappedType> mappings = new Dictionary<Type, IMappedType>();
+        private readonly Dictionary<Type, TypeSpec> mappings = new Dictionary<Type, TypeSpec>();
         private readonly ISerializerFactory serializerFactory;
         private readonly HashSet<Type> sourceTypes;
-        private readonly Dictionary<string, IMappedType> typeNameMap;
-        private ILog log = LogManager.GetLogger(typeof (TypeMapper));
+        private readonly Dictionary<string, TypeSpec> typeNameMap;
+
 
         public TypeMapper(PomonaConfigurationBase configuration)
         {
@@ -55,42 +57,38 @@ namespace Pomona
                 throw new ArgumentNullException("configuration");
             this.configuration = configuration;
 
-            filter = configuration.TypeMappingFilter;
+            this.filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
             if (fluentRuleObjects.Length > 0)
-                filter = new FluentTypeMappingFilter(filter, fluentRuleObjects);
+                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects);
 
-            if (filter == null)
+            if (this.filter == null)
                 throw new ArgumentNullException("filter");
 
-            sourceTypes = new HashSet<Type>(filter.GetSourceTypes().Where(filter.TypeIsMapped));
+            this.sourceTypes = new HashSet<Type>(this.filter.GetSourceTypes().Where(this.filter.TypeIsMapped));
 
-            typeNameMap = new Dictionary<string, IMappedType>();
+            this.typeNameMap = new Dictionary<string, TypeSpec>();
 
-            foreach (var sourceType in sourceTypes.Concat(TypeUtils.GetNativeTypes()))
+            foreach (var sourceType in this.sourceTypes.Concat(TypeUtils.GetNativeTypes()))
             {
                 var type = GetClassMapping(sourceType);
-                typeNameMap[type.Name.ToLower()] = type;
+                this.typeNameMap[type.Name.ToLower()] = type;
             }
 
-            MapParentChildRelations();
-            MapForeignKeys();
+            this.serializerFactory = configuration.SerializerFactory;
 
-            serializerFactory = configuration.SerializerFactory;
-
-            ScanHandlerForPomonaMethods();
             configuration.OnMappingComplete(this);
         }
 
 
-        public IEnumerable<EnumType> EnumTypes
+        public IEnumerable<EnumTypeSpec> EnumTypes
         {
-            get { return mappings.Values.OfType<EnumType>(); }
+            get { return this.mappings.Values.OfType<EnumTypeSpec>(); }
         }
 
         public ITypeMappingFilter Filter
         {
-            get { return filter; }
+            get { return this.filter; }
         }
 
         /// <summary>
@@ -99,241 +97,231 @@ namespace Pomona
         /// </summary>
         public ISerializerFactory SerializerFactory
         {
-            get { return serializerFactory; }
+            get { return this.serializerFactory; }
         }
 
         public ICollection<Type> SourceTypes
         {
-            get { return sourceTypes; }
+            get { return this.sourceTypes; }
         }
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return mappings.Values.OfType<TransformedType>(); }
+            get { return this.mappings.Values.OfType<TransformedType>(); }
         }
 
 
-        public IMappedType GetClassMapping(Type type)
+        public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {
-            type = filter.ResolveRealTypeForProxy(type);
-
-            IMappedType mappedType;
-            if (!mappings.TryGetValue(type, out mappedType))
-                mappedType = CreateClassMapping(type);
-
-            return mappedType;
+            return TransformedTypes;
         }
 
 
-        public IMappedType GetClassMapping(string typeName)
+        public override ExportedPropertyDetails LoadExportedPropertyDetails(PropertyMapping propertyMapping)
         {
-            IMappedType type;
-            if (!typeNameMap.TryGetValue(typeName.ToLower(), out type))
+            var propInfo = propertyMapping.PropertyInfo;
+            var details = new ExportedPropertyDetails(
+                this.filter.PropertyIsAttributes(propInfo),
+                this.filter.PropertyIsEtag(propInfo),
+                this.filter.PropertyIsPrimaryId(propInfo),
+                this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
+                this.filter.GetPropertyItemAccessMode(propInfo),
+                this.filter.ClientPropertyIsExposedAsRepository(propInfo),
+                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propInfo)),
+                this.filter.PropertyIsAlwaysExpanded(propInfo));
+            return details;
+        }
+
+
+        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            var transformedType = typeSpec as TransformedType;
+            if (transformedType != null)
             {
-                throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
+                return this.filter.GetTypeConstructor(transformedType);
             }
+            return base.LoadConstructor(typeSpec);
+        }
+
+
+        public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
+        {
+            // TODO: Get allowed methods from filter
+            var allowedMethods = HttpMethod.Get | (filter.PatchOfTypeIsAllowed(exportedType) ? HttpMethod.Patch : 0)
+                             | (filter.PostOfTypeIsAllowed(exportedType) ? HttpMethod.Post : 0);
+
+            var type = exportedType.Type;
+            var details = new ExportedTypeDetails(exportedType,
+                allowedMethods,
+                this.filter.GetPluralNameForType(type),
+                this.filter.GetOnDeserializedHook(type),
+                this.filter.TypeIsMappedAsValueObject(type),
+                this.filter.TypeIsMappedAsValueObject(type));
+
+            return details;
+        }
+
+
+        public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        {
+            var attrs = base.LoadDeclaredAttributes(memberSpec);
+
+            var typeSpec = memberSpec as TypeSpec;
+            if (typeSpec != null)
+            {
+                var customClientLibraryType = filter.GetClientLibraryType(typeSpec.Type);
+                if (customClientLibraryType != null)
+                {
+                    attrs = attrs.Concat(new CustomClientLibraryTypeAttribute(customClientLibraryType));
+                }
+                var customJsonConverter = filter.GetJsonConverterForType(typeSpec.Type);
+                if (customJsonConverter != null)
+                {
+                    attrs = attrs.Concat(new CustomJsonConverterAttribute(customJsonConverter));
+                }
+            }
+            var propSpec = memberSpec as PropertySpec;
+            if (propSpec != null)
+            {
+                var formulaExpr = filter.GetPropertyFormula(propSpec.PropertyInfo)
+                                  ?? (filter.PropertyFormulaIsDecompiled(propSpec.PropertyInfo)
+                                      ? filter.GetDecompiledPropertyFormula(propSpec.PropertyInfo)
+                                      : null);
+                if (formulaExpr != null)
+                {
+                    attrs = attrs.Concat(new PropertyFormulaAttribute(formulaExpr));
+                }
+            }
+            return attrs;
+        }
+
+
+        public override string LoadName(MemberSpec memberSpec)
+        {
+            return
+                memberSpec.Maybe().OfType<PropertySpec>().Select(x => this.filter.GetPropertyMappedName(x.PropertyInfo))
+                    .OrDefault(() => base.LoadName(memberSpec));
+        }
+
+
+        public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
+        {
+            if (typeSpec is TransformedType)
+            {
+                return typeSpec.Type
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public
+                                   | BindingFlags.NonPublic).Where(x => this.filter.PropertyIsIncluded(x))
+                    .Select(x => WrapProperty(typeSpec, x));
+            }
+
+            return base.LoadProperties(typeSpec);
+        }
+
+
+        public override TypeSpec LoadBaseType(TypeSpec typeSpec)
+        {
+            if (typeSpec is TransformedType)
+            {
+                if (filter.IsIndependentTypeRoot(typeSpec))
+                    return null;
+
+                var exposedBaseType = typeSpec.Type.BaseType;
+
+                while (exposedBaseType != null && !filter.TypeIsMapped(exposedBaseType))
+                    exposedBaseType = exposedBaseType.BaseType;
+
+                if (exposedBaseType != null)
+                {
+                    return FromType(exposedBaseType);
+                }
+                return null;
+            }
+            return base.LoadBaseType(typeSpec);
+        }
+
+
+        private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
+        {
+            // Hack, IGrouping
+
+            var propBaseDefinition = propertyInfo.GetBaseDefinition();
+            var reflectedType = propertyInfo.ReflectedType;
+            return reflectedType.GetFullTypeHierarchy()
+                                .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
+                                .TakeUntil(x => filter.IsIndependentTypeRoot(x))
+                                .LastOrDefault(x => SourceTypes.Contains(x)) ??
+                   propBaseDefinition.DeclaringType;
+        }
+
+        public override TypeSpec LoadDeclaringType(PropertySpec propertySpec)
+        {
+            if (propertySpec is PropertyMapping)
+            {
+                return FromType(GetKnownDeclaringType(propertySpec.PropertyInfo));
+            }
+            return base.LoadDeclaringType(propertySpec);
+        }
+
+
+        public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
+        {
+            var type = resourceType.Type;
+            return new ResourceTypeDetails(resourceType,
+                NameUtils.ConvertCamelCaseToUri(filter.GetPluralNameForType(resourceType.UriBaseType ?? resourceType)),
+                this.filter.TypeIsExposedAsRepository(type),
+                this.filter.GetPostReturnType(type),
+                this.filter.GetParentToChildProperty(type),
+                this.filter.GetChildToParentProperty(type));
+        }
+
+
+        public TypeSpec GetClassMapping(Type type)
+        {
+            type = this.filter.ResolveRealTypeForProxy(type);
+
+            return this.mappings.GetOrCreate(type, () => CreateClassMapping(type));
+        }
+
+
+        public override ResourceType LoadUriBaseType(ResourceType resourceType)
+        {
+            Type uriBaseType = filter.GetUriBaseType(resourceType.Type);
+            return uriBaseType != null ? (ResourceType)FromType(uriBaseType) : null;
+        }
+
+
+        public TypeSpec GetClassMapping(string typeName)
+        {
+            TypeSpec type;
+            if (!this.typeNameMap.TryGetValue(typeName.ToLower(), out type))
+                throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
             return type;
         }
 
-        private void ScanHandlerForPomonaMethods()
-        {
-            var scanner = new PomonaMethodScanner(this);
-            foreach (var handlerClass in configuration.HandlerTypes)
-            {
-                scanner.ScanPostToResourceHandlers(handlerClass);
-            }
-        }
 
-        public string ConvertToInternalPropertyPath(TransformedType rootType, string externalPath)
+        public TypeSpec GetClassMapping<T>()
         {
-            if (rootType == null)
-                throw new ArgumentNullException("rootType");
-            return rootType.ConvertToInternalPropertyPath(externalPath);
-        }
-
-
-        public IMappedType GetClassMapping<T>()
-        {
-            var type = typeof (T);
+            var type = typeof(T);
 
             return GetClassMapping(type);
         }
 
 
-        public bool IsSerializedAsArray(IMappedType mappedType)
+        protected override TypeSpec CreateType(Type type)
         {
-            if (mappedType == null)
-                throw new ArgumentNullException("mappedType");
-            return mappedType.IsCollection;
-        }
-
-
-        public bool IsSerializedAsArray(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return IsSerializedAsArray(GetClassMapping(type));
-        }
-
-
-        public bool IsSerializedAsDictionary(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return IsSerializedAsDictionary(GetClassMapping(type));
-        }
-
-
-        public bool IsSerializedAsDictionary(IMappedType mappedType)
-        {
-            //mappedType.IsGenericType && mappedType.
-            throw new NotImplementedException("NOCOMMIT!");
-        }
-
-
-        public bool IsSerializedAsObject(IMappedType mappedType)
-        {
-            if (mappedType == null)
-                throw new ArgumentNullException("mappedType");
-            return mappedType is TransformedType;
-        }
-
-
-        public bool IsSerializedAsObject(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return IsSerializedAsObject(GetClassMapping(type));
-        }
-
-
-        private IMappedType CreateClassMapping(Type type)
-        {
-            if (!filter.TypeIsMapped(type))
-                throw new InvalidOperationException("Type " + type.FullName + " is excluded from mapping.");
-
-            if (type.IsEnum)
+            if (!this.filter.TypeIsMappedAsSharedType(type) && this.filter.TypeIsMappedAsTransformedType(type))
             {
-                var values = Enum.GetValues(type).Cast<object>().ToDictionary(x => x.ToString(), x => (int)x);
-                var newEnumType = new EnumType(type, this, values);
-                mappings[type] = newEnumType;
-                return newEnumType;
+                if (this.filter.TypeIsMappedAsValueObject(type))
+                    return new TransformedType(this, type);
+                return new ResourceType(this, type);
             }
-
-            if (filter.TypeIsMappedAsSharedType(type))
-            {
-                var newSharedType = new SharedType(type, this);
-
-                newSharedType.JsonConverter = filter.GetJsonConverterForType(type);
-                newSharedType.CustomClientLibraryType = filter.GetClientLibraryType(type);
-
-                mappings[type] = newSharedType;
-                return newSharedType;
-            }
-
-            if (filter.TypeIsMappedAsTransformedType(type))
-            {
-                bool typeIsMappedAsValueObject = filter.TypeIsMappedAsValueObject(type);
-                var classDefinition = typeIsMappedAsValueObject
-                    ? new TransformedType(type, type.Name, this)
-                    : new ResourceType(type, type.Name, this);
-                var resourceDefinition = classDefinition as ResourceType;
-
-                // Add to cache before filling out, in case of self-references
-                mappings[type] = classDefinition;
-
-                if (typeIsMappedAsValueObject)
-                {
-                    classDefinition.MappedAsValueObject = true;
-                }
-                else
-                {
-                    var uriBaseType = filter.GetUriBaseType(type);
-                    if (uriBaseType == null)
-                    {
-                        classDefinition.UriBaseType = null;
-                    }
-                    else
-                    {
-                        if (uriBaseType != type)
-                            classDefinition.UriBaseType = (ResourceType)GetClassMapping(uriBaseType);
-                        else
-                            classDefinition.UriBaseType = resourceDefinition;
-
-                        classDefinition.UriRelativePath =
-                            NameUtils.ConvertCamelCaseToUri(classDefinition.UriBaseType.PluralName);
-                    }
-
-                    classDefinition.PostReturnType = (TransformedType)GetClassMapping(filter.GetPostReturnType(type));
-                    classDefinition.IsExposedAsRepository = filter.TypeIsExposedAsRepository(type);
-                }
-
-                classDefinition.AllowedMethods |= filter.PostOfTypeIsAllowed(type) ? HttpMethod.Post : 0;
-                classDefinition.AllowedMethods |= filter.PatchOfTypeIsAllowed(type) ? HttpMethod.Patch : 0;
-
-                classDefinition.OnDeserialized = filter.GetOnDeserializedHook(type);
-
-                classDefinition.ScanProperties(type);
-
-                if (filter.IsIndependentTypeRoot(type))
-                    classDefinition.BaseType = null;
-
-
-                return classDefinition;
-            }
-
-            throw new InvalidOperationException("Don't know how to map " + type.FullName);
+            return base.CreateType(type);
         }
 
 
-        private void MapParentChildRelations()
+        private TypeSpec CreateClassMapping(Type type)
         {
-            foreach (
-                var resourceType in TransformedTypes.OfType<ResourceType>().Where(x => x.MappedTypeInstance != null))
-            {
-                var type = resourceType.MappedTypeInstance;
-                var childToParentProperty = filter.GetChildToParentProperty(type);
-                var parentToChildProperty = filter.GetParentToChildProperty(type);
-
-                if ((childToParentProperty == null) != (parentToChildProperty == null))
-                    throw new InvalidOperationException("Unable to map type " + type.Name
-                                                        + ", has to have both ChildToParentProperty and ParentToChildProperty set to a property, or both set to null.");
-
-                if (childToParentProperty != null)
-                {
-                    resourceType.ChildToParentProperty =
-                        resourceType.GetPropertyByName(childToParentProperty.Name, false);
-                    resourceType.ParentToChildProperty =
-                        ((ResourceType)GetClassMapping(parentToChildProperty.DeclaringType)).GetPropertyByName(
-                            parentToChildProperty.Name,
-                            false);
-                }
-            }
-        }
-
-        private void MapForeignKeys()
-        {
-            // This method maps all properties representing foreign keys for one-to-many collections
-            // TODO: Make this configurable through filter
-
-            var collectionProperties =
-                TransformedTypes
-                    .SelectMany(x => x.Properties)
-                    .Where(x => x.PropertyType.IsCollection);
-
-            foreach (var prop in collectionProperties.OfType<PropertyMapping>().Where(x => x.PropertyInfo != null))
-            {
-                var foreignKeyProp = filter.GetOneToManyCollectionForeignKey(prop.PropertyInfo);
-
-                if (foreignKeyProp != null)
-                {
-                    prop.ElementForeignKey =
-                        TransformedTypes
-                            .Where(x => x.MappedType == foreignKeyProp.DeclaringType)
-                            .SelectMany(x => x.Properties.OfType<PropertyMapping>())
-                            .FirstOrDefault(x => x.PropertyInfo.Name == foreignKeyProp.Name);
-                }
-            }
+            return FromType(type);
         }
     }
 }

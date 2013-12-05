@@ -35,16 +35,16 @@ namespace Pomona.Common.Serialization
         private readonly ISerializationContext context;
 
         private readonly string expandPath;
-        private readonly IMappedType expectedBaseType;
+        private readonly TypeSpec expectedBaseType;
         private readonly bool isRemoved;
         private readonly ISerializerNode parentNode;
         private readonly object value;
-        private IMappedType valueType;
+        private TypeSpec valueType;
 
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, IMappedType expectedBaseType, string expandPath, ISerializationContext context,
+            object value, TypeSpec expectedBaseType, string expandPath, ISerializationContext context,
             ISerializerNode parentNode, bool isRemoved = false)
         {
             this.value = value;
@@ -66,7 +66,7 @@ namespace Pomona.Common.Serialization
             get { return expandPath; }
         }
 
-        public IMappedType ExpectedBaseType
+        public TypeSpec ExpectedBaseType
         {
             get { return expectedBaseType; }
         }
@@ -83,7 +83,7 @@ namespace Pomona.Common.Serialization
             get { return value; }
         }
 
-        public IMappedType ValueType
+        public TypeSpec ValueType
         {
             get
             {

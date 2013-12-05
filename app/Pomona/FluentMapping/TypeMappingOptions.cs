@@ -48,7 +48,7 @@ namespace Pomona.FluentMapping
         private readonly IDictionary<string, PropertyMappingOptions> propertyOptions =
             new Dictionary<string, PropertyMappingOptions>();
 
-        private ConstructorInfo constructor;
+        private ConstructorSpec constructor;
 
         private DefaultPropertyInclusionMode defaultPropertyInclusionMode =
             DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
@@ -74,7 +74,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public ConstructorInfo Constructor
+        public ConstructorSpec Constructor
         {
             get { return this.constructor; }
         }
@@ -183,9 +183,6 @@ namespace Pomona.FluentMapping
 
         private class Configurator<TDeclaringType> : ITypeMappingConfigurator<TDeclaringType>
         {
-            private static MethodInfo optionalMethod =
-                ReflectionHelper.GetMethodDefinition<IConstructorControl>(x => x.Optional(0));
-
             private readonly TypeMappingOptions owner;
 
 
@@ -232,6 +229,15 @@ namespace Pomona.FluentMapping
             }
 
 
+            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(Expression<Func<IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr)
+            {
+                if (IsMappingSubclass())
+                    return this;
+                this.owner.constructor = new ConstructorSpec(constructExpr);
+                return this;
+            }
+
+
             public ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
             {
                 this.owner.isUriBaseType = true;
@@ -247,38 +253,13 @@ namespace Pomona.FluentMapping
 
 
             public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
-                Expression<Func<TDeclaringType, TDeclaringType>> expr)
+                Expression<Func<TDeclaringType, IConstructorControl<TDeclaringType>, TDeclaringType>> expr)
             {
                 // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
                 if (IsMappingSubclass())
                     return this;
 
-                if (expr == null)
-                    throw new ArgumentNullException("expr");
-
-                var constructExpr = expr.Body as NewExpression;
-
-                ConstructedUsing(constructExpr);
-
-                return this;
-            }
-
-
-            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
-                Expression<Func<TDeclaringType, IConstructorControl, TDeclaringType>> expr)
-            {
-                // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
-                if (IsMappingSubclass())
-                    return this;
-
-                if (expr == null)
-                    throw new ArgumentNullException("expr");
-
-                var constructExpr = expr.Body as NewExpression;
-
-                ConstructedUsing(constructExpr);
-
-                return this;
+                throw new NotImplementedException();
             }
 
 
@@ -385,53 +366,6 @@ namespace Pomona.FluentMapping
                 this.owner.pluralName = pluralName;
                 return this;
             }
-
-
-            private void ConstructedUsing(NewExpression constructExpr)
-            {
-                var expressionGotWrongStructureMessage =
-                    "Expression got wrong structure, expects expression which looks like this: x => new FooBar(x.Prop)"
-                    +
-                    " where each property maps to the argument";
-
-                if (constructExpr == null)
-                    throw new ArgumentException(expressionGotWrongStructureMessage, "expr");
-
-                var ctorArgCount = constructExpr.Arguments.Count;
-                for (var ctorArgIndex = 0; ctorArgIndex < ctorArgCount; ctorArgIndex++)
-                {
-                    try
-                    {
-                        var ctorArg = constructExpr.Arguments[ctorArgIndex];
-                        var isOptionalArg = false;
-
-                        while (ctorArg.NodeType == ExpressionType.Convert)
-                            ctorArg = ((UnaryExpression)ctorArg).Operand;
-
-                        var methodCallExpr = ctorArg as MethodCallExpression;
-                        if (methodCallExpr != null &&
-                            methodCallExpr.Method.UniqueToken() == optionalMethod.UniqueToken())
-                        {
-                            isOptionalArg = true;
-                            ctorArg = methodCallExpr.Arguments[0];
-                        }
-
-                        var propOptions = this.owner.GetPropertyOptions(ctorArg);
-                        if (isOptionalArg)
-                            propOptions.CreateMode = PropertyCreateMode.Optional;
-
-                        propOptions.ConstructorArgIndex = ctorArgIndex;
-                        propOptions.SetAccessModeFlag(HttpMethod.Post);
-                    }
-                    catch (Exception exception)
-                    {
-                        throw new ArgumentException(expressionGotWrongStructureMessage, "expr", exception);
-                    }
-                }
-
-                this.owner.constructor = constructExpr.Constructor;
-            }
-
 
             private bool IsMappingSubclass()
             {

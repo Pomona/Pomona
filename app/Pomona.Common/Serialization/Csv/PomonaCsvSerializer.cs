@@ -43,7 +43,12 @@ namespace Pomona.Common.Serialization.Csv
                 throw new NotSupportedException("When serializing to CSV we only support array");
 
 
-            var elementType = node.ExpectedBaseType.ElementType;
+            var t = node.ValueType as EnumerableTypeSpec;
+
+            if (t == null)
+                throw new NotImplementedException();
+
+            var elementType = (TypeSpec)t.ItemType;
             var valueProperties =
                 elementType.Properties
                            .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
@@ -68,7 +73,7 @@ namespace Pomona.Common.Serialization.Csv
 
 
         public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, Writer writer,
-                                         IMappedType elementType)
+                                         TypeSpec elementType)
         {
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
                                                        string.Empty, fetchContext, null);
@@ -87,7 +92,7 @@ namespace Pomona.Common.Serialization.Csv
 
         public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,
                                          ISerializerWriter writer,
-                                         IMappedType elementType)
+                                         TypeSpec elementType)
         {
             SerializeQueryResult(queryResult, fetchContext, CastWriter(writer), elementType);
         }

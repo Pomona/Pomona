@@ -22,35 +22,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Linq.Expressions;
-
-namespace Pomona.Common.TypeSystem
+namespace Pomona.Common.Serialization
 {
-    /// <summary>
-    /// This is the pomona way of representing a property.
-    /// 
-    /// Can't use PropertyInfo directly, since the transformed types might not exist
-    /// as Type in server context.
-    /// </summary>
-    public interface IPropertyInfo
+    public interface IResourceNode
     {
-        bool AlwaysExpand { get; }
-        PropertyCreateMode CreateMode { get; }
-        IMappedType DeclaringType { get; }
-        Func<object, object> Getter { get; }
-        bool IsWriteable { get; }
-        bool IsReadable { get; }
-        bool IsSerialized { get; }
-        string JsonName { get; }
-        string LowerCaseName { get; }
-        string Name { get; }
-        IMappedType PropertyType { get; }
-        Action<object, object> Setter { get; }
-        bool IsPrimaryKey { get; }
-        bool IsEtagProperty { get; }
-        Expression CreateGetterExpression(Expression instance);
-        HttpMethod AccessMode { get; }
-        HttpMethod ItemAccessMode { get; }
+        IResourceNode Parent { get; }
+        object Value { get; }
     }
 }

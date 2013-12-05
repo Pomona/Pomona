@@ -40,6 +40,6 @@ namespace Pomona.Queries
         /// <param name="node">The node to get corresponding IQueryable for.</param>
         /// <param name="ofType">Optional: The subclass to get.</param>
         /// <returns>The resulting IQueryable if success, null if not.</returns>
-        IQueryable Resolve(QueryableNode node, IMappedType ofType = null);
+        IQueryable Resolve(QueryableNode node, TypeSpec ofType = null);
     }
 }

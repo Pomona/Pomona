@@ -36,7 +36,7 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
-        public ObjectDelta(object original, IMappedType type, ITypeMapper typeMapper, Delta parent = null)
+        public ObjectDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }
@@ -64,7 +64,7 @@ namespace Pomona.Common.Serialization.Patch
             if (trackedProperties.TryGetValue(propertyName, out value))
                 return value;
 
-            IPropertyInfo prop;
+            PropertySpec prop;
             if (Type.TryGetPropertyByName(propertyName, out prop))
             {
                 var propValue = prop.Getter(Original);

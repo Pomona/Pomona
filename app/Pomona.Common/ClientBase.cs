@@ -686,7 +686,7 @@ namespace Pomona.Common
         }
 
 
-        private string Serialize(object obj, IMappedType expectedBaseType)
+        private string Serialize(object obj, TypeSpec expectedBaseType)
         {
             var stringWriter = new StringWriter();
             var writer = serializer.CreateWriter(stringWriter);
@@ -697,7 +697,7 @@ namespace Pomona.Common
         }
 
         private string SendHttpRequest(string uri, string httpMethod, object requestBodyEntity = null,
-                                       IMappedType requestBodyBaseType = null,
+                                       TypeSpec requestBodyBaseType = null,
                                        RequestOptions options = null)
         {
             byte[] requestBytes = null;

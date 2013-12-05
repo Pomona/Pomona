@@ -55,7 +55,7 @@ namespace Pomona
         }
 
 
-        protected override IMappedType OnGetType()
+        protected override TypeSpec OnGetType()
         {
             return null;
         }
@@ -82,12 +82,12 @@ namespace Pomona
             if (type == null)
                 throw new ResourceNotFoundException("Unable to locate root resource.");
 
-            var queryable = queryMethod.MakeGenericMethod(type.MappedTypeInstance).Invoke(this.dataSource, null);
+            var queryable = queryMethod.MakeGenericMethod(type.Type).Invoke(this.dataSource, null);
             return CreateNode(TypeMapper,
                 this,
                 name,
                 () => queryable,
-                TypeMapper.GetClassMapping(typeof(ICollection<>).MakeGenericType(type.MappedTypeInstance)));
+                TypeMapper.GetClassMapping(typeof(ICollection<>).MakeGenericType(type.Type)));
         }
 
 

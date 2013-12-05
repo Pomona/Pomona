@@ -92,6 +92,9 @@
     <Compile Include="SingularToPluralTranslatorTests.cs" />
     <Compile Include="TypeExtensionsTests.cs" />
     <Compile Include="TypeMapperTests.cs" />
+    <Compile Include="TypeSystem\ConstructorSpecTests.cs" />
+    <Compile Include="TypeSystem\MaybeTests.cs" />
+    <Compile Include="TypeSystem\TypeSystemTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

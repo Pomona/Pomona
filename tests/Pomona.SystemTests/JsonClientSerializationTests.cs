@@ -70,7 +70,7 @@ namespace Pomona.SystemTests
         }
 
 
-        private IMappedType GetClassMapping(Type type)
+        private TypeSpec GetClassMapping(Type type)
         {
             return typeMapper.GetClassMapping(type);
         }

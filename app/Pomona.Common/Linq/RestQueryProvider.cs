@@ -94,18 +94,11 @@ namespace Pomona.Common.Linq
         IQueryable IQueryProvider.CreateQuery(Expression expression)
         {
             var elementType = GetElementType(expression.Type);
-            try
-            {
                 return
                     (IQueryable)
                     Activator.CreateInstance(
                         typeof (RestQuery<>).MakeGenericType(elementType),
                         new object[] { this, expression });
-            }
-            catch (TargetInvocationException tie)
-            {
-                throw tie.InnerException;
-            }
         }
 
 
@@ -137,15 +130,11 @@ namespace Pomona.Common.Linq
 
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
-            try
-            {
-                return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).Invoke(
-                    this, new object[] { queryTreeParser });
-            }
-            catch (TargetInvocationException tie)
-            {
-                throw tie.InnerException;
-            }
+
+            return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).InvokeDirect(
+                this,
+                queryTreeParser);
+
         }
 
 
@@ -320,7 +309,7 @@ namespace Pomona.Common.Linq
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Sequence contains no matching element");
+                throw new InvalidOperationException("Sequence contains no matching element", ex);
             }
         }
         private object MapToCustomUserTypeResult<TCustomClientType>(

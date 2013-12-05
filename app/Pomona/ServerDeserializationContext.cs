@@ -36,25 +36,42 @@ namespace Pomona
 {
     public class ServerDeserializationContext : IDeserializationContext
     {
-        private readonly ITypeMapper typeMapper;
         private readonly IResourceResolver resourceResolver;
+        private readonly IResourceNode targetNode;
+        private readonly ITypeMapper typeMapper;
 
 
-        public ServerDeserializationContext(ITypeMapper typeMapper, IResourceResolver resourceResolver)
+        public ServerDeserializationContext(ITypeMapper typeMapper,
+            IResourceResolver resourceResolver,
+            IResourceNode targetNode)
         {
             this.typeMapper = typeMapper;
             this.resourceResolver = resourceResolver;
+            this.targetNode = targetNode;
         }
 
 
-        public void CheckPropertyItemAccessRights(IPropertyInfo property, HttpMethod method)
+        public IResourceNode TargetNode
+        {
+            get { return this.targetNode; }
+        }
+
+
+        public void CheckAccessRights(PropertySpec property, HttpMethod method)
+        {
+            if (!property.AccessMode.HasFlag(method))
+                throw new PomonaSerializationException("Unable to deserialize because of missing access: " + method);
+        }
+
+
+        public void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method)
         {
             if (!property.ItemAccessMode.HasFlag(method))
                 throw new PomonaSerializationException("Unable to deserialize because of missing access: " + method);
         }
 
 
-        public object CreateReference(IMappedType type, string uri)
+        public object CreateReference(TypeSpec type, string uri)
         {
             return this.resourceResolver.ResolveUri(uri);
         }
@@ -71,19 +88,31 @@ namespace Pomona
         }
 
 
-        public IMappedType GetClassMapping(Type type)
+        public TypeSpec GetClassMapping(Type type)
         {
             return this.typeMapper.GetClassMapping(type);
         }
 
 
-        public IMappedType GetTypeByName(string typeName)
+        public TypeSpec GetTypeByName(string typeName)
         {
             return this.typeMapper.GetClassMapping(typeName);
         }
 
 
-        public void SetProperty(IDeserializerNode targetNode, IPropertyInfo property, object propertyValue)
+        public void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp)
+        {
+            throw new ResourceValidationException(
+                string.Format("Property {0} is required when creating resource {1}",
+                    targetProp.Name,
+                    node.ValueType.Name),
+                targetProp.Name,
+                node.ValueType.Name,
+                null);
+        }
+
+
+        public void SetProperty(IDeserializerNode targetNode, PropertySpec property, object propertyValue)
         {
             if (targetNode.Operation == DeserializerNodeOperation.Default)
                 throw new InvalidOperationException("Invalid deserializer node operation default");
@@ -91,9 +120,7 @@ namespace Pomona
                  && property.AccessMode.HasFlag(HttpMethod.Post)) ||
                 (targetNode.Operation == DeserializerNodeOperation.Patch
                  && property.AccessMode.HasFlag(HttpMethod.Put)))
-            {
                 property.Setter(targetNode.Value, propertyValue);
-            }
             else
             {
                 var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)

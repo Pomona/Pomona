@@ -71,9 +71,9 @@ namespace Pomona
             this.serviceLocator = serviceLocator;
 
             foreach (var transformedType in this.typeMapper
-                .TransformedTypes
+                .TransformedTypes.OfType<ResourceType>()
                 .Select(x => x.UriBaseType)
-                .Where(x => x != null && !x.IsValueType && !x.IsAnonymous() && x.IsRootResource)
+                .Where(x => x != null  && !x.IsAnonymous() && x.IsRootResource)
                 .Distinct())
                 RegisterRoutesFor(transformedType);
 
@@ -119,9 +119,10 @@ namespace Pomona
         {
             if (exception is PomonaSerializationException)
                 return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
-            if (exception is PomonaException)
-                return new PomonaError(((PomonaException)exception).StatusCode);
-            return null;
+            var pomonaException = exception as PomonaException;
+            if (pomonaException != null)
+                return new PomonaError(pomonaException.StatusCode, pomonaException.Message);
+            return new PomonaError(HttpStatusCode.InternalServerError,  HttpStatusCode.InternalServerError.ToString());
         }
 
 
@@ -258,7 +259,7 @@ namespace Pomona
         }
 
 
-        private void RegisterRoutesFor(TransformedType type)
+        private void RegisterRoutesFor(ResourceType type)
         {
             var path = "/" + type.UriRelativePath;
 

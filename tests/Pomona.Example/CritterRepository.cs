@@ -32,6 +32,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.Example.Models.Existence;
 using Pomona.Internals;
@@ -125,7 +126,7 @@ namespace Pomona.Example
             lock (syncLock)
             {
                 var entityType = typeof(T);
-                var entityUriBaseType = ((ResourceType)typeMapper.GetClassMapping(typeof(T))).UriBaseType.MappedTypeInstance;
+                var entityUriBaseType = ((ResourceType)typeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
 
                 return
                     (IQueryable<T>)
@@ -231,7 +232,7 @@ namespace Pomona.Example
         private Type GetBaseUriType<T>()
         {
             var transformedType = (TransformedType) typeMapper.GetClassMapping<T>();
-            var mappedTypeInstance = (transformedType.UriBaseType ?? transformedType).MappedTypeInstance;
+            var mappedTypeInstance = (transformedType.Maybe().OfType<ResourceType>().Select(x => (TransformedType)x.UriBaseType).OrDefault(() => transformedType)).Type;
             return mappedTypeInstance;
         }
 

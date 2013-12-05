@@ -1,9 +1,7 @@
-﻿#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,16 +22,32 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System.Collections.Generic;
+using System.Linq;
 
-using System;
-
-namespace Pomona.FluentMapping
+namespace Pomona.Common.TypeSystem
 {
-    public interface IConstructorControl
+    public static class MaybeExtensions
     {
-        T Optional<T>(T val);
-        T Parent<T>();
-        T Context<T>();
+        public static Maybe<T> Maybe<T>(this T val)
+        {
+            return ReferenceEquals(val, null) ? TypeSystem.Maybe<T>.Empty : new Maybe<T>(val);
+        }
+
+        public static Maybe<T> Maybe<T>(this T? val)
+            where T : struct
+        {
+            return val.HasValue ? new Maybe<T>(val.Value) : TypeSystem.Maybe<T>.Empty;
+        }
+
+        public static Maybe<T> MaybeFirst<T>(this IEnumerable<T> source)
+        {
+            using (var enumerator = source.GetEnumerator())
+            {
+                if (enumerator.MoveNext())
+                    return new Maybe<T>(enumerator.Current);
+            }
+            return TypeSystem.Maybe<T>.Empty;
+        }
     }
 }

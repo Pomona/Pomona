@@ -26,6 +26,8 @@
 
 #endregion
 
+using System;
+
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
@@ -66,7 +68,7 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<MusicalCritter> map)
         {
-            map.ConstructedUsing((x, c) => new MusicalCritter(c.Optional(x.OnlyWritableByInheritedResource)));
+            map.ConstructedUsing((c) => new MusicalCritter(c.Optional().OnlyWritableByInheritedResource));
         }
 
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
@@ -111,7 +113,7 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Loner> map)
         {
             map.ConstructedUsing(
-                (x, c) => new Loner(x.Name, x.Strength, c.Optional(x.OptionalInfo), c.Optional(x.OptionalDate)));
+                (c) => new Loner(c.Requires().Name, c.Requires().Strength, c.Optional().OptionalInfo, c.Optional().OptionalDate));
         }
 
         public void Map(ITypeMappingConfigurator<ErrorStatus> map)
@@ -143,7 +145,7 @@ namespace Pomona.Example
         {
             map.Include(x => x.Map,
                 o =>
-                    o.AsAttributes().WithAccessMode(HttpMethod.Get));
+                    o.AsAttributes().WithAccessMode(HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post));
         }
 
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
@@ -158,7 +160,7 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
-            map.ConstructedUsing(x => new Gun(x.Model))
+            map.ConstructedUsing(x => new Gun(x.Requires().Model))
                .Include(x => x.ExplosionFactor);
         }
     }

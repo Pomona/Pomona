@@ -30,13 +30,13 @@ namespace Pomona.Common.Serialization
     {
         private readonly IDeserializationContext context;
         private readonly string expandPath;
-        private readonly IMappedType expectedBaseType;
+        private readonly TypeSpec expectedBaseType;
         private readonly IDeserializerNode parent;
-        public IMappedType valueType;
+        public TypeSpec valueType;
 
         #region Implementation of IDeserializerNode
 
-        public ItemValueDeserializerNode(IMappedType expectedBaseType, IDeserializationContext context,
+        public ItemValueDeserializerNode(TypeSpec expectedBaseType, IDeserializationContext context,
                                          string expandPath = "", IDeserializerNode parent = null)
         {
             this.parent = parent;
@@ -52,7 +52,7 @@ namespace Pomona.Common.Serialization
             get { return context; }
         }
 
-        public IMappedType ExpectedBaseType
+        public TypeSpec ExpectedBaseType
         {
             get { return expectedBaseType; }
         }
@@ -63,6 +63,11 @@ namespace Pomona.Common.Serialization
         }
 
         public string Uri { get; set; }
+
+        IResourceNode IResourceNode.Parent
+        {
+            get { return Parent ?? Context.TargetNode; }
+        }
 
         public object Value { get; set; }
 
@@ -76,7 +81,7 @@ namespace Pomona.Common.Serialization
             get { return parent; }
         }
 
-        public IMappedType ValueType
+        public TypeSpec ValueType
         {
             get { return valueType; }
         }
@@ -89,7 +94,18 @@ namespace Pomona.Common.Serialization
             valueType = context.GetTypeByName(typeName);
         }
 
-        public void SetProperty(IPropertyInfo property, object propertyValue)
+
+        public void SetValueType(TypeSpec type)
+        {
+            valueType = context.GetClassMapping(type);
+        }
+
+
+        public void CheckAccessRights(HttpMethod method)
+        {
+        }
+
+        public void SetProperty(PropertySpec property, object propertyValue)
         {
             context.SetProperty(this, property, propertyValue);
         }

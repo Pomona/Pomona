@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using Nancy;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {

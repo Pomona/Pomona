@@ -36,7 +36,78 @@ using Pomona.Internals;
 
 namespace Pomona.Common.Linq
 {
-    public class TransformAdditionalPropertiesToAttributesVisitor : ExpressionVisitor
+    public class ExpressionTypeVisitor : ExpressionVisitor
+    {
+        private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
+            new Dictionary<ParameterExpression, ParameterExpression>();
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            var serverType = VisitType(node.Type);
+            if (serverType != node.Type)
+            {
+                return replacementParameters.GetOrCreate(node, () => Expression.Parameter(serverType, node.Name));
+            }
+            return base.VisitParameter(node);
+        }
+
+        protected virtual Type VisitType(Type typeToSearch)
+        {
+            if (typeToSearch.IsGenericType)
+            {
+                var genArgs = typeToSearch.GetGenericArguments();
+                var newGenArgs =
+                    genArgs.Select(x => VisitType(typeToSearch)).ToArray();
+
+                if (newGenArgs.SequenceEqual(genArgs))
+                    return typeToSearch;
+
+                return typeToSearch.GetGenericTypeDefinition().MakeGenericType(newGenArgs);
+            }
+
+            return typeToSearch;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            var replacementMethod = VisitMethod(node.Method);
+            if (replacementMethod != node.Method)
+            {
+                var visitedArguments = Visit(node.Arguments);
+                if (node.Object != null)
+                    return Expression.Call(node.Object, replacementMethod, visitedArguments);
+                return Expression.Call(replacementMethod, visitedArguments);
+            }
+            return base.VisitMethodCall(node);
+        }
+
+        protected virtual MethodInfo VisitMethod(MethodInfo methodToSearch)
+        {
+            var newReflectedType = VisitType(methodToSearch.ReflectedType);
+            if (newReflectedType != methodToSearch.ReflectedType)
+            {
+                methodToSearch = newReflectedType.GetMethod(methodToSearch.Name,
+                    (methodToSearch.IsStatic ? BindingFlags.Static : BindingFlags.Instance)
+                    | (methodToSearch.IsPublic
+                        ? BindingFlags.Public
+                        : BindingFlags.NonPublic),
+                    null,
+                    methodToSearch.GetParameters().Select(x => x.ParameterType).ToArray(),
+                    null);
+            }
+
+            if (!methodToSearch.IsGenericMethod)
+                return methodToSearch;
+
+            var genArgs = methodToSearch.GetGenericArguments();
+            var newGenArgs = genArgs.Select(VisitType).ToArray();
+            if (genArgs.SequenceEqual(newGenArgs))
+                return methodToSearch;
+
+            return methodToSearch.GetGenericMethodDefinition().MakeGenericMethod(newGenArgs);
+        }
+    }
+    public class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
     {
         private static readonly MethodInfo dictionarySafeGetMethod;
         private readonly IPomonaClient client;
@@ -247,15 +318,26 @@ namespace Pomona.Common.Linq
 
         private Type ReplaceInGenericArguments(Type typeToSearch)
         {
-            CustomUserTypeInfo userTypeInfo;
-            if (IsUserType(typeToSearch, out userTypeInfo))
-                return userTypeInfo.ServerType;
+            return ReplaceInGenericArguments(typeToSearch,
+                t =>
+                {
+                    CustomUserTypeInfo userTypeInfo;
+                    if (IsUserType(t, out userTypeInfo))
+                        return userTypeInfo.ServerType;
+
+                    return t;
+                });
+        }
+
+        private Type ReplaceInGenericArguments(Type typeToSearch, Func<Type, Type> typeReplacer)
+        {
+            typeToSearch = typeReplacer(typeToSearch);
 
             if (typeToSearch.IsGenericType)
             {
                 var genArgs = typeToSearch.GetGenericArguments();
                 var newGenArgs =
-                    genArgs.Select(ReplaceInGenericArguments).ToArray();
+                    genArgs.Select(x => ReplaceInGenericArguments(x, typeReplacer)).ToArray();
 
                 if (newGenArgs.SequenceEqual(genArgs))
                     return typeToSearch;

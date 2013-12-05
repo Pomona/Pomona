@@ -30,6 +30,13 @@ namespace Pomona.Example.Models.Existence
 {
     public abstract class CelestialObject : EntityBase
     {
+        protected CelestialObject(string name)
+        {
+            this.Name = name;
+        }
+
+        protected  CelestialObject() {}
+
         public string Name { get; set; }
     }
 }

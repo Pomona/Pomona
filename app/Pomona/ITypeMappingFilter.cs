@@ -54,7 +54,7 @@ namespace Pomona
         string GetPropertyMappedName(PropertyInfo propertyInfo);
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);
-
+        ConstructorSpec GetTypeConstructor(Type type);
 
         /// <summary>
         /// Gets a list of all types to CONSIDER for inclusion.
@@ -63,8 +63,6 @@ namespace Pomona
         /// <returns>List of types considered for mapping.</returns>
         IEnumerable<Type> GetSourceTypes();
 
-
-        ConstructorInfo GetTypeConstructor(Type type);
 
 
         /// <summary>
@@ -99,8 +97,7 @@ namespace Pomona
         bool PropertyIsEtag(PropertyInfo propertyInfo);
         string GetPluralNameForType(Type type);
         PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
-        HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo);
-        int? GetPropertyConstructorArgIndex(PropertyInfo propertyInfo);
+        HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec);
 
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
