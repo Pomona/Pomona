@@ -32,6 +32,7 @@ using System.Linq;
 using Nancy.Validation;
 
 using Pomona.Example.Models;
+using Pomona.Example.Models.Existence;
 using Pomona.Queries;
 
 namespace Pomona.Example
@@ -60,6 +61,14 @@ namespace Pomona.Example
         {
             critter.IsCaptured = true;
             return critter;
+        }
+
+
+        public Planet Post(PlanetarySystem planetarySystem, Planet planet)
+        {
+            Console.WriteLine("The planet has been posted!");
+            Post(planet);
+            return planet;
         }
 
 

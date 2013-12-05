@@ -32,6 +32,7 @@ using System.Reflection;
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
 using Pomona.Internals;
 
 namespace Pomona.RequestProcessing
@@ -55,6 +56,42 @@ namespace Pomona.RequestProcessing
         }
 
 
+        private PomonaResponse ProcessQueryableNodeCallToHandler(PomonaRequest request, QueryableNode queryableNode)
+        {
+            ResourceType resourceType = queryableNode.ItemResourceType;
+            if (!resourceType.IsRootResource)
+            {
+                var parentType = resourceType.ParentResourceType;
+                // First attempt to locate handler with signature Post(ParentType, ResourceType)
+                var method = dataSource.GetType().GetMethod("Post",
+                    BindingFlags.Instance | BindingFlags.Public,
+                    null,
+                    new Type[] { parentType, resourceType },
+                    null);
+
+                if (method != null)
+                {
+                    var form = request.Bind(resourceType);
+                    var result =  method.Invoke(dataSource, new object[] { queryableNode.Parent.Value, form });
+                    if (!(result is PomonaResponse))
+                    {
+                        return new PomonaResponse(result, HttpStatusCode.Created, request.ExpandedPaths);
+                    }
+                    return (PomonaResponse)result;
+                }
+            }
+            return null;
+        }
+
+
+        private PomonaResponse ProcessQueryableNodeCallToDataSource(PomonaRequest request, QueryableNode queryableNode)
+        {
+            var form = request.Bind();
+            return
+                (PomonaResponse)
+                    this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+        }
+
         public virtual PomonaResponse Process(PomonaRequest request)
         {
             var queryableNode = request.Node as QueryableNode;
@@ -63,10 +100,8 @@ namespace Pomona.RequestProcessing
             {
                 if (queryableNode != null)
                 {
-                    var form = request.Bind();
-                    return
-                        (PomonaResponse)
-                            this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+                    return ProcessQueryableNodeCallToHandler(request, queryableNode)
+                           ?? ProcessQueryableNodeCallToDataSource(request, queryableNode);
                 }
                 if (resourceNode != null)
                 {
