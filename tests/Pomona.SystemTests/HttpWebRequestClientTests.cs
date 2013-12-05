@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,9 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common.Web;
 using Pomona.Example.Models;
 
@@ -38,42 +45,62 @@ namespace Pomona.SystemTests
             get { return true; }
         }
 
+
+        [Test]
+        public void Get_CritterAtNonExistingUrl_ThrowsWebClientException()
+        {
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => client.Get<ICritter>(client.BaseUri + "critters/38473833"));
+        }
+
+
         [Test]
         public void Get_UsingQuery_ReturnsEntities()
         {
             // Here we just expect to get something returned, Query itself is tested in other fixture,
-            var oddCritters = client.Critters.Query().Where(x => x.Id%2 == 1).ToList();
+            var oddCritters = client.Critters.Query().Where(x => x.Id % 2 == 1).ToList();
             Assert.That(oddCritters, Has.Count.GreaterThan(0));
         }
+
 
         [Test]
         public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
         {
-            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var etaggedEntity = Save(new EtaggedEntity { Info = "Ancient" });
             var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
             var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
             Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
             Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
         }
 
+
         [Test]
         public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
         {
-            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
+            var etaggedEntity = Save(new EtaggedEntity { Info = "Ancient" });
             var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
 
             // Change etag on entity, which should give an exception
             etaggedEntity.SetEtag("MODIFIED!");
 
             Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
-                        Throws.TypeOf<PreconditionFailedException>());
+                Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
         }
+
+
+        [Test]
+        public void Post_FailingThing_ThrowsWebClientException()
+        {
+            var ex = Assert.Throws<WebClientException>(() => client.FailingThings.Post(new FailingThingForm()));
+            Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+        }
+
 
         [Test]
         public void Post_SavesEntityAndReturnsResource()
         {
-            var resource = client.Critters.Post(new CritterForm {Name = "Hiihaa"});
+            var resource = client.Critters.Post(new CritterForm { Name = "Hiihaa" });
             Assert.That(resource.Id, Is.GreaterThan(0));
             Assert.That(resource.Name, Is.EqualTo("Hiihaa"));
         }

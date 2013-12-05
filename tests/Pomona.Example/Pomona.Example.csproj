@@ -90,6 +90,7 @@
     <Compile Include="Models\Existence\Planet.cs" />
     <Compile Include="Models\Existence\PlanetarySystem.cs" />
     <Compile Include="Models\Existence\Moon.cs" />
+    <Compile Include="Models\FailingThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />

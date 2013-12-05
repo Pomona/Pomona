@@ -87,6 +87,7 @@
   <ItemGroup>
     <Compile Include="ChildResourceTests.cs" />
     <Compile Include="ClientGeneratedTypeTests.cs" />
+    <Compile Include="ExceptionHandlingTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
     <Compile Include="CritterModuleInternal.cs" />

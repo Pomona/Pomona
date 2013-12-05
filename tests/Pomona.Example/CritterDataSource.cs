@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using Nancy.Validation;
@@ -70,6 +71,9 @@ namespace Pomona.Example
 
         public object Post<T>(T newObject) where T : class
         {
+            if (typeof(T) == typeof(FailingThing))
+                throw new Exception("Stupid exception from failing thing;");
+
             var newCritter = newObject as Critter;
             if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
                 throw new ModelValidationException("Critter can't have name longer than 50 characters.");

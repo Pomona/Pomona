@@ -66,7 +66,6 @@ namespace Pomona.Common.TypeSystem
             get { return UriBaseType == this; }
         }
 
-        [PendingRemoval]
         public IEnumerable<ResourceType> MergedTypes
         {
             get { return SubTypes.OfType<ResourceType>(); }

@@ -94,6 +94,13 @@ namespace Pomona.Common.Serialization
             valueType = context.GetTypeByName(typeName);
         }
 
+
+        public void SetValueType(TypeSpec type)
+        {
+            valueType = context.GetClassMapping(type);
+        }
+
+
         public void CheckAccessRights(HttpMethod method)
         {
         }

@@ -101,6 +101,11 @@ namespace Pomona.Common.Serialization.Json
             TypeSpec mappedType;
             if (node.ExpectedBaseType != null)
                 mappedType = node.ExpectedBaseType;
+            else if (reader.Token.Type == JTokenType.String)
+            {
+                node.SetValueType(node.Context.GetClassMapping(typeof(string)));
+                mappedType = node.ValueType;
+            }
             else
             {
                 if (!SetNodeValueType(node, reader.Token as JObject))

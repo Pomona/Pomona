@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,24 +26,30 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
+using Critters.Client;
 
-namespace Pomona.Common.Serialization
+using NUnit.Framework;
+
+using Pomona.Common.Web;
+
+namespace Pomona.SystemTests
 {
-    public interface IDeserializerNode : IResourceNode
+    [TestFixture]
+    public class ExceptionHandlingTests : ClientTestsBase
     {
-        IDeserializationContext Context { get; }
-        string ExpandPath { get; }
-        TypeSpec ExpectedBaseType { get; }
-        DeserializerNodeOperation Operation { get; set; }
-        void CheckItemAccessRights(HttpMethod method);
-        new IDeserializerNode Parent { get; }
-        new object Value { get; set; }
-        string Uri { get; set; }
-        TypeSpec ValueType { get; }
-        void SetProperty(PropertySpec property, object propertyValue);
-        void SetValueType(string typeName);
-        void SetValueType(TypeSpec type);
-        void CheckAccessRights(HttpMethod method);
+        [Test]
+        public void Get_CritterAtNonExistingUrl_ThrowsWebClientException()
+        {
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => client.Get<ICritter>(client.BaseUri + "critters/38473833"));
+        }
+
+
+        [Test]
+        public void Post_FailingThing_ThrowsWebClientException()
+        {
+            var ex = Assert.Throws<WebClientException>(() => client.FailingThings.Post(new FailingThingForm()));
+            Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+        }
     }
 }
