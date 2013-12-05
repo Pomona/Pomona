@@ -587,7 +587,7 @@ namespace Pomona.Common
 
 
         private async Task<string> SendHttpRequestAsync(string uri, string httpMethod, object requestBodyEntity = null,
-                                       IMappedType requestBodyBaseType = null,
+                                       TypeSpec requestBodyBaseType = null,
                                        Action<WebClientRequestMessage> modifyRequestHandler = null)
         {
             byte[] requestBytes = null;
