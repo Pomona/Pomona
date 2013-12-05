@@ -97,25 +97,25 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Linq\" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">
-      <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
+      <Project>{94e7b042-6595-46f8-9400-897058e76e91}</Project>
       <Name>Pomona.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
+      <Project>{ee396a59-956e-4dee-b222-991f2274ed67}</Project>
+      <Name>Pomona</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
-      <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
+      <Project>{2c37dede-f3cf-4cf2-bc9a-84fbd7eb39a0}</Project>
       <Name>Pomona.Example</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pomona.TestHelpers\Pomona.TestHelpers.csproj">
       <Project>{bf914b52-ebe9-422b-af7f-fc7f48cee550}</Project>
       <Name>Pomona.TestHelpers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
-      <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
-      <Name>Pomona</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Linq\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

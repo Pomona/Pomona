@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -83,6 +85,12 @@ namespace Pomona.TestingClient
 
 
         public object DownloadFromUri(string uri, Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task<T> GetAsync<T>(string uri)
         {
             throw new NotImplementedException();
         }
