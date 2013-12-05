@@ -31,8 +31,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Newtonsoft.Json;
-
 namespace Pomona.Common.TypeSystem
 {
     public abstract class TypeSpec : MemberSpec
@@ -66,7 +64,6 @@ namespace Pomona.Common.TypeSystem
             get { return this.baseType.Value; }
         }
 
-        [PendingRemoval]
         public virtual TypeSpec ElementType
         {
             get
@@ -79,19 +76,16 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        [PendingRemoval]
         public virtual bool IsAlwaysExpanded
         {
             get { return true; }
         }
 
-        [PendingRemoval]
         public virtual bool IsCollection
         {
             get { return false; }
         }
 
-        [PendingRemoval]
         public virtual bool IsDictionary
         {
             get { return false; }
@@ -122,13 +116,14 @@ namespace Pomona.Common.TypeSystem
             get { return (Type)Member; }
         }
 
+        public abstract ConstructorSpec Constructor { get; }
+
         public abstract IEnumerable<TypeSpec> Interfaces { get; }
+        public abstract bool IsNullable { get; }
 
         public abstract IEnumerable<PropertySpec> Properties { get; }
         public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
         public abstract TypeSerializationMode SerializationMode { get; }
-        public abstract bool IsNullable { get; }
-        public abstract ConstructorSpec Constructor { get; }
 
         #region Overloaded operators
 
@@ -138,6 +133,12 @@ namespace Pomona.Common.TypeSystem
         }
 
         #endregion
+
+        public virtual object Create(IDictionary<PropertySpec, object> args)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public virtual PropertySpec GetPropertyByName(string propertyName, bool ignoreCase)
         {
@@ -174,11 +175,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual object Create(IDictionary<PropertySpec, object> args)
-        {
-            throw new NotImplementedException();
-        }
-
+        protected internal abstract ConstructorSpec OnLoadConstructor();
 
         protected internal abstract IEnumerable<TypeSpec> OnLoadGenericArguments();
         protected internal abstract IEnumerable<TypeSpec> OnLoadInterfaces();
@@ -186,6 +183,5 @@ namespace Pomona.Common.TypeSystem
         protected internal abstract IEnumerable<PropertySpec> OnLoadRequiredProperties();
         protected internal abstract RuntimeTypeDetails OnLoadRuntimeTypeDetails();
         protected internal abstract PropertySpec OnWrapProperty(PropertyInfo property);
-        protected internal abstract ConstructorSpec OnLoadConstructor();
     }
 }

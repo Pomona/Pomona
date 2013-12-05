@@ -105,6 +105,7 @@
     <Compile Include="QueryCritterTests.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="Serialization\JsonSerializationTests.cs" />
+    <Compile Include="TypeSystem\ClientTypeMapperTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">

@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,10 +47,12 @@ namespace Pomona.Common
             return FromType(GetResourceNonProxyInterfaceType(type));
         }
 
+
         public TypeSpec GetClassMapping(string typeName)
         {
-            return typeNameMap[typeName];
+            return this.typeNameMap[typeName];
         }
+
 
         public Type GetResourceNonProxyInterfaceType(Type type)
         {
@@ -56,11 +62,11 @@ namespace Pomona.Common
             if (!type.IsInterface)
             {
                 var interfaces =
-                    type.GetInterfaces().Where(x => typeof (IClientResource).IsAssignableFrom(x)).ToArray();
+                    type.GetInterfaces().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToArray();
                 IEnumerable<Type> exceptTheseInterfaces =
                     interfaces.SelectMany(
-                        x => x.GetInterfaces().Where(y => typeof (IClientResource).IsAssignableFrom(y))).
-                               Distinct().ToArray();
+                        x => x.GetInterfaces().Where(y => typeof(IClientResource).IsAssignableFrom(y))).
+                        Distinct().ToArray();
                 var mostSubtypedInterface =
                     interfaces
                         .Except(
@@ -78,50 +84,38 @@ namespace Pomona.Common
         public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
         {
             var mappedTypes = clientResourceTypes.Union(TypeUtils.GetNativeTypes());
-            typeNameMap =
+            this.typeNameMap =
                 mappedTypes
                     .Select(GetClassMapping)
                     .ToDictionary(GetJsonTypeName, x => x);
         }
 
-        private static string GetJsonTypeName(TypeSpec type)
-        {
-            var clientType = type as TransformedType;
-
-            if (clientType != null)
-                return clientType.ResourceInfo.JsonTypeName;
-
-            return type.Name;
-        }
-
-
-        public override string LoadName(MemberSpec memberSpec)
-        {
-            var transformedType = memberSpec as TransformedType;
-            if (transformedType != null && transformedType.ResourceInfo != null)
-            {
-                return transformedType.ResourceInfo.JsonTypeName;
-            }
-
-            return base.LoadName(memberSpec);
-        }
-
-        public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
-        {
-            var ria =
-                typeSpec.Type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
-                    .FirstOrDefault();
-            if (ria == null)
-                return base.LoadProperties(typeSpec);
-             return
-                typeSpec.Type.GetProperties()
-                    .Concat(typeSpec.Type.GetInterfaces().SelectMany(x => x.GetProperties()))
-                    .Select(x => WrapProperty(typeSpec, x));
-        }
 
         public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {
-            return typeNameMap.Values.OfType<TransformedType>();
+            return this.typeNameMap.Values.OfType<TransformedType>();
+        }
+
+
+        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            var ria = typeSpec.DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
+            if (ria == null)
+            {
+                return
+                    ConstructorSpec.FromConstructorInfo(
+                        typeSpec.Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public
+                                                      | BindingFlags.NonPublic).First(),
+                        defaultFactory : () => null);
+            }
+
+            if (ria.PocoType == null)
+                throw new NotSupportedException();
+
+            return ConstructorSpec.FromConstructorInfo(
+                ria.PocoType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic
+                                             | BindingFlags.Public).First(),
+                ria.InterfaceType);
         }
 
 
@@ -132,13 +126,15 @@ namespace Pomona.Common
             var isAttributes = propInfo.HasAttribute<ResourceAttributesPropertyAttribute>(true);
             var isPrimaryId = propInfo.HasAttribute<ResourceIdPropertyAttribute>(true);
             var isEtagProperty = propInfo.HasAttribute<ResourceEtagPropertyAttribute>(true);
-            var info = propInfo.GetCustomAttributes(typeof(ResourcePropertyAttribute), true).OfType<ResourcePropertyAttribute>().FirstOrDefault()
-                       ?? new ResourcePropertyAttribute()
-            {
-                AccessMode = HttpMethod.Get,
-                ItemAccessMode = HttpMethod.Get,
-                Required = false
-            };
+            var info =
+                propInfo.GetCustomAttributes(typeof(ResourcePropertyAttribute), true).OfType<ResourcePropertyAttribute>()
+                    .FirstOrDefault()
+                ?? new ResourcePropertyAttribute()
+                {
+                    AccessMode = HttpMethod.Get,
+                    ItemAccessMode = HttpMethod.Get,
+                    Required = false
+                };
 
             return new ExportedPropertyDetails(isAttributes,
                 isEtagProperty,
@@ -148,6 +144,62 @@ namespace Pomona.Common
                 false,
                 NameUtils.ConvertCamelCaseToUri(propertyMapping.Name),
                 true /* ??AlwaysExpand should be true on client, right? */);
+        }
+
+
+        public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
+        {
+            if (exportedType.IsAnonymous())
+            {
+                return new ExportedTypeDetails(exportedType,
+                    HttpMethod.Get,
+                    null,
+                    null,
+                    true,
+                    true);
+            }
+
+            var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
+            var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
+                                 | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
+            return new ExportedTypeDetails(exportedType,
+                allowedMethods,
+                ria.UrlRelativePath != null ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath) : null,
+                null,
+                ria.IsValueObject,
+                true);
+        }
+
+
+        public override string LoadName(MemberSpec memberSpec)
+        {
+            var transformedType = memberSpec as TransformedType;
+            if (transformedType != null && transformedType.ResourceInfo != null)
+                return transformedType.ResourceInfo.JsonTypeName;
+
+            return base.LoadName(memberSpec);
+        }
+
+
+        public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
+        {
+            var ria =
+                typeSpec.Type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
+                    .FirstOrDefault();
+            if (ria == null)
+                return base.LoadProperties(typeSpec);
+            return
+                typeSpec.Type.GetProperties()
+                    .Concat(typeSpec.Type.GetInterfaces().SelectMany(x => x.GetProperties()))
+                    .Select(x => WrapProperty(typeSpec, x));
+        }
+
+
+        public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
+        {
+            var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
+
+            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null);
         }
 
 
@@ -168,52 +220,14 @@ namespace Pomona.Common
         }
 
 
-        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        private static string GetJsonTypeName(TypeSpec type)
         {
-            var ria = typeSpec.DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
-            if (ria == null)
-                return
-                    ConstructorSpec.FromConstructorInfo(
-                        typeSpec.Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public
-                                                      | BindingFlags.NonPublic).First(), defaultFactory: () => null);
+            var clientType = type as TransformedType;
 
-            if (ria.PocoType == null)
-                throw new NotSupportedException();
+            if (clientType != null)
+                return clientType.ResourceInfo.JsonTypeName;
 
-            return ConstructorSpec.FromConstructorInfo(
-                ria.PocoType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic
-                                              | BindingFlags.Public).First(), ria.InterfaceType);
-        }
-
-
-        [PendingReview]
-        public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
-        {
-            if (exportedType.IsAnonymous())
-                return new ExportedTypeDetails(exportedType,
-                    HttpMethod.Get,
-                    null,
-                    null,
-                    true,
-                    true);
-
-            var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
-            var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
-                                 | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
-            return new ExportedTypeDetails(exportedType,
-                allowedMethods,
-                "??whatever??TODO",
-                null,   
-                ria.IsValueObject,
-                true);
-        }
-
-
-        public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
-        {
-            var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
-
-            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null);
+            return type.Name;
         }
     }
 }
