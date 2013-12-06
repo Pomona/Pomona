@@ -154,6 +154,7 @@
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
+    <Compile Include="IResourceResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />

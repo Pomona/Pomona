@@ -177,7 +177,7 @@ namespace Pomona
 
         private PomonaResponse GetResource()
         {
-            var pathNodes = new LinkedList<string>(Request.Url.Path.Split('/')).First;
+            var pathNodes = GetPathNodes();
             var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource);
             PathNode node = rootNode;
             foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Skip(1).Select(x => x.Value))
@@ -192,6 +192,12 @@ namespace Pomona
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
             return response;
+        }
+
+
+        private LinkedListNode<string> GetPathNodes()
+        {
+            return new LinkedList<string>(Request.Url.Path.Split('/').Select(HttpUtility.UrlDecode)).First;
         }
 
 

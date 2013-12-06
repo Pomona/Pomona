@@ -26,15 +26,10 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
-
 namespace Pomona
 {
-    public interface IUriResolver
+    public interface IResourceResolver
     {
-        string RelativeToAbsoluteUri(string uri);
-        string GetUriFor(object entity);
-        string GetUriFor(PropertySpec property, object entity);
-        ITypeMapper TypeMapper { get; }
+        object ResolveUri(string uri);
     }
 }

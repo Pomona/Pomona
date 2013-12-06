@@ -1,9 +1,8 @@
-#region License
-
+﻿#region License
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,18 +22,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
 #endregion
 
-using Pomona.Common.TypeSystem;
+using Critters.Client;
 
-namespace Pomona
+using NUnit.Framework;
+
+namespace Pomona.SystemTests
 {
-    public interface IUriResolver
+    [TestFixture]
+    public class GetFromUriTests : ClientTestsBase
     {
-        string RelativeToAbsoluteUri(string uri);
-        string GetUriFor(object entity);
-        string GetUriFor(PropertySpec property, object entity);
-        ITypeMapper TypeMapper { get; }
+
+        [Test]
+        public void GetFromUriWithSpacesInIdentifier_ReturnsResource()
+        {
+            client.Galaxies.Post(new GalaxyForm() { Name = "test_I will not buy this record it is scratched" });
+            var galaxy = client.Galaxies.Get("test_I will not buy this record it is scratched");
+            Assert.That(galaxy, Is.Not.EqualTo(null));
+            Assert.That(galaxy.Name, Is.EqualTo("test_I will not buy this record it is scratched"));
+        }
     }
 }

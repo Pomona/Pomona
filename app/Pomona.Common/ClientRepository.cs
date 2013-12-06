@@ -29,6 +29,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using Pomona.Common.Linq;
@@ -154,7 +155,7 @@ namespace Pomona.Common
 
         private string GetResourceUri(object id)
         {
-            return string.Format("{0}/{1}", uri, id);
+            return string.Format("{0}/{1}", uri, HttpUtility.UrlEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
         }
     }
 }
