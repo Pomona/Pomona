@@ -155,7 +155,7 @@ namespace Pomona.Common
 
         private string GetResourceUri(object id)
         {
-            return string.Format("{0}/{1}", uri, HttpUtility.UrlEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
+            return string.Format("{0}/{1}", uri, HttpUtility.UrlPathEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
         }
     }
 }

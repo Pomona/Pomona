@@ -73,7 +73,7 @@ namespace Pomona
             }
             sb.Append('/');
 
-            sb.AppendFormat("{0}", HttpUtility.UrlEncode(Convert.ToString(type.GetId(entity), CultureInfo.InvariantCulture)));
+            sb.AppendFormat("{0}", Common.HttpUtility.UrlPathEncode(Convert.ToString(type.GetId(entity), CultureInfo.InvariantCulture)));
 
             if (property != null)
             {
