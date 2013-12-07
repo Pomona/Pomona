@@ -92,6 +92,7 @@
     <Compile Include="TypeSystem\ConstructorSpecTests.cs" />
     <Compile Include="TypeSystem\MaybeTests.cs" />
     <Compile Include="TypeSystem\TypeSystemTests.cs" />
+    <Compile Include="UriResolverTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -114,9 +115,7 @@
       <Name>Pomona</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Linq\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
