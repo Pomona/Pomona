@@ -98,7 +98,9 @@ namespace TestNs
 
         public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo);
+            return FromMappingOrDefault(propertyInfo,
+                x => x.ExposedAsRepository,
+                () => wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo));
         }
 
 

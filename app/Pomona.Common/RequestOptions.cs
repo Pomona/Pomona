@@ -68,15 +68,15 @@ namespace Pomona.Common
         }
     }
 
-    internal class RequestOptions<T> : RequestOptions, IPatchOptions<T>
+    internal class RequestOptions<T> : RequestOptions, IRequestOptions<T>
     {
-        IPatchOptions<T> IPatchOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
+        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
         {
             ModifyRequest(action);
             return this;
         }
 
-        IPatchOptions<T> IPatchOptions<T>.Expand<TRetValue>(Expression<Func<T, TRetValue>> expression)
+        IRequestOptions<T> IRequestOptions<T>.Expand<TRetValue>(Expression<Func<T, TRetValue>> expression)
         {
             Expand(expression);
             return this;

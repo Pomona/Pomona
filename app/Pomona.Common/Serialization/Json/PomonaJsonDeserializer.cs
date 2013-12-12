@@ -176,7 +176,7 @@ namespace Pomona.Common.Serialization.Json
 
             var refString = (string)((JValue)refStringToken).Value;
             node.Uri = refString;
-            node.Value = node.Context.CreateReference(node.ExpectedBaseType, refString);
+            node.Value = node.Context.CreateReference(node);
             return true;
         }
 

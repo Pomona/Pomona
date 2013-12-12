@@ -71,9 +71,9 @@ namespace Pomona
         }
 
 
-        public object CreateReference(TypeSpec type, string uri)
+        public object CreateReference(IDeserializerNode node)
         {
-            return this.resourceResolver.ResolveUri(uri);
+            return this.resourceResolver.ResolveUri(node.Uri);
         }
 
 

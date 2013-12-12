@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,13 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Pomona.Common.Proxies
 {
-    public abstract class LazyListProxy : ILazyProxy
+    public abstract class LazyListProxy : ILazyProxy, IHasResourceUri
     {
         protected readonly IPomonaClient clientBase;
         protected readonly string uri;
@@ -43,12 +47,19 @@ namespace Pomona.Common.Proxies
         }
 
 
-        internal static object CreateForType(Type elementType, string uri, IPomonaClient clientBase)
+        public abstract bool IsLoaded { get; }
+
+        public string Uri
         {
-            return Activator.CreateInstance(typeof (LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
+            get { return this.uri; }
+            set { }
         }
 
-        public abstract bool IsLoaded { get; }
+
+        internal static object CreateForType(Type elementType, string uri, IPomonaClient clientBase)
+        {
+            return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
+        }
     }
 
     public class LazyListProxy<T> : LazyListProxy, IList<T>
@@ -56,18 +67,24 @@ namespace Pomona.Common.Proxies
         private IList<T> dontTouchwrappedList;
 
 
-        public LazyListProxy(string uri, IPomonaClient clientBase) : base(uri, clientBase)
+        public LazyListProxy(string uri, IPomonaClient clientBase)
+            : base(uri, clientBase)
         {
         }
 
+
+        public override bool IsLoaded
+        {
+            get { return this.dontTouchwrappedList != null; }
+        }
 
         public IList<T> WrappedList
         {
             get
             {
-                if (dontTouchwrappedList == null)
-                    dontTouchwrappedList = clientBase.Get<IList<T>>(uri);
-                return dontTouchwrappedList;
+                if (this.dontTouchwrappedList == null)
+                    this.dontTouchwrappedList = clientBase.Get<IList<T>>(uri);
+                return this.dontTouchwrappedList;
             }
         }
 
@@ -78,7 +95,6 @@ namespace Pomona.Common.Proxies
             get { return WrappedList[index]; }
             set { throw new NotSupportedException("Not allowed to modify a REST'ed list"); }
         }
-
 
         public int Count
         {
@@ -151,10 +167,5 @@ namespace Pomona.Common.Proxies
         }
 
         #endregion
-
-        public override bool IsLoaded
-        {
-            get { return dontTouchwrappedList != null; }
-        }
     }
 }

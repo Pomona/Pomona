@@ -130,7 +130,7 @@ namespace Pomona.TestingClient
 
 
         public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction,
-            Action<IPatchOptions<TSubResource>> options) where TSubResource : class, TResource
+            Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
             return client.OnPatch(resource, patchAction);
         }

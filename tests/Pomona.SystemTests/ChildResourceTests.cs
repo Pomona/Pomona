@@ -34,6 +34,7 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Web;
 using Pomona.Example.Models.Existence;
 
 namespace Pomona.SystemTests
@@ -53,15 +54,6 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void PostPlanetToPlanetarySystem()
-        {
-            CreateTestData();
-            var planetarySystem = client.Galaxies.Query().First().PlanetarySystems.First();
-            var planet = planetarySystem.Planets.Post(new PlanetForm() { Name = "Jupiter", Moons = {new MoonForm() {Name = "jalla"}}});
-            Assert.That(planet.PlanetarySystem.Id, Is.EqualTo(planetarySystem.Id));
-        }
-
-        [Test]
         public void ChildResourcesGetsCorrectUrl()
         {
             CreateTestData();
@@ -71,6 +63,38 @@ namespace Pomona.SystemTests
 
             Assert.That(planetUri, Is.EqualTo("http://test/galaxies/milkyway/planetary-systems/solar/planets/earth"));
             client.Get<IPlanet>(planetUri);
+        }
+
+
+        [Test]
+        public void PostPlanetToPlanetarySystem_IsSuccessful()
+        {
+            CreateTestData();
+            var planetarySystem = client.Galaxies.Query().First().PlanetarySystems.First();
+            var planet =
+                planetarySystem.Planets.Post(new PlanetForm()
+                {
+                    Name = "Jupiter",
+                    Moons = { new MoonForm() { Name = "jalla" } }
+                });
+            Assert.That(planet.PlanetarySystem.Id, Is.EqualTo(planetarySystem.Id));
+        }
+
+
+        [Test]
+        public void PostPlanetToPlanetarySystem_WithModifiedEtagOnParent()
+        {
+            CreateTestData();
+            var planetarySystem = client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
+            planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
+            Assert.Throws<PreconditionFailedException>(
+                () =>
+                    planetarySystem.Planets.Post(new PlanetForm()
+                    {
+                        Name = "Jupiter",
+                        Moons = { new MoonForm() { Name = "jalla" } }
+                    }));
         }
     }
 }

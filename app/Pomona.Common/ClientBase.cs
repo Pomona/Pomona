@@ -67,7 +67,7 @@ namespace Pomona.Common
             where T : class, IClientResource;
 
 
-        public abstract T Patch<T>(T target, Action<T> updateAction, Action<IPatchOptions<T>> options = null)
+        public abstract T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
             where T : class, IClientResource;
 
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
@@ -82,10 +82,10 @@ namespace Pomona.Common
         }
 
 
-        internal abstract object Post<T>(string uri, Action<T> postAction)
+        internal abstract object Post<T>(string uri, Action<T> postAction, RequestOptions options)
             where T : class, IClientResource;
 
-        internal abstract object Post<T>(string uri, T form)
+        internal abstract object Post<T>(string uri, T form, RequestOptions options)
             where T : class, IClientResource;
 
         public abstract T GetLazy<T>(string uri)
@@ -107,7 +107,7 @@ namespace Pomona.Common
         private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
 
         private static readonly MethodInfo postServerTypeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PostServerType<object>(null, null));
+            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PostServerType<object>(null, null, null));
 
         private static readonly MethodInfo patchServerTypeMethod =
             ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PatchServerType<object>(null, null));
@@ -238,11 +238,11 @@ namespace Pomona.Common
             }
 
 
-            return Post(uri, postAction);
+            return Post(uri, postAction, null);
         }
 
 
-        public override T Patch<T>(T target, Action<T> updateAction, Action<IPatchOptions<T>> options = null)
+        public override T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
         {
             var patchForm = (T) CreatePatchForm(typeof (T), target);
             updateAction(patchForm);
@@ -325,11 +325,11 @@ namespace Pomona.Common
             return serverPatchForm;
         }
 
-        internal override object Post<T>(string uri, Action<T> postAction)
+        internal override object Post<T>(string uri, Action<T> postAction, RequestOptions options)
         {
             var postForm = (T) CreatePostForm(typeof (T));
             postAction(postForm);
-            return Post(uri, postForm);
+            return Post(uri, postForm, options);
         }
 
 
@@ -424,7 +424,8 @@ namespace Pomona.Common
             return Deserialize(response, null);
         }
 
-        internal override object Post<T>(string uri, T form)
+
+        internal override object Post<T>(string uri, T form, RequestOptions options)
         {
             if (uri == null) throw new ArgumentNullException("uri");
             if (form == null) throw new ArgumentNullException("form");
@@ -433,10 +434,10 @@ namespace Pomona.Common
             CustomUserTypeInfo userTypeInfo;
             if (TryGetUserTypeInfo(type, out userTypeInfo))
             {
-                return PostUserType(uri, (ClientSideFormProxyBase) ((object) form));
+                return PostUserType(uri, (ClientSideFormProxyBase) ((object) form), options);
             }
 
-            return PostServerType(uri, form);
+            return PostServerType(uri, form, options);
         }
 
         private T Patch<T>(T form, RequestOptions requestOptions)
@@ -451,11 +452,11 @@ namespace Pomona.Common
             return PatchServerType(form, requestOptions);
         }
 
-        private object PostUserType(string uri, ClientSideFormProxyBase postForm)
+        private object PostUserType(string uri, ClientSideFormProxyBase postForm, RequestOptions options)
         {
             var userTypeInfo = postForm.UserTypeInfo;
             var serverTypeResult = postServerTypeMethod.MakeGenericMethod(userTypeInfo.ServerType)
-                                                       .Invoke(this, new[] {uri, postForm.ProxyTarget});
+                                                       .Invoke(this, new[] {uri, postForm.ProxyTarget, options});
             var resultProxy =
                 (ClientSideResourceProxyBase)
                 RuntimeProxyFactory.Create(typeof (ClientSideResourceProxyBase), userTypeInfo.ClientType);
@@ -463,10 +464,10 @@ namespace Pomona.Common
             return resultProxy;
         }
 
-        private object PostServerType<T>(string uri, T postForm)
+        private object PostServerType<T>(string uri, T postForm, RequestOptions options)
             where T : class
         {
-            return PostOrPatch(uri, postForm, "POST", null);
+            return PostOrPatch(uri, postForm, "POST", options);
         }
 
         private object PatchUserType(ClientSideFormProxyBase patchForm, RequestOptions requestOptions)

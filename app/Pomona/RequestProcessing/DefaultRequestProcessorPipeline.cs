@@ -42,7 +42,7 @@ namespace Pomona.RequestProcessing
 
         public virtual IEnumerable<IPomonaRequestProcessor> Before
         {
-            get { yield return new ValidateEtagOnPatchProcessor(); }
+            get { yield return new ValidateEtagProcessor(); }
         }
 
         public IEnumerable<IPomonaRequestProcessor> After

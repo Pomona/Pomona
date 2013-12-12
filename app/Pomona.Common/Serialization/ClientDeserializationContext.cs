@@ -87,12 +87,25 @@ namespace Pomona.Common.Serialization
             if (property.PropertyType.Type.TryExtractTypeArguments(typeof(ClientRepository<,>),
                 out clientRepositoryTypeArgs))
             {
-
-                property.Setter(target.Value,
-                    Activator.CreateInstance(typeof(ClientRepository<,>).MakeGenericType(clientRepositoryTypeArgs),
+                Type repoType = typeof(ChildResourceRepository<,>).MakeGenericType(clientRepositoryTypeArgs);
+                var listProxyValue = propertyValue as LazyListProxy;
+                object repo;
+                if (listProxyValue != null)
+                {
+                    repo = Activator.CreateInstance(repoType,
+                        this.client,
+                        listProxyValue.Uri,
+                        null, target.Value);
+                }
+                else
+                {
+                    repo = Activator.CreateInstance(repoType,
                         client,
                         target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
-                        propertyValue));
+                        propertyValue,
+                        target.Value);
+                }
+                property.Setter(target.Value, repo);
                 return;
             }
 
@@ -121,12 +134,20 @@ namespace Pomona.Common.Serialization
             return typeMapper.GetClassMapping(type);
         }
 
-        public object CreateReference(TypeSpec type, string uri)
+        public object CreateReference(IDeserializerNode node)
         {
+            var uri = node.Uri;
+            var type = node.ExpectedBaseType;/*
             if (type.Type.IsGenericType && type.Type.GetGenericTypeDefinition() == typeof(ClientRepository<,>))
             {
+                if (node.Parent != null)
+                {
+                    var childRepositoryType =
+                        typeof(ChildResourceRepository<,>).MakeGenericType(type.Type.GetGenericArguments());
+                    return Activator.CreateInstance(childRepositoryType, client, uri, null, node.Parent.Value);
+                }
                 return Activator.CreateInstance(type.Type, client, uri, null);
-            }
+            }*/
             if (type.SerializationMode == TypeSerializationMode.Array)
             {
                 var lazyListType = typeof (LazyListProxy<>).MakeGenericType(type.ElementType.Type);

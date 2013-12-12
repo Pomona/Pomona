@@ -974,9 +974,15 @@ namespace Pomona.CodeGen
                     throw new InvalidOperationException("Can only expose an enumerable type as repository.");
                 var resourceInfo = clientTypeInfoDict[propType.ItemType];
                 var elementTypeReference = resourceInfo.InterfaceType;
+                var postReturnType =
+                    resourceInfo.TransformedType.Maybe().OfType<ResourceType>().Select(x => x.PostReturnType).OrDefault()
+                    ?? resourceInfo.TransformedType;
+
+                var postReturnTypeInfo = clientTypeInfoDict[postReturnType];
+
                 propTypeRef =
                     GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
-                        elementTypeReference, elementTypeReference);
+                        elementTypeReference, postReturnTypeInfo.InterfaceType);
             }
             else
                 propTypeRef = GetTypeReference(prop.PropertyType);

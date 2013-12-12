@@ -34,7 +34,7 @@ namespace Pomona.Common.Serialization
     public interface IDeserializationContext
     {
         TypeSpec GetClassMapping(Type type);
-        object CreateReference(TypeSpec type, string uri);
+        object CreateReference(IDeserializerNode node);
 
 
         void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)

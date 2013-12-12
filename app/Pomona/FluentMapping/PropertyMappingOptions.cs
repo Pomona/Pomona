@@ -75,6 +75,8 @@ namespace Pomona.FluentMapping
             get { return this.propertyInfo; }
         }
 
+        public bool? ExposedAsRepository { get; internal set; }
+
 
         internal void ClearAccessModeFlag(HttpMethod method)
         {
