@@ -28,6 +28,8 @@
 
 using System;
 
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -36,6 +38,7 @@ namespace Pomona
 {
     public class ServerDeserializationContext : IDeserializationContext
     {
+        private readonly NancyContext nancyContext;
         private readonly IResourceResolver resourceResolver;
         private readonly IResourceNode targetNode;
         private readonly ITypeMapper typeMapper;
@@ -43,11 +46,13 @@ namespace Pomona
 
         public ServerDeserializationContext(ITypeMapper typeMapper,
             IResourceResolver resourceResolver,
-            IResourceNode targetNode)
+            IResourceNode targetNode,
+            NancyContext nancyContext)
         {
             this.typeMapper = typeMapper;
             this.resourceResolver = resourceResolver;
             this.targetNode = targetNode;
+            this.nancyContext = nancyContext;
         }
 
 
@@ -109,6 +114,14 @@ namespace Pomona
                 targetProp.Name,
                 node.ValueType.Name,
                 null);
+        }
+
+
+        public T ResolveContext<T>()
+        {
+            if (typeof(T) == typeof(NancyContext))
+                return (T)((object)this.nancyContext);
+            throw new InvalidOperationException("Unable to resolve context of type " + typeof(T));
         }
 
 

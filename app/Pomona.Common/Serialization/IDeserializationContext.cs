@@ -27,26 +27,30 @@
 #endregion
 
 using System;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
     public interface IDeserializationContext
     {
-        TypeSpec GetClassMapping(Type type);
+        IResourceNode TargetNode { get; }
+        void CheckAccessRights(PropertySpec property, HttpMethod method);
+        void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method);
         object CreateReference(IDeserializerNode node);
 
 
         void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
             where TReader : ISerializerReader;
 
-        IResourceNode TargetNode { get; }
+
+        TypeSpec GetClassMapping(Type type);
 
         TypeSpec GetTypeByName(string typeName);
+        void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp);
+
+        T ResolveContext<T>();
 
         void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue);
-        void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method);
-        void CheckAccessRights(PropertySpec property, HttpMethod method);
-        void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp);
     }
 }

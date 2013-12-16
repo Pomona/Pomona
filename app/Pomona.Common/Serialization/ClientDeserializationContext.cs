@@ -78,6 +78,13 @@ namespace Pomona.Common.Serialization
             return typeMapper.GetClassMapping(typeName);
         }
 
+
+        public T ResolveContext<T>()
+        {
+            throw new NotSupportedException();
+        }
+
+
         public void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue)
         {
             if (!property.IsWritable)
