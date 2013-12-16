@@ -554,6 +554,15 @@ namespace Pomona.CodeGen
                 new CustomAttributeNamedArgument(
                     "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
 
+            var resourceType = typeInfo.TransformedType as ResourceType;
+            if (resourceType != null && resourceType.ParentResourceType != null)
+            {
+                var parentResourceTypeInfo = clientTypeInfoDict[resourceType.ParentResourceType];
+                custAttr.Properties.Add(
+                    new CustomAttributeNamedArgument("ParentResourceType",
+                        new CustomAttributeArgument(typeTypeReference, parentResourceTypeInfo.InterfaceType)));
+            }
+
             if (typeInfo.BaseType != null)
             {
                 custAttr.Properties.Add(

@@ -36,7 +36,6 @@ using Critters.Client;
 using NUnit.Framework;
 
 using Pomona.Common;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona.SystemTests
 {
@@ -169,6 +168,14 @@ namespace Pomona.SystemTests
         {
             var resInfo = typeof(ICritter).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
             Assert.That(resInfo.EtagProperty, Is.EqualTo(typeof(IEtaggedEntity).GetProperty("Id")));
+        }
+
+
+        [Test]
+        public void ResourceInfoAttributeOfGeneratedTypeHasParentResourceTypeSet()
+        {
+            var resInfo = typeof(IPlanet).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
+            Assert.That(resInfo.ParentResourceType, Is.EqualTo(typeof(IPlanetarySystem)));
         }
 
 

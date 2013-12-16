@@ -38,10 +38,34 @@ namespace Pomona.Common
         private readonly Lazy<PropertyInfo> etagProperty;
         private readonly Lazy<PropertyInfo> idProperty;
 
+
         public ResourceInfoAttribute()
         {
-            etagProperty = new Lazy<PropertyInfo>(GetPropertyWithAttribute<ResourceEtagPropertyAttribute>);
-            idProperty = new Lazy<PropertyInfo>(GetPropertyWithAttribute<ResourceIdPropertyAttribute>);
+            this.etagProperty = new Lazy<PropertyInfo>(GetPropertyWithAttribute<ResourceEtagPropertyAttribute>);
+            this.idProperty = new Lazy<PropertyInfo>(GetPropertyWithAttribute<ResourceIdPropertyAttribute>);
+        }
+
+
+        public Type BaseType { get; set; }
+
+        public PropertyInfo EtagProperty
+        {
+            get { return this.etagProperty.Value; }
+        }
+
+        public bool HasEtagProperty
+        {
+            get { return this.etagProperty.Value != null; }
+        }
+
+        public bool HasIdProperty
+        {
+            get { return this.idProperty.Value != null; }
+        }
+
+        public PropertyInfo IdProperty
+        {
+            get { return this.idProperty.Value; }
         }
 
         public Type InterfaceType { get; set; }
@@ -51,41 +75,23 @@ namespace Pomona.Common
             get { return UriBaseType == InterfaceType; }
         }
 
-        public PropertyInfo EtagProperty
-        {
-            get { return etagProperty.Value; }
-        }
-
-        public bool HasEtagProperty
-        {
-            get { return etagProperty.Value != null; }
-        }
-
-        public PropertyInfo IdProperty
-        {
-            get { return idProperty.Value; }
-        }
-
-        public bool HasIdProperty
-        {
-            get { return idProperty.Value != null; }
-        }
+        public bool IsValueObject { get; set; }
 
         public string JsonTypeName { get; set; }
         public Type LazyProxyType { get; set; }
+        public Type ParentResourceType { get; set; }
+        public Type PatchFormType { get; set; }
         public Type PocoType { get; set; }
         public Type PostFormType { get; set; }
-        public Type PatchFormType { get; set; }
         public Type UriBaseType { get; set; }
-        public Type BaseType { get; set; }
         public string UrlRelativePath { get; set; }
-        public bool IsValueObject { get; set; }
+
 
         private PropertyInfo GetPropertyWithAttribute<TAttribute>()
             where TAttribute : Attribute
         {
             return InterfaceType.GetAllInheritedPropertiesFromInterface()
-                                .FirstOrDefault(x => x.HasAttribute<TAttribute>(true));
+                .FirstOrDefault(x => x.HasAttribute<TAttribute>(true));
         }
     }
 }
