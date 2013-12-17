@@ -80,6 +80,7 @@ namespace Pomona.UnitTests.Queries
             public string Text { get; set; }
             public DateTime Time { get; set; }
             public TestEnum AnEnumValue { get; set; }
+            public TestEnum? NullableEnum { get; set; }
         }
 
         private class PomonaTestConfiguration : PomonaConfigurationBase

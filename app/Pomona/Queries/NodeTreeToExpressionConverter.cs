@@ -413,6 +413,7 @@ namespace Pomona.Queries
         private Expression ParseEqualOperator(Expression leftChild, Expression rightChild)
         {
             TryDetectAndConvertEnumComparison(ref leftChild, ref rightChild, true);
+            TryDetectAndConvertNullableEnumComparison(ref leftChild, ref rightChild, true);
             return Expression.Equal(leftChild, rightChild);
         }
 
@@ -515,17 +516,40 @@ namespace Pomona.Queries
             if (left.Type.IsEnum && right.NodeType == ExpressionType.Constant && right.Type == typeof (string))
             {
                 var enumType = left.Type;
-                left = Expression.Convert(left, enumType.UnderlyingSystemType);
+                var enumUnderlyingType = enumType.GetEnumUnderlyingType();
+                left = Expression.Convert(left, enumUnderlyingType);
                 var enumStringValue = (string) ((ConstantExpression) right).Value;
                 var enumIntvalue = Convert.ChangeType(
                     Enum.Parse(enumType, enumStringValue),
-                    enumType.UnderlyingSystemType);
-                right = Expression.Constant(enumIntvalue, enumType.UnderlyingSystemType);
+                    enumUnderlyingType);
+                right = Expression.Constant(enumIntvalue, enumUnderlyingType);
                 return;
             }
 
             if (tryAgainSwapped)
                 TryDetectAndConvertEnumComparison(ref right, ref left, false);
+        }
+
+
+
+        private void TryDetectAndConvertNullableEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
+        {
+            Type[] nullableTypeArgs;
+            if (right.NodeType == ExpressionType.Constant && right.Type == typeof(string) && left.Type.TryExtractTypeArguments(typeof(Nullable<>), out nullableTypeArgs) && nullableTypeArgs[0].IsEnum)
+            {
+                var enumType = nullableTypeArgs[0];
+                var enumUnderlyingType = typeof(Nullable<>).MakeGenericType(enumType.GetEnumUnderlyingType());
+                left = Expression.Convert(left, enumUnderlyingType);
+                var enumStringValue = (string)((ConstantExpression)right).Value;
+                var enumIntvalue = Convert.ChangeType(
+                    Enum.Parse(enumType, enumStringValue),
+                    enumType);
+                right = Expression.Convert(Expression.Constant(enumIntvalue, enumType), enumUnderlyingType);
+                return;
+            }
+
+            if (tryAgainSwapped)
+                TryDetectAndConvertNullableEnumComparison(ref right, ref left, false);
         }
 
 

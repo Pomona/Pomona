@@ -182,6 +182,19 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("children.sum(x: x.someDecimal)", _this => _this.Children.Sum(x => x.SomeDecimal));
         }
 
+
+        [Test]
+        public void ParseEnumComparison_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("anEnumValue eq 'Moo'", _this => _this.AnEnumValue == TestEnum.Moo);
+        }
+
+        [Test]
+        public void ParseNullableEnumComparison_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("NullableEnum eq 'Moo'", _this => _this.NullableEnum == TestEnum.Moo);
+        }
+
         [Test]
         public void ParseSumWithSelectorOfDouble_ReturnsCorrectExpression()
         {
