@@ -46,8 +46,8 @@ namespace Pomona.Common
     {
         private readonly IClientResource parent;
 
-        public ChildResourceRepository(ClientBase client, string uri, IEnumerable<TResource> results, IClientResource parent)
-            : base(client, uri, results)
+        public ChildResourceRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
+            : base(client, uri, results, parent)
         {
             this.parent = parent;
         }
@@ -90,13 +90,13 @@ namespace Pomona.Common
         private readonly IEnumerable<TResource> results;
 
 
-        public ClientRepository(ClientBase client, string uri, IEnumerable<TResource> results)
+        public ClientRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
             this.client = client;
             this.uri = uri;
-            this.results = results;
+            this.results = results as IEnumerable<TResource> ?? (results != null ? results.Cast<TResource>() : null);
         }
 
 

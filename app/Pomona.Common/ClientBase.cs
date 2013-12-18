@@ -615,7 +615,7 @@ namespace Pomona.Common
 
                 var tResource = typeArgs[0];
                 var uri = GetUriOfType(tResource);
-                prop.SetValue(this, Activator.CreateInstance(repositoryImplementation, this, uri), null);
+                prop.SetValue(this, Activator.CreateInstance(repositoryImplementation, this, uri, null, null), null);
             }
         }
 

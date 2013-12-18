@@ -27,6 +27,9 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
+using System.Linq;
+
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 
@@ -85,28 +88,30 @@ namespace Pomona.Common.Serialization
         }
 
 
+        private ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap = new ConcurrentDictionary<Type, Type>();
+
         public void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue)
         {
             if (!property.IsWritable)
                 throw new InvalidOperationException("Unable to set property.");
 
-            Type[] clientRepositoryTypeArgs;
-            if (property.PropertyType.Type.TryExtractTypeArguments(typeof(ClientRepository<,>),
-                out clientRepositoryTypeArgs))
+            if (typeof(IClientRepository).IsAssignableFrom(property.PropertyType))
             {
-                Type repoType = typeof(ChildResourceRepository<,>).MakeGenericType(clientRepositoryTypeArgs);
+                Type repoImplementationType = clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
+                    t => t.Assembly.GetTypes().First(x => !x.IsInterface && x.IsClass && t.IsAssignableFrom(x)));
+
                 var listProxyValue = propertyValue as LazyListProxy;
                 object repo;
                 if (listProxyValue != null)
                 {
-                    repo = Activator.CreateInstance(repoType,
+                    repo = Activator.CreateInstance(repoImplementationType,
                         this.client,
                         listProxyValue.Uri,
                         null, target.Value);
                 }
                 else
                 {
-                    repo = Activator.CreateInstance(repoType,
+                    repo = Activator.CreateInstance(repoImplementationType,
                         client,
                         target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
                         propertyValue,
