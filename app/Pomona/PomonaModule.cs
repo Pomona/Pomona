@@ -121,7 +121,7 @@ namespace Pomona
                 return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
             var pomonaException = exception as PomonaException;
             if (pomonaException != null)
-                return new PomonaError(pomonaException.StatusCode, pomonaException.Message);
+                return new PomonaError(pomonaException.StatusCode, pomonaException.Entity??pomonaException.Message);
             return new PomonaError(HttpStatusCode.InternalServerError,  HttpStatusCode.InternalServerError.ToString());
         }
 
