@@ -72,6 +72,11 @@ namespace Pomona.Common
         }
 
 
+        public static bool IsStatic(this PropertyInfo propertyInfo)
+        {
+            return propertyInfo.GetAccessors(true).First(x => x != null).IsStatic;
+        }
+
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
             return type.WalkTree(x => x.BaseType);

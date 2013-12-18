@@ -33,6 +33,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 
 using Common.Logging;
 
@@ -346,7 +347,8 @@ namespace Pomona
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
-            return propertyInfo.GetGetMethod(true).IsPublic;
+            var getMethod = propertyInfo.GetGetMethod(true);
+            return getMethod != null && getMethod.IsPublic && !getMethod.IsStatic;
         }
 
 

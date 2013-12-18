@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,44 +24,62 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
+#endregion
+
 using System.Linq;
+
 using NUnit.Framework;
 
 using Pomona.Common;
-using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
-using Pomona.FluentMapping;
 
 namespace Pomona.UnitTests
 {
     [TestFixture]
     public class TypeMapperTests
     {
+        #region Setup/Teardown
+
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
         }
+
+        #endregion
 
         private TypeMapper typeMapper;
 
-        [Test]
-        public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
-        {
-            var tt = (PropertyMapping)typeMapper.GetClassMapping<Critter>().Properties.First(x => x.Name == "PublicAndReadOnlyThroughApi");
-            Assert.That(!tt.AccessMode.HasFlag(HttpMethod.Post));
-        }
 
         [Test]
         public void DoesNotDuplicatePropertiesWhenDerivedFromHiddenBaseClassInMiddle()
         {
-            var tt = typeMapper.GetClassMapping<InheritsFromHiddenBase>();
+            var tt = this.typeMapper.GetClassMapping<InheritsFromHiddenBase>();
             Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
             var idProp = tt.Properties.First(x => x.Name == "Id");
-            Assert.That(idProp.DeclaringType, Is.EqualTo(typeMapper.GetClassMapping<EntityBase>()));
+            Assert.That(idProp.DeclaringType, Is.EqualTo(this.typeMapper.GetClassMapping<EntityBase>()));
+        }
+
+
+        [Test]
+        public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        {
+            var tt =
+                (PropertyMapping)
+                    this.typeMapper.GetClassMapping<Critter>().Properties.First(
+                        x => x.Name == "PublicAndReadOnlyThroughApi");
+            Assert.That(!tt.AccessMode.HasFlag(HttpMethod.Post));
+        }
+
+
+        [Test]
+        public void StaticProperty_IsExcludedByDefault()
+        {
+            Assert.That(
+                this.typeMapper.FromType(typeof(Critter)).Properties.Where(x => x.Name == "TheIgnoredStaticProperty"),
+                Is.Empty);
         }
     }
 }

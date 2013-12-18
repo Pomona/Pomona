@@ -548,7 +548,7 @@ namespace TestNs
             out PropertyMappingOptions propertyOptions)
         {
             typeMapping = GetTypeMapping(propertyInfo.ReflectedType);
-            propertyOptions = typeMapping.GetPropertyOptions(propertyInfo.Name);
+            propertyOptions = typeMapping.GetPropertyOptions(propertyInfo);
             return true;
         }
 
