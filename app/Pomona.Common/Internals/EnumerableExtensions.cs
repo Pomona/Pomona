@@ -53,6 +53,12 @@ namespace Pomona.Common.Internals
             return source ?? Enumerable.Empty<T>().AsQueryable();
         }
 
+
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> items, Func<T, IEnumerable<T>> getChildren)
+        {
+            return items.SelectMany(x => x.WrapAsEnumerable().Concat(getChildren(x).Flatten(getChildren)));
+        }
+
         public static IEnumerable<T> WalkTree<T>(this T o, Func<T, T> nextNodeSelector)
             where T : class
         {

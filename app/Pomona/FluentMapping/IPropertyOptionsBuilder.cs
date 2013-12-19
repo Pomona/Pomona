@@ -38,7 +38,6 @@ namespace Pomona.FluentMapping
     {
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
 
-
         /// <summary>
         /// Property defines the attributes of the resource.
         /// By doing this the property will have ResourceAttributesPropertyAttribute
@@ -46,7 +45,6 @@ namespace Pomona.FluentMapping
         /// </summary>
         /// <returns>the builder</returns>
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes();
-
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag();
 

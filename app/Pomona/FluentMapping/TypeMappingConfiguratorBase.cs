@@ -121,6 +121,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> property, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> OnDeserialized(Action<TDeclaring> action)
         {
             return this;

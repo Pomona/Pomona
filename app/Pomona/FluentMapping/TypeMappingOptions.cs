@@ -235,6 +235,12 @@ namespace Pomona.FluentMapping
             }
 
 
+            public override ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(Expression<Func<TDeclaringType, IEnumerable<TItem>>> property, Expression<Func<TItem, TDeclaringType>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> childConfig, Func<IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
+            {
+                return Include(property, options);
+            }
+
+
             public override ITypeMappingConfigurator<TDeclaringType> AsEntity()
             {
                 throw new NotImplementedException();

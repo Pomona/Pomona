@@ -74,6 +74,7 @@
     <Compile Include="Client\CritterServiceTestsBase.cs" />
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
+    <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />

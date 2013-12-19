@@ -36,12 +36,34 @@ using System.Text;
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Internals;
 
 namespace Pomona.FluentMapping
 {
     public sealed class FluentTypeMappingFilter : ITypeMappingFilter
     {
+        private class NestedTypeMappingConfigurator<TDeclaring> : TypeMappingConfiguratorBase<TDeclaring>
+        {
+            readonly List<Delegate> typeConfigurationDelegates = new List<Delegate>();
+
+
+            public NestedTypeMappingConfigurator(List<Delegate> typeConfigurationDelegates)
+            {
+                this.typeConfigurationDelegates = typeConfigurationDelegates;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+            {
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping = x => x.AsChildResourceOf(parentProperty, collectionProperty);
+                typeConfigurationDelegates.Add(asChildResourceMapping);
+                typeConfigurationDelegates.Add(typeOptions);
+                return this;
+            }
+        }
+
         private readonly IDictionary<string, TypeMappingOptions> typeMappingDict =
             new Dictionary<string, TypeMappingOptions>();
 
@@ -54,7 +76,10 @@ namespace Pomona.FluentMapping
             this.wrappedFilter = wrappedFilter;
             this.sourceTypes = sourceTypes ?? Enumerable.Empty<Type>();
 
-            var ruleMethods = GetMappingRulesFromObjects(fluentRuleObjects).Concat(GetMappingRulesFromDelegates(mapDelegates)).ToList();
+            var ruleMethods =
+                GetMappingRulesFromObjects(fluentRuleObjects).Concat(GetMappingRulesFromDelegates(mapDelegates)).Flatten
+                    (x => x.GetChildRules());
+
             ApplyRules(ruleMethods);
         }
 
@@ -62,8 +87,8 @@ namespace Pomona.FluentMapping
         {
             if (mapDelegates == null)
                 return Enumerable.Empty<RuleMethod>();
-            throw new NotImplementedException();
-            //mapDelegates.Select(x => new RuleMethod());
+
+            return mapDelegates.Where(x => IsRuleMethod(x.Method)).Select(x => new RuleMethod(x.Method, x.Target));
         }
 
 
@@ -458,11 +483,28 @@ namespace TestNs
             private readonly MethodInfo method;
             private readonly object instance;
 
-            public RuleMethod(Type appliesToType, MethodInfo method, object instance)
+            public RuleMethod(MethodInfo method, object instance)
             {
-                this.appliesToType = appliesToType;
+                this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
                 this.method = method;
                 this.instance = instance;
+            }
+
+
+            public static MethodInfo getChildRulesMethod =
+                ReflectionHelper.GetMethodDefinition<RuleMethod>(x => x.GetChildRules<object>());
+
+            private IEnumerable<RuleMethod> GetChildRules<T>()
+            {
+                var typeConfigDelegates = new List<Delegate>();
+                var nestedScanner = new NestedTypeMappingConfigurator<T>(typeConfigDelegates);
+                Method.Invoke(Instance, new object[] { nestedScanner });
+                return typeConfigDelegates.Select(x => new RuleMethod(x.Method, x.Target)).ToList();
+            }
+
+            public IEnumerable<RuleMethod> GetChildRules()
+            {
+                return (IEnumerable<RuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
             }
         }
 
@@ -498,7 +540,7 @@ namespace TestNs
                         .GetMethods()
                         .Where(IsRuleMethod)
                         .Select(
-                            m => new RuleMethod(m.GetParameters()[0].ParameterType.GetGenericArguments()[0], m, x)));
+                            m => new RuleMethod(m, x)));
         }
 
 
