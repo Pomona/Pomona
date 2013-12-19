@@ -37,7 +37,7 @@ using Pomona.Common.TypeSystem;
 namespace Pomona.FluentMapping
 {
     internal class PropertyOptionsBuilder<TDeclaringType, TPropertyType>
-        : IPropertyOptionsBuilder<TDeclaringType, TPropertyType>
+        : PropertyOptionsBuilderBase<TDeclaringType, TPropertyType>
     {
         private readonly PropertyMappingOptions options;
 
@@ -51,49 +51,49 @@ namespace Pomona.FluentMapping
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
         {
             this.options.AlwaysExpanded = true;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
         {
             this.options.ExposedAsRepository = true;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
         {
             this.options.IsAttributesProperty = true;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag()
         {
             this.options.IsEtagProperty = true;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey()
         {
             this.options.IsPrimaryKey = true;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
         {
             this.options.Name = name;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
             this.options.CreateMode = PropertyCreateMode.Excluded;
             
@@ -108,14 +108,14 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
         {
             this.options.PropertyFormulaIsDecompiled = true;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {
             if (formula == null)
@@ -125,7 +125,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpMethod method)
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpMethod method)
         {
             this.options.MethodMask = ~(default(HttpMethod));
             this.options.Method = method;
@@ -133,14 +133,14 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
         {
             this.options.CreateMode = createMode;
             return this;
         }
 
 
-        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable()
         {
             this.options.CreateMode = PropertyCreateMode.Optional;
             if (typeof(TPropertyType).IsCollection())

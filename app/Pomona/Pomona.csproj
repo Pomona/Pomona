@@ -144,6 +144,8 @@
     <Compile Include="FluentMapping\PropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\PropertyMappingOptions.cs" />
     <Compile Include="FluentMapping\PropertyOptionsBuilder.cs" />
+    <Compile Include="FluentMapping\PropertyOptionsBuilderBase.cs" />
+    <Compile Include="FluentMapping\TypeMappingConfiguratorBase.cs" />
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />

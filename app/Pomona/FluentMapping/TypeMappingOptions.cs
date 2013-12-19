@@ -188,7 +188,7 @@ namespace Pomona.FluentMapping
 
         #region Nested type: Configurator
 
-        private class Configurator<TDeclaringType> : ITypeMappingConfigurator<TDeclaringType>
+        private class Configurator<TDeclaringType> : TypeMappingConfiguratorBase<TDeclaringType>
         {
             private readonly TypeMappingOptions owner;
 
@@ -199,21 +199,21 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreExcludedByDefault()
+            public override ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreExcludedByDefault()
             {
                 this.owner.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault()
+            public override ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault()
             {
                 this.owner.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping()
+            public override ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping()
             {
                 this.owner.defaultPropertyInclusionMode =
                     DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping;
@@ -221,7 +221,7 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
+            public override ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
                 Expression<Func<TDeclaringType, TParent>> parentProperty,
                 Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty)
             {
@@ -235,13 +235,13 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AsEntity()
+            public override ITypeMappingConfigurator<TDeclaringType> AsEntity()
             {
                 throw new NotImplementedException();
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot()
+            public override ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot()
             {
                 if (IsMappingSubclass())
                     return this;
@@ -250,21 +250,21 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
+            public override ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
             {
                 this.owner.isUriBaseType = true;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> AsValueObject()
+            public override ITypeMappingConfigurator<TDeclaringType> AsValueObject()
             {
                 this.owner.isValueObject = true;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+            public override ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
                 Expression<Func<IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr)
             {
                 if (IsMappingSubclass())
@@ -274,7 +274,7 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+            public override ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
                 Expression<Func<TDeclaringType, IConstructorControl<TDeclaringType>, TDeclaringType>> expr)
             {
                 // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
@@ -285,7 +285,7 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property)
+            public override ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property)
             {
                 if (property == null)
                     throw new ArgumentNullException("property");
@@ -295,14 +295,14 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository()
+            public override ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository()
             {
                 this.owner.isExposedAsRepository = true;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
+            public override ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
                 Expression<Func<TDeclaringType, TPropertyType>> property,
                 Func
                     <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
@@ -321,7 +321,7 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action)
+            public override ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action)
             {
                 if (action == null)
                     throw new ArgumentNullException("action");
@@ -330,48 +330,48 @@ namespace Pomona.FluentMapping
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> PatchAllowed()
+            public override ITypeMappingConfigurator<TDeclaringType> PatchAllowed()
             {
                 this.owner.patchAllowed = true;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> PatchDenied()
+            public override ITypeMappingConfigurator<TDeclaringType> PatchDenied()
             {
                 this.owner.patchAllowed = false;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> PostAllowed()
+            public override ITypeMappingConfigurator<TDeclaringType> PostAllowed()
             {
                 this.owner.postAllowed = true;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> PostDenied()
+            public override ITypeMappingConfigurator<TDeclaringType> PostDenied()
             {
                 this.owner.postAllowed = false;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>()
+            public override ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>()
             {
                 return PostReturns(typeof(TPostResponseType));
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> PostReturns(Type type)
+            public override ITypeMappingConfigurator<TDeclaringType> PostReturns(Type type)
             {
                 this.owner.postResponseType = type;
                 return this;
             }
 
 
-            public ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName)
+            public override ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName)
             {
                 this.owner.pluralName = pluralName;
                 return this;
