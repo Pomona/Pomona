@@ -58,6 +58,13 @@ namespace Pomona.FluentMapping
         }
 
 
+        public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
+        {
+            this.options.ExposedAsRepository = true;
+            return this;
+        }
+
+
         public IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
         {
             this.options.IsAttributesProperty = true;

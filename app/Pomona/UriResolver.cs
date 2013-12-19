@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 
 using Nancy;
+using Nancy.Helpers;
 
 using Pomona.Common.TypeSystem;
 
@@ -72,7 +73,8 @@ namespace Pomona
             }
             sb.Append('/');
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}", type.GetId(entity));
+            sb.AppendFormat("{0}", Common.HttpUtility.UrlPathEncode(Convert.ToString(type.GetId(entity), CultureInfo.InvariantCulture)));
+
             if (property != null)
             {
                 sb.Append('/');

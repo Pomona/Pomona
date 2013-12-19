@@ -30,10 +30,6 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public interface IResourceResolver
-    {
-        object ResolveUri(string uri);        
-    }
     public interface IUriResolver
     {
         string RelativeToAbsoluteUri(string uri);

@@ -12,13 +12,15 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<CelestialObject> map)
         {
             map.AsIndependentTypeRoot()
-                .Include(x => x.Name, o => o.AsPrimaryKey());
+                .Include(x => x.Name, o => o.AsPrimaryKey())
+                .Include(x => x.ETag, o => o.AsEtag().ReadOnly());
         }
 
 
         public void Map(ITypeMappingConfigurator<PlanetarySystem> map)
         {
             map.AsUriBaseType()
+                .Include(x => x.Planets, o => o.ExposedAsRepository())
                 .AsChildResourceOf(x => x.Galaxy, x => x.PlanetarySystems);
         }
 

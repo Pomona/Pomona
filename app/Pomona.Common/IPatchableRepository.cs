@@ -34,7 +34,7 @@ namespace Pomona.Common
     public interface IPatchableRepository<TResource>
         where TResource : class, IClientResource
     {
-        TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IPatchOptions<TSubResource>> options)
+        TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IRequestOptions<TSubResource>> options)
             where TSubResource : class, TResource;
 
         TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)

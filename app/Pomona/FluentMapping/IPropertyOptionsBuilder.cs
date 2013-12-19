@@ -59,5 +59,7 @@ namespace Pomona.FluentMapping
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpMethod method);
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository();
     }
 }

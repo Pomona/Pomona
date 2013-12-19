@@ -27,6 +27,9 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
+using System.Linq;
+
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 
@@ -78,21 +81,43 @@ namespace Pomona.Common.Serialization
             return typeMapper.GetClassMapping(typeName);
         }
 
+
+        public T ResolveContext<T>()
+        {
+            throw new NotSupportedException();
+        }
+
+
+        private ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap = new ConcurrentDictionary<Type, Type>();
+
         public void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue)
         {
             if (!property.IsWritable)
                 throw new InvalidOperationException("Unable to set property.");
 
-            Type[] clientRepositoryTypeArgs;
-            if (property.PropertyType.Type.TryExtractTypeArguments(typeof(ClientRepository<,>),
-                out clientRepositoryTypeArgs))
+            if (typeof(IClientRepository).IsAssignableFrom(property.PropertyType))
             {
+                Type repoImplementationType = clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
+                    t => t.Assembly.GetTypes().First(x => !x.IsInterface && x.IsClass && t.IsAssignableFrom(x)));
 
-                property.Setter(target.Value,
-                    Activator.CreateInstance(typeof(ClientRepository<,>).MakeGenericType(clientRepositoryTypeArgs),
+                var listProxyValue = propertyValue as LazyListProxy;
+                object repo;
+                if (listProxyValue != null)
+                {
+                    repo = Activator.CreateInstance(repoImplementationType,
+                        this.client,
+                        listProxyValue.Uri,
+                        null, target.Value);
+                }
+                else
+                {
+                    repo = Activator.CreateInstance(repoImplementationType,
                         client,
                         target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
-                        propertyValue));
+                        propertyValue,
+                        target.Value);
+                }
+                property.Setter(target.Value, repo);
                 return;
             }
 
@@ -121,12 +146,20 @@ namespace Pomona.Common.Serialization
             return typeMapper.GetClassMapping(type);
         }
 
-        public object CreateReference(TypeSpec type, string uri)
+        public object CreateReference(IDeserializerNode node)
         {
+            var uri = node.Uri;
+            var type = node.ExpectedBaseType;/*
             if (type.Type.IsGenericType && type.Type.GetGenericTypeDefinition() == typeof(ClientRepository<,>))
             {
+                if (node.Parent != null)
+                {
+                    var childRepositoryType =
+                        typeof(ChildResourceRepository<,>).MakeGenericType(type.Type.GetGenericArguments());
+                    return Activator.CreateInstance(childRepositoryType, client, uri, null, node.Parent.Value);
+                }
                 return Activator.CreateInstance(type.Type, client, uri, null);
-            }
+            }*/
             if (type.SerializationMode == TypeSerializationMode.Array)
             {
                 var lazyListType = typeof (LazyListProxy<>).MakeGenericType(type.ElementType.Type);

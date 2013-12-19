@@ -157,6 +157,7 @@
     <Compile Include="Serialization\Xml\PomonaXmlSerializerFactory.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="TypeExtensions.cs" />
+    <Compile Include="TypeSystem\Calculator.cs" />
     <Compile Include="TypeSystem\ClientType.cs" />
     <Compile Include="TypeSystem\ConstructorSpec.cs" />
     <Compile Include="TypeSystem\DictionaryTypeSpec.cs" />

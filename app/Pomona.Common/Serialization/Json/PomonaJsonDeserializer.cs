@@ -176,7 +176,7 @@ namespace Pomona.Common.Serialization.Json
 
             var refString = (string)((JValue)refStringToken).Value;
             node.Uri = refString;
-            node.Value = node.Context.CreateReference(node.ExpectedBaseType, refString);
+            node.Value = node.Context.CreateReference(node);
             return true;
         }
 
@@ -481,7 +481,9 @@ namespace Pomona.Common.Serialization.Json
 
             public TContext Context<TContext>()
             {
-                throw new NotImplementedException();
+                // This is a bit confusing. node.Context refers to the deserializationContext, ResolveContext
+                // actually resolves context of type TContext, which for now is limited to mean NancyContext.
+                return node.Context.ResolveContext<TContext>();
             }
 
 

@@ -33,16 +33,23 @@ using Pomona.Common;
 
 namespace Pomona.RequestProcessing
 {
-    public class ValidateEtagOnPatchProcessor : IPomonaRequestProcessor
+    public class ValidateEtagProcessor : IPomonaRequestProcessor
     {
         public PomonaResponse Process(PomonaRequest request)
         {
             string ifMatch = null;
-            var resourceNode = request.Node as ResourceNode;
-            if (request.Method != HttpMethod.Patch || resourceNode == null
-                || (ifMatch = GetIfMatchFromRequest(request)) == null)
+            if ((ifMatch = GetIfMatchFromRequest(request)) == null)
                 return null;
 
+            if (ProcessPatch(request, ifMatch))
+                return null;
+            ProcessPostToChildResourceRepository(request, ifMatch);
+            return null;
+        }
+
+
+        private static bool ValidateResourceEtag(string ifMatch, ResourceNode resourceNode)
+        {
             var resourceType = resourceNode.Type;
             var etagProp = resourceType.ETagProperty;
             if (etagProp == null)
@@ -50,7 +57,7 @@ namespace Pomona.RequestProcessing
 
             if ((string)etagProp.Getter(resourceNode.Value) != ifMatch)
                 throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
-            return null;
+            return true;
         }
 
 
@@ -69,6 +76,27 @@ namespace Pomona.RequestProcessing
                 ifMatch = ifMatch.Substring(1, ifMatch.Length - 2);
             }
             return ifMatch;
+        }
+
+
+        private bool ProcessPatch(PomonaRequest request, string ifMatch)
+        {
+            var resourceNode = request.Node as ResourceNode;
+            if (resourceNode == null || request.Method != HttpMethod.Patch)
+                return false;
+            return ValidateResourceEtag(ifMatch, resourceNode);
+        }
+
+
+        private void ProcessPostToChildResourceRepository(PomonaRequest request, string ifMatch)
+        {
+            var queryableNode = request.Node as QueryableNode;
+            if (request.Method != HttpMethod.Post || queryableNode == null)
+                return;
+
+            var parentNode = queryableNode.Parent as ResourceNode;
+            if (parentNode != null)
+                ValidateResourceEtag(ifMatch, parentNode);
         }
     }
 }

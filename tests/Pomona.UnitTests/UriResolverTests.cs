@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -22,32 +24,29 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Pomona.Queries;
+#endregion
 
-namespace Pomona.RequestProcessing
+using Nancy;
+
+using NUnit.Framework;
+
+using Pomona.Example;
+using Pomona.Example.Models.Existence;
+
+namespace Pomona.UnitTests
 {
-    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline, IPomonaRequestProcessor
+    [TestFixture]
+    public class UriResolverTests
     {
-        public PomonaResponse Process(PomonaRequest request)
+        [Test]
+        public void GetUriFor_WithEntityWithSpaceInPath_EncodesUrlTheRightWay()
         {
-            return    Before
-                      .Concat(request.Node.GetRequestProcessors(request))
-                      .Concat(After)
-                      .Select(x => x.Process(request))
-                      .FirstOrDefault(response => response != null);
-        }
-
-        public virtual IEnumerable<IPomonaRequestProcessor> Before
-        {
-            get { yield return new ValidateEtagProcessor(); }
-        }
-
-        public IEnumerable<IPomonaRequestProcessor> After
-        {
-            get { yield return new DefaultGetRequestProcessor(); }
+            var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            var uriResolver = new UriResolver(typeMapper,
+                new NancyContext() { Request = new Request("GET", new Url() { BasePath = "/", HostName = "whateva" }) });
+            var galaxy = new Galaxy() { Name = "this is it" };
+            var url = uriResolver.GetUriFor(galaxy);
+            Assert.That(url, Is.EqualTo("http://whateva/galaxies/this%20is%20it"));
         }
     }
 }

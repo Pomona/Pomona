@@ -30,6 +30,14 @@ namespace Pomona.Common.Internals
 {
     public static class EnumerableExtensions
     {
+        public static void AddTo<T>(this IEnumerable<T> source, ICollection<T> target)
+        {
+            foreach (var item in source)
+            {
+                target.Add(item);
+            }
+        }
+
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
         {
             return source.Concat((IEnumerable<T>) value);

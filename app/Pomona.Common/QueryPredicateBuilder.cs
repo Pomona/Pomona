@@ -271,6 +271,7 @@ namespace Pomona.Common
             right = FixBinaryComparisonConversion(right);
 
             TryDetectAndConvertEnumComparison(ref left, ref right, true);
+            TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
 
             return string.Format("({0} {1} {2})", Build(left), opString, Build(right));
         }
@@ -511,24 +512,46 @@ namespace Pomona.Common
                 "Don't know how to send constant of type " + valueType.FullName + " yet..");
         }
 
+        private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };
 
         private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
             var unaryLeft = left as UnaryExpression;
-            if (left.Type == typeof (Int32) && unaryLeft != null && left.NodeType == ExpressionType.Convert &&
+            Type underlyingType = left.Type;
+            if (enumUnderlyingTypes.Contains(underlyingType) && unaryLeft != null && left.NodeType == ExpressionType.Convert &&
                 unaryLeft.Operand.Type.IsEnum)
             {
-                if (right.Type == typeof (Int32) && right.NodeType == ExpressionType.Constant)
+                if (right.Type == underlyingType && right.NodeType == ExpressionType.Constant)
                 {
                     var rightConstant = (ConstantExpression)right;
                     left = unaryLeft.Operand;
-                    right = Expression.Constant(Enum.ToObject(left.Type, (int)rightConstant.Value), left.Type);
+                    right = Expression.Constant(Enum.ToObject(unaryLeft.Operand.Type, rightConstant.Value), unaryLeft.Operand.Type);
                     return;
                 }
             }
 
             if (tryAgainSwapped)
                 TryDetectAndConvertEnumComparison(ref right, ref left, false);
+        }
+
+        private void TryDetectAndConvertNullableEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
+        {
+            if (left.Type != right.Type || !left.Type.IsNullable())
+                return;
+            var leftConvert = left.NodeType == ExpressionType.Convert ? (UnaryExpression)left : null;
+            var rightConvert = left.NodeType == ExpressionType.Convert ? (UnaryExpression)right : null;
+            var rightConstant = rightConvert != null ? rightConvert.Operand as ConstantExpression : null;
+            var enumType = rightConstant != null && rightConstant.Type.IsEnum ? rightConstant.Type : null;
+
+            if (leftConvert != null && rightConvert != null && rightConstant != null && enumType != null)
+            {
+                left = leftConvert.Operand;
+                right = rightConstant;
+                return;
+            }
+
+            if (tryAgainSwapped)
+                TryDetectAndConvertNullableEnumComparison(ref right, ref left, false);
         }
 
         private static Type GetFuncInExpression(Type t)

@@ -29,14 +29,56 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 
 namespace Pomona.Common
 {
+    public class ChildResourceRepository<TResource, TPostResponseResource> : ClientRepository<TResource, TPostResponseResource>
+        where TResource : class, IClientResource
+        where TPostResponseResource : IClientResource
+    {
+        private readonly IClientResource parent;
+
+        public ChildResourceRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
+            : base(client, uri, results, parent)
+        {
+            this.parent = parent;
+        }
+
+
+        public override TPostResponseResource Post(IPostForm form)
+        {
+            return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form),GetEtagOptions());
+        }
+
+
+        private RequestOptions GetEtagOptions()
+        {
+            var parentResourceInfo = Client.GetMostInheritedResourceInterfaceInfo(this.parent.GetType());
+            RequestOptions options = null;
+            if (parentResourceInfo.HasEtagProperty)
+            {
+                var etag = parentResourceInfo.EtagProperty.GetValue(this.parent, null);
+                options = new RequestOptions();
+                options.ModifyRequest(r => r.Headers.Add("If-Match", string.Format("\"{0}\"", etag)));
+            }
+            return options;
+        }
+
+
+        public override TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class ClientRepository<TResource, TPostResponseResource> :
         IClientRepository<TResource, TPostResponseResource>, IQueryable<TResource>
         where TResource : class, IClientResource
@@ -48,13 +90,13 @@ namespace Pomona.Common
         private readonly IEnumerable<TResource> results;
 
 
-        public ClientRepository(ClientBase client, string uri, IEnumerable<TResource> results)
+        public ClientRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
             this.client = client;
             this.uri = uri;
-            this.results = results;
+            this.results = results as IEnumerable<TResource> ?? (results != null ? results.Cast<TResource>() : null);
         }
 
 
@@ -69,7 +111,7 @@ namespace Pomona.Common
         }
 
 
-        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IPatchOptions<TSubResource>> options) where TSubResource : class, TResource
+        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
             return client.Patch(resource, patchAction, options);
         }
@@ -80,16 +122,16 @@ namespace Pomona.Common
             return Patch(resource, patchAction, null);
         }
 
-        public TPostResponseResource Post(IPostForm form)
+        public virtual TPostResponseResource Post(IPostForm form)
         {
-            return (TPostResponseResource)client.Post(Uri, (TResource)((object)form));
+            return (TPostResponseResource)client.Post(Uri, (TResource)((object)form), null);
         }
 
 
-        public TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            return (TPostResponseResource)client.Post(Uri, postAction);
+            return (TPostResponseResource)client.Post(Uri, postAction, null);
         }
 
         public IQueryable<TSubResource> Query<TSubResource>()
@@ -100,7 +142,7 @@ namespace Pomona.Common
 
         public TPostResponseResource Post(Action<TResource> postActionBlah)
         {
-            return (TPostResponseResource)client.Post(Uri, postActionBlah);
+            return (TPostResponseResource)client.Post(Uri, postActionBlah, null);
         }
 
         public object Post<TPostForm>(TResource resource, TPostForm form)
@@ -109,7 +151,7 @@ namespace Pomona.Common
             if (resource == null) throw new ArgumentNullException("resource");
             if (form == null) throw new ArgumentNullException("form");
 
-            return client.Post(((IHasResourceUri)resource).Uri, form);
+            return client.Post(((IHasResourceUri)resource).Uri, form, null);
         }
 
         public TResource Get(object id)
@@ -154,7 +196,7 @@ namespace Pomona.Common
 
         private string GetResourceUri(object id)
         {
-            return string.Format("{0}/{1}", uri, id);
+            return string.Format("{0}/{1}", uri, HttpUtility.UrlPathEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
         }
     }
 }

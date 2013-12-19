@@ -164,6 +164,9 @@ namespace Pomona.CodeGen
             foreach (var typeInfo in clientTypeInfoDict.Values)
                 AddResourceInfoAttribute(typeInfo);
 
+            foreach (var typeInfo in clientTypeInfoDict.Values.Where(x => x.CustomRepositoryInterface != null))
+                CreateRepositoryInterfaceAndImplementation(typeInfo);
+
             //AddRepositoryPostExtensionMethods();
 
             // Copy types from running assembly
@@ -281,18 +284,8 @@ namespace Pomona.CodeGen
             {
                 var transformedType = (ResourceType)resourceTypeInfo.TransformedType;
                 var repoPropName = transformedType.PluralName;
-                var postReturnTypeRef = clientTypeInfoDict[transformedType.PostReturnType].InterfaceType;
-                TypeReference repoPropType =
-                    GetClientTypeReference(typeof (IClientRepository<,>)).MakeGenericInstanceType(
-                        resourceTypeInfo.InterfaceType, postReturnTypeRef);
 
-                resourceTypeInfo.RepositoryTypeRef = (GenericInstanceType)repoPropType;
-
-                if (resourceTypeInfo.CustomRepositoryInterface == null)
-                {
-                    CreateRepositoryInterfaceAndImplementation(resourceTypeInfo);
-                }
-                repoPropType = resourceTypeInfo.CustomRepositoryInterface;
+                var repoPropType = resourceTypeInfo.CustomRepositoryInterface;
 
                 if (clientTypeDefinition.IsInterface)
                 {
@@ -332,7 +325,8 @@ namespace Pomona.CodeGen
                                                      .InterfaceType));
             }
 
-            var repoInterface = CreateRepositoryType(resourceTypeInfo,
+            var repoInterface = CreateRepositoryType(resourceTypeInfo.CustomRepositoryInterface,
+                                                    resourceTypeInfo,
                                                      MethodAttributes.Abstract |
                                                      MethodAttributes.HideBySig |
                                                      MethodAttributes.NewSlot |
@@ -343,42 +337,37 @@ namespace Pomona.CodeGen
                                                      false,
                                                      interfacesToImplement);
 
-            var postReturnTypeRef = clientTypeInfoDict[tt.PostReturnType].InterfaceType;
-            var clientRepoBaseTypeRef =
-                GetClientTypeReference(typeof (ClientRepository<,>))
-                    .MakeGenericInstanceType(resourceTypeInfo.InterfaceType, postReturnTypeRef);
-
-            var repoImplementation = CreateRepositoryType(resourceTypeInfo,
+            var repoImplementation = CreateRepositoryType(new TypeDefinition(null, null, 0),  resourceTypeInfo,
                                                           MethodAttributes.NewSlot |
                                                           MethodAttributes.HideBySig
                                                           | MethodAttributes.Virtual |
                                                           MethodAttributes.Public, "{0}Repository",
-                                                          TypeAttributes.Public, true, repoInterface.WrapAsEnumerable(),
-                                                          clientRepoBaseTypeRef);
-
-            resourceTypeInfo.CustomRepositoryInterface = repoInterface;
+                                                          TypeAttributes.Public, true, repoInterface.WrapAsEnumerable());
         }
 
         private IEnumerable<TypeCodeGenInfo> GetAllUriBaseTypesExposedAsRepositories()
         {
             return clientTypeInfoDict.Values.Where(
-                x => x.UriBaseType == x.InterfaceType && x.TransformedType.Maybe().OfType<ResourceType>().Select(y => y.IsExposedAsRepository).OrDefault());
+                x => x.UriBaseType == x.InterfaceType && x.TransformedType.Maybe().OfType<ResourceType>().Select(y => y.IsRootResource && y.IsExposedAsRepository).OrDefault());
         }
 
-        private TypeDefinition CreateRepositoryType(TypeCodeGenInfo rti, MethodAttributes methodAttributes,
+        private TypeDefinition CreateRepositoryType(TypeDefinition repoTypeDef, TypeCodeGenInfo rti, MethodAttributes methodAttributes,
                                                     string repoTypeNameFormat, TypeAttributes typeAttributes,
                                                     bool isImplementation,
-                                                    IEnumerable<TypeReference> interfacesToImplement = null,
-                                                    TypeReference baseClass = null)
+                                                    IEnumerable<TypeReference> interfacesToImplement = null)
         {
             var tt = (ResourceType)rti.TransformedType;
-            var repoTypeDef = new TypeDefinition(assemblyName,
-                                                 string.Format(repoTypeNameFormat, rti.TransformedType.Name),
-                                                 typeAttributes, baseClass);
+
+            repoTypeDef.Namespace = assemblyName;
+            repoTypeDef.Name = string.Format(repoTypeNameFormat, rti.TransformedType.Name);
+            repoTypeDef.Attributes = typeAttributes;
+
+            if (isImplementation)
+                repoTypeDef.BaseType = rti.CustomRepositoryBaseTypeReference;
 
             repoTypeDef.Interfaces.AddRange(interfacesToImplement ?? Enumerable.Empty<TypeReference>());
-            var baseTypeGenericDef = module.Import(typeof (ClientRepository<,>)).Resolve();
-            var baseTypeGenericArgs = rti.RepositoryTypeRef.GenericArguments.ToArray();
+            var baseTypeGenericDef = rti.CustomRepositoryBaseTypeDefinition;
+            var baseTypeGenericArgs = rti.CustomRepositoryBaseTypeReference.GenericArguments.ToArray();
 
             foreach (var subType in tt.MergedTypes.Concat(tt))
             {
@@ -400,11 +389,9 @@ namespace Pomona.CodeGen
             // Constructor
             if (isImplementation)
             {
+                var baseCtor = baseTypeGenericDef.GetConstructors().First();
                 var baseCtorRef =
-                    module.Import(baseTypeGenericDef.Resolve()
-                                                    .GetConstructors()
-                                                    .First(x => x.Parameters.Count == 3)
-                                                    .MakeHostInstanceGeneric(baseTypeGenericArgs));
+                    module.Import(baseCtor.MakeHostInstanceGeneric(baseTypeGenericArgs));
 
                 var ctor = new MethodDefinition(
                     ".ctor",
@@ -412,22 +399,23 @@ namespace Pomona.CodeGen
                     | MethodAttributes.Public,
                     VoidTypeRef);
 
-                ctor.Parameters.Add(new ParameterDefinition("client", ParameterAttributes.None,
-                                                            GetClientTypeReference(typeof (ClientBase))));
-                ctor.Parameters.Add(new ParameterDefinition("uri", ParameterAttributes.None, StringTypeRef));
+                baseCtor.Parameters.Select(x => new ParameterDefinition(x.Name, x.Attributes, module.Import(x.ParameterType)))
+                        .AddTo(ctor.Parameters);
 
                 ctor.Body.MaxStackSize = 8;
                 var ctorIlProcessor = ctor.Body.GetILProcessor();
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldnull));
+                foreach (var ctorParam in ctor.Parameters)
+                {
+                    ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg, ctorParam));
+                }
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtorRef));
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
                 repoTypeDef.Methods.Add(ctor);
             }
 
-            module.Types.Add(repoTypeDef);
+            if (!module.Types.Contains(repoTypeDef))
+                module.Types.Add(repoTypeDef);
             return repoTypeDef;
         }
 
@@ -448,7 +436,7 @@ namespace Pomona.CodeGen
             if (isImplementation)
             {
                 var baseGetMethodRef =
-                    module.Import(baseTypeGenericDef.Methods.First(x => x.Name == methodName)
+                    module.Import(GetClientTypeReference(typeof(ClientRepository<,>)).Resolve().Methods.First(x => x.Name == methodName)
                                                     .MakeHostInstanceGeneric(baseTypeGenericArgs));
                 var ilproc = method.Body.GetILProcessor();
 
@@ -483,7 +471,7 @@ namespace Pomona.CodeGen
             {
                 var basePostMethodRef =
                     module.Import(
-                        baseTypeGenericDef.GetMethods()
+                        GetClientTypeReference(typeof(ClientRepository<,>)).Resolve().GetMethods()
                                           .Single(
                                               x =>
                                               x.Name == "Post" && x.Parameters.Count == 1 &&
@@ -554,6 +542,15 @@ namespace Pomona.CodeGen
                 new CustomAttributeNamedArgument(
                     "UriBaseType", new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
 
+            var resourceType = typeInfo.TransformedType as ResourceType;
+            if (resourceType != null && resourceType.ParentResourceType != null)
+            {
+                var parentResourceTypeInfo = clientTypeInfoDict[resourceType.ParentResourceType];
+                custAttr.Properties.Add(
+                    new CustomAttributeNamedArgument("ParentResourceType",
+                        new CustomAttributeArgument(typeTypeReference, parentResourceTypeInfo.InterfaceType)));
+            }
+
             if (typeInfo.BaseType != null)
             {
                 custAttr.Properties.Add(
@@ -623,18 +620,10 @@ namespace Pomona.CodeGen
                     resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
             foreach (var transformedType in transformedTypes)
             {
-                var typeInfo = new TypeCodeGenInfo();
+                var typeInfo = new TypeCodeGenInfo(this, transformedType);
                 clientTypeInfoDict[transformedType] = typeInfo;
 
-                typeInfo.TransformedType = transformedType;
-
-                var interfaceDef = new TypeDefinition(
-                    assemblyName,
-                    "I" + transformedType.Name,
-                    TypeAttributes.Interface | TypeAttributes.Public |
-                    TypeAttributes.Abstract);
-
-                typeInfo.InterfaceType = interfaceDef;
+                typeInfo.InterfaceType.Namespace = assemblyName;
 
                 var pocoDef = new TypeDefinition(
                     assemblyName, transformedType.Name + "Resource", TypeAttributes.Public);
@@ -651,7 +640,7 @@ namespace Pomona.CodeGen
                 typeInfo.EmptyPocoCtor = ctor;
                 pocoDef.Methods.Add(ctor);
 
-                module.Types.Add(interfaceDef);
+                module.Types.Add(typeInfo.InterfaceType);
                 module.Types.Add(pocoDef);
             }
 
@@ -973,10 +962,7 @@ namespace Pomona.CodeGen
                 if (propType == null)
                     throw new InvalidOperationException("Can only expose an enumerable type as repository.");
                 var resourceInfo = clientTypeInfoDict[propType.ItemType];
-                var elementTypeReference = resourceInfo.InterfaceType;
-                propTypeRef =
-                    GetClientTypeReference(typeof (ClientRepository<,>)).MakeGenericInstanceType(
-                        elementTypeReference, elementTypeReference);
+                return resourceInfo.CustomRepositoryInterface;
             }
             else
                 propTypeRef = GetTypeReference(prop.PropertyType);
@@ -1122,22 +1108,120 @@ namespace Pomona.CodeGen
 
         private class TypeCodeGenInfo
         {
+            private readonly ClientLibGenerator parent;
+
+
+            public TypeCodeGenInfo(ClientLibGenerator parent, TransformedType transformedType)
+            {
+                var resourceType = transformedType as ResourceType;
+                if (resourceType != null && resourceType.IsUriBaseType)
+                {
+                    if ((resourceType.IsRootResource && resourceType.IsExposedAsRepository)
+                        || (resourceType.ParentToChildProperty != null
+                            && resourceType.ParentToChildProperty.ExposedAsRepository))
+                    {
+                        this.customRepositoryInterface = new TypeDefinition(parent.assemblyName, string.Format("I{0}Repository", transformedType.Name), TypeAttributes.Interface | TypeAttributes.Public |
+                                                     TypeAttributes.Abstract);
+                        parent.module.Types.Add(customRepositoryInterface);
+                    }
+                }
+
+                if (parent == null)
+                    throw new ArgumentNullException("parent");
+                this.parent = parent;
+                this.transformedType = transformedType;
+
+                this.postReturnTypeReference = new System.Lazy<TypeReference>(() =>
+                {
+                    if (resourceType == null || resourceType.PostReturnType == null)
+                        return InterfaceType;
+                    return parent.clientTypeInfoDict[resourceType.PostReturnType].InterfaceType;
+                });
+
+                this.customRepositoryBaseType = new System.Lazy<Type>(() =>
+                {
+                    if (resourceType != null)
+                    {
+                        if (resourceType.IsUriBaseType)
+                        {
+                            if (resourceType.IsRootResource && resourceType.IsExposedAsRepository)
+                            {
+                                return typeof(ClientRepository<,>);
+                            }
+                            if (resourceType.ParentToChildProperty != null
+                                && resourceType.ParentToChildProperty.ExposedAsRepository)
+                            {
+                                return typeof(ChildResourceRepository<,>);
+                            }
+                        }
+                    }
+                    return null;
+                });
+
+                this.customRepositoryBaseTypeDefinition = new System.Lazy<TypeDefinition>(() =>
+                {
+                    if (customRepositoryBaseType.Value == null)
+                        return null;
+
+                    var typeRef = parent.GetClientTypeReference(customRepositoryBaseType.Value);
+                    return typeRef as TypeDefinition ?? typeRef.Resolve();
+                });
+
+                this.customRepositoryBaseTypeReference = new System.Lazy<TypeReference>(() =>
+                {
+                    if (customRepositoryBaseType.Value == null)
+                        return null;
+
+                    return
+                        parent.GetClientTypeReference(customRepositoryBaseType.Value).MakeGenericInstanceType(
+                            InterfaceType,
+                            PostReturnTypeReference);
+                });
+
+                interfaceType = new TypeDefinition(
+                    parent.assemblyName,
+                    "I" + transformedType.Name,
+                    TypeAttributes.Interface | TypeAttributes.Public |
+                    TypeAttributes.Abstract);
+            }
+
+
             public MethodDefinition EmptyPocoCtor { get; set; }
-            public TypeDefinition InterfaceType { get; set; }
+
+            private TypeDefinition interfaceType;
+            public TypeDefinition InterfaceType { get { return interfaceType; } }
 
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition PostFormType { get; set; }
             public TypeDefinition PatchFormType { get; set; }
 
-            public TransformedType TransformedType { get; set; }
+            public TransformedType TransformedType
+            {
+                get { return this.transformedType; }
+            }
+
             public TypeDefinition UriBaseType { get; set; }
 
             public TypeDefinition BaseType { get; set; }
 
-            public GenericInstanceType RepositoryTypeRef { get; set; }
+            private TypeDefinition customRepositoryInterface;
+            private TransformedType transformedType;
+            private System.Lazy<TypeReference> postReturnTypeReference;
+            public TypeReference PostReturnTypeReference {get { return postReturnTypeReference.Value; }}
+            private System.Lazy<Type> customRepositoryBaseType;
+            private System.Lazy<TypeReference> customRepositoryBaseTypeReference;
+            private System.Lazy<TypeDefinition> customRepositoryBaseTypeDefinition;
+            public TypeDefinition CustomRepositoryInterface { get { return customRepositoryInterface; } }
 
-            public TypeDefinition CustomRepositoryInterface { get; set; }
+            public TypeDefinition CustomRepositoryBaseTypeDefinition {get { return customRepositoryBaseTypeDefinition.Value; }}
+
+            public GenericInstanceType CustomRepositoryBaseTypeReference
+            {
+                get
+            {
+                return (GenericInstanceType)customRepositoryBaseTypeReference.Value;
+            }}
         }
 
         #endregion

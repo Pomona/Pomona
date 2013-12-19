@@ -26,17 +26,25 @@
 
 #endregion
 
+using System;
+
 namespace Pomona.Example.Models.Existence
 {
     public abstract class CelestialObject : EntityBase
     {
-        protected CelestialObject(string name)
+        protected CelestialObject(string name) : this()
         {
-            this.Name = name;
+            Name = name;
         }
 
-        protected  CelestialObject() {}
 
+        protected CelestialObject()
+        {
+            ETag = Guid.NewGuid().ToString();
+        }
+
+
+        public string ETag { get; set; }
         public string Name { get; set; }
     }
 }

@@ -74,6 +74,8 @@ namespace Pomona.FluentMapping
         }
 
 
+        public PropertyInfo ChildToParentProperty { get; set; }
+
         public ConstructorSpec Constructor
         {
             get { return this.constructor; }
@@ -84,9 +86,6 @@ namespace Pomona.FluentMapping
             get { return this.defaultPropertyInclusionMode; }
             set { this.defaultPropertyInclusionMode = value; }
         }
-
-        public PropertyInfo ChildToParentProperty { get; set; }
-        public PropertyInfo ParentToChildProperty { get; internal set; }
 
         public bool? IsExposedAsRepository
         {
@@ -112,6 +111,8 @@ namespace Pomona.FluentMapping
         {
             get { return this.onDeserialized; }
         }
+
+        public PropertyInfo ParentToChildProperty { get; internal set; }
 
         public bool? PatchAllowed
         {
@@ -153,11 +154,12 @@ namespace Pomona.FluentMapping
         }
 
 
-        internal PropertyMappingOptions GetPropertyOptions(string name)
+        internal PropertyMappingOptions GetPropertyOptions(PropertyInfo propertyInfo)
         {
+            var name = propertyInfo.Name;
             var propInfo = this.declaringType.GetProperty(name,
-                BindingFlags.Instance | BindingFlags.Public |
-                BindingFlags.NonPublic);
+                BindingFlags.Public | BindingFlags.NonPublic
+                | (propertyInfo.IsStatic() ? BindingFlags.Static : BindingFlags.Instance));
             if (propInfo == null)
             {
                 throw new InvalidOperationException(
@@ -214,6 +216,20 @@ namespace Pomona.FluentMapping
             }
 
 
+            public ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
+                Expression<Func<TDeclaringType, TParent>> parentProperty,
+                Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty)
+            {
+                if (parentProperty == null)
+                    throw new ArgumentNullException("parentProperty");
+                if (collectionProperty == null)
+                    throw new ArgumentNullException("collectionProperty");
+                this.owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
+                this.owner.ParentToChildProperty = collectionProperty.ExtractPropertyInfo();
+                return this;
+            }
+
+
             public ITypeMappingConfigurator<TDeclaringType> AsEntity()
             {
                 throw new NotImplementedException();
@@ -225,15 +241,6 @@ namespace Pomona.FluentMapping
                 if (IsMappingSubclass())
                     return this;
                 this.owner.isIndependentTypeRoot = true;
-                return this;
-            }
-
-
-            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(Expression<Func<IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr)
-            {
-                if (IsMappingSubclass())
-                    return this;
-                this.owner.constructor = new ConstructorSpec(constructExpr);
                 return this;
             }
 
@@ -253,6 +260,16 @@ namespace Pomona.FluentMapping
 
 
             public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
+                Expression<Func<IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr)
+            {
+                if (IsMappingSubclass())
+                    return this;
+                this.owner.constructor = new ConstructorSpec(constructExpr);
+                return this;
+            }
+
+
+            public ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
                 Expression<Func<TDeclaringType, IConstructorControl<TDeclaringType>, TDeclaringType>> expr)
             {
                 // Constructor fluent definitions should not be inherited to subclasses (because it wouldn't work).
@@ -260,18 +277,6 @@ namespace Pomona.FluentMapping
                     return this;
 
                 throw new NotImplementedException();
-            }
-
-
-            public ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(Expression<Func<TDeclaringType, TParent>> parentProperty, Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty)
-            {
-                if (parentProperty == null)
-                    throw new ArgumentNullException("parentProperty");
-                if (collectionProperty == null)
-                    throw new ArgumentNullException("collectionProperty");
-                owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
-                owner.ParentToChildProperty = collectionProperty.ExtractPropertyInfo();
-                return this;
             }
 
 
@@ -366,6 +371,7 @@ namespace Pomona.FluentMapping
                 this.owner.pluralName = pluralName;
                 return this;
             }
+
 
             private bool IsMappingSubclass()
             {

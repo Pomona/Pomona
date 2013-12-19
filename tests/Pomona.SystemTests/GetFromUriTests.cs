@@ -1,4 +1,5 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2013 Karsten Nikolai Strand
@@ -21,33 +22,25 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+#endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Pomona.Queries;
+using Critters.Client;
 
-namespace Pomona.RequestProcessing
+using NUnit.Framework;
+
+namespace Pomona.SystemTests
 {
-    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline, IPomonaRequestProcessor
+    [TestFixture]
+    public class GetFromUriTests : ClientTestsBase
     {
-        public PomonaResponse Process(PomonaRequest request)
-        {
-            return    Before
-                      .Concat(request.Node.GetRequestProcessors(request))
-                      .Concat(After)
-                      .Select(x => x.Process(request))
-                      .FirstOrDefault(response => response != null);
-        }
 
-        public virtual IEnumerable<IPomonaRequestProcessor> Before
+        [Test]
+        public void GetFromUriWithSpacesInIdentifier_ReturnsResource()
         {
-            get { yield return new ValidateEtagProcessor(); }
-        }
-
-        public IEnumerable<IPomonaRequestProcessor> After
-        {
-            get { yield return new DefaultGetRequestProcessor(); }
+            client.Galaxies.Post(new GalaxyForm() { Name = "test_I will not buy this record it is scratched" });
+            var galaxy = client.Galaxies.Get("test_I will not buy this record it is scratched");
+            Assert.That(galaxy, Is.Not.EqualTo(null));
+            Assert.That(galaxy.Name, Is.EqualTo("test_I will not buy this record it is scratched"));
         }
     }
 }

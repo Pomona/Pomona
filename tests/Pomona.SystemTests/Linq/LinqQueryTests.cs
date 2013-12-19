@@ -436,21 +436,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual, Is.EqualTo(expected));
         }
 
-
-        public void AssertDelegateDecompilerIsFunctional()
-        {
-            Func<int> func = () => 1337;
-            try
-            {
-                func.Decompile();
-            }
-            catch (Exception ex)
-            {
-                Assert.Inconclusive("DelegateDecompiler not working, probably running using compiler.: " + ex);
-            }
-        }
-
-
         [Test]
         public void QueryCritter_WithAttributeEquals_ReturnsCorrectCritter()
         {
@@ -459,10 +444,10 @@ namespace Pomona.SystemTests.Linq
                     x => x.SimpleAttributes.Any(y => y.Key == "AttrKey" && y.Value == "dde")).ToList();
         }
 
-        [Test]
+        [Category("TODO")]
+        [Test(Description = "This test does not work on TC with code coverage enabled.")]
         public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
         {
-            AssertDelegateDecompilerIsFunctional();
             client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
             var query = this.Repository.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;

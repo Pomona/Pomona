@@ -64,6 +64,7 @@ namespace Pomona.UnitTests.Client
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
             public double Precise { get; set; }
+            public TestEnum? SomeNullableEnum { get; set; }
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
             public TimeSpan TimeSpan { get; set; }
@@ -135,6 +136,13 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.SomeEnum == TestEnum.Tock, "someEnum eq 'Tock'");
             AssertBuild(x => TestEnum.Tick == x.SomeEnum, "'Tick' eq someEnum");
+        }
+
+        [Test]
+        public void BuildComparisonWithNullableEnum_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeNullableEnum == TestEnum.Tock, "someNullableEnum eq 'Tock'");
+            AssertBuild(x => TestEnum.Tick == x.SomeNullableEnum, "'Tick' eq someNullableEnum");
         }
 
 

@@ -132,7 +132,7 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.resourceResolver, node);
+                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.resourceResolver, node, context);
                 return TypeMapper.SerializerFactory.GetDeserializer().Deserialize(textReader,
                     expectedBaseType,
                     deserializationContext,

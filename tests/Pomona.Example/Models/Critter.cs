@@ -33,6 +33,8 @@ namespace Pomona.Example.Models
 {
     public class Critter : EntityBase, IHiddenInterface
     {
+        public static bool TheIgnoredStaticProperty { get {throw new NotImplementedException("Should not be gotten!");} }
+
         public Critter()
         {
             Guid = Guid.NewGuid();
