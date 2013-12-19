@@ -35,6 +35,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
@@ -267,8 +268,8 @@ namespace Pomona.Common
             var left = binaryExpr.Left;
             var right = binaryExpr.Right;
 
-            left = FixBinaryComparisonConversion(left);
-            right = FixBinaryComparisonConversion(right);
+            left = FixBinaryComparisonConversion(left, right);
+            right = FixBinaryComparisonConversion(right, left);
 
             TryDetectAndConvertEnumComparison(ref left, ref right, true);
             TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
@@ -276,9 +277,10 @@ namespace Pomona.Common
             return string.Format("({0} {1} {2})", Build(left), opString, Build(right));
         }
 
-        private Expression FixBinaryComparisonConversion(Expression expr)
+        private Expression FixBinaryComparisonConversion(Expression expr, Expression other)
         {
-            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression)expr).Operand.Type == typeof (object))
+            var otherIsNull = other.NodeType == ExpressionType.Constant && ((ConstantExpression)other).Value == null;
+            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression)expr).Operand.Type == typeof (object) && !otherIsNull)
             {
                 return ((UnaryExpression)expr).Operand;
             }

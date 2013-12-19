@@ -517,6 +517,20 @@ namespace Pomona.UnitTests.Client
         }
 
         [Test]
+        public void BuildSafeGetFromObjectDictAsStringComparedWithString_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == "Nada",
+                        "stringObjectAttributes.Hei eq 'Nada'");
+        }
+
+        [Test]
+        public void BuildSafeGetFromObjectDictAsStringComparedWithNull_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == null,
+                        "(stringObjectAttributes.Hei as t'String') eq null");
+        }
+
+        [Test]
         public void BuildSingleOrDefaultWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.SingleOrDefault(x => x.SomeString == "blah"),
