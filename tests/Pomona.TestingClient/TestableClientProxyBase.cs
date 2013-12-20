@@ -115,13 +115,13 @@ namespace Pomona.TestingClient
         }
 
 
-        public object OnInvokeMethod(MethodInfo methodInfo, object[] args)
+        public virtual object OnInvokeMethod(MethodInfo methodInfo, object[] args)
         {
             throw new NotImplementedException();
         }
 
 
-        public T OnPatch<T>(T resource, Action<T> patchAction)
+        public virtual T OnPatch<T>(T resource, Action<T> patchAction)
             where T : IClientResource
         {
             patchAction(resource);
@@ -129,7 +129,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public IQueryable<T> Query<T>()
+        public virtual IQueryable<T> Query<T>()
         {
             var resourceType = typeof (T);
             var resInfo = this.GetResourceInfoForType(resourceType);
@@ -142,7 +142,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public void Save(object resource)
+        public virtual void Save(object resource)
         {
             var resourceInterface = this.GetMostInheritedResourceInterface(resource.GetType());
             ResourceInfoAttribute resourceInfo;
@@ -153,7 +153,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public object SaveResourceFromForm(IPostForm form)
+        public virtual object SaveResourceFromForm(IPostForm form)
         {
             var formType = form.GetType();
             var resourceInterface = this.GetMostInheritedResourceInterface(formType);

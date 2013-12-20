@@ -106,6 +106,7 @@
     <Compile Include="QueryCritterTests.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="Serialization\JsonSerializationTests.cs" />
+    <Compile Include="TestingClient\TestingClientTests.cs" />
     <Compile Include="TypeSystem\ClientTypeMapperTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +125,10 @@
     <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
       <Name>Pomona</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Pomona.TestingClient\Pomona.TestingClient.csproj">
+      <Project>{1b2e04f3-434d-41d5-98f3-d4c8dd95ac12}</Project>
+      <Name>Pomona.TestingClient</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
