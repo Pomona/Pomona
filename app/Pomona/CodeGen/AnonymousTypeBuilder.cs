@@ -95,6 +95,24 @@ namespace Pomona.CodeGen
             return string.Join(",", propNames);
         }
 
+
+        public static object CreateAnonymousObject<T>(IEnumerable<T> source,
+            Func<T, string> nameSelector,
+            Func<T, object> valueSelector,
+            Func<T, Type> typeSelector)
+        {
+            var sourceList = source as IList<T> ?? source.ToList();
+            var anonType = GetAnonymousType(sourceList.Select(nameSelector));
+            var typeArguments = sourceList.Select(typeSelector).ToArray();
+            var anonTypeInstance = anonType.MakeGenericType(typeArguments);
+            var constructorInfo = anonTypeInstance.GetConstructor(typeArguments);
+
+            if (constructorInfo == null)
+                throw new InvalidOperationException("Did not find expected constructor on anonymous type.");
+
+            return constructorInfo.Invoke(sourceList.Select(valueSelector).ToArray());
+        }
+
         public static Expression CreateNewExpression(IEnumerable<KeyValuePair<string, Expression>> map,
                                                      out Type anonTypeInstance)
         {

@@ -104,6 +104,17 @@ namespace Pomona.UnitTests.Proxies
             return retval;
         }
 
+
+        [Test]
+        public void GeneratePoco_WorksOk()
+        {
+            var pocoType = EmitHelpers.CreatePocoType("Jalla",
+                "Dummy",
+                new KeyValuePair<string, Type>[] { new KeyValuePair<string, Type>("Lala", typeof(string)), });
+            var pocoInstance = Activator.CreateInstance(pocoType);
+            Assert.That(pocoInstance, Is.Not.Null);
+        }
+
         [Test]
         public void GenerateProxy_ForInterfaceImplementingMethodWithMatchingMethodInProxyBase_DoesNotGenerateMethod()
         {

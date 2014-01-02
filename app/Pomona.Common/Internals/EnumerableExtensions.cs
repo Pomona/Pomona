@@ -38,6 +38,12 @@ namespace Pomona.Common.Internals
             }
         }
 
+
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            source.ToList().ForEach(action);
+        }
+
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
         {
             return source.Concat((IEnumerable<T>) value);
