@@ -78,6 +78,7 @@
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="IPostableRepository.cs" />
     <Compile Include="IQueryableRepository.cs" />
+    <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />
     <Compile Include="Linq\RestQuery.cs" />

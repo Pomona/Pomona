@@ -53,25 +53,5 @@ namespace Pomona.UnitTests.TypeSystem
             var mapper = new TypeMapper(new CritterPomonaConfiguration());
             Assert.That(mapper.GetClassMapping<CustomEnum>(), Is.InstanceOf<EnumTypeSpec>());
         }
-
-        [Test]
-        public void MongoScratchTests()
-        {
-            var typeMapper = new TypeResolver();
-            var ts = typeMapper.FromType(typeof (ICollection<string>));
-            Type gtd = typeof(Dictionary<,>);
-
-            Console.WriteLine("gtd.name: {0}  gtd.namespace: {1}", gtd.Name, gtd.Namespace);
-            var gtdGenargs = gtd.GetGenericArguments();
-            Console.WriteLine(typeMapper.FromType(gtd));
-            TypeSpec dictType = typeMapper.FromType(typeof(Dictionary<int, string>));
-            Console.WriteLine(dictType);
-            Console.WriteLine(dictType.GetType());
-            foreach (var i in dictType.Interfaces)
-            {
-                Console.WriteLine(i);
-            }
-            Console.WriteLine(ts);
-        }
     }
 }

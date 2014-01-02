@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,82 +31,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common.Internals;
 using Pomona.Internals;
 
 namespace Pomona.Common.Linq
 {
-    public class ExpressionTypeVisitor : ExpressionVisitor
-    {
-        private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
-            new Dictionary<ParameterExpression, ParameterExpression>();
-
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            var serverType = VisitType(node.Type);
-            if (serverType != node.Type)
-            {
-                return replacementParameters.GetOrCreate(node, () => Expression.Parameter(serverType, node.Name));
-            }
-            return base.VisitParameter(node);
-        }
-
-        protected virtual Type VisitType(Type typeToSearch)
-        {
-            if (typeToSearch.IsGenericType)
-            {
-                var genArgs = typeToSearch.GetGenericArguments();
-                var newGenArgs =
-                    genArgs.Select(x => VisitType(typeToSearch)).ToArray();
-
-                if (newGenArgs.SequenceEqual(genArgs))
-                    return typeToSearch;
-
-                return typeToSearch.GetGenericTypeDefinition().MakeGenericType(newGenArgs);
-            }
-
-            return typeToSearch;
-        }
-
-        protected override Expression VisitMethodCall(MethodCallExpression node)
-        {
-            var replacementMethod = VisitMethod(node.Method);
-            if (replacementMethod != node.Method)
-            {
-                var visitedArguments = Visit(node.Arguments);
-                if (node.Object != null)
-                    return Expression.Call(node.Object, replacementMethod, visitedArguments);
-                return Expression.Call(replacementMethod, visitedArguments);
-            }
-            return base.VisitMethodCall(node);
-        }
-
-        protected virtual MethodInfo VisitMethod(MethodInfo methodToSearch)
-        {
-            var newReflectedType = VisitType(methodToSearch.ReflectedType);
-            if (newReflectedType != methodToSearch.ReflectedType)
-            {
-                methodToSearch = newReflectedType.GetMethod(methodToSearch.Name,
-                    (methodToSearch.IsStatic ? BindingFlags.Static : BindingFlags.Instance)
-                    | (methodToSearch.IsPublic
-                        ? BindingFlags.Public
-                        : BindingFlags.NonPublic),
-                    null,
-                    methodToSearch.GetParameters().Select(x => x.ParameterType).ToArray(),
-                    null);
-            }
-
-            if (!methodToSearch.IsGenericMethod)
-                return methodToSearch;
-
-            var genArgs = methodToSearch.GetGenericArguments();
-            var newGenArgs = genArgs.Select(VisitType).ToArray();
-            if (genArgs.SequenceEqual(newGenArgs))
-                return methodToSearch;
-
-            return methodToSearch.GetGenericMethodDefinition().MakeGenericMethod(newGenArgs);
-        }
-    }
     public class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
     {
         private static readonly MethodInfo dictionarySafeGetMethod;
@@ -114,6 +44,7 @@ namespace Pomona.Common.Linq
 
         private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
             new Dictionary<ParameterExpression, ParameterExpression>();
+
 
         static TransformAdditionalPropertiesToAttributesVisitor()
         {
@@ -127,34 +58,43 @@ namespace Pomona.Common.Linq
             this.client = client;
         }
 
-        private bool IsUserType(Type userType)
+
+        public override Expression Visit(Expression node)
         {
-            CustomUserTypeInfo tmpvar;
-            return IsUserType(userType, out tmpvar);
+            var visitedNode = base.Visit(node);
+
+#if false
+    // For debugging:
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                if (visitedNode.Type.WrapAsEnumerable()
+                               .WalkTree(x => x.Count() > 0
+                                                  ? x.SelectMany(y => y.IsGenericType
+                                                                          ? y.GetGenericArguments()
+                                                                          : new Type[] { })
+                                                  : null).SelectMany(x => x).Where(x => x.IsNested).Any(IsUserType))
+                {
+                    base.Visit(node);
+                    throw new InvalidOperationException("Is user type!");
+                }
+
+            }
+#endif
+            return visitedNode;
         }
 
-        private bool TryReplaceWithServerType(Type userType, out Type serverType)
-        {
-            serverType = ReplaceInGenericArguments(userType);
-            return userType != serverType;
-        }
-
-        private bool IsUserType(Type userType, out CustomUserTypeInfo userTypeInfo)
-        {
-            return CustomUserTypeInfo.TryGetCustomUserTypeInfo(userType, client, out userTypeInfo);
-        }
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
             CustomUserTypeInfo userTypeInfo;
-            if (node.Type.UniqueToken() == typeof (RestQuery<>).UniqueToken() &&
+            if (node.Type.UniqueToken() == typeof(RestQuery<>).UniqueToken() &&
                 IsUserType(node.Type.GetGenericArguments()[0], out userTypeInfo))
             {
                 var queryable = node.Value as IQueryable;
                 if (queryable != null)
                 {
                     var provider = (RestQueryProvider)queryable.Provider;
-                    var restQueryOfTargetType = typeof (RestQuery<>).MakeGenericType(userTypeInfo.ServerType);
+                    var restQueryOfTargetType = typeof(RestQuery<>).MakeGenericType(userTypeInfo.ServerType);
                     var modifiedSourceQueryable = Activator.CreateInstance(
                         restQueryOfTargetType,
                         new RestQueryProvider(provider.Client, userTypeInfo.ServerType, provider.Uri));
@@ -174,6 +114,7 @@ namespace Pomona.Common.Linq
             return visitedNode;
         }
 
+
         protected override Expression VisitMember(MemberExpression node)
         {
             var member = node.Member;
@@ -184,8 +125,10 @@ namespace Pomona.Common.Linq
             if (IsUserType(member.DeclaringType, out declaringUserTypeInfo))
             {
                 if (propInfo == null)
+                {
                     throw new InvalidOperationException(
                         "Only properties can be defined on custom user types, not methods or fields.");
+                }
 
                 Type memberServerType;
                 if (TryReplaceWithServerType(propInfo.PropertyType, out memberServerType) &&
@@ -193,10 +136,12 @@ namespace Pomona.Common.Linq
                 {
                     var serverProp =
                         declaringUserTypeInfo.ServerType.GetAllInheritedPropertiesFromInterface()
-                                             .FirstOrDefault(x => x.Name == propInfo.Name);
+                            .FirstOrDefault(x => x.Name == propInfo.Name);
                     if (serverProp == null)
+                    {
                         throw new InvalidOperationException("Unable to find underlying server side property " +
                                                             propInfo.Name);
+                    }
 
                     //if (!serverProp.PropertyType.IsAssignableFrom(propInfo.PropertyType))
                     //    throw new InvalidOperationException("Unable to convert from type " + propInfo.PropertyType +
@@ -208,7 +153,7 @@ namespace Pomona.Common.Linq
                 {
                     Type targetDictInterface;
                     var targetDictProperty = declaringUserTypeInfo.DictProperty;
-                    var idictionaryMetadataToken = typeof (IDictionary<,>).UniqueToken();
+                    var idictionaryMetadataToken = typeof(IDictionary<,>).UniqueToken();
                     if (targetDictProperty.PropertyType.UniqueToken() == idictionaryMetadataToken)
                         targetDictInterface = targetDictProperty.PropertyType;
                     else
@@ -242,47 +187,23 @@ namespace Pomona.Common.Linq
                 //                       Expression.Constant(propInfo.Name));
             }
 
-
             var originalDeclaringType = node.Member.DeclaringType;
             var modifiedDeclaringType = ReplaceInGenericArguments(originalDeclaringType);
             if (modifiedDeclaringType != originalDeclaringType)
             {
                 var modifiedMember =
-                    modifiedDeclaringType.GetMember(node.Member.Name, node.Member.MemberType,
-                                                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic |
-                                                    BindingFlags.Public)
-                                         .First(x => x.UniqueToken() == node.Member.UniqueToken());
+                    modifiedDeclaringType.GetMember(node.Member.Name,
+                        node.Member.MemberType,
+                        BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic |
+                        BindingFlags.Public)
+                        .First(x => x.UniqueToken() == node.Member.UniqueToken());
                 return Expression.MakeMemberAccess(node.Expression != null ? visitedExpression : null,
-                                                   modifiedMember);
+                    modifiedMember);
             }
 
             return base.VisitMember(node);
         }
 
-
-        public override Expression Visit(Expression node)
-        {
-            var visitedNode = base.Visit(node);
-
-#if false
-    // For debugging:
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                if (visitedNode.Type.WrapAsEnumerable()
-                               .WalkTree(x => x.Count() > 0
-                                                  ? x.SelectMany(y => y.IsGenericType
-                                                                          ? y.GetGenericArguments()
-                                                                          : new Type[] { })
-                                                  : null).SelectMany(x => x).Where(x => x.IsNested).Any(IsUserType))
-                {
-                    base.Visit(node);
-                    throw new InvalidOperationException("Is user type!");
-                }
-
-            }
-#endif
-            return visitedNode;
-        }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
@@ -293,10 +214,10 @@ namespace Pomona.Common.Linq
             var blah =
                 ((IEnumerable<Type>)argTypes).WalkTree(
                     x =>
-                    x.Any() ? x.SelectMany(y => y.IsGenericType ? y.GetGenericArguments() : new Type[] { }) : null)
-                                             .SelectMany(x => x)
-                                             .Where(x => x.IsNested)
-                                             .ToList();
+                        x.Any() ? x.SelectMany(y => y.IsGenericType ? y.GetGenericArguments() : new Type[] { }) : null)
+                    .SelectMany(x => x)
+                    .Where(x => x.IsNested)
+                    .ToList();
 
             return Expression.Call(
                 node.Object != null ? Visit(node.Object) : null,
@@ -304,15 +225,29 @@ namespace Pomona.Common.Linq
                 modifiedArguments);
         }
 
+
         protected override Expression VisitParameter(ParameterExpression node)
         {
             var serverType = ReplaceInGenericArguments(node.Type);
             if (serverType != node.Type)
             {
-                return replacementParameters.GetOrCreate(node,
-                                                         () => Expression.Parameter(serverType, node.Name));
+                return this.replacementParameters.GetOrCreate(node,
+                    () => Expression.Parameter(serverType, node.Name));
             }
             return base.VisitParameter(node);
+        }
+
+
+        private bool IsUserType(Type userType)
+        {
+            CustomUserTypeInfo tmpvar;
+            return IsUserType(userType, out tmpvar);
+        }
+
+
+        private bool IsUserType(Type userType, out CustomUserTypeInfo userTypeInfo)
+        {
+            return CustomUserTypeInfo.TryGetCustomUserTypeInfo(userType, this.client, out userTypeInfo);
         }
 
 
@@ -328,6 +263,7 @@ namespace Pomona.Common.Linq
                     return t;
                 });
         }
+
 
         private Type ReplaceInGenericArguments(Type typeToSearch, Func<Type, Type> typeReplacer)
         {
@@ -360,6 +296,13 @@ namespace Pomona.Common.Linq
                 return methodToSearch;
 
             return methodToSearch.GetGenericMethodDefinition().MakeGenericMethod(newGenArgs);
+        }
+
+
+        private bool TryReplaceWithServerType(Type userType, out Type serverType)
+        {
+            serverType = ReplaceInGenericArguments(userType);
+            return userType != serverType;
         }
     }
 }
