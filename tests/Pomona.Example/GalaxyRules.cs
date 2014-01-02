@@ -34,7 +34,8 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<Galaxy> map)
         {
-            map.AsUriBaseType();
+            map.AsUriBaseType()
+                .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository());
         }
 
         public void Map(ITypeMappingConfigurator<Planet> map)
