@@ -26,6 +26,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
+using Nancy;
+
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
@@ -52,7 +56,12 @@ namespace Pomona.Queries
             // TODO: Proper exception handling when type is not TransformedType [KNS]
             //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
             var type = (TransformedType) typeMapper.GetClassMapping(rootInstance.Type);
-            return type.CreateExpressionForExternalPropertyPath(rootInstance, propertyPath);
+            PropertySpec prop;
+            if (type.TryGetPropertyByName(propertyPath, StringComparison.InvariantCultureIgnoreCase, out prop) && prop.AccessMode.HasFlag(HttpMethod.Get))
+            {
+                return prop.CreateGetterExpression(rootInstance);
+            }
+            throw new PomonaException("Property does not exist or is not allowed in expression.", null, HttpStatusCode.BadRequest);
         }
 
 

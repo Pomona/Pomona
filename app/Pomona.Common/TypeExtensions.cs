@@ -394,14 +394,14 @@ namespace Pomona.Common
         }
 
 
-        public static bool TryGetPropertyByName(this TypeSpec type, string name, out PropertySpec property)
+        public static bool TryGetPropertyByName(this TypeSpec type, string name, StringComparison stringComparison,  out PropertySpec property)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
             if (name == null)
                 throw new ArgumentNullException("name");
 
-            property = type.AllProperties.FirstOrDefault(x => x.Name == name);
+            property = type.AllProperties.FirstOrDefault(x => string.Equals(x.Name, name, stringComparison));
             return property != null;
         }
 

@@ -236,6 +236,9 @@ namespace Pomona.Common.TypeSystem
                 Properties.First(
                     x => String.Equals(x.Name, externalPropertyName, StringComparison.InvariantCultureIgnoreCase));
 
+            if (!prop.AccessMode.HasFlag(HttpMethod.Get))
+                throw new InvalidOperationException("Property is not allowed in expresssion.");
+
             var propertyAccessExpression = prop.CreateGetterExpression(instance);
 
             if (remainingExternalPath != null)

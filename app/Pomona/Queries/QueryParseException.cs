@@ -28,21 +28,23 @@ using System.Runtime.Serialization;
 using System.Text;
 using Antlr.Runtime.Tree;
 
+using Nancy;
+
 namespace Pomona.Queries
 {
-    public class QueryParseException : Exception
+    public class QueryParseException : PomonaException
     {
         public QueryParseException()
         {
         }
 
 
-        public QueryParseException(string message) : base(message)
+        public QueryParseException(string message) : base(message, null, HttpStatusCode.BadRequest)
         {
         }
 
 
-        public QueryParseException(string message, Exception innerException) : base(message, innerException)
+        public QueryParseException(string message, Exception innerException) : base(message, innerException, HttpStatusCode.BadRequest)
         {
         }
 

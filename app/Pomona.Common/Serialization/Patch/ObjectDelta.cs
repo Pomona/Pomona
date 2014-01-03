@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pomona.Common.TypeSystem;
@@ -65,7 +66,7 @@ namespace Pomona.Common.Serialization.Patch
                 return value;
 
             PropertySpec prop;
-            if (Type.TryGetPropertyByName(propertyName, out prop))
+            if (Type.TryGetPropertyByName(propertyName, StringComparison.InvariantCulture, out prop))
             {
                 var propValue = prop.Getter(Original);
                 if (propValue == null)
