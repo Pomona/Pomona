@@ -58,7 +58,7 @@ namespace Pomona.CodeGen
             var tempPath = Path.GetTempPath() + Guid.NewGuid().ToString("N");
             try
             {
-                WritePackageContents(tempPath);
+                WritePackageContents(tempPath, false);//typeMapper.Filter.GenerateIndependentClient());
                 CreateNugetPackage(tempPath, stream);
             }
             finally
@@ -130,7 +130,7 @@ namespace Pomona.CodeGen
         }
 
 
-        private void WritePackageContents(string tempPath)
+        private void WritePackageContents(string tempPath, bool pomonaClientEmbeddingEnabled)
         {
             var clientLibGen = new ClientLibGenerator(typeMapper);
 
@@ -142,15 +142,17 @@ namespace Pomona.CodeGen
 
             using (var stream = File.Create(dllPath))
             {
-                clientLibGen.PomonaClientEmbeddingEnabled = false;
+                clientLibGen.PomonaClientEmbeddingEnabled =  pomonaClientEmbeddingEnabled;
                 clientLibGen.CreateClientDll(stream);
             }
+            if(!pomonaClientEmbeddingEnabled)
+            {
+                var pomonaClientAssemblySourcePath = typeof (ClientBase<>).Assembly.Location;
 
-            var pomonaClientAssemblySourcePath = typeof (ClientBase<>).Assembly.Location;
+                var pomonaClientAssemblyDestPath = Path.Combine(dllDir, Path.GetFileName(pomonaClientAssemblySourcePath));
 
-            var pomonaClientAssemblyDestPath = Path.Combine(dllDir, Path.GetFileName(pomonaClientAssemblySourcePath));
-
-            File.Copy(pomonaClientAssemblySourcePath, pomonaClientAssemblyDestPath);
+                File.Copy(pomonaClientAssemblySourcePath, pomonaClientAssemblyDestPath);
+            }
         }
     }
 }

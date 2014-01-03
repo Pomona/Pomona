@@ -45,6 +45,12 @@ namespace Pomona
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();
         Type GetClientLibraryType(Type type);
+
+        /// <summary>
+        /// This will make sure we generate a client dll with no dependency on Pomona.Common.
+        /// </summary>
+        bool GenerateIndependentClient();
+
         bool IsIndependentTypeRoot(Type type);
         object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);

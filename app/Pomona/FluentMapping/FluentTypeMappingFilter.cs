@@ -115,6 +115,11 @@ namespace TestNs
             return this.wrappedFilter.GetClientLibraryType(type);
         }
 
+        public bool GenerateIndependentClient()
+        {
+            return this.wrappedFilter.GenerateIndependentClient();
+        }
+
 
         public LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
         {

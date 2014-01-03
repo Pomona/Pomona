@@ -516,5 +516,11 @@ namespace Pomona
             return IsNullableType(type) &&
                    TypeIsMapped(type.GetGenericArguments()[0]);
         }
+
+
+        public virtual bool GenerateIndependentClient()
+        {
+            return true;
+        }
     }
 }
