@@ -55,14 +55,14 @@ namespace Pomona.CodeGen
             var propWrapperTypeDef = propertyWrapperType;
             var propWrapperTypeRef =
                 Module.Import(
-                    propWrapperTypeDef.MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType));
+                    propWrapperTypeDef).MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType);
 
             var propWrapperCtor = Module.Import(
                 propWrapperTypeDef.GetConstructors().First(
                     x => !x.IsStatic &&
                          x.Parameters.Count == 1 &&
-                         x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName).
-                                   MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType));
+                         x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName)).
+                                   MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType);
 
             var propertyWrapperField = new FieldDefinition(
                 "_pwrap_" + targetProp.Name,

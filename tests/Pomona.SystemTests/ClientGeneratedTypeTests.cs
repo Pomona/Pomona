@@ -95,6 +95,35 @@ namespace Pomona.SystemTests
         [Test]
         public void PeVerify_HasExitCode0()
         {
+            PeVerify(typeof (ICritter).Assembly.Location);
+        }
+
+
+        [Test]
+        public void PeVerify_ClientWithEmbeddedPomonaCommon_HasExitCode0()
+        {
+            string origDllPath = typeof(ICritter).Assembly.Location;
+            string dllDir = Path.GetDirectoryName(origDllPath);
+            var clientWithEmbeddedStuffName = Path.Combine(dllDir, "..\\..\\..\\..\\lib\\Critters.Client.WithEmbeddedPomonaClient.dll");
+            string newDllPath = Path.Combine(dllDir, "TempCopiedClientEmbeddedPomonaCommonLib.dll");
+            File.Copy(clientWithEmbeddedStuffName, newDllPath, true);
+            PeVerify(newDllPath);
+        }
+
+        [Test(Description = "This test has been added since more errors are discovered when dll has been renamed.")]
+        public void PeVerify_RenamedToAnotherDllName_StillHasExitCode0()
+        {
+
+            string origDllPath = typeof(ICritter).Assembly.Location;
+            Console.WriteLine(Path.GetDirectoryName(origDllPath));
+            string newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.dll");
+            File.Copy(origDllPath, newDllPath, true);
+            PeVerify(newDllPath);
+            //Assert.Inconclusive();
+        }
+
+        private static void PeVerify(string dllPath)
+        {
             var programFilesX86Path = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ??
                                       Environment.GetEnvironmentVariable("ProgramFiles");
             Assert.NotNull(programFilesX86Path);
@@ -104,28 +133,21 @@ namespace Pomona.SystemTests
             if (!File.Exists(peverifyPath))
                 Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
 
-            var clientDllPath = string.Format("\"{0}\" /md /il",
-                typeof(ICritter).Assembly.Location.Replace("\"", "\\\""));
+            var peVerifyArguments = string.Format("\"{0}\" /md /il", dllPath.Replace("\"", "\\\""));
 
             var proc = new Process
-            {
-                StartInfo =
-                    new ProcessStartInfo(peverifyPath, clientDllPath)
-                    {
-                        CreateNoWindow = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false
-                    }
-            };
+                {
+                    StartInfo =
+                        new ProcessStartInfo(peverifyPath, peVerifyArguments)
+                            {
+                                CreateNoWindow = true,
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = false,
+                                UseShellExecute = false
+                            }
+                };
             proc.Start();
-            while (!proc.StandardOutput.EndOfStream || !proc.StandardError.EndOfStream)
-            {
-                if (!proc.StandardError.EndOfStream)
-                    Console.Write(proc.StandardError.ReadLine());
-                if (!proc.StandardOutput.EndOfStream)
-                    Console.Write(proc.StandardOutput.ReadLine());
-            }
+            Console.Write(proc.StandardOutput.ReadToEnd());
             proc.WaitForExit();
             Assert.That(proc.ExitCode, Is.EqualTo(0), "PEVerify returned error code " + proc.ExitCode);
         }
