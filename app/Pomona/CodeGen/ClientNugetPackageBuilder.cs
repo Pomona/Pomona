@@ -58,7 +58,7 @@ namespace Pomona.CodeGen
             var tempPath = Path.GetTempPath() + Guid.NewGuid().ToString("N");
             try
             {
-                WritePackageContents(tempPath, false);//typeMapper.Filter.GenerateIndependentClient());
+                WritePackageContents(tempPath, typeMapper.Filter.GenerateIndependentClient());
                 CreateNugetPackage(tempPath, stream);
             }
             finally
