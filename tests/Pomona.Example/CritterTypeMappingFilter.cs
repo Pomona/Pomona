@@ -40,7 +40,7 @@ using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
-    internal class CritterTypeMappingFilter : TypeMappingFilterBase
+    public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {

@@ -106,11 +106,12 @@ namespace Pomona.CodeGen
 
             var assemblyResolver = GetAssemblyResolver();
 
-            var version = new Version(typeMapper.Filter.ApiVersion);
+            var version = new Version(string.Join(".", typeMapper.Filter.ApiVersion.Split('.').Pad(4, "0").Take(4)));
             if (PomonaClientEmbeddingEnabled)
             {
                 var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };
                 assembly = AssemblyDefinition.ReadAssembly(typeof (ResourceBase).Assembly.Location, readerParameters);
+                assembly.CustomAttributes.Clear();
             }
             else
             {
@@ -134,6 +135,7 @@ namespace Pomona.CodeGen
 
             module = assembly.MainModule;
             module.Name = assemblyName + ".dll";
+            module.Mvid = Guid.NewGuid();
 
             clientTypeInfoDict = new Dictionary<TypeSpec, TypeCodeGenInfo>();
             enumClientTypeDict = new Dictionary<EnumTypeSpec, TypeReference>();
@@ -175,7 +177,7 @@ namespace Pomona.CodeGen
             
             if (PomonaClientEmbeddingEnabled)
             {
-                foreach (var clientHelperType in module.Types.Where(methodDefinition => !methodDefinition.Namespace.StartsWith(assemblyName)))
+                foreach (var clientHelperType in module.Types.Where(methodDefinition => !methodDefinition.Namespace.StartsWith(assemblyName) && !string.IsNullOrEmpty(methodDefinition.Namespace)))
                     clientHelperType.Namespace = assemblyName + "." + clientHelperType.Namespace;
             }
             

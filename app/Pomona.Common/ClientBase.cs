@@ -588,9 +588,11 @@ namespace Pomona.Common
         private void InstantiateClientRepositories()
         {
             var generatedAssembly = GetType().Assembly;
+            var repoTypes = generatedAssembly.GetTypes()
+                .Where(x => typeof (IClientRepository).IsAssignableFrom(x) && !x.IsInterface && !x.IsGenericType).ToList();
+            Console.WriteLine(string.Join("\r\n", repoTypes));
             var repositoryImplementations =
-                generatedAssembly.GetTypes()
-                                 .Where(x => typeof (IClientRepository).IsAssignableFrom(x) && !x.IsInterface)
+                repoTypes
                                  .Select(
                                      x =>
                                      new

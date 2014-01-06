@@ -46,15 +46,15 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void TransformsQueryCorrect()
         {
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(client);
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(Client);
 
-            var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(client,
+            var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(Client,
                                                                                        typeof (ICustomUserEntity)))
                 .Where(x => x.CustomString == "Lalalala")
                 .Where(x => x.OtherCustom == "Blob rob")
                 .Select(x => x.OtherCustom);
 
-            var expectedQuery = new RestQuery<IStringToObjectDictionaryContainer>(new RestQueryProvider(client,
+            var expectedQuery = new RestQuery<IStringToObjectDictionaryContainer>(new RestQueryProvider(Client,
                                                                                                         typeof (
                                                                                                             IStringToObjectDictionaryContainer
                                                                                                             )))

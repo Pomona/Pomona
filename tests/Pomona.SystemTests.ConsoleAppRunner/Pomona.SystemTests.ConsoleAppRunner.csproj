@@ -95,6 +95,10 @@
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
       <Name>Pomona</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Pomona.UnitTests\Pomona.UnitTests.csproj">
+      <Project>{093DC2AB-B78C-481F-970E-2857338541B1}</Project>
+      <Name>Pomona.UnitTests</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -105,7 +105,7 @@ namespace Pomona.SystemTests
             string origDllPath = typeof(ICritter).Assembly.Location;
             string dllDir = Path.GetDirectoryName(origDllPath);
             var clientWithEmbeddedStuffName = Path.Combine(dllDir, "..\\..\\..\\..\\lib\\Critters.Client.WithEmbeddedPomonaClient.dll");
-            string newDllPath = Path.Combine(dllDir, "TempCopiedClientEmbeddedPomonaCommonLib.dll");
+            string newDllPath = Path.Combine(dllDir, "TempCopiedClientEmbeddedPomonaCommonLib.tmp");
             File.Copy(clientWithEmbeddedStuffName, newDllPath, true);
             PeVerify(newDllPath);
         }
@@ -116,7 +116,7 @@ namespace Pomona.SystemTests
 
             string origDllPath = typeof(ICritter).Assembly.Location;
             Console.WriteLine(Path.GetDirectoryName(origDllPath));
-            string newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.dll");
+            string newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.tmp");
             File.Copy(origDllPath, newDllPath, true);
             PeVerify(newDllPath);
             //Assert.Inconclusive();

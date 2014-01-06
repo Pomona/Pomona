@@ -406,7 +406,7 @@ namespace Pomona.Common
         }
 
 
-        public static bool TryGetPropertyByUriName(this TypeSpec type, string name, out PropertySpec property)
+        public static bool TryGetPropertyByUriName(this ResourceType type, string name, out PropertySpec property)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -415,7 +415,7 @@ namespace Pomona.Common
 
             property =
                 type.Properties.FirstOrDefault(
-                    x =>
+                    x => (x.PropertyType is ResourceType || x.PropertyType is EnumerableTypeSpec) &&
                         string.Equals(name,
                             NameUtils.ConvertCamelCaseToUri(x.Name),
                             StringComparison.InvariantCultureIgnoreCase));

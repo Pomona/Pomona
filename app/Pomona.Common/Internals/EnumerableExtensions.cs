@@ -63,6 +63,21 @@ namespace Pomona.Common.Internals
             }
         }
 
+        public static IEnumerable<T> Pad<T>(this IEnumerable<T> source, int count, T paddingValue)
+        {
+            foreach (var item in source)
+            {
+                yield return item;
+                count--;
+            }
+
+            while (count > 0)
+            {
+                yield return paddingValue;
+                count--;
+            }
+        }
+
         public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             foreach (var item in source)

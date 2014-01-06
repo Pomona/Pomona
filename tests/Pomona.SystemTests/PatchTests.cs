@@ -42,10 +42,10 @@ namespace Pomona.SystemTests
         {
             var critter = Save(new Critter());
             var protectedValue = critter.Protected;
-            var c = client.Critters.Query(x => x.Id == critter.Id).First();
+            var c = Client.Critters.Query(x => x.Id == critter.Id).First();
             var ex =
                 Assert.Throws<BadRequestException<IErrorStatus>>(
-                    () => client.Critters.Patch(c, p => p.Protected = "HALLA MALLA NALLA"));
+                    () => Client.Critters.Patch(c, p => p.Protected = "HALLA MALLA NALLA"));
 
             Assert.That(ex.Body, Is.Not.Null);
             Assert.That(ex.Body.Member, Is.EqualTo("Protected"));
@@ -60,8 +60,8 @@ namespace Pomona.SystemTests
             critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
             Save(critter);
 
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
                          x => x.Weapons.Add(new WeaponForm
                              {
                                  Price = 3.4m,
@@ -75,14 +75,14 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchStringToStringDictionary_SetValueForKey()
         {
-            var result = client.Patch(CreateDictionaryResource(), d => d.Map.Add("foo", "bar"));
+            var result = Client.Patch(CreateDictionaryResource(), d => d.Map.Add("foo", "bar"));
             Assert.That(result.Map, Contains.Item(new KeyValuePair<string, string>("foo", "bar")));
         }
 
         [Test]
         public void PatchStringToStringDictionary_RemoveKey()
         {
-            var result = client.Patch(CreateDictionaryResource(new [] {new KeyValuePair<string, string>("foo", "bar"), }), d => d.Map.Remove("foo"));
+            var result = Client.Patch(CreateDictionaryResource(new [] {new KeyValuePair<string, string>("foo", "bar"), }), d => d.Map.Remove("foo"));
             Assert.That(result.Map, Is.Not.Contains(new KeyValuePair<string, string>("foo", "bar")));
         }
 
@@ -94,25 +94,25 @@ namespace Pomona.SystemTests
                 dictContainer.Map.Add(kvp);
             }
             Save(dictContainer);
-            var dictResource = client.DictionaryContainers.Get(dictContainer.Id);
+            var dictResource = Client.DictionaryContainers.Get(dictContainer.Id);
             return dictResource;
         }
 
         [Test]
         public void PatchCritter_ModifyWeapon()
         {
-            var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
+            var critter = Client.Critters.Get(Repository.CreateRandomCritter().Id);
             var TMPweapons = critter.Weapons.ToList(); // REMOVE THIS
-            var response = client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
+            var response = Client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
             Assert.That(response.Weapons.First().Strength, Is.EqualTo(1337.0));
         }
 
         [Test]
         public void PatchCritter_RemoveWeapon()
         {
-            var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
+            var critter = Client.Critters.Get(Repository.CreateRandomCritter().Id);
             Assert.That(critter.Weapons.Count, Is.GreaterThan(0));
-            var response = client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
+            var response = Client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
             Assert.That(response.Weapons.Count, Is.EqualTo(0));
         }
 
@@ -120,9 +120,9 @@ namespace Pomona.SystemTests
         public void PatchCritter_SetWriteOnlyProperty()
         {
             var critter = Repository.CreateRandomCritter();
-            var resource = client.Critters.Query(x => x.Id == critter.Id).First();
+            var resource = Client.Critters.Query(x => x.Id == critter.Id).First();
 
-            client.Patch(resource, x => x.Password = "NewPassword");
+            Client.Patch(resource, x => x.Password = "NewPassword");
 
             Assert.That(critter.Password, Is.EqualTo("NewPassword"));
         }
@@ -131,8 +131,8 @@ namespace Pomona.SystemTests
         public void PatchCritter_UpdatePropertyOfValueObject()
         {
             var critter = Save(new Critter());
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
                          x =>
                          x.CrazyValue = new CrazyValueObjectForm {Sickness = "Just crazy thats all"});
 
@@ -144,10 +144,10 @@ namespace Pomona.SystemTests
         {
             var hat = Save(new Hat {Style = "Gangnam Style 1234"});
             var critter = Save(new Critter());
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
                          x =>
-                         x.Hat = client.Query<IHat>().Where(y => y.Style == "Gangnam Style 1234").FirstLazy());
+                         x.Hat = Client.Query<IHat>().Where(y => y.Style == "Gangnam Style 1234").FirstLazy());
 
             Assert.That(critter.Hat, Is.EqualTo(hat));
         }
@@ -156,8 +156,8 @@ namespace Pomona.SystemTests
         public void PatchCritter_UpdateStringProperty()
         {
             var critter = Save(new Critter());
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
                          x =>
                          x.Name = "NewName");
 
@@ -171,8 +171,8 @@ namespace Pomona.SystemTests
             critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
             Save(critter);
 
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            var patchResponse = client.Patch(resource,
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            var patchResponse = Client.Patch(resource,
                                              x => x.Weapons.Add(new WeaponForm
                                                  {
                                                      Price = 3.4m,
@@ -188,8 +188,8 @@ namespace Pomona.SystemTests
         public void PatchMusicalInheritedCritter_UpdateProperty()
         {
             var critter = Save(new MusicalCritter("lalala"));
-            var resource = client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
+            var resource = Client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
                          x =>
                          x.BandName = "The Patched Sheeps");
 
@@ -199,11 +199,11 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchUnpatchableThing_ThrowsInvalidOperationException()
         {
-            var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
+            var resource = Client.UnpatchableThings.Post(x => x.FooBar = "haha");
             var ex =
                 Assert.Throws<InvalidOperationException>(
                     () =>
-                    ((IPatchableRepository<IUnpatchableThing>) client.UnpatchableThings).Patch(resource,
+                    ((IPatchableRepository<IUnpatchableThing>) Client.UnpatchableThings).Patch(resource,
                                                                                                x => x.FooBar = "moo"));
             Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
         }
@@ -219,8 +219,8 @@ namespace Pomona.SystemTests
         public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
         {
             var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
-            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
             Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
             Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
         }
@@ -229,12 +229,12 @@ namespace Pomona.SystemTests
         public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
         {
             var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
 
             // Change etag on entity, which should give an exception
             etaggedEntity.SetEtag("MODIFIED!");
 
-            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
+            Assert.That(() => Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
                         Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
         }

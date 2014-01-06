@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,20 +26,27 @@
 
 #endregion
 
-using Critters.Client;
-using NUnit.Framework;
 using System.Linq;
 
-namespace Pomona.SystemTests
+using IndependentCritters;
+
+using NUnit.Framework;
+
+using Pomona.Example.Models;
+
+namespace Pomona.IndependentClientTests
 {
     [TestFixture]
-    public class PostToResourceTests : ClientTestsBase
+    public class QueryTests : IndependentClientTestsBase
     {
         [Test]
-        public void PostCaptureCommandToCritter_IsSuccessful()
+        public void SimpleQueryTest()
         {
-            var critterResource = Client.Critters.Query().First();
-            Client.Critters.Post(critterResource, new CaptureCommandForm() {FooBar = "lalala"});
+            var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
+
+            var musicalCritter = Client.Get<ICritter>(BaseUri + "critters/" + musicalCritterId);
+
+            Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
     }
 }

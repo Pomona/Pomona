@@ -95,10 +95,10 @@ namespace Pomona.SystemTests.Linq
             };
             Save(entity);
 
-            var resource = client.Query<ICustomTestEntity3>().First(x => x.Id == entity.Id);
+            var resource = Client.Query<ICustomTestEntity3>().First(x => x.Id == entity.Id);
 
             var patchedResource =
-                client.Patch(resource, x => { x.Text = "UPDATED!"; });
+                Client.Patch(resource, x => { x.Text = "UPDATED!"; });
 
             Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
         }
@@ -107,7 +107,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void PostCustomTestEntity()
         {
-            var response = (ICustomTestEntity3)client.Post<ICustomTestEntity3>(x =>
+            var response = (ICustomTestEntity3)Client.Post<ICustomTestEntity3>(x =>
             {
                 x.Number = 123;
                 x.Text = "foobar";
@@ -141,7 +141,7 @@ namespace Pomona.SystemTests.Linq
             //        x.SomethingExtra = "Hahahohohihi";
             //    });
 
-            var results = client.Query<ICustomTestEntity2>()
+            var results = Client.Query<ICustomTestEntity2>()
                 .Where(
                     x =>
                         x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
@@ -165,7 +165,7 @@ namespace Pomona.SystemTests.Linq
                 Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
             });
 
-            var results = client.Query<ICustomTestEntity3>()
+            var results = Client.Query<ICustomTestEntity3>()
                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
                 .IncludeTotalCount()
                 .ToQueryResult();
@@ -188,7 +188,7 @@ namespace Pomona.SystemTests.Linq
                 Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
             });
 
-            var results = client.Query<ICustomTestEntity3>()
+            var results = Client.Query<ICustomTestEntity3>()
                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
                 .ToList();
 
@@ -207,7 +207,7 @@ namespace Pomona.SystemTests.Linq
             var dictContainer =
                 Repository.Save(new StringToObjectDictionaryContainer { Map = { { "TheBool", true } } });
 
-            var results = client.Query<ICustomTestEntityWithBoolean>()
+            var results = Client.Query<ICustomTestEntityWithBoolean>()
                 .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
                 .ToList();
 
@@ -222,14 +222,14 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = client.DictionaryContainers.Post<IDictionaryContainer>(
+            var dictionaryContainer = Client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
                 {
                     x.Map.Add("CustomString", "Lalalala");
                     x.Map.Add("OtherCustom", "Blob rob");
                 });
 
-            var results = client.Query<ICustomTestEntity>()
+            var results = Client.Query<ICustomTestEntity>()
                 .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
                 .ToList();
 
@@ -246,7 +246,7 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = client.DictionaryContainers.Post<IDictionaryContainer>(
+            var dictionaryContainer = Client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
                 {
                     x.Map.Add("CustomString", "Lalalala");
@@ -254,7 +254,7 @@ namespace Pomona.SystemTests.Linq
                 });
 
             var result =
-                client.Query<ICustomTestEntity>()
+                Client.Query<ICustomTestEntity>()
                     .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
@@ -265,7 +265,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCustomTestEntity_UsingGroupBy_ReturnsCustomTestEntity()
         {
-            client.DictionaryContainers.Post<IDictionaryContainer>(
+            Client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
                 {
                     x.Map.Add("CustomString", "Lalalala");
@@ -273,7 +273,7 @@ namespace Pomona.SystemTests.Linq
                 });
 
             var result =
-                client.Query<ICustomTestEntity>()
+                Client.Query<ICustomTestEntity>()
                     .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
                     .GroupBy(x => x.CustomString)
                     .Select(x => new { x.Key })
@@ -299,7 +299,7 @@ namespace Pomona.SystemTests.Linq
             var parent = Save(new HasReferenceToDictionaryContainer { Container = child });
 
             var resource =
-                client.Query<ITestParentClientResource>()
+                Client.Query<ITestParentClientResource>()
                     .First(x => x.Id == parent.Id && x.Container.Jalla == "booohoo");
             Assert.That(resource.Container, Is.Not.Null);
             Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
@@ -315,7 +315,7 @@ namespace Pomona.SystemTests.Linq
                 Save(new HasReferenceToDictionaryContainer { Container = child, OtherContainers = { otherChild } });
 
             var resource =
-                client.Query<ITestParentClientResource>()
+                Client.Query<ITestParentClientResource>()
                     .First(
                         x =>
                             x.Id == parent.Id && x.Container.Jalla == "booohoo" &&
@@ -330,7 +330,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void Query_ClientSideResourceReturningNoResults_FirstOrDefaultReturnsNull()
         {
-            Assert.That(client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
+            Assert.That(Client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
                 Is.Null);
         }
     }
