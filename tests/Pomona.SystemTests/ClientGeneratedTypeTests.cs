@@ -104,8 +104,8 @@ namespace Pomona.SystemTests
         {
             string origDllPath = typeof(ICritter).Assembly.Location;
             string dllDir = Path.GetDirectoryName(origDllPath);
-            var clientWithEmbeddedStuffName = Path.Combine(dllDir, "..\\..\\..\\..\\lib\\Critters.Client.WithEmbeddedPomonaClient.dll");
-            string newDllPath = Path.Combine(dllDir, "TempCopiedClientEmbeddedPomonaCommonLib.tmp");
+            var clientWithEmbeddedStuffName = Path.Combine(dllDir, "..\\..\\..\\..\\lib\\IndependentCritters.dll");
+            string newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
             File.Copy(clientWithEmbeddedStuffName, newDllPath, true);
             PeVerify(newDllPath);
         }
