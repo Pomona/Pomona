@@ -28,11 +28,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class CritterPomonaConfiguration : PomonaConfigurationBase
     {
+        public override IEnumerable<Type> SourceTypes
+        {
+            get { return CritterRepository.GetEntityTypes().Concat(new[] {typeof (GenericBaseClass<int>)}); }
+        }
+
         public override IEnumerable<object> FluentRuleObjects
         {
             get
@@ -45,7 +52,7 @@ namespace Pomona.Example
 
         public override ITypeMappingFilter TypeMappingFilter
         {
-            get { return new CritterTypeMappingFilter(); }
+            get { return new CritterTypeMappingFilter(SourceTypes); }
         }
 
         public override IEnumerable<Type> HandlerTypes

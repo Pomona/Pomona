@@ -71,13 +71,19 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         {
             public override ITypeMappingFilter TypeMappingFilter
             {
-                get { return new IndependentClientDllTypeMappingFilter(); }
+                get { return new IndependentClientDllTypeMappingFilter(SourceTypes); }
             }
 
             #region Nested type: IndependentClientDllTypeMappingFilter
 
             private class IndependentClientDllTypeMappingFilter : CritterTypeMappingFilter
             {
+                public IndependentClientDllTypeMappingFilter(IEnumerable<Type> sourceTypes)
+                    : base(sourceTypes)
+                {
+                }
+
+
                 public override string GetClientAssemblyName()
                 {
                     return "IndependentCritters";

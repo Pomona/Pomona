@@ -1,5 +1,3 @@
-#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -24,8 +22,6 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,9 +37,16 @@ namespace Pomona
             get { return new PomonaJsonSerializerFactory(); }
         }
 
+        public abstract IEnumerable<Type> SourceTypes { get; }
+
         public virtual IEnumerable<object> FluentRuleObjects
         {
             get { return Enumerable.Empty<object>(); }
+        }
+
+        public virtual IEnumerable<Delegate> FluentRuleDelegates
+        {
+            get { return Enumerable.Empty<Delegate>(); }
         }
 
         public virtual IEnumerable<Type> HandlerTypes

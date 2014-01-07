@@ -60,12 +60,12 @@ namespace Pomona
             this.filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
             if (fluentRuleObjects.Length > 0)
-                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects);
+                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects, null, configuration.SourceTypes);
 
             if (this.filter == null)
                 throw new ArgumentNullException("filter");
 
-            this.sourceTypes = new HashSet<Type>(this.filter.GetSourceTypes().Where(this.filter.TypeIsMapped));
+            this.sourceTypes = new HashSet<Type>(this.configuration.SourceTypes.Where(this.filter.TypeIsMapped));
 
             this.typeNameMap = new Dictionary<string, TypeSpec>();
 

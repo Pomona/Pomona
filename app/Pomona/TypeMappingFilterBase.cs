@@ -46,11 +46,21 @@ using Pomona.FluentMapping;
 
 namespace Pomona
 {
+    public class DefaultTypeMappingFilter : TypeMappingFilterBase
+    {
+        public DefaultTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
+        {
+        }
+    }
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
-        private HashSet<Type> sourceTypesCached;
+        private readonly HashSet<Type> sourceTypesCached;
 
+        protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
+        {
+            sourceTypesCached = new HashSet<Type>(sourceTypes);
+        }
 
         static TypeMappingFilterBase()
         {
@@ -67,17 +77,11 @@ namespace Pomona
         {
             get
             {
-                if (this.sourceTypesCached == null)
-                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
                 return this.sourceTypesCached;
             }
         }
 
         #region ITypeMappingFilter Members
-
-        public abstract object GetIdFor(object entity);
-
-        public abstract IEnumerable<Type> GetSourceTypes();
 
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)

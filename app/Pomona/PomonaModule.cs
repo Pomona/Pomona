@@ -92,7 +92,6 @@ namespace Pomona
             RegisterResourceContent("QueryEditor.js");
         }
 
-
         public virtual IResourceResolver ResourceResolver
         {
             get { return new ResourceResolver(this.typeMapper, Context, this.serviceLocator); }

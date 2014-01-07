@@ -85,23 +85,25 @@ namespace Pomona.UnitTests.Queries
 
         private class PomonaTestConfiguration : PomonaConfigurationBase
         {
+            public override IEnumerable<Type> SourceTypes
+            {
+                get
+                {
+                    yield return typeof(TestEnum);
+                    yield return typeof(Dummy);
+                }
+            }
+
             public override ITypeMappingFilter TypeMappingFilter
             {
-                get { return new PomonaTestTypeMappingFilter(); }
+                get { return new PomonaTestTypeMappingFilter(SourceTypes); }
             }
         }
 
         private class PomonaTestTypeMappingFilter : TypeMappingFilterBase
         {
-            public override object GetIdFor(object entity)
+            public PomonaTestTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
             {
-                return 1;
-            }
-
-            public override IEnumerable<Type> GetSourceTypes()
-            {
-                yield return typeof (TestEnum);
-                yield return typeof (Dummy);
             }
         }
 

@@ -36,6 +36,9 @@ namespace Pomona.FluentMapping
 {
     public interface IPropertyOptionsBuilder<TDeclaringType, TPropertyType>
     {
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
+
+
         /// <summary>
         /// Property defines the attributes of the resource.
         /// By doing this the property will have ResourceAttributesPropertyAttribute
@@ -44,22 +47,23 @@ namespace Pomona.FluentMapping
         /// <returns>the builder</returns>
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes();
 
+
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag();
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey();
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository();
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name);
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly();
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula();
+
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula);
 
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey();
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name);
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula();
 
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly();
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable();
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode);
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpMethod method);
-
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
-
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository();
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode);
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Writable();
     }
 }

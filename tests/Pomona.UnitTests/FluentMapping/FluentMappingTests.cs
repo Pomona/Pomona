@@ -120,7 +120,7 @@ namespace Pomona.UnitTests.FluentMapping
             private readonly DefaultPropertyInclusionMode? defaultPropertyInclusion;
 
 
-            public TestTypeMappingFilter(DefaultPropertyInclusionMode? defaultPropertyInclusion = null)
+            public TestTypeMappingFilter(IEnumerable<Type> sourceTypes, DefaultPropertyInclusionMode? defaultPropertyInclusion = null) : base(sourceTypes)
             {
                 this.defaultPropertyInclusion = defaultPropertyInclusion;
             }
@@ -133,21 +133,6 @@ namespace Pomona.UnitTests.FluentMapping
                            : base.GetDefaultPropertyInclusionMode();
             }
 
-
-            public override object GetIdFor(object entity)
-            {
-                var testEntity = entity as TestEntityBase;
-                if (testEntity == null)
-                    throw new NotSupportedException();
-                return testEntity.Id;
-            }
-
-
-            public override IEnumerable<Type> GetSourceTypes()
-            {
-                return typeof (FluentMappingTests).GetNestedTypes().Where(
-                    x => typeof (TestEntityBase).IsAssignableFrom(x)).ToList();
-            }
         }
 
 
@@ -176,9 +161,11 @@ namespace Pomona.UnitTests.FluentMapping
         private static FluentTypeMappingFilter GetMappingFilter(
             DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null)
         {
-            var typeMappingFilter = new TestTypeMappingFilter(defaultPropertyInclusionMode);
+            List<Type> sourceTypes = typeof (FluentMappingTests).GetNestedTypes().Where(
+                x => typeof (TestEntityBase).IsAssignableFrom(x)).ToList();
+            var typeMappingFilter = new TestTypeMappingFilter(sourceTypes, defaultPropertyInclusionMode);
             var fluentMappingFilter = new FluentTypeMappingFilter(
-                typeMappingFilter, new FluentRules(defaultPropertyInclusionMode));
+                typeMappingFilter, new object []  {new FluentRules(defaultPropertyInclusionMode) }, null, sourceTypes);
             return fluentMappingFilter;
         }
 

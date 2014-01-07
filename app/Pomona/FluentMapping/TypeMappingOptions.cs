@@ -45,6 +45,11 @@ namespace Pomona.FluentMapping
 
         private readonly Type declaringType;
 
+        public Type DeclaringType
+        {
+            get { return declaringType; }
+        }
+
         private readonly IDictionary<string, PropertyMappingOptions> propertyOptions =
             new Dictionary<string, PropertyMappingOptions>();
 

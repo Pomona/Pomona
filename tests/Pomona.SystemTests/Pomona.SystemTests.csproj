@@ -91,7 +91,6 @@
     <Compile Include="GetFromUriTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
-    <Compile Include="CritterModuleInternal.cs" />
     <Compile Include="CritterTests.cs" />
     <Compile Include="JsonClientDeserializationTests.cs" />
     <Compile Include="JsonClientSerializationTests.cs" />

@@ -42,6 +42,10 @@ namespace Pomona.Example
 {
     public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
+        public CritterTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
+        {
+        }
+
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof(Farm) && propertyInfo.Name == "Critters")
@@ -89,12 +93,6 @@ namespace Pomona.Example
         }
 
 
-        public override object GetIdFor(object entity)
-        {
-            return ((EntityBase)entity).Id;
-        }
-
-
         public override JsonConverter GetJsonConverterForType(Type type)
         {
             if (type == typeof(WebColor))
@@ -102,13 +100,6 @@ namespace Pomona.Example
 
             return base.GetJsonConverterForType(type);
         }
-
-
-        public override IEnumerable<Type> GetSourceTypes()
-        {
-            return CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) });
-        }
-
 
         public override Type GetUriBaseType(Type type)
         {

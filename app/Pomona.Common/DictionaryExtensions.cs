@@ -66,6 +66,16 @@ namespace Pomona.Common
             return ret;
         }
 
+        public static bool TryGetValueAsType<TKey, TDictValue, TCastValue>(
+            this IDictionary<TKey, TDictValue> dict, TKey key, out TCastValue result)
+            where TDictValue : class 
+            where TCastValue : class, TDictValue
+        {
+            TDictValue resultObj;
+            result = null;
+            return dict.TryGetValue(key, out resultObj) && (result = resultObj as TCastValue) != null;
+        }
+
 
         public static TValue SafeGet<TKey, TValue>(
             this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> getDefaultFunc)
