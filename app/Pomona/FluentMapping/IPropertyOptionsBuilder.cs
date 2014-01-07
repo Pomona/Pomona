@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using Pomona.Common;
@@ -54,6 +55,45 @@ namespace Pomona.FluentMapping
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula();
+
+        /// <summary>
+        /// Specify what methods are allowed for items of a property, replacing all default permissions.
+        /// This also overrides any permissions set by using ItemsAllow and ItemsDeny method at earlier point.
+        /// Note that this only applies to properties of type <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <param name="method">The methods to be allowed for items of property.</param>
+        /// <returns>The builder.</returns>
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithItemAccessMode(HttpMethod method);
+
+        /// <summary>
+        /// Allow given methods for the property, which is combined with default convention-based permissions.
+        /// </summary>
+        /// <param name="method">Methods to allow.</param>
+        /// <returns>The builder</returns>
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Allow(HttpMethod method);
+        /// <summary>
+        /// Deny methods for property, removing permissions that would be given by default.
+        /// </summary>
+        /// <param name="method">Methods to allow.</param>
+        /// <returns>The builder</returns>
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Deny(HttpMethod method);
+
+        /// <summary>
+        /// Allow given methods for items of the property, which is combined with default convention-based permissions.
+        /// Note that this only applies to properties of type <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <param name="method">Methods to deny.</param>
+        /// <returns>The builder</returns>
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsAllow(HttpMethod method);
+
+        /// <summary>
+        /// Deny methods for items of a property, removing permissions that would be given by default.
+        /// Note that this only applies to properties of type <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <param name="method">Methods to deny.</param>
+        /// <returns>The builder</returns>
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsDeny(HttpMethod method);
+
 
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(

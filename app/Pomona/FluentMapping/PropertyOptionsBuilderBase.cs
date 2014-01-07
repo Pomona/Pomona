@@ -84,6 +84,36 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> WithItemAccessMode(HttpMethod method)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Allow(HttpMethod method)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Deny(HttpMethod method)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ItemsAllow(HttpMethod method)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ItemsDeny(HttpMethod method)
+        {
+            return this;
+        }
+
+
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingFormula(
             Expression<Func<TDeclaring, TProperty>> formula)
         {

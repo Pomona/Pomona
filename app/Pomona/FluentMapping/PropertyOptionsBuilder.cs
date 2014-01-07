@@ -154,6 +154,42 @@ namespace Pomona.FluentMapping
             return this;
         }
 
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithItemAccessMode(HttpMethod method)
+        {
+            this.options.ItemMethodMask = ~(default(HttpMethod));
+            this.options.ItemMethod = method;
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Allow(HttpMethod method)
+        {
+            this.options.SetAccessModeFlag(method);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Deny(HttpMethod method)
+        {
+            this.options.ClearAccessModeFlag(method);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsAllow(HttpMethod method)
+        {
+            this.options.SetItemAccessModeFlag(method);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsDeny(HttpMethod method)
+        {
+            this.options.ClearItemAccessModeFlag(method);
+            return this;
+        }
+
+
         #endregion
     }
 }
