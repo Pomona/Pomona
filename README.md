@@ -165,3 +165,7 @@ Query 5: Order #7, #8, #9, #10, #11, #12, #13, #14 loaded
 Query 6: Order #15, #16, #17, #18, #19, #20, #21, #22, #23, #24 loaded
 
 This gives a total of 6 http requests instead of 26, which means instead of N+1 we have Log2(N)+1 operations.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/okb/pomona/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
