@@ -46,12 +46,6 @@ using Pomona.FluentMapping;
 
 namespace Pomona
 {
-    public class DefaultTypeMappingFilter : TypeMappingFilterBase
-    {
-        public DefaultTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
-        {
-        }
-    }
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
@@ -101,6 +95,12 @@ namespace Pomona
         public virtual string GetClientAssemblyName()
         {
             return "Client";
+        }
+
+
+        public virtual string GetClientInformationalVersion()
+        {
+            return ApiVersion;
         }
 
 

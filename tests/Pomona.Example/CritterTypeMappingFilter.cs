@@ -46,6 +46,13 @@ namespace Pomona.Example
         {
         }
 
+
+        public override string GetClientInformationalVersion()
+        {
+            return "0.1.0-alpha1";
+        }
+
+
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof(Farm) && propertyInfo.Name == "Critters")

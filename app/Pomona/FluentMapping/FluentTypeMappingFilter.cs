@@ -145,6 +145,12 @@ namespace TestNs
         }
 
 
+        string ITypeMappingFilter.GetClientInformationalVersion()
+        {
+            return this.wrappedFilter.GetClientInformationalVersion();
+        }
+
+
         public Type GetClientLibraryType(Type type)
         {
             return this.wrappedFilter.GetClientLibraryType(type);

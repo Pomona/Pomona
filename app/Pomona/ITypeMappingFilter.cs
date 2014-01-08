@@ -44,6 +44,7 @@ namespace Pomona
         DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();
+        string GetClientInformationalVersion();
         Type GetClientLibraryType(Type type);
 
         /// <summary>

@@ -70,7 +70,7 @@ namespace Pomona.CodeGen
 
         private string GetVersionString()
         {
-            return typeMapper.Filter.ApiVersion;
+            return typeMapper.Filter.GetClientInformationalVersion();
         }
 
 

@@ -180,6 +180,8 @@ namespace Pomona.CodeGen
                 foreach (var clientHelperType in module.Types.Where(methodDefinition => !methodDefinition.Namespace.StartsWith(assemblyName) && !string.IsNullOrEmpty(methodDefinition.Namespace)))
                     clientHelperType.Namespace = assemblyName + "." + clientHelperType.Namespace;
             }
+
+            AddAssemblyAttributes();
             
             var memstream = new MemoryStream();
             assembly.Write(memstream);
@@ -190,6 +192,15 @@ namespace Pomona.CodeGen
 
             //assembly.Write(stream);
         }
+
+
+        private void AddAssemblyAttributes()
+        {
+            var ivAttr = AddAttribute(module.Assembly, typeof(AssemblyInformationalVersionAttribute));
+            ivAttr.ConstructorArguments.Add(new CustomAttributeArgument(StringTypeRef,
+                typeMapper.Filter.GetClientInformationalVersion()));
+        }
+
 
         private void CreatePostToResourceExtensionMethods()
         {
@@ -504,7 +515,7 @@ namespace Pomona.CodeGen
         {
             var attr = Import(attributeType);
             var ctor =
-                this.Import(attr.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+                this.Import(attr.Resolve().Methods.OrderBy(x => x.Parameters.Count).First(x => x.IsConstructor));
             var custAttr =
                 new CustomAttribute(ctor);
 
