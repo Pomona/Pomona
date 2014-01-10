@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,18 @@ namespace Pomona.SystemTests.TestingClient
 
         public interface ICustomGalaxy : IGalaxy
         {
+        }
+
+
+        [Test]
+        public void GetLazy_ForACritter_ReturnsTheCritter()
+        {
+            var donald = new CritterResource() { Name = "donald" };
+            this.mockControl.Save(donald);
+            // For testable client we don't actually get things lazy.
+            // This will make behaviour different than real client for resources that don't exist.
+            var donaldIsLazy = this.testClient.Critters.GetLazy(donald.Id);
+            Assert.That(donaldIsLazy, Is.EqualTo(donald));
         }
 
 

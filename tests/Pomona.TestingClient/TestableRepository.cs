@@ -125,6 +125,8 @@ namespace Pomona.TestingClient
                 return Post((PostResourceBase) args[0]);
             if (methodInfo.Name == "Get" && parameters.Length == 1)
                 return Get(args[0]);
+            if (methodInfo.Name == "GetLazy" && parameters.Length == 1)
+                return GetLazy(args[0]);
             throw new NotImplementedException();
         }
 
