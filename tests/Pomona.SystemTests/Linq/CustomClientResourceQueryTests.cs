@@ -83,8 +83,13 @@ namespace Pomona.SystemTests.Linq
         {
         }
 
+        public interface IDecoratedMusicalFarm : IFarm
+        {
+        }
+
         public interface IDecoratedMusicalCritter : IMusicalCritter
         {
+            new IDecoratedMusicalFarm Farm { get; set; }
             new IList<IDecoratedMusicalWeapon> Weapons { get; set; }
         }
 
@@ -352,6 +357,16 @@ namespace Pomona.SystemTests.Linq
             var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
             var weapons = extendedMusicalCritter.Weapons;
             Assert.That(weapons.Count, Is.EqualTo(((ICritter)extendedMusicalCritter).Weapons.Count));
+        }
+
+
+        [Test]
+        public void
+            Query_ExtendedResourceSubclassedOnServer_ThatGotReferenceToAnotherTypeOfExtendedResources_WrapsResourceCorrectly
+            ()
+        {
+            var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
+            Assert.That(extendedMusicalCritter.Farm, Is.Not.Null);
         }
     }
 }

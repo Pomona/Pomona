@@ -93,7 +93,7 @@ namespace Pomona.Common.Proxies
             CustomUserTypeInfo memberUserTypeInfo;
             if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof(TPropType), Client, out memberUserTypeInfo))
             {
-                var serverProp = UserTypeInfo.ServerType.GetProperty(property.Name);
+                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
                 if (serverProp != null && serverProp.PropertyType.IsAssignableFrom(typeof (TPropType)))
                 {
                     var propValue = serverProp.GetValue(ProxyTarget, null);
