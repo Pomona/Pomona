@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -71,11 +71,6 @@ namespace Pomona.Common
             return member.GetCustomAttributes(typeof(TAttribute), inherit).OfType<TAttribute>().FirstOrDefault();
         }
 
-
-        public static bool IsStatic(this PropertyInfo propertyInfo)
-        {
-            return propertyInfo.GetAccessors(true).First(x => x != null).IsStatic;
-        }
 
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
@@ -228,6 +223,12 @@ namespace Pomona.Common
         public static bool IsNullable(this Type type)
         {
             return type.UniqueToken() == typeof(Nullable<>).UniqueToken();
+        }
+
+
+        public static bool IsStatic(this PropertyInfo propertyInfo)
+        {
+            return propertyInfo.GetAccessors(true).First(x => x != null).IsStatic;
         }
 
 
@@ -394,7 +395,10 @@ namespace Pomona.Common
         }
 
 
-        public static bool TryGetPropertyByName(this TypeSpec type, string name, StringComparison stringComparison,  out PropertySpec property)
+        public static bool TryGetPropertyByName(this TypeSpec type,
+            string name,
+            StringComparison stringComparison,
+            out PropertySpec property)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -416,9 +420,9 @@ namespace Pomona.Common
             property =
                 type.Properties.FirstOrDefault(
                     x => (x.PropertyType is ResourceType || x.PropertyType is EnumerableTypeSpec) &&
-                        string.Equals(name,
-                            NameUtils.ConvertCamelCaseToUri(x.Name),
-                            StringComparison.InvariantCultureIgnoreCase));
+                         string.Equals(name,
+                             NameUtils.ConvertCamelCaseToUri(x.Name),
+                             StringComparison.InvariantCultureIgnoreCase));
 
             return property != null;
         }

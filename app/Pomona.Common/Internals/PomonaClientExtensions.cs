@@ -24,6 +24,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 
 namespace Pomona.Common.Internals
 {
@@ -62,6 +63,27 @@ namespace Pomona.Common.Internals
             return resourceInfoAttribute;
         }
 
+
+        internal static ResourceInfoAttribute GetResourceInfoAttribute(this Type type)
+        {
+            var ria =
+                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
+                    .FirstOrDefault();
+            if (ria == null)
+                throw new InvalidOperationException("Unable to get resource info attribute");
+            return ria;
+        }
+
+
+        internal static PropertyInfo GetResourceProperty(this Type type, string propertyName)
+        {
+            return type.WalkTree(x => x.GetResourceBaseInterface()).Select(x => x.GetProperty(propertyName)).FirstOrDefault(x => x != null);
+        }
+
+        internal static Type GetResourceBaseInterface(this Type type)
+        {
+            return type.GetResourceInfoAttribute().BaseType;
+        }
 
         internal static ResourceInfoAttribute GetMostInheritedResourceInterfaceInfo(
             this IPomonaClient client, Type sourceType)

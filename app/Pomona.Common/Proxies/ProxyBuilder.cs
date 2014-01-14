@@ -121,7 +121,7 @@ namespace Pomona.Common.Proxies
 
             foreach (var targetProp in interfaces.SelectMany(x => x.GetProperties()))
             {
-                var proxyPropDef = AddProperty(proxyType, targetProp.Name, targetProp.PropertyType);
+                var proxyPropDef = AddProperty(proxyType, targetProp.Name, targetProp.PropertyType, targetProp.DeclaringType.FullName + ".", targetProp);
                 OnGeneratePropertyMethods(
                     targetProp,
                     proxyPropDef,
@@ -268,30 +268,42 @@ namespace Pomona.Common.Proxies
 
 
         /// <summary>
-        /// Create property with public getter and setter, with no method defined.
+        /// Create property with explicit implementation of getter and setter, with no method defined.
         /// </summary>
-        private PropertyDefinition AddProperty(TypeDefinition declaringType, string name, TypeReference propertyType)
+        private PropertyDefinition AddProperty(TypeDefinition declaringType, string name, TypeReference propertyType, string explicitPrefix, PropertyInfo overridedProp)
         {
-            var proxyPropDef = declaringType.DefineProperty(name, PropertyAttributes.None, propertyType, null);
-            var proxyPropGetter = declaringType.DefineMethod(
-                "get_" + name,
-                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual | MethodAttributes.Public,
-                propertyType, Type.EmptyTypes);
+            var proxyPropDef = declaringType.DefineProperty(explicitPrefix + name, PropertyAttributes.None | PropertyAttributes.SpecialName, propertyType, null);
+            var methodAttributes = MethodAttributes.Private | MethodAttributes.HideBySig |
+                MethodAttributes.NewSlot | MethodAttributes.Virtual | 
+                MethodAttributes.Final | MethodAttributes.SpecialName;
 
-            proxyPropDef.SetGetMethod(proxyPropGetter);
+            var overridedGetMethod = overridedProp.GetGetMethod();
+            if (overridedGetMethod != null)
+            {
+                var proxyPropGetter = declaringType.DefineMethod(
+                    string.Format("{0}get_{1}", explicitPrefix, name),
+                    methodAttributes,
+                    propertyType,
+                    Type.EmptyTypes);
+                declaringType.DefineMethodOverride(proxyPropGetter, overridedGetMethod);
 
-            var proxyPropSetter = declaringType.DefineMethod(
-                "set_" + name,
-                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual | MethodAttributes.Public,
-                null, new[] { propertyType });
+                proxyPropDef.SetGetMethod(proxyPropGetter);
+            }
 
-            proxyPropSetter.DefineParameter(0, ParameterAttributes.None, "value");
+            var overridedSetMethod = overridedProp.GetSetMethod();
 
-            proxyPropDef.SetSetMethod(proxyPropSetter);
+            if (overridedSetMethod != null)
+            {
+                var proxyPropSetter = declaringType.DefineMethod(
+                    string.Format("{0}set_{1}", explicitPrefix, name),
+                    methodAttributes,
+                    null,
+                    new[] { propertyType });
+
+                proxyPropSetter.DefineParameter(0, ParameterAttributes.None, "value");
+                declaringType.DefineMethodOverride(proxyPropSetter, overridedSetMethod);
+                proxyPropDef.SetSetMethod(proxyPropSetter);
+            }
 
             return proxyPropDef;
         }

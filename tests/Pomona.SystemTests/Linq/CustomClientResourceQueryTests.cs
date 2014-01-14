@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -77,6 +77,15 @@ namespace Pomona.SystemTests.Linq
 
         public interface IDecoratedCritter : ICritter
         {
+        }
+
+        public interface IDecoratedMusicalWeapon : IWeapon
+        {
+        }
+
+        public interface IDecoratedMusicalCritter : IMusicalCritter
+        {
+            new IList<IDecoratedMusicalWeapon> Weapons { get; set; }
         }
 
         public interface ITestParentClientResource : IHasReferenceToDictionaryContainer
@@ -332,6 +341,17 @@ namespace Pomona.SystemTests.Linq
         {
             Assert.That(Client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
                 Is.Null);
+        }
+
+
+        [Test]
+        public void
+            Query_ExtendedResourceSubclassedOnServer_ThatGotListOfAnotherTypeOfExtendedResources_WrapsResourcesCorrectly
+            ()
+        {
+            var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
+            var weapons = extendedMusicalCritter.Weapons;
+            Assert.That(weapons.Count, Is.EqualTo(((ICritter)extendedMusicalCritter).Weapons.Count));
         }
     }
 }

@@ -120,7 +120,7 @@ namespace Pomona.UnitTests.Client
                 Repository = cachedNancyTestingClientRepository;
             }
 
-            //client.RequestCompleted += ClientOnRequestCompleted;
+            SetupRequestCompletedHandler();
         }
 
 
