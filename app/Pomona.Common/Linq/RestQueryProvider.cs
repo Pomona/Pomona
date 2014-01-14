@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,14 +32,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Newtonsoft.Json.Linq;
+
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Internals;
 
 namespace Pomona.Common.Linq
 {
-    public class RestQueryProvider : IQueryProvider
+    public class RestQueryProvider : QueryProviderBase
     {
         private static readonly MethodInfo executeGenericMethod;
         private static readonly MethodInfo mapToCustomUserTypeResultMethod;
@@ -58,6 +60,7 @@ namespace Pomona.Common.Linq
                     x => x.MapToCustomUserTypeResult<object>(null, null, null));
         }
 
+
         internal RestQueryProvider(IPomonaClient client, Type sourceType, string uri = null)
         {
             if (client == null)
@@ -69,50 +72,28 @@ namespace Pomona.Common.Linq
             this.uri = uri;
         }
 
+
         public string Uri
         {
-            get { return uri; }
+            get { return this.uri; }
         }
-
 
         internal IPomonaClient Client
         {
-            get { return client; }
+            get { return this.client; }
         }
 
 
-        IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
+        public override IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            return new RestQuery<S>(this, expression);
+            return new RestQuery<TElement>(this, expression);
         }
 
 
-        IQueryable IQueryProvider.CreateQuery(Expression expression)
-        {
-            var elementType = GetElementType(expression.Type);
-                return
-                    (IQueryable)
-                    Activator.CreateInstance(
-                        typeof (RestQuery<>).MakeGenericType(elementType),
-                        new object[] { this, expression });
-        }
-
-
-        S IQueryProvider.Execute<S>(Expression expression)
-        {
-            return (S)Execute(expression);
-        }
-
-
-        object IQueryProvider.Execute(Expression expression)
-        {
-            return Execute(expression);
-        }
-
-        public virtual object Execute(Expression expression)
+        public override object Execute(Expression expression)
         {
             object result;
-            if (TryQueryCustomUserTypeIfRequired(expression, sourceType, out result))
+            if (TryQueryCustomUserTypeIfRequired(expression, this.sourceType, out result))
                 return result;
 
             var queryTreeParser = new RestQueryableTreeParser();
@@ -121,7 +102,6 @@ namespace Pomona.Common.Linq
             return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).InvokeDirect(
                 this,
                 queryTreeParser);
-
         }
 
 
@@ -130,62 +110,6 @@ namespace Pomona.Common.Linq
             return expression.ToString();
         }
 
-
-        private static Type GetElementType(Type type)
-        {
-            var queryableTypeInstance = type.GetInterfacesOfGeneric(typeof (IQueryable<>)).FirstOrDefault();
-            if (queryableTypeInstance == null)
-                return type;
-
-            return queryableTypeInstance.GetGenericArguments()[0];
-        }
-
-
-        private string BuildUri(RestQueryableTreeParser parser)
-        {
-            var builder = new UriQueryBuilder();
-
-            // TODO: Support expand
-
-            var resourceInfo = client.GetResourceInfoForType(parser.ElementType);
-
-            if (!resourceInfo.IsUriBaseType)
-                builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
-
-            SetProjection(parser, builder);
-
-            if (parser.WherePredicate != null)
-                builder.AppendExpressionParameter("$filter", parser.WherePredicate);
-            if (parser.OrderKeySelector != null)
-            {
-                var sortOrder = parser.SortOrder;
-                builder.AppendExpressionParameter(
-                    "$orderby", parser.OrderKeySelector, x => sortOrder == SortOrder.Descending ? x + " desc" : x);
-            }
-            if (parser.GroupByKeySelector != null)
-            {
-                var selectBuilder = new QuerySelectBuilder(parser.GroupByKeySelector);
-                builder.AppendParameter("$groupby", selectBuilder);
-            }
-            if (parser.SelectExpression != null)
-            {
-                var selectBuilder = new QuerySelectBuilder(parser.SelectExpression);
-                builder.AppendParameter("$select", selectBuilder);
-            }
-            if (parser.SkipCount.HasValue)
-                builder.AppendParameter("$skip", parser.SkipCount.Value);
-            if (parser.TakeCount.HasValue)
-                builder.AppendParameter("$top", parser.TakeCount.Value);
-
-            var expandedPaths = parser.ExpandedPaths;
-            if (!string.IsNullOrEmpty(expandedPaths))
-                builder.AppendParameter("$expand", expandedPaths);
-
-            if (parser.IncludeTotalCount)
-                builder.AppendParameter("$totalcount", "true");
-
-            return (uri ?? client.GetUriOfType(parser.ElementType)) + "?" + builder;
-        }
 
         private static void SetProjection(RestQueryableTreeParser parser, UriQueryBuilder builder)
         {
@@ -217,30 +141,90 @@ namespace Pomona.Common.Linq
         }
 
 
+        private string BuildUri(RestQueryableTreeParser parser)
+        {
+            var builder = new UriQueryBuilder();
+
+            // TODO: Support expand
+
+            var resourceInfo = this.client.GetResourceInfoForType(parser.ElementType);
+
+            if (!resourceInfo.IsUriBaseType)
+                builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
+
+            SetProjection(parser, builder);
+
+            if (parser.WherePredicate != null)
+                builder.AppendExpressionParameter("$filter", parser.WherePredicate);
+            if (parser.OrderKeySelector != null)
+            {
+                var sortOrder = parser.SortOrder;
+                builder.AppendExpressionParameter(
+                    "$orderby",
+                    parser.OrderKeySelector,
+                    x => sortOrder == SortOrder.Descending ? x + " desc" : x);
+            }
+            if (parser.GroupByKeySelector != null)
+            {
+                var selectBuilder = new QuerySelectBuilder(parser.GroupByKeySelector);
+                builder.AppendParameter("$groupby", selectBuilder);
+            }
+            if (parser.SelectExpression != null)
+            {
+                var selectBuilder = new QuerySelectBuilder(parser.SelectExpression);
+                builder.AppendParameter("$select", selectBuilder);
+            }
+            if (parser.SkipCount.HasValue)
+                builder.AppendParameter("$skip", parser.SkipCount.Value);
+            if (parser.TakeCount.HasValue)
+                builder.AppendParameter("$top", parser.TakeCount.Value);
+
+            var expandedPaths = parser.ExpandedPaths;
+            if (!string.IsNullOrEmpty(expandedPaths))
+                builder.AppendParameter("$expand", expandedPaths);
+
+            if (parser.IncludeTotalCount)
+                builder.AppendParameter("$totalcount", "true");
+
+            return (this.uri ?? this.client.GetUriOfType(parser.ElementType)) + "?" + builder;
+        }
+
+
+        private TCustomClientType CreateClientSideResourceProxy<TCustomClientType>(CustomUserTypeInfo userTypeInfo,
+            object wrappedResource)
+        {
+            var proxy =
+                (ClientSideResourceProxyBase)
+                    ((object)
+                        RuntimeProxyFactory<ClientSideResourceProxyBase, TCustomClientType>.Create());
+            proxy.Initialize(this.client, userTypeInfo, wrappedResource);
+            return (TCustomClientType)((object)proxy);
+        }
+
+
         private object Execute<T>(RestQueryableTreeParser parser)
         {
             var uri = BuildUri(parser);
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToJson)
-                return client.Get<JToken>(uri);
+                return this.client.Get<JToken>(uri);
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
                 return new Uri(uri);
 
             if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
-                var resourceInfo = client.GetResourceInfoForType(typeof (T));
+                var resourceInfo = this.client.GetResourceInfoForType(typeof(T));
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
                 proxy.Uri = uri;
-                proxy.Client = client;
+                proxy.Client = this.client;
                 return proxy;
             }
-
 
             switch (parser.Projection)
             {
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
-                    return client.Get<IList<T>>(uri);
+                    return this.client.Get<IList<T>>(uri);
                 case RestQueryableTreeParser.QueryProjection.First:
                     return GetFirst<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
@@ -248,20 +232,21 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
                 case RestQueryableTreeParser.QueryProjection.Count:
-                    return client.Get<T>(uri);
+                    return this.client.Get<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Implement count querying without returning any results..
-                    return client.Get<IList<T>>(uri).Count > 0;
+                    return this.client.Get<IList<T>>(uri).Count > 0;
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + parser.Projection);
             }
         }
 
+
         private T GetFirst<T>(string uri)
         {
             try
             {
-                return client.Get<T>(uri);
+                return this.client.Get<T>(uri);
             }
             catch (Exception ex)
             {
@@ -271,13 +256,17 @@ namespace Pomona.Common.Linq
 
 
         private object MapToCustomUserTypeResult<TCustomClientType>(
-            object result, CustomUserTypeInfo userTypeInfo, Expression transformedExpression)
+            object result,
+            CustomUserTypeInfo userTypeInfo,
+            Expression transformedExpression)
         {
             Type elementType;
 
             if (transformedExpression.Type == userTypeInfo.ServerType)
             {
-                return result != null ? (object)CreateClientSideResourceProxy<TCustomClientType>(userTypeInfo, result) : null;
+                return result != null
+                    ? (object)CreateClientSideResourceProxy<TCustomClientType>(userTypeInfo, result)
+                    : null;
             }
 
             if (transformedExpression.Type.TryGetEnumerableElementType(out elementType)
@@ -285,14 +274,16 @@ namespace Pomona.Common.Linq
             {
                 var wrappedResults =
                     (result as IEnumerable).Cast<object>()
-                                           .Select(
-                                               x => CreateClientSideResourceProxy<TCustomClientType>(userTypeInfo, x));
+                        .Select(
+                            x => CreateClientSideResourceProxy<TCustomClientType>(userTypeInfo, x));
                 // Map back to customClientType
                 if (result is QueryResult)
                 {
                     var resultAsQueryResult = (QueryResult)result;
-                    return new QueryResult<TCustomClientType>(wrappedResults, resultAsQueryResult.Skip,
-                                                              resultAsQueryResult.TotalCount, resultAsQueryResult.Url);
+                    return new QueryResult<TCustomClientType>(wrappedResults,
+                        resultAsQueryResult.Skip,
+                        resultAsQueryResult.TotalCount,
+                        resultAsQueryResult.Url);
                 }
                 return wrappedResults.ToList();
             }
@@ -300,36 +291,25 @@ namespace Pomona.Common.Linq
             return result;
         }
 
-        private TCustomClientType CreateClientSideResourceProxy<TCustomClientType>(CustomUserTypeInfo userTypeInfo,
-                                                                                   object wrappedResource)
-        {
-            var proxy =
-                (ClientSideResourceProxyBase)
-                ((object)
-                 RuntimeProxyFactory<ClientSideResourceProxyBase, TCustomClientType>.Create());
-            proxy.Initialize(client, userTypeInfo, wrappedResource);
-            return (TCustomClientType)((object)proxy);
-        }
-
 
         private bool TryQueryCustomUserTypeIfRequired(Expression expression, Type customClientType, out object result)
         {
             CustomUserTypeInfo userTypeInfo;
-            if (!CustomUserTypeInfo.TryGetCustomUserTypeInfo(customClientType, client, out userTypeInfo))
+            if (!CustomUserTypeInfo.TryGetCustomUserTypeInfo(customClientType, this.client, out userTypeInfo))
             {
                 result = null;
                 return false;
             }
 
-
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(client);
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(this.client);
             var transformedExpression = visitor.Visit(expression);
 
-            var nestedQueryProvider = new RestQueryProvider(client, userTypeInfo.ServerType, Uri);
+            var nestedQueryProvider = new RestQueryProvider(this.client, userTypeInfo.ServerType, Uri);
             result = nestedQueryProvider.Execute(transformedExpression);
 
             result = mapToCustomUserTypeResultMethod.MakeGenericMethod(customClientType).Invoke(
-                this, new[] { result, userTypeInfo, transformedExpression });
+                this,
+                new[] { result, userTypeInfo, transformedExpression });
 
             return true;
         }

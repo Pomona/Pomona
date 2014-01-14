@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,47 +27,43 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace Pomona.Common.Linq
 {
-    public class RestQuery<T> : QueryableBase<T>
+    public abstract class QueryableBase<T> : IOrderedQueryable<T>
     {
-        private readonly Expression expression;
-        private readonly RestQueryProvider provider;
+        public abstract Expression Expression { get; }
 
+        public abstract IQueryProvider Provider { get; }
 
-        public RestQuery(RestQueryProvider provider)
+        Type IQueryable.ElementType
         {
-            if (provider == null)
-                throw new ArgumentNullException("provider");
-            this.provider = provider;
-            this.expression = Expression.Constant(this);
+            get { return typeof(T); }
         }
 
 
-        public RestQuery(RestQueryProvider provider, Expression expression)
+        public override string ToString()
         {
-            if (provider == null)
-                throw new ArgumentNullException("provider");
-            if (expression == null)
-                throw new ArgumentNullException("expression");
-            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-                throw new ArgumentOutOfRangeException("expression");
-            this.provider = provider;
-            this.expression = expression;
+            if (Expression.NodeType == ExpressionType.Constant &&
+                ((ConstantExpression)Expression).Value == this)
+                return "Query(" + typeof(T) + ")";
+            return Expression.ToString();
         }
 
 
-        public override Expression Expression
+        public IEnumerator<T> GetEnumerator()
         {
-            get { return this.expression; }
+            return ((IEnumerable<T>)Provider.Execute(Expression)).GetEnumerator();
         }
 
-        public override IQueryProvider Provider
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            get { return this.provider; }
+            return ((IEnumerable)Provider.Execute(Expression)).GetEnumerator();
         }
     }
 }

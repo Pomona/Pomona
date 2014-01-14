@@ -29,45 +29,56 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+
+using Pomona.Internals;
 
 namespace Pomona.Common.Linq
 {
-    public class RestQuery<T> : QueryableBase<T>
+    public abstract class QueryProviderBase : IQueryProvider
     {
-        private readonly Expression expression;
-        private readonly RestQueryProvider provider;
+        private static readonly MethodInfo createQueryGenericMethod;
 
 
-        public RestQuery(RestQueryProvider provider)
+        static QueryProviderBase()
         {
-            if (provider == null)
-                throw new ArgumentNullException("provider");
-            this.provider = provider;
-            this.expression = Expression.Constant(this);
+            createQueryGenericMethod =
+                ReflectionHelper.GetMethodDefinition<IQueryProvider>(x => x.CreateQuery<object>(null));
         }
 
 
-        public RestQuery(RestQueryProvider provider, Expression expression)
+        public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
+        public abstract object Execute(Expression expression);
+
+
+        private static Type GetElementType(Type type)
         {
-            if (provider == null)
-                throw new ArgumentNullException("provider");
-            if (expression == null)
-                throw new ArgumentNullException("expression");
-            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-                throw new ArgumentOutOfRangeException("expression");
-            this.provider = provider;
-            this.expression = expression;
+            var queryableTypeInstance = type.GetInterfacesOfGeneric(typeof(IQueryable<>)).FirstOrDefault();
+            if (queryableTypeInstance == null)
+                return type;
+
+            return queryableTypeInstance.GetGenericArguments()[0];
         }
 
 
-        public override Expression Expression
+        IQueryable IQueryProvider.CreateQuery(Expression expression)
         {
-            get { return this.expression; }
+            return
+                (IQueryable)
+                    createQueryGenericMethod.MakeGenericMethod(GetElementType(expression.Type)).Invoke(this,
+                        new object[] { expression });
         }
 
-        public override IQueryProvider Provider
+
+        S IQueryProvider.Execute<S>(Expression expression)
         {
-            get { return this.provider; }
+            return (S)Execute(expression);
+        }
+
+
+        object IQueryProvider.Execute(Expression expression)
+        {
+            return Execute(expression);
         }
     }
 }
