@@ -56,7 +56,7 @@ namespace Pomona.Common.Internals
             get { return dictProperty; }
         }
 
-        internal static bool TryGetCustomUserTypeInfo(Type clientType, IPomonaClient client, out CustomUserTypeInfo info)
+        internal static bool TryGetCustomUserTypeInfo(Type clientType, IClientTypeResolver client, out CustomUserTypeInfo info)
         {
             info = null;
             var serverTypeInfo = client.GetMostInheritedResourceInterfaceInfo(clientType);

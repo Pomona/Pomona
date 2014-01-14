@@ -30,6 +30,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json.Linq;
+
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
@@ -269,8 +271,17 @@ namespace Pomona.Common
 
         public override IQueryable<T> Query<T>()
         {
-            return new RestQuery<T>(new RestQueryProvider(this, typeof (T)));
+            CustomUserTypeInfo extendedTypeInfo;
+            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof(T), this, out extendedTypeInfo))
+            {
+                return new ExtendedQueryableRoot<T>(this,
+                    new RestQueryProvider(this).CreateQuery(
+                        GetUriOfType(extendedTypeInfo.ServerType),
+                        extendedTypeInfo.ServerType));
+            }
+            return (IQueryable<T>)(new RestQueryProvider(this).CreateQuery(GetUriOfType(typeof(T)), typeof(T)));
         }
+
 
         private object CreatePostForm(Type resourceType)
         {

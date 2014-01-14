@@ -60,22 +60,24 @@ namespace Pomona.Common
         public abstract string Url { get; }
 
 
-        public static QueryResult Create(IEnumerable source, int skip, int totalCount, string url)
+        public static QueryResult Create(IEnumerable source, int skip, int totalCount, string url, Type elementType = null)
         {
-            Type elementType;
             Type[] genargs;
-            if (!TypeUtils.TryGetTypeArguments(source.GetType(), typeof (IEnumerable<>), out genargs))
+            if (elementType == null)
             {
-                var asQueryable = source as IQueryable;
-                if (asQueryable == null)
+                if (!TypeUtils.TryGetTypeArguments(source.GetType(), typeof(IEnumerable<>), out genargs))
                 {
-                    throw new ArgumentException("source needs to implement IQuerable or IEnumerable<>");
+                    var asQueryable = source as IQueryable;
+                    if (asQueryable == null)
+                    {
+                        throw new ArgumentException("source needs to implement IQueryable or IEnumerable<>");
+                    }
+                    elementType = asQueryable.ElementType;
                 }
-                elementType = asQueryable.ElementType;
-            }
-            else
-            {
-                elementType = genargs[0];
+                else
+                {
+                    elementType = genargs[0];
+                }
             }
             return
                 (QueryResult)
@@ -84,9 +86,12 @@ namespace Pomona.Common
         }
 
 
-        private static QueryResult Create<TSource>(IEnumerable<TSource> source, int skip, int totalCount, string url)
+        private static QueryResult Create<TSource>(IEnumerable source, int skip, int totalCount, string url)
         {
-            return new QueryResult<TSource>(source, skip, totalCount, url);
+            if (source == null)
+                throw new ArgumentNullException("source");
+            var castSource = source as IEnumerable<TSource> ?? source.Cast<TSource>();
+            return new QueryResult<TSource>(castSource, skip, totalCount, url);
         }
     }
 

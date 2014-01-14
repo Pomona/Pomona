@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,35 +27,11 @@
 #endregion
 
 using System;
-using System.Linq;
-using System.Reflection;
 
-namespace Pomona.Common.Internals
+namespace Pomona.Common
 {
-    public static class PomonaClientExtensions
+    public interface IClientTypeResolver
     {
-        internal static Type GetResourceBaseInterface(this Type type)
-        {
-            return type.GetResourceInfoAttribute().BaseType;
-        }
-
-
-        internal static ResourceInfoAttribute GetResourceInfoAttribute(this Type type)
-        {
-            var ria =
-                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
-                    .FirstOrDefault();
-            if (ria == null)
-                throw new InvalidOperationException("Unable to get resource info attribute");
-            return ria;
-        }
-
-
-        internal static PropertyInfo GetResourceProperty(this Type type, string propertyName)
-        {
-            return
-                type.WalkTree(x => x.GetResourceBaseInterface()).Select(x => x.GetProperty(propertyName)).FirstOrDefault
-                    (x => x != null);
-        }
+        bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
     }
 }

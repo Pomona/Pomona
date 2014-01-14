@@ -38,7 +38,7 @@ namespace Pomona.Common.Linq
         private readonly RestQueryProvider provider;
 
 
-        public RestQuery(RestQueryProvider provider)
+        protected RestQuery(RestQueryProvider provider)
         {
             if (provider == null)
                 throw new ArgumentNullException("provider");

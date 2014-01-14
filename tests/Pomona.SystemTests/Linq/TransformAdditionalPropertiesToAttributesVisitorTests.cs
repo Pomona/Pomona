@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,10 +27,13 @@
 #endregion
 
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
-using Pomona.Common.Linq;
+using Pomona.Common.ExtendedResources;
 
 namespace Pomona.SystemTests.Linq
 {
@@ -43,21 +46,20 @@ namespace Pomona.SystemTests.Linq
             string OtherCustom { get; set; }
         }
 
+
         [Test]
         public void TransformsQueryCorrect()
         {
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(Client);
 
-            var originalQuery = new RestQuery<ICustomUserEntity>(new RestQueryProvider(Client,
-                                                                                       typeof (ICustomUserEntity)))
+            var wrappedSource = Enumerable.Empty<IStringToObjectDictionaryContainer>().AsQueryable();
+
+            var originalQuery = new ExtendedQueryableRoot<ICustomUserEntity>(Client, wrappedSource)
                 .Where(x => x.CustomString == "Lalalala")
                 .Where(x => x.OtherCustom == "Blob rob")
                 .Select(x => x.OtherCustom);
 
-            var expectedQuery = new RestQuery<IStringToObjectDictionaryContainer>(new RestQueryProvider(Client,
-                                                                                                        typeof (
-                                                                                                            IStringToObjectDictionaryContainer
-                                                                                                            )))
+            var expectedQuery = wrappedSource
                 .Where(x => (x.Map.SafeGet("CustomString") as string) == "Lalalala")
                 .Where(x => (x.Map.SafeGet("OtherCustom") as string) == "Blob rob")
                 .Select(x => (x.Map.SafeGet("OtherCustom") as string));

@@ -36,12 +36,12 @@ namespace Pomona.Common.Proxies
     {
         public object ProxyTarget { get; private set; }
         internal CustomUserTypeInfo UserTypeInfo { get; private set; }
-        internal IPomonaClient Client { get; private set; }
+        internal IClientTypeResolver Client { get; private set; }
 
         private static MethodInfo createProxyListMethod =
             ReflectionHelper.GetMethodDefinition<ClientSideResourceProxyBase>(x => x.CreateProxyList<object>(null, null));
 
-        internal void Initialize(IPomonaClient client, CustomUserTypeInfo userTypeInfo, object proxyTarget)
+        internal void Initialize(IClientTypeResolver client, CustomUserTypeInfo userTypeInfo, object proxyTarget)
         {
             if (client == null) throw new ArgumentNullException("client");
             if (userTypeInfo == null) throw new ArgumentNullException("userTypeInfo");

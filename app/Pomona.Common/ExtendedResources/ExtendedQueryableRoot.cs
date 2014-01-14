@@ -26,36 +26,25 @@
 
 #endregion
 
-using System;
 using System.Linq;
-using System.Reflection;
 
-namespace Pomona.Common.Internals
+namespace Pomona.Common.ExtendedResources
 {
-    public static class PomonaClientExtensions
+    internal class ExtendedQueryableRoot<T> : ExtendedQueryable<T>, IExtendedQueryableRoot
     {
-        internal static Type GetResourceBaseInterface(this Type type)
+        private readonly IQueryable wrappedSource;
+
+
+        internal ExtendedQueryableRoot(IClientTypeResolver client, IQueryable wrappedSource)
+            : base(new ExtendedQueryProvider(client), null)
         {
-            return type.GetResourceInfoAttribute().BaseType;
+            this.wrappedSource = wrappedSource;
         }
 
 
-        internal static ResourceInfoAttribute GetResourceInfoAttribute(this Type type)
+        public IQueryable WrappedSource
         {
-            var ria =
-                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
-                    .FirstOrDefault();
-            if (ria == null)
-                throw new InvalidOperationException("Unable to get resource info attribute");
-            return ria;
-        }
-
-
-        internal static PropertyInfo GetResourceProperty(this Type type, string propertyName)
-        {
-            return
-                type.WalkTree(x => x.GetResourceBaseInterface()).Select(x => x.GetProperty(propertyName)).FirstOrDefault
-                    (x => x != null);
+            get { return this.wrappedSource; }
         }
     }
 }

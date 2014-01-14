@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,17 +33,20 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Linq;
 using Pomona.Internals;
 
-namespace Pomona.Common.Linq
+namespace Pomona.Common.ExtendedResources
 {
     public class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
     {
         private static readonly MethodInfo dictionarySafeGetMethod;
-        private readonly IPomonaClient client;
+        private readonly IClientTypeResolver client;
 
         private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
             new Dictionary<ParameterExpression, ParameterExpression>();
+
+        private IExtendedQueryableRoot root;
 
 
         static TransformAdditionalPropertiesToAttributesVisitor()
@@ -53,55 +56,32 @@ namespace Pomona.Common.Linq
         }
 
 
-        public TransformAdditionalPropertiesToAttributesVisitor(IPomonaClient client)
+        public TransformAdditionalPropertiesToAttributesVisitor(IClientTypeResolver client)
         {
             this.client = client;
         }
 
 
-        public override Expression Visit(Expression node)
+        internal IExtendedQueryableRoot Root
         {
-            var visitedNode = base.Visit(node);
-
-#if false
-    // For debugging:
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                if (visitedNode.Type.WrapAsEnumerable()
-                               .WalkTree(x => x.Count() > 0
-                                                  ? x.SelectMany(y => y.IsGenericType
-                                                                          ? y.GetGenericArguments()
-                                                                          : new Type[] { })
-                                                  : null).SelectMany(x => x).Where(x => x.IsNested).Any(IsUserType))
-                {
-                    base.Visit(node);
-                    throw new InvalidOperationException("Is user type!");
-                }
-
-            }
-#endif
-            return visitedNode;
+            get { return this.root; }
         }
 
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            CustomUserTypeInfo userTypeInfo;
-            if (node.Type.UniqueToken() == typeof(RestQuery<>).UniqueToken() &&
-                IsUserType(node.Type.GetGenericArguments()[0], out userTypeInfo))
+            var extendedQueryableRoot = node.Value as IExtendedQueryableRoot;
+            if (extendedQueryableRoot != null)
             {
-                var queryable = node.Value as IQueryable;
-                if (queryable != null)
+                if (this.root != null)
                 {
-                    var provider = (RestQueryProvider)queryable.Provider;
-                    var restQueryOfTargetType = typeof(RestQuery<>).MakeGenericType(userTypeInfo.ServerType);
-                    var modifiedSourceQueryable = Activator.CreateInstance(
-                        restQueryOfTargetType,
-                        new RestQueryProvider(provider.Client, userTypeInfo.ServerType, provider.Uri));
-                    return Expression.Constant(modifiedSourceQueryable, restQueryOfTargetType);
+                    throw new InvalidOperationException(
+                        "Does not support queryable expression with multiple combined queryable sources!");
                 }
+                this.root = extendedQueryableRoot;
+                return Expression.Constant(extendedQueryableRoot.WrappedSource);
             }
-            return base.VisitConstant(node);
+            return node;
         }
 
 
@@ -208,16 +188,7 @@ namespace Pomona.Common.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var modifiedMethod = ReplaceInGenericMethod(node.Method);
-            var modifiedArguments = node.Arguments.Select(Visit);
-            var argTypes = modifiedArguments.Select(x => x.Type).ToList();
-
-            var blah =
-                ((IEnumerable<Type>)argTypes).WalkTree(
-                    x =>
-                        x.Any() ? x.SelectMany(y => y.IsGenericType ? y.GetGenericArguments() : new Type[] { }) : null)
-                    .SelectMany(x => x)
-                    .Where(x => x.IsNested)
-                    .ToList();
+            var modifiedArguments = node.Arguments.Select(Visit).ToList();
 
             return Expression.Call(
                 node.Object != null ? Visit(node.Object) : null,

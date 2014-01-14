@@ -18,8 +18,7 @@ namespace Pomona.SystemTests.Linq
     {
         private RestQueryableTreeParser Parse<T>(Func<IQueryable<T>, IQueryable> bah)
         {
-            var provider = new RestQueryProvider(Substitute.For<IPomonaClient>(), typeof(T), "http://example/path");
-            var queryable = new RestQuery<T>(provider);
+            var queryable = new RestQueryProvider(Substitute.For<IPomonaClient>()).CreateQuery<T>("http://example/path");
             var q = bah(queryable);
             var treeParser = new RestQueryableTreeParser();
             treeParser.Visit(q.Expression);

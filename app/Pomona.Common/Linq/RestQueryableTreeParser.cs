@@ -61,13 +61,13 @@ namespace Pomona.Common.Linq
         private static readonly Dictionary<UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary =
             new Dictionary<UniqueMemberToken, MethodInfo>();
 
-        private static readonly MethodInfo visitQueryConstantValueMethod;
         private readonly StringBuilder expandedPaths = new StringBuilder();
         private readonly IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
         private Type aggregateReturnType;
-        private Type elementType;
         private LambdaExpression groupByKeySelector;
         private bool includeTotalCount;
+        private IRestQueryRoot queryRoot;
+        private Type elementType;
 
         private LambdaExpression orderKeySelector;
 
@@ -82,10 +82,6 @@ namespace Pomona.Common.Linq
 
         static RestQueryableTreeParser()
         {
-            visitQueryConstantValueMethod =
-                ReflectionHelper.GetMethodDefinition<RestQueryableTreeParser>(
-                    x => x.VisitQueryConstantValue<object>(null));
-
             foreach (var method in typeof (Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
                 TryMapQueryableFunction(method);
@@ -101,6 +97,11 @@ namespace Pomona.Common.Linq
         public bool IncludeTotalCount
         {
             get { return includeTotalCount; }
+        }
+
+        public string RepositoryUri
+        {
+            get { return queryRoot.Uri; }
         }
 
 
@@ -142,7 +143,7 @@ namespace Pomona.Common.Linq
                     return aggregateReturnType;
 
                 if (selectExpression == null)
-                    return elementType;
+                    return ElementType;
                 return selectExpression.ReturnType;
             }
         }
@@ -172,10 +173,11 @@ namespace Pomona.Common.Linq
         {
             // Using chained (extension method) calling style this will be the source of the query.
             // source.Where(...) etc..
-            if (node.Type.UniqueToken() == typeof (RestQuery<>).UniqueToken())
+            var restQueryRoot = node.Value as IRestQueryRoot;
+            if (restQueryRoot != null)
             {
-                visitQueryConstantValueMethod.MakeGenericMethod(node.Type.GetGenericArguments()).Invoke(
-                    this, new[] { node.Value });
+                this.queryRoot = restQueryRoot;
+                this.elementType = restQueryRoot.ElementType;
                 return node;
             }
 
@@ -513,12 +515,6 @@ namespace Pomona.Common.Linq
             this.sortOrder = sortOrder;
         }
 
-
-        private object VisitQueryConstantValue<T>(RestQuery<T> restQuery)
-        {
-            elementType = ((IQueryable)restQuery).ElementType;
-            return null;
-        }
 
         #region Nested type: LamdbaParameterReplacer
 
