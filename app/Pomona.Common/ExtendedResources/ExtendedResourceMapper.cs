@@ -53,8 +53,8 @@ namespace Pomona.Common.ExtendedResources
                 throw new ArgumentException("extendedType is not inherited from a Pomona resource interface.", "extendedType");
 
             var userPostForm =
-                (ClientSideFormProxyBase)
-                    RuntimeProxyFactory.Create(typeof(ClientSideFormProxyBase), info.ExtendedType);
+                (ExtendedFormBase)
+                    RuntimeProxyFactory.Create(typeof(ExtendedFormBase), info.ExtendedType);
             userPostForm.Initialize(this.clientTypeResolver, info, serverPatchForm);
             return userPostForm;
         }
@@ -70,8 +70,8 @@ namespace Pomona.Common.ExtendedResources
             object wrappedResource)
         {
             var proxy =
-                (ClientSideResourceProxyBase)
-                    RuntimeProxyFactory.Create(typeof(ClientSideResourceProxyBase), userTypeInfo.ExtendedType);
+                (ExtendedResourceBase)
+                    RuntimeProxyFactory.Create(typeof(ExtendedResourceBase), userTypeInfo.ExtendedType);
             proxy.Initialize(this.clientTypeResolver, userTypeInfo, wrappedResource);
             return proxy;
         }

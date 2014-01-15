@@ -99,8 +99,8 @@
     <Compile Include="NameUtils.cs" />
     <Compile Include="RequestOptions.cs" />
     <Compile Include="PomonaSerializationException.cs" />
-    <Compile Include="Proxies\ClientSideFormProxyBase.cs" />
-    <Compile Include="Proxies\ClientSideResourceProxyBase.cs" />
+    <Compile Include="Proxies\ExtendedFormBase.cs" />
+    <Compile Include="Proxies\ExtendedResourceBase.cs" />
     <Compile Include="Proxies\ILazyProxy.cs" />
     <Compile Include="Proxies\PostResourceDictionary.cs" />
     <Compile Include="Proxies\PostResourceList.cs" />

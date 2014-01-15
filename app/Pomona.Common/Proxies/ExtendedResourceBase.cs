@@ -32,14 +32,14 @@ using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {
-    public class ClientSideResourceProxyBase : IHasResourceUri
+    public class ExtendedResourceBase : IHasResourceUri
     {
         public object ProxyTarget { get; private set; }
         internal ExtendedResourceInfo UserTypeInfo { get; private set; }
         internal IClientTypeResolver Client { get; private set; }
 
         private static MethodInfo createProxyListMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideResourceProxyBase>(x => x.CreateProxyList<object>(null, null));
+            ReflectionHelper.GetMethodDefinition<ExtendedResourceBase>(x => x.CreateProxyList<object>(null, null));
 
         internal void Initialize(IClientTypeResolver client, ExtendedResourceInfo userTypeInfo, object proxyTarget)
         {
@@ -61,20 +61,20 @@ namespace Pomona.Common.Proxies
         {
             return new List<TElement>(source.Cast<object>().Select(x =>
                 {
-                    var element = RuntimeProxyFactory<ClientSideResourceProxyBase, TElement>.Create();
-                    ((ClientSideResourceProxyBase)((object)element)).Initialize(Client, userTypeInfo, x);
+                    var element = RuntimeProxyFactory<ExtendedResourceBase, TElement>.Create();
+                    ((ExtendedResourceBase)((object)element)).Initialize(Client, userTypeInfo, x);
                     return element;
                 }));
         }
 
 
         private static readonly MethodInfo onGetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
+            ReflectionHelper.GetMethodDefinition<ExtendedFormBase>(
                 x => x.OnGetAttribute<object, object, object>(null));
 
 
         private static readonly MethodInfo onSetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
+            ReflectionHelper.GetMethodDefinition<ExtendedFormBase>(
                 x => x.OnSetAttribute<object, object, object>(null, null));
 
         private Dictionary<string, object> nestedProxyCache = new Dictionary<string, object>();
@@ -101,8 +101,8 @@ namespace Pomona.Common.Proxies
                         return default(TPropType);
                     return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () =>
                         {
-                            var nestedProxy = RuntimeProxyFactory<ClientSideResourceProxyBase, TPropType>.Create();
-                            ((ClientSideResourceProxyBase)((object)nestedProxy)).Initialize(Client, memberUserTypeInfo,
+                            var nestedProxy = RuntimeProxyFactory<ExtendedResourceBase, TPropType>.Create();
+                            ((ExtendedResourceBase)((object)nestedProxy)).Initialize(Client, memberUserTypeInfo,
                                                                                             propValue);
 
                             return nestedProxy;

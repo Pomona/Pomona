@@ -108,8 +108,6 @@ namespace Pomona.Common
 
     public abstract class ClientBase<TClient> : ClientBase
     {
-        private static readonly GenericMethodCaller<ClientBase<TClient>, IEnumerable, object> createListOfTypeMethod;
-
         private static readonly ReadOnlyDictionary<Type, ResourceInfoAttribute> interfaceToResourceInfoDict;
 
         private static readonly Type[] knownGenericCollectionTypes =
@@ -136,11 +134,6 @@ namespace Pomona.Common
 
         static ClientBase()
         {
-            createListOfTypeMethod =
-                new GenericMethodCaller<ClientBase<TClient>, IEnumerable, object>(
-                    ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(
-                        x => x.CreateListOfTypeGeneric<object>(null)));
-
             // Preload resource info attributes..
             var resourceTypes =
                 typeof(TClient).Assembly.GetTypes().Where(x => typeof(IClientResource).IsAssignableFrom(x));
@@ -313,7 +306,7 @@ namespace Pomona.Common
             var type = typeof(T);
             ExtendedResourceInfo userTypeInfo;
             if (TryGetUserTypeInfo(type, out userTypeInfo))
-                return PostExtendedType(uri, (ClientSideFormProxyBase)((object)form), options);
+                return PostExtendedType(uri, (ExtendedFormBase)((object)form), options);
 
             return PostServerType(uri, form, options);
         }
@@ -334,26 +327,22 @@ namespace Pomona.Common
         }
 
 
-        private object CreateListOfTypeGeneric<TElementType>(IEnumerable elements)
-        {
-            return new List<TElementType>(elements.Cast<TElementType>());
-        }
-
-
         private object CreatePatchForm(Type resourceType, object original)
         {
-            var originalClientSideProxy = original as ClientSideResourceProxyBase;
-            var isClientResource = originalClientSideProxy != null;
-            var userTypeInfo = isClientResource ? originalClientSideProxy.UserTypeInfo : null;
-            var resourceInfo = this.GetResourceInfoForType(isClientResource ? userTypeInfo.ServerType : resourceType);
+            var extendedResourceProxy = original as ExtendedResourceBase;
+
+            if (extendedResourceProxy != null)
+            {
+                var info = extendedResourceProxy.UserTypeInfo;
+                return
+                    extendedResourceMapper.WrapForm(
+                        CreatePatchForm(info.ServerType, extendedResourceProxy.ProxyTarget),
+                        info.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
             if (resourceInfo.PatchFormType == null)
                 throw new InvalidOperationException("Method PATCH is not allowed for uri.");
-
-            if (isClientResource)
-            {
-                // We want to patch the wrapped proxy!
-                original = originalClientSideProxy.ProxyTarget;
-            }
 
             var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
                 this.typeMapper.GetClassMapping(
@@ -361,27 +350,23 @@ namespace Pomona.Common
                 this.typeMapper,
                 null);
 
-            if (isClientResource)
-            {
-                return extendedResourceMapper.WrapForm(serverPatchForm, userTypeInfo.ExtendedType);
-            }
             return serverPatchForm;
         }
 
 
         private object CreatePostForm(Type resourceType)
         {
-            ExtendedResourceInfo userTypeInfo;
-            var isClientResource = TryGetUserTypeInfo(resourceType, out userTypeInfo);
-            var resourceInfo = this.GetResourceInfoForType(isClientResource ? userTypeInfo.ServerType : resourceType);
+            ExtendedResourceInfo extendedResourceInfo;
+
+            if (TryGetUserTypeInfo(resourceType, out extendedResourceInfo))
+            {
+                return extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType), extendedResourceInfo.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
             if (resourceInfo.PostFormType == null)
                 throw new InvalidOperationException("Method POST is not allowed for uri.");
             var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
-
-            if (isClientResource)
-            {
-                return extendedResourceMapper.WrapForm(serverPostForm, userTypeInfo.ExtendedType);
-            }
             return serverPostForm;
         }
 
@@ -497,14 +482,14 @@ namespace Pomona.Common
         {
             if (form == null)
                 throw new ArgumentNullException("form");
-            if (form is ClientSideFormProxyBase)
-                return (T)PatchExtendedType((ClientSideFormProxyBase)((object)form), requestOptions);
+            if (form is ExtendedFormBase)
+                return (T)PatchExtendedType((ExtendedFormBase)((object)form), requestOptions);
 
             return PatchServerType(form, requestOptions);
         }
 
 
-        private object PatchExtendedType(ClientSideFormProxyBase patchForm, RequestOptions requestOptions)
+        private object PatchExtendedType(ExtendedFormBase patchForm, RequestOptions requestOptions)
         {
             var extendedResourceInfo = patchForm.UserTypeInfo;
             var serverTypeResult = patchServerTypeMethod.MakeGenericMethod(extendedResourceInfo.ServerType)
@@ -524,7 +509,7 @@ namespace Pomona.Common
         }
 
 
-        private object PostExtendedType(string uri, ClientSideFormProxyBase postForm, RequestOptions options)
+        private object PostExtendedType(string uri, ExtendedFormBase postForm, RequestOptions options)
         {
             var extendedResourceInfo = postForm.UserTypeInfo;
             var serverTypeResult = postServerTypeMethod.MakeGenericMethod(extendedResourceInfo.ServerType)
