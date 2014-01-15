@@ -35,6 +35,7 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.ExtendedResources;
+using Pomona.Common.Internals;
 
 namespace Pomona.SystemTests.ExtendedResources
 {
@@ -65,7 +66,13 @@ namespace Pomona.SystemTests.ExtendedResources
 
             var wrappedSource = Enumerable.Empty<TServer>().AsQueryable();
 
-            var originalQuery = origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource));
+            ExtendedResourceInfo extendedResourceInfo;
+            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TExtended), Client, out extendedResourceInfo))
+            {
+                Assert.Fail("Unable to get ExtendedResourceInfo for " + typeof(TExtended));
+            }
+
+            var originalQuery = origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource, extendedResourceInfo));
 
             var expectedQuery = expectedFunc(wrappedSource);
             var expectedQueryExpr = expectedQuery.Expression;

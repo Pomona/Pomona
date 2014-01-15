@@ -28,17 +28,26 @@
 
 using System.Linq;
 
+using Pomona.Common.Internals;
+
 namespace Pomona.Common.ExtendedResources
 {
     internal class ExtendedQueryableRoot<T> : ExtendedQueryable<T>, IExtendedQueryableRoot
     {
         private readonly IQueryable wrappedSource;
+        private readonly ExtendedResourceInfo extendedResourceInfo;
+
+        public ExtendedResourceInfo ExtendedResourceInfo
+        {
+            get { return this.extendedResourceInfo; }
+        }
 
 
-        internal ExtendedQueryableRoot(IClientTypeResolver client, IQueryable wrappedSource)
+        internal ExtendedQueryableRoot(IClientTypeResolver client, IQueryable wrappedSource, ExtendedResourceInfo extendedResourceInfo)
             : base(new ExtendedQueryProvider(client), null)
         {
             this.wrappedSource = wrappedSource;
+            this.extendedResourceInfo = extendedResourceInfo;
         }
 
 

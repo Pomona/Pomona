@@ -98,7 +98,7 @@ namespace Pomona.Common.ExtendedResources
         protected override Expression VisitMember(MemberExpression node)
         {
             var member = node.Member;
-            CustomUserTypeInfo declaringUserTypeInfo;
+            ExtendedResourceInfo declaringUserTypeInfo;
             var propInfo = member as PropertyInfo;
             var visitedExpression = Visit(node.Expression);
 
@@ -211,14 +211,14 @@ namespace Pomona.Common.ExtendedResources
 
         private bool IsUserType(Type userType)
         {
-            CustomUserTypeInfo tmpvar;
+            ExtendedResourceInfo tmpvar;
             return IsUserType(userType, out tmpvar);
         }
 
 
-        private bool IsUserType(Type userType, out CustomUserTypeInfo userTypeInfo)
+        private bool IsUserType(Type userType, out ExtendedResourceInfo userTypeInfo)
         {
-            return CustomUserTypeInfo.TryGetCustomUserTypeInfo(userType, this.client, out userTypeInfo);
+            return ExtendedResourceInfo.TryGetExtendedResourceInfo(userType, this.client, out userTypeInfo);
         }
 
 
@@ -227,7 +227,7 @@ namespace Pomona.Common.ExtendedResources
             return ReplaceInGenericArguments(typeToSearch,
                 t =>
                 {
-                    CustomUserTypeInfo userTypeInfo;
+                    ExtendedResourceInfo userTypeInfo;
                     if (IsUserType(t, out userTypeInfo))
                         return userTypeInfo.ServerType;
 

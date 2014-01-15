@@ -58,6 +58,7 @@
     <Compile Include="ExtendedResources\ExtendedQueryable.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryProvider.cs" />
+    <Compile Include="ExtendedResources\ExtendedResourceMapper.cs" />
     <Compile Include="ExtendedResources\IExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="GenericMethodCaller.cs" />
@@ -69,7 +70,7 @@
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
     <Compile Include="Internals\ClientTypeResolverExtensions.cs" />
-    <Compile Include="Internals\CustomUserTypeInfo.cs" />
+    <Compile Include="Internals\ExtendedResourceInfo.cs" />
     <Compile Include="Internals\EnumerableExtensions.cs" />
     <Compile Include="Internals\EvaluateClosureMemberVisitor.cs" />
     <Compile Include="Internals\ExpressionExtensions.cs" />

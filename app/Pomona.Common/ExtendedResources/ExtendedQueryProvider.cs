@@ -27,26 +27,24 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
-using Pomona.Common.Proxies;
 
 namespace Pomona.Common.ExtendedResources
 {
     public class ExtendedQueryProvider : QueryProviderBase
     {
-        private readonly IClientTypeResolver client;
+        private readonly IClientTypeResolver clientTypeResolver;
 
 
-        public ExtendedQueryProvider(IClientTypeResolver client)
+        public ExtendedQueryProvider(IClientTypeResolver clientTypeResolver)
         {
-            if (client == null)
-                throw new ArgumentNullException("client");
-            this.client = client;
+            if (clientTypeResolver == null)
+                throw new ArgumentNullException("clientTypeResolver");
+            this.clientTypeResolver = clientTypeResolver;
         }
 
 
@@ -58,69 +56,13 @@ namespace Pomona.Common.ExtendedResources
 
         public override object Execute(Expression expression)
         {
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(this.client);
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(this.clientTypeResolver);
             var transformedExpression = visitor.Visit(expression);
             if (visitor.Root == null)
                 throw new Exception("Unable to find queryable source in expression.");
             var result = visitor.Root.WrappedSource.Provider.Execute(transformedExpression);
 
-            return MapToCustomUserTypeResult(result, expression.Type, transformedExpression.Type);
-        }
-
-
-        private object CreateClientSideResourceProxy(CustomUserTypeInfo userTypeInfo,
-            object wrappedResource)
-        {
-            var proxy =
-                (ClientSideResourceProxyBase)
-                    RuntimeProxyFactory.Create(typeof(ClientSideResourceProxyBase), userTypeInfo.ClientType);
-            proxy.Initialize(this.client, userTypeInfo, wrappedResource);
-            return proxy;
-        }
-
-
-        private object MapToCustomUserTypeResult(
-            object result,
-            Type extendedType,
-            Type serverType)
-        {
-            CustomUserTypeInfo extendedTypeInfo;
-            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(extendedType, this.client, out extendedTypeInfo))
-            {
-                if (extendedTypeInfo.ServerType != serverType)
-                    throw new InvalidOperationException("Unable to map extended type to correct server type.");
-                return result != null
-                    ? CreateClientSideResourceProxy(extendedTypeInfo, result)
-                    : null;
-            }
-            Type extendedElementType;
-            if (extendedType.TryGetEnumerableElementType(out extendedElementType)
-                && CustomUserTypeInfo.TryGetCustomUserTypeInfo(extendedElementType, this.client, out extendedTypeInfo))
-            {
-                Type serverElementType;
-                if (!serverType.TryGetEnumerableElementType(out serverElementType)
-                    || extendedTypeInfo.ServerType != serverElementType)
-                {
-                    throw new InvalidOperationException(
-                        "Unable to map list of extended type to correct list of server type.");
-                }
-                var wrappedResults =
-                    ((IEnumerable)result).Cast<object>()
-                        .Select(
-                            x => CreateClientSideResourceProxy(extendedTypeInfo, x));
-                // Map back to customClientType
-                if (result is QueryResult)
-                {
-                    var resultAsQueryResult = (QueryResult)result;
-                    return QueryResult.Create(wrappedResults,
-                        resultAsQueryResult.Skip,
-                        resultAsQueryResult.TotalCount,
-                        resultAsQueryResult.Url,
-                        extendedElementType);
-                }
-                return wrappedResults.ToList();
-            }
-            return result;
+            return new ExtendedResourceMapper(this.clientTypeResolver).WrapResource(result, transformedExpression.Type, expression.Type);
         }
     }
 }

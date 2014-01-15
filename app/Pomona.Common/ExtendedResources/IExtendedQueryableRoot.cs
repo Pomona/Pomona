@@ -28,10 +28,13 @@
 
 using System.Linq;
 
+using Pomona.Common.Internals;
+
 namespace Pomona.Common.ExtendedResources
 {
     internal interface IExtendedQueryableRoot
     {
         IQueryable WrappedSource { get; }
+        ExtendedResourceInfo ExtendedResourceInfo { get; }
     }
 }

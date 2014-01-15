@@ -35,13 +35,13 @@ namespace Pomona.Common.Proxies
     public class ClientSideResourceProxyBase : IHasResourceUri
     {
         public object ProxyTarget { get; private set; }
-        internal CustomUserTypeInfo UserTypeInfo { get; private set; }
+        internal ExtendedResourceInfo UserTypeInfo { get; private set; }
         internal IClientTypeResolver Client { get; private set; }
 
         private static MethodInfo createProxyListMethod =
             ReflectionHelper.GetMethodDefinition<ClientSideResourceProxyBase>(x => x.CreateProxyList<object>(null, null));
 
-        internal void Initialize(IClientTypeResolver client, CustomUserTypeInfo userTypeInfo, object proxyTarget)
+        internal void Initialize(IClientTypeResolver client, ExtendedResourceInfo userTypeInfo, object proxyTarget)
         {
             if (client == null) throw new ArgumentNullException("client");
             if (userTypeInfo == null) throw new ArgumentNullException("userTypeInfo");
@@ -57,7 +57,7 @@ namespace Pomona.Common.Proxies
             set { throw new NotSupportedException(); }
         }
 
-        private IList<TElement> CreateProxyList<TElement>(IEnumerable source, CustomUserTypeInfo userTypeInfo)
+        private IList<TElement> CreateProxyList<TElement>(IEnumerable source, ExtendedResourceInfo userTypeInfo)
         {
             return new List<TElement>(source.Cast<object>().Select(x =>
                 {
@@ -90,8 +90,8 @@ namespace Pomona.Common.Proxies
                 return property.Getter((TOwner) ProxyTarget);
 
             // Check if this is a new'ed property on interface that is client type:
-            CustomUserTypeInfo memberUserTypeInfo;
-            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof(TPropType), Client, out memberUserTypeInfo))
+            ExtendedResourceInfo memberUserTypeInfo;
+            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TPropType), Client, out memberUserTypeInfo))
             {
                 var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
                 if (serverProp != null && serverProp.PropertyType.IsAssignableFrom(typeof (TPropType)))
@@ -112,7 +112,7 @@ namespace Pomona.Common.Proxies
 
             Type elementType;
             if (typeof (TPropType).TryGetEnumerableElementType(out elementType) &&
-                CustomUserTypeInfo.TryGetCustomUserTypeInfo(elementType, Client, out memberUserTypeInfo))
+                ExtendedResourceInfo.TryGetExtendedResourceInfo(elementType, Client, out memberUserTypeInfo))
             {
 
                 var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
