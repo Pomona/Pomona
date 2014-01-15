@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using Critters.Client;
@@ -46,28 +47,52 @@ namespace Pomona.SystemTests.ExtendedResources
             string OtherCustom { get; set; }
         }
 
+        public interface IHippieFarm : IFarm
+        {
+        }
 
-        [Test]
-        public void TransformsQueryCorrect()
+        public interface IMusicalCritterOnHippieFarm : IMusicalCritter
+        {
+            new IHippieFarm Farm { get; }
+        }
+
+
+        public void AssertTransformIsCorrect<TServer, TExtended>(Func<IQueryable<TExtended>, IQueryable> origQuery,
+            Func<IQueryable<TServer>, IQueryable> expectedFunc)
+            where TExtended : TServer
         {
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(Client);
 
-            var wrappedSource = Enumerable.Empty<IStringToObjectDictionaryContainer>().AsQueryable();
+            var wrappedSource = Enumerable.Empty<TServer>().AsQueryable();
 
-            var originalQuery = new ExtendedQueryableRoot<ICustomUserEntity>(Client, wrappedSource)
-                .Where(x => x.CustomString == "Lalalala")
-                .Where(x => x.OtherCustom == "Blob rob")
-                .Select(x => x.OtherCustom);
+            var originalQuery = origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource));
 
-            var expectedQuery = wrappedSource
-                .Where(x => (x.Map.SafeGet("CustomString") as string) == "Lalalala")
-                .Where(x => (x.Map.SafeGet("OtherCustom") as string) == "Blob rob")
-                .Select(x => (x.Map.SafeGet("OtherCustom") as string));
-
+            var expectedQuery = expectedFunc(wrappedSource);
             var expectedQueryExpr = expectedQuery.Expression;
-
             var actualQueryExpr = visitor.Visit(originalQuery.Expression);
             Assert.That(actualQueryExpr.ToString(), Is.EqualTo(expectedQueryExpr.ToString()));
+        }
+
+
+        [Test]
+        public void Visit_TransformsPropertiesUnknownToServerToAttributeDictionaryAccess()
+        {
+            AssertTransformIsCorrect<IStringToObjectDictionaryContainer, ICustomUserEntity>(
+                q => q.Where(x => x.CustomString == "Lalalala")
+                    .Where(x => x.OtherCustom == "Blob rob")
+                    .Select(x => x.OtherCustom),
+                q => q.Where(x => (x.Map.SafeGet("CustomString") as string) == "Lalalala")
+                    .Where(x => (x.Map.SafeGet("OtherCustom") as string) == "Blob rob")
+                    .Select(x => (x.Map.SafeGet("OtherCustom") as string)));
+        }
+
+
+        [Test]
+        public void Visit_TransformsPropertyWithReferenceToExtendedTypeToServerKnownType()
+        {
+            AssertTransformIsCorrect<IMusicalCritter, IMusicalCritterOnHippieFarm>(
+                q => q.Where(x => x.Farm.Name == "Wassup"),
+                q => q.Where(x => x.Farm.Name == "Wassup"));
         }
     }
 }
