@@ -88,6 +88,7 @@
     <Compile Include="ChildResourceTests.cs" />
     <Compile Include="ClientGeneratedTypeTests.cs" />
     <Compile Include="ExceptionHandlingTests.cs" />
+    <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="GetFromUriTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
@@ -97,7 +98,6 @@
     <Compile Include="Linq\CustomClientResourceQueryTests.cs" />
     <Compile Include="Linq\LinqQueryTests.cs" />
     <Compile Include="Linq\RestQueryTreeParserTests.cs" />
-    <Compile Include="Linq\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="PatchTests.cs" />
     <Compile Include="PostTests.cs" />
     <Compile Include="PostToResourceTests.cs" />

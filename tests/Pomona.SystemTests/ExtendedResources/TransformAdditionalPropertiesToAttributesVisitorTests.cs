@@ -35,7 +35,7 @@ using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.ExtendedResources;
 
-namespace Pomona.SystemTests.Linq
+namespace Pomona.SystemTests.ExtendedResources
 {
     [TestFixture]
     public class TransformAdditionalPropertiesToAttributesVisitorTests : ClientTestsBase
