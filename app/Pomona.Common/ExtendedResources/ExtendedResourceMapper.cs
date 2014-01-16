@@ -46,6 +46,11 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
+        public IQueryable<T> WrapQueryable<T>(IQueryable wrappedQueryable, ExtendedResourceInfo extendedResourceInfo)
+        {
+            return new ExtendedQueryableRoot<T>(clientTypeResolver, wrappedQueryable, extendedResourceInfo);
+        }
+
         public object WrapForm(object serverPatchForm, Type extendedType)
         {
             ExtendedResourceInfo info;

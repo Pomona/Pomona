@@ -266,10 +266,11 @@ namespace Pomona.Common
             ExtendedResourceInfo extendedResourceInfo;
             if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(T), this, out extendedResourceInfo))
             {
-                return new ExtendedQueryableRoot<T>(this,
-                    new RestQueryProvider(this).CreateQuery(
-                        GetUriOfType(extendedResourceInfo.ServerType),
-                        extendedResourceInfo.ServerType), extendedResourceInfo);
+                var wrappedQueryable = new RestQueryProvider(this).CreateQuery(
+                    GetUriOfType(extendedResourceInfo.ServerType),
+                    extendedResourceInfo.ServerType);
+
+                return extendedResourceMapper.WrapQueryable<T>(wrappedQueryable, extendedResourceInfo);
             }
             return (IQueryable<T>)(new RestQueryProvider(this).CreateQuery(GetUriOfType(typeof(T)), typeof(T)));
         }
