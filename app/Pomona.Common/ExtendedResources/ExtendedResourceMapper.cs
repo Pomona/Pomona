@@ -125,7 +125,7 @@ namespace Pomona.Common.ExtendedResources
                         resultAsQueryResult.Url,
                         extendedElementType);
                 }
-                return wrappedResults.ToList();
+                return wrappedResults.Cast(extendedElementType).ToListDetectType();
             }
             return result;
         }

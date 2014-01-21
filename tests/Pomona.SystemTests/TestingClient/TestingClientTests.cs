@@ -119,12 +119,13 @@ namespace Pomona.SystemTests.TestingClient
         }
 
 
-        [Ignore("Does not work since testable sf client knows nothing about client side resources.")]
         [Test]
         public void Query_EntityWithChildRepository_ReturnsSomeCritters()
         {
             this.mockControl.Save(new GalaxyResource() { Name = "donald" });
-            var emptyCritterResults = this.testClient.Galaxies.Query<ICustomGalaxy>().ToList();
+            var queryable = this.testClient.Query<ICustomGalaxy>();
+            //var queryable = this.testClient.Galaxies.Query<ICustomGalaxy>();
+            var emptyCritterResults = queryable.ToList();
             Assert.That(emptyCritterResults, Has.Count.EqualTo(1));
         }
     }

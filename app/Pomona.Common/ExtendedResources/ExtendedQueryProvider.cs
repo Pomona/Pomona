@@ -29,14 +29,18 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
-using Pomona.Common.Internals;
 using Pomona.Common.Linq;
+using Pomona.Internals;
 
 namespace Pomona.Common.ExtendedResources
 {
     public class ExtendedQueryProvider : QueryProviderBase
     {
+        private static readonly MethodInfo queryableExecuteGenericMethod =
+            ReflectionHelper.GetMethodDefinition<IQueryProvider>(x => x.Execute<object>(null));
+
         private readonly IClientTypeResolver clientTypeResolver;
 
 
@@ -54,15 +58,23 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        public override object Execute(Expression expression)
+        public override object Execute(Expression expression, Type returnType)
         {
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(this.clientTypeResolver);
             var transformedExpression = visitor.Visit(expression);
             if (visitor.Root == null)
                 throw new Exception("Unable to find queryable source in expression.");
-            var result = visitor.Root.WrappedSource.Provider.Execute(transformedExpression);
 
-            return new ExtendedResourceMapper(this.clientTypeResolver).WrapResource(result, transformedExpression.Type, expression.Type);
+            var transformedReturnType = visitor.ReplaceInGenericArguments(returnType);
+            var result =
+                queryableExecuteGenericMethod.MakeGenericMethod(transformedReturnType).Invoke(
+                    visitor.Root.WrappedSource.Provider,
+                    new object[] { transformedExpression });
+
+            var wrapResource = new ExtendedResourceMapper(this.clientTypeResolver).WrapResource(result,
+                transformedReturnType,
+                returnType);
+            return wrapResource;
         }
     }
 }

@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -48,7 +49,7 @@ namespace Pomona.Common.Linq
 
 
         public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
-        public abstract object Execute(Expression expression);
+        public abstract object Execute(Expression expression, Type returnType);
 
 
         private static Type GetElementType(Type type)
@@ -72,13 +73,19 @@ namespace Pomona.Common.Linq
 
         S IQueryProvider.Execute<S>(Expression expression)
         {
-            return (S)Execute(expression);
+            return (S)Execute(expression, typeof(S));
         }
 
 
         object IQueryProvider.Execute(Expression expression)
         {
-            return Execute(expression);
+            var exprType = expression.Type;
+            Type[] genargs;
+            if (exprType.TryExtractTypeArguments(typeof(IOrderedQueryable<>), out genargs))
+                exprType = typeof(IOrderedEnumerable<>).MakeGenericType(genargs);
+            else if (exprType.TryExtractTypeArguments(typeof(IQueryable<>), out genargs))
+                exprType = typeof(IEnumerable<>).MakeGenericType(genargs);
+            return Execute(expression, exprType);
         }
     }
 }

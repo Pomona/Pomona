@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,37 +24,57 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
+using Pomona.Internals;
 
 namespace Pomona.Common.Internals
 {
     public static class EnumerableExtensions
     {
+        private static readonly MethodInfo castMethod =
+            ReflectionHelper.GetMethodDefinition<IEnumerable>(x => x.Cast<object>());
+
+        private static readonly MethodInfo toListMethod =
+            ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.ToList());
+
+
         public static void AddTo<T>(this IEnumerable<T> source, ICollection<T> target)
         {
             foreach (var item in source)
-            {
                 target.Add(item);
-            }
         }
 
 
-        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        /// <summary>
+        /// Cast to IEnumerable{T}, where T will be castType
+        /// </summary>
+        /// <param name="source">The source</param>
+        /// <param name="castType">The type of IEnuemerable to cast to.</param>
+        /// <returns>Cast IEnumerable.</returns>
+        public static IEnumerable Cast(this IEnumerable source, Type castType)
         {
-            source.ToList().ForEach(action);
+            return (IEnumerable)castMethod.MakeGenericMethod(castType).Invoke(null, new object[] { source });
         }
+
 
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
         {
-            return source.Concat((IEnumerable<T>) value);
+            return source.Concat((IEnumerable<T>)value);
         }
+
 
         public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> source)
         {
             return source ?? Enumerable.Empty<T>();
         }
+
 
         public static IQueryable<T> EmptyIfNull<T>(this IQueryable<T> source)
         {
@@ -65,15 +87,12 @@ namespace Pomona.Common.Internals
             return items.SelectMany(x => x.WrapAsEnumerable().Concat(getChildren(x).Flatten(getChildren)));
         }
 
-        public static IEnumerable<T> WalkTree<T>(this T o, Func<T, T> nextNodeSelector)
-            where T : class
+
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
-            while (o != null)
-            {
-                yield return o;
-                o = nextNodeSelector(o);
-            }
+            source.ToList().ForEach(action);
         }
+
 
         public static IEnumerable<T> Pad<T>(this IEnumerable<T> source, int count, T paddingValue)
         {
@@ -90,6 +109,7 @@ namespace Pomona.Common.Internals
             }
         }
 
+
         public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> source, Func<T, bool> predicate)
         {
             foreach (var item in source)
@@ -97,6 +117,34 @@ namespace Pomona.Common.Internals
                 yield return item;
                 if (predicate(item))
                     yield break;
+            }
+        }
+
+
+        /// <summary>
+        /// Version of ToList that detects T of IEnumerable{T} instance.
+        /// </summary>
+        /// <param name="source">Source</param>
+        /// <returns>New list.</returns>
+        public static IEnumerable ToListDetectType(this IEnumerable source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            Type elementType;
+            if (!source.GetType().TryGetEnumerableElementType(out elementType))
+                return source.Cast<object>().ToList();
+
+            return (IEnumerable)toListMethod.MakeGenericMethod(elementType).Invoke(null, new object[] { source });
+        }
+
+
+        public static IEnumerable<T> WalkTree<T>(this T o, Func<T, T> nextNodeSelector)
+            where T : class
+        {
+            while (o != null)
+            {
+                yield return o;
+                o = nextNodeSelector(o);
             }
         }
     }

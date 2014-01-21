@@ -57,13 +57,13 @@ namespace Pomona.Common.Linq
 
         public IEnumerator<T> GetEnumerator()
         {
-            return ((IEnumerable<T>)Provider.Execute(Expression)).GetEnumerator();
+            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
         }
 
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)Provider.Execute(Expression)).GetEnumerator();
+            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
         }
     }
 }

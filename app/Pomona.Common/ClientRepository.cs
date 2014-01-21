@@ -137,7 +137,7 @@ namespace Pomona.Common
         public IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource
         {
-            return client.Query<TSubResource>();
+            return client.Query<TSubResource>(uri);
         }
 
         public TPostResponseResource Post(Action<TResource> postActionBlah)
@@ -161,7 +161,7 @@ namespace Pomona.Common
 
         public IQueryable<TResource> Query()
         {
-            return new RestQueryProvider(client).CreateQuery<TResource>(Uri);
+            return client.Query<TResource>(uri);
         }
 
         public IEnumerator<TResource> GetEnumerator()

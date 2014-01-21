@@ -166,7 +166,7 @@ namespace Pomona.TestingClient
 
         public IQueryable<TSubResource> Query<TSubResource>() where TSubResource : TResource
         {
-            return client.Query<TResource>().OfType<TSubResource>();
+            return client.Query<TSubResource>();
         }
 
 

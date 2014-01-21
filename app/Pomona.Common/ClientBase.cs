@@ -79,6 +79,7 @@ namespace Pomona.Common
 
 
         public abstract IQueryable<T> Query<T>();
+        public abstract IQueryable<T> Query<T>(string uri);
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
 
 
@@ -209,8 +210,13 @@ namespace Pomona.Common
 
         public override IQueryable<T> Query<T>()
         {
+            return Query<T>(null);
+        }
+
+        public override IQueryable<T> Query<T>(string uri)
+        {
             return
-                typeMapper.WrapExtendedQuery<T>(st => new RestQueryProvider(this).CreateQuery(GetUriOfType(st), st));
+                typeMapper.WrapExtendedQuery<T>(st => new RestQueryProvider(this).CreateQuery(uri ?? GetUriOfType(st), st));
         }
 
 

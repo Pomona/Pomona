@@ -73,7 +73,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override object Execute(Expression expression)
+        public override object Execute(Expression expression, Type resultType)
         {
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);

@@ -222,7 +222,7 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        private Type ReplaceInGenericArguments(Type typeToSearch)
+        public Type ReplaceInGenericArguments(Type typeToSearch)
         {
             return ReplaceInGenericArguments(typeToSearch,
                 t =>
