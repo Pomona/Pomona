@@ -42,7 +42,7 @@ namespace Pomona.SystemTests
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new ClientTypeMapper(Client.ResourceTypes);
+            typeMapper = new ClientTypeMapper(typeof(Client).Assembly);
         }
 
         private ClientTypeMapper typeMapper;

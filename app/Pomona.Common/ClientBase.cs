@@ -70,11 +70,6 @@ namespace Pomona.Common
 
         public abstract string GetUriOfType(Type type);
 
-
-        public abstract IList<T> List<T>(string expand = null)
-            where T : IClientResource;
-
-
         public abstract T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
             where T : class, IClientResource;
 
@@ -84,7 +79,6 @@ namespace Pomona.Common
 
 
         public abstract IQueryable<T> Query<T>();
-
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
 
 
@@ -108,51 +102,23 @@ namespace Pomona.Common
 
     public abstract class ClientBase<TClient> : ClientBase
     {
-        private static readonly ReadOnlyDictionary<Type, ResourceInfoAttribute> interfaceToResourceInfoDict;
-
-        private static readonly Type[] knownGenericCollectionTypes =
-        {
-            typeof(List<>), typeof(IList<>),
-            typeof(ICollection<>)
-        };
-
         private static readonly MethodInfo patchServerTypeMethod =
             ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PatchServerType<object>(null, null));
 
         private static readonly MethodInfo postServerTypeMethod =
             ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PostServerType<object>(null, null, null));
 
-        private static readonly ReadOnlyDictionary<string, ResourceInfoAttribute> typeNameToResourceInfoDict;
-
         private readonly string baseUri;
-        private readonly ExtendedResourceMapper extendedResourceMapper;
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
-        private readonly ClientTypeMapper typeMapper;
+        private static readonly ClientTypeMapper typeMapper;
         private readonly IWebClient webClient;
 
 
         static ClientBase()
         {
             // Preload resource info attributes..
-            var resourceTypes =
-                typeof(TClient).Assembly.GetTypes().Where(x => typeof(IClientResource).IsAssignableFrom(x));
-
-            var interfaceDict = new Dictionary<Type, ResourceInfoAttribute>();
-            var typeNameDict = new Dictionary<string, ResourceInfoAttribute>();
-            foreach (
-                var resourceInfo in
-                    resourceTypes.SelectMany(
-                        x =>
-                            x.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>())
-                )
-            {
-                interfaceDict[resourceInfo.InterfaceType] = resourceInfo;
-                typeNameDict[resourceInfo.JsonTypeName] = resourceInfo;
-            }
-
-            interfaceToResourceInfoDict = new ReadOnlyDictionary<Type, ResourceInfoAttribute>(interfaceDict);
-            typeNameToResourceInfoDict = new ReadOnlyDictionary<string, ResourceInfoAttribute>(typeNameDict);
+            typeMapper = new ClientTypeMapper(typeof(TClient).Assembly);
         }
 
 
@@ -163,17 +129,16 @@ namespace Pomona.Common
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
 
-            this.typeMapper = new ClientTypeMapper(ResourceTypes);
             this.serializerFactory = new PomonaJsonSerializerFactory();
             this.serializer = this.serializerFactory.GetSerialier();
-            this.extendedResourceMapper = new ExtendedResourceMapper(this);
+
             InstantiateClientRepositories();
         }
 
 
-        public static IEnumerable<Type> ResourceTypes
+        public IEnumerable<Type> ResourceTypes
         {
-            get { return interfaceToResourceInfoDict.Keys; }
+            get { return typeMapper.ResourceTypes; }
         }
 
         public override string BaseUri
@@ -216,28 +181,9 @@ namespace Pomona.Common
         }
 
 
-        public override IList<T> List<T>(string expand = null)
-        {
-            // TODO: Implement baseuri property or something.
-            var type = typeof(T);
-
-            if (type.IsInterface && type.Name.StartsWith("I"))
-            {
-                var uri = GetUriOfType(type);
-
-                if (expand != null)
-                    uri = uri + "?expand=" + expand;
-
-                return Get<IList<T>>(uri);
-            }
-            else
-                throw new NotImplementedException("We expect an interface as Type parameter!");
-        }
-
-
         public override T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
         {
-            var patchForm = (T)CreatePatchForm(typeof(T), target);
+            var patchForm = (T)typeMapper.CreatePatchForm(typeof(T), target);
             updateAction(patchForm);
 
             var requestOptions = new RequestOptions<T>();
@@ -263,22 +209,14 @@ namespace Pomona.Common
 
         public override IQueryable<T> Query<T>()
         {
-            ExtendedResourceInfo extendedResourceInfo;
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(T), this, out extendedResourceInfo))
-            {
-                var wrappedQueryable = new RestQueryProvider(this).CreateQuery(
-                    GetUriOfType(extendedResourceInfo.ServerType),
-                    extendedResourceInfo.ServerType);
-
-                return extendedResourceMapper.WrapQueryable<T>(wrappedQueryable, extendedResourceInfo);
-            }
-            return (IQueryable<T>)(new RestQueryProvider(this).CreateQuery(GetUriOfType(typeof(T)), typeof(T)));
+            return
+                typeMapper.WrapExtendedQuery<T>(st => new RestQueryProvider(this).CreateQuery(GetUriOfType(st), st));
         }
 
 
         public override bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
-            return interfaceToResourceInfoDict.TryGetValue(type, out resourceInfo);
+            return typeMapper.TryGetResourceInfoForType(type, out resourceInfo);
         }
 
 
@@ -291,7 +229,7 @@ namespace Pomona.Common
 
         internal override object Post<T>(string uri, Action<T> postAction, RequestOptions options)
         {
-            var postForm = (T)CreatePostForm(typeof(T));
+            var postForm = (T)typeMapper.CreatePostForm(typeof(T));
             postAction(postForm);
             return Post(uri, postForm, options);
         }
@@ -306,7 +244,7 @@ namespace Pomona.Common
 
             var type = typeof(T);
             ExtendedResourceInfo userTypeInfo;
-            if (TryGetUserTypeInfo(type, out userTypeInfo))
+            if (typeMapper.TryGetExtendedTypeInfo(type, out userTypeInfo))
                 return PostExtendedType(uri, (ExtendedFormBase)((object)form), options);
 
             return PostServerType(uri, form, options);
@@ -325,50 +263,6 @@ namespace Pomona.Common
                 requestOptions.ModifyRequest(
                     request => request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)));
             }
-        }
-
-
-        private object CreatePatchForm(Type resourceType, object original)
-        {
-            var extendedResourceProxy = original as ExtendedResourceBase;
-
-            if (extendedResourceProxy != null)
-            {
-                var info = extendedResourceProxy.UserTypeInfo;
-                return
-                    extendedResourceMapper.WrapForm(
-                        CreatePatchForm(info.ServerType, extendedResourceProxy.ProxyTarget),
-                        info.ExtendedType);
-            }
-
-            var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (resourceInfo.PatchFormType == null)
-                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
-
-            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                this.typeMapper.GetClassMapping(
-                    resourceInfo.InterfaceType),
-                this.typeMapper,
-                null);
-
-            return serverPatchForm;
-        }
-
-
-        private object CreatePostForm(Type resourceType)
-        {
-            ExtendedResourceInfo extendedResourceInfo;
-
-            if (TryGetUserTypeInfo(resourceType, out extendedResourceInfo))
-            {
-                return extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType), extendedResourceInfo.ExtendedType);
-            }
-
-            var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (resourceInfo.PostFormType == null)
-                throw new InvalidOperationException("Method POST is not allowed for uri.");
-            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
-            return serverPostForm;
         }
 
 
@@ -404,11 +298,11 @@ namespace Pomona.Common
             }
 
             var deserializer = this.serializerFactory.GetDeserializer();
-            var context = new ClientDeserializationContext(this.typeMapper, this);
+            var context = new ClientDeserializationContext(typeMapper, this);
             var deserialized = deserializer.Deserialize(
                 new StringReader(jsonString),
                 expectedType != null
-                    ? this.typeMapper.GetClassMapping(expectedType)
+                    ? typeMapper.GetClassMapping(expectedType)
                     : null,
                 context);
             return deserialized;
@@ -419,28 +313,6 @@ namespace Pomona.Common
         {
             return SendHttpRequest(uri, "GET");
         }
-
-
-        private ResourceInfoAttribute GetLeafResourceInfo(Type sourceType)
-        {
-            var allResourceInfos = sourceType.GetInterfaces().Select(
-                x =>
-                {
-                    ResourceInfoAttribute resourceInfo;
-                    if (!TryGetResourceInfoForType(x, out resourceInfo))
-                        resourceInfo = null;
-                    return resourceInfo;
-                }).Where(x => x != null).ToList();
-
-            var mostSubtyped = allResourceInfos
-                .FirstOrDefault(
-                    x =>
-                        !allResourceInfos.Any(
-                            y => x.InterfaceType != y.InterfaceType && x.InterfaceType.IsAssignableFrom(y.InterfaceType)));
-
-            return mostSubtyped;
-        }
-
 
         private void InstantiateClientRepositories()
         {
@@ -496,7 +368,9 @@ namespace Pomona.Common
             var serverTypeResult = patchServerTypeMethod.MakeGenericMethod(extendedResourceInfo.ServerType)
                 .Invoke(this, new[] { patchForm.ProxyTarget, requestOptions });
 
-            return this.extendedResourceMapper.WrapResource(serverTypeResult, extendedResourceInfo.ServerType, extendedResourceInfo.ExtendedType);
+            return typeMapper.WrapResource(serverTypeResult,
+                extendedResourceInfo.ServerType,
+                extendedResourceInfo.ExtendedType);
         }
 
 
@@ -516,7 +390,9 @@ namespace Pomona.Common
             var serverTypeResult = postServerTypeMethod.MakeGenericMethod(extendedResourceInfo.ServerType)
                 .Invoke(this, new[] { uri, postForm.ProxyTarget, options });
 
-            return this.extendedResourceMapper.WrapResource(serverTypeResult, extendedResourceInfo.ServerType, extendedResourceInfo.ExtendedType);
+            return typeMapper.WrapResource(serverTypeResult,
+                extendedResourceInfo.ServerType,
+                extendedResourceInfo.ExtendedType);
         }
 
 
@@ -599,16 +475,10 @@ namespace Pomona.Common
         {
             var stringWriter = new StringWriter();
             var writer = this.serializer.CreateWriter(stringWriter);
-            var context = new ClientSerializationContext(this.typeMapper);
+            var context = new ClientSerializationContext(typeMapper);
             var node = new ItemValueSerializerNode(obj, expectedBaseType, "", context, null);
             this.serializer.SerializeNode(node, writer);
             return stringWriter.ToString();
-        }
-
-
-        private bool TryGetUserTypeInfo(Type type, out ExtendedResourceInfo userTypeInfo)
-        {
-            return ExtendedResourceInfo.TryGetExtendedResourceInfo(type, this, out userTypeInfo);
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,13 +31,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
+using Pomona.Common.Proxies;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
-    public class ClientTypeMapper : ExportedTypeResolverBase, ITypeMapper
+    public class ClientTypeMapper : ExportedTypeResolverBase, ITypeMapper, IClientTypeResolver, IClientTypeFactory
     {
+        private readonly ExtendedResourceMapper extendedResourceMapper;
+        private readonly ReadOnlyDictionary<Type, ResourceInfoAttribute> interfaceToResourceInfoDict;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
         #region Implementation of ITypeMapper
@@ -81,13 +86,37 @@ namespace Pomona.Common
 
         #endregion
 
+        public ClientTypeMapper(Assembly scanAssembly)
+            : this(scanAssembly.GetTypes().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToList())
+        {
+        }
+
+
         public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
         {
-            var mappedTypes = clientResourceTypes.Union(TypeUtils.GetNativeTypes());
+            var interfaceDict = new Dictionary<Type, ResourceInfoAttribute>();
+            foreach (
+                var resourceInfo in
+                    clientResourceTypes.SelectMany(
+                        x =>
+                            x.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>())
+                )
+                interfaceDict[resourceInfo.InterfaceType] = resourceInfo;
+
+            this.interfaceToResourceInfoDict = new ReadOnlyDictionary<Type, ResourceInfoAttribute>(interfaceDict);
+            var mappedTypes = this.interfaceToResourceInfoDict.Keys.Union(TypeUtils.GetNativeTypes());
             this.typeNameMap =
                 mappedTypes
                     .Select(GetClassMapping)
                     .ToDictionary(GetJsonTypeName, x => x);
+
+            this.extendedResourceMapper = new ExtendedResourceMapper(this);
+        }
+
+
+        public IEnumerable<Type> ResourceTypes
+        {
+            get { return this.interfaceToResourceInfoDict.Keys; }
         }
 
 
@@ -200,6 +229,82 @@ namespace Pomona.Common
             var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
 
             return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null);
+        }
+
+
+        public object CreatePatchForm(Type resourceType, object original)
+        {
+            var extendedResourceProxy = original as ExtendedResourceBase;
+
+            if (extendedResourceProxy != null)
+            {
+                var info = extendedResourceProxy.UserTypeInfo;
+                return
+                    this.extendedResourceMapper.WrapForm(
+                        CreatePatchForm(info.ServerType, extendedResourceProxy.ProxyTarget),
+                        info.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
+            if (resourceInfo.PatchFormType == null)
+                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
+
+            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
+                this.GetClassMapping(
+                    resourceInfo.InterfaceType),
+                this,
+                null);
+
+            return serverPatchForm;
+        }
+
+
+        public object CreatePostForm(Type resourceType)
+        {
+            ExtendedResourceInfo extendedResourceInfo;
+
+            if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
+            {
+                return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
+                    extendedResourceInfo.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
+            if (resourceInfo.PostFormType == null)
+                throw new InvalidOperationException("Method POST is not allowed for uri.");
+            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
+            return serverPostForm;
+        }
+
+
+        public bool TryGetExtendedTypeInfo(Type type, out ExtendedResourceInfo userTypeInfo)
+        {
+            return ExtendedResourceInfo.TryGetExtendedResourceInfo(type, this, out userTypeInfo);
+        }
+
+
+        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        {
+            return this.interfaceToResourceInfoDict.TryGetValue(type, out resourceInfo);
+        }
+
+
+        public IQueryable<T> WrapExtendedQuery<T>(Func<Type, IQueryable> queryableCreator)
+        {
+            ExtendedResourceInfo extendedResourceInfo;
+            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(T), this, out extendedResourceInfo))
+            {
+                var wrappedQueryable = queryableCreator(extendedResourceInfo.ServerType);
+
+                return this.extendedResourceMapper.WrapQueryable<T>(wrappedQueryable, extendedResourceInfo);
+            }
+            return (IQueryable<T>)queryableCreator(typeof(T));
+        }
+
+
+        public object WrapResource(object serverResource, Type serverType, Type extendedType)
+        {
+            return this.extendedResourceMapper.WrapResource(serverResource, serverType, extendedType);
         }
 
 

@@ -121,7 +121,7 @@ namespace Pomona.SystemTests
         [Test]
         public void GetWeaponsLazy_FromCritter()
         {
-            var critter = Client.List<ICritter>().First();
+            var critter = Client.Critters.First();
             Assert.False(critter.Weapons.IsLoaded());
             var weapons = critter.Weapons.ToList();
             Assert.True(critter.Weapons.IsLoaded());
