@@ -114,7 +114,8 @@ namespace Pomona.SystemTests.TestingClient
         public void Query_CustomClientSideEntityWithChildRepository_ReturnsSomeCritters()
         {
             this.mockControl.Save(new GalaxyResource() { Name = "donald" });
-            var emptyCritterResults = this.testClient.Galaxies.Query().ToList();
+            var queryable = this.testClient.Galaxies.Query<ICustomGalaxy>();
+            var emptyCritterResults = queryable.ToList();
             Assert.That(emptyCritterResults, Has.Count.EqualTo(1));
         }
 
@@ -123,9 +124,7 @@ namespace Pomona.SystemTests.TestingClient
         public void Query_EntityWithChildRepository_ReturnsSomeCritters()
         {
             this.mockControl.Save(new GalaxyResource() { Name = "donald" });
-            var queryable = this.testClient.Query<ICustomGalaxy>();
-            //var queryable = this.testClient.Galaxies.Query<ICustomGalaxy>();
-            var emptyCritterResults = queryable.ToList();
+            var emptyCritterResults = this.testClient.Galaxies.Query().ToList();
             Assert.That(emptyCritterResults, Has.Count.EqualTo(1));
         }
     }
