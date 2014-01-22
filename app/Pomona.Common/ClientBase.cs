@@ -103,12 +103,6 @@ namespace Pomona.Common
 
     public abstract class ClientBase<TClient> : ClientBase
     {
-        private static readonly MethodInfo patchServerTypeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PatchServerType<object>(null, null));
-
-        private static readonly MethodInfo postServerTypeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientBase<TClient>>(x => x.PostServerType<object>(null, null, null));
-
         private readonly string baseUri;
         private readonly ISerializer serializer;
         private readonly ISerializerFactory serializerFactory;
@@ -257,11 +251,11 @@ namespace Pomona.Common
         }
 
 
-        private void AddIfMatchToPatch<T>(T postForm, RequestOptions requestOptions) where T : class
+        private void AddIfMatchToPatch(object postForm, RequestOptions requestOptions) 
         {
             string etagValue = null;
-            ResourceInfoAttribute resourceInfo;
-            if (TryGetResourceInfoForType(typeof(T), out resourceInfo) && resourceInfo.HasEtagProperty)
+            ResourceInfoAttribute resourceInfo = typeMapper.GetMostInheritedResourceInterfaceInfo(postForm.GetType());
+            if (resourceInfo.HasEtagProperty)
                 etagValue = (string)resourceInfo.EtagProperty.GetValue(postForm, null);
 
             if (etagValue != null)
@@ -364,15 +358,14 @@ namespace Pomona.Common
             if (form is ExtendedFormBase)
                 return (T)PatchExtendedType((ExtendedFormBase)((object)form), requestOptions);
 
-            return PatchServerType(form, requestOptions);
+            return (T)PatchServerType(form, requestOptions);
         }
 
 
         private object PatchExtendedType(ExtendedFormBase patchForm, RequestOptions requestOptions)
         {
             var extendedResourceInfo = patchForm.UserTypeInfo;
-            var serverTypeResult = patchServerTypeMethod.MakeGenericMethod(extendedResourceInfo.ServerType)
-                .Invoke(this, new[] { patchForm.ProxyTarget, requestOptions });
+            var serverTypeResult = PatchServerType(patchForm.ProxyTarget, requestOptions);
 
             return typeMapper.WrapResource(serverTypeResult,
                 extendedResourceInfo.ServerType,
@@ -380,21 +373,20 @@ namespace Pomona.Common
         }
 
 
-        private T PatchServerType<T>(T postForm, RequestOptions requestOptions)
-            where T : class
+        private object PatchServerType(object postForm, RequestOptions requestOptions)
         {
             var uri = ((IHasResourceUri)((IDelta)postForm).Original).Uri;
             AddIfMatchToPatch(postForm, requestOptions);
 
-            return (T)PostOrPatch(uri, postForm, "PATCH", requestOptions);
+            return PostOrPatch(uri, postForm, "PATCH", requestOptions);
         }
 
 
         private object PostExtendedType(string uri, ExtendedFormBase postForm, RequestOptions options)
         {
             var extendedResourceInfo = postForm.UserTypeInfo;
-            var serverTypeResult = postServerTypeMethod.MakeGenericMethod(extendedResourceInfo.ServerType)
-                .Invoke(this, new[] { uri, postForm.ProxyTarget, options });
+            
+            var serverTypeResult = PostServerType(uri, postForm.ProxyTarget, options);
 
             return typeMapper.WrapResource(serverTypeResult,
                 extendedResourceInfo.ServerType,
@@ -402,8 +394,7 @@ namespace Pomona.Common
         }
 
 
-        private object PostOrPatch<T>(string uri, T form, string httpMethod, RequestOptions options)
-            where T : class
+        private object PostOrPatch(string uri, object form, string httpMethod, RequestOptions options)
         {
             if (form == null)
                 throw new ArgumentNullException("form");
@@ -414,8 +405,7 @@ namespace Pomona.Common
         }
 
 
-        private object PostServerType<T>(string uri, T postForm, RequestOptions options)
-            where T : class
+        private object PostServerType(string uri, object postForm, RequestOptions options)
         {
             return PostOrPatch(uri, postForm, "POST", options);
         }

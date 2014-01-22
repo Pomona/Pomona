@@ -80,6 +80,8 @@ namespace Pomona.TestingClient
         public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
+            var postForm = client.TypeMapper.CreatePostForm(typeof(TSubResource));
+
             var resInfo = client.GetResourceInfoForType(typeof (TSubResource));
             var form = (TSubResource) Activator.CreateInstance(resInfo.PostFormType);
             postAction(form);

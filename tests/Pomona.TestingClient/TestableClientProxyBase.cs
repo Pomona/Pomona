@@ -84,6 +84,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public ClientTypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
+        }
+
+
         public virtual object OnInvokeMethod(MethodInfo methodInfo, object[] args)
         {
             throw new NotImplementedException();
