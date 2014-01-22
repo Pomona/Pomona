@@ -185,7 +185,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public object DownloadFromUri(string uri, Type type)
+        public object Get(string uri, Type type)
         {
             throw new NotImplementedException();
         }

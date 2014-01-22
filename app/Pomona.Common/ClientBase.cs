@@ -59,7 +59,7 @@ namespace Pomona.Common
         public abstract string BaseUri { get; }
         public abstract IWebClient WebClient { get; }
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-        public abstract object DownloadFromUri(string uri, Type type);
+        public abstract object Get(string uri, Type type);
 
         public abstract T Get<T>(string uri);
 
@@ -147,15 +147,15 @@ namespace Pomona.Common
         }
 
 
-        public override object DownloadFromUri(string uri, Type type)
+        public override object Get(string uri, Type type)
         {
-            return Deserialize(DownloadFromUri(uri), type);
+            return SendRequestAndDeserialize(uri, null, "GET", null, type != null ? typeMapper.GetClassMapping(type) : null);
         }
 
 
         public override T Get<T>(string uri)
         {
-            return (T)Deserialize(DownloadFromUri(uri), typeof(T));
+            return (T)Get(uri, typeof(T));
         }
 
 
@@ -308,12 +308,6 @@ namespace Pomona.Common
             return deserialized;
         }
 
-
-        private string DownloadFromUri(string uri)
-        {
-            return SendHttpRequest(uri, "GET");
-        }
-
         private void InstantiateClientRepositories()
         {
             var generatedAssembly = GetType().Assembly;
@@ -378,7 +372,7 @@ namespace Pomona.Common
             var uri = ((IHasResourceUri)((IDelta)postForm).Original).Uri;
             AddIfMatchToPatch(postForm, requestOptions);
 
-            return PostOrPatch(uri, postForm, "PATCH", requestOptions);
+            return SendRequestAndDeserialize(uri, postForm, "PATCH", requestOptions);
         }
 
 
@@ -394,20 +388,16 @@ namespace Pomona.Common
         }
 
 
-        private object PostOrPatch(string uri, object form, string httpMethod, RequestOptions options)
+        private object SendRequestAndDeserialize(string uri, object form, string httpMethod, RequestOptions options, TypeSpec responseBaseType = null)
         {
-            if (form == null)
-                throw new ArgumentNullException("form");
-
             var response = SendHttpRequest(uri, httpMethod, form, null, options);
-
-            return Deserialize(response, null);
+            return Deserialize(response, responseBaseType);
         }
 
 
         private object PostServerType(string uri, object postForm, RequestOptions options)
         {
-            return PostOrPatch(uri, postForm, "POST", options);
+            return SendRequestAndDeserialize(uri, postForm, "POST", options);
         }
 
 

@@ -33,7 +33,7 @@ namespace Pomona.Common
 {
     public interface IPomonaClient : IClientTypeResolver
     {
-        object DownloadFromUri(string uri, Type type);
+        object Get(string uri, Type type);
         T Get<T>(string uri);
         string GetUriOfType(Type type);
 
