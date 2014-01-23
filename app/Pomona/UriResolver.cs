@@ -59,21 +59,7 @@ namespace Pomona
             if (type == null)
                 throw new InvalidOperationException("Can only get Uri for a ResourceType.");
 
-            if (type.ParentResourceType != null)
-            {
-                var parentEntity = type.ChildToParentProperty.Getter(entity);
-                if (parentEntity != null)
-                {
-                    BuildRelativeUri(parentEntity, type.ParentToChildProperty, sb);
-                }
-            }
-            else
-            {
-                sb.Append(type.UriRelativePath);
-            }
-            sb.Append('/');
-
-            sb.AppendFormat("{0}", Common.HttpUtility.UrlPathEncode(Convert.ToString(type.GetId(entity), CultureInfo.InvariantCulture)));
+            type.AppendUri(entity, sb);
 
             if (property != null)
             {

@@ -56,6 +56,8 @@ namespace Pomona.UnitTests.Client
 
         public CritterRepository Repository { get; private set; }
 
+        public TypeMapper TypeMapper { get; private set; }
+
         protected string BaseUri
         {
             get { return this.baseUri; }
@@ -103,6 +105,7 @@ namespace Pomona.UnitTests.Client
                 Console.WriteLine("Starting CritterHost on " + this.baseUri);
                 this.critterHost = new CritterHost(new Uri(this.baseUri));
                 this.critterHost.Start();
+                TypeMapper = critterHost.TypeMapper;
                 this.client = CreateHttpTestingClient(this.baseUri);
                 Repository = this.critterHost.Repository;
             }
@@ -115,6 +118,7 @@ namespace Pomona.UnitTests.Client
                     var critterBootstrapper = new CritterBootstrapper();
                     cachedNancyTestingClientRepository = critterBootstrapper.Repository;
                     cachedNancyTestingClient = CreateInMemoryTestingClient(this.baseUri, critterBootstrapper);
+                    TypeMapper = critterBootstrapper.TypeMapper;
                 }
                 this.client = cachedNancyTestingClient;
                 Repository = cachedNancyTestingClientRepository;
