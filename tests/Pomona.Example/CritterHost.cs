@@ -60,9 +60,13 @@ namespace Pomona.Example
         {
             var bootstrapper = new CritterBootstrapper();
             this.Repository = bootstrapper.Repository;
+            this.TypeMapper = bootstrapper.TypeMapper;
             host = new NancyHost(baseUri, bootstrapper);
             host.Start();
         }
+
+
+        public TypeMapper TypeMapper { get; private set; }
 
 
         public void Stop()

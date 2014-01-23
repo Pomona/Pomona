@@ -189,7 +189,7 @@
     <Compile Include="TypeSystem\PropertyMapping.cs" />
     <Compile Include="TypeSystem\PropertySpec.cs" />
     <Compile Include="TypeSystem\ResourceTypeDetails.cs" />
-    <Compile Include="TypeSystem\ResourceTypeSpec.cs" />
+    <Compile Include="TypeSystem\ResourceType.cs" />
     <Compile Include="TypeSystem\RuntimePropertySpec.cs" />
     <Compile Include="TypeSystem\RuntimeTypeDetails.cs" />
     <Compile Include="TypeSystem\RuntimeTypeSpec.cs" />
