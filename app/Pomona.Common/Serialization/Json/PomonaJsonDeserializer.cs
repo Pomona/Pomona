@@ -176,7 +176,15 @@ namespace Pomona.Common.Serialization.Json
 
             var refString = (string)((JValue)refStringToken).Value;
             node.Uri = refString;
-            node.Value = node.Context.CreateReference(node);
+
+            try
+            {
+                node.Value = node.Context.CreateReference(node);
+            }
+            catch (Exception ex)
+            {
+                throw new PomonaSerializationException("Failed to deserialize: " + ex.Message, ex);
+            }
             return true;
         }
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+
 using Nancy;
 
 namespace Pomona
@@ -37,29 +38,37 @@ namespace Pomona
     [Serializable]
     public class PomonaException : ApplicationException
     {
+        private readonly object entity;
         private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly HttpStatusCode statusCode;
-        private readonly object entity;
+
 
         public PomonaException()
         {
         }
 
-        public PomonaException(string message,object entity=null) : base(message)
+
+        public PomonaException(string message, object entity = null)
+            : base(message)
         {
             this.entity = entity;
-            statusCode = HttpStatusCode.InternalServerError;
+            this.statusCode = HttpStatusCode.InternalServerError;
         }
+
 
         public PomonaException(string message, Exception innerException, object entity = null)
             : base(message, innerException)
         {
             this.entity = entity;
-            statusCode = HttpStatusCode.InternalServerError;
+            this.statusCode = HttpStatusCode.InternalServerError;
         }
 
-        public PomonaException(string message, Exception innerException, HttpStatusCode statusCode,
-                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null, object entity = null)
+
+        public PomonaException(string message,
+            Exception innerException,
+            HttpStatusCode statusCode,
+            IEnumerable<KeyValuePair<string, string>> responseHeaders = null,
+            object entity = null)
             : base(message, innerException)
         {
             this.entity = entity;
@@ -69,24 +78,27 @@ namespace Pomona
             this.statusCode = statusCode;
         }
 
+
         protected PomonaException(SerializationInfo info, StreamingContext context, object entity = null)
             : base(info, context)
         {
             this.entity = entity;
         }
 
+
+        public object Entity
+        {
+            get { return this.entity; }
+        }
+
         public List<KeyValuePair<string, string>> ResponseHeaders
         {
-            get { return responseHeaders; }
+            get { return this.responseHeaders; }
         }
 
         public HttpStatusCode StatusCode
         {
-            get { return statusCode; }
-        }
-
-        public object Entity {
-            get { return entity; }
+            get { return this.statusCode; }
         }
     }
 }

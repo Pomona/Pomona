@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,12 +28,16 @@
 
 using System;
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
+
 using CustomEnum = Critters.Client.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -52,14 +56,15 @@ namespace Pomona.SystemTests
 
             var critter = (ICritter)Client.Post<ICritter>(
                 x =>
-                    {
-                        x.Hat = hat;
-                        x.Name = critterName;
-                    });
+                {
+                    x.Hat = hat;
+                    x.Name = critterName;
+                });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
+
 
         [Test]
         public void PostCritterWithExistingHat_UsingFirstLazyQuery()
@@ -72,14 +77,15 @@ namespace Pomona.SystemTests
 
             var critter = (ICritter)Client.Post<ICritter>(
                 x =>
-                    {
-                        x.Hat = Client.Hats.Query().Where(y => y.HatType.StartsWith("Special")).FirstLazy();
-                        x.Name = critterName;
-                    });
+                {
+                    x.Hat = Client.Hats.Query().Where(y => y.HatType.StartsWith("Special")).FirstLazy();
+                    x.Name = critterName;
+                });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
+
 
         [Test]
         public void PostCritterWithHatForm()
@@ -89,14 +95,15 @@ namespace Pomona.SystemTests
 
             var critter = (ICritter)Client.Post<ICritter>(
                 x =>
-                    {
-                        x.Hat = new HatForm { HatType = hatType };
-                        x.Name = critterName;
-                    });
+                {
+                    x.Hat = new HatForm { HatType = hatType };
+                    x.Name = critterName;
+                });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }
+
 
         [Test]
         public void PostCritterWithNameTooLong_ThrowsExceptionWithErrorStatus()
@@ -108,6 +115,24 @@ namespace Pomona.SystemTests
             Assert.That(exception.Body.ErrorCode, Is.EqualTo(1337));
         }
 
+
+        [Test]
+        public void PostCritterWithNonExistingHat_UsingFirstLazyQuery_ThrowsBadRequestExceptionHavingHelpfulMessage()
+        {
+            const string critterName = "Super critter";
+
+            var lazyNonExistingHat = Client.Hats.Query().Where(y => y.Id == int.MaxValue).FirstLazy();
+            var nonExistingHatUrl = ((IHasResourceUri)lazyNonExistingHat).Uri;
+            var ex = Assert.Throws<BadRequestException>(() => Client.Post<ICritter>(
+                x =>
+                {
+                    x.Hat = lazyNonExistingHat;
+                    x.Name = critterName;
+                }));
+            Assert.That(ex.Message, Is.StringContaining(nonExistingHatUrl));
+        }
+
+
         [Test]
         public void PostCritterWithSubscription_RunsOnDeserializationHook()
         {
@@ -115,23 +140,23 @@ namespace Pomona.SystemTests
 
             var critter = (ICritter)Client.Post<ICritter>(
                 x =>
+                {
+                    x.Subscriptions.Add(new SubscriptionForm
                     {
-                        x.Subscriptions.Add(new SubscriptionForm
-                            {
-                                Model = new WeaponModelForm { Name = "blah" },
-                                Sku = "haha",
-                                StartsOn = DateTime.UtcNow
-                            });
-                        x.Name = critterName;
+                        Model = new WeaponModelForm { Name = "blah" },
+                        Sku = "haha",
+                        StartsOn = DateTime.UtcNow
                     });
+                    x.Name = critterName;
+                });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Subscriptions.Count, Is.EqualTo(1));
 
-
             var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
             Assert.That(critterEntity.Subscriptions[0].Critter, Is.EqualTo(critterEntity));
         }
+
 
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
@@ -141,13 +166,16 @@ namespace Pomona.SystemTests
             Assert.That(response.Map["cow"] == "moo");
         }
 
+
         [Test]
         public void PostEntityWithReadOnlyPropertySetThroughConstructor()
         {
             var o =
                 Client.HasConstructorInitializedReadOnlyProperties.Post(
-                    x => { x.Crazy.Info = "bam!";
-                             x.Crazy.Sickness = "adhd";
+                    x =>
+                    {
+                        x.Crazy.Info = "bam!";
+                        x.Crazy.Sickness = "adhd";
                     });
             Assert.That(o.Crazy.Info, Is.EqualTo("bam!"));
             Assert.That(o.Crazy.Sickness, Is.EqualTo("adhd"));
@@ -189,10 +217,11 @@ namespace Pomona.SystemTests
             var propval = "Jalla jalla";
             var junk =
                 (IJunkWithRenamedProperty)
-                Client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
+                    Client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
+
 
         [Test]
         public void PostLonerWithOptionalNullablePropertySet_SetsProperty()
@@ -203,12 +232,14 @@ namespace Pomona.SystemTests
             Assert.That(resource.OptionalDate, Is.EqualTo(date));
         }
 
+
         [Test]
         public void PostLonerWithOptionalPropertyNotSet_DoesNotThrowException()
         {
             // Model is required, so an exception should be thrown.
             Assert.That(() => Client.Loners.Post(new LonerForm { Name = "blah", Strength = 123 }), Throws.Nothing);
         }
+
 
         [Test]
         public void PostMusicalCritter()
@@ -218,19 +249,20 @@ namespace Pomona.SystemTests
 
             var critter = (IMusicalCritter)Client.Post<IMusicalCritter>(
                 x =>
-                    {
-                        x.Hat = new HatForm { HatType = hatType };
-                        x.Name = critterName;
-                        x.BandName = "banana";
-                        x.Instrument = new InstrumentForm { Type = "helo" };
-                    });
+                {
+                    x.Hat = new HatForm { HatType = hatType };
+                    x.Name = critterName;
+                    x.BandName = "banana";
+                    x.Instrument = new InstrumentForm { Type = "helo" };
+                });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(this.Repository.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
+            Assert.That(Repository.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
         }
+
 
         [Test]
         public void PostMusicalCritterUsingMethodTakingFormAndReturningMusicalCritter()
@@ -240,24 +272,26 @@ namespace Pomona.SystemTests
 
             var critter =
                 Client.Critters.Post(new MusicalCritterForm
-                    {
-                        Hat = new HatForm { HatType = hatType },
-                        BandName = "banana",
-                        Name = critterName,
-                        Instrument = new InstrumentForm { Type = "blablabla" }
-                    });
+                {
+                    Hat = new HatForm { HatType = hatType },
+                    BandName = "banana",
+                    Name = critterName,
+                    Instrument = new InstrumentForm { Type = "blablabla" }
+                });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
             Assert.That(critter.BandName, Is.EqualTo("banana"));
 
-            Assert.That(this.Repository.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
+            Assert.That(Repository.List<Critter>().Any(x => x.Id == critter.Id && x is MusicalCritter));
         }
+
 
         [Test]
         public void PostOrderWithItems()
         {
-            var orderResponse = Client.Orders.Post(new PurchaseOrderForm { Items = { new OrderItemForm { Name = "blah" } } });
+            var orderResponse =
+                Client.Orders.Post(new PurchaseOrderForm { Items = { new OrderItemForm { Name = "blah" } } });
             Assert.That(orderResponse.Order.Items, Has.Count.EqualTo(1));
             Assert.That(orderResponse.Order.Items[0].Name, Is.EqualTo("blah"));
         }
@@ -267,15 +301,16 @@ namespace Pomona.SystemTests
         public void PostPurhcaseOrder_ReturnsOrderResponse()
         {
             var response = Client.Orders.Post<IPurchaseOrder>(x =>
-                {
-                    x.Description = "Blob";
-                    x.Items.Add(new OrderItemForm { Name = "Lola" });
-                });
+            {
+                x.Description = "Blob";
+                x.Items.Add(new OrderItemForm { Name = "Lola" });
+            });
             Assert.That(response, Is.InstanceOf<IOrderResponse>());
             Assert.That(response.Order, Is.Not.Null);
             Assert.That(response.Order, Is.TypeOf<PurchaseOrderResource>());
             Assert.That(response.Order.Description, Is.EqualTo("Blob"));
         }
+
 
         [Test]
         public void PostResourceWithEnum()
@@ -284,13 +319,14 @@ namespace Pomona.SystemTests
             Assert.That(hasCustomEnum, Is.EqualTo(hasCustomEnum));
         }
 
+
         [Test]
         public void PostStringToObjectDictionaryContainer_WithItemSetInDictionary()
         {
             var form = new StringToObjectDictionaryContainerForm
-                {
-                    Map = { { "TheString", "hello" }, { "TheInt", 1337 } }
-                };
+            {
+                Map = { { "TheString", "hello" }, { "TheInt", 1337 } }
+            };
 
             var resource = Client.StringToObjectDictionaryContainers.Post(form);
 
@@ -331,14 +367,15 @@ namespace Pomona.SystemTests
             Assert.That(response.Uri, Is.EqualTo(uri));
         }
 
+
         [Test]
         public void PostToReadOnlyAttributesProperty()
         {
             var o =
                 Client.HasReadOnlyDictionaryProperties.Post(new HasReadOnlyDictionaryPropertyForm
-                    {
-                        Map = { { "blah", "hah" } }
-                    });
+                {
+                    Map = { { "blah", "hah" } }
+                });
 
             Assert.That(o.Map["blah"], Is.EqualTo("hah"));
         }
@@ -355,29 +392,32 @@ namespace Pomona.SystemTests
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
         }
 
+
         [Test]
         public void PostUnpostableThing_ThrowsInvalidOperationException()
         {
             var ex =
                 Assert.Throws<InvalidOperationException>(
                     () =>
-                    ((IPostableRepository<IUnpostableThing, IUnpostableThing>)Client.UnpostableThings).Post(
-                        x => x.FooBar = "moo"));
+                        ((IPostableRepository<IUnpostableThing, IUnpostableThing>)Client.UnpostableThings).Post(
+                            x => x.FooBar = "moo"));
             Assert.That(ex.Message, Is.EqualTo("Method POST is not allowed for uri."));
         }
+
 
         [Test]
         public void PostUsingOverloadTakingFormObject()
         {
             const string critterName = "Lonely critter boy";
             var critterForm = new CritterForm
-                {
-                    Name = critterName
-                };
+            {
+                Name = critterName
+            };
 
             var critterResource = Client.Critters.Post(critterForm);
             Assert.That(critterResource.Name, Is.EqualTo(critterName));
         }
+
 
         [Test]
         public void PostWeaponWithRequiredPropertyNotSet_ThrowsBadRequestException()
