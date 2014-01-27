@@ -28,25 +28,11 @@
 
 using System;
 
-namespace Pomona.Common
+namespace Pomona.Common.Internals
 {
-    [Flags]
-    public enum HttpMethod
+    public abstract class GenericInvokerBase
     {
-        /// <summary>
-        /// Property is readable.
-        /// </summary>
-        Get = 1,
-
-        Post = 1 << 1,
-
-        /// <summary>
-        /// Property is settable, always implies that Post is also allowed.
-        /// </summary>
-        Put = 1 << 2,
-
-        Patch = 1 << 3,
-
-        Delete = 1 << 4
+        internal abstract Type[] InArgs { get; }
+        protected abstract Delegate OnGetDelegate(Type[] typeArgs);
     }
 }

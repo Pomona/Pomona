@@ -30,7 +30,6 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Pomona.Common.Linq;
-using Pomona.Internals;
 
 namespace Pomona.Common.Internals
 {

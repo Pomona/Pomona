@@ -32,7 +32,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Pomona.Common.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {

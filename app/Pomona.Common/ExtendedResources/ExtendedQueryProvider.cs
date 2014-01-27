@@ -31,8 +31,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
-using Pomona.Internals;
 
 namespace Pomona.Common.ExtendedResources
 {

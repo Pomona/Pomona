@@ -34,7 +34,6 @@ using System.Reflection;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
-using Pomona.Internals;
 
 namespace Pomona.Common.ExtendedResources
 {

@@ -34,9 +34,9 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.Common.Serialization.Json
 {

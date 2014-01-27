@@ -34,7 +34,6 @@ using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.FluentMapping
 {

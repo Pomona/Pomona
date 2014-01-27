@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Pomona.Internals;
+using Pomona.Common.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -40,7 +40,6 @@ namespace Pomona.Common.TypeSystem
     {
         TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory);
     }
-
 
     public class ConstructorSpec
     {
@@ -61,18 +60,18 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public LambdaExpression ConstructorExpression
+        {
+            get { return this.expression; }
+        }
+
         public LambdaExpression InjectingConstructorExpression
         {
             get
             {
                 var visitor = new CallConstructorPropertySourceVisitor();
-                return (LambdaExpression)visitor.Visit(expression);
+                return (LambdaExpression)visitor.Visit(this.expression);
             }
-        }
-
-        public LambdaExpression ConstructorExpression
-        {
-            get { return this.expression; }
         }
 
         public IEnumerable<ParameterSpec> ParameterSpecs
@@ -86,7 +85,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public static ConstructorSpec FromConstructorInfo(ConstructorInfo constructorInfo, Type convertedType = null, Func<ConstructorSpec> defaultFactory = null)
+        public static ConstructorSpec FromConstructorInfo(ConstructorInfo constructorInfo,
+            Type convertedType = null,
+            Func<ConstructorSpec> defaultFactory = null)
         {
             if (constructorInfo == null)
                 throw new ArgumentNullException("constructorInfo");
@@ -105,7 +106,9 @@ namespace Pomona.Common.TypeSystem
             var mappedProperties =
                 constructorInfo.GetParameters().Select(
                     x => new { x.Name, Param = x, Property = properties.SafeGet(x.Name) }).ToList();
-            if (mappedProperties.Any(x => x.Property == null || !x.Param.ParameterType.IsAssignableFrom(x.Property.PropertyType)))
+            if (
+                mappedProperties.Any(
+                    x => x.Property == null || !x.Param.ParameterType.IsAssignableFrom(x.Property.PropertyType)))
             {
                 if (defaultFactory != null)
                     return defaultFactory();
@@ -133,6 +136,7 @@ namespace Pomona.Common.TypeSystem
             return new ConstructorSpec(expression);
         }
 
+
         public ParameterSpec GetParameterSpec(PropertyInfo propertyInfo)
         {
             var visitor = new FindRequiredPropertiesVisitor();
@@ -147,49 +151,65 @@ namespace Pomona.Common.TypeSystem
                    || propertyInfo.GetBaseDefinition() == x.PropertyInfo.GetBaseDefinition();
         }
 
-        #region Nested type: FindRequiredPropertiesVisitor
+        #region Nested type: CallConstructorPropertySourceVisitor
 
         public class CallConstructorPropertySourceVisitor : FindRequiredPropertiesVisitor
         {
-            private ParameterExpression oldParam;
-            private ParameterExpression newParam;
             private MethodInfo getValueMethod;
+            private ParameterExpression newParam;
+            private ParameterExpression oldParam;
+
+
+            protected override Expression VisitArgumentBinding(Expression node,
+                PropertyInfo property,
+                bool isRequired,
+                int position,
+                Type convertedToType)
+            {
+                base.VisitArgumentBinding(node, property, isRequired, position, convertedToType);
+
+                var defaultFactory = !isRequired
+                    ? (Expression)Expression.Lambda(Expression.Default(convertedToType))
+                    : Expression.Constant(null, typeof(Func<>).MakeGenericType(convertedToType));
+                return Expression.Call(this.newParam,
+                    this.getValueMethod.MakeGenericMethod(convertedToType),
+                    Expression.Constant(property),
+                    defaultFactory);
+            }
+
+
+            protected override Expression VisitLambda<T>(Expression<T> node)
+            {
+                if (this.oldParam != null)
+                    return base.VisitLambda(node);
+                Type[] paramGenArgs;
+                if (node.Parameters.Count != 1
+                    || !(this.oldParam = node.Parameters[0]).Type.TryExtractTypeArguments(
+                        typeof(IConstructorControl<>),
+                        out paramGenArgs))
+                    throw new InvalidOperationException("Lambda is not of correct type");
+                var propSourceGenericTypeInstance = typeof(IConstructorPropertySource<>).MakeGenericType(paramGenArgs);
+                this.newParam = Expression.Parameter(propSourceGenericTypeInstance);
+                this.getValueMethod = propSourceGenericTypeInstance.GetMethod("GetValue");
+                return Expression.Lambda(Visit(node.Body), this.newParam);
+            }
 
 
             protected override Expression VisitParameter(ParameterExpression node)
             {
-                if (node == oldParam)
-                    return newParam;
+                if (node == this.oldParam)
+                    return this.newParam;
                 return base.VisitParameter(node);
-            }
-
-            protected override Expression VisitLambda<T>(Expression<T> node)
-            {
-                if (oldParam != null)
-                    return base.VisitLambda(node);
-                Type[] paramGenArgs;
-                if (node.Parameters.Count != 1 || !(oldParam = node.Parameters[0]).Type.TryExtractTypeArguments(typeof(IConstructorControl<>), out paramGenArgs))
-                    throw new InvalidOperationException("Lambda is not of correct type");
-                Type propSourceGenericTypeInstance = typeof(IConstructorPropertySource<>).MakeGenericType(paramGenArgs);
-                this.newParam = Expression.Parameter(propSourceGenericTypeInstance);
-                this.getValueMethod = propSourceGenericTypeInstance.GetMethod("GetValue");
-                return Expression.Lambda(Visit(node.Body), newParam);
-            }
-
-
-            protected override Expression VisitArgumentBinding(Expression node, PropertyInfo property, bool isRequired, int position, Type convertedToType)
-            {
-                base.VisitArgumentBinding(node, property, isRequired, position, convertedToType);
-
-                var defaultFactory = !isRequired ? (Expression)Expression.Lambda(Expression.Default(convertedToType)) : Expression.Constant(null, typeof(Func<>).MakeGenericType(convertedToType));
-                return Expression.Call(newParam, getValueMethod.MakeGenericMethod(convertedToType),
-                    Expression.Constant(property), defaultFactory);
             }
         }
 
+        #endregion
+
+        #region Nested type: FindRequiredPropertiesVisitor
+
         public class FindRequiredPropertiesVisitor : ExpressionVisitor
         {
-            private List<ParameterSpec> parameterSpecs = new List<ParameterSpec>();
+            private readonly List<ParameterSpec> parameterSpecs = new List<ParameterSpec>();
 
             public IList<ParameterSpec> ParameterSpecs
             {
@@ -220,16 +240,6 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            protected override Expression VisitUnary(UnaryExpression node)
-            {
-                Expression result;
-                if (TryRecognizeMemberExpression(node, out result))
-                    return result;
-
-                return base.VisitUnary(node);
-            }
-
-
             protected override Expression VisitMember(MemberExpression node)
             {
                 Expression result;
@@ -240,6 +250,16 @@ namespace Pomona.Common.TypeSystem
             }
 
 
+            protected override Expression VisitUnary(UnaryExpression node)
+            {
+                Expression result;
+                if (TryRecognizeMemberExpression(node, out result))
+                    return result;
+
+                return base.VisitUnary(node);
+            }
+
+
             private bool TryRecognizeMemberExpression(Expression node, out Expression result)
             {
                 result = null;
@@ -247,9 +267,7 @@ namespace Pomona.Common.TypeSystem
                 var convertedToType = node.Type;
 
                 while (node.NodeType == ExpressionType.Convert)
-                {
                     node = ((UnaryExpression)node).Operand;
-                }
 
                 var memberExpr = node as MemberExpression;
                 if (memberExpr == null)
@@ -265,7 +283,11 @@ namespace Pomona.Common.TypeSystem
                 if (propInfo != null && declaringType != null && objExpr != null && (isRequired || isMaybe)
                     && objExpr.Object is ParameterExpression)
                 {
-                    result = VisitArgumentBinding(outerNode, propInfo, isRequired, this.parameterSpecs.Count, convertedToType);
+                    result = VisitArgumentBinding(outerNode,
+                        propInfo,
+                        isRequired,
+                        this.parameterSpecs.Count,
+                        convertedToType);
                     return true;
                 }
                 return false;
@@ -278,9 +300,9 @@ namespace Pomona.Common.TypeSystem
 
         public class ParameterSpec
         {
-            private bool isRequired;
-            private int position;
-            private PropertyInfo propertyInfo;
+            private readonly bool isRequired;
+            private readonly int position;
+            private readonly PropertyInfo propertyInfo;
 
 
             internal ParameterSpec(bool isRequired, PropertyInfo propertyInfo, int position)

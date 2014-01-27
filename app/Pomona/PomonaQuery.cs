@@ -31,7 +31,6 @@ using Nancy;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona
 {
@@ -51,7 +50,7 @@ namespace Pomona
             Count
         }
 
-        private static readonly MethodInfo applyAndExecuteMethod;
+        private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
         private readonly TransformedType sourceType;
 
         public TransformedType SourceType
@@ -65,7 +64,7 @@ namespace Pomona
         static PomonaQuery()
         {
             applyAndExecuteMethod =
-                ReflectionHelper.GetMethodDefinition<PomonaQuery>(x => x.ApplyAndExecute<object>(null, false));
+                GenericInvoker.Instance<PomonaQuery>().CreateFunc1<IQueryable, bool, PomonaResponse>(x => x.ApplyAndExecute<object>(null, false));
         }
 
         
@@ -115,8 +114,7 @@ namespace Pomona
         public PomonaResponse ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
             var totalQueryable = ApplyExpressions(queryable);
-            return (PomonaResponse) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
-                this, new object[] {totalQueryable, skipAndTakeAfterExecute});
+            return applyAndExecuteMethod(totalQueryable.ElementType, this, totalQueryable, skipAndTakeAfterExecute);
         }
 
 

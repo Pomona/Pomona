@@ -38,25 +38,28 @@ using Newtonsoft.Json.Linq;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>
     {
-        private static readonly MethodInfo deserializeArrayNodeGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => x.DeserializeArrayNodeGeneric<object>(null, null));
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
+            deserializeArrayNodeGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
+                    x => x.DeserializeArrayNodeGeneric<object>(null, null));
 
-        private static readonly MethodInfo deserializeDictionaryGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => x.DeserializeDictionaryGeneric<object>(null, null, null));
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader, DictionaryTypeSpec>
+            deserializeDictionaryGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>()
+                    .CreateAction1<IDeserializerNode, Reader, DictionaryTypeSpec>(
+                        x => x.DeserializeDictionaryGeneric<object>(null, null, null));
 
         private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
 
-        private static MethodInfo createPropertyValueSourceMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => CreatePropertyValueSource<object>(null, null, null));
+        private static Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
+            createPropertyValueSourceMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
+                    x => x.CreatePropertyValueSource<object>(null, null));
 
         private readonly JsonSerializer jsonSerializer;
 
@@ -157,11 +160,10 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private static PropertyValueSource<T> CreatePropertyValueSource<T>(JObject jobj,
-            IDeserializerNode node,
-            PomonaJsonDeserializer deserializer)
+        private PropertyValueSource<T> CreatePropertyValueSource<T>(JObject jobj,
+            IDeserializerNode node)
         {
-            return new PropertyValueSource<T>(jobj, node, deserializer);
+            return new PropertyValueSource<T>(jobj, node, this);
         }
 
 
@@ -210,17 +212,16 @@ namespace Pomona.Common.Serialization.Json
 
             var elementType = node.ExpectedBaseType.ElementType;
 
-            deserializeArrayNodeGenericMethod.MakeGenericMethod(elementType.Type)
-                .Invoke(this, new object[] { node, reader });
+            deserializeArrayNodeGenericMethod(elementType, this, node, reader);
         }
 
 
-        private object DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
+        private void DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
         {
             // Return type should be void, but ReflectionHelper.GetMethodDefinition only works with methods with non-void return type.
 
             if (TryDeserializeAsReference(node, reader))
-                return null;
+                return;
 
             var jarr = reader.Token as JArray;
             if (jarr == null)
@@ -296,8 +297,6 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.Value == null)
                 node.Value = collection;
-
-            return null;
         }
 
 
@@ -318,9 +317,7 @@ namespace Pomona.Common.Serialization.Json
             if (node.Operation == DeserializerNodeOperation.Default)
                 node.Operation = node.Value == null ? DeserializerNodeOperation.Post : DeserializerNodeOperation.Patch;
 
-            var propertyValueSource =
-                (IJsonPropertyValueSource)createPropertyValueSourceMethod.MakeGenericMethod(node.ValueType)
-                    .Invoke(null, new object[] { jobj, node, this });
+            var propertyValueSource = createPropertyValueSourceMethod(node.ValueType, this, jobj, node);
             propertyValueSource.Deserialize();
         }
 
@@ -341,13 +338,11 @@ namespace Pomona.Common.Serialization.Json
 
             var valueType = dictType.ValueType.Type;
 
-            deserializeDictionaryGenericMethod
-                .MakeGenericMethod(valueType)
-                .Invoke(this, new object[] { node, reader, dictType });
+            deserializeDictionaryGenericMethod(valueType, this, node, reader, dictType);
         }
 
 
-        private object DeserializeDictionaryGeneric<TValue>(IDeserializerNode node,
+        private void DeserializeDictionaryGeneric<TValue>(IDeserializerNode node,
             Reader reader,
             DictionaryTypeSpec dictType)
         {
@@ -398,8 +393,6 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.Value == null)
                 node.Value = dict;
-
-            return null;
         }
 
 

@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,46 +24,47 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common.Linq;
-using Pomona.Internals;
 
 namespace Pomona.Common.Internals
 {
     public static class QueryableMethods
     {
-        private static readonly MethodInfo toUri;
-
         private static readonly MethodInfo anyWithPredicate;
         private static readonly MethodInfo count;
         private static readonly MethodInfo expand;
         private static readonly MethodInfo first;
+        private static readonly MethodInfo firstLazy;
         private static readonly MethodInfo firstOrDefault;
         private static readonly MethodInfo firstOrDefaultWithPredicate;
         private static readonly MethodInfo firstWithPredicate;
         private static readonly MethodInfo groupBy;
-        private static readonly MethodInfo orderBy;
-        private static readonly MethodInfo orderByDescending;
-        private static readonly MethodInfo @select;
-        private static readonly MethodInfo skip;
-        private static readonly MethodInfo take;
-        private static readonly MethodInfo where;
         private static readonly MethodInfo includeTotalCount;
-        private static readonly MethodInfo firstLazy;
         private static readonly MethodInfo max;
         private static readonly MethodInfo maxWithSelector;
         private static readonly MethodInfo min;
         private static readonly MethodInfo minWithSelector;
+        private static readonly MethodInfo ofType;
+        private static readonly MethodInfo orderBy;
+        private static readonly MethodInfo orderByDescending;
+        private static readonly MethodInfo @select;
+        private static readonly MethodInfo skip;
+        private static readonly MethodInfo sumDecimal;
+        private static readonly MethodInfo sumDecimalWithSelector;
+        private static readonly MethodInfo sumDouble;
+        private static readonly MethodInfo sumDoubleWithSelector;
         private static readonly MethodInfo sumInt;
         private static readonly MethodInfo sumIntWithSelector;
-        private static readonly MethodInfo sumDoubleWithSelector;
-        private static readonly MethodInfo sumDouble;
-        private static readonly MethodInfo sumDecimalWithSelector;
-        private static readonly MethodInfo sumDecimal;
-        private static readonly MethodInfo ofType;
+        private static readonly MethodInfo take;
+        private static readonly MethodInfo toUri;
+        private static readonly MethodInfo where;
 
 
         static QueryableMethods()
@@ -99,71 +102,6 @@ namespace Pomona.Common.Internals
             ofType = GetMethodInfo(x => x.OfType<object>());
         }
 
-        public static MethodInfo SumDoubleWithSelector
-        {
-            get { return sumDoubleWithSelector; }
-        }
-
-        public static MethodInfo SumDouble
-        {
-            get { return sumDouble; }
-        }
-
-        public static MethodInfo SumDecimalWithSelector
-        {
-            get { return sumDecimalWithSelector; }
-        }
-
-        public static MethodInfo SumDecimal
-        {
-            get { return sumDecimal; }
-        }
-
-        public static MethodInfo SumInt
-        {
-            get { return sumInt; }
-        }
-
-        public static MethodInfo MaxWithSelector
-        {
-            get { return maxWithSelector; }
-        }
-
-        public static MethodInfo Max
-        {
-            get { return max; }
-        }
-
-        public static MethodInfo MinWithSelector
-        {
-            get { return minWithSelector; }
-        }
-
-        public static MethodInfo Min
-        {
-            get { return min; }
-        }
-
-        public static MethodInfo FirstLazy
-        {
-            get { return firstLazy; }
-        }
-
-        public static MethodInfo ToUri
-        {
-            get { return toUri; }
-        }
-
-        public static MethodInfo IncludeTotalCount
-        {
-            get { return includeTotalCount; }
-        }
-
-        public static MethodInfo SumIntWithSelector
-        {
-            get { return sumIntWithSelector; }
-        }
-
 
         public static MethodInfo AnyWithPredicate
         {
@@ -185,6 +123,11 @@ namespace Pomona.Common.Internals
             get { return first; }
         }
 
+        public static MethodInfo FirstLazy
+        {
+            get { return firstLazy; }
+        }
+
         public static MethodInfo FirstOrDefault
         {
             get { return firstOrDefault; }
@@ -204,7 +147,32 @@ namespace Pomona.Common.Internals
         {
             get { return groupBy; }
         }
-        
+
+        public static MethodInfo IncludeTotalCount
+        {
+            get { return includeTotalCount; }
+        }
+
+        public static MethodInfo Max
+        {
+            get { return max; }
+        }
+
+        public static MethodInfo MaxWithSelector
+        {
+            get { return maxWithSelector; }
+        }
+
+        public static MethodInfo Min
+        {
+            get { return min; }
+        }
+
+        public static MethodInfo MinWithSelector
+        {
+            get { return minWithSelector; }
+        }
+
         public static MethodInfo OfType
         {
             get { return ofType; }
@@ -230,9 +198,44 @@ namespace Pomona.Common.Internals
             get { return skip; }
         }
 
+        public static MethodInfo SumDecimal
+        {
+            get { return sumDecimal; }
+        }
+
+        public static MethodInfo SumDecimalWithSelector
+        {
+            get { return sumDecimalWithSelector; }
+        }
+
+        public static MethodInfo SumDouble
+        {
+            get { return sumDouble; }
+        }
+
+        public static MethodInfo SumDoubleWithSelector
+        {
+            get { return sumDoubleWithSelector; }
+        }
+
+        public static MethodInfo SumInt
+        {
+            get { return sumInt; }
+        }
+
+        public static MethodInfo SumIntWithSelector
+        {
+            get { return sumIntWithSelector; }
+        }
+
         public static MethodInfo Take
         {
             get { return take; }
+        }
+
+        public static MethodInfo ToUri
+        {
+            get { return toUri; }
         }
 
         public static MethodInfo Where
@@ -240,10 +243,12 @@ namespace Pomona.Common.Internals
             get { return @where; }
         }
 
+
         private static MethodInfo GetMethodInfo<TSource>(Expression<Action<IQueryable<TSource>>> expression)
         {
             return ReflectionHelper.GetMethodDefinition(expression);
         }
+
 
         private static MethodInfo GetMethodInfo(Expression<Action<IQueryable<object>>> expression)
         {

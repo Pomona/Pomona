@@ -28,7 +28,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pomona.Common.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {

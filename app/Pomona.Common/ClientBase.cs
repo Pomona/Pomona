@@ -45,7 +45,6 @@ using Pomona.Common.Serialization.Json;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
-using Pomona.Internals;
 
 namespace Pomona.Common
 {

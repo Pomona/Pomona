@@ -36,7 +36,6 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
-using Pomona.Internals;
 
 namespace Pomona.TestingClient
 {

@@ -36,7 +36,6 @@ using Newtonsoft.Json.Linq;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
-using Pomona.Internals;
 
 namespace Pomona.Common.Linq
 {

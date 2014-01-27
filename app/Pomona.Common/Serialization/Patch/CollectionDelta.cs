@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,13 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.Common.Serialization.Patch
 {
@@ -47,48 +52,21 @@ namespace Pomona.Common.Serialization.Patch
         private bool originalItemsLoaded;
         private IList<object> trackedItems = new List<object>();
 
-        protected CollectionDelta()
-        {
-        }
 
         public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }
 
-        protected IEnumerable<object> OriginalItems
+
+        protected CollectionDelta()
         {
-            get { return ((IEnumerable) Original).Cast<object>(); }
         }
 
-        protected IEnumerable<object> TrackedOriginalItems
-        {
-            get
-            {
-                return TrackedItems.Select(x =>
-                    {
-                        var delta = x as Delta;
-                        if (delta != null)
-                            return delta.Original;
-                        return x;
-                    });
-            }
-        }
 
-        protected IList<object> TrackedItems
+        public IEnumerable<object> AddedItems
         {
-            get
-            {
-                if (!originalItemsLoaded)
-                {
-                    originalItemsLoaded = true;
-                    foreach (var item in CreateItemsWrapper())
-                    {
-                        trackedItems.Add(item);
-                    }
-                }
-                return trackedItems;
-            }
+            get { return TrackedItems.Where(x => !(x is Delta)).Except(OriginalItems); }
         }
 
         public IEnumerable<Delta> ModifiedItems
@@ -96,53 +74,44 @@ namespace Pomona.Common.Serialization.Patch
             get { return TrackedItems.OfType<Delta>().Where(x => x.IsDirty); }
         }
 
-        public IEnumerable<object> AddedItems
-        {
-            get { return TrackedItems.Where(x => !(x is Delta)).Except(OriginalItems); }
-        }
-
         public IEnumerable<object> RemovedItems
         {
             get { return OriginalItems.Except(TrackedOriginalItems); }
         }
 
-        internal static object CreateTypedCollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper,
-                                                          Delta parent)
+        protected IEnumerable<object> OriginalItems
         {
-            var collectionType = typeof (CollectionDelta<,>).MakeGenericType(type.ElementType.Type,
-                                                                             type.Type);
-            return Activator.CreateInstance(collectionType, original, type, typeMapper, parent);
+            get { return ((IEnumerable)Original).Cast<object>(); }
         }
 
-        public void AddItem(object item)
+        protected IList<object> TrackedItems
         {
-            trackedItems.Add(item);
-            SetDirty();
-        }
-
-        private IEnumerable<object> CreateItemsWrapper()
-        {
-            foreach (var origItem in (IEnumerable) Original)
+            get
             {
-                if (origItem == null)
+                if (!this.originalItemsLoaded)
                 {
-                    yield return null;
+                    this.originalItemsLoaded = true;
+                    foreach (var item in CreateItemsWrapper())
+                        this.trackedItems.Add(item);
                 }
-                else
-                {
-                    var origItemType = TypeMapper.GetClassMapping(origItem.GetType());
-                    if (origItemType.SerializationMode == TypeSerializationMode.Complex)
-                        yield return CreateNestedDelta(origItem, origItemType);
-                }
+                return this.trackedItems;
             }
         }
 
-        public void RemoveItem(object item)
+        protected IEnumerable<object> TrackedOriginalItems
         {
-            trackedItems.Remove(item);
-            DetachFromParent(item);
-            SetDirty();
+            get
+            {
+                return TrackedItems.Select(x =>
+                {
+                    var delta = x as Delta;
+                    if (delta != null)
+                        return delta.Original;
+                    return x;
+                });
+            }
         }
+
 
         public override void Apply()
         {
@@ -157,52 +126,97 @@ namespace Pomona.Common.Serialization.Patch
                 if (nonGenericList != null)
                     nonGenericList.Remove(item);
                 else
+                {
                     removeOriginalItem.MakeGenericMethod(Type.ElementType.Type)
-                                      .Invoke(this, new[] {item});
+                        .Invoke(this, new[] { item });
+                }
             }
             foreach (var item in addedItems)
             {
                 if (nonGenericList != null)
                     nonGenericList.Add(item);
                 else
+                {
                     addOriginalItem.MakeGenericMethod(Type.ElementType.Type)
-                                   .Invoke(this, new[] {item});
+                        .Invoke(this, new[] { item });
+                }
             }
             foreach (var item in modifiedItems)
-            {
                 item.Apply();
-            }
             if (Parent == null)
                 Reset();
         }
 
-        private void AddOriginalItem<T>(object item)
-        {
-            ((ICollection<T>) Original).Add((T) item);
-        }
-
-        private void RemoveOriginalItem<T>(object item)
-        {
-            ((ICollection<T>) Original).Remove((T) item);
-        }
 
         public override void Reset()
         {
-            if (!originalItemsLoaded)
+            if (!this.originalItemsLoaded)
             {
                 // No nested deltas possible when original items has not been loaded
-                trackedItems.Clear();
+                this.trackedItems.Clear();
             }
             else
             {
                 // Only keep delta proxies, but reset them
-                trackedItems = TrackedItems.Where(x => x is Delta).ToList();
-                foreach (var item in trackedItems.OfType<Delta>())
-                {
+                this.trackedItems = TrackedItems.Where(x => x is Delta).ToList();
+                foreach (var item in this.trackedItems.OfType<Delta>())
                     item.Reset();
-                }
             }
             base.Reset();
+        }
+
+
+        public void AddItem(object item)
+        {
+            this.trackedItems.Add(item);
+            SetDirty();
+        }
+
+
+        public void RemoveItem(object item)
+        {
+            this.trackedItems.Remove(item);
+            DetachFromParent(item);
+            SetDirty();
+        }
+
+
+        internal static object CreateTypedCollectionDelta(object original,
+            TypeSpec type,
+            ITypeMapper typeMapper,
+            Delta parent)
+        {
+            var collectionType = typeof(CollectionDelta<,>).MakeGenericType(type.ElementType.Type,
+                type.Type);
+            return Activator.CreateInstance(collectionType, original, type, typeMapper, parent);
+        }
+
+
+        private void AddOriginalItem<T>(object item)
+        {
+            ((ICollection<T>)Original).Add((T)item);
+        }
+
+
+        private IEnumerable<object> CreateItemsWrapper()
+        {
+            foreach (var origItem in (IEnumerable)Original)
+            {
+                if (origItem == null)
+                    yield return null;
+                else
+                {
+                    var origItemType = TypeMapper.GetClassMapping(origItem.GetType());
+                    if (origItemType.SerializationMode == TypeSerializationMode.Complex)
+                        yield return CreateNestedDelta(origItem, origItemType);
+                }
+            }
+        }
+
+
+        private void RemoveOriginalItem<T>(object item)
+        {
+            ((ICollection<T>)Original).Remove((T)item);
         }
     }
 
@@ -215,57 +229,24 @@ namespace Pomona.Common.Serialization.Patch
                 throw new ArgumentException("Original value must be collection type!");
         }
 
-        public new IEnumerable<TElement> RemovedItems
+
+        public TElement this[int index]
         {
-            get { return base.RemovedItems.Cast<TElement>(); }
+            get { return (TElement)TrackedItems[index]; }
+            set
+            {
+                var oldItem = TrackedItems[index];
+                if (oldItem == (object)value)
+                    return;
+                DetachFromParent(oldItem);
+                TrackedItems[index] = value;
+                SetDirty();
+            }
         }
 
         public new IEnumerable<TElement> AddedItems
         {
             get { return base.AddedItems.Cast<TElement>(); }
-        }
-
-        public new IEnumerable<TElement> ModifiedItems
-        {
-            get { return base.ModifiedItems.Cast<TElement>(); }
-        }
-
-        public IEnumerator<TElement> GetEnumerator()
-        {
-            return TrackedItems.Cast<TElement>().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public void Add(TElement item)
-        {
-            AddItem(item);
-        }
-
-        public void Clear()
-        {
-            TrackedItems.Clear();
-            SetDirty();
-        }
-
-        public bool Contains(TElement item)
-        {
-            return TrackedItems.Contains(item);
-        }
-
-        public void CopyTo(TElement[] array, int arrayIndex)
-        {
-            TrackedItems.Cast<TElement>().ToList().CopyTo(array, arrayIndex);
-        }
-
-        public bool Remove(TElement item)
-        {
-            RemoveItem(item);
-            SetDirty();
-            return true;
         }
 
         public int Count
@@ -278,10 +259,53 @@ namespace Pomona.Common.Serialization.Patch
             get { return false; }
         }
 
+        public new IEnumerable<TElement> ModifiedItems
+        {
+            get { return base.ModifiedItems.Cast<TElement>(); }
+        }
+
+        public new IEnumerable<TElement> RemovedItems
+        {
+            get { return base.RemovedItems.Cast<TElement>(); }
+        }
+
+
+        public void Add(TElement item)
+        {
+            AddItem(item);
+        }
+
+
+        public void Clear()
+        {
+            TrackedItems.Clear();
+            SetDirty();
+        }
+
+
+        public bool Contains(TElement item)
+        {
+            return TrackedItems.Contains(item);
+        }
+
+
+        public void CopyTo(TElement[] array, int arrayIndex)
+        {
+            TrackedItems.Cast<TElement>().ToList().CopyTo(array, arrayIndex);
+        }
+
+
+        public IEnumerator<TElement> GetEnumerator()
+        {
+            return TrackedItems.Cast<TElement>().GetEnumerator();
+        }
+
+
         public int IndexOf(TElement item)
         {
             return TrackedItems.IndexOf(item);
         }
+
 
         public void Insert(int index, TElement item)
         {
@@ -289,29 +313,31 @@ namespace Pomona.Common.Serialization.Patch
             SetDirty();
         }
 
+
+        public bool Remove(TElement item)
+        {
+            RemoveItem(item);
+            SetDirty();
+            return true;
+        }
+
+
         public void RemoveAt(int index)
         {
             TrackedItems.RemoveAt(index);
             SetDirty();
         }
 
-        public TElement this[int index]
-        {
-            get { return (TElement) TrackedItems[index]; }
-            set
-            {
-                var oldItem = TrackedItems[index];
-                if (oldItem == (object) value)
-                    return;
-                DetachFromParent(oldItem);
-                TrackedItems[index] = value;
-                SetDirty();
-            }
-        }
 
         protected override object CreateNestedDelta(object propValue, TypeSpec propValueType)
         {
             return ObjectDeltaProxyBase.CreateDeltaProxy(propValue, propValueType, TypeMapper, this);
+        }
+
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 
@@ -322,9 +348,10 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
+
         public new TCollection Original
         {
-            get { return (TCollection) base.Original; }
+            get { return (TCollection)base.Original; }
         }
     }
 }

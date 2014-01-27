@@ -33,7 +33,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Common.TypeSystem
 {

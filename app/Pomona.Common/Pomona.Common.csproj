@@ -61,7 +61,6 @@
     <Compile Include="ExtendedResources\ExtendedResourceMapper.cs" />
     <Compile Include="ExtendedResources\IExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitor.cs" />
-    <Compile Include="GenericMethodCaller.cs" />
     <Compile Include="HttpAccessMode.cs" />
     <Compile Include="HttpEncoder.cs" />
     <Compile Include="HttpUtility.cs" />
@@ -74,9 +73,12 @@
     <Compile Include="Internals\EnumerableExtensions.cs" />
     <Compile Include="Internals\EvaluateClosureMemberVisitor.cs" />
     <Compile Include="Internals\ExpressionExtensions.cs" />
+    <Compile Include="Internals\GenericInvoker.cs" />
+    <Compile Include="Internals\GenericInvokerBase.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\PomonaClientExtensions.cs" />
+    <Compile Include="Internals\ReflectionHelper.cs" />
     <Compile Include="Internals\StreamExtensions.cs" />
     <Compile Include="Internals\StringConversion.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
@@ -116,7 +118,6 @@
     <Compile Include="QueryResult.cs" />
     <Compile Include="QuerySelectBuilder.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
-    <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ResourceAttributesPropertyAttribute.cs" />
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PostResourceBase.cs" />

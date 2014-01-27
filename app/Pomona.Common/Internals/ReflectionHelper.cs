@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,21 +24,51 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Pomona.Internals
+namespace Pomona.Common.Internals
 {
     public static class ReflectionHelper
     {
+        public static MemberInfo GetInstanceMemberInfo<TInstance>(Expression<Func<TInstance, object>> expr)
+        {
+            var body = expr.Body;
+            if (body.NodeType == ExpressionType.Convert)
+                body = ((UnaryExpression)body).Operand;
+
+            if (body.NodeType == ExpressionType.Call)
+                return ((MethodCallExpression)body).Method;
+
+            if (body.NodeType == ExpressionType.MemberAccess)
+                return ((MemberExpression)body).Member;
+
+            throw new ArgumentException("Needs node of type Call or MemberAccess");
+        }
+
+
+        public static MethodInfo GetInstanceMethodInfo<TInstance>(Expression<Func<TInstance, object>> expr)
+        {
+            var body = expr.Body;
+            if (body.NodeType == ExpressionType.Convert)
+                body = ((UnaryExpression)body).Operand;
+
+            if (body.NodeType != ExpressionType.Call)
+                throw new ArgumentException("Needs node of type Call");
+
+            var call = (MethodCallExpression)body;
+            return call.Method;
+        }
+
+
         public static MethodInfo GetMethodDefinition<TInstance>(Expression<Action<TInstance>> expr)
         {
             var body = expr.Body;
             while (body.NodeType == ExpressionType.Convert)
-            {
-                body = ((UnaryExpression) body).Operand;
-            }
+                body = ((UnaryExpression)body).Operand;
 
             var callExpressionBody = body as MethodCallExpression;
             if (callExpressionBody == null)
@@ -50,43 +82,13 @@ namespace Pomona.Internals
         }
 
 
-        public static MemberInfo GetInstanceMemberInfo<TInstance>(Expression<Func<TInstance, object>> expr)
-        {
-            var body = expr.Body;
-            if (body.NodeType == ExpressionType.Convert)
-                body = ((UnaryExpression) body).Operand;
-
-            if (body.NodeType == ExpressionType.Call)
-                return ((MethodCallExpression) body).Method;
-
-            if (body.NodeType == ExpressionType.MemberAccess)
-                return ((MemberExpression) body).Member;
-
-            throw new ArgumentException("Needs node of type Call or MemberAccess");
-        }
-
-
-        public static MethodInfo GetInstanceMethodInfo<TInstance>(Expression<Func<TInstance, object>> expr)
-        {
-            var body = expr.Body;
-            if (body.NodeType == ExpressionType.Convert)
-                body = ((UnaryExpression) body).Operand;
-
-            if (body.NodeType != ExpressionType.Call)
-                throw new ArgumentException("Needs node of type Call");
-
-            var call = (MethodCallExpression) body;
-            return call.Method;
-        }
-
-
         public static MethodInfo GetMethodInfo<TO1, TOResult>(Expression<Func<TO1, TOResult>> expr)
         {
             var body = expr.Body;
             if (body.NodeType != ExpressionType.Call)
                 throw new ArgumentException("Needs node of type Call");
 
-            var call = (MethodCallExpression) body;
+            var call = (MethodCallExpression)body;
             return call.Method;
         }
     }
