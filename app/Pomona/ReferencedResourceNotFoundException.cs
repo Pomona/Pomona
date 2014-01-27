@@ -36,10 +36,12 @@ namespace Pomona
     [Serializable]
     public class ReferencedResourceNotFoundException : PomonaException
     {
+        [NonSerialized]
+        private readonly PomonaResponse innerResponse;
         private readonly string resourceUrl;
 
 
-        public ReferencedResourceNotFoundException(string resourceUrl)
+        public ReferencedResourceNotFoundException(string resourceUrl, PomonaResponse innerResponse)
             : base("Unable to locate referenced resource at " + resourceUrl, null, HttpStatusCode.BadRequest)
         {
             this.resourceUrl = resourceUrl;
@@ -53,6 +55,11 @@ namespace Pomona
         {
         }
 
+
+        public PomonaResponse InnerResponse
+        {
+            get { return this.innerResponse; }
+        }
 
         public string ResourceUrl
         {

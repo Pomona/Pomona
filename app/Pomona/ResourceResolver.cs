@@ -93,8 +93,8 @@ namespace Pomona
 
             var pomonaResponse = (PomonaResponse)((Task<dynamic>)route.Action((dynamic)dynamicDict, CancellationToken.None)).Result;
 
-            if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
-                throw new ReferencedResourceNotFoundException(uriString);
+            if ((int)pomonaResponse.StatusCode >= 400)
+                throw new ReferencedResourceNotFoundException(uriString, pomonaResponse);
 
             return pomonaResponse.Entity;
         }
