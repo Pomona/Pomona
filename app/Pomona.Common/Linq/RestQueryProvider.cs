@@ -146,13 +146,14 @@ namespace Pomona.Common.Linq
 
             if (parser.WherePredicate != null)
                 builder.AppendExpressionParameter("$filter", parser.WherePredicate);
-            if (parser.OrderKeySelector != null)
+            if (parser.OrderKeySelectors.Count > 0)
             {
-                var sortOrder = parser.SortOrder;
-                builder.AppendExpressionParameter(
-                    "$orderby",
-                    parser.OrderKeySelector,
-                    x => sortOrder == SortOrder.Descending ? x + " desc" : x);
+                var orderExpressions =
+                    string.Join(",", parser.OrderKeySelectors.Select(
+                        x =>
+                            new QueryPredicateBuilder(x.Item1).ToString()
+                            + (x.Item2 == SortOrder.Descending ? " desc" : string.Empty)));
+                builder.AppendParameter("$orderby", orderExpressions);
             }
             if (parser.GroupByKeySelector != null)
             {

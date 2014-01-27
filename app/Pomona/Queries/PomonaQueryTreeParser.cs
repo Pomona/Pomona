@@ -176,6 +176,7 @@ namespace Pomona.Queries
         {
             switch (type)
             {
+                case PomonaQueryParser.ORDERBY_ASC:
                 case PomonaQueryParser.AS_OP:
                 case PomonaQueryParser.LAMBDA_OP:
                 case PomonaQueryParser.AND_OP:

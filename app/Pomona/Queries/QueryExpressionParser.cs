@@ -29,6 +29,7 @@ using System.Linq.Expressions;
 using Antlr.Runtime;
 using Antlr.Runtime.Tree;
 using Pomona.CodeGen;
+using Pomona.Common;
 using Pomona.Common.Internals;
 
 namespace Pomona.Queries
@@ -117,27 +118,66 @@ namespace Pomona.Queries
         public LambdaExpression Parse(Type thisType, string odataExpression)
         {
             var tempTree = ParseSymbolTree(odataExpression);
+            return TransformTreeNodeToExpression(thisType, odataExpression, tempTree);
+        }
 
-            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(queryPropertyResolver, odataExpression);
+
+        private LambdaExpression TransformTreeNodeToExpression(Type thisType, string odataExpression, NodeBase tempTree)
+        {
+            var nodeTreeToExpressionConverter = new NodeTreeToExpressionConverter(this.queryPropertyResolver, odataExpression);
 
             var lambdaExpression = nodeTreeToExpressionConverter.ToLambdaExpression(thisType, tempTree);
             return lambdaExpression;
+        }
+
+
+        public List<Tuple<LambdaExpression, SortOrder>> ParseOrderBy(Type thisType, string odataExpression)
+        {
+            var expressions = new List<Tuple<LambdaExpression, SortOrder>>();
+            var parser = CreateParser(odataExpression);
+            var tree = (CommonTree)parser.parse().Tree;
+            foreach (var node in tree.Children)
+            {
+                if (node.Type != PomonaQueryParser.ORDERBY_ASC)
+                    throw new InvalidOperationException("Unexpected node in parser tree.");
+
+                var tempTree = PomonaQueryTreeParser.ParseTree(node.GetChild(0), 0, odataExpression);
+                var sortOrder = node.ChildCount > 1
+                                && string.Equals(node.GetChild(1).Text,
+                                    "desc",
+                                    StringComparison.InvariantCultureIgnoreCase)
+                    ? SortOrder.Descending
+                    : SortOrder.Ascending;
+
+                expressions.Add(
+                    new Tuple<LambdaExpression, SortOrder>(TransformTreeNodeToExpression(thisType,
+                        odataExpression,
+                        tempTree), sortOrder));
+            }
+            return expressions;
         }
 
         private static NodeBase ParseSymbolTree(string odataExpression)
         {
             if (odataExpression == null)
                 throw new ArgumentNullException("odataExpression");
-            var input = new ANTLRStringStream(odataExpression);
-
-            var lexer = new PomonaQueryLexer(input);
-            var tokens = new CommonTokenStream(lexer);
-            var parser = new PomonaQueryParser(tokens);
+            var parser = CreateParser(odataExpression);
             var parseReturn = parser.parse();
             var tree = (CommonTree) parseReturn.Tree;
 
             var tempTree = PomonaQueryTreeParser.ParseTree(tree, 0, odataExpression);
             return tempTree;
+        }
+
+
+        private static PomonaQueryParser CreateParser(string odataExpression)
+        {
+            var input = new ANTLRStringStream(odataExpression);
+
+            var lexer = new PomonaQueryLexer(input);
+            var tokens = new CommonTokenStream(lexer);
+            var parser = new PomonaQueryParser(tokens);
+            return parser;
         }
     }
 }

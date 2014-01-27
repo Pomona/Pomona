@@ -65,6 +65,8 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo take;
         private static readonly MethodInfo toUri;
         private static readonly MethodInfo where;
+        private static readonly MethodInfo thenBy;
+        private static readonly MethodInfo thenByDescending;
 
 
         static QueryableMethods()
@@ -74,6 +76,8 @@ namespace Pomona.Common.Internals
             where = GetMethodInfo(x => x.Where(y => false));
             orderBy = GetMethodInfo(x => x.OrderBy(y => y));
             orderByDescending = GetMethodInfo(x => x.OrderByDescending(y => y));
+            thenBy = GetMethodInfo(x => x.ThenBy(y => y));
+            thenByDescending = GetMethodInfo(x => x.ThenByDescending(y => y));
             first = GetMethodInfo(x => x.First());
             firstOrDefault = GetMethodInfo(x => x.FirstOrDefault());
             firstWithPredicate = GetMethodInfo(x => x.First(y => false));
@@ -208,6 +212,16 @@ namespace Pomona.Common.Internals
             get { return sumDecimalWithSelector; }
         }
 
+        public static MethodInfo ThenBy
+        {
+            get { return thenBy; }
+        }
+
+        public static MethodInfo ThenByDescending
+        {
+            get { return thenByDescending; }
+        }
+
         public static MethodInfo SumDouble
         {
             get { return sumDouble; }
@@ -249,8 +263,7 @@ namespace Pomona.Common.Internals
             return ReflectionHelper.GetMethodDefinition(expression);
         }
 
-
-        private static MethodInfo GetMethodInfo(Expression<Action<IQueryable<object>>> expression)
+        private static MethodInfo GetMethodInfo(Expression<Action<IOrderedQueryable<object>>> expression)
         {
             return ReflectionHelper.GetMethodDefinition(expression);
         }

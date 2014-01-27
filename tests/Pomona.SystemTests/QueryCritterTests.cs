@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
@@ -49,24 +52,26 @@ namespace Pomona.SystemTests
             var bandName = firstMusicalCritter.BandName;
 
             TestQuery<ICritter, Critter>(
-                x => x is IMusicalCritter && ((IMusicalCritter) x).BandName == bandName,
-                x => x is MusicalCritter && ((MusicalCritter) x).BandName == bandName);
+                x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
+                x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
         }
+
 
         [Test]
         public void QueryCritter_IdInArray_ReturnsCorrectCritters()
         {
-            this.Repository.CreateRandomData(critterCount: 10);
+            Repository.CreateRandomData(critterCount : 10);
             var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToArray();
-            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
+            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount : 5);
         }
+
 
         [Test]
         public void QueryCritter_IdInList_ReturnsCorrectCritters()
         {
-            this.Repository.CreateRandomData(critterCount: 10);
+            Repository.CreateRandomData(critterCount : 10);
             var ids = CritterEntities.Skip(4).Select(x => x.Id).Take(5).ToList();
-            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount: 5);
+            TestQuery<ICritter, Critter>(x => ids.Contains(x.Id), x => ids.Contains(x.Id), expectedResultCount : 5);
         }
 
 
@@ -97,7 +102,8 @@ namespace Pomona.SystemTests
             var name = "bah'bah''" + Guid.NewGuid();
             Client.Critters.Post(x => { x.Name = name; });
             var results = TestQuery<ICritter, Critter>(
-                x => x.Name == name, x => x.Name == name);
+                x => x.Name == name,
+                x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
         }
 
@@ -111,11 +117,36 @@ namespace Pomona.SystemTests
             Assert.That(results, Has.Count.EqualTo(1));
         }
 
+
         [Test]
         public void QueryCritter_NameInList_ReturnsCorrectCritters()
         {
             var names = CritterEntities.Skip(4).Select(x => x.Name).Take(5).ToArray();
             TestQuery<ICritter, Critter>(x => names.Contains(x.Name), x => names.Contains(x.Name));
+        }
+
+
+        [Test]
+        public void QueryCritter_OrderByThenByDescending_ReturnsCrittersInCorrectOrder()
+        {
+            Repository.CreateRandomData(40);
+            var fetchedCritters =
+                Client.Critters.Query().Expand(x => x.Weapons).OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id)
+                    .Take(1000).ToList();
+            var expected = fetchedCritters.OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id).ToList();
+            Assert.That(fetchedCritters.SequenceEqual(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_OrderByThenBy_ReturnsCrittersInCorrectOrder()
+        {
+            Repository.CreateRandomData(40);
+            var fetchedCritters =
+                Client.Critters.Query().Expand(x => x.Weapons).OrderByDescending(x => x.Weapons.Count).ThenBy(x => x.Id)
+                    .Take(1000).ToList();
+            var expected = fetchedCritters.OrderByDescending(x => x.Weapons.Count).ThenBy(x => x.Id).ToList();
+            Assert.That(fetchedCritters.SequenceEqual(expected));
         }
 
 
@@ -160,7 +191,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithCreatedDayMod3Equals0_ReturnsCorrectCritters()
         {
-            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day%3 == 0, x => x.CreatedOn.Day%3 == 0);
+            TestQuery<ICritter, Critter>(x => x.CreatedOn.Day % 3 == 0, x => x.CreatedOn.Day % 3 == 0);
         }
 
 
@@ -178,7 +209,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
         {
-            var firstCritter = this.Repository.List<Critter>().First();
+            var firstCritter = Repository.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
             var fetchedCritter = Client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
 
@@ -191,14 +222,15 @@ namespace Pomona.SystemTests
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
             var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
-                                                  ToList();
+                ToList();
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
 
             var critters = Client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
 
             Assert.That(
-                critters.OrderBy(x => x.Id).Select(x => x.Id), Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
+                critters.OrderBy(x => x.Id).Select(x => x.Id),
+                Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
         }
 
 
@@ -214,7 +246,7 @@ namespace Pomona.SystemTests
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
             var nameOfSecondCritter =
-                this.Repository.List<Critter>().Skip(1).First().Name;
+                Repository.List<Critter>().Skip(1).First().Name;
 
             var critters =
                 Client.Query<ICritter>(x => x.Name == nameOfFirstCritter || x.Name == nameOfSecondCritter);

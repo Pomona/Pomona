@@ -68,13 +68,12 @@ namespace Pomona.Common.Linq
         private IRestQueryRoot queryRoot;
         private Type elementType;
 
-        private LambdaExpression orderKeySelector;
+        private readonly List<Tuple<LambdaExpression, SortOrder>> orderKeySelectors = new List<Tuple<LambdaExpression, SortOrder>>();
 
         private QueryProjection projection = QueryProjection.Enumerable;
         private LambdaExpression selectExpression;
 
         private int? skipCount;
-        private SortOrder sortOrder = SortOrder.Ascending;
         private int? takeCount;
         private LambdaExpression wherePredicate;
 
@@ -119,9 +118,9 @@ namespace Pomona.Common.Linq
             get { return groupByKeySelector; }
         }
 
-        public LambdaExpression OrderKeySelector
+        public List<Tuple<LambdaExpression, SortOrder>> OrderKeySelectors
         {
-            get { return orderKeySelector; }
+            get { return orderKeySelectors; }
         }
 
         public QueryProjection Projection
@@ -150,11 +149,6 @@ namespace Pomona.Common.Linq
         public int? SkipCount
         {
             get { return skipCount; }
-        }
-
-        public SortOrder SortOrder
-        {
-            get { return sortOrder; }
         }
 
         public int? TakeCount
@@ -205,12 +199,12 @@ namespace Pomona.Common.Linq
                     node.Arguments.Skip(1)
                         .Select(ExtractArgumentFromExpression)
                         .ToArray());
-            }
-            catch (TargetInvocationException targetInvocationException)
-            {
-                throw targetInvocationException.InnerException ?? targetInvocationException;
-            }
 
+            }
+            catch (TargetInvocationException tie)
+            {
+                throw tie.InnerException;
+            }
             return node;
         }
 
@@ -329,6 +323,18 @@ namespace Pomona.Common.Linq
         {
             QWhere(predicate);
             QFirstOrDefault<TSource>();
+        }
+
+
+        internal void QThenBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
+        {
+            OrderBy(keySelector, SortOrder.Ascending, true);
+        }
+
+
+        internal void QThenByDescending<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
+        {
+            OrderBy(keySelector, SortOrder.Descending, true);
         }
 
 
@@ -489,7 +495,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        private void OrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector, SortOrder sortOrder)
+        private void OrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector, SortOrder sortOrder, bool thenBy = false)
         {
             if (SkipCount.HasValue)
             {
@@ -502,16 +508,18 @@ namespace Pomona.Common.Linq
                     "Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
             }
 
+            if (!thenBy)
+                orderKeySelectors.Clear();
+
             if (selectExpression != null && groupByKeySelector == null)
             {
                 // Support order by after select (not when using GroupBy)
-                orderKeySelector = MergeWhereAfterSelect(keySelector);
+                orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(MergeWhereAfterSelect(keySelector), sortOrder));
             }
             else
             {
-                orderKeySelector = keySelector;
+                orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));
             }
-            this.sortOrder = sortOrder;
         }
 
 

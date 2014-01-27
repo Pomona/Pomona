@@ -25,12 +25,16 @@ tokens {
    AS_OP;
    IN_OP;
    NOT_OP;
+   ORDERBY_DESC;
+   ORDERBY_ASC;
    DATETIME_LITERAL;
    GUID_LITERAL;
    METHOD_CALL;
    INDEXER_ACCESS;
    LAMBDA_OP;
    ARRAY_LITERAL;
+   ORDERBY_ASC;
+   ORDERBY_DESC;
 }    
 
 
@@ -69,9 +73,9 @@ STRING
     :  ( '\'' ( ~( '\\' | '\'' ) )* '\'' )+
     ;
     
-    
+
 public parse 
-	:	exp EOF -> ^(ROOT exp)
+	:	arglist_expr EOF -> ^(ROOT arglist_expr)
 	;
 
 exp
@@ -167,13 +171,22 @@ postfix_expr
 	| ID
 	| STRING
 	| INT
-	| '('! exp ')'!
+	| '('! orderby_expr ')'!
 	| '[' arglist_expr ']' -> ^(ARRAY_LITERAL arglist_expr)
 	| PREFIXED_STRING
 	;
 
+sortorder_operator
+	:	'asc'
+	|	'desc'
+	;
+
+orderby_expr
+	:	exp (sortorder_operator)? -> ^(ORDERBY_ASC exp sortorder_operator?)
+	;
+
 arglist_expr 
-	:	exp ( ','! exp )*
+	:	orderby_expr ( ','! orderby_expr )*
 	;
 	/*
 constant_expr
