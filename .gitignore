@@ -3,6 +3,7 @@ lib/Critter.Client.dll
 lib/Critter.Client.WithEmbeddedPomonaClient.dll
 lib/Critters.Client.dll
 lib/Critters.Client.WithEmbeddedPomonaClient.dll
+lib/IndependentCritters.dll
 
 #OS junk files
 [Tt]humbs.db
