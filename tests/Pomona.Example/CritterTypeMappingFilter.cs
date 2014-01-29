@@ -36,6 +36,7 @@ using Mono.Reflection;
 
 using Newtonsoft.Json;
 
+using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -44,6 +45,12 @@ namespace Pomona.Example
     {
         public CritterTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
         {
+        }
+
+
+        public override PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return base.GetPropertyFlags(propertyInfo) & ~PropertySpec.PropertyFlags.IsAllowedForExpressions;
         }
 
 

@@ -43,7 +43,8 @@ namespace Pomona.Common.TypeSystem
         public enum PropertyFlags
         {
             IsReadable = 1,
-            IsWritable = 2
+            IsWritable = 2,
+            IsAllowedForExpressions = 4
         }
 
         #endregion
@@ -174,7 +175,7 @@ namespace Pomona.Common.TypeSystem
             if (PropertyInfo == null)
                 throw new InvalidOperationException("Unable to load PropertyFlags when PropertyInfo is null.");
 
-            return (PropertyInfo.CanRead ? PropertyFlags.IsReadable : 0) |
+            return (PropertyInfo.CanRead ? PropertyFlags.IsAllowedForExpressions | PropertyFlags.IsReadable : 0) |
                    (PropertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
         }
 
@@ -237,6 +238,8 @@ namespace Pomona.Common.TypeSystem
                 return this.isRequiredForConstructor.Value;
             }
         }
+
+        public PropertyFlags Flags { get { return propertyFlags; }}
 
         public bool IsWritable
         {

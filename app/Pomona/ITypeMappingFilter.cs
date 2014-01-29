@@ -102,5 +102,6 @@ namespace Pomona
 
         Action<object> GetOnDeserializedHook(Type type);
         HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
+        PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
     }
 }

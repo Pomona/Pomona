@@ -57,7 +57,7 @@ namespace Pomona.Queries
             //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
             var type = (TransformedType) typeMapper.GetClassMapping(rootInstance.Type);
             PropertySpec prop;
-            if (type.TryGetPropertyByName(propertyPath, StringComparison.InvariantCultureIgnoreCase, out prop) && prop.AccessMode.HasFlag(HttpMethod.Get))
+            if (type.TryGetPropertyByName(propertyPath, StringComparison.InvariantCultureIgnoreCase, out prop) && prop.AccessMode.HasFlag(HttpMethod.Get) && prop.Flags.HasFlag(PropertySpec.PropertyFlags.IsAllowedForExpressions))
             {
                 return prop.CreateGetterExpression(rootInstance);
             }

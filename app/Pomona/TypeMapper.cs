@@ -263,6 +263,12 @@ namespace Pomona
         }
 
 
+        public override PropertySpec.PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
+        {
+            return filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
+        }
+
+
         public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
         {
             var type = resourceType.Type;

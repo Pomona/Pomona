@@ -196,6 +196,12 @@ namespace TestNs
         }
 
 
+        public PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return wrappedFilter.GetPropertyFlags(propertyInfo);
+        }
+
+
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
             return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);

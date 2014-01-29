@@ -224,6 +224,13 @@ namespace Pomona
         }
 
 
+        public virtual PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return (propertyInfo.CanRead ? PropertySpec.PropertyFlags.IsReadable | PropertySpec.PropertyFlags.IsAllowedForExpressions : 0) |
+                   (propertyInfo.CanWrite ? PropertySpec.PropertyFlags.IsWritable : 0);
+        }
+
+
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
