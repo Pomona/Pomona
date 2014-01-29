@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -36,27 +35,15 @@ using Mono.Reflection;
 
 using Newtonsoft.Json;
 
-using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
-        public CritterTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
+        public CritterTypeMappingFilter(IEnumerable<Type> sourceTypes)
+            : base(sourceTypes)
         {
-        }
-
-
-        public override PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
-        {
-            return base.GetPropertyFlags(propertyInfo) & ~PropertySpec.PropertyFlags.IsAllowedForExpressions;
-        }
-
-
-        public override string GetClientInformationalVersion()
-        {
-            return "0.1.0-alpha1";
         }
 
 
@@ -72,6 +59,12 @@ namespace Pomona.Example
         public override string GetClientAssemblyName()
         {
             return "Critters.Client";
+        }
+
+
+        public override string GetClientInformationalVersion()
+        {
+            return "0.1.0-alpha1";
         }
 
 
@@ -114,6 +107,7 @@ namespace Pomona.Example
 
             return base.GetJsonConverterForType(type);
         }
+
 
         public override Type GetUriBaseType(Type type)
         {

@@ -224,10 +224,10 @@ namespace Pomona
         }
 
 
-        public virtual PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
         {
-            return (propertyInfo.CanRead ? PropertySpec.PropertyFlags.IsReadable | PropertySpec.PropertyFlags.IsAllowedForExpressions : 0) |
-                   (propertyInfo.CanWrite ? PropertySpec.PropertyFlags.IsWritable : 0);
+            return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
+                   (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
         }
 
 

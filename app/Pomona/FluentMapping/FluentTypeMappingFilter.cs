@@ -196,7 +196,7 @@ namespace TestNs
         }
 
 
-        public PropertySpec.PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        public PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
         {
             return wrappedFilter.GetPropertyFlags(propertyInfo);
         }

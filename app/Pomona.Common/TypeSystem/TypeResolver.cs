@@ -125,7 +125,7 @@ namespace Pomona.Common.TypeSystem
             return propertySpec.OnLoadPropertyType();
         }
 
-        public virtual PropertySpec.PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
+        public virtual PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
         {
             if (propertySpec == null) throw new ArgumentNullException("propertySpec");
             return propertySpec.OnLoadPropertyFlags();
