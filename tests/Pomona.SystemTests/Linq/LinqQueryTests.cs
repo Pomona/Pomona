@@ -80,6 +80,14 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_WithPropertyNotAllowedInExpression_ThrowsBadRequestException_HavingUsefulErrorMessage()
+        {
+            var ex = Assert.Throws<BadRequestException>(() => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
+            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
+        }
+
+
+        [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
             Repository.CreateRandomCritter(new Random());

@@ -51,17 +51,15 @@ namespace Pomona.Queries
 
         #region Implementation of IQueryTypeResolver
 
-        public Expression ResolveProperty(Expression rootInstance, string propertyPath)
+        public bool TryResolveProperty<TProperty>(Type type, string propertyPath, out TProperty property) where TProperty : PropertySpec
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
-            //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
-            var type = (TransformedType) typeMapper.GetClassMapping(rootInstance.Type);
-            PropertySpec prop;
-            if (type.TryGetPropertyByName(propertyPath, StringComparison.InvariantCultureIgnoreCase, out prop) && prop.AccessMode.HasFlag(HttpMethod.Get) && prop.Flags.HasFlag(PropertyFlags.AllowsFiltering))
-            {
-                return prop.CreateGetterExpression(rootInstance);
-            }
-            throw new PomonaException("Property does not exist or is not allowed in expression.", null, HttpStatusCode.BadRequest);
+            property = null;
+            var transformedType = (TransformedType)typeMapper.GetClassMapping(type);
+            PropertySpec uncastProperty;
+            return transformedType.TryGetPropertyByName(propertyPath,
+                StringComparison.InvariantCultureIgnoreCase,
+                out uncastProperty) && (property = uncastProperty as TProperty) != null;
         }
 
 

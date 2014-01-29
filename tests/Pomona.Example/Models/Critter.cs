@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,6 @@ namespace Pomona.Example.Models
 {
     public class Critter : EntityBase, IHiddenInterface
     {
-        public static bool TheIgnoredStaticProperty { get {throw new NotImplementedException("Should not be gotten!");} }
-
         public Critter()
         {
             Guid = Guid.NewGuid();
@@ -43,29 +41,58 @@ namespace Pomona.Example.Models
             Subscriptions = new List<Subscription>();
 
             SimpleAttributes = new List<SimpleAttribute>
-                {
-                    new SimpleAttribute { Key = "MeaningOfLife", Value = "42" },
-                    new SimpleAttribute { Key = "IsCat", Value = "maybe" }
-                };
+            {
+                new SimpleAttribute { Key = "MeaningOfLife", Value = "42" },
+                new SimpleAttribute { Key = "IsCat", Value = "maybe" }
+            };
 
             OnlyWritableByInheritedResource = "blabla not writable";
             Hat = new Hat();
             Protected = Guid.NewGuid().ToString();
         }
 
-        public string OnlyWritableByInheritedResource { get; protected set; }
 
-        public bool IsCaptured { get; internal set; }
+        public static bool TheIgnoredStaticProperty
+        {
+            get { throw new NotImplementedException("Should not be gotten!"); }
+        }
 
         public CrazyValueObject CrazyValue { get; set; }
 
         public DateTime CreatedOn { get; set; }
+
+        public int DecompiledGeneratedProperty
+        {
+            get { return Id + 100; }
+        }
+
         public IList<Critter> Enemies { get; set; }
         public Farm Farm { get; set; }
-        public string Protected { get; protected set; }
 
         public Guid Guid { get; set; }
+
+        public int HandledGeneratedProperty
+        {
+            get { return Id % 6; }
+        }
+
         public Hat Hat { get; set; }
+        public bool IsCaptured { get; internal set; }
+
+        public string IsNotAllowedInFilters
+        {
+            get { return "bah bah"; }
+        }
+
+        public string Name { get; set; }
+        public string OnlyWritableByInheritedResource { get; protected set; }
+        public string Password { get; set; }
+        public string Protected { get; protected set; }
+        public bool PublicAndReadOnlyThroughApi { get; set; }
+
+        public IList<SimpleAttribute> SimpleAttributes { get; set; }
+
+        public IList<Subscription> Subscriptions { get; protected set; }
 
         [NotKnownToDataSource]
         public string UnhandledGeneratedProperty
@@ -73,25 +100,6 @@ namespace Pomona.Example.Models
             get { return Hat != null ? Hat.HatType : null; }
         }
 
-        public bool PublicAndReadOnlyThroughApi { get; set; }
-
-        public string Password { get; set; }
-
-        public int DecompiledGeneratedProperty
-        {
-            get { return Id + 100; }
-        }
-
-        public int HandledGeneratedProperty
-        {
-            get { return Id%6; }
-        }
-
-        public string Name { get; set; }
-
-        public IList<SimpleAttribute> SimpleAttributes { get; set; }
-
-        public IList<Subscription> Subscriptions { get; protected set; }
         public IList<Weapon> Weapons { get; protected set; }
 
         /// <summary>
@@ -99,12 +107,11 @@ namespace Pomona.Example.Models
         /// </summary>
         int IHiddenInterface.Foo { get; set; }
 
+
         public void FixParentReferences()
         {
             foreach (var subscription in Subscriptions)
-            {
                 subscription.Critter = this;
-            }
         }
     }
 }

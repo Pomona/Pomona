@@ -36,6 +36,7 @@ using Newtonsoft.Json.Linq;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
+using Pomona.Common.Web;
 
 namespace Pomona.Common.Linq
 {
@@ -227,7 +228,7 @@ namespace Pomona.Common.Linq
             {
                 return this.client.Get<T>(uri);
             }
-            catch (Exception ex)
+            catch (ResourceNotFoundException ex)
             {
                 throw new InvalidOperationException("Sequence contains no matching element", ex);
             }

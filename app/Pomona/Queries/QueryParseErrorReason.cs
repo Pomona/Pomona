@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,17 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Linq.Expressions;
-
-using Pomona.Common.TypeSystem;
+#endregion
 
 namespace Pomona.Queries
 {
-    public interface IQueryTypeResolver
+    public enum QueryParseErrorReason
     {
-        bool TryResolveProperty<TProperty>(Type type, string propertyPath, out TProperty property)
-            where TProperty : PropertySpec;
-        Type ResolveType(string typeName);
+        GenericError,
+        SymbolNotRecognized,
+        MemberNotAllowedInQuery,
+        UnrecognizedProjection
     }
 }

@@ -176,6 +176,7 @@
     <Compile Include="Queries\IQueryableResolver.cs" />
     <Compile Include="Queries\IQueryExecutor.cs" />
     <Compile Include="Queries\QueryableResolverBase.cs" />
+    <Compile Include="Queries\QueryParseErrorReason.cs" />
     <Compile Include="QueryableNode.cs" />
     <Compile Include="ReferencedResourceNotFoundException.cs" />
     <Compile Include="RequestProcessing\DataSourceRequestProcessor.cs" />

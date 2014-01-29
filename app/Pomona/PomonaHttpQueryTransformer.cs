@@ -109,7 +109,10 @@ namespace Pomona
                 PomonaQuery.ProjectionType projection;
                 if (!Enum.TryParse(projectionString, true, out projection))
                     throw new QueryParseException("\"" + projectionString +
-                                                  "\" is not a valid value for query parameter $projection");
+                                                  "\" is not a valid value for query parameter $projection",
+                        null,
+                        QueryParseErrorReason.UnrecognizedProjection,
+                        null);
                 query.Projection = projection;
             }
 
