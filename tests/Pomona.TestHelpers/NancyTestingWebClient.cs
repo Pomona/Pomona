@@ -74,7 +74,7 @@ namespace Pomona.TestHelpers
             var uri = new Uri(request.Uri);
             var creds = Credentials;
 
-            var browserResponse = browserMethod(uri.LocalPath, bc =>
+            var browserResponse = browserMethod(request.Uri, bc =>
                 {
                     bc.HttpRequest();
                     if (creds != null)
