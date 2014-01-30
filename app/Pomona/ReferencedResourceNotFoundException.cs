@@ -45,6 +45,7 @@ namespace Pomona
             : base("Unable to locate referenced resource at " + resourceUrl, null, HttpStatusCode.BadRequest)
         {
             this.resourceUrl = resourceUrl;
+            this.innerResponse = innerResponse;
         }
 
 
