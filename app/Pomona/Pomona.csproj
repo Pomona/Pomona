@@ -148,6 +148,7 @@
     <Compile Include="FluentMapping\PropertyOptionsBuilderBase.cs" />
     <Compile Include="FluentMapping\TypeMappingConfiguratorBase.cs" />
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
+    <Compile Include="FluentMapping\WrappingTypeMappingFilter.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
