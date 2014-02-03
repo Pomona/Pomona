@@ -415,8 +415,6 @@ namespace Pomona.Common
             }
             var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
-            this.webClient.Headers.Add("Accept", "application/json");
-
             string responseString = null;
             Exception thrownException = null;
             try
@@ -424,6 +422,7 @@ namespace Pomona.Common
                 if (options != null)
                     options.ApplyRequestModifications(request);
 
+                request.Headers.Add("Accept", "application/json");
                 response = this.webClient.Send(request);
                 responseString = (response.Data != null && response.Data.Length > 0)
                     ? Encoding.UTF8.GetString(response.Data)
