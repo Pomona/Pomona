@@ -131,7 +131,6 @@
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializerFactory.cs" />
     <Compile Include="Serialization\DeserializeOptions.cs" />
-    <Compile Include="Serialization\DeserializerNodeExtensions.cs" />
     <Compile Include="Serialization\DeserializerNodeOperation.cs" />
     <Compile Include="Serialization\IDeserializationContext.cs" />
     <Compile Include="Serialization\IDeserializerNode.cs" />
@@ -139,8 +138,6 @@
     <Compile Include="Serialization\IPomonaSerializable.cs" />
     <Compile Include="Serialization\ISerializationContext.cs" />
     <Compile Include="Serialization\ISerializationContextProvider.cs" />
-    <Compile Include="Serialization\ISerializer.cs" />
-    <Compile Include="Serialization\ISerializerFactory.cs" />
     <Compile Include="Serialization\ISerializerNode.cs" />
     <Compile Include="Serialization\ISerializerWriter.cs" />
     <Compile Include="Serialization\ItemValueDeserializerNode.cs" />
@@ -168,7 +165,6 @@
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\SerializerNodeExtensions.cs" />
     <Compile Include="Serialization\TextSerializerFactoryBase.cs" />
-    <Compile Include="Serialization\Xml\IPomonaXmlDeserializer.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlSerializer.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlSerializerFactory.cs" />
     <Compile Include="SortOrder.cs" />

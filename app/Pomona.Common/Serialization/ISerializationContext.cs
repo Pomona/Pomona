@@ -35,8 +35,7 @@ namespace Pomona.Common.Serialization
         bool PathToBeExpanded(string expandPath);
 
 
-        void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
-            where TWriter : ISerializerWriter;
+        void Serialize(ISerializerNode node, Action<ISerializerNode> serializeNodeAction);
 
         bool PropertyIsSerialized(PropertySpec property);
     }

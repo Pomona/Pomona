@@ -60,43 +60,20 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public static T DeserializeFromString<T>(this IDeserializer deserializer,
-            IDeserializationContext deserializationContext,
-            string serialized)
+        public static object DeserializeString(this ITextDeserializer deserializer,
+            string serializedObj,
+            DeserializeOptions options = null)
         {
-            using (var strReader = new StringReader(serialized))
+            if (deserializer == null)
+                throw new ArgumentNullException("deserializer");
+            if (serializedObj == null)
+                throw new ArgumentNullException("serializedObj");
+            using (var textReader = new StringReader(serializedObj))
             {
-                return (T)deserializer.Deserialize(strReader,
-                    deserializationContext.GetClassMapping(typeof(T)),
-                    deserializationContext);
+                return deserializer.Deserialize(textReader, options);
             }
         }
 
-
-        public static void Serialize(this ISerializer serializer,
-            ISerializationContext serializationContext,
-            object obj,
-            TextWriter textWriter,
-            TypeSpec expectedBaseType)
-        {
-            if (serializer == null)
-                throw new ArgumentNullException("serializer");
-            if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
-
-            var writer = serializer.CreateWriter(textWriter);
-            if (obj is QueryResult)
-                serializer.SerializeQueryResult((QueryResult)obj, serializationContext, writer, null);
-            else
-            {
-                var itemValueNode = new ItemValueSerializerNode(obj,
-                    expectedBaseType,
-                    string.Empty,
-                    serializationContext,
-                    null);
-                serializer.SerializeNode(itemValueNode, writer);
-            }
-        }
 
         /// <summary>
         /// Serialize to a byte array.
@@ -122,6 +99,7 @@ namespace Pomona.Common.Serialization
             }
         }
 
+
         public static string SerializeToString(this ITextSerializer serializer,
             object obj,
             SerializeOptions options = null)
@@ -130,18 +108,6 @@ namespace Pomona.Common.Serialization
             {
                 serializer.Serialize(sw, obj, options);
                 return sw.ToString();
-            }
-        }
-
-
-        public static string SerializeToString(this ISerializer serializer,
-            ISerializationContext serializationContext,
-            object obj)
-        {
-            using (var strWriter = new StringWriter())
-            {
-                serializer.Serialize(serializationContext, obj, strWriter, null);
-                return strWriter.ToString();
             }
         }
     }

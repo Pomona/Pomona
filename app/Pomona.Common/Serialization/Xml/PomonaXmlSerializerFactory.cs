@@ -26,21 +26,14 @@
 
 #endregion
 
-using System;
-
 namespace Pomona.Common.Serialization.Xml
 {
-    public class PomonaXmlSerializerFactory : TextSerializerFactoryBase<PomonaXmlSerializer, IPomonaXmlDeserializer>
+#if false
+    public class PomonaXmlSerializerFactory : TextSerializerFactoryBase<PomonaXmlSerializer>
     {
         public PomonaXmlSerializerFactory(ISerializationContextProvider contextProvider)
             : base(contextProvider)
         {
-        }
-
-
-        public override IPomonaXmlDeserializer GetDeserializer()
-        {
-            throw new NotImplementedException();
         }
 
 
@@ -49,4 +42,5 @@ namespace Pomona.Common.Serialization.Xml
             return new PomonaXmlSerializer(ContextProvider);
         }
     }
+#endif
 }

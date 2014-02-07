@@ -28,9 +28,9 @@
 
 namespace Pomona.Common.Serialization
 {
-    public interface ITextSerializerFactory : ISerializerFactory
+    public interface ITextSerializerFactory
     {
-        new ITextDeserializer GetDeserializer();
-        new ITextSerializer GetSerializer();
+        ITextDeserializer GetDeserializer();
+        ITextSerializer GetSerializer();
     }
 }

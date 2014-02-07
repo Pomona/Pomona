@@ -28,6 +28,8 @@ using Nancy;
 using Nancy.Responses.Negotiation;
 
 using Pomona.Common.Serialization;
+
+#if false
 using Pomona.Common.Serialization.Xml;
 using Pomona.Common.TypeSystem;
 
@@ -137,3 +139,4 @@ namespace Pomona
         }
     }
 }
+#endif

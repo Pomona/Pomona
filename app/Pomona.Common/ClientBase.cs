@@ -104,7 +104,7 @@ namespace Pomona.Common
     {
         private readonly string baseUri;
         private readonly ITextSerializer serializer;
-        private readonly ISerializerFactory serializerFactory;
+        private readonly ITextSerializerFactory serializerFactory;
         private static readonly ClientTypeMapper typeMapper;
         private readonly IWebClient webClient;
 
@@ -124,7 +124,7 @@ namespace Pomona.Common
             // BaseUri = "http://localhost:2211/";
 
             this.serializerFactory = new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(typeMapper, this));
-            this.serializer = (ITextSerializer)this.serializerFactory.GetSerializer();
+            this.serializer = this.serializerFactory.GetSerializer();
 
             InstantiateClientRepositories();
         }
@@ -296,15 +296,8 @@ namespace Pomona.Common
                 }
             }
 
-            var deserializer = this.serializerFactory.GetDeserializer();
-            var context = new ClientDeserializationContext(typeMapper, this);
-            var deserialized = deserializer.Deserialize(
-                new StringReader(jsonString),
-                expectedType != null
-                    ? typeMapper.GetClassMapping(expectedType)
-                    : null,
-                context);
-            return deserialized;
+            return serializerFactory.GetDeserializer().DeserializeString(jsonString,
+                new DeserializeOptions() { ExpectedBaseType = expectedType });
         }
 
         private void InstantiateClientRepositories()

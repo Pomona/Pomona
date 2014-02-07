@@ -22,14 +22,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
+
 namespace Pomona.Common.Serialization
 {
     public static class SerializerNodeExtensions
     {
-        public static void Serialize<TWriter>(this ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
-            where TWriter : ISerializerWriter
+        public static void Serialize(this ISerializerNode node, Action<ISerializerNode> serializeNodeAction)
         {
-            node.Context.Serialize(node, serializer, writer);
+            serializeNodeAction(node);
         }
     }
 }

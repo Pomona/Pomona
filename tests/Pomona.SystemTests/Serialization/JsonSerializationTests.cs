@@ -50,13 +50,11 @@ namespace Pomona.SystemTests.Serialization
         public void SetUp()
         {
             var factory = new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(clientTypeMapper, Substitute.For<IPomonaClient>()));
-            this.serializer = factory.GetSerializer();
             this.deserializer = factory.GetDeserializer();
         }
 
         #endregion
 
-        private ISerializer serializer;
         private PomonaJsonDeserializer deserializer;
         private readonly ClientTypeMapper clientTypeMapper = new ClientTypeMapper(new Type[] { typeof(IOrderItem) });
 

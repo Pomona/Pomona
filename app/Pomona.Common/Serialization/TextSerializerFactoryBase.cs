@@ -31,8 +31,8 @@ using System;
 namespace Pomona.Common.Serialization
 {
     public abstract class TextSerializerFactoryBase<TSerializer>
-        : TextSerializerFactoryBase<TSerializer, TextSerializerFactoryBase<TSerializer>.INotSupportedDeserializer>
-        where TSerializer : ITextSerializer, ISerializer
+        : TextSerializerFactoryBase<TSerializer, ITextDeserializer>
+        where TSerializer : ITextSerializer
     {
         protected TextSerializerFactoryBase(ISerializationContextProvider contextProvider)
             : base(contextProvider)
@@ -40,23 +40,15 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public sealed override INotSupportedDeserializer GetDeserializer()
+        public sealed override ITextDeserializer GetDeserializer()
         {
             throw new NotSupportedException("Deserialization not supported for format.");
         }
-
-        #region Nested type: INotSupportedDeserializer
-
-        public interface INotSupportedDeserializer : ITextDeserializer, IDeserializer
-        {
-        }
-
-        #endregion
     }
 
     public abstract class TextSerializerFactoryBase<TSerializer, TDeserializer> : ITextSerializerFactory
-        where TSerializer : ITextSerializer, ISerializer
-        where TDeserializer : ITextDeserializer, IDeserializer
+        where TSerializer : ITextSerializer
+        where TDeserializer : ITextDeserializer
     {
         private readonly ISerializationContextProvider contextProvider;
 
@@ -85,19 +77,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        IDeserializer ISerializerFactory.GetDeserializer()
-        {
-            return GetDeserializer();
-        }
-
-
         ITextSerializer ITextSerializerFactory.GetSerializer()
-        {
-            return GetSerializer();
-        }
-
-
-        ISerializer ISerializerFactory.GetSerializer()
         {
             return GetSerializer();
         }

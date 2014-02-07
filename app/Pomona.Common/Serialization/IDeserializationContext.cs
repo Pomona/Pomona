@@ -40,9 +40,7 @@ namespace Pomona.Common.Serialization
         object CreateReference(IDeserializerNode node);
 
 
-        void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
-            where TReader : ISerializerReader;
-
+        void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction);
 
         TypeSpec GetClassMapping(Type type);
 

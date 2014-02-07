@@ -70,15 +70,14 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
-            where TWriter : ISerializerWriter
+        public void Serialize(ISerializerNode node, Action<ISerializerNode> serializeNodeAction)
         {
             if (node.Value is IClientResource && !(node.Value is PostResourceBase) && !(node.Value is IDelta) &&
                 !node.IsRemoved)
             {
                 node.SerializeAsReference = true;
             }
-            serializer.SerializeNode(node, writer);
+            serializeNodeAction(node);
         }
 
         public bool PropertyIsSerialized(PropertySpec property)

@@ -56,10 +56,9 @@ namespace Pomona.Common.Serialization
 
         #region Implementation of IDeserializationContext
 
-        public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
-            where TReader : ISerializerReader
+        public void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction)
         {
-            deserializer.DeserializeNode(node, reader);
+            deserializeNodeAction(node);
             if (node.Uri != null)
             {
                 var uriResource = node.Value as IHasResourceUri;

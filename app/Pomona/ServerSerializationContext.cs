@@ -99,8 +99,7 @@ namespace Pomona
         }
 
 
-        public void Serialize<TWriter>(ISerializerNode node, ISerializer<TWriter> serializer, TWriter writer)
-            where TWriter : ISerializerWriter
+        public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
         {
             var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded ||
                              PathToBeExpanded(node.ExpandPath) ||
@@ -109,7 +108,7 @@ namespace Pomona
 
             node.SerializeAsReference = !isExpanded;
 
-            serializer.SerializeNode(node, writer);
+            nodeSerializerAction(node);
         }
 
         public bool PropertyIsSerialized(PropertySpec property)

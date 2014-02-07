@@ -31,7 +31,8 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Xml
 {
-    public class PomonaXmlSerializer : ISerializer<PomonaXmlSerializer.Writer>, ITextSerializer
+#if false
+    public class PomonaXmlSerializer : ITextSerializer
     {
         private readonly ISerializationContextProvider contextProvider;
 
@@ -49,7 +50,7 @@ namespace Pomona.Common.Serialization.Xml
         }
 
 
-        public Writer CreateWriter(TextWriter textWriter)
+        private Writer CreateWriter(TextWriter textWriter)
         {
             return new Writer(new XmlTextWriter(textWriter));
         }
@@ -90,13 +91,20 @@ namespace Pomona.Common.Serialization.Xml
         }
 
 
-        public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, Writer writer,
+        private void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, Writer writer,
                                          TypeSpec elementType)
         {
             var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
                                                        string.Empty, fetchContext, null);
-            itemNode.Serialize(this, writer);
+            SerializeThroughContext(itemNode, writer);
         }
+
+
+        private void SerializeThroughContext(ISerializerNode itemNode, Writer writer)
+        {
+            itemNode.Context.Serialize(itemNode, n => SerializeNode(n, writer));
+        }
+
 
         public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,
                                          ISerializerWriter writer, TypeSpec elementType)
@@ -192,7 +200,7 @@ namespace Pomona.Common.Serialization.Xml
             {
                 writer.NextElementName = GetXmlName(prop);
                 var propNode = new PropertyValueSerializerNode(node, prop);
-                propNode.Serialize(this, writer);
+                SerializeThroughContext(propNode, writer);
             }
         }
 
@@ -230,4 +238,5 @@ namespace Pomona.Common.Serialization.Xml
             this.Serialize(serializationContext, o, textWriter, options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
         }
     }
+#endif
 }
