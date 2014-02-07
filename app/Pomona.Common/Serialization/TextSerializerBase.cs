@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,15 +27,59 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.IO;
-using System.Linq;
 
 using Pomona.Common.TypeSystem;
 
-namespace Pomona.Common.Serialization.Csv
+namespace Pomona.Common.Serialization
 {
-    public class PomonaCsvSerializer : TextSerializerBase<PomonaCsvSerializer.Writer>
+    public abstract class TextSerializerBase<TWriter> : ITextSerializer
+    {
+        internal void Serialize(
+    ISerializationContext serializationContext,
+    object obj,
+    TextWriter textWriter,
+    TypeSpec expectedBaseType)
+        {
+            var serializer = this;
+            if (serializer == null)
+                throw new ArgumentNullException("serializer");
+            if (textWriter == null)
+                throw new ArgumentNullException("textWriter");
+
+            var writer = serializer.CreateWriter(textWriter);
+            if (obj is QueryResult)
+                serializer.SerializeQueryResult((QueryResult)obj, serializationContext, writer, null);
+            else
+            {
+                var itemValueNode = new ItemValueSerializerNode(obj,
+                    expectedBaseType,
+                    string.Empty,
+                    serializationContext,
+                    null);
+                serializer.SerializeNode(itemValueNode, writer);
+            }
+        }
+
+        protected void SerializeThroughContext(ISerializerNode node, TWriter writer)
+        {
+            node.Context.Serialize(node, n => SerializeNode(n, writer));
+        }
+
+
+        protected abstract void SerializeNode(ISerializerNode node, TWriter writer);
+
+        protected abstract void SerializeQueryResult(QueryResult queryResult,
+            ISerializationContext context,
+            TWriter writer,
+            TypeSpec elementType);
+
+        protected abstract TWriter CreateWriter(TextWriter textWriter);
+
+        public abstract void Serialize(TextWriter textWriter, object o, SerializeOptions options = null);
+    }
+#if false
+    public class PomonaCsvSerializer : ITextSerializer
     {
         private readonly ISerializationContextProvider contextProvider;
 
@@ -48,13 +92,13 @@ namespace Pomona.Common.Serialization.Csv
         }
 
 
-        protected override Writer CreateWriter(TextWriter textWriter)
+        private Writer CreateWriter(TextWriter textWriter)
         {
             return new Writer(textWriter);
         }
 
 
-        public override void Serialize(TextWriter textWriter, object o, SerializeOptions options = null)
+        public void Serialize(TextWriter textWriter, object o, SerializeOptions options = null)
         {
             if (textWriter == null)
                 throw new ArgumentNullException("textWriter");
@@ -67,7 +111,7 @@ namespace Pomona.Common.Serialization.Csv
         }
 
 
-        protected override void SerializeNode(ISerializerNode node, Writer writer)
+        public void SerializeNode(ISerializerNode node, Writer writer)
         {
             if (node.ValueType.SerializationMode != TypeSerializationMode.Array)
                 throw new NotSupportedException("When serializing to CSV we only support array");
@@ -101,7 +145,13 @@ namespace Pomona.Common.Serialization.Csv
         }
 
 
-        protected override void SerializeQueryResult(QueryResult queryResult,
+        public void SerializeNode(ISerializerNode node, ISerializerWriter writer)
+        {
+            SerializeNode(node, CastWriter(writer));
+        }
+
+
+        private void SerializeQueryResult(QueryResult queryResult,
             ISerializationContext fetchContext,
             Writer writer,
             TypeSpec elementType)
@@ -112,6 +162,20 @@ namespace Pomona.Common.Serialization.Csv
                 fetchContext,
                 null);
             SerializeThroughContext(itemNode, writer);
+        }
+
+
+        private void SerializeThroughContext(ISerializerNode node, Writer writer)
+        {
+            node.Context.Serialize(node, n => SerializeNode(n, writer));
+        }
+
+        private Writer CastWriter(ISerializerWriter writer)
+        {
+            var castedWriter = writer as Writer;
+            if (castedWriter == null)
+                throw new ArgumentException("Writer required to be of type PomonaJsonSerializationWriter", "writer");
+            return castedWriter;
         }
 
 
@@ -136,4 +200,5 @@ namespace Pomona.Common.Serialization.Csv
 
         #endregion
     }
+#endif
 }

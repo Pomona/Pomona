@@ -31,7 +31,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 
-using Pomona.Common.Serialization.Csv;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Xml

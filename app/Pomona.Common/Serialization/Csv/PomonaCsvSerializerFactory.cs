@@ -28,7 +28,6 @@
 
 namespace Pomona.Common.Serialization.Csv
 {
-#if false
     public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
     {
         public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
@@ -42,5 +41,4 @@ namespace Pomona.Common.Serialization.Csv
             return new PomonaCsvSerializer(ContextProvider);
         }
     }
-#endif
 }
