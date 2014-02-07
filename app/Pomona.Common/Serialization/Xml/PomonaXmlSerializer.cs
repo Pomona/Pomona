@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -137,29 +138,28 @@ namespace Pomona.Common.Serialization.Xml
 
         private void SerializeCollection(ISerializerNode node, Writer writer)
         {
-            throw new NotImplementedException();
-            //var elementType = node.ExpectedBaseType.ElementType;
-            //var outerArrayElementName = writer.NextElementName ?? GetXmlName(elementType.PluralName);
+            var elementType = node.ExpectedBaseType.ElementType;
+            var outerArrayElementName = writer.NextElementName ?? GetXmlName(((TransformedType)elementType).PluralName);
 
-            //writer.XmlWriter.WriteStartElement(outerArrayElementName);
+            writer.XmlWriter.WriteStartElement(outerArrayElementName);
 
-            //writer.NextElementName = GetXmlName(elementType);
+            writer.NextElementName = GetXmlName(elementType);
 
-            //var xmlWriter = writer.XmlWriter;
-            //if (node.SerializeAsReference)
-            //{
-            //    xmlWriter.WriteAttributeString("ref", node.Uri);
-            //}
-            //else
-            //{
-            //    foreach (var item in (IEnumerable) node.Value)
-            //    {
-            //        var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
-            //        itemNode.Serialize(this, writer);
-            //    }
-            //}
+            var xmlWriter = writer.XmlWriter;
+            if (node.SerializeAsReference)
+            {
+                xmlWriter.WriteAttributeString("ref", node.Uri);
+            }
+            else
+            {
+                foreach (var item in (IEnumerable)node.Value)
+                {
+                    var itemNode = new ItemValueSerializerNode(item, elementType, node.ExpandPath, node.Context, node);
+                    SerializeThroughContext(itemNode, writer);
+                }
+            }
 
-            //writer.XmlWriter.WriteEndElement();
+            writer.XmlWriter.WriteEndElement();
         }
 
 
@@ -184,7 +184,7 @@ namespace Pomona.Common.Serialization.Xml
         {
             var jsonWriter = writer.XmlWriter;
 
-            if (node.Uri != null)
+            if (node.ValueType is ResourceType && node.Uri != null)
                 jsonWriter.WriteAttributeString("uri", node.Uri);
             if (node.ExpectedBaseType != node.ValueType)
                 jsonWriter.WriteAttributeString("type", node.ValueType.Name);
