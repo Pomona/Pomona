@@ -25,10 +25,17 @@
 using System.Threading;
 using Nancy;
 
+using Pomona.Common.Serialization;
+
 namespace Pomona
 {
     internal static class NancyExtensions
     {
+        internal static ISerializationContextProvider GetSerializationContextProvider(this NancyContext nancyContext)
+        {
+            return (ISerializationContextProvider)nancyContext.Items[typeof(ISerializationContextProvider).FullName];
+        }
+
         internal static void ContentsFromString(this Response resp, string text)
         {
             resp.Contents = stream =>

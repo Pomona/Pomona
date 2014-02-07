@@ -103,7 +103,7 @@ namespace Pomona.Common
     public abstract class ClientBase<TClient> : ClientBase
     {
         private readonly string baseUri;
-        private readonly ISerializer serializer;
+        private readonly ITextSerializer serializer;
         private readonly ISerializerFactory serializerFactory;
         private static readonly ClientTypeMapper typeMapper;
         private readonly IWebClient webClient;
@@ -123,8 +123,8 @@ namespace Pomona.Common
             this.baseUri = baseUri;
             // BaseUri = "http://localhost:2211/";
 
-            this.serializerFactory = new PomonaJsonSerializerFactory();
-            this.serializer = this.serializerFactory.GetSerialier();
+            this.serializerFactory = new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(typeMapper, this));
+            this.serializer = (ITextSerializer)this.serializerFactory.GetSerializer();
 
             InstantiateClientRepositories();
         }
@@ -410,8 +410,8 @@ namespace Pomona.Common
             WebClientResponseMessage response = null;
             if (requestBodyEntity != null)
             {
-                var requestString = Serialize(requestBodyEntity, requestBodyBaseType);
-                requestBytes = Encoding.UTF8.GetBytes(requestString);
+                requestBytes = serializer.SerializeToBytes(requestBodyEntity,
+                    new SerializeOptions() { ExpectedBaseType = requestBodyBaseType });
             }
             var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
@@ -452,17 +452,6 @@ namespace Pomona.Common
             }
 
             return responseString;
-        }
-
-
-        private string Serialize(object obj, TypeSpec expectedBaseType)
-        {
-            var stringWriter = new StringWriter();
-            var writer = this.serializer.CreateWriter(stringWriter);
-            var context = new ClientSerializationContext(typeMapper);
-            var node = new ItemValueSerializerNode(obj, expectedBaseType, "", context, null);
-            this.serializer.SerializeNode(node, writer);
-            return stringWriter.ToString();
         }
     }
 }

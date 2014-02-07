@@ -118,6 +118,7 @@
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="BaseUriResolver.cs" />
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
     <Compile Include="FluentMapping\WrappingTypeMappingFilter.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
+    <Compile Include="IBaseUriProvider.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
@@ -160,6 +162,7 @@
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NoCloseStreamWriter.cs" />
     <Compile Include="PathNode.cs" />
+    <Compile Include="Plumbing\PomonaStartup.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
     <Compile Include="PomonaCsvResponseProcessor.cs" />
@@ -226,6 +229,7 @@
     <Compile Include="Schemas\SchemaPropertyEntry.cs" />
     <Compile Include="Schemas\SchemaTypeEntry.cs" />
     <Compile Include="ServerDeserializationContext.cs" />
+    <Compile Include="ServerSerializationContextProvider.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TinyIoCServiceLocator.cs" />
     <Compile Include="TypeMapper.cs" />

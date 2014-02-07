@@ -26,6 +26,8 @@ using System;
 using System.Collections.Generic;
 using Nancy;
 using Nancy.Responses.Negotiation;
+
+using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Csv;
 using Pomona.Common.TypeSystem;
 
@@ -36,10 +38,11 @@ namespace Pomona
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
             new[] {new Tuple<string, MediaRange>("csv", MediaRange.FromString("text/plain"))};
 
-        public PomonaCsvResponseProcessor(TypeMapper typeMapper)
-            : base(new PomonaCsvSerializerFactory(), typeMapper)
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context, ISerializationContextProvider contextProvider)
         {
+            return new PomonaCsvSerializerFactory(contextProvider);
         }
+
 
         protected override string ContentType
         {

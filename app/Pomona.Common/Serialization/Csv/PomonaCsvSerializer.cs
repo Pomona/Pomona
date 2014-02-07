@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,26 +24,53 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Csv
 {
-    public class PomonaCsvSerializer : ISerializer<PomonaCsvSerializer.Writer>
+    public class PomonaCsvSerializer : ISerializer<PomonaCsvSerializer.Writer>, ITextSerializer
     {
-        ISerializerWriter ISerializer.CreateWriter(TextWriter textWriter)
+        private readonly ISerializationContextProvider contextProvider;
+
+
+        public PomonaCsvSerializer(ISerializationContextProvider contextProvider)
         {
-            return CreateWriter(textWriter);
+            if (contextProvider == null)
+                throw new ArgumentNullException("contextProvider");
+            this.contextProvider = contextProvider;
         }
+
+
+        public Writer CreateWriter(TextWriter textWriter)
+        {
+            return new Writer(textWriter);
+        }
+
+
+        public void Serialize(TextWriter textWriter, object o, SerializeOptions options = null)
+        {
+            if (textWriter == null)
+                throw new ArgumentNullException("textWriter");
+            options = options ?? new SerializeOptions();
+            var serializationContext = this.contextProvider.GetSerializationContext(options);
+            this.Serialize(serializationContext,
+                o,
+                textWriter,
+                options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
+        }
+
 
         public void SerializeNode(ISerializerNode node, Writer writer)
         {
             if (node.ValueType.SerializationMode != TypeSerializationMode.Array)
                 throw new NotSupportedException("When serializing to CSV we only support array");
-
 
             var t = node.ValueType as EnumerableTypeSpec;
 
@@ -51,11 +80,11 @@ namespace Pomona.Common.Serialization.Csv
             var elementType = (TypeSpec)t.ItemType;
             var valueProperties =
                 elementType.Properties
-                           .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
-                           .Where(x => node.Context.PropertyIsSerialized(x))
-                           .ToList();
+                    .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
+                    .Where(x => node.Context.PropertyIsSerialized(x))
+                    .ToList();
 
-            foreach (var item in (IEnumerable) node.Value)
+            foreach (var item in (IEnumerable)node.Value)
             {
                 var colIndex = 0;
                 foreach (var prop in valueProperties)
@@ -72,30 +101,34 @@ namespace Pomona.Common.Serialization.Csv
         }
 
 
-        public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, Writer writer,
-                                         TypeSpec elementType)
-        {
-            var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
-                                                       string.Empty, fetchContext, null);
-            itemNode.Serialize(this, writer);
-        }
-
-        public Writer CreateWriter(TextWriter textWriter)
-        {
-            return new Writer(textWriter);
-        }
-
         public void SerializeNode(ISerializerNode node, ISerializerWriter writer)
         {
             SerializeNode(node, CastWriter(writer));
         }
 
-        public void SerializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext,
-                                         ISerializerWriter writer,
-                                         TypeSpec elementType)
+
+        public void SerializeQueryResult(QueryResult queryResult,
+            ISerializationContext fetchContext,
+            Writer writer,
+            TypeSpec elementType)
+        {
+            var itemNode = new ItemValueSerializerNode(queryResult,
+                fetchContext.GetClassMapping(queryResult.ListType),
+                string.Empty,
+                fetchContext,
+                null);
+            itemNode.Serialize(this, writer);
+        }
+
+
+        public void SerializeQueryResult(QueryResult queryResult,
+            ISerializationContext fetchContext,
+            ISerializerWriter writer,
+            TypeSpec elementType)
         {
             SerializeQueryResult(queryResult, fetchContext, CastWriter(writer), elementType);
         }
+
 
         private Writer CastWriter(ISerializerWriter writer)
         {
@@ -105,19 +138,31 @@ namespace Pomona.Common.Serialization.Csv
             return castedWriter;
         }
 
+
+        ISerializerWriter ISerializer.CreateWriter(TextWriter textWriter)
+        {
+            return CreateWriter(textWriter);
+        }
+
+        #region Nested type: Writer
+
         public class Writer : ISerializerWriter
         {
             private readonly TextWriter textWriter;
+
 
             public Writer(TextWriter textWriter)
             {
                 this.textWriter = textWriter;
             }
 
+
             public TextWriter TextWriter
             {
-                get { return textWriter; }
+                get { return this.textWriter; }
             }
         }
+
+        #endregion
     }
 }

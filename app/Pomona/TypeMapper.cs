@@ -46,7 +46,6 @@ namespace Pomona
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, TypeSpec> mappings = new Dictionary<Type, TypeSpec>();
-        private readonly ISerializerFactory serializerFactory;
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
@@ -75,8 +74,6 @@ namespace Pomona
                 this.typeNameMap[type.Name.ToLower()] = type;
             }
 
-            this.serializerFactory = configuration.SerializerFactory;
-
             configuration.OnMappingComplete(this);
         }
 
@@ -89,15 +86,6 @@ namespace Pomona
         public ITypeMappingFilter Filter
         {
             get { return this.filter; }
-        }
-
-        /// <summary>
-        /// The Json serializer factory.
-        /// TODO: This should be moved out of here..
-        /// </summary>
-        public ISerializerFactory SerializerFactory
-        {
-            get { return this.serializerFactory; }
         }
 
         public ICollection<Type> SourceTypes

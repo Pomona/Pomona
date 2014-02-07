@@ -26,19 +26,12 @@
 
 #endregion
 
-namespace Pomona.Common.Serialization.Csv
+namespace Pomona.Common.Serialization.Xml
 {
-    public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
+    /// <summary>
+    /// Dummy interface to make things compile until eventually xml deserialization is implemented
+    /// </summary>
+    public interface IPomonaXmlDeserializer : ITextDeserializer, IDeserializer
     {
-        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
-        {
-        }
-
-
-        public override PomonaCsvSerializer GetSerializer()
-        {
-            return new PomonaCsvSerializer(ContextProvider);
-        }
     }
 }

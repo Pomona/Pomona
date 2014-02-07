@@ -42,8 +42,19 @@ namespace Pomona.Common.Serialization.Json
 {
     // Provides custom rules for serialization
 
-    public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializer.Writer>
+    public class PomonaJsonSerializer : ISerializer<PomonaJsonSerializer.Writer>, ITextSerializer
     {
+        private readonly ISerializationContextProvider contextProvider;
+
+
+        public PomonaJsonSerializer(ISerializationContextProvider contextProvider)
+        {
+            if (contextProvider == null)
+                throw new ArgumentNullException("contextProvider");
+            this.contextProvider = contextProvider;
+        }
+
+
         // TODO enable type cache for faster serialization, disabled for now need to think a bit more about this. [KNS]
         public static bool TypeCacheEnabled = false;
 
@@ -451,6 +462,15 @@ namespace Pomona.Common.Serialization.Json
             }
 
             #endregion
+        }
+
+        public void Serialize(TextWriter textWriter, object o, SerializeOptions options)
+        {
+            if (textWriter == null)
+                throw new ArgumentNullException("textWriter");
+            options = options ?? new SerializeOptions();
+            var serializationContext = contextProvider.GetSerializationContext(options);
+            this.Serialize(serializationContext, o, textWriter, options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Pomona.Common.Serialization
 {
     public interface ISerializerFactory
     {
-        ISerializer GetSerialier();
+        ISerializer GetSerializer();
         IDeserializer GetDeserializer();
     }
 }

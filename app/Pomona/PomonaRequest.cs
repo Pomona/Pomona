@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@ using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
@@ -43,20 +44,22 @@ namespace Pomona
         private readonly NancyContext context;
         private readonly HttpMethod method;
         private readonly PathNode node;
-        private readonly IResourceResolver resourceResolver;
+        private readonly ITextSerializerFactory serializerFactory;
 
 
-        public PomonaRequest(PathNode node, NancyContext context, IResourceResolver resourceResolver)
+        public PomonaRequest(PathNode node,
+            NancyContext context,
+            ITextSerializerFactory serializerFactory)
         {
             if (node == null)
                 throw new ArgumentNullException("node");
             if (context == null)
                 throw new ArgumentNullException("context");
-            if (resourceResolver == null)
-                throw new ArgumentNullException("resourceResolver");
+            if (serializerFactory == null)
+                throw new ArgumentNullException("serializerFactory");
             this.node = node;
             this.context = context;
-            this.resourceResolver = resourceResolver;
+            this.serializerFactory = serializerFactory;
             this.method = (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
         }
 
@@ -132,11 +135,8 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                var deserializationContext = new ServerDeserializationContext(TypeMapper, this.resourceResolver, node, context);
-                return TypeMapper.SerializerFactory.GetDeserializer().Deserialize(textReader,
-                    expectedBaseType,
-                    deserializationContext,
-                    patchedObject);
+                return this.serializerFactory.GetDeserializer().Deserialize(textReader,
+                    new DeserializeOptions() { Target = patchedObject, ExpectedBaseType = expectedBaseType, TargetNode = Node });
             }
         }
     }

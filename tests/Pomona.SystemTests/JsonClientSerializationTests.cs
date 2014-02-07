@@ -25,9 +25,13 @@
 using System;
 using System.IO;
 using Critters.Client;
+
+using NSubstitute;
+
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
@@ -49,8 +53,8 @@ namespace Pomona.SystemTests
 
         private JObject SerializeAndGetJsonObject<T>(T value)
         {
-            var serializerFactory = new PomonaJsonSerializerFactory();
-            var serializer = serializerFactory.GetSerialier();
+            var serializerFactory = new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(typeMapper, Substitute.For<IPomonaClient>()));
+            var serializer = serializerFactory.GetSerializer();
             var stringWriter = new StringWriter();
             var jsonWriter = serializer.CreateWriter(stringWriter);
             serializer.SerializeNode(

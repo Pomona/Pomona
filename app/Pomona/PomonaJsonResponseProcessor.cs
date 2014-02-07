@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,28 +24,23 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Nancy;
 using Nancy.Responses.Negotiation;
+
+using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
     public class PomonaJsonResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
-            new[] {new Tuple<string, MediaRange>("json", MediaRange.FromString("application/json"))};
-
-        public PomonaJsonResponseProcessor(TypeMapper typeMapper) : base(new PomonaJsonSerializerFactory(), typeMapper)
-        {
-        }
-
-        protected override string ContentType
-        {
-            get { return "application/json; charset=utf-8"; }
-        }
+            new[] { new Tuple<string, MediaRange>("json", MediaRange.FromString("application/json")) };
 
         /// <summary>
         /// Gets a set of mappings that map a given extension (such as .json)
@@ -53,6 +50,12 @@ namespace Pomona
         {
             get { return extensionMappings; }
         }
+
+        protected override string ContentType
+        {
+            get { return "application/json; charset=utf-8"; }
+        }
+
 
         /// <summary>
         /// Determines whether the the processor can handle a given content type and model
@@ -64,67 +67,73 @@ namespace Pomona
         public override ProcessorMatch CanProcess(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
             if (model as PomonaResponse == null)
+            {
                 return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.NoMatch,
-                        RequestedContentTypeResult = MatchResult.DontCare
-                    };
+                {
+                    ModelResult = MatchResult.NoMatch,
+                    RequestedContentTypeResult = MatchResult.DontCare
+                };
+            }
 
             if (IsTextHtmlContentType(requestedMediaRange))
+            {
                 return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.ExactMatch,
-                        RequestedContentTypeResult = MatchResult.ExactMatch
-                    };
+                {
+                    ModelResult = MatchResult.ExactMatch,
+                    RequestedContentTypeResult = MatchResult.ExactMatch
+                };
+            }
 
             if (IsExactJsonContentType(requestedMediaRange))
             {
                 return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.ExactMatch,
-                        RequestedContentTypeResult = MatchResult.ExactMatch
-                    };
+                {
+                    ModelResult = MatchResult.ExactMatch,
+                    RequestedContentTypeResult = MatchResult.ExactMatch
+                };
             }
 
             if (IsWildcardJsonContentType(requestedMediaRange))
             {
                 return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.ExactMatch,
-                        RequestedContentTypeResult = MatchResult.NonExactMatch
-                    };
+                {
+                    ModelResult = MatchResult.ExactMatch,
+                    RequestedContentTypeResult = MatchResult.NonExactMatch
+                };
             }
 
             return new ProcessorMatch
-                {
-                    ModelResult = MatchResult.ExactMatch,
-                    RequestedContentTypeResult = MatchResult.NoMatch
-                };
+            {
+                ModelResult = MatchResult.ExactMatch,
+                RequestedContentTypeResult = MatchResult.NoMatch
+            };
+        }
+
+
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context,
+            ISerializationContextProvider contextProvider)
+        {
+            return new PomonaJsonSerializerFactory(contextProvider);
         }
 
 
         private static bool IsExactJsonContentType(MediaRange requestedContentType)
         {
             if (requestedContentType.Type.IsWildcard && requestedContentType.Subtype.IsWildcard)
-            {
                 return true;
-            }
 
             return requestedContentType.Matches("application/json") || requestedContentType.Matches("text/json");
         }
+
 
         private static bool IsWildcardJsonContentType(MediaRange requestedContentType)
         {
             if (!requestedContentType.Type.IsWildcard &&
                 !string.Equals("application", requestedContentType.Type, StringComparison.InvariantCultureIgnoreCase))
-            {
                 return false;
-            }
 
             if (requestedContentType.Subtype.IsWildcard)
-            {
                 return true;
-            }
 
             var subtypeString = requestedContentType.Subtype.ToString();
 

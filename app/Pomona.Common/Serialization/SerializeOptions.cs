@@ -26,19 +26,13 @@
 
 #endregion
 
-namespace Pomona.Common.Serialization.Csv
+using System;
+
+namespace Pomona.Common.Serialization
 {
-    public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
+    public class SerializeOptions
     {
-        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
-        {
-        }
-
-
-        public override PomonaCsvSerializer GetSerializer()
-        {
-            return new PomonaCsvSerializer(ContextProvider);
-        }
+        public string ExpandedPaths { get; set; }
+        public Type ExpectedBaseType { get; set; }
     }
 }

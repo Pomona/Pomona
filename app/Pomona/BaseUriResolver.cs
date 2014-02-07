@@ -26,19 +26,40 @@
 
 #endregion
 
-namespace Pomona.Common.Serialization.Csv
+using System;
+
+using Nancy;
+
+namespace Pomona
 {
-    public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
+    public class BaseUriResolver : IBaseUriProvider
     {
-        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
+        private readonly NancyContext context;
+
+
+        public BaseUriResolver(NancyContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException("context");
+            this.context = context;
         }
 
 
-        public override PomonaCsvSerializer GetSerializer()
+        public Uri BaseUri
         {
-            return new PomonaCsvSerializer(ContextProvider);
+            get
+            {
+                var request = this.context.Request;
+                var appUrl = request.Url.BasePath ?? string.Empty;
+                var uriString = String.Format("{0}://{1}:{2}{3}{4}",
+                    request.Url.Scheme,
+                    request.Url.HostName,
+                    request.Url.Port,
+                    appUrl,
+                    appUrl.EndsWith("/") ? String.Empty : "/");
+
+                return new Uri(uriString);
+            }
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,19 +24,27 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 namespace Pomona.Common.Serialization.Json
 {
-    public class PomonaJsonSerializerFactory : ISerializerFactory
+    public class PomonaJsonSerializerFactory : TextSerializerFactoryBase<PomonaJsonSerializer, PomonaJsonDeserializer>
     {
-        public IDeserializer GetDeserializer()
+        public PomonaJsonSerializerFactory(ISerializationContextProvider contextProvider)
+            : base(contextProvider)
         {
-            return new PomonaJsonDeserializer();
         }
 
 
-        public ISerializer GetSerialier()
+        public override PomonaJsonDeserializer GetDeserializer()
         {
-            return new PomonaJsonSerializer();
+            return new PomonaJsonDeserializer(ContextProvider);
+        }
+
+
+        public override PomonaJsonSerializer GetSerializer()
+        {
+            return new PomonaJsonSerializer(ContextProvider);
         }
     }
 }

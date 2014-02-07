@@ -26,6 +26,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using NSubstitute;
+
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using Pomona.Common;
@@ -119,7 +122,7 @@ namespace Pomona.UnitTests.Patch
             IList<ITestResource> Children { get; }
         }
 
-        private readonly ITypeMapper typeMapper = new ClientTypeMapper(typeof (ITestResource).WrapAsEnumerable());
+        private readonly ClientTypeMapper typeMapper = new ClientTypeMapper(typeof (ITestResource).WrapAsEnumerable());
 
         private ITestResource GetObjectProxy()
         {
@@ -219,11 +222,12 @@ namespace Pomona.UnitTests.Patch
         [Test]
         public void TestSerialization()
         {
-            var jsonSerializer = new PomonaJsonSerializerFactory().GetSerialier();
+            var jsonSerializer = (ITextSerializer)(new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(typeMapper, Substitute.For<IPomonaClient>())).GetSerializer());
             using (var stringWriter = new StringWriter())
             {
-                jsonSerializer.Serialize(new ClientSerializationContext(typeMapper), GetObjectWithAllDeltaOperations(),
-                                         stringWriter, typeMapper.GetClassMapping(typeof (ITestResource)));
+                jsonSerializer.Serialize(stringWriter,
+                    GetObjectWithAllDeltaOperations(),
+                    new SerializeOptions() { ExpectedBaseType = typeof(ITestResource) });
                 Console.WriteLine(stringWriter.ToString());
                 var jobject = JObject.Parse(stringWriter.ToString());
                 jobject.AssertHasPropertyWithValue("info", "Lalalala");

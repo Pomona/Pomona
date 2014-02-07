@@ -31,8 +31,18 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Xml
 {
-    internal class PomonaXmlSerializer : ISerializer<PomonaXmlSerializer.Writer>
+    public class PomonaXmlSerializer : ISerializer<PomonaXmlSerializer.Writer>, ITextSerializer
     {
+        private readonly ISerializationContextProvider contextProvider;
+
+
+        public PomonaXmlSerializer(ISerializationContextProvider contextProvider)
+        {
+            if (contextProvider == null)
+                throw new ArgumentNullException("contextProvider");
+            this.contextProvider = contextProvider;
+        }
+
         ISerializerWriter ISerializer.CreateWriter(TextWriter textWriter)
         {
             return CreateWriter(textWriter);
@@ -209,6 +219,15 @@ namespace Pomona.Common.Serialization.Xml
             }
 
             internal string NextElementName { get; set; }
+        }
+
+        public void Serialize(TextWriter textWriter, object o, SerializeOptions options = null)
+        {
+            if (textWriter == null)
+                throw new ArgumentNullException("textWriter");
+            options = options ?? new SerializeOptions();
+            var serializationContext = contextProvider.GetSerializationContext(options);
+            this.Serialize(serializationContext, o, textWriter, options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
         }
     }
 }

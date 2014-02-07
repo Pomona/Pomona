@@ -1,5 +1,4 @@
 ﻿#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,53 +22,48 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
 #endregion
 
 using System;
 
-using Critters.Client;
+using Nancy;
 
-using NSubstitute;
-
-using NUnit.Framework;
-
-using Pomona.Common;
-using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
-using Pomona.Common.Serialization.Json;
 
-namespace Pomona.SystemTests.Serialization
+namespace Pomona
 {
-    [TestFixture]
-    public class JsonSerializationTests
+    public class ServerSerializationContextProvider : ISerializationContextProvider
     {
-        #region Setup/Teardown
+        private readonly IUriResolver uriResolver;
+        private readonly IResourceResolver resourceResolver;
+        private readonly NancyContext nancyContext;
 
-        [SetUp]
-        public void SetUp()
+
+        public ServerSerializationContextProvider(IUriResolver uriResolver, IResourceResolver resourceResolver, NancyContext nancyContext)
         {
-            var factory = new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(clientTypeMapper, Substitute.For<IPomonaClient>()));
-            this.serializer = factory.GetSerializer();
-            this.deserializer = factory.GetDeserializer();
-        }
-
-        #endregion
-
-        private ISerializer serializer;
-        private PomonaJsonDeserializer deserializer;
-        private readonly ClientTypeMapper clientTypeMapper = new ClientTypeMapper(new Type[] { typeof(IOrderItem) });
-
-        public class TestClass : IClientResource
-        {
-            public string FooBar { get; set; }
+            if (uriResolver == null)
+                throw new ArgumentNullException("uriResolver");
+            if (resourceResolver == null)
+                throw new ArgumentNullException("resourceResolver");
+            if (nancyContext == null)
+                throw new ArgumentNullException("nancyContext");
+            this.uriResolver = uriResolver;
+            this.resourceResolver = resourceResolver;
+            this.nancyContext = nancyContext;
         }
 
 
-        [Test]
-        public void UnknownPropertyIsIgnoredByDeserializer()
+        public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
         {
-            this.deserializer.DeserializeFromString<IOrderItem>("{name:\"blah\",ignored:\"optional\"}");
+            options = options ?? new DeserializeOptions();
+            return new ServerDeserializationContext(uriResolver.TypeMapper, resourceResolver, options.TargetNode, nancyContext);
+        }
+
+
+        public ISerializationContext GetSerializationContext(SerializeOptions options)
+        {
+            options = options ?? new SerializeOptions();
+            return new ServerSerializationContext(options.ExpandedPaths, false, uriResolver);
         }
     }
 }

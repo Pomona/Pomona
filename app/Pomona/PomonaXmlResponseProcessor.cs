@@ -26,6 +26,8 @@ using System;
 using System.Collections.Generic;
 using Nancy;
 using Nancy.Responses.Negotiation;
+
+using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Xml;
 using Pomona.Common.TypeSystem;
 
@@ -36,10 +38,11 @@ namespace Pomona
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
             new[] {new Tuple<string, MediaRange>("xml", MediaRange.FromString("application/xml"))};
 
-        public PomonaXmlResponseProcessor(TypeMapper typeMapper)
-            : base(new PomonaXmlSerializerFactory(), typeMapper)
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context, ISerializationContextProvider contextProvider)
         {
+            return new PomonaXmlSerializerFactory(contextProvider);
         }
+
 
         protected override string ContentType
         {

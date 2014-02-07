@@ -26,19 +26,26 @@
 
 #endregion
 
-namespace Pomona.Common.Serialization.Csv
+using System;
+
+namespace Pomona.Common.Serialization
 {
-    public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
+    public class DeserializeOptions
     {
-        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
-        {
-        }
+        /// <summary>
+        /// Expected type of deserialized object.
+        /// Required when type is not encoded in serialized data.
+        /// </summary>
+        public Type ExpectedBaseType { get; set; }
 
+        /// <summary>
+        /// Object to deserialize to.
+        /// </summary>
+        public object Target { get; set; }
 
-        public override PomonaCsvSerializer GetSerializer()
-        {
-            return new PomonaCsvSerializer(ContextProvider);
-        }
+        /// <summary>
+        /// The target node.
+        /// </summary>
+        public IResourceNode TargetNode { get; set; }
     }
 }

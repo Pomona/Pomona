@@ -26,19 +26,38 @@
 
 #endregion
 
-namespace Pomona.Common.Serialization.Csv
+using System;
+
+using Pomona.Common.Serialization;
+
+namespace Pomona.Common.Internals
 {
-    public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
+    internal class ClientSerializationContextProvider : ISerializationContextProvider
     {
-        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
+        private readonly IPomonaClient client;
+        private readonly ClientTypeMapper clientTypeMapper;
+
+
+        internal ClientSerializationContextProvider(ClientTypeMapper clientTypeMapper, IPomonaClient client)
         {
+            if (clientTypeMapper == null)
+                throw new ArgumentNullException("clientTypeMapper");
+            if (client == null)
+                throw new ArgumentNullException("client");
+            this.clientTypeMapper = clientTypeMapper;
+            this.client = client;
         }
 
 
-        public override PomonaCsvSerializer GetSerializer()
+        public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
         {
-            return new PomonaCsvSerializer(ContextProvider);
+            return new ClientDeserializationContext(this.clientTypeMapper, this.client);
+        }
+
+
+        public ISerializationContext GetSerializationContext(SerializeOptions options)
+        {
+            return new ClientSerializationContext(this.clientTypeMapper);
         }
     }
 }

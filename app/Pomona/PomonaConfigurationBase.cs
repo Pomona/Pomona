@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,31 +24,24 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Pomona.Common.Serialization;
-using Pomona.Common.Serialization.Json;
 
 namespace Pomona
 {
     public abstract class PomonaConfigurationBase
     {
-        public virtual ISerializerFactory SerializerFactory
+        public virtual IEnumerable<Delegate> FluentRuleDelegates
         {
-            get { return new PomonaJsonSerializerFactory(); }
+            get { return Enumerable.Empty<Delegate>(); }
         }
-
-        public abstract IEnumerable<Type> SourceTypes { get; }
 
         public virtual IEnumerable<object> FluentRuleObjects
         {
             get { return Enumerable.Empty<object>(); }
-        }
-
-        public virtual IEnumerable<Delegate> FluentRuleDelegates
-        {
-            get { return Enumerable.Empty<Delegate>(); }
         }
 
         public virtual IEnumerable<Type> HandlerTypes
@@ -54,7 +49,10 @@ namespace Pomona
             get { return Enumerable.Empty<Type>(); }
         }
 
+        public abstract IEnumerable<Type> SourceTypes { get; }
+
         public abstract ITypeMappingFilter TypeMappingFilter { get; }
+
 
         public virtual void OnMappingComplete(TypeMapper typeMapper)
         {

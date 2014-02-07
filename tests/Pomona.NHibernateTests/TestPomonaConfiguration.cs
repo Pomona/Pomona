@@ -24,11 +24,6 @@ namespace PomonaNHibernateTest
             get { yield break; }
         }
 
-        public override ISerializerFactory SerializerFactory
-        {
-            get { return new PomonaJsonSerializerFactory(); }
-        }
-
         public override ITypeMappingFilter TypeMappingFilter
         {
             get

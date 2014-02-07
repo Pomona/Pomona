@@ -68,6 +68,7 @@
     <Compile Include="IClientTypeResolver.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
+    <Compile Include="Internals\ClientSerializationContextProvider.cs" />
     <Compile Include="Internals\ClientTypeResolverExtensions.cs" />
     <Compile Include="Internals\ExtendedResourceInfo.cs" />
     <Compile Include="Internals\EnumerableExtensions.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Serialization\ClientSerializationContext.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializerFactory.cs" />
+    <Compile Include="Serialization\DeserializeOptions.cs" />
     <Compile Include="Serialization\DeserializerNodeExtensions.cs" />
     <Compile Include="Serialization\DeserializerNodeOperation.cs" />
     <Compile Include="Serialization\IDeserializationContext.cs" />
@@ -136,12 +138,16 @@
     <Compile Include="Serialization\IResourceNode.cs" />
     <Compile Include="Serialization\IPomonaSerializable.cs" />
     <Compile Include="Serialization\ISerializationContext.cs" />
+    <Compile Include="Serialization\ISerializationContextProvider.cs" />
     <Compile Include="Serialization\ISerializer.cs" />
     <Compile Include="Serialization\ISerializerFactory.cs" />
     <Compile Include="Serialization\ISerializerNode.cs" />
     <Compile Include="Serialization\ISerializerWriter.cs" />
     <Compile Include="Serialization\ItemValueDeserializerNode.cs" />
     <Compile Include="Serialization\ItemValueSerializerNode.cs" />
+    <Compile Include="Serialization\ITextDeserializer.cs" />
+    <Compile Include="Serialization\ITextSerializer.cs" />
+    <Compile Include="Serialization\ITextSerializerFactory.cs" />
     <Compile Include="Serialization\Json\CustomJsonConverterAttribute.cs" />
     <Compile Include="Serialization\Json\CustomJsonConverterAttributeExtensions.cs" />
     <Compile Include="Serialization\Json\PomonaJsonDeserializer.cs" />
@@ -158,9 +164,11 @@
     <Compile Include="Serialization\Patch\ObjectDeltaProxyBase.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
+    <Compile Include="Serialization\SerializeOptions.cs" />
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\SerializerNodeExtensions.cs" />
-    <Compile Include="Serialization\Xml\PomonaXmlDeserializer.cs" />
+    <Compile Include="Serialization\TextSerializerFactoryBase.cs" />
+    <Compile Include="Serialization\Xml\IPomonaXmlDeserializer.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlSerializer.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlSerializerFactory.cs" />
     <Compile Include="SortOrder.cs" />

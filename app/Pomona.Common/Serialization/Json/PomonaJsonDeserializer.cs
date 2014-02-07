@@ -41,8 +41,10 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Json
 {
-    public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>
+    public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>, ITextDeserializer
     {
+        private readonly ISerializationContextProvider contextProvider;
+
         private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
             deserializeArrayNodeGenericMethod =
                 GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
@@ -64,8 +66,11 @@ namespace Pomona.Common.Serialization.Json
         private readonly JsonSerializer jsonSerializer;
 
 
-        public PomonaJsonDeserializer()
+        public PomonaJsonDeserializer(ISerializationContextProvider contextProvider)
         {
+            if (contextProvider == null)
+                throw new ArgumentNullException("contextProvider");
+            this.contextProvider = contextProvider;
             this.jsonSerializer = new JsonSerializer();
             this.jsonSerializer.Converters.Add(new StringEnumConverter());
         }
@@ -645,5 +650,15 @@ namespace Pomona.Common.Serialization.Json
         }
 
         #endregion
+
+        public object Deserialize(TextReader textReader, DeserializeOptions options = null)
+        {
+            options = options ?? new DeserializeOptions();
+            var context = contextProvider.GetDeserializationContext(options);
+            return Deserialize(textReader,
+                options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
+                context,
+                options.Target);
+        }
     }
 }

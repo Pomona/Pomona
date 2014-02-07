@@ -31,6 +31,7 @@ using Critters.Client;
 using NSubstitute;
 using NUnit.Framework;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 
@@ -49,13 +50,8 @@ namespace Pomona.SystemTests
 
         private T Deserialize<T>(string jsonString)
         {
-            var jsonDeserializer = new PomonaJsonDeserializer();
-            var reader = jsonDeserializer.CreateReader(new StringReader(jsonString));
-            var context = new ClientDeserializationContext(typeMapper, Substitute.For<IPomonaClient>());
-            var node = new ItemValueDeserializerNode(typeMapper.GetClassMapping(typeof (T)), context);
-            jsonDeserializer.DeserializeNode(node, reader);
-            var critter = (T) node.Value;
-            return critter;
+            var jsonDeserializer = new PomonaJsonDeserializer(new ClientSerializationContextProvider(typeMapper, Substitute.For<IPomonaClient>()));
+            return jsonDeserializer.DeserializeFromString<T>(jsonString);
         }
 
         [Test]

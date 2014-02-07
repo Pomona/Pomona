@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 
 #endregion
 
-using Nancy;
+using System;
 
 using NUnit.Framework;
 
@@ -38,12 +38,18 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class UriResolverTests
     {
+        private class DummyBaseUriProvider : IBaseUriProvider
+        {
+            public Uri BaseUri { get; set; }
+        }
+
+
         [Test]
         public void GetUriFor_WithEntityWithSpaceInPath_EncodesUrlTheRightWay()
         {
             var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             var uriResolver = new UriResolver(typeMapper,
-                new NancyContext() { Request = new Request("GET", new Url() { BasePath = "/", HostName = "whateva" }) });
+                new DummyBaseUriProvider() { BaseUri = new Uri("http://whateva/") });
             var galaxy = new Galaxy() { Name = "this is it" };
             var url = uriResolver.GetUriFor(galaxy);
             Assert.That(url, Is.EqualTo("http://whateva/galaxies/this%20is%20it"));
