@@ -28,7 +28,6 @@
 
 namespace Pomona.Common.Serialization.Xml
 {
-#if false
     public class PomonaXmlSerializerFactory : TextSerializerFactoryBase<PomonaXmlSerializer>
     {
         public PomonaXmlSerializerFactory(ISerializationContextProvider contextProvider)
@@ -42,5 +41,4 @@ namespace Pomona.Common.Serialization.Xml
             return new PomonaXmlSerializer(ContextProvider);
         }
     }
-#endif
 }
