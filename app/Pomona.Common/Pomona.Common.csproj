@@ -157,6 +157,7 @@
     <Compile Include="Serialization\Patch\ICollectionDelta.cs" />
     <Compile Include="Serialization\Patch\IDelta.cs" />
     <Compile Include="Serialization\Patch\IDictionaryDelta.cs" />
+    <Compile Include="Serialization\Patch\IObjectDelta.cs" />
     <Compile Include="Serialization\Patch\ObjectDelta.cs" />
     <Compile Include="Serialization\Patch\ObjectDeltaProxyBase.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />

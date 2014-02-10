@@ -38,6 +38,18 @@ namespace Pomona.TestHelpers
         }
 
 
+        public static void AssertDoesNotHaveProperty(this JToken jtoken, string propertyName)
+        {
+            var jobject = jtoken as JObject;
+            if (jobject == null)
+                return;
+
+            JToken propToken;
+            Assert.IsFalse(
+                jobject.TryGetValue(propertyName, out propToken),
+                "Object shouldn't have contained property \"" + propertyName + "\":\r\n" + jobject);
+        }
+
         public static JToken AssertHasProperty(this JToken jtoken, string propertyName)
         {
             return TryConvertToObjectAndGetProperty<JToken>(jtoken, propertyName);
