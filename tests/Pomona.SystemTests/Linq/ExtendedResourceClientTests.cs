@@ -40,28 +40,28 @@ using Pomona.Example.Models;
 namespace Pomona.SystemTests.Linq
 {
     [TestFixture]
-    public class CustomClientResourceQueryTests : ClientTestsBase
+    public class ExtendedResourceClientTests : ClientTestsBase
     {
-        public interface ICustomTestEntity : IDictionaryContainer
+        public interface IExtendedResource : IDictionaryContainer
         {
             string CustomString { get; set; }
             string OtherCustom { get; set; }
         }
 
-        public interface ICustomTestEntity2 : ISubtypedDictionaryContainer
+        public interface IExtendedResource2 : ISubtypedDictionaryContainer
         {
             string CustomString { get; set; }
             string OtherCustom { get; set; }
         }
 
-        public interface ICustomTestEntity3 : IStringToObjectDictionaryContainer
+        public interface IExtendedResource3 : IStringToObjectDictionaryContainer
         {
             int? Number { get; set; }
             string Text { get; set; }
             DateTime? Time { get; set; }
         }
 
-        public interface ICustomTestEntityWithBoolean : IStringToObjectDictionaryContainer
+        public interface IExtendedResourceWithBoolean : IStringToObjectDictionaryContainer
         {
             bool? TheBool { get; set; }
         }
@@ -101,7 +101,7 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void PatchCustomClientSideResource_SetAttribute_UpdatesAttribute()
+        public void PatchExtendedResource_SetAttribute_UpdatesAttribute()
         {
             var entity = new StringToObjectDictionaryContainer
             {
@@ -109,7 +109,7 @@ namespace Pomona.SystemTests.Linq
             };
             Save(entity);
 
-            var resource = Client.Query<ICustomTestEntity3>().First(x => x.Id == entity.Id);
+            var resource = Client.Query<IExtendedResource3>().First(x => x.Id == entity.Id);
 
             var patchedResource =
                 Client.Patch(resource, x => { x.Text = "UPDATED!"; });
@@ -119,9 +119,9 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void PostCustomTestEntity()
+        public void PostExtendedResource()
         {
-            var response = (ICustomTestEntity3)Client.Post<ICustomTestEntity3>(x =>
+            var response = (IExtendedResource3)Client.Post<IExtendedResource3>(x =>
             {
                 x.Number = 123;
                 x.Text = "foobar";
@@ -135,9 +135,20 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntity2_WhereDictIsOnBaseInterface_ReturnsCustomTestEntity2()
+        public void PostExtendedResourceHavingReferenceToAnotherExtendedResource_IsSuccessful()
         {
-            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            var extendedFarm =
+                (IDecoratedMusicalFarm)Client.Post<IDecoratedMusicalFarm>(x => x.Name = "The music farm");
+            var musicalCritter =
+                (IDecoratedMusicalCritter)Client.Post<IDecoratedMusicalCritter>(x => x.Farm = extendedFarm);
+            Assert.That(musicalCritter.Farm.Id, Is.EqualTo(extendedFarm.Id));
+        }
+
+
+        [Test]
+        public void QueryExtendedResource2_WhereDictIsOnBaseInterface_ReturnsExtendedResource2()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
             var subtypedDictionaryContainer = new SubtypedDictionaryContainer
             {
                 Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
@@ -155,7 +166,7 @@ namespace Pomona.SystemTests.Linq
             //        x.SomethingExtra = "Hahahohohihi";
             //    });
 
-            var results = Client.Query<ICustomTestEntity2>()
+            var results = Client.Query<IExtendedResource2>()
                 .Where(
                     x =>
                         x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
@@ -171,7 +182,7 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntity3_ToQueryResult_ReturnsQueryResultOfCustomTestEntity()
+        public void QueryExtendedResource3_ToQueryResult_ReturnsQueryResultOfExtendedResource()
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
             var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
@@ -179,7 +190,7 @@ namespace Pomona.SystemTests.Linq
                 Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
             });
 
-            var results = Client.Query<ICustomTestEntity3>()
+            var results = Client.Query<IExtendedResource3>()
                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
                 .IncludeTotalCount()
                 .ToQueryResult();
@@ -194,7 +205,7 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntity3_WhereDictIsStringToObject_ReturnsCustomTestEntity3()
+        public void QueryExtendedResource3_WhereDictIsStringToObject_ReturnsExtendedResource3()
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
             var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
@@ -202,7 +213,7 @@ namespace Pomona.SystemTests.Linq
                 Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
             });
 
-            var results = Client.Query<ICustomTestEntity3>()
+            var results = Client.Query<IExtendedResource3>()
                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
                 .ToList();
 
@@ -216,12 +227,12 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntityWithBoolean_ReturnsCustomTestEntity()
+        public void QueryExtendedResourceWithBoolean_ReturnsExtendedResource()
         {
             var dictContainer =
                 Repository.Save(new StringToObjectDictionaryContainer { Map = { { "TheBool", true } } });
 
-            var results = Client.Query<ICustomTestEntityWithBoolean>()
+            var results = Client.Query<IExtendedResourceWithBoolean>()
                 .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
                 .ToList();
 
@@ -232,9 +243,9 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntity_ReturnsCustomTestEntity()
+        public void QueryExtendedResource_ReturnsExtendedResource()
         {
-            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
             var dictionaryContainer = Client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
@@ -243,7 +254,7 @@ namespace Pomona.SystemTests.Linq
                     x.Map.Add("OtherCustom", "Blob rob");
                 });
 
-            var results = Client.Query<ICustomTestEntity>()
+            var results = Client.Query<IExtendedResource>()
                 .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
                 .ToList();
 
@@ -256,9 +267,9 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntity_UsingFirstOrDefault_ReturnsCustomTestEntity()
+        public void QueryExtendedResource_UsingFirstOrDefault_ReturnsExtendedResource()
         {
-            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(ICustomTestEntity), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
             var dictionaryContainer = Client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
@@ -268,7 +279,7 @@ namespace Pomona.SystemTests.Linq
                 });
 
             var result =
-                Client.Query<ICustomTestEntity>()
+                Client.Query<IExtendedResource>()
                     .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
@@ -277,7 +288,7 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCustomTestEntity_UsingGroupBy_ReturnsCustomTestEntity()
+        public void QueryExtendedResource_UsingGroupBy_ReturnsExtendedResource()
         {
             Client.DictionaryContainers.Post<IDictionaryContainer>(
                 x =>
@@ -287,7 +298,7 @@ namespace Pomona.SystemTests.Linq
                 });
 
             var result =
-                Client.Query<ICustomTestEntity>()
+                Client.Query<IExtendedResource>()
                     .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
                     .GroupBy(x => x.CustomString)
                     .Select(x => new { x.Key })

@@ -49,6 +49,15 @@ namespace Pomona.Common
                     .Distinct();
         }
 
+        public static PropertyInfo GetPropertySearchInheritedInterfaces(this Type sourceType, string propertyName)
+        {
+            return
+                sourceType
+                    .WrapAsEnumerable()
+                    .Concat(sourceType.GetInterfaces())
+                    .Select(x => x.GetProperty(propertyName)).FirstOrDefault(x => x != null);
+        }
+
 
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {

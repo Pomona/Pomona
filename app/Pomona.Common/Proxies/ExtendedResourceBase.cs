@@ -148,10 +148,28 @@ namespace Pomona.Common.Proxies
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
+            object unwrappedValue = value;
+            var valueAsExtendedResource = value as ExtendedResourceBase;
+            if (valueAsExtendedResource != null)
+            {
+                unwrappedValue = valueAsExtendedResource.ProxyTarget;
+            }
+
             if (IsServerKnownProperty(property))
             {
-                property.Set((TOwner)ProxyTarget, value);
+                property.Set((TOwner)ProxyTarget, (TPropType)unwrappedValue);
                 return;
+            }
+
+            if (typeof(IClientResource).IsAssignableFrom(typeof(TPropType)))
+            {
+                var underlyingServerProperty =
+                    UserTypeInfo.ServerType.GetPropertySearchInheritedInterfaces(property.Name);
+                if (underlyingServerProperty != null)
+                {
+                    underlyingServerProperty.SetValue(ProxyTarget, unwrappedValue, null);
+                    return;
+                }
             }
 
             var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];
