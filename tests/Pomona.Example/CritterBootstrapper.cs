@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,6 @@
 
 #endregion
 
-using Microsoft.Practices.ServiceLocation;
 using Nancy;
 using Nancy.TinyIoc;
 
@@ -41,9 +40,10 @@ namespace Pomona.Example
 
         public CritterBootstrapper(CritterRepository repository = null)
         {
-            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.repository = repository ?? new CritterRepository(typeMapper);
+            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.repository = repository ?? new CritterRepository(this.typeMapper);
         }
+
 
         public CritterRepository Repository
         {
@@ -52,7 +52,7 @@ namespace Pomona.Example
 
         public TypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
 
         protected override IRootPathProvider RootPathProvider
@@ -60,13 +60,13 @@ namespace Pomona.Example
             get { return new DefaultRootPathProvider(); }
         }
 
+
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
-            container.Register<IServiceLocator>((c, no) => new TinyIoCServiceLocator(c));
             container.Register(this.repository);
             container.Register<CritterDataSource>();
-            container.Register(typeMapper);
+            container.Register(this.typeMapper);
         }
     }
 }

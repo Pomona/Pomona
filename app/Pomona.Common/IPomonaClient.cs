@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,14 +28,13 @@ using System.Threading.Tasks;
 
 namespace Pomona.Common
 {
-    public interface IPomonaClient
+    public interface IPomonaClient : IClientTypeResolver
     {
+        object Get(string uri, Type type);
         Task<T> GetAsync<T>(string uri);
         T Get<T>(string uri);
         string GetUriOfType(Type type);
 
         IQueryable<T> Query<T>();
-        bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
-        object DownloadFromUri(string uri, Type type);
     }
 }

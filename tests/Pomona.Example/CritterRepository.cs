@@ -35,7 +35,6 @@ using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.Example.Models.Existence;
-using Pomona.Internals;
 
 namespace Pomona.Example
 {

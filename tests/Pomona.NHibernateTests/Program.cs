@@ -4,8 +4,6 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Common.Logging;
-using Common.Logging.Simple;
 using FluentNHibernate.Automapping;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
@@ -32,7 +30,6 @@ namespace PomonaNHibernateTest
             // create properties
             var properties = new NameValueCollection();
             properties["level"] = "All";
-            LogManager.Adapter = new ConsoleOutLoggerFactoryAdapter(properties);
             using (session = sessionFactory.OpenSession())
             {
                 using (var trans = session.BeginTransaction())

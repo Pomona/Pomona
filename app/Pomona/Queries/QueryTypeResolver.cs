@@ -26,6 +26,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
+using Nancy;
+
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
@@ -47,12 +51,15 @@ namespace Pomona.Queries
 
         #region Implementation of IQueryTypeResolver
 
-        public Expression ResolveProperty(Expression rootInstance, string propertyPath)
+        public bool TryResolveProperty<TProperty>(Type type, string propertyPath, out TProperty property) where TProperty : PropertySpec
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
-            //var type = (TransformedType)this.typeMapper.GetClassMapping<T>();
-            var type = (TransformedType) typeMapper.GetClassMapping(rootInstance.Type);
-            return type.CreateExpressionForExternalPropertyPath(rootInstance, propertyPath);
+            property = null;
+            var transformedType = (TransformedType)typeMapper.GetClassMapping(type);
+            PropertySpec uncastProperty;
+            return transformedType.TryGetPropertyByName(propertyPath,
+                StringComparison.InvariantCultureIgnoreCase,
+                out uncastProperty) && (property = uncastProperty as TProperty) != null;
         }
 
 

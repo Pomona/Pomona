@@ -45,7 +45,7 @@ namespace Pomona.Common.Linq
             {
                 return source.ToList();
             }
-            var result = await restQuery.Provider.ExecuteAsync(source.Expression);
+            var result = await ((RestQueryProvider)restQuery.Provider).ExecuteAsync(source.Expression);
             return (IList<TSource>) result;
         }
 

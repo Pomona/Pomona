@@ -80,6 +80,8 @@ namespace Pomona.TestingClient
         public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
+            var postForm = client.TypeMapper.CreatePostForm(typeof(TSubResource));
+
             var resInfo = client.GetResourceInfoForType(typeof (TSubResource));
             var form = (TSubResource) Activator.CreateInstance(resInfo.PostFormType);
             postAction(form);
@@ -125,6 +127,8 @@ namespace Pomona.TestingClient
                 return Post((PostResourceBase) args[0]);
             if (methodInfo.Name == "Get" && parameters.Length == 1)
                 return Get(args[0]);
+            if (methodInfo.Name == "GetLazy" && parameters.Length == 1)
+                return GetLazy(args[0]);
             throw new NotImplementedException();
         }
 
@@ -164,7 +168,7 @@ namespace Pomona.TestingClient
 
         public IQueryable<TSubResource> Query<TSubResource>() where TSubResource : TResource
         {
-            return client.Query<TResource>().OfType<TSubResource>();
+            return client.Query<TSubResource>();
         }
 
 

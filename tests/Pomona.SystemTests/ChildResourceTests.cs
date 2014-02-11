@@ -57,12 +57,12 @@ namespace Pomona.SystemTests
         public void ChildResourcesGetsCorrectUrl()
         {
             CreateTestData();
-            var galaxy = client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();
+            var galaxy = Client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();
             var planet = galaxy.PlanetarySystems.First().Planets.First();
             var planetUri = ((IHasResourceUri)planet).Uri;
 
             Assert.That(planetUri, Is.EqualTo("http://test/galaxies/milkyway/planetary-systems/solar/planets/earth"));
-            client.Get<IPlanet>(planetUri);
+            Client.Get<IPlanet>(planetUri);
         }
 
 
@@ -70,7 +70,7 @@ namespace Pomona.SystemTests
         public void PostPlanetToPlanetarySystem_IsSuccessful()
         {
             CreateTestData();
-            var planetarySystem = client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
             var planet =
                 planetarySystem.Planets.Post(new PlanetForm()
                 {
@@ -85,7 +85,7 @@ namespace Pomona.SystemTests
         public void PostPlanetToPlanetarySystem_WithModifiedEtagOnParent()
         {
             CreateTestData();
-            var planetarySystem = client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(

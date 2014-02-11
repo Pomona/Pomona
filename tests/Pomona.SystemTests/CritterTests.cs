@@ -85,12 +85,12 @@ namespace Pomona.SystemTests
             var errors = new StringBuilder();
             foreach (
                 var prop in
-                    client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                    Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                         x.PropertyType.IsGenericType
                         && x.PropertyType.GetGenericTypeDefinition() == typeof (ClientRepository<,>)))
             {
-                var value = prop.GetValue(client, null);
+                var value = prop.GetValue(Client, null);
                 if (value == null)
                 {
                     foundError = true;
@@ -112,7 +112,7 @@ namespace Pomona.SystemTests
         {
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = client.Get<ICritter>(BaseUri + "critters/" + musicalCritterId);
+            var musicalCritter = Client.Get<ICritter>(BaseUri + "critters/" + musicalCritterId);
 
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
@@ -121,7 +121,7 @@ namespace Pomona.SystemTests
         [Test]
         public void GetWeaponsLazy_FromCritter()
         {
-            var critter = client.List<ICritter>().First();
+            var critter = Client.Critters.First();
             Assert.False(critter.Weapons.IsLoaded());
             var weapons = critter.Weapons.ToList();
             Assert.True(critter.Weapons.IsLoaded());

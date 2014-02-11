@@ -28,20 +28,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pomona.Common.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Common.Proxies
 {
-    public class ClientSideResourceProxyBase : IHasResourceUri
+    public class ExtendedResourceBase : IHasResourceUri
     {
         public object ProxyTarget { get; private set; }
-        internal CustomUserTypeInfo UserTypeInfo { get; private set; }
-        internal IPomonaClient Client { get; private set; }
+        internal ExtendedResourceInfo UserTypeInfo { get; private set; }
+        internal IClientTypeResolver Client { get; private set; }
 
         private static MethodInfo createProxyListMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideResourceProxyBase>(x => x.CreateProxyList<object>(null, null));
+            ReflectionHelper.GetMethodDefinition<ExtendedResourceBase>(x => x.CreateProxyList<object>(null, null));
 
-        internal void Initialize(IPomonaClient client, CustomUserTypeInfo userTypeInfo, object proxyTarget)
+        internal void Initialize(IClientTypeResolver client, ExtendedResourceInfo userTypeInfo, object proxyTarget)
         {
             if (client == null) throw new ArgumentNullException("client");
             if (userTypeInfo == null) throw new ArgumentNullException("userTypeInfo");
@@ -57,24 +56,24 @@ namespace Pomona.Common.Proxies
             set { throw new NotSupportedException(); }
         }
 
-        private IList<TElement> CreateProxyList<TElement>(IEnumerable source, CustomUserTypeInfo userTypeInfo)
+        private IList<TElement> CreateProxyList<TElement>(IEnumerable source, ExtendedResourceInfo userTypeInfo)
         {
             return new List<TElement>(source.Cast<object>().Select(x =>
                 {
-                    var element = RuntimeProxyFactory<ClientSideResourceProxyBase, TElement>.Create();
-                    ((ClientSideResourceProxyBase)((object)element)).Initialize(Client, userTypeInfo, x);
+                    var element = RuntimeProxyFactory<ExtendedResourceBase, TElement>.Create();
+                    ((ExtendedResourceBase)((object)element)).Initialize(Client, userTypeInfo, x);
                     return element;
                 }));
         }
 
 
         private static readonly MethodInfo onGetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
+            ReflectionHelper.GetMethodDefinition<ExtendedFormBase>(
                 x => x.OnGetAttribute<object, object, object>(null));
 
 
         private static readonly MethodInfo onSetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ClientSideFormProxyBase>(
+            ReflectionHelper.GetMethodDefinition<ExtendedFormBase>(
                 x => x.OnSetAttribute<object, object, object>(null, null));
 
         private Dictionary<string, object> nestedProxyCache = new Dictionary<string, object>();
@@ -90,10 +89,10 @@ namespace Pomona.Common.Proxies
                 return property.Getter((TOwner) ProxyTarget);
 
             // Check if this is a new'ed property on interface that is client type:
-            CustomUserTypeInfo memberUserTypeInfo;
-            if (CustomUserTypeInfo.TryGetCustomUserTypeInfo(typeof(TPropType), Client, out memberUserTypeInfo))
+            ExtendedResourceInfo memberUserTypeInfo;
+            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TPropType), Client, out memberUserTypeInfo))
             {
-                var serverProp = UserTypeInfo.ServerType.GetProperty(property.Name);
+                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
                 if (serverProp != null && serverProp.PropertyType.IsAssignableFrom(typeof (TPropType)))
                 {
                     var propValue = serverProp.GetValue(ProxyTarget, null);
@@ -101,8 +100,8 @@ namespace Pomona.Common.Proxies
                         return default(TPropType);
                     return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () =>
                         {
-                            var nestedProxy = RuntimeProxyFactory<ClientSideResourceProxyBase, TPropType>.Create();
-                            ((ClientSideResourceProxyBase)((object)nestedProxy)).Initialize(Client, memberUserTypeInfo,
+                            var nestedProxy = RuntimeProxyFactory<ExtendedResourceBase, TPropType>.Create();
+                            ((ExtendedResourceBase)((object)nestedProxy)).Initialize(Client, memberUserTypeInfo,
                                                                                             propValue);
 
                             return nestedProxy;
@@ -112,10 +111,10 @@ namespace Pomona.Common.Proxies
 
             Type elementType;
             if (typeof (TPropType).TryGetEnumerableElementType(out elementType) &&
-                CustomUserTypeInfo.TryGetCustomUserTypeInfo(elementType, Client, out memberUserTypeInfo))
+                ExtendedResourceInfo.TryGetExtendedResourceInfo(elementType, Client, out memberUserTypeInfo))
             {
 
-                var serverProp = UserTypeInfo.ServerType.GetProperty(property.Name);
+                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
                 if (serverProp != null)
                 {
                     var propValue = serverProp.GetValue(ProxyTarget, null);
@@ -149,10 +148,28 @@ namespace Pomona.Common.Proxies
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
+            object unwrappedValue = value;
+            var valueAsExtendedResource = value as ExtendedResourceBase;
+            if (valueAsExtendedResource != null)
+            {
+                unwrappedValue = valueAsExtendedResource.ProxyTarget;
+            }
+
             if (IsServerKnownProperty(property))
             {
-                property.Set((TOwner)ProxyTarget, value);
+                property.Set((TOwner)ProxyTarget, (TPropType)unwrappedValue);
                 return;
+            }
+
+            if (typeof(IClientResource).IsAssignableFrom(typeof(TPropType)))
+            {
+                var underlyingServerProperty =
+                    UserTypeInfo.ServerType.GetPropertySearchInheritedInterfaces(property.Name);
+                if (underlyingServerProperty != null)
+                {
+                    underlyingServerProperty.SetValue(ProxyTarget, unwrappedValue, null);
+                    return;
+                }
             }
 
             var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];

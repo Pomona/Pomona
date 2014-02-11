@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,15 +24,22 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.IO;
+
 using Critters.Client;
-using NUnit.Framework;
+
 using Newtonsoft.Json.Linq;
+
+using NSubstitute;
+
+using NUnit.Framework;
+
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
-using Pomona.Common.TypeSystem;
 using Pomona.TestHelpers;
 
 namespace Pomona.SystemTests
@@ -38,42 +47,32 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class JsonClientSerializationTests
     {
+        #region Setup/Teardown
+
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new ClientTypeMapper(Client.ResourceTypes);
+            this.typeMapper = new ClientTypeMapper(typeof(Client).Assembly);
         }
+
+        #endregion
 
         private ClientTypeMapper typeMapper;
 
 
         private JObject SerializeAndGetJsonObject<T>(T value)
         {
-            var serializerFactory = new PomonaJsonSerializerFactory();
-            var serializer = serializerFactory.GetSerialier();
-            var stringWriter = new StringWriter();
-            var jsonWriter = serializer.CreateWriter(stringWriter);
-            serializer.SerializeNode(
-                new ItemValueSerializerNode(value, GetClassMapping(value.GetType()), "", GetFetchContext(), null), jsonWriter);
-
+            var serializerFactory =
+                new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(this.typeMapper,
+                    Substitute.For<IPomonaClient>()));
+            var serializer = serializerFactory.GetSerializer();
             Console.WriteLine("Serialized object to json:");
-            var jsonString = stringWriter.ToString();
+            var jsonString = serializer.SerializeToString(value);
             Console.WriteLine(jsonString);
 
-            return (JObject) JToken.Parse(jsonString);
+            return (JObject)JToken.Parse(jsonString);
         }
 
-
-        private ISerializationContext GetFetchContext()
-        {
-            return new ClientSerializationContext(typeMapper);
-        }
-
-
-        private TypeSpec GetClassMapping(Type type)
-        {
-            return typeMapper.GetClassMapping(type);
-        }
 
         [Test]
         public void SerializeClassWithObjectProperty_PropertyGotIntValue_ReturnsCorrectJson()
@@ -87,14 +86,15 @@ namespace Pomona.SystemTests
             Assert.That(fooBarBox.AssertHasPropertyWithInteger("value"), Is.EqualTo(1337));
         }
 
+
         [Test]
         public void SerializeCritterForm_WithReferences()
         {
             var critterForm = new CritterForm
-                {
-                    Name = "Sheep",
-                    CrazyValue = new CrazyValueObjectForm {Info = "blblbobobo", Sickness = "whawhahaha"}
-                };
+            {
+                Name = "Sheep",
+                CrazyValue = new CrazyValueObjectForm { Info = "blblbobobo", Sickness = "whawhahaha" }
+            };
 
             critterForm.Weapons.Add(new GunForm());
 
@@ -102,6 +102,7 @@ namespace Pomona.SystemTests
             Assert.That(jobject.AssertHasPropertyWithString("name"), Is.EqualTo("Sheep"));
             jobject.AssertHasPropertyWithObject("crazyValue");
         }
+
 
         [Test]
         public void SerializeStringToObjectDictionary_ReturnsCorrectJson()

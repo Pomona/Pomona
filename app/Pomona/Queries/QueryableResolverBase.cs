@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,27 +26,25 @@
 
 #endregion
 
+using System;
 using System.Linq;
-using System.Reflection;
 
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.Queries
 {
     public abstract class QueryableResolverBase : IQueryableResolver
     {
-        private static MethodInfo resolveMethod =
-            ReflectionHelper.GetMethodDefinition<QueryableResolverBase>(x => x.Resolve<object, object>(null));
+        private static readonly Func<Type, Type, QueryableResolverBase, QueryableNode, IQueryable> resolveMethodInvoker
+            =
+            GenericInvoker.Instance<QueryableResolverBase>().CreateFunc2<QueryableNode, IQueryable>(
+                x => x.Resolve<object, object>(null));
 
 
         public virtual IQueryable Resolve(QueryableNode node, TypeSpec ofType)
         {
-            return
-                (IQueryable)
-                    resolveMethod.MakeGenericMethod((ofType ?? node.ItemResourceType).Type,
-                        node.ItemResourceType.Type).Invoke(this,
-                            new object[] { node });
+            return resolveMethodInvoker(ofType ?? node.ItemResourceType, node.ItemResourceType, this, node);
         }
 
 

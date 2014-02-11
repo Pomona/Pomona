@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,42 +28,27 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+
 using Nancy;
 using Nancy.Responses.Negotiation;
+
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
-
-using ISerializer = Pomona.Common.Serialization.ISerializer;
 
 namespace Pomona
 {
     public abstract class PomonaResponseProcessorBase : IResponseProcessor
     {
-        private readonly ISerializer serializer;
-        private readonly ISerializerFactory serializerFactory;
-        private readonly ITypeMapper typeMapper;
-
-
-        protected PomonaResponseProcessorBase(ISerializerFactory serializerFactory, TypeMapper typeMapper)
-        {
-            if (serializerFactory == null)
-                throw new ArgumentNullException("serializerFactory");
-            if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
-            this.serializerFactory = serializerFactory;
-            this.typeMapper = typeMapper;
-            serializer = serializerFactory.GetSerialier();
-        }
-
-        protected abstract string ContentType { get; }
-
         /// <summary>
         /// Gets a set of mappings that map a given extension (such as .json)
         /// to a media range that can be sent to the client in a vary header.
         /// </summary>
         public abstract IEnumerable<Tuple<string, MediaRange>> ExtensionMappings { get; }
+
+        protected abstract string ContentType { get; }
+
+        public abstract ProcessorMatch CanProcess(MediaRange requestedMediaRange, dynamic model, NancyContext context);
 
 
         /// <summary>
@@ -75,47 +60,48 @@ namespace Pomona
         /// <returns>A response</returns>
         public virtual Response Process(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
-            var pomonaResponse = (PomonaResponse) model;
+            var pomonaResponse = (PomonaResponse)model;
             string jsonString;
 
             if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
-                return new Response {StatusCode = pomonaResponse.StatusCode};
+                return new Response { StatusCode = pomonaResponse.StatusCode };
 
-            using (var strWriter = new StringWriter())
-            {
-                var serializationContext = new ServerSerializationContext(pomonaResponse.ExpandedPaths, false,
-                                                                          new UriResolver(typeMapper, context));
-                serializer.Serialize(serializationContext, pomonaResponse.Entity, strWriter, pomonaResponse.ResultType);
-                jsonString = strWriter.ToString();
-            }
+            jsonString =
+                GetSerializerFactory(context,
+                    context.GetSerializationContextProvider())
+                    .GetSerializer().SerializeToString(pomonaResponse.Entity,
+                        new SerializeOptions()
+                        {
+                            ExpandedPaths = pomonaResponse.ExpandedPaths,
+                            ExpectedBaseType = pomonaResponse.ResultType
+                        });
 
             if (IsTextHtmlContentType(requestedMediaRange))
             {
                 // Wrap in html
                 var response = new Response();
-                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(response, string.Empty, jsonString,
-                                                                    "http://failfailtodo");
+                HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(response,
+                    string.Empty,
+                    jsonString,
+                    "http://failfailtodo");
                 return response;
             }
             else
             {
                 var bytes = Encoding.UTF8.GetBytes(jsonString);
                 var response = new Response
-                    {
-                        //Headers = {{"Content-Length", bytes.Length.ToString()}},
-                        Contents = s => s.Write(bytes, 0, bytes.Length),
-                        ContentType = ContentType,
-                        StatusCode = pomonaResponse.StatusCode
-                    };
+                {
+                    //Headers = {{"Content-Length", bytes.Length.ToString()}},
+                    Contents = s => s.Write(bytes, 0, bytes.Length),
+                    ContentType = ContentType,
+                    StatusCode = pomonaResponse.StatusCode
+                };
 
                 if (pomonaResponse.ResponseHeaders != null)
                 {
                     foreach (var kvp in pomonaResponse.ResponseHeaders)
-                    {
                         response.Headers.Add(kvp);
-                    }
                 }
-
 
                 // Add etag header
                 var transformedResultType = pomonaResponse.ResultType as TransformedType;
@@ -124,7 +110,7 @@ namespace Pomona
                     var etagProperty = transformedResultType.ETagProperty;
                     if (pomonaResponse.Entity != null && etagProperty != null)
                     {
-                        var etagValue = (string) etagProperty.Getter(pomonaResponse.Entity);
+                        var etagValue = (string)etagProperty.Getter(pomonaResponse.Entity);
                         if (etagValue != null)
                         {
                             // I think defining this as a weak etag will be correct, since we can specify $expand which change data (byte-by-byte).
@@ -137,7 +123,10 @@ namespace Pomona
             }
         }
 
-        public abstract ProcessorMatch CanProcess(MediaRange requestedMediaRange, dynamic model, NancyContext context);
+
+        protected abstract ITextSerializerFactory GetSerializerFactory(NancyContext context,
+            ISerializationContextProvider contextProvider);
+
 
         protected bool IsTextHtmlContentType(MediaRange requestedMediaRange)
         {

@@ -137,7 +137,7 @@ namespace Pomona.Common
         public IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource
         {
-            return client.Query<TSubResource>();
+            return client.Query<TSubResource>(uri);
         }
 
         public TPostResponseResource Post(Action<TResource> postActionBlah)
@@ -161,7 +161,7 @@ namespace Pomona.Common
 
         public IQueryable<TResource> Query()
         {
-            return new RestQuery<TResource>(new RestQueryProvider(client, typeof (TResource), Uri));
+            return client.Query<TResource>(uri);
         }
 
         public IEnumerator<TResource> GetEnumerator()
@@ -186,7 +186,7 @@ namespace Pomona.Common
 
         public IQueryProvider Provider
         {
-            get { return new RestQueryProvider(client, ElementType, Uri); }
+            get { return new RestQueryProvider(client); }
         }
 
         public TResource GetLazy(object id)

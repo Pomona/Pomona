@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,14 +28,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
-
-using Common.Logging;
 
 using DelegateDecompiler;
 
@@ -54,9 +49,12 @@ namespace Pomona
     public abstract class TypeMappingFilterBase : ITypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
-        private readonly ILog log = LogManager.GetLogger(typeof(TypeMappingFilterBase));
-        private HashSet<Type> sourceTypesCached;
+        private readonly HashSet<Type> sourceTypesCached;
 
+        protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
+        {
+            sourceTypesCached = new HashSet<Type>(sourceTypes);
+        }
 
         static TypeMappingFilterBase()
         {
@@ -73,25 +71,11 @@ namespace Pomona
         {
             get
             {
-                if (this.sourceTypesCached == null)
-                    this.sourceTypesCached = new HashSet<Type>(GetSourceTypes());
                 return this.sourceTypesCached;
             }
         }
 
         #region ITypeMappingFilter Members
-
-        public abstract object GetIdFor(object entity);
-
-        public virtual ConstructorSpec GetTypeConstructor(Type type)
-        {
-            return
-                type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).Select(
-                    x => ConstructorSpec.FromConstructorInfo(x, defaultFactory : () => null)).FirstOrDefault(x => x != null);
-        }
-
-
-        public abstract IEnumerable<Type> GetSourceTypes();
 
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
@@ -102,9 +86,21 @@ namespace Pomona
         }
 
 
+        public virtual PropertyInfo GetChildToParentProperty(Type type)
+        {
+            return null;
+        }
+
+
         public virtual string GetClientAssemblyName()
         {
             return "Client";
+        }
+
+
+        public virtual string GetClientInformationalVersion()
+        {
+            return ApiVersion;
         }
 
 
@@ -142,6 +138,12 @@ namespace Pomona
         }
 
 
+        public virtual PropertyInfo GetParentToChildProperty(Type type)
+        {
+            return null;
+        }
+
+
         public virtual string GetPluralNameForType(Type type)
         {
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
@@ -155,6 +157,7 @@ namespace Pomona
             return type;
         }
 
+
         public virtual HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec)
         {
             var mode = (propertyInfo.CanRead ? HttpMethod.Get : 0);
@@ -164,9 +167,7 @@ namespace Pomona
             {
                 var paramSpec = constructorSpec.GetParameterSpec(propertyInfo);
                 if (paramSpec != null)
-                {
                     mode |= HttpMethod.Post;
-                }
             }
             return mode;
         }
@@ -223,6 +224,13 @@ namespace Pomona
         }
 
 
+        public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
+                   (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
+        }
+
+
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
@@ -269,6 +277,14 @@ namespace Pomona
         }
 
 
+        public virtual ConstructorSpec GetTypeConstructor(Type type)
+        {
+            return
+                type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).Select(
+                    x => ConstructorSpec.FromConstructorInfo(x, defaultFactory : () => null)).FirstOrDefault(
+                        x => x != null);
+        }
+
 
         public virtual Type GetUriBaseType(Type type)
         {
@@ -278,18 +294,6 @@ namespace Pomona
                 return null;
 
             return type;
-        }
-
-
-        public virtual PropertyInfo GetParentToChildProperty(Type type)
-        {
-            return null;
-        }
-
-
-        public virtual PropertyInfo GetChildToParentProperty(Type type)
-        {
-            return null;
         }
 
 
@@ -349,6 +353,14 @@ namespace Pomona
                 throw new ArgumentNullException("propertyInfo");
             var getMethod = propertyInfo.GetGetMethod(true);
             return getMethod != null && getMethod.IsPublic && !getMethod.IsStatic;
+        }
+
+
+        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            return propertyInfo.Name.ToLower() == "id";
         }
 
 
@@ -458,8 +470,9 @@ namespace Pomona
                 elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
             if (foreignPropCandicates.Count > 1)
             {
-                this.log.Warn(
-                    "Not mapping foreign key relation of one-to-many collection property " + collectionProperty.Name
+                Log(
+                    "WARNING: Not mapping foreign key relation of one-to-many collection property "
+                    + collectionProperty.Name
                     + " of type "
                     + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
                     + string.Join(", ", foreignPropCandicates.Select(x => x.Name)) + " (of " + elementType.FullName);
@@ -469,11 +482,10 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        private void Log(string logMessage)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            return propertyInfo.Name.ToLower() == "id";
+            // TODO: Get proper system implemented for logging, do not use Common.Logging.
+            Console.WriteLine(logMessage);
         }
 
 
@@ -485,6 +497,12 @@ namespace Pomona
         }
 
         #endregion
+
+        public virtual bool GenerateIndependentClient()
+        {
+            return true;
+        }
+
 
         public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
         {

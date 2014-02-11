@@ -82,10 +82,9 @@ namespace Pomona
         }
 
 
-        public void Deserialize<TReader>(IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
-            where TReader : ISerializerReader
+        public void Deserialize(IDeserializerNode node, Action<IDeserializerNode> nodeDeserializeAction)
         {
-            deserializer.DeserializeNode(node, reader);
+            nodeDeserializeAction(node);
 
             var transformedType = node.ValueType as TransformedType;
             if (transformedType != null && transformedType.OnDeserialized != null && node.Value != null)

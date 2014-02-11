@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,16 +24,40 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Microsoft.Practices.ServiceLocation;
-using Pomona.Example;
+#endregion
 
-namespace Pomona.SystemTests
+using System;
+
+using Pomona.Common.Serialization;
+
+namespace Pomona.Common.Internals
 {
-    public class CritterModuleInternal : CritterModule
+    internal class ClientSerializationContextProvider : ISerializationContextProvider
     {
-        public CritterModuleInternal(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
-            : base(dataSource, typeMapper, serviceLocator)
+        private readonly IPomonaClient client;
+        private readonly ClientTypeMapper clientTypeMapper;
+
+
+        internal ClientSerializationContextProvider(ClientTypeMapper clientTypeMapper, IPomonaClient client)
         {
+            if (clientTypeMapper == null)
+                throw new ArgumentNullException("clientTypeMapper");
+            if (client == null)
+                throw new ArgumentNullException("client");
+            this.clientTypeMapper = clientTypeMapper;
+            this.client = client;
+        }
+
+
+        public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
+        {
+            return new ClientDeserializationContext(this.clientTypeMapper, this.client);
+        }
+
+
+        public ISerializationContext GetSerializationContext(SerializeOptions options)
+        {
+            return new ClientSerializationContext(this.clientTypeMapper);
         }
     }
 }

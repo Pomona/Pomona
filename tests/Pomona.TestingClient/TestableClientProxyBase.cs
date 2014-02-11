@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -36,12 +37,14 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
-using Pomona.Internals;
 
 namespace Pomona.TestingClient
 {
     public class TestableClientProxyBase : IPomonaClient, ITestableClient
     {
+        private static readonly MethodInfo getResourceCollection =
+            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.GetResourceCollection<object>());
+
         private static readonly MethodInfo mapFormDictionaryToResourceDictionaryMethod =
             ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(
                 x => x.MapFormDictionaryToResourceDictionary<object, object>(null));
@@ -69,26 +72,22 @@ namespace Pomona.TestingClient
         private readonly Dictionary<string, object> repositoryCache = new Dictionary<string, object>();
 
         private readonly Dictionary<Type, object> resourceCollections = new Dictionary<Type, object>();
+        private readonly ClientTypeMapper typeMapper;
         private long idCounter = 1;
 
 
-        public virtual object OnPost(IPostForm form)
+        public TestableClientProxyBase()
         {
-            var resourceInterface = this.GetMostInheritedResourceInterface(form.GetType());
-
-            Delegate del;
-            if (postHandlers.TryGetValue(resourceInterface, out del))
-                return del.DynamicInvoke(form);
-
-            return SaveResourceFromForm(form);
+            var proxiedClientInterface =
+                GetType().GetInterfaces().Except((typeof(TestableClientProxyBase).GetInterfaces())).Single();
+            this.typeMapper = new ClientTypeMapper(proxiedClientInterface.Assembly);
         }
 
 
-        public object DownloadFromUri(string uri, Type type)
+        public ClientTypeMapper TypeMapper
         {
-            throw new NotImplementedException();
+            get { return this.typeMapper; }
         }
-
 
         public Task<T> GetAsync<T>(string uri)
         {
@@ -96,40 +95,13 @@ namespace Pomona.TestingClient
         }
 
 
-        public T Get<T>(string uri)
+        public virtual object OnInvokeMethod(MethodInfo methodInfo, object[] args)
         {
             throw new NotImplementedException();
         }
 
 
-        public IList<TResource> GetResourceCollection<TResource>()
-        {
-            var type = typeof (TResource);
-
-            object collection;
-            if (!resourceCollections.TryGetValue(type, out collection))
-            {
-                collection = new List<TResource>();
-                resourceCollections[type] = collection;
-            }
-
-            return (IList<TResource>) collection;
-        }
-
-
-        public string GetUriOfType(Type type)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public object OnInvokeMethod(MethodInfo methodInfo, object[] args)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public T OnPatch<T>(T resource, Action<T> patchAction)
+        public virtual T OnPatch<T>(T resource, Action<T> patchAction)
             where T : IClientResource
         {
             patchAction(resource);
@@ -137,31 +109,36 @@ namespace Pomona.TestingClient
         }
 
 
-        public IQueryable<T> Query<T>()
+        public virtual object OnPost(IPostForm form)
         {
-            var resourceType = typeof (T);
-            var resInfo = this.GetResourceInfoForType(resourceType);
-            var baseType = resInfo.UriBaseType;
-            if (baseType != resourceType)
-                return
-                    (IQueryable<T>) querySubResourceMethod.MakeGenericMethod(baseType, resourceType).Invoke(this, null);
+            var resourceInterface = this.GetMostInheritedResourceInterface(form.GetType());
 
-            return GetResourceCollection<T>().AsQueryable();
+            Delegate del;
+            if (this.postHandlers.TryGetValue(resourceInterface, out del))
+                return del.DynamicInvoke(form);
+
+            return SaveResourceFromForm(form);
         }
 
 
-        public void Save(object resource)
+        public virtual IQueryable<T> Query<T>()
+        {
+            return this.typeMapper.WrapExtendedQuery<T>(Query);
+        }
+
+
+        public virtual void Save(object resource)
         {
             var resourceInterface = this.GetMostInheritedResourceInterface(resource.GetType());
             ResourceInfoAttribute resourceInfo;
             if (!TryGetResourceInfoForType(resourceInterface, out resourceInfo))
                 throw new InvalidOperationException("Expected to get a resource info here.");
 
-            saveInternalMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(this, new[] {resource});
+            saveInternalMethod.MakeGenericMethod(resourceInfo.UriBaseType).Invoke(this, new[] { resource });
         }
 
 
-        public object SaveResourceFromForm(IPostForm form)
+        public virtual object SaveResourceFromForm(IPostForm form)
         {
             var formType = form.GetType();
             var resourceInterface = this.GetMostInheritedResourceInterface(formType);
@@ -173,7 +150,7 @@ namespace Pomona.TestingClient
 
             foreach (var formProp in formType.GetProperties())
             {
-                if (((IPomonaSerializable) form).PropertyIsSerialized(formProp.Name))
+                if (((IPomonaSerializable)form).PropertyIsSerialized(formProp.Name))
                 {
                     var resProp = resInfo.PocoType.GetProperty(formProp.Name);
                     var value = formProp.GetValue(form, null);
@@ -183,22 +160,22 @@ namespace Pomona.TestingClient
                     {
                         valueType = value.GetType();
                         if (value is PostResourceBase)
-                            value = SaveResourceFromForm((PostResourceBase) value);
-                        else if (valueType != typeof (string))
+                            value = SaveResourceFromForm((PostResourceBase)value);
+                        else if (valueType != typeof(string))
                         {
                             Type elementType;
 
                             Type[] dictTypeArgs;
-                            if (valueType.TryExtractTypeArguments(typeof (IDictionary<,>), out dictTypeArgs))
+                            if (valueType.TryExtractTypeArguments(typeof(IDictionary<,>), out dictTypeArgs))
                             {
                                 value = mapFormDictionaryToResourceDictionaryMethod
                                     .MakeGenericMethod(dictTypeArgs)
-                                    .Invoke(this, new[] {value});
+                                    .Invoke(this, new[] { value });
                             }
                             else if (valueType.TryGetEnumerableElementType(out elementType))
                             {
                                 value = mapFormListToResourceListMethod.MakeGenericMethod(elementType)
-                                    .Invoke(this, new[] {value});
+                                    .Invoke(this, new[] { value });
                             }
                         }
                     }
@@ -213,17 +190,50 @@ namespace Pomona.TestingClient
         }
 
 
+        public object Get(string uri, Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public T Get<T>(string uri)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public IList<TResource> GetResourceCollection<TResource>()
+        {
+            var type = typeof(TResource);
+
+            object collection;
+            if (!this.resourceCollections.TryGetValue(type, out collection))
+            {
+                collection = new List<TResource>();
+                this.resourceCollections[type] = collection;
+            }
+
+            return (IList<TResource>)collection;
+        }
+
+
+        public string GetUriOfType(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public void SetupPostHandler<TResource>(
             Func<TResource, object> func)
         {
-            postHandlers[typeof (TResource)] = func;
+            this.postHandlers[typeof(TResource)] = func;
         }
 
 
         public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
             resourceInfo =
-                type.GetCustomAttributes(typeof (ResourceInfoAttribute), false)
+                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false)
                     .OfType<ResourceInfoAttribute>()
                     .FirstOrDefault();
             return resourceInfo != null;
@@ -232,30 +242,32 @@ namespace Pomona.TestingClient
 
         protected virtual TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            var propType = typeof (TPropType);
-            if (typeof (IClientRepository).IsAssignableFrom(propType))
+            var propType = typeof(TPropType);
+            if (typeof(IClientRepository).IsAssignableFrom(propType))
             {
                 Type[] typeArgs;
                 Type postResponseType;
                 Type resourceType;
-                if (!propType.TryExtractTypeArguments(typeof (IPostableRepository<,>), out typeArgs))
+                if (!propType.TryExtractTypeArguments(typeof(IPostableRepository<,>), out typeArgs))
                 {
-                    if (!propType.TryExtractTypeArguments(typeof (IQueryableRepository<>), out typeArgs))
+                    if (!propType.TryExtractTypeArguments(typeof(IQueryableRepository<>), out typeArgs))
                         throw new InvalidOperationException("Unable to generate proxy for " + propType.FullName);
                 }
                 resourceType = typeArgs[0];
                 postResponseType = typeArgs.Last(); // [1] when IPostableRepository implemented, [0] when not.
 
                 object repository;
-                if (!repositoryCache.TryGetValue(property.Name, out repository))
+                if (!this.repositoryCache.TryGetValue(property.Name, out repository))
                 {
-                    repository = onGetRepositoryMethod.MakeGenericMethod(typeof (TOwner), propType, resourceType,
+                    repository = onGetRepositoryMethod.MakeGenericMethod(typeof(TOwner),
+                        propType,
+                        resourceType,
                         postResponseType)
-                        .Invoke(this, new object[] {property});
-                    repositoryCache[property.Name] = repository;
+                        .Invoke(this, new object[] { property });
+                    this.repositoryCache[property.Name] = repository;
                 }
 
-                return (TPropType) repository;
+                return (TPropType)repository;
             }
 
             throw new NotImplementedException();
@@ -269,7 +281,7 @@ namespace Pomona.TestingClient
             where TPostResponseType : IClientResource
         {
             var mockedRepo = RuntimeProxyFactory<MockedRepository<TResource, TPostResponseType>, TPropType>.Create();
-            ((MockedRepository<TResource, TPostResponseType>) ((object) mockedRepo)).Client = this;
+            ((MockedRepository<TResource, TPostResponseType>)((object)mockedRepo)).Client = this;
             return mockedRepo;
         }
 
@@ -282,7 +294,7 @@ namespace Pomona.TestingClient
 
         protected virtual void SetupPostHandler<TResource>(Delegate func)
         {
-            postHandlers[typeof (TResource)] = func;
+            this.postHandlers[typeof(TResource)] = func;
         }
 
 
@@ -292,11 +304,11 @@ namespace Pomona.TestingClient
                 dict.ToDictionary(
                     x =>
                         x.Key is PostResourceBase
-                            ? (TKey) SaveResourceFromForm((PostResourceBase) ((object) x.Key))
+                            ? (TKey)SaveResourceFromForm((PostResourceBase)((object)x.Key))
                             : x.Key,
                     x =>
                         x.Value is PostResourceBase
-                            ? (TValue) SaveResourceFromForm((PostResourceBase) ((object) x.Value))
+                            ? (TValue)SaveResourceFromForm((PostResourceBase)((object)x.Value))
                             : x.Value);
         }
 
@@ -305,8 +317,25 @@ namespace Pomona.TestingClient
         {
             return
                 items.Select(
-                    x => x is PostResourceBase ? (TElement) SaveResourceFromForm((PostResourceBase) ((object) x)) : x)
+                    x => x is PostResourceBase ? (TElement)SaveResourceFromForm((PostResourceBase)((object)x)) : x)
                     .ToList();
+        }
+
+
+        private IList GetResourceCollection(Type resourceType)
+        {
+            return (IList)getResourceCollection.MakeGenericMethod(resourceType).Invoke(this, null);
+        }
+
+
+        private IQueryable Query(Type resourceType)
+        {
+            var resInfo = this.GetResourceInfoForType(resourceType);
+            var baseType = resInfo.UriBaseType;
+            if (baseType != resourceType)
+                return (IQueryable)querySubResourceMethod.MakeGenericMethod(baseType, resourceType).Invoke(this, null);
+
+            return GetResourceCollection(resourceType).AsQueryable();
         }
 
 
@@ -319,11 +348,12 @@ namespace Pomona.TestingClient
         private void SaveInternal<TResource>(TResource resource)
             where TResource : IClientResource
         {
-            var resInfo = this.GetResourceInfoForType(typeof (TResource));
+            var resInfo = this.GetResourceInfoForType(typeof(TResource));
             if (resInfo.HasIdProperty &&
-                (resInfo.IdProperty.PropertyType == typeof (int) || resInfo.IdProperty.PropertyType == typeof (long)))
+                (resInfo.IdProperty.PropertyType == typeof(int) || resInfo.IdProperty.PropertyType == typeof(long)))
             {
-                resInfo.IdProperty.SetValue(resource, Convert.ChangeType(idCounter++, resInfo.IdProperty.PropertyType),
+                resInfo.IdProperty.SetValue(resource,
+                    Convert.ChangeType(this.idCounter++, resInfo.IdProperty.PropertyType),
                     null);
             }
 

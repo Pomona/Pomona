@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,49 +24,90 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
+using System.Text;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
     public static class SerializerExtensions
     {
-        public static T DeserializeFromString<T>(this IDeserializer deserializer,
-                                                 IDeserializationContext deserializationContext, string serialized)
+        public static T Deserialize<T>(this ITextDeserializer deserializer,
+            TextReader textReader,
+            DeserializeOptions options = null)
         {
-            using (var strReader = new StringReader(serialized))
+            options = options ?? new DeserializeOptions();
+            if (options.ExpectedBaseType == null)
+                options.ExpectedBaseType = typeof(T);
+            return (T)deserializer.Deserialize(textReader, options);
+        }
+
+
+        public static T DeserializeFromString<T>(this ITextDeserializer deserializer,
+            string serializedObj,
+            DeserializeOptions options = null)
+        {
+            if (deserializer == null)
+                throw new ArgumentNullException("deserializer");
+            using (var textReader = new StringReader(serializedObj))
             {
-                return (T) deserializer.Deserialize(strReader, deserializationContext.GetClassMapping(typeof (T)),
-                                                    deserializationContext);
+                return deserializer.Deserialize<T>(textReader, options);
             }
         }
 
-        public static string SerializeToString(this ISerializer serializer, ISerializationContext serializationContext,
-                                               object obj)
+
+        public static object DeserializeString(this ITextDeserializer deserializer,
+            string serializedObj,
+            DeserializeOptions options = null)
         {
-            using (var strWriter = new StringWriter())
+            if (deserializer == null)
+                throw new ArgumentNullException("deserializer");
+            if (serializedObj == null)
+                throw new ArgumentNullException("serializedObj");
+            using (var textReader = new StringReader(serializedObj))
             {
-                serializer.Serialize(serializationContext, obj, strWriter, null);
-                return strWriter.ToString();
+                return deserializer.Deserialize(textReader, options);
             }
         }
 
-        public static void Serialize(this ISerializer serializer, ISerializationContext serializationContext, object obj,
-                                     TextWriter textWriter, TypeSpec expectedBaseType)
-        {
-            if (serializer == null) throw new ArgumentNullException("serializer");
-            if (textWriter == null) throw new ArgumentNullException("textWriter");
 
-            var writer = serializer.CreateWriter(textWriter);
-            if (obj is QueryResult)
-                serializer.SerializeQueryResult((QueryResult) obj, serializationContext, writer, null);
-            else
+        /// <summary>
+        /// Serialize to a byte array.
+        /// </summary>
+        /// <param name="serializer">The serializer to use.</param>
+        /// <param name="obj">Object to serialize.</param>
+        /// <param name="options">Serialization options. Is optional.</param>
+        /// <param name="encoding">Text encoding. Optional, UTF-8 by default.</param>
+        /// <returns>The serialized byte array.</returns>
+        public static byte[] SerializeToBytes(this ITextSerializer serializer,
+            object obj,
+            SerializeOptions options = null,
+            Encoding encoding = null)
+        {
+            encoding = encoding ?? Encoding.UTF8;
+            using (var memStream = new MemoryStream())
             {
-                var itemValueNode = new ItemValueSerializerNode(obj, expectedBaseType,
-                                                                string.Empty,
-                                                                serializationContext, null);
-                serializer.SerializeNode(itemValueNode, writer);
+                using (var streamWriter = new StreamWriter(memStream, encoding))
+                {
+                    serializer.Serialize(streamWriter, obj, options);
+                }
+                return memStream.ToArray();
+            }
+        }
+
+
+        public static string SerializeToString(this ITextSerializer serializer,
+            object obj,
+            SerializeOptions options = null)
+        {
+            using (var sw = new StringWriter())
+            {
+                serializer.Serialize(sw, obj, options);
+                return sw.ToString();
             }
         }
     }

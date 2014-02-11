@@ -46,7 +46,7 @@ namespace Pomona.Common.TypeSystem
         TypeSpec LoadReflectedType(PropertySpec propertySpec);
         TypeSpec LoadBaseType(TypeSpec typeSpec);
         TypeSpec LoadPropertyType(PropertySpec propertySpec);
-        PropertySpec.PropertyFlags LoadPropertyFlags(PropertySpec propertySpec);
+        PropertyFlags LoadPropertyFlags(PropertySpec propertySpec);
         ResourceType LoadUriBaseType(ResourceType resourceType);
         PropertySpec LoadBaseDefinition(PropertySpec propertySpec);
         PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);

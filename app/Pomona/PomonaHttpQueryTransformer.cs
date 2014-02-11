@@ -109,7 +109,10 @@ namespace Pomona
                 PomonaQuery.ProjectionType projection;
                 if (!Enum.TryParse(projectionString, true, out projection))
                     throw new QueryParseException("\"" + projectionString +
-                                                  "\" is not a valid value for query parameter $projection");
+                                                  "\" is not a valid value for query parameter $projection",
+                        null,
+                        QueryParseErrorReason.UnrecognizedProjection,
+                        null);
                 query.Projection = projection;
             }
 
@@ -139,6 +142,8 @@ namespace Pomona
 
             return query;
         }
+
+
 
         private void UpdateResultType(PomonaQuery query)
         {
@@ -170,8 +175,8 @@ namespace Pomona
             query.GroupByExpression = parser.ParseSelectList(query.OfType.Type, groupby);
         }
 
-
-        private void ParseOrderBy(PomonaQuery query, string orderby)
+#if false
+        private Tuple<> ParseOrderByPart(string orderByPart)
         {
             const string ascMark = " asc";
             var descMark = " desc";
@@ -201,5 +206,23 @@ namespace Pomona
 
             query.OrderByExpression = parser.Parse(orderedType, orderby);
         }
+#endif
+
+
+        private void ParseOrderBy(PomonaQuery query, string s)
+        {
+            Type orderedType;
+            if (query.GroupByExpression != null)
+            {
+                // When groupby is added to query, ordering will occur AFTER select, not before.
+                orderedType = query.SelectExpression.ReturnType;
+            }
+            else
+            {
+                orderedType = query.OfType.Type;
+            }
+            query.OrderByExpressions = parser.ParseOrderBy(orderedType, s);
+        }
     }
+
 }

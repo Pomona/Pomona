@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using NUnit.Framework;
+
+using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Example;
 using Pomona.FluentMapping;
 
@@ -40,28 +44,34 @@ namespace Pomona.UnitTests.FluentMapping
     [TestFixture]
     public class FluentMappingTests
     {
+        public class ChildEntity
+        {
+            public virtual int Id { get; set; }
+        }
+
         public abstract class TestEntityBase
         {
-            public abstract string ToBeOverridden { get; set; }
+            public virtual IEnumerable<ChildEntity> Children { get; set; }
             public virtual int Id { get; set; }
+            public abstract string ToBeOverridden { get; set; }
         }
 
         public class Top : TestEntityBase
         {
             private string toBeOverridden;
 
-// ReSharper disable ConvertToAutoProperty
-            public override string ToBeOverridden
-// ReSharper restore ConvertToAutoProperty
-            {
-                get { return toBeOverridden; }
-                set { toBeOverridden = value; }
-            }
-
+            // ReSharper disable ConvertToAutoProperty
 
             public virtual bool DeserializeHookWasRun { get; set; }
 
             public virtual string ToBeRenamed { get; set; }
+
+            public override string ToBeOverridden
+                // ReSharper restore ConvertToAutoProperty
+            {
+                get { return this.toBeOverridden; }
+                set { this.toBeOverridden = value; }
+            }
         }
 
         public class Specialized : Top
@@ -79,6 +89,7 @@ namespace Pomona.UnitTests.FluentMapping
                 this.defaultPropertyInclusionMode = defaultPropertyInclusionMode;
             }
 
+
             public void Map(ITypeMappingConfigurator<Specialized> map)
             {
             }
@@ -89,7 +100,7 @@ namespace Pomona.UnitTests.FluentMapping
                 map.Include(x => x.Id);
                 map.Include(x => x.ToBeOverridden);
 
-                switch (defaultPropertyInclusionMode)
+                switch (this.defaultPropertyInclusionMode)
                 {
                     case null:
                         break;
@@ -120,7 +131,9 @@ namespace Pomona.UnitTests.FluentMapping
             private readonly DefaultPropertyInclusionMode? defaultPropertyInclusion;
 
 
-            public TestTypeMappingFilter(DefaultPropertyInclusionMode? defaultPropertyInclusion = null)
+            public TestTypeMappingFilter(IEnumerable<Type> sourceTypes,
+                DefaultPropertyInclusionMode? defaultPropertyInclusion = null)
+                : base(sourceTypes)
             {
                 this.defaultPropertyInclusion = defaultPropertyInclusion;
             }
@@ -128,25 +141,9 @@ namespace Pomona.UnitTests.FluentMapping
 
             public override DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
             {
-                return defaultPropertyInclusion.HasValue
-                           ? defaultPropertyInclusion.Value
-                           : base.GetDefaultPropertyInclusionMode();
-            }
-
-
-            public override object GetIdFor(object entity)
-            {
-                var testEntity = entity as TestEntityBase;
-                if (testEntity == null)
-                    throw new NotSupportedException();
-                return testEntity.Id;
-            }
-
-
-            public override IEnumerable<Type> GetSourceTypes()
-            {
-                return typeof (FluentMappingTests).GetNestedTypes().Where(
-                    x => typeof (TestEntityBase).IsAssignableFrom(x)).ToList();
+                return this.defaultPropertyInclusion.HasValue
+                    ? this.defaultPropertyInclusion.Value
+                    : base.GetDefaultPropertyInclusionMode();
             }
         }
 
@@ -156,7 +153,7 @@ namespace Pomona.UnitTests.FluentMapping
             var body = expr.Body;
 
             while (body.NodeType == ExpressionType.Convert)
-                body = ((UnaryExpression) body).Operand;
+                body = ((UnaryExpression)body).Operand;
 
             var memberExpr = body as MemberExpression;
 
@@ -167,19 +164,58 @@ namespace Pomona.UnitTests.FluentMapping
             if (propInfo == null)
                 throw new ArgumentException("Expected MemberExpression with property acccess");
 
-            return typeof (TInstance).GetProperty(propInfo.Name);
+            return typeof(TInstance).GetProperty(propInfo.Name);
 
             //return propInfo;
         }
 
 
         private static FluentTypeMappingFilter GetMappingFilter(
-            DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null)
+            DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null,
+            Action<ITypeMappingConfigurator<TestEntityBase>> mappingOverride = null)
         {
-            var typeMappingFilter = new TestTypeMappingFilter(defaultPropertyInclusionMode);
+            var sourceTypes = typeof(FluentMappingTests).GetNestedTypes().Where(
+                x => typeof(TestEntityBase).IsAssignableFrom(x)).ToList();
+            var typeMappingFilter = new TestTypeMappingFilter(sourceTypes, defaultPropertyInclusionMode);
+            var fluentRuleDelegates = mappingOverride != null ? new Delegate[] { mappingOverride } : new Delegate[] { };
             var fluentMappingFilter = new FluentTypeMappingFilter(
-                typeMappingFilter, new FluentRules(defaultPropertyInclusionMode));
+                typeMappingFilter,
+                new object[] { new FluentRules(defaultPropertyInclusionMode) },
+                fluentRuleDelegates,
+                sourceTypes);
             return fluentMappingFilter;
+        }
+
+
+        private Tuple<TFilterResult, TFilterResult> CheckHowChangeInPropertyRuleAffectsFilter<TProperty, TFilterResult>(
+            Expression<Func<TestEntityBase, TProperty>> propertyExpr,
+            Func<IPropertyOptionsBuilder<TestEntityBase, TProperty>, IPropertyOptionsBuilder<TestEntityBase, TProperty>>
+                propertyOptions,
+            Func<ITypeMappingFilter, PropertyInfo, TFilterResult> filterExecutor,
+            Action<TFilterResult, TFilterResult> origChangedAssertAction)
+        {
+            var property = propertyExpr.ExtractPropertyInfo();
+            Action<ITypeMappingConfigurator<TestEntityBase>> map = x => x.Include(propertyExpr, propertyOptions);
+            var origFilter = GetMappingFilter();
+            var changedFilter = GetMappingFilter(mappingOverride : map);
+            var origValue = filterExecutor(origFilter, property);
+            var changedValue = filterExecutor(changedFilter, property);
+            origChangedAssertAction(origValue, changedValue);
+            return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
+        }
+
+
+        [Test]
+        public void AllowMethodForProperty_CombinesAllowedMethodWithConventionBasedPermissions()
+        {
+            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
+                x => x.Allow(HttpMethod.Delete),
+                (f, p) => f.GetPropertyAccessMode(p, null),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo(origValue | HttpMethod.Delete));
+                });
         }
 
 
@@ -189,9 +225,10 @@ namespace Pomona.UnitTests.FluentMapping
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
             Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.ToBeOverridden)), Is.True);
 
-            var propInfo = typeof (Top).GetProperty("ToBeOverridden");
+            var propInfo = typeof(Top).GetProperty("ToBeOverridden");
             Assert.That(filter.PropertyIsIncluded(propInfo), Is.True);
         }
+
 
         [Test]
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
@@ -201,12 +238,14 @@ namespace Pomona.UnitTests.FluentMapping
             Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.Id)), Is.True);
         }
 
+
         [Test]
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
             Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
         }
+
 
         [Test]
         public void DefaultPropertyInclusionMode_SetToIncludedByDefault_MakesPropertyIncludedByDefault()
@@ -217,24 +256,69 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void DenyMethodForProperty_RemovesMethodFromConventionBasedPermissions()
+        {
+            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
+                x => x.Deny(HttpMethod.Get),
+                (f, p) => f.GetPropertyAccessMode(p, null),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo(origValue & ~HttpMethod.Get));
+                });
+        }
+
+
+        [Test]
+        public void ItemsAllowMethodForProperty_CombinesAllowedMethodWithConventionBasedPermissions()
+        {
+            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
+                x => x.ItemsAllow(HttpMethod.Delete),
+                (f, p) => f.GetPropertyItemAccessMode(p),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo(origValue | HttpMethod.Delete));
+                });
+        }
+
+
+        [Test]
+        public void ItemsDenyMethodForProperty_RemovesMethodFromConventionBasedPermissions()
+        {
+            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
+                x => x.ItemsDeny(HttpMethod.Get),
+                (f, p) => f.GetPropertyItemAccessMode(p),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo(origValue & ~HttpMethod.Get));
+                });
+        }
+
+
+        [Test]
         public void OnDeserializedRule_IsAppliedToMappingFilter()
         {
             var fluentMappingFilter = GetMappingFilter();
 
-            var onDeserializedHook = fluentMappingFilter.GetOnDeserializedHook(typeof (Top));
+            var onDeserializedHook = fluentMappingFilter.GetOnDeserializedHook(typeof(Top));
             Assert.That(onDeserializedHook, Is.Not.Null);
             var top = new Top();
             onDeserializedHook(top);
             Assert.That(top.DeserializeHookWasRun, Is.True);
         }
 
+
         [Test]
         public void RenameRule_GivesPropertyANewName()
         {
             var fluentMappingFilter = GetMappingFilter();
             Assert.That(
-                fluentMappingFilter.GetPropertyMappedName(GetPropInfo<Top>(x => x.ToBeRenamed)), Is.EqualTo("NewName"));
+                fluentMappingFilter.GetPropertyMappedName(GetPropInfo<Top>(x => x.ToBeRenamed)),
+                Is.EqualTo("NewName"));
         }
+
 
         [Test]
         public void RuleForBaseClass_IsAlsoAppliedToInheritedClass()
@@ -254,6 +338,7 @@ namespace Pomona.UnitTests.FluentMapping
             Assert.Fail(
                 "TODO: Test that explicit inclusion mode throws exception if not all properties are accounted for.");
         }
+
 
         [Test]
         public void TestGenerateTemplateFluentRules()

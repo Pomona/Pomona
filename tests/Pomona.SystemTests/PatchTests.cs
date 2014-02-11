@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,16 +24,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
-using Pomona.Common.Internals;
 
 namespace Pomona.SystemTests
 {
@@ -42,10 +49,10 @@ namespace Pomona.SystemTests
         {
             var critter = Save(new Critter());
             var protectedValue = critter.Protected;
-            var c = client.Critters.Query(x => x.Id == critter.Id).First();
+            var c = Client.Critters.Query(x => x.Id == critter.Id).First();
             var ex =
                 Assert.Throws<BadRequestException<IErrorStatus>>(
-                    () => client.Critters.Patch(c, p => p.Protected = "HALLA MALLA NALLA"));
+                    () => Client.Critters.Patch(c, p => p.Protected = "HALLA MALLA NALLA"));
 
             Assert.That(ex.Body, Is.Not.Null);
             Assert.That(ex.Body.Member, Is.EqualTo("Protected"));
@@ -53,190 +60,204 @@ namespace Pomona.SystemTests
         }
 
 
-        [Test]
-        public void PatchCritter_AddNewFormToList()
-        {
-            var critter = new Critter();
-            critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
-            Save(critter);
-
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
-                         x => x.Weapons.Add(new WeaponForm
-                             {
-                                 Price = 3.4m,
-                                 Model = new WeaponModelForm {Name = "balala"},
-                                 Strength = 3.5
-                             }));
-
-            Assert.That(critter.Weapons, Has.Count.EqualTo(2));
-        }
-
-        [Test]
-        public void PatchStringToStringDictionary_SetValueForKey()
-        {
-            var result = client.Patch(CreateDictionaryResource(), d => d.Map.Add("foo", "bar"));
-            Assert.That(result.Map, Contains.Item(new KeyValuePair<string, string>("foo", "bar")));
-        }
-
-        [Test]
-        public void PatchStringToStringDictionary_RemoveKey()
-        {
-            var result = client.Patch(CreateDictionaryResource(new [] {new KeyValuePair<string, string>("foo", "bar"), }), d => d.Map.Remove("foo"));
-            Assert.That(result.Map, Is.Not.Contains(new KeyValuePair<string, string>("foo", "bar")));
-        }
-
         private IDictionaryContainer CreateDictionaryResource(IEnumerable<KeyValuePair<string, string>> items = null)
         {
             var dictContainer = new DictionaryContainer();
             foreach (var kvp in items.EmptyIfNull())
-            {
                 dictContainer.Map.Add(kvp);
-            }
             Save(dictContainer);
-            var dictResource = client.DictionaryContainers.Get(dictContainer.Id);
+            var dictResource = Client.DictionaryContainers.Get(dictContainer.Id);
             return dictResource;
         }
+
+
+        [Test]
+        public void PatchCritter_AddNewFormToList()
+        {
+            var critter = new Critter();
+            critter.Weapons.Add(new Gun(new WeaponModel { Name = "ExistingWeaponModel" }));
+            Save(critter);
+
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x => x.Weapons.Add(new WeaponForm
+                {
+                    Price = 3.4m,
+                    Model = new WeaponModelForm { Name = "balala" },
+                    Strength = 3.5
+                }));
+
+            Assert.That(critter.Weapons, Has.Count.EqualTo(2));
+        }
+
 
         [Test]
         public void PatchCritter_ModifyWeapon()
         {
-            var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
-            var TMPweapons = critter.Weapons.ToList(); // REMOVE THIS
-            var response = client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
+            var critter = Client.Critters.Get(Repository.CreateRandomCritter().Id);
+            var response = Client.Patch(critter, x => x.Weapons.First().Strength = 1337, o => o.Expand(x => x.Weapons));
             Assert.That(response.Weapons.First().Strength, Is.EqualTo(1337.0));
         }
+
 
         [Test]
         public void PatchCritter_RemoveWeapon()
         {
-            var critter = client.Critters.Get(Repository.CreateRandomCritter().Id);
+            var critter = Client.Critters.Get(Repository.CreateRandomCritter().Id);
             Assert.That(critter.Weapons.Count, Is.GreaterThan(0));
-            var response = client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
+            var response = Client.Patch(critter, x => x.Weapons.Clear(), o => o.Expand(x => x.Weapons));
             Assert.That(response.Weapons.Count, Is.EqualTo(0));
         }
+
 
         [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
             var critter = Repository.CreateRandomCritter();
-            var resource = client.Critters.Query(x => x.Id == critter.Id).First();
+            var resource = Client.Critters.Query(x => x.Id == critter.Id).First();
 
-            client.Patch(resource, x => x.Password = "NewPassword");
+            Client.Patch(resource, x => x.Password = "NewPassword");
 
             Assert.That(critter.Password, Is.EqualTo("NewPassword"));
         }
+
 
         [Test]
         public void PatchCritter_UpdatePropertyOfValueObject()
         {
             var critter = Save(new Critter());
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
-                         x =>
-                         x.CrazyValue = new CrazyValueObjectForm {Sickness = "Just crazy thats all"});
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x =>
+                    x.CrazyValue = new CrazyValueObjectForm { Sickness = "Just crazy thats all" });
 
             Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
         }
 
+
         [Test]
         public void PatchCritter_UpdateReferenceProperty_UsingValueFromFirstLazyMethod()
         {
-            var hat = Save(new Hat {Style = "Gangnam Style 1234"});
+            var hat = Save(new Hat { Style = "Gangnam Style 1234" });
             var critter = Save(new Critter());
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
-                         x =>
-                         x.Hat = client.Query<IHat>().Where(y => y.Style == "Gangnam Style 1234").FirstLazy());
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x =>
+                    x.Hat = Client.Query<IHat>().Where(y => y.Style == "Gangnam Style 1234").FirstLazy());
 
             Assert.That(critter.Hat, Is.EqualTo(hat));
         }
+
 
         [Test]
         public void PatchCritter_UpdateStringProperty()
         {
             var critter = Save(new Critter());
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
-                         x =>
-                         x.Name = "NewName");
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x =>
+                    x.Name = "NewName");
 
             Assert.That(critter.Name, Is.EqualTo("NewName"));
         }
+
 
         [Test]
         public void PatchCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
         {
             var critter = new Critter();
-            critter.Weapons.Add(new Gun(new WeaponModel {Name = "ExistingWeaponModel"}));
+            critter.Weapons.Add(new Gun(new WeaponModel { Name = "ExistingWeaponModel" }));
             Save(critter);
 
-            var resource = client.Query<ICritter>().First(x => x.Id == critter.Id);
-            var patchResponse = client.Patch(resource,
-                                             x => x.Weapons.Add(new WeaponForm
-                                                 {
-                                                     Price = 3.4m,
-                                                     Model = new WeaponModelForm {Name = "balala"},
-                                                     Strength = 3.5
-                                                 }), o => o.Expand(x => x.Weapons));
-
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            var patchResponse = Client.Patch(resource,
+                x => x.Weapons.Add(new WeaponForm
+                {
+                    Price = 3.4m,
+                    Model = new WeaponModelForm { Name = "balala" },
+                    Strength = 3.5
+                }),
+                o => o.Expand(x => x.Weapons));
 
             Assert.That(patchResponse.Weapons.IsLoaded());
         }
+
 
         [Test]
         public void PatchMusicalInheritedCritter_UpdateProperty()
         {
             var critter = Save(new MusicalCritter("lalala"));
-            var resource = client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
-            client.Patch(resource,
-                         x =>
-                         x.BandName = "The Patched Sheeps");
+            var resource = Client.Query<IMusicalCritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x =>
+                    x.BandName = "The Patched Sheeps");
 
             Assert.That(critter.BandName, Is.EqualTo("The Patched Sheeps"));
         }
 
+
+        [Test]
+        public void PatchStringToStringDictionary_RemoveKey()
+        {
+            var result =
+                Client.Patch(CreateDictionaryResource(new[] { new KeyValuePair<string, string>("foo", "bar"), }),
+                    d => d.Map.Remove("foo"));
+            Assert.That(result.Map, Is.Not.Contains(new KeyValuePair<string, string>("foo", "bar")));
+        }
+
+
+        [Test]
+        public void PatchStringToStringDictionary_SetValueForKey()
+        {
+            var result = Client.Patch(CreateDictionaryResource(), d => d.Map.Add("foo", "bar"));
+            Assert.That(result.Map, Contains.Item(new KeyValuePair<string, string>("foo", "bar")));
+        }
+
+
         [Test]
         public void PatchUnpatchableThing_ThrowsInvalidOperationException()
         {
-            var resource = client.UnpatchableThings.Post(x => x.FooBar = "haha");
+            var resource = Client.UnpatchableThings.Post(x => x.FooBar = "haha");
             var ex =
                 Assert.Throws<InvalidOperationException>(
                     () =>
-                    ((IPatchableRepository<IUnpatchableThing>) client.UnpatchableThings).Patch(resource,
-                                                                                               x => x.FooBar = "moo"));
+                        ((IPatchableRepository<IUnpatchableThing>)Client.UnpatchableThings).Patch(resource,
+                            x => x.FooBar = "moo"));
             Assert.That(ex.Message, Is.EqualTo("Method PATCH is not allowed for uri."));
         }
+
+
+        [Test]
+        public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
+        {
+            var etaggedEntity = Save(new EtaggedEntity { Info = "Ancient" });
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
+            Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
+        }
+
+
+        [Test]
+        public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
+        {
+            var etaggedEntity = Save(new EtaggedEntity { Info = "Ancient" });
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+
+            // Change etag on entity, which should give an exception
+            etaggedEntity.SetEtag("MODIFIED!");
+
+            Assert.That(() => Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
+                Throws.TypeOf<PreconditionFailedException>());
+            Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
+        }
+
 
         [Category("TODO")]
         [Test]
         public void Patch_RemoveItemFromCollectionWhereKeyTypeIsString_IsSuccessful()
         {
             Assert.Fail("Known to not be working yet, putting here as a reminder.");
-        }
-
-        [Test]
-        public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
-        {
-            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
-            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
-            Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
-            Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
-        }
-
-        [Test]
-        public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
-        {
-            var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
-
-            // Change etag on entity, which should give an exception
-            etaggedEntity.SetEtag("MODIFIED!");
-
-            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
-                        Throws.TypeOf<PreconditionFailedException>());
-            Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
         }
     }
 }

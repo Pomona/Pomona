@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,15 +24,47 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-namespace Pomona.Common.Serialization
+#endregion
+
+using System;
+using System.Runtime.Serialization;
+
+using Nancy;
+
+namespace Pomona
 {
-    public static class DeserializerNodeExtensions
+    [Serializable]
+    public class ReferencedResourceNotFoundException : PomonaException
     {
-        public static void Deserialize<TReader>(
-            this IDeserializerNode node, IDeserializer<TReader> deserializer, TReader reader)
-            where TReader : ISerializerReader
+        [NonSerialized]
+        private readonly PomonaResponse innerResponse;
+        private readonly string resourceUrl;
+
+
+        public ReferencedResourceNotFoundException(string resourceUrl, PomonaResponse innerResponse)
+            : base("Unable to locate referenced resource at " + resourceUrl, null, HttpStatusCode.BadRequest)
         {
-            node.Context.Deserialize(node, deserializer, reader);
+            this.resourceUrl = resourceUrl;
+            this.innerResponse = innerResponse;
+        }
+
+
+        protected ReferencedResourceNotFoundException(SerializationInfo info,
+            StreamingContext context,
+            object entity = null)
+            : base(info, context, entity)
+        {
+        }
+
+
+        public PomonaResponse InnerResponse
+        {
+            get { return this.innerResponse; }
+        }
+
+        public string ResourceUrl
+        {
+            get { return this.resourceUrl; }
         }
     }
 }

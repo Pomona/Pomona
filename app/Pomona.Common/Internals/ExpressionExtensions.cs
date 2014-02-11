@@ -30,18 +30,21 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Pomona.Common.Linq;
-using Pomona.Internals;
 
 namespace Pomona.Common.Internals
 {
     public static class ExpressionExtensions
     {
-        private static readonly MethodInfo enumerableExpandMethod;
+        private static readonly UniqueMemberToken[] expandMethodTokens;
+
 
         static ExpressionExtensions()
         {
-            enumerableExpandMethod =
-                ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Expand(y => 0));
+            expandMethodTokens = new[]
+            {
+                ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Expand(y => 0)).UniqueToken(),
+                ReflectionHelper.GetMethodDefinition<IQueryable<object>>(x => x.Expand(y => 0)).UniqueToken()
+            };
         }
 
         private static void GetPropertyPath(Expression expr, ParameterExpression thisParam, StringBuilder sb,
@@ -51,11 +54,15 @@ namespace Pomona.Common.Internals
             if (memberExpr == null)
             {
                 var methodCallExpr = expr as MethodCallExpression;
-                if (methodCallExpr != null &&
-                    methodCallExpr.Method.UniqueToken() == enumerableExpandMethod.UniqueToken())
+                if (methodCallExpr != null && expandMethodTokens.Contains(methodCallExpr.Method.UniqueToken()))
                 {
                     GetPropertyPath(methodCallExpr.Arguments[0], thisParam, sb, jsonNameStyle);
-                    var innerLambda = (LambdaExpression) methodCallExpr.Arguments[1];
+                    var innerExpr = methodCallExpr.Arguments[1];
+                    if (innerExpr.NodeType == ExpressionType.Quote)
+                    {
+                        innerExpr = ((UnaryExpression)innerExpr).Operand;
+                    }
+                    var innerLambda = (LambdaExpression)innerExpr;
                     GetPropertyPath(innerLambda.Body, innerLambda.Parameters[0], sb, jsonNameStyle);
                     return;
                 }

@@ -37,8 +37,8 @@ namespace Pomona.SystemTests
         [Test]
         public void GetFromUriWithSpacesInIdentifier_ReturnsResource()
         {
-            client.Galaxies.Post(new GalaxyForm() { Name = "test_I will not buy this record it is scratched" });
-            var galaxy = client.Galaxies.Get("test_I will not buy this record it is scratched");
+            Client.Galaxies.Post(new GalaxyForm() { Name = "test_I will not buy this record it is scratched" });
+            var galaxy = Client.Galaxies.Get("test_I will not buy this record it is scratched");
             Assert.That(galaxy, Is.Not.EqualTo(null));
             Assert.That(galaxy.Name, Is.EqualTo("test_I will not buy this record it is scratched"));
         }

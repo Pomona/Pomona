@@ -46,7 +46,7 @@ namespace Pomona.SystemTests
         public void GetLazyById_ReturnsLazyProxy()
         {
             var critterEntity = CritterEntities.Last(x => !(x is MusicalCritter));
-            var critter = client.Critters.GetLazy(critterEntity.Id);
+            var critter = Client.Critters.GetLazy(critterEntity.Id);
             Assert.That(critter, Is.TypeOf<CritterLazyProxy>());
             var proxyBase = (LazyProxyBase)critter;
             Assert.That(proxyBase.ProxyTarget, Is.EqualTo(null));
@@ -58,7 +58,7 @@ namespace Pomona.SystemTests
         public void GetResourceById_UsingClientRepository_ReturnsResource()
         {
             var critterEntity = CritterEntities.First();
-            var critterResource = client.Critters.Get(critterEntity.Id);
+            var critterResource = Client.Critters.Get(critterEntity.Id);
             Assert.That(critterResource, Is.Not.Null);
         }
 
@@ -67,13 +67,13 @@ namespace Pomona.SystemTests
         public void QueryAgainstEntityWithRepositoryProperty_WithPredicateOnRepositoryProperty()
         {
             var firstCritterName = CritterEntities.First().Name;
-            var farm = client.Farms.Where(x => x.Critters.Any(y => y.Name == firstCritterName)).ToList();
+            var farm = Client.Farms.Where(x => x.Critters.Any(y => y.Name == firstCritterName)).ToList();
         }
 
         [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
         {
-            var farms = client.Farms.Query().ToList();
+            var farms = Client.Farms.Query().ToList();
             Assert.That(farms.Count, Is.GreaterThanOrEqualTo(2));
             var firstFarm = farms[0];
             var secondFarm = farms[1];
@@ -98,7 +98,7 @@ namespace Pomona.SystemTests
                 new DictionaryContainer { Map = new Dictionary<string, string> { { "WrappedAttribute", "halala" } } });
 
             var critters =
-                client.Query<IHasCustomAttributes>(x => x.WrappedAttribute != null && x.WrappedAttribute.StartsWith("h"))
+                Client.Query<IHasCustomAttributes>(x => x.WrappedAttribute != null && x.WrappedAttribute.StartsWith("h"))
                       .ToList();
 
             Assert.That(critters.Any(x => x.WrappedAttribute == "hooha"), Is.True);
@@ -167,14 +167,14 @@ namespace Pomona.SystemTests
                 (MusicalCritter)Repository.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
             var bandName = musicalCritter.BandName;
             var critters =
-                client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
+                Client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
         }
 
         [Test]
         public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
         {
-            var musicalCritter = client.Query<IMusicalCritter>().Expand(x => x.Instrument).First();
+            var musicalCritter = Client.Query<IMusicalCritter>().Expand(x => x.Instrument).First();
             // Check that we're not dealing with a lazy proxy
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
         }
@@ -182,7 +182,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryNonExistingUrl_ThrowsResourceNotFoundException()
         {
-            Assert.That(() => client.Get<Critter>(BaseUri + "critters/9999999"),
+            Assert.That(() => Client.Get<Critter>(BaseUri + "critters/9999999"),
                         Throws.TypeOf<Common.Web.ResourceNotFoundException>());
         }
 
@@ -191,7 +191,7 @@ namespace Pomona.SystemTests
         {
             var musicalCritter = (MusicalCritter)Repository.CreateRandomCritter(forceMusicalCritter: true);
             var farms =
-                client.Farms.Where(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
+                Client.Farms.Where(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
             Assert.That(farms.Any(x => x.MusicalCritters.Select(y => y.Id).Contains(musicalCritter.Id)));
         }
 
@@ -199,7 +199,7 @@ namespace Pomona.SystemTests
         public void QueryResourceWithExpandedEnumerable_ReturnsExpandedItems()
         {
             Repository.CreateRandomData(critterCount: 20);
-            var farms = client.Farms.Query().Expand(x => x.MusicalCritters).ToList();
+            var farms = Client.Farms.Query().Expand(x => x.MusicalCritters).ToList();
             var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(farms.All(x => !(x.MusicalCritters is LazyListProxy<IMusicalCritter>)));
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
@@ -210,7 +210,7 @@ namespace Pomona.SystemTests
         public void QueryResourceWithNonExpandedEnumerable_ReturnsLazyItems()
         {
             Repository.CreateRandomData(critterCount: 20);
-            var farms = client.Farms.Query().ToList();
+            var farms = Client.Farms.Query().ToList();
             Assert.That(farms.All(x => x.MusicalCritters is LazyListProxy<IMusicalCritter>));
             var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
@@ -223,7 +223,7 @@ namespace Pomona.SystemTests
             var entity =
                 Repository.Save(new StringToObjectDictionaryContainer { Map = { { "foo", 1234 }, { "bar", "hoho" } } });
 
-            var resource = client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
+            var resource = Client.Query<IStringToObjectDictionaryContainer>(x => x.Id == entity.Id).FirstOrDefault();
 
             Assert.IsNotNull(resource);
             Assert.That(resource.Map, Has.Count.EqualTo(2));
@@ -264,7 +264,7 @@ namespace Pomona.SystemTests
         [Test]
         public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
         {
-            var results = client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
+            var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
             Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] { (int?)null }));
         }
     }

@@ -46,7 +46,6 @@ namespace Pomona
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
         private readonly Dictionary<Type, TypeSpec> mappings = new Dictionary<Type, TypeSpec>();
-        private readonly ISerializerFactory serializerFactory;
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
@@ -60,12 +59,12 @@ namespace Pomona
             this.filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
             if (fluentRuleObjects.Length > 0)
-                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects);
+                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects, null, configuration.SourceTypes);
 
             if (this.filter == null)
                 throw new ArgumentNullException("filter");
 
-            this.sourceTypes = new HashSet<Type>(this.filter.GetSourceTypes().Where(this.filter.TypeIsMapped));
+            this.sourceTypes = new HashSet<Type>(this.configuration.SourceTypes.Where(this.filter.TypeIsMapped));
 
             this.typeNameMap = new Dictionary<string, TypeSpec>();
 
@@ -74,8 +73,6 @@ namespace Pomona
                 var type = GetClassMapping(sourceType);
                 this.typeNameMap[type.Name.ToLower()] = type;
             }
-
-            this.serializerFactory = configuration.SerializerFactory;
 
             configuration.OnMappingComplete(this);
         }
@@ -89,15 +86,6 @@ namespace Pomona
         public ITypeMappingFilter Filter
         {
             get { return this.filter; }
-        }
-
-        /// <summary>
-        /// The Json serializer factory.
-        /// TODO: This should be moved out of here..
-        /// </summary>
-        public ISerializerFactory SerializerFactory
-        {
-            get { return this.serializerFactory; }
         }
 
         public ICollection<Type> SourceTypes
@@ -260,6 +248,12 @@ namespace Pomona
                 return FromType(GetKnownDeclaringType(propertySpec.PropertyInfo));
             }
             return base.LoadDeclaringType(propertySpec);
+        }
+
+
+        public override PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
+        {
+            return filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
         }
 
 

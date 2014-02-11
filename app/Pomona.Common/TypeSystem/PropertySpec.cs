@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,25 +37,14 @@ namespace Pomona.Common.TypeSystem
 {
     public abstract class PropertySpec : MemberSpec
     {
-        #region PropertyFlags enum
-
-        [Flags]
-        public enum PropertyFlags
-        {
-            IsReadable = 1,
-            IsWritable = 2
-        }
-
-        #endregion
-
         private readonly Lazy<PropertySpec> baseDefinition;
         private readonly Lazy<TypeSpec> declaringType;
         private readonly Lazy<Func<object, object>> getter;
         private readonly Lazy<bool> isRequiredForConstructor;
+        private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
         private readonly Lazy<TypeSpec> reflectedType;
         private readonly Lazy<Action<object, object>> setter;
-        private PropertyFlags propertyFlags;
 
 
         protected PropertySpec(ITypeResolver typeResolver,
@@ -89,6 +78,11 @@ namespace Pomona.Common.TypeSystem
             get { return this.getter.Value; }
         }
 
+        public virtual string JsonName
+        {
+            get { return Name.LowercaseFirstLetter(); }
+        }
+
         public virtual PropertyInfo PropertyInfo
         {
             get { return (PropertyInfo)Member; }
@@ -114,6 +108,53 @@ namespace Pomona.Common.TypeSystem
             get { return PropertyInfo.NormalizeReflectedType(); }
         }
 
+        #region PropertySpec implementation
+
+        public virtual HttpMethod AccessMode
+        {
+            get { return 0; }
+        }
+
+        public virtual bool IsSerialized
+        {
+            get { return true; }
+        }
+
+        public virtual HttpMethod ItemAccessMode
+        {
+            get
+            {
+                // Only for collections..
+                return 0;
+            }
+        }
+
+        public PropertyFlags Flags
+        {
+            get { return this.propertyFlags; }
+        }
+
+        public bool IsReadable
+        {
+            get { return this.propertyFlags.HasFlag(PropertyFlags.IsReadable); }
+        }
+
+        public bool IsRequiredForConstructor
+        {
+            get { return this.isRequiredForConstructor.Value; }
+        }
+
+        public bool IsWritable
+        {
+            get { return this.propertyFlags.HasFlag(PropertyFlags.IsWritable); }
+        }
+
+        public string LowerCaseName
+        {
+            get { return Name.ToLowerInvariant(); }
+        }
+
+        #endregion
 
         public override string ToString()
         {
@@ -174,7 +215,7 @@ namespace Pomona.Common.TypeSystem
             if (PropertyInfo == null)
                 throw new InvalidOperationException("Unable to load PropertyFlags when PropertyInfo is null.");
 
-            return (PropertyInfo.CanRead ? PropertyFlags.IsReadable : 0) |
+            return (PropertyInfo.CanRead ? PropertyFlags.AllowsFiltering | PropertyFlags.IsReadable : 0) |
                    (PropertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
         }
 
@@ -217,56 +258,5 @@ namespace Pomona.Common.TypeSystem
 
             return expr.Compile();
         }
-
-        public virtual string JsonName
-        {
-            get { return Name.LowercaseFirstLetter(); }
-        }
-
-        #region PropertySpec implementation
-
-        public bool IsReadable
-        {
-            get { return this.propertyFlags.HasFlag(PropertyFlags.IsReadable); }
-        }
-
-        public bool IsRequiredForConstructor
-        {
-            get
-            {
-                return this.isRequiredForConstructor.Value;
-            }
-        }
-
-        public bool IsWritable
-        {
-            get { return this.propertyFlags.HasFlag(PropertyFlags.IsWritable); }
-        }
-
-        public string LowerCaseName
-        {
-            get { return Name.ToLowerInvariant(); }
-        }
-
-        public virtual HttpMethod AccessMode
-        {
-            get { return 0; }
-        }
-
-        public virtual HttpMethod ItemAccessMode
-        {
-            get
-            {
-                // Only for collections..
-                return 0;
-            }
-        }
-
-        public virtual bool IsSerialized
-        {
-            get { return true; }
-        }
-
-        #endregion
     }
 }

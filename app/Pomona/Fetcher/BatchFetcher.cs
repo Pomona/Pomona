@@ -28,15 +28,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Pomona.Common.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Fetcher
 {
     public class BatchFetcher
     {
-        private static readonly MethodInfo selectMethod =
-            ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Select(y => y));
-
         private static readonly MethodInfo containsMethod =
             ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
 

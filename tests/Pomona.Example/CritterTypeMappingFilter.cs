@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -36,12 +35,27 @@ using Mono.Reflection;
 
 using Newtonsoft.Json;
 
+using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
-    internal class CritterTypeMappingFilter : TypeMappingFilterBase
+    public class CritterTypeMappingFilter : TypeMappingFilterBase
     {
+        public CritterTypeMappingFilter(IEnumerable<Type> sourceTypes)
+            : base(sourceTypes)
+        {
+        }
+
+
+        public override PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            if (propertyInfo.Name == "IsNotAllowedInFilters")
+                return base.GetPropertyFlags(propertyInfo) & ~PropertyFlags.AllowsFiltering;
+            return base.GetPropertyFlags(propertyInfo);
+        }
+
+
         public override bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof(Farm) && propertyInfo.Name == "Critters")
@@ -54,6 +68,12 @@ namespace Pomona.Example
         public override string GetClientAssemblyName()
         {
             return "Critters.Client";
+        }
+
+
+        public override string GetClientInformationalVersion()
+        {
+            return "0.1.0-alpha1";
         }
 
 
@@ -89,24 +109,12 @@ namespace Pomona.Example
         }
 
 
-        public override object GetIdFor(object entity)
-        {
-            return ((EntityBase)entity).Id;
-        }
-
-
         public override JsonConverter GetJsonConverterForType(Type type)
         {
             if (type == typeof(WebColor))
                 return new WebColorConverter();
 
             return base.GetJsonConverterForType(type);
-        }
-
-
-        public override IEnumerable<Type> GetSourceTypes()
-        {
-            return CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) });
         }
 
 

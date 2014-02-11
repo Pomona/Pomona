@@ -28,8 +28,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Queries
 {
@@ -235,15 +239,24 @@ namespace Pomona.Queries
             }
         }
 
-        private Exception CreateParseException(NodeBase node, string message, Exception innerException = null)
+
+        private Exception CreateParseException(NodeBase node,
+            string message,
+            Exception innerException = null,
+            QueryParseErrorReason? errorReason = null,
+            string memberName = null)
         {
-            if (node != null && node.ParserNode != null && parsedString != null)
+            if (node != null && node.ParserNode != null && this.parsedString != null)
             {
-                return QueryParseException.Create(node.ParserNode, message, parsedString, innerException);
+                return QueryParseException.Create(node.ParserNode,
+                    message,
+                    this.parsedString,
+                    innerException,
+                    errorReason,
+                    memberName);
             }
 
-
-            return new QueryParseException(message, innerException);
+            return new QueryParseException(message, innerException, QueryParseErrorReason.GenericError, null);
         }
 
 
@@ -272,7 +285,7 @@ namespace Pomona.Queries
             if (binaryOperatorNode.NodeType == NodeType.As)
             {
                 if (rightNode.NodeType != NodeType.TypeNameLiteral)
-                    throw new QueryParseException("Right side of as operator is required to be a type literal.");
+                    throw CreateParseException(binaryOperatorNode, "Right side of as operator is required to be a type literal.");
 
                 return Expression.TypeAs(ParseExpression(leftNode),
                                          ResolveType((TypeNameNode) rightNode));
@@ -357,7 +370,7 @@ namespace Pomona.Queries
 
             var arrayNode = node.Right as ArrayNode;
             if (arrayNode == null)
-                throw new QueryParseException("in operator requires array on right side.");
+                throw CreateParseException(node, "in operator requires array on right side.");
 
             var rightChild = ParseArrayLiteral(arrayNode, leftExpr.Type != typeof (object) ? leftExpr.Type : null);
 
@@ -392,7 +405,7 @@ namespace Pomona.Queries
                         else
                         {
                             // Have no idea how to do this
-                            throw new QueryParseException(
+                            throw CreateParseException(node,
                                 "Using in only works for constant arrays when left side is of type object.");
                         }
                     }
@@ -401,7 +414,7 @@ namespace Pomona.Queries
                 }
                 else
                 {
-                    throw new QueryParseException("Left and right side of in operator does not have matching types.");
+                    throw CreateParseException(node, "Left and right side of in operator does not have matching types.");
                 }
             }
 
@@ -418,9 +431,26 @@ namespace Pomona.Queries
         }
 
 
+        private Expression MakePropertyAccess(SymbolNode currentNode, Expression target, string expressionPath = null)
+        {
+            expressionPath = expressionPath ?? currentNode.Name;
+            PropertyMapping prop;
+            if (!propertyResolver.TryResolveProperty(target.Type, expressionPath, out prop))
+                throw CreateParseException(currentNode, "Property not recognized.");
+
+            if (!prop.Flags.HasFlag(PropertyFlags.AllowsFiltering) || !prop.AccessMode.HasFlag(HttpMethod.Get))
+                throw CreateParseException(currentNode,
+                    "Property " + prop.JsonName + " is not allowed for query.",
+                    errorReason : QueryParseErrorReason.MemberNotAllowedInQuery,
+                    memberName : prop.JsonName);
+
+            return prop.CreateGetterExpression(target);
+
+        }
+
         private Expression ParseIndexerAccessNode(IndexerAccessNode node, Expression memberExpression)
         {
-            var property = propertyResolver.ResolveProperty(memberExpression, node.Name);
+            var property = MakePropertyAccess(node, memberExpression);
             if (typeof (IDictionary<string, string>).IsAssignableFrom(property.Type))
             {
                 return Expression.Call(
@@ -445,10 +475,10 @@ namespace Pomona.Queries
 
             // TODO: Proper check that we have a func here
             if (expectedType.UniqueToken() != typeof (Func<,>).UniqueToken())
-                throw new QueryParseException("Can't parse lambda to expected type that is not a Func delegate..");
+                throw CreateParseException(lambdaNode, "Can't parse lambda to expected type that is not a Func delegate..");
 
             if (expectedType.GetGenericArguments()[0].IsGenericParameter)
-                throw new QueryParseException("Unable to resolve generic type for parsing lambda.");
+                throw CreateParseException(lambdaNode, "Unable to resolve generic type for parsing lambda.");
 
             var funcTypeArgs = expectedType.GetGenericArguments();
 
@@ -498,14 +528,7 @@ namespace Pomona.Queries
                     return parameter;
             }
 
-            try
-            {
-                return propertyResolver.ResolveProperty(memberExpression, node.Name);
-            }
-            catch (Exception ex)
-            {
-                throw CreateParseException(node, string.Format("Unable to resolve symbol with name {0}.", node.Name), ex);
-            }
+            return MakePropertyAccess(node, memberExpression);
         }
 
 
@@ -699,7 +722,7 @@ namespace Pomona.Queries
                     }
 
                     if (castTypeArg == null)
-                        throw new QueryParseException("Argument to cast is required to be a type literal.");
+                        throw CreateParseException(node, "Argument to cast is required to be a type literal.");
 
                     var type = ResolveType(castTypeArg);
                     if (node.Name == "cast")

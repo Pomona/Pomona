@@ -187,6 +187,18 @@ namespace Pomona.UnitTests.Queries
 name eo 'blah'".Replace("\r", "")));
         }
 
+        [Test]
+        public void Parse_ExpressionAccessingPropertyNotAllowedInExpression_ThrowsExceptionWithUsefulMessage()
+        {
+            var exception = Assert.Throws<QueryParseException>(() => parser.Parse<Dummy>("isNotAllowedInQueries eq 'blah'"));
+            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+                @"Error on line 1 character 0 of query:
+|/
+isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
+            Assert.That(exception.ErrorReason, Is.EqualTo(QueryParseErrorReason.MemberNotAllowedInQuery));
+            Assert.That(exception.MemberName, Is.EqualTo("isNotAllowedInQueries"));
+        }
+
 
         [Test]
         public void Parse_GuidConstant_CreatesCorrectExpression()

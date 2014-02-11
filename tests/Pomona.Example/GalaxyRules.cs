@@ -24,22 +24,20 @@ namespace Pomona.Example
                 .AsChildResourceOf(x => x.Galaxy, x => x.PlanetarySystems);
         }
 
-
-        public void Map(ITypeMappingConfigurator<Moon> map)
-        {
-            map.AsUriBaseType()
-                .AsChildResourceOf(x => x.Planet, x => x.Moons)
-                .ConstructedUsing(x => new Moon(x.Requires().Name, x.Parent<Planet>()));
-        }
-
         public void Map(ITypeMappingConfigurator<Galaxy> map)
         {
-            map.AsUriBaseType();
+            map.AsUriBaseType()
+                .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository());
         }
 
         public void Map(ITypeMappingConfigurator<Planet> map)
         {
             map.AsUriBaseType();
+            map.HasChildren(x => x.Moons,
+                x => x.Planet,
+                x => x.AsUriBaseType()
+                    .AsChildResourceOf(y => y.Planet, y => y.Moons)
+                    .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())), x => x);
             map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets)
                 .ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()))
                 .Include(x => x.Moons, o => o.Writable());

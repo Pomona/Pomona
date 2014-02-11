@@ -45,16 +45,16 @@ namespace Pomona.SystemTests
             get { return true; }
         }
 
-        protected override IWebClient CreateWebClient()
+        public override Client CreateHttpTestingClient(string baseUri)
         {
-            return new HttpWebRequestClient();
+            return new Client(baseUri, new HttpWebRequestClient());
         }
 
         [Test]
         public void Get_CritterAtNonExistingUrl_ThrowsWebClientException()
         {
             Assert.Throws<Common.Web.ResourceNotFoundException>(
-                () => client.Get<ICritter>(client.BaseUri + "critters/38473833"));
+                () => Client.Get<ICritter>(Client.BaseUri + "critters/38473833"));
         }
 
 
@@ -62,7 +62,7 @@ namespace Pomona.SystemTests
         public void Get_UsingQuery_ReturnsEntities()
         {
             // Here we just expect to get something returned, Query itself is tested in other fixture,
-            var oddCritters = client.Critters.Query().Where(x => x.Id % 2 == 1).ToList();
+            var oddCritters = Client.Critters.Query().Where(x => x.Id % 2 == 1).ToList();
             Assert.That(oddCritters, Has.Count.GreaterThan(0));
         }
 
@@ -71,8 +71,8 @@ namespace Pomona.SystemTests
         public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
         {
             var etaggedEntity = Save(new EtaggedEntity { Info = "Ancient" });
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
-            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
             Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
             Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
         }
@@ -82,12 +82,12 @@ namespace Pomona.SystemTests
         public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
         {
             var etaggedEntity = Save(new EtaggedEntity { Info = "Ancient" });
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
 
             // Change etag on entity, which should give an exception
             etaggedEntity.SetEtag("MODIFIED!");
 
-            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
+            Assert.That(() => Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
                 Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
         }
@@ -96,7 +96,7 @@ namespace Pomona.SystemTests
         [Test]
         public void Post_FailingThing_ThrowsWebClientException()
         {
-            var ex = Assert.Throws<WebClientException>(() => client.FailingThings.Post(new FailingThingForm()));
+            var ex = Assert.Throws<WebClientException>(() => Client.FailingThings.Post(new FailingThingForm()));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
@@ -104,7 +104,7 @@ namespace Pomona.SystemTests
         [Test]
         public void Post_SavesEntityAndReturnsResource()
         {
-            var resource = client.Critters.Post(new CritterForm { Name = "Hiihaa" });
+            var resource = Client.Critters.Post(new CritterForm { Name = "Hiihaa" });
             Assert.That(resource.Id, Is.GreaterThan(0));
             Assert.That(resource.Name, Is.EqualTo("Hiihaa"));
         }

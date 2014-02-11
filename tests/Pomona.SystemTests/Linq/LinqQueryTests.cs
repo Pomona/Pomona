@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,14 +30,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
 using Critters.Client;
 
-using DelegateDecompiler;
+using Newtonsoft.Json.Linq;
 
 using NUnit.Framework;
-using Newtonsoft.Json.Linq;
+
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Web;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
 
@@ -48,37 +50,49 @@ namespace Pomona.SystemTests.Linq
     {
         public int TestIntProperty { get; set; }
 
+
         [Test]
         public void QueryCritter_AnyWithExistingName_ReturnsTrue()
         {
             // Just take some random critter
             var critter = CritterEntities.First();
             var hasCritterWithGuid =
-                client.Critters.Query().Any(x => x.Name == critter.Name);
+                Client.Critters.Query().Any(x => x.Name == critter.Name);
             Assert.That(hasCritterWithGuid, Is.True);
         }
+
 
         [Test]
         public void QueryCritter_AnyWithNameEqualToRandomGuid_ReturnsFalse()
         {
             var hasCritterWithGuid =
-                client.Query<ICritter>().Any(x => x.Name == Guid.NewGuid().ToString());
+                Client.Query<ICritter>().Any(x => x.Name == Guid.NewGuid().ToString());
             Assert.That(hasCritterWithGuid, Is.False);
         }
+
 
         [Test]
         public void QueryCritter_Count_ReturnsCount()
         {
-            var expected = this.Repository.List<Critter>().Count;
-            Assert.That(client.Critters.Query().Count(), Is.EqualTo(expected));
+            var expected = Repository.List<Critter>().Count;
+            Assert.That(Client.Critters.Query().Count(), Is.EqualTo(expected));
         }
+
+
+        [Test]
+        public void QueryCritter_WithPropertyNotAllowedInExpression_ThrowsBadRequestException_HavingUsefulErrorMessage()
+        {
+            var ex = Assert.Throws<BadRequestException>(() => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
+            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
+        }
+
 
         [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
-            this.Repository.CreateRandomCritter(new Random());
-            var expected = CritterEntities.First(x => x.Id%2 == 0);
-            var lazyCritter = client.Query<ICritter>().Where(x => x.Id%2 == 0).FirstLazy();
+            Repository.CreateRandomCritter(new Random());
+            var expected = CritterEntities.First(x => x.Id % 2 == 0);
+            var lazyCritter = Client.Query<ICritter>().Where(x => x.Id % 2 == 0).FirstLazy();
             var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
             Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+2)+eq+0"));
             Console.WriteLine(beforeLoadUri);
@@ -90,120 +104,50 @@ namespace Pomona.SystemTests.Linq
             Assert.That(name, Is.EqualTo(expected.Name));
         }
 
+
         [Test]
         public void QueryCritter_GetMaxId_ReturnsMaxId()
         {
-            var expected = this.Repository.List<Critter>().Max(x => x.Id);
-            Assert.That(client.Critters.Query().Max(x => x.Id), Is.EqualTo(expected));
-            Assert.That(client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
+            var expected = Repository.List<Critter>().Max(x => x.Id);
+            Assert.That(Client.Critters.Query().Max(x => x.Id), Is.EqualTo(expected));
+            Assert.That(Client.Critters.Query().Select(x => x.Id).Max(), Is.EqualTo(expected));
         }
 
 
         [Test]
         public void QueryCritter_GetMinId_ReturnsMinId()
         {
-            var expected = this.Repository.List<Critter>().Min(x => x.Id);
+            var expected = Repository.List<Critter>().Min(x => x.Id);
 
-            Assert.That(client.Critters.Query().Min(x => x.Id), Is.EqualTo(expected));
-            Assert.That(client.Critters.Query().Select(x => x.Id).Min(), Is.EqualTo(expected));
+            Assert.That(Client.Critters.Query().Min(x => x.Id), Is.EqualTo(expected));
+            Assert.That(Client.Critters.Query().Select(x => x.Id).Min(), Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_GetSumOfDecimalProperty()
         {
             var expected = CritterEntities.Sum(x => (decimal)x.Id);
-            var actual = client.Query<ICritter>().Sum(x => (decimal)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (decimal)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_GetSumOfDoubleProperty()
         {
             var expected = CritterEntities.Sum(x => (double)x.Id);
-            var actual = client.Query<ICritter>().Sum(x => (double)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (double)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_GetSumOfIntProperty()
         {
             var expected = CritterEntities.Sum(x => x.Name.Length);
-            var actual = client.Query<ICritter>().Sum(x => x.Name.Length);
+            var actual = Client.Query<ICritter>().Sum(x => x.Name.Length);
             Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()
-        {
-            // Just take some random critter
-            // Search by its name
-            var expected =
-                CritterEntities
-                    .Where(x => x.Id%2 == 0)
-                    .GroupBy(x => x.Name.Substring(0, 1))
-                    .Select(
-                        x => new
-                            {
-                                x.Key,
-                                Count = x.Count(),
-                                WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                            })
-                    .OrderByDescending(x => x.Count)
-                    .Take(10)
-                    .ToList();
-
-            var actual =
-                client.Query<ICritter>()
-                      .Where(x => x.Id%2 == 0)
-                      .GroupBy(x => x.Name.Substring(0, 1))
-                      .Select(
-                          x => new
-                              {
-                                  x.Key,
-                                  Count = x.Count(),
-                                  WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                              })
-                      .OrderByDescending(x => x.Count)
-                      .Take(10)
-                      .ToList();
-
-            Assert.That(actual.SequenceEqual(expected));
-        }
-
-        [Test]
-        public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
-        {
-            // Just take some random critter
-            // Search by its name
-            var expected =
-                CritterEntities
-                    .Where(x => x.Id%2 == 0)
-                    .GroupBy(x => x.Farm.Id)
-                    .Select(
-                        x => new
-                            {
-                                x.Key,
-                                Count = x.Count(),
-                                WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                            })
-                    .Take(1)
-                    .ToList();
-
-            var actual =
-                client.Query<ICritter>()
-                      .Where(x => x.Id%2 == 0)
-                      .GroupBy(x => x.Farm.Id)
-                      .Select(
-                          x => new
-                              {
-                                  x.Key,
-                                  Count = x.Count(),
-                                  WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
-                              })
-                      .Take(1)
-                      .ToList();
-
-            Assert.That(actual.SequenceEqual(expected));
         }
 
 
@@ -227,8 +171,8 @@ namespace Pomona.SystemTests.Linq
                     .ToList();
 
             var actual =
-                client.Query<ICritter>()
-                      .Where(x => x.Id % 2 == 0)
+                Client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
                     .GroupBy(x => new { x.Farm.Id, x.Weapons.Count })
                     .Select(
                         x => new
@@ -242,17 +186,96 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(actual.SequenceEqual(expected));
         }
+
+
+        [Test]
+        public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()
+        {
+            // Just take some random critter
+            // Search by its name
+            var expected =
+                CritterEntities
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Name.Substring(0, 1))
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .OrderByDescending(x => x.Count)
+                    .Take(10)
+                    .ToList();
+
+            var actual =
+                Client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Name.Substring(0, 1))
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .OrderByDescending(x => x.Count)
+                    .Take(10)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
+        {
+            // Just take some random critter
+            // Search by its name
+            var expected =
+                CritterEntities
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Farm.Id)
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .Take(1)
+                    .ToList();
+
+            var actual =
+                Client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
+                    .GroupBy(x => x.Farm.Id)
+                    .Select(
+                        x => new
+                        {
+                            x.Key,
+                            Count = x.Count(),
+                            WeaponSum = x.Sum(y => y.Weapons.Sum(z => z.Strength))
+                        })
+                    .Take(1)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
         [Test]
         public void QueryCritter_OfType()
         {
             var critters =
-                client.Query<ICritter>()
-                      .Where(x => x.Id > 0)
-                      .OfType<IMusicalCritter>()
-                      .Where(x => x.Instrument.Type != "stupid")
-                      .ToList();
+                Client.Query<ICritter>()
+                    .Where(x => x.Id > 0)
+                    .OfType<IMusicalCritter>()
+                    .Where(x => x.Instrument.Type != "stupid")
+                    .ToList();
             Assert.That(critters.Count, Is.GreaterThan(0));
         }
+
 
         [Test]
         public void QueryCritter_OrderByAfterSelect_ReturnsCorrectValues()
@@ -264,14 +287,15 @@ namespace Pomona.SystemTests.Linq
                     .Take(10)
                     .ToList();
             var actual =
-                client.Critters.Query()
-                      .Select(x => new { NameLength = x.Name.Length })
-                      .OrderBy(x => x.NameLength)
-                      .Take(10)
-                      .ToList();
+                Client.Critters.Query()
+                    .Select(x => new { NameLength = x.Name.Length })
+                    .OrderBy(x => x.NameLength)
+                    .Take(10)
+                    .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
         }
+
 
         [Test]
         public void QueryCritter_QueryingPropertyOfBaseClass_ReflectedTypeOfPropertyInPomonaQueryIsCorrect()
@@ -279,9 +303,9 @@ namespace Pomona.SystemTests.Linq
             // Fix: We don't want the parsed expression trees to give us members with "ReflectedType" set to inherited type, but same as DeclaringType.
 
             // Result of below query not important..
-            client.Critters.Query().Where(x => x.Id == 666).ToList();
+            Client.Critters.Query().Where(x => x.Id == 666).ToList();
 
-            var query = this.Repository.QueryLog.Last();
+            var query = Repository.QueryLog.Last();
             var binExpr = query.FilterExpression.Body as BinaryExpression;
             Assert.That(binExpr, Is.Not.Null);
             Assert.That(binExpr.NodeType, Is.EqualTo(ExpressionType.Equal));
@@ -290,29 +314,33 @@ namespace Pomona.SystemTests.Linq
             Assert.That(propExpr.Member.ReflectedType, Is.EqualTo(propExpr.Member.DeclaringType));
         }
 
+
         [Test]
         public void QueryCritter_SelectDecimalThenSum()
         {
             var expected = CritterEntities.Select(x => (decimal)x.Id).Sum();
-            var actual = client.Query<ICritter>().Select(x => (decimal)x.Id).Sum();
+            var actual = Client.Query<ICritter>().Select(x => (decimal)x.Id).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_SelectDoubleThenSum()
         {
             var expected = CritterEntities.Select(x => (double)x.Id).Sum();
-            var actual = client.Query<ICritter>().Select(x => (double)x.Id).Sum();
+            var actual = Client.Query<ICritter>().Select(x => (double)x.Id).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_SelectIntThenSum()
         {
             var expected = CritterEntities.Select(x => x.Name.Length).Sum();
-            var actual = client.Query<ICritter>().Select(x => x.Name.Length).Sum();
+            var actual = Client.Query<ICritter>().Select(x => x.Name.Length).Sum();
             Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_SelectThenWhereThenSelect_ReturnsCorrectValues()
@@ -324,29 +352,40 @@ namespace Pomona.SystemTests.Linq
                 .Take(5)
                 .ToList();
 
-            var actual = client.Query<ICritter>()
-                               .Select(x => new { c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name })
-                               .Where(x => x.isHeavyArmed)
-                               .Select(x => new { critterName = x.c.Name, x.farmName })
-                               .Take(5)
-                               .ToList();
+            var actual = Client.Query<ICritter>()
+                .Select(x => new { c = x, isHeavyArmed = x.Weapons.Count > 2, farmName = x.Farm.Name })
+                .Where(x => x.isHeavyArmed)
+                .Select(x => new { critterName = x.c.Name, x.farmName })
+                .Take(5)
+                .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
         }
 
+
+        [Test]
+        public void QueryCritter_SelectWriteOnlyProperty_ThrowsBadRequestException()
+        {
+            var critter = Repository.CreateRandomCritter();
+            critter.Password = "HUSH";
+            Assert.Throws<BadRequestException>(() => Client.Critters.Query().Select(x => x.Password).ToList());
+        }
+
+
         [Test]
         public void QueryCritter_ToUri_ReturnsUriForQuery()
         {
-            var uri = client.Query<ICritter>().Where(x => x.Name == "holahola").ToUri();
+            var uri = Client.Query<ICritter>().Where(x => x.Name == "holahola").ToUri();
             Assert.That(uri.PathAndQuery, Is.EqualTo("/critters?$filter=name+eq+'holahola'"));
         }
+
 
         [Test]
         public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
         {
-            var critter = this.Repository.CreateRandomCritter();
+            var critter = Repository.CreateRandomCritter();
             TestIntProperty = critter.Id;
-            var result = client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
+            var result = Client.Critters.Query(x => x.Id == TestIntProperty).FirstOrDefault();
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Id, Is.EqualTo(TestIntProperty));
         }
@@ -358,17 +397,18 @@ namespace Pomona.SystemTests.Linq
             var expected =
                 CritterEntities.Where(
                     x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
-                               .Take(5)
-                               .ToList();
+                    .Take(5)
+                    .ToList();
             var actual =
-                client.Query<ICritter>()
-                      .Where(x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
-                      .Expand(x => x.Weapons)
-                      .Take(5)
-                      .ToList();
+                Client.Query<ICritter>()
+                    .Where(x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
+                    .Expand(x => x.Weapons)
+                    .Take(5)
+                    .ToList();
 
             Assert.That(actual.Select(x => x.Id), Is.EquivalentTo(expected.Select(x => x.Id)));
         }
+
 
         [Ignore("For performance testing!")]
         [Test]
@@ -377,17 +417,17 @@ namespace Pomona.SystemTests.Linq
             var expected =
                 CritterEntities.Where(
                     x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
-                               .Take(5)
-                               .ToList();
+                    .Take(5)
+                    .ToList();
 
             for (var i = 0; i < 100; i++)
             {
                 var actual =
-                    client.Query<ICritter>()
-                          .Where(x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
-                          .Expand(x => x.Weapons)
-                          .Take(5)
-                          .ToList();
+                    Client.Query<ICritter>()
+                        .Where(x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
+                        .Expand(x => x.Weapons)
+                        .Take(5)
+                        .ToList();
                 Assert.That(actual.Select(x => x.Id), Is.EquivalentTo(expected.Select(x => x.Id)));
             }
         }
@@ -400,7 +440,7 @@ namespace Pomona.SystemTests.Linq
             var critter = CritterEntities.Skip(1).Take(1).First();
             // Search by its name
             var critterResource =
-                client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
+                Client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
 
@@ -409,21 +449,22 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WhereThenSelectAnonymousClass_ReturnsCorrectValues()
         {
             var expected = CritterEntities
-                .Where(x => x.Id%2 == 0)
+                .Where(x => x.Id % 2 == 0)
                 .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
                 .OrderBy(x => x.Name)
                 .Take(10)
                 .ToList();
             var actual =
-                client.Query<ICritter>()
-                      .Where(x => x.Id%2 == 0)
-                      .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
-                      .OrderBy(x => x.Name)
-                      .Take(10)
-                      .ToList();
+                Client.Query<ICritter>()
+                    .Where(x => x.Id % 2 == 0)
+                    .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
+                    .OrderBy(x => x.Name)
+                    .Take(10)
+                    .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
         }
+
 
         [Test]
         public void QueryCritter_WhereThenSelectSingleProperty_ReturnsCorrectValues()
@@ -432,38 +473,41 @@ namespace Pomona.SystemTests.Linq
             // Search by its name
             var expected = CritterEntities.OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList();
             var actual =
-                client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
+                Client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
             Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void QueryCritter_WithAttributeEquals_ReturnsCorrectCritter()
         {
             var critter =
-                client.Critters.Query().Where(
+                Client.Critters.Query().Where(
                     x => x.SimpleAttributes.Any(y => y.Key == "AttrKey" && y.Value == "dde")).ToList();
         }
+
 
         [Category("TODO")]
         [Test(Description = "This test does not work on TC with code coverage enabled.")]
         public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
         {
-            client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
-            var query = this.Repository.QueryLog.Last();
+            Client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
+            var query = Repository.QueryLog.Last();
             Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
+
 
         [Test]
         public void QueryCritter_WithExpandedPropertyOfAnonymousClass_HasPropertyExpanded()
         {
             var result =
-                client.Critters.Query()
-                      .Select(x => new { TheHat = x.Hat, x.Name })
-                      .OrderBy(x => x.Name)
-                      .Expand(x => x.TheHat)
-                      .Take(1)
-                      .First();
+                Client.Critters.Query()
+                    .Select(x => new { TheHat = x.Hat, x.Name })
+                    .OrderBy(x => x.Name)
+                    .Expand(x => x.TheHat)
+                    .Take(1)
+                    .First();
             Assert.That(result.TheHat, Is.TypeOf<HatResource>());
         }
 
@@ -471,90 +515,95 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WithExpandedProperty_HasPropertyExpanded()
         {
-            var result = client.Critters.Query().Expand(x => x.Hat).Take(1).First();
+            var result = Client.Critters.Query().Expand(x => x.Hat).Take(1).First();
             Assert.That(result.Hat, Is.TypeOf<HatResource>());
         }
+
 
         [Test]
         public void QueryCritter_WithHandledGeneratedProperty_UsesPropertyFormula()
         {
-            client.Critters.Query(x => x.HandledGeneratedProperty == 3).ToList();
-            var query = this.Repository.QueryLog.Last();
-            Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id%6) == 3;
+            Client.Critters.Query(x => x.HandledGeneratedProperty == 3).ToList();
+            var query = Repository.QueryLog.Last();
+            Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id % 6) == 3;
             query.FilterExpression.AssertEquals(expectedFilter);
         }
+
 
         [Test]
         public void QueryCritter_WithIncludeTotalCount_IncludesTotalCount()
         {
-            var expectedTotalCount = CritterEntities.Count(x => x.Id%3 == 0);
-            var results = client
+            var expectedTotalCount = CritterEntities.Count(x => x.Id % 3 == 0);
+            var results = Client
                 .Critters
                 .Query()
-                .Where(x => x.Id%3 == 0)
+                .Where(x => x.Id % 3 == 0)
                 .IncludeTotalCount()
                 .ToQueryResult();
             Assert.That(results.TotalCount, Is.EqualTo(expectedTotalCount));
         }
 
+
         [Test]
         public void QueryCritter_WithNonMatchingFirst_ThrowsInvalidOperationException()
         {
-            var ex = Assert.Throws<InvalidOperationException>(() => client.Query<ICritter>().First(x => false));
+            var ex = Assert.Throws<InvalidOperationException>(() => Client.Query<ICritter>().First(x => false));
             Assert.That(ex.Message, Is.EqualTo("Sequence contains no matching element"));
         }
+
 
         [Test]
         public void QueryCritter_WithPropertyOfListItemsExpanded_HasPropertiesExpanded()
         {
-            var result = client.Critters.Query().Expand(x => x.Weapons.Expand(y => y.Model)).Take(1).First();
+            var result = Client.Critters.Query().Expand(x => x.Weapons.Expand(y => y.Model)).Take(1).First();
             Assert.That(result.Weapons, Is.TypeOf<List<IWeapon>>());
             Assert.That(result.Weapons.Count, Is.GreaterThanOrEqualTo(1));
             Assert.That(result.Weapons.All(x => x is WeaponResource));
             Assert.That(result.Weapons.All(x => x.Model is WeaponModelResource));
         }
 
+
         [Test]
         public void QueryCritter_WithUnhandledGeneratedProperty_ThrowsExceptionUsingCritterDataSource()
         {
-            Assert.That(() => client.Critters.Query(x => x.UnhandledGeneratedProperty == "nono").ToList(),
-                        Throws.Exception);
+            Assert.That(() => Client.Critters.Query(x => x.UnhandledGeneratedProperty == "nono").ToList(),
+                Throws.Exception);
         }
 
 
         [Test]
         public void QueryCritter_WriteOnlyProperty_IsNotReturned()
         {
-            var critter = this.Repository.CreateRandomCritter();
+            var critter = Repository.CreateRandomCritter();
             critter.Password = "HUSH";
-            var jobject = client.Critters.Query().Where(x => x.Id == critter.Id).ToJson();
+            var jobject = Client.Critters.Query().Where(x => x.Id == critter.Id).ToJson();
             var items = jobject.AssertHasPropertyWithArray("items");
             Assert.That(items.Count, Is.EqualTo(1));
             var critterObject = items[0] as JObject;
             critterObject.AssertDoesNotHaveProperty("password");
 
-            var critters = client.Critters.Query().Where(x => x.Id == critter.Id).ToList();
+            var critters = Client.Critters.Query().Where(x => x.Id == critter.Id).ToList();
             Assert.That(critters.Count, Is.EqualTo(1));
         }
+
 
         [Test]
         public void QueryEtaggedEntity_HavingZeroResults_ProjectedByFirstOrDefault_ReturnsNull()
         {
-            Assert.IsNull(client.EtaggedEntities.Query(x => false).FirstOrDefault());
+            Assert.IsNull(Client.EtaggedEntities.Query(x => false).FirstOrDefault());
         }
+
 
         [Test]
         public void QueryHasStringToObjectDictionary_ReturnsCorrectValues()
         {
             for (var i = 1; i <= 8; i++)
-            {
-                this.Repository.Save(new StringToObjectDictionaryContainer { Map = { { "square", i*i } } });
-            }
+                Repository.Save(new StringToObjectDictionaryContainer { Map = { { "square", i * i } } });
 
             // Should get 36, 49 and 64
-            var results = client.Query<IStringToObjectDictionaryContainer>()
-                                .Where(x => x.Map.SafeGet("square") as int? > 26)
-                                .ToList();
+            var results = Client.Query<IStringToObjectDictionaryContainer>()
+                .Where(x => x.Map.SafeGet("square") as int? > 26)
+                .ToList();
 
             Assert.That(results, Has.Count.EqualTo(3));
         }
@@ -567,22 +616,24 @@ namespace Pomona.SystemTests.Linq
             var critter = CritterEntities.OfType<MusicalCritter>().Take(1).First();
             // Search by its name
             var critterResource =
-                client.Query<IMusicalCritter>().First(
+                Client.Query<IMusicalCritter>().First(
                     x => x.Name == critter.Name && x.Guid == critter.Guid && x.BandName == critter.BandName);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
 
+
         [Test]
         public void Query_Critter_ToJson_ReturnsJObject()
         {
-            var critter = client.Critters.Query().Where(x => x.Id > 3).ToJson();
+            var critter = Client.Critters.Query().Where(x => x.Id > 3).ToJson();
             var items = critter.AssertHasPropertyWithArray("items");
         }
+
 
         [Test]
         public void Query_UsingFirstOrDefault_WithNoMatches_ReturnsNull()
         {
-            var result = client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
+            var result = Client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
 
             Assert.That(result, Is.Null);
         }

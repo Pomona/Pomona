@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,10 +29,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 using Pomona.Queries;
 using Pomona.RequestProcessing;
 
@@ -40,8 +39,8 @@ namespace Pomona
 {
     public class DataSourceRootNode : PathNode
     {
-        private static MethodInfo queryMethod =
-            ReflectionHelper.GetMethodDefinition<IPomonaDataSource>(x => x.Query<object>());
+        private static readonly Func<Type, IPomonaDataSource, IQueryable> queryMethodInvoker =
+            GenericInvoker.Instance<IPomonaDataSource>().CreateFunc1<IQueryable>(x => x.Query<object>());
 
         private readonly IPomonaDataSource dataSource;
 
@@ -55,11 +54,10 @@ namespace Pomona
         }
 
 
-        protected override TypeSpec OnGetType()
+        public override bool Exists
         {
-            return null;
+            get { return true; }
         }
-
 
         public override bool IsLoaded
         {
@@ -82,7 +80,7 @@ namespace Pomona
             if (type == null)
                 throw new ResourceNotFoundException("Unable to locate root resource.");
 
-            var queryable = queryMethod.MakeGenericMethod(type.Type).Invoke(this.dataSource, null);
+            var queryable = queryMethodInvoker(type, this.dataSource);
             return CreateNode(TypeMapper,
                 this,
                 name,
@@ -97,12 +95,6 @@ namespace Pomona
         }
 
 
-        public override bool Exists
-        {
-            get { return true; }
-        }
-
-
         protected override IQueryableResolver GetQueryableResolver()
         {
             return new DataSourceQueryableResolver(this.dataSource);
@@ -112,6 +104,12 @@ namespace Pomona
         protected override IPomonaRequestProcessor OnGetRequestProcessor(PomonaRequest request)
         {
             return new DataSourceRequestProcessor(this.dataSource);
+        }
+
+
+        protected override TypeSpec OnGetType()
+        {
+            return null;
         }
     }
 }

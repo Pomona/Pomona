@@ -31,7 +31,6 @@ using Nancy;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona
 {
@@ -51,7 +50,7 @@ namespace Pomona
             Count
         }
 
-        private static readonly MethodInfo applyAndExecuteMethod;
+        private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
         private readonly TransformedType sourceType;
 
         public TransformedType SourceType
@@ -65,7 +64,7 @@ namespace Pomona
         static PomonaQuery()
         {
             applyAndExecuteMethod =
-                ReflectionHelper.GetMethodDefinition<PomonaQuery>(x => x.ApplyAndExecute<object>(null, false));
+                GenericInvoker.Instance<PomonaQuery>().CreateFunc1<IQueryable, bool, PomonaResponse>(x => x.ApplyAndExecute<object>(null, false));
         }
 
         
@@ -83,12 +82,18 @@ namespace Pomona
         public LambdaExpression FilterExpression { get; set; }
         public LambdaExpression GroupByExpression { get; set; }
 
-        public LambdaExpression OrderByExpression { get; set; }
+        private List<Tuple<LambdaExpression, SortOrder>> orderByExpressions = new List<Tuple<LambdaExpression, SortOrder>>();
+
+        public List<Tuple<LambdaExpression, SortOrder>> OrderByExpressions
+        {
+            get { return orderByExpressions; }
+            set { orderByExpressions = value; }
+        }
+
         public LambdaExpression SelectExpression { get; set; }
 
         public ProjectionType Projection { get; set; }
         public int Skip { get; set; }
-        public SortOrder SortOrder { get; set; }
         public int Top { get; set; }
 
         public bool IncludeTotalCount { get; set; }
@@ -115,8 +120,7 @@ namespace Pomona
         public PomonaResponse ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
             var totalQueryable = ApplyExpressions(queryable);
-            return (PomonaResponse) applyAndExecuteMethod.MakeGenericMethod(totalQueryable.ElementType).Invoke(
-                this, new object[] {totalQueryable, skipAndTakeAfterExecute});
+            return applyAndExecuteMethod(totalQueryable.ElementType, this, totalQueryable, skipAndTakeAfterExecute);
         }
 
 
@@ -259,6 +263,29 @@ namespace Pomona
 
         private IQueryable ApplyOrderByExpression(IQueryable queryable)
         {
+            bool first = true;
+            foreach (var tuple in OrderByExpressions)
+            {
+                MethodInfo orderMethod = null;
+                if (first)
+                {
+                    orderMethod = tuple.Item2 == SortOrder.Descending
+                        ? QueryableMethods.OrderByDescending
+                        : QueryableMethods.OrderBy;
+                    first = false;
+                }
+                else
+                {
+                    orderMethod = tuple.Item2 == SortOrder.Descending
+                        ? QueryableMethods.ThenByDescending
+                        : QueryableMethods.ThenBy;
+                }
+                queryable = (IQueryable)orderMethod
+                                             .MakeGenericMethod(queryable.ElementType, tuple.Item1.ReturnType)
+                                             .Invoke(null, new object[] { queryable, tuple.Item1 });
+            }
+            return queryable;
+#if false
             if (OrderByExpression != null)
             {
                 var orderMethod = SortOrder == SortOrder.Descending
@@ -270,6 +297,8 @@ namespace Pomona
                                              .Invoke(null, new object[] {queryable, OrderByExpression});
             }
             return queryable;
+#endif
+            throw new NotImplementedException();
         }
     }
 }

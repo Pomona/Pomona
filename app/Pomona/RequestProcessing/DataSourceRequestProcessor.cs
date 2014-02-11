@@ -32,20 +32,22 @@ using System.Reflection;
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.RequestProcessing
 {
     public class DataSourceRequestProcessor : IPomonaRequestProcessor
     {
         private readonly IPomonaDataSource dataSource;
+        
+        private readonly Func<Type, DataSourceRequestProcessor, object, PomonaRequest, PomonaResponse> patchMethod =
+            GenericInvoker.Instance<DataSourceRequestProcessor>().CreateFunc1<object, PomonaRequest, PomonaResponse>(
+                x => x.Patch<object>(null, null));
 
-        private readonly MethodInfo patchMethod =
-            ReflectionHelper.GetMethodDefinition<DataSourceRequestProcessor>(x => x.Patch<object>(null, null));
-
-        private readonly MethodInfo postMethod =
-            ReflectionHelper.GetMethodDefinition<DataSourceRequestProcessor>(x => x.Post<object>(null, null));
+        private readonly Func<Type, DataSourceRequestProcessor, object, PomonaRequest, PomonaResponse> postMethod =
+            GenericInvoker.Instance<DataSourceRequestProcessor>().CreateFunc1<object, PomonaRequest, PomonaResponse>(
+                x => x.Post<object>(null, null));
 
 
         public DataSourceRequestProcessor(IPomonaDataSource dataSource)
@@ -87,9 +89,7 @@ namespace Pomona.RequestProcessing
         private PomonaResponse ProcessQueryableNodeCallToDataSource(PomonaRequest request, QueryableNode queryableNode)
         {
             var form = request.Bind();
-            return
-                (PomonaResponse)
-                    this.postMethod.MakeGenericMethod(form.GetType()).Invoke(this, new[] { form, request });
+            return postMethod(form.GetType(), this, form, request);
         }
 
         public virtual PomonaResponse Process(PomonaRequest request)
@@ -127,9 +127,7 @@ namespace Pomona.RequestProcessing
             if (request.Method == HttpMethod.Patch && resourceNode != null)
             {
                 var patchedObject = request.Bind();
-                return (PomonaResponse)
-                    this.patchMethod.MakeGenericMethod(patchedObject.GetType()).Invoke(this,
-                        new[] { patchedObject, request });
+                return patchMethod(patchedObject.GetType(), this, patchedObject, request);
             }
             return null;
         }

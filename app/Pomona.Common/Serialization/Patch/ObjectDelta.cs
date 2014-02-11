@@ -22,6 +22,7 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pomona.Common.TypeSystem;
@@ -41,7 +42,7 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
-        protected IEnumerable<KeyValuePair<string, object>> ModifiedProperties
+        public IEnumerable<KeyValuePair<string, object>> ModifiedProperties
         {
             get
             {
@@ -65,7 +66,7 @@ namespace Pomona.Common.Serialization.Patch
                 return value;
 
             PropertySpec prop;
-            if (Type.TryGetPropertyByName(propertyName, out prop))
+            if (TryGetPropertyByName(propertyName, out prop))
             {
                 var propValue = prop.Getter(Original);
                 if (propValue == null)
@@ -84,14 +85,36 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
+        private bool TryGetPropertyByName(string propertyName, out PropertySpec prop)
+        {
+            return Type.TryGetPropertyByName(propertyName, StringComparison.InvariantCulture, out prop);
+        }
+
+
         public void SetPropertyValue(string propertyName, object value)
         {
-            object oldValue;
-            if (TrackedProperties.TryGetValue(propertyName, out oldValue))
+            object trackedValue;
+            if (TrackedProperties.TryGetValue(propertyName, out trackedValue))
             {
-                DetachFromParent(oldValue);
+                DetachFromParent(trackedValue);
             }
-            trackedProperties[propertyName] = value;
+            PropertySpec prop;
+            if (TryGetPropertyByName(propertyName, out prop) && prop.PropertyType.SerializationMode == TypeSerializationMode.Value)
+            {
+                object oldValue = prop.Getter(Original);
+                if ((value != null && value.Equals(oldValue)) || (value == null && oldValue == null))
+                {
+                    trackedProperties.Remove(propertyName);
+                }
+                else
+                {
+                    trackedProperties[propertyName] = value;
+                }
+            }
+            else
+            {
+                trackedProperties[propertyName] = value;
+            }
 
             SetDirty();
         }

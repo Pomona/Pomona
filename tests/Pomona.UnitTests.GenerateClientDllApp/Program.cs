@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,21 +29,86 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Pomona.CodeGen;
-using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
 
 namespace Pomona.UnitTests.GenerateClientDllApp
 {
-
     internal class Program
     {
+        private static void Main(string[] args)
+        {
+            var typeMapper = new TypeMapper(new ModifiedCritterPomonaConfiguration());
+
+            // Modify property Protected of class Critter to not be protected in client dll.
+            // This is to test setting a protected property will throw exception on server.
+
+            using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
+            {
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
+            }
+
+            using (
+                var file = new FileStream(
+                    @"..\..\..\..\lib\IndependentCritters.dll",
+                    FileMode.OpenOrCreate))
+            {
+                ClientLibGenerator.WriteClientLibrary(new TypeMapper(new IndependentClientDllConfiguration()),
+                    file,
+                    embedPomonaClient : true);
+            }
+
+            Console.WriteLine("Wrote client dll.");
+        }
+
+        #region Nested type: IndependentClientDllConfiguration
+
+        private class IndependentClientDllConfiguration : ModifiedCritterPomonaConfiguration
+        {
+            public override ITypeMappingFilter TypeMappingFilter
+            {
+                get { return new IndependentClientDllTypeMappingFilter(SourceTypes); }
+            }
+
+            #region Nested type: IndependentClientDllTypeMappingFilter
+
+            private class IndependentClientDllTypeMappingFilter : CritterTypeMappingFilter
+            {
+                public IndependentClientDllTypeMappingFilter(IEnumerable<Type> sourceTypes)
+                    : base(sourceTypes)
+                {
+                }
+
+
+                public override string GetClientAssemblyName()
+                {
+                    return "IndependentCritters";
+                }
+            }
+
+            #endregion
+        }
+
+        #endregion
+
+        #region Nested type: ModifiedCritterPomonaConfiguration
+
+        private class ModifiedCritterPomonaConfiguration : CritterPomonaConfiguration
+        {
+            public override IEnumerable<object> FluentRuleObjects
+            {
+                get { return base.FluentRuleObjects.Concat(new ModifiedFluentRules()); }
+            }
+        }
+
+        #endregion
+
+        #region Nested type: ModifiedFluentRules
+
         internal class ModifiedFluentRules
         {
             public void Map(ITypeMappingConfigurator<UnpostableThingOnServer> map)
@@ -58,49 +123,6 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             }
         }
 
-        private class ModifiedCritterPomonaConfiguration : CritterPomonaConfiguration
-        {
-            public override IEnumerable<object> FluentRuleObjects
-            {
-                get { return base.FluentRuleObjects.Concat(new ModifiedFluentRules()); }
-            }
-        }
-        private static void Main(string[] args)
-        {
-            var typeMapper = new TypeMapper(new ModifiedCritterPomonaConfiguration());
-
-            // Modify property Protected of class Critter to not be protected in client dll.
-            // This is to test setting a protected property will throw exception on server.
-#if false
-
-            Console.WriteLine("Test");
-            var protectedPropertyOfCritter =
-                typeMapper.TransformedTypes.First(x => x.Name == "Critter")
-                    .Properties.OfType<PropertyMapping>()
-                    .First(x => x.Name == "Protected");
-
-            protectedPropertyOfCritter.AccessMode = HttpMethod.Get | HttpMethod.Put;
-
-            // Modify UnpostableThingOnServer to generate form type for post.
-            // This is to check that server generates correct status code.
-
-            var unpostableThing = typeMapper.TransformedTypes.First(x => x.Name == "UnpostableThingOnServer");
-            unpostableThing.AllowedMethods |= HttpMethod.Post;
-#endif
-            using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
-            {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
-            }
-
-            using (
-                var file = new FileStream(
-                    @"..\..\..\..\lib\Critters.Client.WithEmbeddedPomonaClient.dll",
-                    FileMode.OpenOrCreate))
-            {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : true);
-            }
-
-            Console.WriteLine("Wrote client dll.");
-        }
+        #endregion
     }
 }

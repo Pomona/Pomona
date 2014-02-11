@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,21 +24,21 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
+#endregion
 
 namespace Pomona.Common.Serialization.Csv
 {
-    public class PomonaCsvSerializerFactory : ISerializerFactory
+    public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
     {
-        public IDeserializer GetDeserializer()
+        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
+            : base(contextProvider)
         {
-            throw new NotSupportedException();
         }
 
 
-        public ISerializer GetSerialier()
+        public override PomonaCsvSerializer GetSerializer()
         {
-            return new PomonaCsvSerializer();
+            return new PomonaCsvSerializer(ContextProvider);
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,17 +27,18 @@
 #endregion
 
 using System;
-using Microsoft.Practices.ServiceLocation;
+
 using Nancy;
 using Nancy.Validation;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class CritterModule : PomonaModule
     {
-        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
-            : base(dataSource, typeMapper, serviceLocator)
+        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper)
+            : base(dataSource, typeMapper)
         {
         }
 
@@ -47,19 +48,19 @@ namespace Pomona.Example
             get { return (CritterDataSource)DataSource; }
         }
 
+
         protected override PomonaError OnException(Exception exception)
         {
             if (exception is ModelValidationException)
-            {
                 return new PomonaError(HttpStatusCode.BadRequest, new ErrorStatus(exception.Message, 1337));
-            }
 
             if (exception is ResourceValidationException)
             {
                 var validationException = (ResourceValidationException)exception;
                 return new PomonaError(HttpStatusCode.BadRequest,
-                                       new ErrorStatus(validationException.Message, 0xdead,
-                                                       validationException.MemberName));
+                    new ErrorStatus(validationException.Message,
+                        0xdead,
+                        validationException.MemberName));
             }
 
             return base.OnException(exception);

@@ -38,17 +38,11 @@ namespace Pomona.TestHelpers
     public class NancyTestingWebClient : IWebClient
     {
         private readonly Browser browser;
-        private readonly IHttpHeaders headers = new HttpHeaders();
 
         public NancyTestingWebClient(Browser browser)
         {
             if (browser == null) throw new ArgumentNullException("browser");
             this.browser = browser;
-        }
-
-        public IHttpHeaders Headers
-        {
-            get { return headers; }
         }
 
         public NetworkCredential Credentials { get; set; }
@@ -75,7 +69,7 @@ namespace Pomona.TestHelpers
             var uri = new Uri(request.Uri);
             var creds = Credentials;
 
-            var browserResponse = browserMethod(uri.LocalPath, bc =>
+            var browserResponse = browserMethod(request.Uri, bc =>
                 {
                     bc.HttpRequest();
                     if (creds != null)
@@ -83,7 +77,7 @@ namespace Pomona.TestHelpers
                         bc.BasicAuth(creds.UserName, creds.Password);
                     }
                     ((IBrowserContextValues) bc).QueryString = uri.Query;
-                    foreach (var kvp in headers.Concat(request.Headers))
+                    foreach (var kvp in request.Headers)
                     {
                         foreach (var v in kvp.Value)
                             bc.Header(kvp.Key, v);

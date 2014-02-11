@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 
 namespace Pomona.Common
@@ -29,7 +33,6 @@ namespace Pomona.Common
     [Flags]
     public enum HttpMethod
     {
-
         /// <summary>
         /// Property is readable.
         /// </summary>
@@ -41,7 +44,7 @@ namespace Pomona.Common
         /// Property is settable, always implies that Post is also allowed.
         /// </summary>
         Put = 1 << 2,
-        
+
         Patch = 1 << 3,
 
         Delete = 1 << 4

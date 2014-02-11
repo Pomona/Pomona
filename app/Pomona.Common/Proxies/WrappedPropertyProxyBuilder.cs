@@ -118,20 +118,26 @@ namespace Pomona.Common.Proxies
             var proxyOnSetMethodInstance = proxyOnSetMethod.MakeGenericMethod(proxyTargetType, proxyProp.PropertyType);
 
             var getMethod = (MethodDefinition) proxyProp.GetGetMethod(true);
-            var getIl = getMethod.GetILGenerator();
+            if (getMethod != null)
+            {
+                var getIl = getMethod.GetILGenerator();
 
-            getIl.Emit(OpCodes.Ldarg_0);
-            getIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
-            getIl.Emit(OpCodes.Callvirt, proxyOnGetMethodInstance);
-            getIl.Emit(OpCodes.Ret);
+                getIl.Emit(OpCodes.Ldarg_0);
+                getIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
+                getIl.Emit(OpCodes.Callvirt, proxyOnGetMethodInstance);
+                getIl.Emit(OpCodes.Ret);
+            }
 
             var setMethod = (MethodDefinition) proxyProp.GetSetMethod(true);
-            var setIl = setMethod.GetILGenerator();
-            setIl.Emit(OpCodes.Ldarg_0);
-            setIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
-            setIl.Emit(OpCodes.Ldarg_1);
-            setIl.Emit(OpCodes.Callvirt, proxyOnSetMethodInstance);
-            setIl.Emit(OpCodes.Ret);
+            if (setMethod != null)
+            {
+                var setIl = setMethod.GetILGenerator();
+                setIl.Emit(OpCodes.Ldarg_0);
+                setIl.Emit(OpCodes.Ldsfld, propertyWrapperField);
+                setIl.Emit(OpCodes.Ldarg_1);
+                setIl.Emit(OpCodes.Callvirt, proxyOnSetMethodInstance);
+                setIl.Emit(OpCodes.Ret);
+            }
         }
 
         protected override void OnPropertyGenerationComplete(TypeDefinition proxyType)

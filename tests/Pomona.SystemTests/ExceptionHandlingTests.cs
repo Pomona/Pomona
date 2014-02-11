@@ -41,14 +41,14 @@ namespace Pomona.SystemTests
         public void Get_CritterAtNonExistingUrl_ThrowsWebClientException()
         {
             Assert.Throws<Common.Web.ResourceNotFoundException>(
-                () => client.Get<ICritter>(client.BaseUri + "critters/38473833"));
+                () => Client.Get<ICritter>(Client.BaseUri + "critters/38473833"));
         }
 
 
         [Test]
         public void Post_FailingThing_ThrowsWebClientException()
         {
-            var ex = Assert.Throws<WebClientException>(() => client.FailingThings.Post(new FailingThingForm()));
+            var ex = Assert.Throws<WebClientException>(() => Client.FailingThings.Post(new FailingThingForm()));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
     }

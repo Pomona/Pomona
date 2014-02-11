@@ -28,22 +28,22 @@ using System.Reflection;
 
 namespace Pomona.Common.Internals
 {
-    public class CustomUserTypeInfo
+    public class ExtendedResourceInfo
     {
-        private readonly Type clientType;
+        private readonly Type extendedType;
         private readonly PropertyInfo dictProperty;
         private readonly Type serverType;
 
-        private CustomUserTypeInfo(Type clientType, Type serverType, PropertyInfo dictProperty)
+        private ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty)
         {
-            this.clientType = clientType;
+            this.extendedType = extendedType;
             this.serverType = serverType;
             this.dictProperty = dictProperty;
         }
 
-        public Type ClientType
+        public Type ExtendedType
         {
-            get { return clientType; }
+            get { return this.extendedType; }
         }
 
         public Type ServerType
@@ -56,7 +56,7 @@ namespace Pomona.Common.Internals
             get { return dictProperty; }
         }
 
-        internal static bool TryGetCustomUserTypeInfo(Type clientType, IPomonaClient client, out CustomUserTypeInfo info)
+        internal static bool TryGetExtendedResourceInfo(Type clientType, IClientTypeResolver client, out ExtendedResourceInfo info)
         {
             info = null;
             var serverTypeInfo = client.GetMostInheritedResourceInterfaceInfo(clientType);
@@ -69,7 +69,7 @@ namespace Pomona.Common.Internals
                 return false;
 
             var dictProperty = GetAttributesDictionaryPropertyFromResource(serverType);
-            info = new CustomUserTypeInfo(clientType, serverType, dictProperty);
+            info = new ExtendedResourceInfo(clientType, serverType, dictProperty);
             return true;
         }
 

@@ -36,24 +36,58 @@ using System.Text;
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
     public sealed class FluentTypeMappingFilter : ITypeMappingFilter
     {
+        private class NestedTypeMappingConfigurator<TDeclaring> : TypeMappingConfiguratorBase<TDeclaring>
+        {
+            readonly List<Delegate> typeConfigurationDelegates = new List<Delegate>();
+
+
+            public NestedTypeMappingConfigurator(List<Delegate> typeConfigurationDelegates)
+            {
+                this.typeConfigurationDelegates = typeConfigurationDelegates;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+            {
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping = x => x.AsChildResourceOf(parentProperty, collectionProperty);
+                typeConfigurationDelegates.Add(asChildResourceMapping);
+                typeConfigurationDelegates.Add(typeOptions);
+                return this;
+            }
+        }
+
         private readonly IDictionary<string, TypeMappingOptions> typeMappingDict =
             new Dictionary<string, TypeMappingOptions>();
 
         private readonly ITypeMappingFilter wrappedFilter;
+        private readonly IEnumerable<Type> sourceTypes;
 
 
-        public FluentTypeMappingFilter(ITypeMappingFilter wrappedFilter, params object[] fluentRuleObjects)
+        public FluentTypeMappingFilter(ITypeMappingFilter wrappedFilter, IEnumerable<object> fluentRuleObjects, IEnumerable<Delegate> mapDelegates, IEnumerable<Type> sourceTypes)
         {
             this.wrappedFilter = wrappedFilter;
+            this.sourceTypes = sourceTypes ?? Enumerable.Empty<Type>();
 
-            foreach (var ruleObj in fluentRuleObjects)
-                ApplyRules(ruleObj);
+            var ruleMethods =
+                GetMappingRulesFromObjects(fluentRuleObjects).Concat(GetMappingRulesFromDelegates(mapDelegates)).Flatten
+                    (x => x.GetChildRules());
+
+            ApplyRules(ruleMethods);
+        }
+
+        private IEnumerable<RuleMethod> GetMappingRulesFromDelegates(IEnumerable<Delegate> mapDelegates)
+        {
+            if (mapDelegates == null)
+                return Enumerable.Empty<RuleMethod>();
+
+            return mapDelegates.Where(x => IsRuleMethod(x.Method)).Select(x => new RuleMethod(x.Method, x.Target));
         }
 
 
@@ -110,9 +144,20 @@ namespace TestNs
         }
 
 
+        string ITypeMappingFilter.GetClientInformationalVersion()
+        {
+            return this.wrappedFilter.GetClientInformationalVersion();
+        }
+
+
         public Type GetClientLibraryType(Type type)
         {
             return this.wrappedFilter.GetClientLibraryType(type);
+        }
+
+        public bool GenerateIndependentClient()
+        {
+            return this.wrappedFilter.GenerateIndependentClient();
         }
 
 
@@ -126,13 +171,6 @@ namespace TestNs
         {
             return this.wrappedFilter.GetDefaultPropertyInclusionMode();
         }
-
-
-        public object GetIdFor(object entity)
-        {
-            return this.wrappedFilter.GetIdFor(entity);
-        }
-
 
         public JsonConverter GetJsonConverterForType(Type type)
         {
@@ -155,6 +193,12 @@ namespace TestNs
                     (x.ItemMethod & x.ItemMethodMask)
                     | (this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
                 () => this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo));
+        }
+
+
+        public PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return wrappedFilter.GetPropertyFlags(propertyInfo);
         }
 
 
@@ -230,13 +274,6 @@ namespace TestNs
         {
             return this.wrappedFilter.GetPropertyType(propertyInfo);
         }
-
-
-        public IEnumerable<Type> GetSourceTypes()
-        {
-            return this.wrappedFilter.GetSourceTypes();
-        }
-
 
         public ConstructorSpec GetTypeConstructor(Type type)
         {
@@ -435,27 +472,57 @@ namespace TestNs
             return paramType.UniqueToken() == typeof(ITypeMappingConfigurator<>).UniqueToken();
         }
 
-
-        private void ApplyRules(params object[] ruleContainers)
+        private class RuleMethod
         {
-            if (ruleContainers == null)
-                throw new ArgumentNullException("ruleContainers");
+            private readonly Type appliesToType;
 
-            var allTransformedTypes = GetSourceTypes().Where(TypeIsMappedAsTransformedType).ToList();
+            public Type AppliesToType
+            {
+                get { return appliesToType; }
+            }
 
-            // Find all rule methods in all instances
-            var ruleMethods = ruleContainers
-                .SelectMany(
-                    x => x.GetType()
-                        .GetMethods()
-                        .Where(IsRuleMethod)
-                        .Select(
-                            m => new
-                            {
-                                Method = m,
-                                Instance = x,
-                                AppliesToType = m.GetParameters()[0].ParameterType.GetGenericArguments()[0]
-                            }));
+            public MethodInfo Method
+            {
+                get { return method; }
+            }
+
+            public object Instance
+            {
+                get { return instance; }
+            }
+
+            private readonly MethodInfo method;
+            private readonly object instance;
+
+            public RuleMethod(MethodInfo method, object instance)
+            {
+                this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
+                this.method = method;
+                this.instance = instance;
+            }
+
+
+            public static MethodInfo getChildRulesMethod =
+                ReflectionHelper.GetMethodDefinition<RuleMethod>(x => x.GetChildRules<object>());
+
+            private IEnumerable<RuleMethod> GetChildRules<T>()
+            {
+                var typeConfigDelegates = new List<Delegate>();
+                var nestedScanner = new NestedTypeMappingConfigurator<T>(typeConfigDelegates);
+                Method.Invoke(Instance, new object[] { nestedScanner });
+                return typeConfigDelegates.Select(x => new RuleMethod(x.Method, x.Target)).ToList();
+            }
+
+            public IEnumerable<RuleMethod> GetChildRules()
+            {
+                return (IEnumerable<RuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
+            }
+        }
+
+
+        private void ApplyRules(IEnumerable<RuleMethod> ruleMethods)
+        {
+            var allTransformedTypes = sourceTypes.Where(TypeIsMappedAsTransformedType).ToList();
 
             // NOTE: We need to order the properties in ascending order by how
             //       specific their declaring types are so we get the most
@@ -465,13 +532,26 @@ namespace TestNs
             foreach (var ruleMethod in ruleMethods)
             {
                 var appliesToType = ruleMethod.AppliesToType;
-                foreach (var subType in allTransformedTypes.Where(x => appliesToType.IsAssignableFrom(x)))
+                foreach (var subType in allTransformedTypes.Where(appliesToType.IsAssignableFrom))
                 {
                     var typeMapping = GetTypeMapping(subType);
                     var configurator = typeMapping.GetConfigurator(ruleMethod.AppliesToType);
                     ruleMethod.Method.Invoke(ruleMethod.Instance, new[] { configurator });
                 }
             }
+        }
+
+        private static IEnumerable<RuleMethod> GetMappingRulesFromObjects(IEnumerable<object> ruleContainers)
+        {
+            if (ruleContainers == null)
+                return Enumerable.Empty<RuleMethod>();
+            return ruleContainers
+                .SelectMany(
+                    x => x.GetType()
+                        .GetMethods()
+                        .Where(IsRuleMethod)
+                        .Select(
+                            m => new RuleMethod(m, x)));
         }
 
 

@@ -44,9 +44,15 @@ namespace Pomona
         DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
         string GetClientAssemblyName();
+        string GetClientInformationalVersion();
         Type GetClientLibraryType(Type type);
+
+        /// <summary>
+        /// This will make sure we generate a client dll with no dependency on Pomona.Common.
+        /// </summary>
+        bool GenerateIndependentClient();
+
         bool IsIndependentTypeRoot(Type type);
-        object GetIdFor(object entity);
         JsonConverter GetJsonConverterForType(Type type);
         PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);
         Type GetPostReturnType(Type type);
@@ -55,14 +61,6 @@ namespace Pomona
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);
         ConstructorSpec GetTypeConstructor(Type type);
-
-        /// <summary>
-        /// Gets a list of all types to CONSIDER for inclusion.
-        /// (they will be filtered first)
-        /// </summary>
-        /// <returns>List of types considered for mapping.</returns>
-        IEnumerable<Type> GetSourceTypes();
-
 
 
         /// <summary>
@@ -104,5 +102,6 @@ namespace Pomona
 
         Action<object> GetOnDeserializedHook(Type type);
         HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
+        PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
     }
 }

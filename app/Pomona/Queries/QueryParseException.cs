@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,42 +24,71 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+
 using Antlr.Runtime.Tree;
+
+using Nancy;
 
 namespace Pomona.Queries
 {
-    public class QueryParseException : Exception
+    public class QueryParseException : PomonaException
     {
+        private readonly QueryParseErrorReason errorReason;
+        private readonly string memberName;
+
+
         public QueryParseException()
         {
         }
 
 
-        public QueryParseException(string message) : base(message)
+        protected QueryParseException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 
 
-        public QueryParseException(string message, Exception innerException) : base(message, innerException)
+        internal QueryParseException(string message,
+            Exception innerException,
+            QueryParseErrorReason errorReason,
+            string memberName)
+            : base(message, innerException, HttpStatusCode.BadRequest)
         {
+            this.errorReason = errorReason;
+            this.memberName = memberName;
         }
 
-        protected QueryParseException(SerializationInfo info, StreamingContext context) : base(info, context)
+
+        /// <summary>
+        /// The reason for why query parsing failed
+        /// </summary>
+        public QueryParseErrorReason ErrorReason
         {
+            get { return this.errorReason; }
         }
 
-        private static string GetLineOfString(string text, int linenumber)
+        /// <summary>
+        /// The name of the member causing the query parsing error.
+        /// Will be null when not applicable.
+        /// </summary>
+        public string MemberName
         {
-            return text.Replace("\r", "").Split('\n').Skip(linenumber - 1).FirstOrDefault() ??
-                   "(WTF, unable to find line!!)";
+            get { return this.memberName; }
         }
 
-        internal static QueryParseException Create(ITree parserNode, string message, string parsedString,
-                                                   Exception innerException)
+
+        internal static QueryParseException Create(ITree parserNode,
+            string message,
+            string parsedString,
+            Exception innerException,
+            QueryParseErrorReason? errorReason = null,
+            string memberName = null)
         {
             if (parserNode != null && parsedString != null)
             {
@@ -73,15 +104,26 @@ namespace Pomona.Queries
                     sb.AppendFormat("({0})\r\n", commonErrorNode.trappedException.Message);
                 }
 
-                sb.AppendFormat("Error on line {0} character {1} of query:\r\n", line,
-                                charPositionInLine);
+                sb.AppendFormat("Error on line {0} character {1} of query:\r\n",
+                    line,
+                    charPositionInLine);
                 sb.Append(' ', charPositionInLine);
                 sb.AppendLine("|/");
                 sb.AppendLine(GetLineOfString(parsedString, line));
                 message = sb.ToString();
             }
 
-            return new QueryParseException(message, innerException);
+            return new QueryParseException(message,
+                innerException,
+                errorReason ?? QueryParseErrorReason.GenericError,
+                memberName);
+        }
+
+
+        private static string GetLineOfString(string text, int linenumber)
+        {
+            return text.Replace("\r", "").Split('\n').Skip(linenumber - 1).FirstOrDefault() ??
+                   "(WTF, unable to find line!!)";
         }
     }
 }

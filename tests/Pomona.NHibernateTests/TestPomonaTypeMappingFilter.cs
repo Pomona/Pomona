@@ -10,18 +10,8 @@ namespace PomonaNHibernateTest
     {
         #region Overrides of TypeMappingFilterBase
 
-        public override object GetIdFor(object entity)
+        public TestPomonaTypeMappingFilter(IEnumerable<Type> sourceTypes) : base(sourceTypes)
         {
-            var entityAttribute = entity as EntityAttribute;
-            return entityAttribute != null ? entityAttribute.Id : ((EntityBase) entity).Id;
-        }
-
-
-        public override IEnumerable<Type> GetSourceTypes()
-        {
-            return
-                typeof (EntityBase).Assembly.GetTypes()
-                                   .Where(x => typeof (EntityBase).IsAssignableFrom(x) || x == typeof (EntityAttribute));
         }
 
         #endregion

@@ -38,8 +38,8 @@ namespace Pomona.SystemTests
         [Test]
         public void PostCaptureCommandToCritter_IsSuccessful()
         {
-            var critterResource = client.Critters.Query().First();
-            client.Critters.Post(critterResource, new CaptureCommandForm() {FooBar = "lalala"});
+            var critterResource = Client.Critters.Query().First();
+            Client.Critters.Post(critterResource, new CaptureCommandForm() {FooBar = "lalala"});
         }
     }
 }

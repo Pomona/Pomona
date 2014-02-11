@@ -38,43 +38,51 @@ using Newtonsoft.Json.Linq;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
-using Pomona.Internals;
 
 namespace Pomona.Common.Serialization.Json
 {
-    public class PomonaJsonDeserializer : IDeserializer<PomonaJsonDeserializer.Reader>
+    public class PomonaJsonDeserializer : ITextDeserializer
     {
-        private static readonly MethodInfo deserializeArrayNodeGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => x.DeserializeArrayNodeGeneric<object>(null, null));
+        private readonly ISerializationContextProvider contextProvider;
 
-        private static readonly MethodInfo deserializeDictionaryGenericMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => x.DeserializeDictionaryGeneric<object>(null, null, null));
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
+            deserializeArrayNodeGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
+                    x => x.DeserializeArrayNodeGeneric<object>(null, null));
+
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader, DictionaryTypeSpec>
+            deserializeDictionaryGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>()
+                    .CreateAction1<IDeserializerNode, Reader, DictionaryTypeSpec>(
+                        x => x.DeserializeDictionaryGeneric<object>(null, null, null));
 
         private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
 
-        private static MethodInfo createPropertyValueSourceMethod =
-            ReflectionHelper.GetMethodDefinition<PomonaJsonDeserializer>(
-                x => CreatePropertyValueSource<object>(null, null, null));
+        private static Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
+            createPropertyValueSourceMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
+                    x => x.CreatePropertyValueSource<object>(null, null));
 
         private readonly JsonSerializer jsonSerializer;
 
 
-        public PomonaJsonDeserializer()
+        public PomonaJsonDeserializer(ISerializationContextProvider contextProvider)
         {
+            if (contextProvider == null)
+                throw new ArgumentNullException("contextProvider");
+            this.contextProvider = contextProvider;
             this.jsonSerializer = new JsonSerializer();
             this.jsonSerializer.Converters.Add(new StringEnumConverter());
         }
 
 
-        public Reader CreateReader(TextReader textReader)
+        private Reader CreateReader(TextReader textReader)
         {
             return new Reader(JToken.ReadFrom(new JsonTextReader(textReader)));
         }
 
 
-        public object Deserialize(TextReader textReader,
+        private object Deserialize(TextReader textReader,
             TypeSpec expectedBaseType,
             IDeserializationContext context,
             object patchedObject)
@@ -85,12 +93,18 @@ namespace Pomona.Common.Serialization.Json
                 node.Value = patchedObject;
 
             var reader = CreateReader(textReader);
-            node.Deserialize(this, reader);
+            DeserializeThroughContext(node, reader);
             return node.Value;
         }
 
 
-        public void DeserializeNode(IDeserializerNode node, Reader reader)
+        private void DeserializeThroughContext(IDeserializerNode node, Reader reader)
+        {
+            node.Context.Deserialize(node, n => DeserializeNode(n, reader));
+        }
+
+
+        private void DeserializeNode(IDeserializerNode node, Reader reader)
         {
             if (reader.Token.Type == JTokenType.Null)
             {
@@ -136,32 +150,10 @@ namespace Pomona.Common.Serialization.Json
             }
         }
 
-
-        public void DeserializeNode(IDeserializerNode node, ISerializerReader reader)
+        private PropertyValueSource<T> CreatePropertyValueSource<T>(JObject jobj,
+            IDeserializerNode node)
         {
-            DeserializeNode(node, (Reader)reader);
-        }
-
-
-        public void DeserializeQueryResult(QueryResult queryResult, ISerializationContext fetchContext, Reader writer)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public void DeserializeQueryResult(QueryResult queryResult,
-            ISerializationContext fetchContext,
-            ISerializerReader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        private static PropertyValueSource<T> CreatePropertyValueSource<T>(JObject jobj,
-            IDeserializerNode node,
-            PomonaJsonDeserializer deserializer)
-        {
-            return new PropertyValueSource<T>(jobj, node, deserializer);
+            return new PropertyValueSource<T>(jobj, node, this);
         }
 
 
@@ -176,7 +168,15 @@ namespace Pomona.Common.Serialization.Json
 
             var refString = (string)((JValue)refStringToken).Value;
             node.Uri = refString;
-            node.Value = node.Context.CreateReference(node);
+
+            try
+            {
+                node.Value = node.Context.CreateReference(node);
+            }
+            catch (Exception ex)
+            {
+                throw new PomonaSerializationException("Failed to deserialize: " + ex.Message, ex);
+            }
             return true;
         }
 
@@ -188,13 +188,6 @@ namespace Pomona.Common.Serialization.Json
             return value;
         }
 
-
-        ISerializerReader IDeserializer.CreateReader(TextReader textReader)
-        {
-            return CreateReader(textReader);
-        }
-
-
         private void DeserializeArrayNode(IDeserializerNode node, Reader reader)
         {
             if (TryDeserializeAsReference(node, reader))
@@ -202,17 +195,16 @@ namespace Pomona.Common.Serialization.Json
 
             var elementType = node.ExpectedBaseType.ElementType;
 
-            deserializeArrayNodeGenericMethod.MakeGenericMethod(elementType.Type)
-                .Invoke(this, new object[] { node, reader });
+            deserializeArrayNodeGenericMethod(elementType, this, node, reader);
         }
 
 
-        private object DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
+        private void DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
         {
             // Return type should be void, but ReflectionHelper.GetMethodDefinition only works with methods with non-void return type.
 
             if (TryDeserializeAsReference(node, reader))
-                return null;
+                return;
 
             var jarr = reader.Token as JArray;
             if (jarr == null)
@@ -254,7 +246,7 @@ namespace Pomona.Common.Serialization.Json
                         var identifierNode = new ItemValueDeserializerNode(identifyProp.PropertyType,
                             itemNode.Context,
                             parent : itemNode);
-                        identifierNode.Deserialize(this, new Reader(jprop.Value));
+                        DeserializeThroughContext(identifierNode, new Reader(jprop.Value));
                         var identifierValue = identifierNode.Value;
 
                         if (jprop.Name[0] == '-')
@@ -280,7 +272,7 @@ namespace Pomona.Common.Serialization.Json
                     else if (isPatching)
                         node.CheckAccessRights(HttpMethod.Post);
 
-                    itemNode.Deserialize(this, new Reader(jitem));
+                    DeserializeThroughContext(itemNode, new Reader(jitem));
                     if (itemNode.Operation != DeserializerNodeOperation.Patch)
                         collection.Add((TElement)itemNode.Value);
                 }
@@ -288,8 +280,6 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.Value == null)
                 node.Value = collection;
-
-            return null;
         }
 
 
@@ -310,9 +300,7 @@ namespace Pomona.Common.Serialization.Json
             if (node.Operation == DeserializerNodeOperation.Default)
                 node.Operation = node.Value == null ? DeserializerNodeOperation.Post : DeserializerNodeOperation.Patch;
 
-            var propertyValueSource =
-                (IJsonPropertyValueSource)createPropertyValueSourceMethod.MakeGenericMethod(node.ValueType)
-                    .Invoke(null, new object[] { jobj, node, this });
+            var propertyValueSource = createPropertyValueSourceMethod(node.ValueType, this, jobj, node);
             propertyValueSource.Deserialize();
         }
 
@@ -333,13 +321,11 @@ namespace Pomona.Common.Serialization.Json
 
             var valueType = dictType.ValueType.Type;
 
-            deserializeDictionaryGenericMethod
-                .MakeGenericMethod(valueType)
-                .Invoke(this, new object[] { node, reader, dictType });
+            deserializeDictionaryGenericMethod(valueType, this, node, reader, dictType);
         }
 
 
-        private object DeserializeDictionaryGeneric<TValue>(IDeserializerNode node,
+        private void DeserializeDictionaryGeneric<TValue>(IDeserializerNode node,
             Reader reader,
             DictionaryTypeSpec dictType)
         {
@@ -383,15 +369,13 @@ namespace Pomona.Common.Serialization.Json
                     var itemNode = new ItemValueDeserializerNode(valueType,
                         node.Context,
                         node.ExpandPath + "." + unescapedPropertyName);
-                    itemNode.Deserialize(this, new Reader(jprop.Value));
+                    DeserializeThroughContext(itemNode, new Reader(jprop.Value));
                     dict[unescapedPropertyName] = (TValue)itemNode.Value;
                 }
             }
 
             if (node.Value == null)
                 node.Value = dict;
-
-            return null;
         }
 
 
@@ -516,7 +500,7 @@ namespace Pomona.Common.Serialization.Json
                     return defaultFactory();
                 }
                 var propNode = new PropertyValueDeserializerNode(this.node, targetProp);
-                propNode.Deserialize(this.deserializer, new Reader(propContainer.JProperty.Value));
+                deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
                 propContainer.Fetched = true;
                 return (TProperty)propNode.Value;
             }
@@ -568,7 +552,7 @@ namespace Pomona.Common.Serialization.Json
                             Operation = propContainer.Operation
                         };
                         var oldValue = propNode.Value = propNode.Property.Getter(this.node.Value);
-                        propNode.Deserialize(this.deserializer, new Reader(propContainer.JProperty.Value));
+                        deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
                         var newValue = propNode.Value;
                         if (oldValue != newValue)
                             this.node.SetProperty(prop, newValue);
@@ -626,7 +610,7 @@ namespace Pomona.Common.Serialization.Json
 
         #region Nested type: Reader
 
-        public class Reader : ISerializerReader
+        internal class Reader
         {
             private readonly JToken token;
 
@@ -644,5 +628,15 @@ namespace Pomona.Common.Serialization.Json
         }
 
         #endregion
+
+        public object Deserialize(TextReader textReader, DeserializeOptions options = null)
+        {
+            options = options ?? new DeserializeOptions();
+            var context = contextProvider.GetDeserializationContext(options);
+            return Deserialize(textReader,
+                options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
+                context,
+                options.Target);
+        }
     }
 }

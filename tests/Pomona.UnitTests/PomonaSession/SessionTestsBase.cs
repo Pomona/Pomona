@@ -79,33 +79,5 @@ namespace Pomona.UnitTests.PomonaSession
             this.repository = new CritterRepository(typeMapper);
             firstCritter = this.repository.List<Critter>().First();
         }
-
-        private class DummyUriResolver : IUriResolver
-        {
-            public object ResolveUri(string uri)
-            {
-                return null;
-            }
-
-            public string RelativeToAbsoluteUri(string uri)
-            {
-                return "http://localhost/" + uri;
-            }
-
-            public string GetUriFor(object entity)
-            {
-                throw new NotImplementedException();
-            }
-
-            public string GetUriFor(PropertySpec property, object entity)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ITypeMapper TypeMapper
-            {
-                get { throw new NotImplementedException(); }
-            }
-        }
     }
 }

@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,15 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using Microsoft.Practices.ServiceLocation;
+#endregion
+
 using Pomona;
 
 namespace PomonaNHibernateTest
 {
     public class TestPomonaModule : PomonaModule
     {
-        public TestPomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, IServiceLocator serviceLocator)
-            : base(dataSource, typeMapper, serviceLocator)
+        public TestPomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
+            : base(dataSource, typeMapper)
         {
         }
     }

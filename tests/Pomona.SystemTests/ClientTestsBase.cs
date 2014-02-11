@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,126 +24,55 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Critters.Client;
-using NUnit.Framework;
+
 using Nancy.Testing;
+
+using NUnit.Framework;
+
 using Pomona.Common;
-using Pomona.Common.Web;
 using Pomona.Example;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
+using Pomona.UnitTests.Client;
 
 namespace Pomona.SystemTests
 {
-    public class ClientTestsBase
+    public class ClientTestsBase : CritterServiceTestsBase<Client>
     {
-        public const bool UseSelfHostedHttpServerDefault = false;
-        private static Client cachedNancyTestingClient;
-        private static Pomona.Example.CritterRepository cachedNancyTestingClientRepository;
-        private string baseUri;
-
-        protected Client client;
-        private CritterHost critterHost;
-
-        public virtual bool UseSelfHostedHttpServer
-        {
-            get { return UseSelfHostedHttpServerDefault; }
-        }
-
-        protected string BaseUri
-        {
-            get { return baseUri; }
-        }
-
-        public Pomona.Example.CritterRepository Repository { get; private set; }
-
-        protected ICollection<Critter> CritterEntities
-        {
-            get { return this.Repository.List<Critter>(); }
-        }
-
-        protected T Save<T>(T entity)
-        {
-            return this.Repository.Save(entity);
-        }
-
-
-        public void AssertIsOrderedBy<T, TOrderKey>(
-            IEnumerable<T> enumerable, Func<T, TOrderKey> orderby, SortOrder sortOrder)
-            where T : IEntityBase
-        {
-            var list = enumerable.ToList();
-            IEnumerable<T> expected;
-
-            if (sortOrder == SortOrder.Ascending)
-                expected = list.OrderBy(@orderby);
-            else
-                expected = list.OrderByDescending(@orderby);
-
-            Assert.That(list.SequenceEqual(expected), "Items in list was not ordered as expected.");
-        }
-
-        protected virtual IWebClient CreateWebClient()
-        {
-            return new WrappedHttpClient();
-        }
-
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            if (UseSelfHostedHttpServer)
-            {
-                var rng = new Random();
-                baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
-                Console.WriteLine("Starting CritterHost on " + baseUri);
-                critterHost = new CritterHost(new Uri(baseUri));
-                critterHost.Start();
-                client = new Client(baseUri, CreateWebClient());
-                this.Repository = critterHost.Repository;
-            }
-            else
-            {
-                baseUri = "http://test/";
-
-                if (cachedNancyTestingClient == null)
-                {
-                    var critterBootstrapper = new CritterBootstrapper();
-                    cachedNancyTestingClientRepository = critterBootstrapper.Repository;
-                    var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-                    cachedNancyTestingClient = new Client(baseUri, nancyTestingWebClient);
-                }
-                client = cachedNancyTestingClient;
-                this.Repository = cachedNancyTestingClientRepository;
-            }
-
-            client.RequestCompleted += ClientOnRequestCompleted;
-        }
-
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
-            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n", e.Request,
-                              (object) e.Response ?? "(nothing received)");
+            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
+                e.Request,
+                (object)e.Response ?? "(nothing received)");
         }
 
 
-        [TestFixtureTearDown]
-        public void FixtureTearDown()
+        public override Client CreateHttpTestingClient(string baseUri)
         {
-            if (UseSelfHostedHttpServer)
-                critterHost.Stop();
+            return new Client(baseUri);
         }
 
 
-        [SetUp]
-        public void SetUp()
+        public override Client CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
-            this.Repository.ResetTestData();
+            var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
+            return new Client(baseUri, nancyTestingWebClient);
+        }
+
+
+        public override void SetupRequestCompletedHandler()
+        {
+            Client.RequestCompleted += ClientOnRequestCompleted;
         }
 
 
@@ -155,18 +86,19 @@ namespace Pomona.SystemTests
         {
             var callingStackFrame = new StackFrame(1);
             var callingMethod = callingStackFrame.GetMethod();
-            Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof (TEntity).Name));
+            Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof(TEntity).Name));
 
-            var allEntities = this.Repository.List<TEntity>();
+            var allEntities = Repository.List<TEntity>();
             var entities =
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
-            var fetchedResources = client.Query<TResource>().Where(resourcePredicate).Take(1024*1024).ToList();
+            var fetchedResources = Client.Query<TResource>().Where(resourcePredicate).Take(1024 * 1024).ToList();
             Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
 
             if (expectedResultCount.HasValue)
             {
-                Assert.That(fetchedResources.Count, Is.EqualTo(expectedResultCount.Value),
-                            "Expected result count wrong.");
+                Assert.That(fetchedResources.Count,
+                    Is.EqualTo(expectedResultCount.Value),
+                    "Expected result count wrong.");
             }
 
             return fetchedResources;
@@ -181,9 +113,9 @@ namespace Pomona.SystemTests
 
         protected IHat PostAHat(string hatType)
         {
-            var hat = client.Post<IHat>(
+            var hat = Client.Post<IHat>(
                 x => { x.HatType = hatType; });
-            return (IHat) hat;
+            return (IHat)hat;
         }
 
 
@@ -205,11 +137,11 @@ namespace Pomona.SystemTests
 
         private bool IsAllowedClientReferencedAssembly(Assembly assembly)
         {
-            return assembly == typeof (object).Assembly ||
-                   assembly == typeof (ICritter).Assembly ||
-                   assembly == typeof (ClientBase).Assembly ||
-                   assembly == typeof (IQueryProvider).Assembly ||
-                   assembly == typeof (Uri).Assembly;
+            return assembly == typeof(object).Assembly ||
+                   assembly == typeof(ICritter).Assembly ||
+                   assembly == typeof(ClientBase).Assembly ||
+                   assembly == typeof(IQueryProvider).Assembly ||
+                   assembly == typeof(Uri).Assembly;
         }
 
         #region Nested type: IHasCustomAttributes

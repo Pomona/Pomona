@@ -39,7 +39,7 @@ using Pomona.Fetcher;
 
 using PomonaNHibernateTest.Models;
 
-using ReflectionHelper = Pomona.Internals.ReflectionHelper;
+using ReflectionHelper = Pomona.Common.Internals.ReflectionHelper;
 
 namespace PomonaNHibernateTest
 {

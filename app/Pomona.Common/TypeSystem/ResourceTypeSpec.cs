@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,14 +28,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+
+using Pomona.Common.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
     public class ResourceType : TransformedType
     {
+        private static readonly MethodInfo convertToPathEncodedStringMethod =
+            ReflectionHelper.GetMethodDefinition<ResourceType>(x => ConvertToPathEncodedString(null));
+
+        private static readonly MethodInfo stringBuilderAppendFormatMethod =
+            ReflectionHelper.GetMethodDefinition<StringBuilder>(
+                x => x.AppendFormat((IFormatProvider)null, "", new object[] { }));
+
         private readonly Lazy<ResourceTypeDetails> resourceTypeDetails;
         private readonly Lazy<ResourceType> uriBaseType;
+        private readonly Lazy<Action<object, StringBuilder>> uriGenerator;
 
 
         public ResourceType(IExportedTypeResolver typeResolver, Type type)
@@ -43,6 +57,7 @@ namespace Pomona.Common.TypeSystem
         {
             this.uriBaseType = CreateLazy(() => typeResolver.LoadUriBaseType(this));
             this.resourceTypeDetails = CreateLazy(() => typeResolver.LoadResourceTypeDetails(this));
+            this.uriGenerator = CreateLazy(() => BuildUriGenerator(this).Compile());
         }
 
 
@@ -96,9 +111,115 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.UriRelativePath; }
         }
 
+        public string UriTemplate
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                BuildUriTemplate(this, sb, string.Empty);
+                return sb.ToString();
+            }
+        }
+
         protected ResourceTypeDetails ResourceTypeDetails
         {
             get { return this.resourceTypeDetails.Value; }
+        }
+
+
+        public void AppendUri(object o, StringBuilder sb)
+        {
+            this.uriGenerator.Value(o, sb);
+        }
+
+
+        public string ToUri(object o)
+        {
+            var sb = new StringBuilder();
+            AppendUri(o, sb);
+            return sb.ToString();
+        }
+
+
+        private static Expression<Action<object, StringBuilder>> BuildUriGenerator(ResourceType rt)
+        {
+            var parameterExpression = Expression.Parameter(typeof(object), "x");
+            var objParam = Expression.Convert(parameterExpression, rt);
+            var sbParam = Expression.Parameter(typeof(StringBuilder), "sb");
+            var sbArgs = new List<Expression>();
+            var formatStringBuilder = new StringBuilder();
+            BuildUriGenerator(rt, sbArgs, objParam, formatStringBuilder);
+            var sbArgsEncoded =
+                sbArgs.Select(
+                    GetUrlPathEncodedExpression);
+
+            return Expression.Lambda<Action<object, StringBuilder>>(Expression.Call(sbParam,
+                stringBuilderAppendFormatMethod,
+                Expression.Constant(CultureInfo.InvariantCulture),
+                Expression.Constant(formatStringBuilder.ToString()),
+                Expression.NewArrayInit(typeof(object), sbArgsEncoded)),
+                parameterExpression,
+                sbParam);
+        }
+
+
+        private static void BuildUriGenerator(ResourceType rt,
+            List<Expression> sbFormatArgs,
+            Expression parentExpression,
+            StringBuilder formatStringBuilder)
+        {
+            if (rt.ParentToChildProperty != null)
+            {
+                var nextParentExpr = rt.ChildToParentProperty.CreateGetterExpression(parentExpression);
+                BuildUriGenerator(rt.ParentResourceType, sbFormatArgs, nextParentExpr, formatStringBuilder);
+                var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
+                formatStringBuilder.AppendFormat("/{0}/{{{1}}}", rt.ParentToChildProperty.UriName, sbFormatArgs.Count);
+                sbFormatArgs.Add(sbArgsExpr);
+            }
+            else
+            {
+                var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
+                formatStringBuilder.AppendFormat("{0}/{{{1}}}", rt.UriRelativePath, sbFormatArgs.Count);
+                sbFormatArgs.Add(sbArgsExpr);
+            }
+        }
+
+
+        private static void BuildUriTemplate(ResourceType rt,
+            StringBuilder sb,
+            string parentPath,
+            bool useJsonNameStyle = false)
+        {
+            if (rt.ParentToChildProperty != null)
+            {
+                BuildUriTemplate(rt.ParentResourceType,
+                    sb,
+                    string.Format("{0}{1}.",
+                        parentPath,
+                        useJsonNameStyle ? rt.ChildToParentProperty.Name : rt.ChildToParentProperty.JsonName));
+                sb.AppendFormat("/{0}/{{{1}{2}}}",
+                    rt.ParentToChildProperty.UriName,
+                    parentPath,
+                    rt.PrimaryId.Name);
+            }
+            else
+                sb.AppendFormat("{0}/{{{1}{2}}}", rt.UriRelativePath, parentPath, rt.PrimaryId.Name);
+        }
+
+
+        private static string ConvertToPathEncodedString(object o)
+        {
+            return HttpUtility.UrlPathEncode(Convert.ToString(o, CultureInfo.InvariantCulture));
+        }
+
+
+        private static Expression GetUrlPathEncodedExpression(Expression expr)
+        {
+            if (expr.Type == typeof(int))
+                return Expression.Convert(expr, typeof(object));
+
+            return Expression.Call(convertToPathEncodedStringMethod,
+                Expression.Convert(expr, typeof(object)));
         }
 
 

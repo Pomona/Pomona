@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,13 +32,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-using Microsoft.Practices.ServiceLocation;
-
 using Nancy;
 
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.RequestProcessing;
 using Pomona.Schemas;
@@ -48,14 +47,12 @@ namespace Pomona
     public abstract class PomonaModule : NancyModule
     {
         private readonly IPomonaDataSource dataSource;
-        private readonly IServiceLocator serviceLocator;
         private readonly TypeMapper typeMapper;
 
 
         protected PomonaModule(
             IPomonaDataSource dataSource,
-            TypeMapper typeMapper,
-            IServiceLocator serviceLocator)
+            TypeMapper typeMapper)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
@@ -68,12 +65,11 @@ namespace Pomona
             this.dataSource = dataSource;
 
             this.typeMapper = typeMapper;
-            this.serviceLocator = serviceLocator;
 
             foreach (var transformedType in this.typeMapper
                 .TransformedTypes.OfType<ResourceType>()
                 .Select(x => x.UriBaseType)
-                .Where(x => x != null  && !x.IsAnonymous() && x.IsRootResource)
+                .Where(x => x != null && !x.IsAnonymous() && x.IsRootResource)
                 .Distinct())
                 RegisterRoutesFor(transformedType);
 
@@ -92,11 +88,6 @@ namespace Pomona
             RegisterResourceContent("QueryEditor.js");
         }
 
-
-        public virtual IResourceResolver ResourceResolver
-        {
-            get { return new ResourceResolver(this.typeMapper, Context, this.serviceLocator); }
-        }
 
         public IPomonaDataSource DataSource
         {
@@ -121,8 +112,8 @@ namespace Pomona
                 return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
             var pomonaException = exception as PomonaException;
             if (pomonaException != null)
-                return new PomonaError(pomonaException.StatusCode, pomonaException.Entity??pomonaException.Message);
-            return new PomonaError(HttpStatusCode.InternalServerError,  HttpStatusCode.InternalServerError.ToString());
+                return new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message);
+            return new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
         }
 
 
@@ -175,6 +166,12 @@ namespace Pomona
         }
 
 
+        private LinkedListNode<string> GetPathNodes()
+        {
+            return new LinkedList<string>(Request.Url.Path.Split('/').Select(HttpUtility.UrlDecode)).First;
+        }
+
+
         private PomonaResponse GetResource()
         {
             var pathNodes = GetPathNodes();
@@ -183,7 +180,9 @@ namespace Pomona
             foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Skip(1).Select(x => x.Value))
                 node = node.GetChildNode(pathPart);
 
-            var pomonaRequest = new PomonaRequest(node, Context, ResourceResolver);
+            var pomonaRequest = new PomonaRequest(node,
+                Context,
+                new PomonaJsonSerializerFactory(Context.GetSerializationContextProvider()));
 
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
@@ -192,12 +191,6 @@ namespace Pomona
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
             return response;
-        }
-
-
-        private LinkedListNode<string> GetPathNodes()
-        {
-            return new LinkedList<string>(Request.Url.Path.Split('/').Select(HttpUtility.UrlDecode)).First;
         }
 
 

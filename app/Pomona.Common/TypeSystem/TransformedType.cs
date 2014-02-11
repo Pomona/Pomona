@@ -33,7 +33,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.Internals;
-using Pomona.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -235,6 +234,9 @@ namespace Pomona.Common.TypeSystem
             var prop =
                 Properties.First(
                     x => String.Equals(x.Name, externalPropertyName, StringComparison.InvariantCultureIgnoreCase));
+
+            if (!prop.AccessMode.HasFlag(HttpMethod.Get))
+                throw new InvalidOperationException("Property is not allowed in expresssion.");
 
             var propertyAccessExpression = prop.CreateGetterExpression(instance);
 

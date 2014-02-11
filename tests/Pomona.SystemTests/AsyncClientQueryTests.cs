@@ -44,9 +44,9 @@ namespace Pomona.SystemTests
         public void GetAsyncUsingUri_ReturnsResource()
         {
             // First get the uri a way we know works:
-            var critterUri = ((IHasResourceUri) client.Critters.Query().FirstLazy()).Uri;
+            var critterUri = ((IHasResourceUri) Client.Critters.Query().FirstLazy()).Uri;
 
-            var asyncCritter = client.GetAsync<ICritter>(critterUri).Result;
+            var asyncCritter = Client.GetAsync<ICritter>(critterUri).Result;
 
             var expected = CritterEntities.First();
             Assert.That(asyncCritter, Is.Not.Null);
@@ -59,7 +59,7 @@ namespace Pomona.SystemTests
         public void Get_UsingQuery_ReturnsEntities()
         {
             // Here we just expect to get something returned, Query itself is tested in other fixture,
-            var oddCritters = client.Critters.Query().Where(x => x.Id%2 == 1).ToList();
+            var oddCritters = Client.Critters.Query().Where(x => x.Id%2 == 1).ToList();
             Assert.That(oddCritters, Has.Count.GreaterThan(0));
         }
 
@@ -67,8 +67,8 @@ namespace Pomona.SystemTests
         public void Patch_EtaggedEntity_WithCorrectEtag_UpdatesEntity()
         {
             var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
-            var updatedResource = client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var updatedResource = Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh");
             Assert.That(updatedResource.Info, Is.EqualTo("Fresh"));
             Assert.That(updatedResource.ETag, Is.Not.EqualTo(originalResource.ETag));
         }
@@ -77,12 +77,12 @@ namespace Pomona.SystemTests
         public void Patch_EtaggedEntity_WithIncorrectEtag_ThrowsException()
         {
             var etaggedEntity = Save(new EtaggedEntity {Info = "Ancient"});
-            var originalResource = client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
+            var originalResource = Client.EtaggedEntities.Query<IEtaggedEntity>().First(x => x.Id == etaggedEntity.Id);
 
             // Change etag on entity, which should give an exception
             etaggedEntity.SetEtag("MODIFIED!");
 
-            Assert.That(() => client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
+            Assert.That(() => Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
                         Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
         }
@@ -90,7 +90,7 @@ namespace Pomona.SystemTests
         [Test]
         public void Post_SavesEntityAndReturnsResource()
         {
-            var resource = client.Critters.Post(new CritterForm {Name = "Hiihaa"});
+            var resource = Client.Critters.Post(new CritterForm {Name = "Hiihaa"});
             Assert.That(resource.Id, Is.GreaterThan(0));
             Assert.That(resource.Name, Is.EqualTo("Hiihaa"));
         }
@@ -100,7 +100,7 @@ namespace Pomona.SystemTests
         public void Query_ToListAsync_ReturnsResources()
         {
             var expectedCritters = CritterEntities.Where(x => x.Id%3 == 0).Take(5).ToList();
-            var fetchedCritters = client.Critters.Query().Where(x => x.Id%3 == 0).Take(5).ToListAsync().Result;
+            var fetchedCritters = Client.Critters.Query().Where(x => x.Id%3 == 0).Take(5).ToListAsync().Result;
 
             Assert.That(fetchedCritters.Select(x => x.Id), Is.EquivalentTo(expectedCritters.Select(x => x.Id)));
         }

@@ -25,11 +25,14 @@
 using System;
 using System.Linq.Expressions;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Queries
 {
     public interface IQueryTypeResolver
     {
-        Expression ResolveProperty(Expression rootInstance, string propertyPath);
+        bool TryResolveProperty<TProperty>(Type type, string propertyPath, out TProperty property)
+            where TProperty : PropertySpec;
         Type ResolveType(string typeName);
     }
 }

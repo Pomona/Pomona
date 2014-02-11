@@ -66,6 +66,15 @@ namespace Pomona.FluentMapping
                 IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
 
 
+        ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(
+            Expression<Func<TDeclaringType, IEnumerable<TItem>>> property,
+            Expression<Func<TItem, TDeclaringType>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func
+                <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
+                    IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> propertyOptions);
+
+
         ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
         ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
         ITypeMappingConfigurator<TDeclaringType> PostAllowed();
