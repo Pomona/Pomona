@@ -36,6 +36,19 @@ namespace Pomona.Common.Web
 {
     public class HttpWebRequestClient : IWebClient
     {
+        private readonly HttpHeaders defaultHeaders;
+
+
+        public HttpWebRequestClient()
+        {
+        }
+
+        public HttpWebRequestClient(HttpHeaders defaultHeaders)
+        {
+            this.defaultHeaders = defaultHeaders;
+        }
+
+
         public NetworkCredential Credentials { get; set; }
 
         public WebClientResponseMessage Send(WebClientRequestMessage request)
@@ -48,7 +61,7 @@ namespace Pomona.Common.Web
                 webRequest.PreAuthenticate = true;
             }
 
-            foreach (var h in request.Headers)
+            foreach (var h in request.Headers.Concat(defaultHeaders.EmptyIfNull()))
             {
                 if (h.Value.Count == 0)
                     continue;
