@@ -110,6 +110,29 @@ namespace Pomona.SystemTests
         }
 
 
+        [Category("TODO")]
+        [Test(Description = "Known to not be working correctly")]
+        public void PatchCritter_ReplaceCollection_RemovesItemsNotInReplacingCollection()
+        {
+            var critter =
+                Save(new Critter()
+                {
+                    Name = "bah",
+                    SimpleAttributes = new List<SimpleAttribute>() { new SimpleAttribute() { Key = "A", Value = "1" } }
+                });
+            var patched = Client.Critters.Patch(Client.Critters.Get(critter.Id),
+                x =>
+                {
+                    x.SimpleAttributes = new List<ISimpleAttribute>()
+                    {
+                        new SimpleAttributeForm() { Key = "B", Value = "2" }
+                    };
+                });
+
+            Assert.That(patched.SimpleAttributes.Count, Is.EqualTo(1));
+        }
+
+
         [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
