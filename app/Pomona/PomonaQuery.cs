@@ -285,20 +285,6 @@ namespace Pomona
                                              .Invoke(null, new object[] { queryable, tuple.Item1 });
             }
             return queryable;
-#if false
-            if (OrderByExpression != null)
-            {
-                var orderMethod = SortOrder == SortOrder.Descending
-                                      ? QueryableMethods.OrderByDescending
-                                      : QueryableMethods.OrderBy;
-
-                queryable = (IQueryable) orderMethod
-                                             .MakeGenericMethod(queryable.ElementType, OrderByExpression.ReturnType)
-                                             .Invoke(null, new object[] {queryable, OrderByExpression});
-            }
-            return queryable;
-#endif
-            throw new NotImplementedException();
         }
     }
 }
