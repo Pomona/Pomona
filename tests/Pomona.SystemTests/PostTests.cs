@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Critters.Client;
@@ -155,6 +156,24 @@ namespace Pomona.SystemTests
 
             var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
             Assert.That(critterEntity.Subscriptions[0].Critter, Is.EqualTo(critterEntity));
+        }
+
+
+        [Test]
+        public void PostCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
+        {
+            var critter = Client.Critters.Post<IMusicalCritter>(x =>
+            {
+                x.Name = "klukluk";
+                x.Weapons.Add(new WeaponForm()
+                {
+                    Model = new WeaponModelForm() { Name = "halalaksldk" },
+                    Price = 23,
+                    Strength = 34
+                });
+            },
+                o => o.Expand(x => x.Weapons));
+            Assert.That(critter.Weapons, Is.InstanceOf<List<IWeapon>>());
         }
 
 

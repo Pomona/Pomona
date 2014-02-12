@@ -134,6 +134,13 @@ namespace Pomona.Common
             return (TPostResponseResource)client.Post(Uri, postAction, null);
         }
 
+
+        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return (TPostResponseResource)client.Post(Uri, postAction, RequestOptions.Create(options));
+        }
+
+
         public IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource
         {

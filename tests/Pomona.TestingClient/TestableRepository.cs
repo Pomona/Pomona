@@ -89,6 +89,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return Post(postAction);
+        }
+
+
         public TResource Get(object id)
         {
             ResourceInfoAttribute resourceInfo;

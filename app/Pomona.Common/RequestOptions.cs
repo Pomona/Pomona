@@ -66,6 +66,13 @@ namespace Pomona.Common
                 expandedPaths.Append(',');
             expandedPaths.Append(expression.GetPropertyPath(true));
         }
+
+        public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions)
+        {
+            var requestOptions = new RequestOptions<T>();
+            optionActions(requestOptions);
+            return requestOptions;
+        }
     }
 
     internal class RequestOptions<T> : RequestOptions, IRequestOptions<T>
