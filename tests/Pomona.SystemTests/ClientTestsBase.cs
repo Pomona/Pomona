@@ -51,15 +51,30 @@ namespace Pomona.SystemTests
     {
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
+            requestLog.Add(e);
             Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
                 e.Request,
                 (object)e.Response ?? "(nothing received)");
         }
 
+        private readonly List<ClientRequestLogEventArgs> requestLog = new List<ClientRequestLogEventArgs>();
 
         public override Client CreateHttpTestingClient(string baseUri)
         {
             return new Client(baseUri);
+        }
+
+
+        public override void SetUp()
+        {
+            base.SetUp();
+            requestLog.Clear();
+        }
+
+
+        protected List<ClientRequestLogEventArgs> RequestLog
+        {
+            get { return requestLog; }
         }
 
 

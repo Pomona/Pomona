@@ -137,7 +137,7 @@ namespace Pomona.UnitTests.Client
 
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
             Repository.ResetTestData();
         }
