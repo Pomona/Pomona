@@ -209,7 +209,7 @@ namespace Pomona.Common.TypeSystem
 
         private static string ConvertToPathEncodedString(object o)
         {
-            return HttpUtility.UrlPathEncode(Convert.ToString(o, CultureInfo.InvariantCulture));
+            return HttpUtility.UrlPathSegmentEncode(Convert.ToString(o, CultureInfo.InvariantCulture));
         }
 
 

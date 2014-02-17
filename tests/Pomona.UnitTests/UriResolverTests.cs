@@ -43,16 +43,15 @@ namespace Pomona.UnitTests
             public Uri BaseUri { get; set; }
         }
 
-
         [Test]
-        public void GetUriFor_WithEntityWithSpaceInPath_EncodesUrlTheRightWay()
+        public void GetUriFor_WithEntityHavingReservedCharactersInPathSegment_EncodesUrlTheRightWay()
         {
             var typeMapper = new TypeMapper(new CritterPomonaConfiguration());
             var uriResolver = new UriResolver(typeMapper,
                 new DummyBaseUriProvider() { BaseUri = new Uri("http://whateva/") });
-            var galaxy = new Galaxy() { Name = "this is it" };
+            var galaxy = new Galaxy() { Name = "this is it!?/~_--- :;" };
             var url = uriResolver.GetUriFor(galaxy);
-            Assert.That(url, Is.EqualTo("http://whateva/galaxies/this%20is%20it"));
+            Assert.That(url, Is.EqualTo("http://whateva/galaxies/this%20is%20it%21%3F%2F%7E_---%20%3A%3B"));
         }
     }
 }
