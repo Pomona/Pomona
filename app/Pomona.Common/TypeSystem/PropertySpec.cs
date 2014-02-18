@@ -32,7 +32,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -45,7 +44,7 @@ namespace Pomona.Common.TypeSystem
         private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
         private readonly Lazy<TypeSpec> reflectedType;
-        private readonly Lazy<Action<object, object>> setter;
+        private readonly Lazy<Action<object, object, IContextResolver>> setter;
 
 
         protected PropertySpec(ITypeResolver typeResolver,
@@ -74,19 +73,6 @@ namespace Pomona.Common.TypeSystem
             get { return this.declaringType.Value; }
         }
 
-
-        public virtual object GetValue(object target)
-        {
-            return GetValue(target, null);
-        }
-
-
-        public virtual object GetValue(object target, IContextResolver contextResolver)
-        {
-            contextResolver = contextResolver ?? new NoContextResolver();
-            return GetterFunc(target, contextResolver);
-        }
-
         public virtual Func<object, IContextResolver, object> GetterFunc
         {
             get { return this.getter.Value; }
@@ -112,7 +98,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.reflectedType.Value; }
         }
 
-        public virtual Action<object, object> Setter
+        public virtual Action<object, object, IContextResolver> SetterDelegate
         {
             get { return this.setter.Value; }
         }
@@ -170,6 +156,32 @@ namespace Pomona.Common.TypeSystem
 
         #endregion
 
+        public virtual object GetValue(object target)
+        {
+            return GetValue(target, null);
+        }
+
+
+        public virtual object GetValue(object target, IContextResolver contextResolver)
+        {
+            contextResolver = contextResolver ?? new NoContextResolver();
+            return GetterFunc(target, contextResolver);
+        }
+
+
+        public virtual void SetValue(object target, object value)
+        {
+            SetValue(target, value, null);
+        }
+
+
+        public virtual void SetValue(object target, object value, IContextResolver contextResolver)
+        {
+            contextResolver = contextResolver ?? new NoContextResolver();
+            SetterDelegate(target, value, contextResolver);
+        }
+
+
         public override string ToString()
         {
             return string.Format("{0}::{1}", ReflectedType, Name);
@@ -220,7 +232,8 @@ namespace Pomona.Common.TypeSystem
                     Expression.Convert(
                         Expression.Property(Expression.Convert(param, PropertyInfo.DeclaringType), PropertyInfo),
                         typeof(object)),
-                    param, Expression.Parameter(typeof(IContextResolver))).Compile();
+                    param,
+                    Expression.Parameter(typeof(IContextResolver))).Compile();
         }
 
 
@@ -252,14 +265,14 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual Action<object, object> OnLoadSetter()
+        protected internal virtual Action<object, object, IContextResolver> OnLoadSetter()
         {
             if (!PropertyInfo.CanWrite)
                 return null;
 
             var selfParam = Expression.Parameter(typeof(object), "x");
             var valueParam = Expression.Parameter(typeof(object), "value");
-            var expr = Expression.Lambda<Action<object, object>>(
+            var expr = Expression.Lambda<Action<object, object, IContextResolver>>(
                 Expression.Assign(
                     Expression.Property(
                         Expression.Convert(selfParam, PropertyInfo.DeclaringType),
@@ -268,7 +281,8 @@ namespace Pomona.Common.TypeSystem
                     Expression.Convert(valueParam, PropertyInfo.PropertyType)
                     ),
                 selfParam,
-                valueParam);
+                valueParam,
+                Expression.Parameter(typeof(IContextResolver), "ctx"));
 
             return expr.Compile();
         }

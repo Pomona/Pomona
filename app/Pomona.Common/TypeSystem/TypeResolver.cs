@@ -157,7 +157,7 @@ namespace Pomona.Common.TypeSystem
             return propertySpec.OnLoadGetter();
         }
 
-        public virtual Action<object, object> LoadSetter(PropertySpec propertySpec)
+        public virtual Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec)
         {
             if (propertySpec == null) throw new ArgumentNullException("propertySpec");
             return propertySpec.OnLoadSetter();

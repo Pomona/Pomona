@@ -132,7 +132,7 @@ namespace Pomona
                  && property.AccessMode.HasFlag(HttpMethod.Post)) ||
                 (targetNode.Operation == DeserializerNodeOperation.Patch
                  && property.AccessMode.HasFlag(HttpMethod.Put)))
-                property.Setter(targetNode.Value, propertyValue);
+                property.SetValue(targetNode.Value, propertyValue, targetNode.Context);
             else
             {
                 var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)

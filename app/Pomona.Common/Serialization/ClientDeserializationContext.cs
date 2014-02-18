@@ -116,11 +116,11 @@ namespace Pomona.Common.Serialization
                         propertyValue,
                         target.Value);
                 }
-                property.Setter(target.Value, repo);
+                property.SetValue(target.Value, repo);
                 return;
             }
 
-            property.Setter(target.Value, propertyValue);
+            property.SetValue(target.Value, propertyValue);
         }
 
 

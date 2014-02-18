@@ -102,7 +102,7 @@ namespace Pomona.Common.TypeSystem
         {
             var instance = Activator.CreateInstance(resourceInfo.PocoType);
             foreach (var kvp in args)
-                kvp.Key.Setter(instance, kvp.Value);
+                kvp.Key.SetValue(instance, kvp.Value);
             return instance;
         }
 

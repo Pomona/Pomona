@@ -147,7 +147,7 @@ namespace Pomona.Common.Serialization.Patch
                 else
                 {
                     var propInfo = propLookup[kvp.Key].First();
-                    propInfo.Setter(Original, kvp.Value);
+                    propInfo.SetValue(Original, kvp.Value);
                 }
             }
             if (Parent == null)

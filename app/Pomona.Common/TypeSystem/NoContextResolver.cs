@@ -28,8 +28,6 @@
 
 using System;
 
-using Pomona.Common.Serialization;
-
 namespace Pomona.Common.TypeSystem
 {
     internal class NoContextResolver : IContextResolver

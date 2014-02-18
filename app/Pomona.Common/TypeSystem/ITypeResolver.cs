@@ -53,7 +53,7 @@ namespace Pomona.Common.TypeSystem
         PropertySpec LoadBaseDefinition(PropertySpec propertySpec);
         PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);
         Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec);
-        Action<object, object> LoadSetter(PropertySpec propertySpec);
+        Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec);
         RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
         IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec);
         ConstructorSpec LoadConstructor(TypeSpec typeSpec);
