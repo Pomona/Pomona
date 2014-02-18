@@ -37,6 +37,7 @@ using Newtonsoft.Json;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -249,9 +250,11 @@ namespace TestNs
         }
 
 
-        public Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyGetter(propertyInfo);
+            return FromMappingOrDefault(propertyInfo,
+                x => x.OnGetDelegate,
+                () => this.wrappedFilter.GetPropertyGetter(propertyInfo));
         }
 
 

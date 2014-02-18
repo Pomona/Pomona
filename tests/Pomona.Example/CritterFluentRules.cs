@@ -28,6 +28,8 @@
 
 using System;
 
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
@@ -138,6 +140,13 @@ namespace Pomona.Example
                .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
                .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
                .Include(x => x.Weapons, o => o.Writable())
+               .Include(x => x.RelativeImageUrl, o => o.Named("AbsoluteImageUrl").OnGet<NancyContext>((critter, ctx) =>
+               {
+                   var absUrl = ctx.Request.Url.Clone();
+                   absUrl.Path = critter.RelativeImageUrl;
+                   absUrl.Query = null;
+                   return absUrl.ToString();
+               }))
                .OnDeserialized(c => c.FixParentReferences());
         }
 

@@ -41,6 +41,7 @@ using Newtonsoft.Json.Converters;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
@@ -194,23 +195,9 @@ namespace Pomona
         }
 
 
-        public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public virtual Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            var selfParam = Expression.Parameter(typeof(object), "x");
-            var expr = Expression.Lambda<Func<object, object>>(
-                Expression.Convert(
-                    Expression.MakeMemberAccess(
-                        Expression.Convert(selfParam, propertyInfo.DeclaringType),
-                        propertyInfo
-                        ),
-                    typeof(object)
-                    ),
-                selfParam
-                );
-
-            return expr.Compile();
+            return null;
         }
 
 

@@ -50,6 +50,7 @@ namespace Pomona
         {
             this.value = new System.Lazy<object>(valueFetcher);
             this.expectedType = expectedType;
+
             this.type = new System.Lazy<ResourceType>(() =>
             {
                 var localValue = Value;

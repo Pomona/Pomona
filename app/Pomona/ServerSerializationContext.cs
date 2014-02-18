@@ -29,6 +29,8 @@
 using System;
 using System.Collections.Generic;
 
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -42,15 +44,21 @@ namespace Pomona
 
         private readonly ITypeMapper typeMapper;
         private readonly IUriResolver uriResolver;
+        private readonly NancyContext nancyContext;
 
 
         public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
-            IUriResolver uriResolver)
+            IUriResolver uriResolver,
+            NancyContext nancyContext
+)
         {
+            if (nancyContext == null)
+                throw new ArgumentNullException("nancyContext");
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;
+            this.nancyContext = nancyContext;
             typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
@@ -137,6 +145,15 @@ namespace Pomona
             if (propMapping == null)
                 return false;
             return propMapping.AlwaysExpand;
+        }
+
+
+
+        public T GetContext<T>()
+        {
+            if (typeof(T) == typeof(NancyContext))
+                return (T)((object)this.nancyContext);
+            throw new InvalidOperationException("Unable to resolve context of type " + typeof(T));
         }
     }
 }

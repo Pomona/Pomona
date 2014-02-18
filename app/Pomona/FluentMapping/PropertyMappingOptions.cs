@@ -31,6 +31,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -77,6 +78,9 @@ namespace Pomona.FluentMapping
 
         public bool? ExposedAsRepository { get; internal set; }
 
+        public Func<object, IContextResolver, object> OnGetDelegate { get; set; }
+
+        public Action<object, object, IContextResolver> OnSetDelegate { get; set; }
 
         internal void ClearAccessModeFlag(HttpMethod method)
         {

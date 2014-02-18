@@ -81,7 +81,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public T ResolveContext<T>()
+        public T GetContext<T>()
         {
             throw new NotSupportedException();
         }

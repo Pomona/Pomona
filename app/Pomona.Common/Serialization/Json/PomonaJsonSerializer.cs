@@ -353,7 +353,7 @@ namespace Pomona.Common.Serialization.Json
                     throw new PomonaSerializationException("When we are removing complex object a primary id is required.");
 
                 jsonWriter.WritePropertyName((node.IsRemoved ? "-@" : "*@") + primaryId.JsonName);
-                jsonWriter.WriteValue(primaryId.Getter(node.Value));
+                jsonWriter.WriteValue(primaryId.Getter(node.Value, node.Context));
                 if (node.IsRemoved)
                 {
                     jsonWriter.WriteEndObject();

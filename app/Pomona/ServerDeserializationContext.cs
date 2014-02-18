@@ -116,7 +116,7 @@ namespace Pomona
         }
 
 
-        public T ResolveContext<T>()
+        public T GetContext<T>()
         {
             if (typeof(T) == typeof(NancyContext))
                 return (T)((object)this.nancyContext);

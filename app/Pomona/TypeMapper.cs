@@ -206,6 +206,12 @@ namespace Pomona
         }
 
 
+        public override Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec)
+        {
+            return filter.GetPropertyGetter(propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
+        }
+
+
         public override TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
             if (typeSpec is TransformedType)

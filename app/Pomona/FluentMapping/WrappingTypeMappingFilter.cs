@@ -33,6 +33,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -168,7 +169,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public virtual Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertyGetter(propertyInfo);
         }

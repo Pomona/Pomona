@@ -32,6 +32,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -39,7 +40,7 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<PropertySpec> baseDefinition;
         private readonly Lazy<TypeSpec> declaringType;
-        private readonly Lazy<Func<object, object>> getter;
+        private readonly Lazy<Func<object, IContextResolver, object>> getter;
         private readonly Lazy<bool> isRequiredForConstructor;
         private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
@@ -73,7 +74,20 @@ namespace Pomona.Common.TypeSystem
             get { return this.declaringType.Value; }
         }
 
-        public virtual Func<object, object> Getter
+
+        public virtual object Getter(object target)
+        {
+            return Getter(target, null);
+        }
+
+
+        public virtual object Getter(object target, IContextResolver contextResolver)
+        {
+            contextResolver = contextResolver ?? new NoContextResolver();
+            return GetterFunc(target, contextResolver);
+        }
+
+        public virtual Func<object, IContextResolver, object> GetterFunc
         {
             get { return this.getter.Value; }
         }
@@ -196,17 +210,17 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual Func<object, object> OnLoadGetter()
+        protected internal virtual Func<object, IContextResolver, object> OnLoadGetter()
         {
             if (!PropertyInfo.CanRead)
                 return null;
             var param = Expression.Parameter(typeof(object));
             return
-                Expression.Lambda<Func<object, object>>(
+                Expression.Lambda<Func<object, IContextResolver, object>>(
                     Expression.Convert(
                         Expression.Property(Expression.Convert(param, PropertyInfo.DeclaringType), PropertyInfo),
                         typeof(object)),
-                    param).Compile();
+                    param, Expression.Parameter(typeof(IContextResolver))).Compile();
         }
 
 

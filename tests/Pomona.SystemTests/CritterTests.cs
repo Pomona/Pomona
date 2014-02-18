@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,12 +26,12 @@
 
 #endregion
 
-using System;
 using System.Linq;
-using System.Reflection;
-using System.Text;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Example.Models;
 
@@ -43,70 +43,6 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class CritterTests : ClientTestsBase
     {
-        [Test]
-        public void AllPropertyTypesOfClientTypesAreAllowed()
-        {
-            var clientAssembly = typeof (ICritter).Assembly;
-            var allPropTypes =
-                clientAssembly.GetExportedTypes().SelectMany(
-                    x => x.GetProperties().Select(y => y.PropertyType)).Distinct();
-
-            var allTypesOk = true;
-            foreach (var type in allPropTypes)
-            {
-                if (!IsAllowedType(type))
-                {
-                    allTypesOk = false;
-                    var typeLocal = type;
-                    var propsWithType = clientAssembly
-                        .GetExportedTypes()
-                        .SelectMany(x => x.GetProperties())
-                        .Where(x => x.PropertyType == typeLocal).ToList();
-                    foreach (var propertyInfo in propsWithType)
-                    {
-                        Console.WriteLine(
-                            "Property {0} of {1} has type {2} of assembly {3}, which should not be referenced by client!",
-                            propertyInfo.Name,
-                            propertyInfo.DeclaringType.FullName,
-                            propertyInfo.PropertyType.FullName,
-                            propertyInfo.PropertyType.Assembly.FullName);
-                    }
-                }
-            }
-
-            Assert.IsTrue(allTypesOk, "There was properties in CritterClient with references to disallowed assemblies.");
-        }
-
-
-        [Test]
-        public void ClientLibraryIsCorrectlyGenerated()
-        {
-            var foundError = false;
-            var errors = new StringBuilder();
-            foreach (
-                var prop in
-                    Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
-                        x =>
-                        x.PropertyType.IsGenericType
-                        && x.PropertyType.GetGenericTypeDefinition() == typeof (ClientRepository<,>)))
-            {
-                var value = prop.GetValue(Client, null);
-                if (value == null)
-                {
-                    foundError = true;
-                    errors.AppendFormat("Property {0} of generated client lib is null\r\n", prop.Name);
-                }
-                if (prop.GetSetMethod(true).IsPublic)
-                {
-                    foundError = true;
-                    errors.AppendFormat("Property {0} of generated client lib has a public setter.\r\n", prop.Name);
-                }
-            }
-
-            if (foundError)
-                Assert.Fail("Found the following errors on generated client lib: {0}\r\n", errors);
-        }
-
         [Test]
         public void GetMusicalCritter()
         {
@@ -125,6 +61,14 @@ namespace Pomona.SystemTests
             Assert.False(critter.Weapons.IsLoaded());
             var weapons = critter.Weapons.ToList();
             Assert.True(critter.Weapons.IsLoaded());
+        }
+
+
+        [Test]
+        public void UsesCustomGetterForAbsoluteFileUrl()
+        {
+            var critter = Client.Critters.First();
+            Assert.That(critter.AbsoluteImageUrl, Is.EqualTo("http://test:80/photos/the-image.png"));
         }
     }
 }

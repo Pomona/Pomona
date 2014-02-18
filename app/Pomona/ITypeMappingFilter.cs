@@ -33,6 +33,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
@@ -56,7 +57,7 @@ namespace Pomona
         JsonConverter GetJsonConverterForType(Type type);
         PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);
         Type GetPostReturnType(Type type);
-        Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
+        Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo);
         string GetPropertyMappedName(PropertyInfo propertyInfo);
         Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);

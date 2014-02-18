@@ -92,7 +92,7 @@ namespace Pomona.Common.Serialization.Csv
                     if (colIndex > 0)
                         writer.TextWriter.Write(';');
 
-                    writer.TextWriter.Write(prop.Getter(item));
+                    writer.TextWriter.Write(prop.Getter(item, node.Context));
 
                     colIndex++;
                 }

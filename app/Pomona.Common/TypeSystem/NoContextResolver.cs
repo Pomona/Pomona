@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,21 +24,19 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using Pomona.Common.TypeSystem;
 
-namespace Pomona.Common.Serialization
+using Pomona.Common.Serialization;
+
+namespace Pomona.Common.TypeSystem
 {
-    public interface ISerializationContext : IContextResolver
+    internal class NoContextResolver : IContextResolver
     {
-        TypeSpec GetClassMapping(Type type);
-        string GetUri(object value);
-        string GetUri(PropertySpec property, object value);
-        bool PathToBeExpanded(string expandPath);
-
-
-        void Serialize(ISerializerNode node, Action<ISerializerNode> serializeNodeAction);
-
-        bool PropertyIsSerialized(PropertySpec property);
+        public T GetContext<T>()
+        {
+            throw new InvalidOperationException("No context available.");
+        }
     }
 }

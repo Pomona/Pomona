@@ -33,6 +33,9 @@ namespace Pomona.Example.Models
 {
     public class Critter : EntityBase, IHiddenInterface
     {
+        private string relativeImageUrl;
+
+
         public Critter()
         {
             Guid = Guid.NewGuid();
@@ -49,6 +52,7 @@ namespace Pomona.Example.Models
             OnlyWritableByInheritedResource = "blabla not writable";
             Hat = new Hat();
             Protected = Guid.NewGuid().ToString();
+            RelativeImageUrl = "/photos/the-image.png";
         }
 
 
@@ -89,6 +93,8 @@ namespace Pomona.Example.Models
         public string Password { get; set; }
         public string Protected { get; protected set; }
         public bool PublicAndReadOnlyThroughApi { get; set; }
+
+        public string RelativeImageUrl { get; set; }
 
         public IList<SimpleAttribute> SimpleAttributes { get; set; }
 

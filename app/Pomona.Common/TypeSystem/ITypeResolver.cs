@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+using Pomona.Common.Serialization;
+
 namespace Pomona.Common.TypeSystem
 {
     public interface ITypeResolver
@@ -50,7 +52,7 @@ namespace Pomona.Common.TypeSystem
         ResourceType LoadUriBaseType(ResourceType resourceType);
         PropertySpec LoadBaseDefinition(PropertySpec propertySpec);
         PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);
-        Func<object, object> LoadGetter(PropertySpec propertySpec);
+        Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec);
         Action<object, object> LoadSetter(PropertySpec propertySpec);
         RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
         IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec);

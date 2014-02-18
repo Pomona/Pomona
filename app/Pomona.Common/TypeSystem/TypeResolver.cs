@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -150,13 +151,13 @@ namespace Pomona.Common.TypeSystem
             return typeSpec.OnWrapProperty(propertyInfo);
         }
 
-        public Func<object, object> LoadGetter(PropertySpec propertySpec)
+        public virtual Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec)
         {
             if (propertySpec == null) throw new ArgumentNullException("propertySpec");
             return propertySpec.OnLoadGetter();
         }
 
-        public Action<object, object> LoadSetter(PropertySpec propertySpec)
+        public virtual Action<object, object> LoadSetter(PropertySpec propertySpec)
         {
             if (propertySpec == null) throw new ArgumentNullException("propertySpec");
             return propertySpec.OnLoadSetter();
