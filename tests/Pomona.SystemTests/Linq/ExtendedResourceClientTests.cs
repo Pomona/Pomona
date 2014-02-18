@@ -34,6 +34,7 @@ using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 
@@ -247,12 +248,7 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = Client.DictionaryContainers.Post<IDictionaryContainer>(
-                x =>
-                {
-                    x.Map.Add("CustomString", "Lalalala");
-                    x.Map.Add("OtherCustom", "Blob rob");
-                });
+            var dictionaryContainer = PostResourceWithAttributes();
 
             var results = Client.Query<IExtendedResource>()
                 .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
@@ -263,6 +259,36 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
             Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
+        }
+
+
+        [Test]
+        public void WrapResource_IsSuccessful()
+        {
+            var resource = PostResourceWithAttributes();
+            var wrapped = resource.Wrap<IDictionaryContainer, IExtendedResource>();
+            Assert.That(wrapped.CustomString, Is.EqualTo("Lalalala"));
+            Assert.That(wrapped.OtherCustom, Is.EqualTo("Blob rob"));
+        }
+
+        [Test]
+        public void UnwrapResource_IsSuccessful()
+        {
+            var resource = PostResourceWithAttributes();
+            var unwrapped = Client.DictionaryContainers.Query<IExtendedResource>().First(x => x.Id == resource.Id).Unwrap<IDictionaryContainer>();
+            Assert.That(unwrapped, Is.Not.AssignableTo<IExtendedResource>());
+        }
+
+
+
+        private IDictionaryContainer PostResourceWithAttributes()
+        {
+            return Client.DictionaryContainers.Post<IDictionaryContainer>(
+                x =>
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
         }
 
 

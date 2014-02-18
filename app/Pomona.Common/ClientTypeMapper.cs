@@ -241,7 +241,7 @@ namespace Pomona.Common
                 var info = extendedResourceProxy.UserTypeInfo;
                 return
                     this.extendedResourceMapper.WrapForm(
-                        CreatePatchForm(info.ServerType, extendedResourceProxy.ProxyTarget),
+                        CreatePatchForm(info.ServerType, extendedResourceProxy.WrappedResource),
                         info.ExtendedType);
             }
 

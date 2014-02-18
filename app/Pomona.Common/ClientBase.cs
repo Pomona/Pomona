@@ -106,6 +106,12 @@ namespace Pomona.Common
         private readonly ITextSerializer serializer;
         private readonly ITextSerializerFactory serializerFactory;
         private static readonly ClientTypeMapper typeMapper;
+
+        internal static ClientTypeMapper ClientTypeMapper
+        {
+            get { return typeMapper; }
+        }
+
         private readonly IWebClient webClient;
 
 
@@ -351,7 +357,7 @@ namespace Pomona.Common
         private object PatchExtendedType(ExtendedFormBase patchForm, RequestOptions requestOptions)
         {
             var extendedResourceInfo = patchForm.UserTypeInfo;
-            var serverTypeResult = PatchServerType(patchForm.ProxyTarget, requestOptions);
+            var serverTypeResult = PatchServerType(patchForm.WrappedResource, requestOptions);
 
             return typeMapper.WrapResource(serverTypeResult,
                 extendedResourceInfo.ServerType,
@@ -372,7 +378,7 @@ namespace Pomona.Common
         {
             var extendedResourceInfo = postForm.UserTypeInfo;
             
-            var serverTypeResult = PostServerType(uri, postForm.ProxyTarget, options);
+            var serverTypeResult = PostServerType(uri, postForm.WrappedResource, options);
 
             return typeMapper.WrapResource(serverTypeResult,
                 extendedResourceInfo.ServerType,
