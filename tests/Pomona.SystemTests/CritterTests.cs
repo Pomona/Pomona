@@ -70,5 +70,25 @@ namespace Pomona.SystemTests
             var critter = Client.Critters.First();
             Assert.That(critter.AbsoluteImageUrl, Is.EqualTo("http://test:80/photos/the-image.png"));
         }
+
+
+        [Test]
+        public void UsesCustomSetterForAbsoluteFileUrl_OnPatch()
+        {
+            var critter = Client.Critters.First();
+            critter = Client.Critters.Patch(critter, x => x.AbsoluteImageUrl = "http://test:80/new-image.png");
+            Assert.That(critter.AbsoluteImageUrl, Is.EqualTo("http://test:80/new-image.png"));
+            var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
+            Assert.That(critterEntity.RelativeImageUrl, Is.EqualTo("/new-image.png"));
+        }
+
+        [Test]
+        public void UsesCustomSetterForAbsoluteFileUrl_OnPost()
+        {
+            var critter = Client.Critters.Post(new CritterForm() { AbsoluteImageUrl = "http://test:80/holala.png" });
+            Assert.That(critter.AbsoluteImageUrl, Is.EqualTo("http://test:80/holala.png"));
+            var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
+            Assert.That(critterEntity.RelativeImageUrl, Is.EqualTo("/holala.png"));
+        }
     }
 }

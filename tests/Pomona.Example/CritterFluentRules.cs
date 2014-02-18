@@ -140,13 +140,18 @@ namespace Pomona.Example
                .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
                .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
                .Include(x => x.Weapons, o => o.Writable())
-               .Include(x => x.RelativeImageUrl, o => o.Named("AbsoluteImageUrl").OnGet<NancyContext>((critter, ctx) =>
-               {
-                   var absUrl = ctx.Request.Url.Clone();
-                   absUrl.Path = critter.RelativeImageUrl;
-                   absUrl.Query = null;
-                   return absUrl.ToString();
-               }))
+               .Include(x => x.RelativeImageUrl, o => o.Named("AbsoluteImageUrl")
+                   .OnGet<NancyContext>((critter, ctx) =>
+                   {
+                       var absUrl = ctx.Request.Url.Clone();
+                       absUrl.Path = critter.RelativeImageUrl;
+                       absUrl.Query = null;
+                       return absUrl.ToString();
+                   })
+                   .OnSet<NancyContext>((critter, value, ctx) =>
+                   {
+                       critter.RelativeImageUrl = new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
+                   }))
                .OnDeserialized(c => c.FixParentReferences());
         }
 

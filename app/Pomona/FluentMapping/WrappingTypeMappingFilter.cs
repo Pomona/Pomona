@@ -187,7 +187,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        public virtual Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertySetter(propertyInfo);
         }

@@ -226,33 +226,9 @@ namespace Pomona
         }
 
 
-        public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        public virtual Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            if (!propertyInfo.CanWrite)
-            {
-                return (obj, value) =>
-                {
-                    throw new InvalidOperationException(
-                        "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
-                };
-            }
-
-            var selfParam = Expression.Parameter(typeof(object), "x");
-            var valueParam = Expression.Parameter(typeof(object), "value");
-            var expr = Expression.Lambda<Action<object, object>>(
-                Expression.Assign(
-                    Expression.Property(
-                        Expression.Convert(selfParam, propertyInfo.DeclaringType),
-                        propertyInfo
-                        ),
-                    Expression.Convert(valueParam, propertyInfo.PropertyType)
-                    ),
-                selfParam,
-                valueParam);
-
-            return expr.Compile();
+            return null;
         }
 
 

@@ -59,7 +59,7 @@ namespace Pomona
         Type GetPostReturnType(Type type);
         Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo);
         string GetPropertyMappedName(PropertyInfo propertyInfo);
-        Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
+        Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);
         ConstructorSpec GetTypeConstructor(Type type);
 

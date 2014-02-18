@@ -267,8 +267,11 @@ namespace TestNs
         }
 
 
-        public Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        public Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
         {
+            return FromMappingOrDefault(propertyInfo,
+                x => x.OnSetDelegate,
+                () => wrappedFilter.GetPropertySetter(propertyInfo));
             return this.wrappedFilter.GetPropertySetter(propertyInfo);
         }
 
