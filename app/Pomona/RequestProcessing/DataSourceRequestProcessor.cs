@@ -29,11 +29,16 @@
 using System;
 using System.Reflection;
 
+using Mono.Cecil;
+
 using Nancy;
+
+using Newtonsoft.Json.Serialization;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
+
+using ResourceType = Pomona.Common.TypeSystem.ResourceType;
 
 namespace Pomona.RequestProcessing
 {
@@ -96,40 +101,78 @@ namespace Pomona.RequestProcessing
         {
             var queryableNode = request.Node as QueryableNode;
             var resourceNode = request.Node as ResourceNode;
-            if (request.Method == HttpMethod.Post)
-            {
-                if (queryableNode != null)
-                {
-                    return ProcessQueryableNodeCallToHandler(request, queryableNode)
-                           ?? ProcessQueryableNodeCallToDataSource(request, queryableNode);
-                }
-                if (resourceNode != null)
-                {
-                    // Find post to resource methods
-                    var form = request.Bind();
-                    var method = this.dataSource.GetType().GetMethod("Post",
-                        BindingFlags.Instance | BindingFlags.Public,
-                        null,
-                        new Type[] { resourceNode.Type, form.GetType() },
-                        null);
 
-                    if (method == null)
-                    {
-                        throw new PomonaException("Method Post to resource not allowed for resource type",
-                            null,
-                            HttpStatusCode.BadRequest);
-                    }
-                    var result = method.Invoke(this.dataSource, new[] { resourceNode.Value, form });
-                    return new PomonaResponse(result);
-                }
+            if (resourceNode != null)
+            {
+                return ProcessResourceNode(request, resourceNode);
+            }
+            if (queryableNode != null)
+            {
+                return ProcessQueryableNode(request, queryableNode);
             }
 
-            if (request.Method == HttpMethod.Patch && resourceNode != null)
-            {
-                var patchedObject = request.Bind();
-                return patchMethod(patchedObject.GetType(), this, patchedObject, request);
-            }
             return null;
+        }
+
+
+        private PomonaResponse ProcessQueryableNode(PomonaRequest request, QueryableNode queryableNode)
+        {
+            switch (request.Method)
+            {
+                case HttpMethod.Post:
+                    return PostToCollection(request, queryableNode);
+                default:
+                    return null;
+            }
+        }
+
+
+        private PomonaResponse ProcessResourceNode(PomonaRequest request, ResourceNode resourceNode)
+        {
+            switch (request.Method)
+            {
+                case HttpMethod.Post:
+                    return PostToResourceNode(request, resourceNode);
+                case HttpMethod.Patch:
+                    return PatchResourceNode(request);
+                default:
+                    return null;
+            }
+        }
+
+
+        private PomonaResponse PatchResourceNode(PomonaRequest request)
+        {
+            var patchedObject = request.Bind();
+            return this.patchMethod(patchedObject.GetType(), this, patchedObject, request);
+        }
+
+
+        private PomonaResponse PostToResourceNode(PomonaRequest request, ResourceNode resourceNode)
+        {
+            // Find post to resource methods
+            var form = request.Bind();
+            var method = this.dataSource.GetType().GetMethod("Post",
+                BindingFlags.Instance | BindingFlags.Public,
+                null,
+                new Type[] { resourceNode.Type, form.GetType() },
+                null);
+
+            if (method == null)
+            {
+                throw new PomonaException("Method Post to resource not allowed for resource type",
+                    null,
+                    HttpStatusCode.BadRequest);
+            }
+            var result = method.Invoke(this.dataSource, new[] { resourceNode.Value, form });
+            return new PomonaResponse(result);
+        }
+
+
+        private PomonaResponse PostToCollection(PomonaRequest request, QueryableNode queryableNode)
+        {
+            return ProcessQueryableNodeCallToHandler(request, queryableNode)
+                   ?? ProcessQueryableNodeCallToDataSource(request, queryableNode);
         }
 
 

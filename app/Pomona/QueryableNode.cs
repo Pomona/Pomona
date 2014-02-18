@@ -73,6 +73,7 @@ namespace Pomona
                     Expression.Constant(id)),
                 predicateParam);
             var queryable = ((IQueryable<TItem>)GetAsQueryable()).EmptyIfNull().Where(predicate);
+            
             var result = queryable.FirstOrDefault();
             return result;
         }
@@ -90,6 +91,10 @@ namespace Pomona
         }
     }
 
+    /// <summary>
+    /// Node representing an URI segment with a collection of resources.
+    /// TODO: Rename this to CollectionNode?
+    /// </summary>
     public abstract class QueryableNode : PathNode
     {
         private readonly TypeSpec collectionType;
