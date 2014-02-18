@@ -101,7 +101,7 @@ namespace Pomona
                   || Type.TryGetPropertyByUriName(name, out property)))
                 throw new ResourceNotFoundException("Resource not found");
 
-            return CreateNode(TypeMapper, this, name, () => property.Getter(Value), property.PropertyType);
+            return CreateNode(TypeMapper, this, name, () => property.GetValue(Value), property.PropertyType);
         }
 
 

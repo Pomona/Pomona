@@ -256,7 +256,7 @@ namespace Pomona.Common.Serialization.Json
                         else
                             throw new PomonaSerializationException("Unexpected json patch identifier property.");
                         itemNode.Value =
-                            collection.Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x, itemNode.Context)));
+                            collection.Cast<object>().First(x => identifierValue.Equals(identifyProp.GetValue(x, itemNode.Context)));
                     }
                 }
 
@@ -551,7 +551,7 @@ namespace Pomona.Common.Serialization.Json
                         {
                             Operation = propContainer.Operation
                         };
-                        var oldValue = propNode.Value = propNode.Property.Getter(this.node.Value, propNode.Context);
+                        var oldValue = propNode.Value = propNode.Property.GetValue(this.node.Value, propNode.Context);
                         deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
                         var newValue = propNode.Value;
                         if (oldValue != newValue)

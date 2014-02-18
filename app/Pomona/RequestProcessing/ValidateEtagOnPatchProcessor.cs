@@ -55,7 +55,7 @@ namespace Pomona.RequestProcessing
             if (etagProp == null)
                 throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
 
-            if ((string)etagProp.Getter(resourceNode.Value) != ifMatch)
+            if ((string)etagProp.GetValue(resourceNode.Value) != ifMatch)
                 throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
             return true;
         }

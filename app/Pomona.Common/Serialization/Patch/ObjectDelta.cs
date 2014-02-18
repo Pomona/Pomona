@@ -68,7 +68,7 @@ namespace Pomona.Common.Serialization.Patch
             PropertySpec prop;
             if (TryGetPropertyByName(propertyName, out prop))
             {
-                var propValue = prop.Getter(Original);
+                var propValue = prop.GetValue(Original);
                 if (propValue == null)
                     return null;
 
@@ -101,7 +101,7 @@ namespace Pomona.Common.Serialization.Patch
             PropertySpec prop;
             if (TryGetPropertyByName(propertyName, out prop) && prop.PropertyType.SerializationMode == TypeSerializationMode.Value)
             {
-                object oldValue = prop.Getter(Original);
+                object oldValue = prop.GetValue(Original);
                 if ((value != null && value.Equals(oldValue)) || (value == null && oldValue == null))
                 {
                     trackedProperties.Remove(propertyName);

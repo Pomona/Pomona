@@ -75,13 +75,13 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual object Getter(object target)
+        public virtual object GetValue(object target)
         {
-            return Getter(target, null);
+            return GetValue(target, null);
         }
 
 
-        public virtual object Getter(object target, IContextResolver contextResolver)
+        public virtual object GetValue(object target, IContextResolver contextResolver)
         {
             contextResolver = contextResolver ?? new NoContextResolver();
             return GetterFunc(target, contextResolver);

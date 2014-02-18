@@ -76,7 +76,7 @@ namespace Pomona.Queries
 
             // Do query like this: dataSource.Query<TResource>().Where(x => x.Parent.Id == parentId);
             var parentIdProperty = itemResourceType.ParentResourceType.PrimaryId;
-            var parentId = parentIdProperty.Getter(node.Parent.Value);
+            var parentId = parentIdProperty.GetValue(node.Parent.Value);
             var predicateParam = Expression.Parameter(typeof(TResource));
             var predicate =
                 Expression.Lambda<Func<TResource, bool>>(
