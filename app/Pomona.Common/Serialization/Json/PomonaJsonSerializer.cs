@@ -61,8 +61,6 @@ namespace Pomona.Common.Serialization.Json
         private static readonly ConcurrentDictionary<TypeSpec, PomonaJsonSerializerTypeEntry> typeEntryDict =
             new ConcurrentDictionary<TypeSpec, PomonaJsonSerializerTypeEntry>();
 
-        #region Implementation of ISerializer<PomonaJsonSerializerState>
-
         private static readonly MethodInfo serializeDictionaryGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
                 x => x.SerializeDictionaryGeneric<object>(null, null, null));
@@ -187,6 +185,7 @@ namespace Pomona.Common.Serialization.Json
             var jsonConverter = node.ValueType.GetCustomJsonConverter();
             if (node.ValueType is EnumTypeSpec)
                 jsonConverter = new StringEnumConverter();
+
 
             if (jsonConverter != null)
                 jsonConverter.WriteJson(writer.JsonWriter, value, null);
@@ -397,7 +396,6 @@ namespace Pomona.Common.Serialization.Json
             jsonWriter.WriteEndObject();
         }
 
-        #endregion
 
         private static bool TryGetTypeEntry(TypeSpec mappedType, out PomonaJsonSerializerTypeEntry typeEntry)
         {

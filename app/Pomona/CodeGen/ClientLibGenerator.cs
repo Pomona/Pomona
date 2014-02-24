@@ -361,7 +361,7 @@ namespace Pomona.CodeGen
                     il.Emit(OpCodes.Stfld, backingField);
                 });
             }
-            else if (propertyType.IsCollection)
+            else if (propertyType.IsCollection && !propertyType.IsArray)
             {
                 var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
                 var listReference = Import(typeof(List<>));

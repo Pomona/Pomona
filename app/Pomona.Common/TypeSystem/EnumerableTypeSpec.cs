@@ -52,6 +52,8 @@ namespace Pomona.Common.TypeSystem
 
         protected override TypeSerializationMode OnLoadSerializationMode()
         {
+            if (Type == typeof(byte[]))
+                return TypeSerializationMode.Value;
             return TypeSerializationMode.Array;
         }
 

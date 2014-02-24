@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Critters.Client;
 
@@ -46,6 +47,15 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class PostTests : ClientTestsBase
     {
+        [Test]
+        public void PostBlob_HavingByteArray()
+        {
+            var dataBytes = Encoding.ASCII.GetBytes("Lalalala");
+            var response = Client.Blobs.Post(new BlobForm() { DataBytes = dataBytes });
+            Assert.That(response.DataBytes, Is.EquivalentTo(dataBytes));
+        }
+
+
         [Test]
         public void PostCritterWithExistingHat()
         {
