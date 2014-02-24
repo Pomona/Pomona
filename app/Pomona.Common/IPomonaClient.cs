@@ -36,7 +36,7 @@ namespace Pomona.Common
         object Get(string uri, Type type);
         T Get<T>(string uri);
         string GetUriOfType(Type type);
-
+        T Reload<T>(T resource);
         IQueryable<T> Query<T>();
     }
 }

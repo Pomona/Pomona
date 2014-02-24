@@ -68,6 +68,8 @@ namespace Pomona.Common
 
 
         public abstract string GetUriOfType(Type type);
+        public abstract T Reload<T>(T resource);
+
 
         public abstract T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
             where T : class, IClientResource;
@@ -119,6 +121,23 @@ namespace Pomona.Common
         {
             // Preload resource info attributes..
             typeMapper = new ClientTypeMapper(typeof(TClient).Assembly);
+        }
+
+
+        public override T Reload<T>(T resource)
+        {
+            var resourceWithUri = resource as IHasResourceUri;
+            if (resourceWithUri == null)
+                throw new ArgumentException("Could not find resource URI, resouce not of type IHasResourceUri.", "resource");
+
+            if (resourceWithUri.Uri == null)
+                throw new ArgumentException("Uri on resource was null.", "resource");
+
+            if (!typeof(T).IsInterface)
+                throw new ArgumentException("Type should be an interface inherited from a known resource type.");
+
+            var resourceType = this.GetMostInheritedResourceInterface(typeof(T));
+            return (T)Get(resourceWithUri.Uri, resourceType);
         }
 
 

@@ -115,6 +115,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public T Reload<T>(T resource)
+        {
+            return resource;
+        }
+
+
         public virtual IQueryable<T> Query<T>()
         {
             return this.typeMapper.WrapExtendedQuery<T>(Query);
