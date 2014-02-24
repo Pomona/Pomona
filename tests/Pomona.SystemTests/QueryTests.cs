@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,12 +29,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Critters.Client;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Example.Models;
+
 using CustomEnum = Pomona.Example.Models.CustomEnum;
 
 namespace Pomona.SystemTests
@@ -54,6 +58,7 @@ namespace Pomona.SystemTests
             Assert.That(proxyBase.ProxyTarget, Is.TypeOf<CritterResource>());
         }
 
+
         [Test]
         public void GetResourceById_UsingClientRepository_ReturnsResource()
         {
@@ -69,6 +74,7 @@ namespace Pomona.SystemTests
             var firstCritterName = CritterEntities.First().Name;
             var farm = Client.Farms.Where(x => x.Critters.Any(y => y.Name == firstCritterName)).ToList();
         }
+
 
         [Test]
         public void QueryAgainstRepositoryOnEntity_ReturnsResultsRestrictedToEntity()
@@ -99,7 +105,7 @@ namespace Pomona.SystemTests
 
             var critters =
                 Client.Query<IHasCustomAttributes>(x => x.WrappedAttribute != null && x.WrappedAttribute.StartsWith("h"))
-                      .ToList();
+                    .ToList();
 
             Assert.That(critters.Any(x => x.WrappedAttribute == "hooha"), Is.True);
             Assert.That(critters.Any(x => x.WrappedAttribute == "booja"), Is.False);
@@ -133,20 +139,32 @@ namespace Pomona.SystemTests
         {
             var matching = (DictionaryContainer)Repository.Post(
                 new DictionaryContainer
-                    {
-                        Map = new Dictionary<string, string> { { "fubu", "bar" } }
-                    });
+                {
+                    Map = new Dictionary<string, string> { { "fubu", "bar" } }
+                });
             var notMatching = (DictionaryContainer)Repository.Post(
                 new DictionaryContainer
-                    {
-                        Map = new Dictionary<string, string> { { "fubu", "nope" } }
-                    });
+                {
+                    Map = new Dictionary<string, string> { { "fubu", "nope" } }
+                });
 
             var resultIds = TestQuery<IDictionaryContainer, DictionaryContainer>(
-                x => x.Map["fubu"] == "bar", x => x.Map["fubu"] == "bar").Select(x => x.Id);
+                x => x.Map["fubu"] == "bar",
+                x => x.Map["fubu"] == "bar").Select(x => x.Id);
 
             Assert.That(resultIds, Has.Member(matching.Id));
             Assert.That(resultIds, Has.No.Member(notMatching.Id));
+        }
+
+
+        [Test]
+        public void QueryGalaxyHavingQuestionMarkInName_ReturnsCorrectResource()
+        {
+            // NOTE: This only works through NancyTestingWebClient. It will fail through self host or ASP.NET host.
+            var galaxy = Client.Galaxies.Post(new GalaxyForm() { Name = "The Joker?" });
+            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
+            galaxy = Client.Reload(galaxy);
+            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
         }
 
 
@@ -156,7 +174,8 @@ namespace Pomona.SystemTests
             Repository.Post(new HasCustomEnum { TheEnumValue = CustomEnum.Tack });
             Repository.Post(new HasCustomEnum { TheEnumValue = CustomEnum.Tick });
             TestQuery<IHasCustomEnum, HasCustomEnum>(
-                x => x.TheEnumValue == Critters.Client.CustomEnum.Tack, x => x.TheEnumValue == CustomEnum.Tack);
+                x => x.TheEnumValue == Critters.Client.CustomEnum.Tack,
+                x => x.TheEnumValue == CustomEnum.Tack);
         }
 
 
@@ -164,12 +183,13 @@ namespace Pomona.SystemTests
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
             var musicalCritter =
-                (MusicalCritter)Repository.CreateRandomCritter(rngSeed: 34242552, forceMusicalCritter: true);
+                (MusicalCritter)Repository.CreateRandomCritter(rngSeed : 34242552, forceMusicalCritter : true);
             var bandName = musicalCritter.BandName;
             var critters =
                 Client.Query<IMusicalCritter>(x => x.BandName == bandName && x.Name == musicalCritter.Name);
             Assert.That(critters.Any(x => x.Id == musicalCritter.Id));
         }
+
 
         [Test]
         public void QueryMusicalCritter_WithPropertyOnlyOnMusicalCritterExpanded_ReturnsExpandedProperty()
@@ -179,43 +199,48 @@ namespace Pomona.SystemTests
             Assert.That(musicalCritter.Instrument, Is.TypeOf<InstrumentResource>());
         }
 
+
         [Test]
         public void QueryNonExistingUrl_ThrowsResourceNotFoundException()
         {
             Assert.That(() => Client.Get<Critter>(BaseUri + "critters/9999999"),
-                        Throws.TypeOf<Common.Web.ResourceNotFoundException>());
+                Throws.TypeOf<Common.Web.ResourceNotFoundException>());
         }
+
 
         [Test]
         public void QueryResourceWithEnumerable_PredicateOnEmumerable_ReturnsCorrectResults()
         {
-            var musicalCritter = (MusicalCritter)Repository.CreateRandomCritter(forceMusicalCritter: true);
+            var musicalCritter = (MusicalCritter)Repository.CreateRandomCritter(forceMusicalCritter : true);
             var farms =
                 Client.Farms.Where(x => x.MusicalCritters.Any(y => y.BandName == musicalCritter.BandName)).ToList();
             Assert.That(farms.Any(x => x.MusicalCritters.Select(y => y.Id).Contains(musicalCritter.Id)));
         }
 
+
         [Test]
         public void QueryResourceWithExpandedEnumerable_ReturnsExpandedItems()
         {
-            Repository.CreateRandomData(critterCount: 20);
+            Repository.CreateRandomData(critterCount : 20);
             var farms = Client.Farms.Query().Expand(x => x.MusicalCritters).ToList();
             var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(farms.All(x => !(x.MusicalCritters is LazyListProxy<IMusicalCritter>)));
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
-                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+                Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
         }
+
 
         [Test]
         public void QueryResourceWithNonExpandedEnumerable_ReturnsLazyItems()
         {
-            Repository.CreateRandomData(critterCount: 20);
+            Repository.CreateRandomData(critterCount : 20);
             var farms = Client.Farms.Query().ToList();
             Assert.That(farms.All(x => x.MusicalCritters is LazyListProxy<IMusicalCritter>));
             var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
-                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+                Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
         }
+
 
         [Test]
         public void QueryStringToObjectDictionaryContainer_ReturnsCorrectObject()
@@ -260,6 +285,7 @@ namespace Pomona.SystemTests
         {
             TestQuery<IWeapon, Weapon>(x => x.Strength > 0.8, x => x.Strength > 0.8);
         }
+
 
         [Test]
         public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
