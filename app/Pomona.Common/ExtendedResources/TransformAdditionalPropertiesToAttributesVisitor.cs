@@ -101,6 +101,19 @@ namespace Pomona.Common.ExtendedResources
             var propInfo = member as PropertyInfo;
             var visitedExpression = Visit(node.Expression);
 
+            // Evaluate closures at this point
+            var nodeExpression = Visit(node.Expression);
+            if (nodeExpression.NodeType == ExpressionType.Constant)
+            {
+                var target = ((ConstantExpression)nodeExpression).Value;
+
+                if (propInfo != null)
+                    return Expression.Constant(propInfo.GetValue(target, null), propInfo.PropertyType);
+                var fieldInfo = node.Member as FieldInfo;
+                if (fieldInfo != null)
+                    return Expression.Constant(fieldInfo.GetValue(target), fieldInfo.FieldType);
+            }
+
             if (IsUserType(member.DeclaringType, out declaringUserTypeInfo))
             {
                 if (propInfo == null)

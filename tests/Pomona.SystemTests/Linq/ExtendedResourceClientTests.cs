@@ -120,6 +120,20 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void Query_ExtendedResource_UsingValueFromClosure()
+        {
+            var response = Query_ExtendedResource_UsingValueFromClosure_GenericMethod<IExtendedResource>("NO RESULTS WILL BE FOUND");
+            Assert.That(response.Count, Is.EqualTo(0));
+        }
+
+
+        public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(string capturedArgument)
+        {
+            return Client.DictionaryContainers.Query<IExtendedResource>().Where(x => x.CustomString == capturedArgument).ToList();
+        }
+
+
+        [Test]
         public void PostExtendedResource()
         {
             var response = (IExtendedResource3)Client.Post<IExtendedResource3>(x =>
