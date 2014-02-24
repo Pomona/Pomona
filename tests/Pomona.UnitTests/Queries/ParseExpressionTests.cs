@@ -83,6 +83,12 @@ namespace Pomona.UnitTests.Queries
         }
 
         [Test]
+        public void ParseNotEquals_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("number ne 3", _this => _this.Number != 3);
+        }
+
+        [Test]
         public void ParseMaxOfEnumerable_ReturnsCorrectExpression()
         {
             ParseAndAssert("listOfInts.max()", _this => _this.ListOfInts.Max());
@@ -182,6 +188,12 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("children.sum(x: x.someDecimal)", _this => _this.Children.Sum(x => x.SomeDecimal));
         }
 
+
+        [Test]
+        public void ParseEnumNotEqual_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("anEnumValue ne 'Moo'", _this => _this.AnEnumValue != TestEnum.Moo);
+        }
 
         [Test]
         public void ParseEnumComparison_ReturnsCorrectExpression()
