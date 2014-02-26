@@ -40,6 +40,7 @@ using Nancy.Testing;
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Web;
 using Pomona.Example;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
@@ -61,6 +62,7 @@ namespace Pomona.SystemTests
 
         public override Client CreateHttpTestingClient(string baseUri)
         {
+            return new Client(baseUri, new HttpWebRequestClient());
             return new Client(baseUri);
         }
 

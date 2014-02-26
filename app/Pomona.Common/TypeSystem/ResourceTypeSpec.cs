@@ -101,6 +101,11 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.PostReturnType; }
         }
 
+        public IEnumerable<Type> ResourceHandlers
+        {
+            get { return ResourceTypeDetails.ResourceHandlers; }
+        }
+
         public ResourceType UriBaseType
         {
             get { return this.uriBaseType.Value; }

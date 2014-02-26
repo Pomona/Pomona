@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -38,11 +39,17 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreExcludedByDefault();
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault();
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping();
+
+
+        ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
+            Expression<Func<TDeclaringType, TParent>> parentProperty,
+            Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty);
+
+
         ITypeMappingConfigurator<TDeclaringType> AsEntity();
-        ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository();
+        ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot();
         ITypeMappingConfigurator<TDeclaringType> AsUriBaseType();
         ITypeMappingConfigurator<TDeclaringType> AsValueObject();
-        ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot();
 
 
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
@@ -52,18 +59,11 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
             Expression<Func<TDeclaringType, IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr);
 
-        ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
-            Expression<Func<TDeclaringType, TParent>> parentProperty, Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty);
 
-        ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);
+        ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository();
 
-
-        ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
-            Expression<Func<TDeclaringType, TPropertyType>> property,
-            Func
-                <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
+        ITypeMappingConfigurator<TDeclaringType> HandledBy<THandler>();
 
 
         ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(
@@ -75,13 +75,21 @@ namespace Pomona.FluentMapping
                     IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> propertyOptions);
 
 
-        ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
-        ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
-        ITypeMappingConfigurator<TDeclaringType> PostAllowed();
-        ITypeMappingConfigurator<TDeclaringType> PostDenied();
-        ITypeMappingConfigurator<TDeclaringType> PatchAllowed();
-        ITypeMappingConfigurator<TDeclaringType> PatchDenied();
+        ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
+            Expression<Func<TDeclaringType, TPropertyType>> property,
+            Func
+                <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
+                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
+
 
         ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action);
+
+        ITypeMappingConfigurator<TDeclaringType> PatchAllowed();
+        ITypeMappingConfigurator<TDeclaringType> PatchDenied();
+        ITypeMappingConfigurator<TDeclaringType> PostAllowed();
+        ITypeMappingConfigurator<TDeclaringType> PostDenied();
+        ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
+        ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
+        ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
     }
 }

@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -160,6 +161,12 @@ namespace Pomona.FluentMapping
         public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertyFlags(propertyInfo);
+        }
+
+
+        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
+        {
+            return this.wrappedFilter.GetResourceHandlers(type);
         }
 
 

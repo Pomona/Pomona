@@ -33,6 +33,7 @@ using System.Linq.Expressions;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.RequestProcessing;
 
 namespace Pomona
 {
@@ -161,6 +162,12 @@ namespace Pomona
         protected override TypeSpec OnGetType()
         {
             return this.collectionType;
+        }
+
+
+        protected override IPomonaRequestProcessor OnGetRequestProcessor(PomonaRequest request)
+        {
+            return ItemResourceType.ResourceHandlers.EmptyIfNull().Select(HandlerRequestProcessor.Create).FirstOrDefault();
         }
 
 

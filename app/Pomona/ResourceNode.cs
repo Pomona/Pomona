@@ -109,5 +109,11 @@ namespace Pomona
         {
             return Type;
         }
+
+
+        protected override IPomonaRequestProcessor OnGetRequestProcessor(PomonaRequest request)
+        {
+            return base.OnGetRequestProcessor(request);
+        }
     }
 }

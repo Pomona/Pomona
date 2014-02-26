@@ -69,6 +69,7 @@
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
     <Compile Include="GalaxyRules.cs" />
+    <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
     <Compile Include="Models\CaptureCommand.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="Models\FailingThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\Blob.cs" />
+    <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
     <Compile Include="Models\InheritedUnpostableThing.cs" />
@@ -126,6 +128,7 @@
     <Compile Include="Models\ThingWithRenamedProperties.cs" />
     <Compile Include="Models\ThingWithUri.cs" />
     <Compile Include="Models\Unconstructable.cs" />
+    <Compile Include="Models\UnhandledThing.cs" />
     <Compile Include="Models\UnpatchableThing.cs" />
     <Compile Include="Models\UnpostableThing.cs" />
     <Compile Include="Models\UnpostableThingOnServer.cs" />

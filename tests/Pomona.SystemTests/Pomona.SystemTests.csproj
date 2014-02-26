@@ -87,6 +87,7 @@
     <Compile Include="ExceptionHandlingTests.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
     <Compile Include="GetFromUriTests.cs" />
+    <Compile Include="Handlers\ResourceHandlerTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
     <Compile Include="CritterTests.cs" />

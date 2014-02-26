@@ -204,6 +204,12 @@ namespace TestNs
         }
 
 
+        public IEnumerable<Type> GetResourceHandlers(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.HandlerTypes, () => wrappedFilter.GetResourceHandlers(type));
+        }
+
+
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {
             return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);

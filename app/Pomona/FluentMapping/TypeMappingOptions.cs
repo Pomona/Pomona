@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,11 +43,7 @@ namespace Pomona.FluentMapping
             ReflectionHelper.GetMethodDefinition<TypeMappingOptions>(x => x.GetConfigurator<object>());
 
         private readonly Type declaringType;
-
-        public Type DeclaringType
-        {
-            get { return declaringType; }
-        }
+        private readonly List<Type> handlerTypes = new List<Type>();
 
         private readonly IDictionary<string, PropertyMappingOptions> propertyOptions =
             new Dictionary<string, PropertyMappingOptions>();
@@ -85,10 +81,20 @@ namespace Pomona.FluentMapping
             get { return this.constructor; }
         }
 
+        public Type DeclaringType
+        {
+            get { return this.declaringType; }
+        }
+
         public DefaultPropertyInclusionMode DefaultPropertyInclusionMode
         {
             get { return this.defaultPropertyInclusionMode; }
             set { this.defaultPropertyInclusionMode = value; }
+        }
+
+        public List<Type> HandlerTypes
+        {
+            get { return this.handlerTypes; }
         }
 
         public bool? IsExposedAsRepository
@@ -234,12 +240,6 @@ namespace Pomona.FluentMapping
             }
 
 
-            public override ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(Expression<Func<TDeclaringType, IEnumerable<TItem>>> property, Expression<Func<TItem, TDeclaringType>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> childConfig, Func<IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
-            {
-                return Include(property, options);
-            }
-
-
             public override ITypeMappingConfigurator<TDeclaringType> AsEntity()
             {
                 throw new NotImplementedException();
@@ -290,7 +290,8 @@ namespace Pomona.FluentMapping
             }
 
 
-            public override ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property)
+            public override ITypeMappingConfigurator<TDeclaringType> Exclude(
+                Expression<Func<TDeclaringType, object>> property)
             {
                 if (property == null)
                     throw new ArgumentNullException("property");
@@ -304,6 +305,25 @@ namespace Pomona.FluentMapping
             {
                 this.owner.isExposedAsRepository = true;
                 return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> HandledBy<THandler>()
+            {
+                this.owner.HandlerTypes.Add(typeof(THandler));
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(
+                Expression<Func<TDeclaringType, IEnumerable<TItem>>> property,
+                Expression<Func<TItem, TDeclaringType>> parentProperty,
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> childConfig,
+                Func
+                    <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
+                        IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
+            {
+                return Include(property, options);
             }
 
 

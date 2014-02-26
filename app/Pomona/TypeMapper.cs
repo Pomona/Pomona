@@ -277,7 +277,8 @@ namespace Pomona
                 this.filter.TypeIsExposedAsRepository(type),
                 this.filter.GetPostReturnType(type),
                 this.filter.GetParentToChildProperty(type),
-                this.filter.GetChildToParentProperty(type));
+                this.filter.GetChildToParentProperty(type),
+                this.filter.GetResourceHandlers(type));
         }
 
 

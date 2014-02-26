@@ -220,6 +220,12 @@ namespace Pomona
         }
 
 
+        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
+        {
+            return null;
+        }
+
+
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)

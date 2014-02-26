@@ -185,7 +185,6 @@ namespace Pomona.Common.Internals
                 return wrappedFunc;
             }
 
-
             private TDel WrapInstanceGenericMethod<TDel>(int typeArgCount, LambdaExpression expr)
                 where TDel : class
             {

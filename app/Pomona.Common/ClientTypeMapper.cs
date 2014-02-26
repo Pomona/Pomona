@@ -228,7 +228,7 @@ namespace Pomona.Common
         {
             var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
 
-            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null);
+            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null, Enumerable.Empty<Type>());
         }
 
 

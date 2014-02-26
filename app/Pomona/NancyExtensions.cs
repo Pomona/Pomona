@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,33 +24,70 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
+using System;
+using System.Linq;
 using System.Threading;
+
 using Nancy;
 
 using Pomona.Common.Serialization;
+using Pomona.Ioc;
 
 namespace Pomona
 {
     internal static class NancyExtensions
     {
+        private static string cachedIocContainerKey = null;
+
+
+        internal static void ContentsFromString(this Response resp, string text)
+        {
+            resp.Contents = stream =>
+            {
+                using (var writer = new NoCloseStreamWriter(stream))
+                {
+                    writer.Write(text);
+                    writer.Flush();
+                }
+                stream.Flush();
+
+                Thread.MemoryBarrier();
+            };
+        }
+
+
         internal static ISerializationContextProvider GetSerializationContextProvider(this NancyContext nancyContext)
         {
             return (ISerializationContextProvider)nancyContext.Items[typeof(ISerializationContextProvider).FullName];
         }
 
-        internal static void ContentsFromString(this Response resp, string text)
-        {
-            resp.Contents = stream =>
-                {
-                    using (var writer = new NoCloseStreamWriter(stream))
-                    {
-                        writer.Write(text);
-                        writer.Flush();
-                    }
-                    stream.Flush();
 
-                    Thread.MemoryBarrier();
-                };
+        internal static RuntimeContainerWrapper GetIocContainerWrapper(this NancyContext context)
+        {
+            object childContainer;
+            var childContainerSuffix = "BootstrapperChildContainer";
+            if (cachedIocContainerKey == null || !context.Items.TryGetValue(cachedIocContainerKey, out childContainer))
+            {
+                var item =
+                    context.Items.Where(x => x.Key.EndsWith(childContainerSuffix)).OrderByDescending(
+                        x =>
+                            RuntimeContainerWrapper.PreferredContainersTypes.Contains(
+                                x.Key.Substring(x.Key.Length - childContainerSuffix.Length))).First();
+                cachedIocContainerKey = item.Key;
+                childContainer = item.Value;
+            }
+            return RuntimeContainerWrapper.Create(childContainer);
+
+        }
+
+        internal static object Resolve(this NancyContext context, Type type)
+        {
+            if (type == typeof(NancyContext))
+                return context;
+
+            return context.GetIocContainerWrapper().GetInstance(type);
         }
     }
 }

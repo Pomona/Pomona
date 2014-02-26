@@ -50,6 +50,12 @@ namespace Pomona.Common
         }
 
 
+        public static MethodInfo GetDelegateInvokeMethod(this Type delegateType)
+        {
+            return delegateType.GetMethod("Invoke");
+        }
+
+
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
             var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);
@@ -421,7 +427,7 @@ namespace Pomona.Common
             if (name == null)
                 throw new ArgumentNullException("name");
 
-            property = type.AllProperties.FirstOrDefault(x => string.Equals(x.Name, name, stringComparison));
+            property = type.AllProperties.FirstOrDefault(x => String.Equals(x.Name, name, stringComparison));
             return property != null;
         }
 
@@ -436,7 +442,7 @@ namespace Pomona.Common
             property =
                 type.Properties.FirstOrDefault(
                     x => (x.PropertyType is ResourceType || x.PropertyType is EnumerableTypeSpec) &&
-                         string.Equals(name,
+                         String.Equals(name,
                              NameUtils.ConvertCamelCaseToUri(x.Name),
                              StringComparison.InvariantCultureIgnoreCase));
 
