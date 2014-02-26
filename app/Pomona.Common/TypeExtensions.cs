@@ -49,15 +49,6 @@ namespace Pomona.Common
                     .Distinct();
         }
 
-        public static PropertyInfo GetPropertySearchInheritedInterfaces(this Type sourceType, string propertyName)
-        {
-            return
-                sourceType
-                    .WrapAsEnumerable()
-                    .Concat(sourceType.GetInterfaces())
-                    .Select(x => x.GetProperty(propertyName)).FirstOrDefault(x => x != null);
-        }
-
 
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
@@ -71,6 +62,12 @@ namespace Pomona.Common
             return baseMethod.DeclaringType.GetProperty(propertyInfo.Name,
                 BindingFlags.Instance | BindingFlags.NonPublic |
                 BindingFlags.Public);
+        }
+
+
+        public static MethodInfo GetDelegateInvokeMethod(this Type delegateType)
+        {
+            return delegateType.GetMethod("Invoke");
         }
 
 
@@ -119,6 +116,16 @@ namespace Pomona.Common
             if (fieldInfo != null)
                 return fieldInfo.GetValue(obj);
             throw new NotSupportedException("Can only get value from property or field.");
+        }
+
+
+        public static PropertyInfo GetPropertySearchInheritedInterfaces(this Type sourceType, string propertyName)
+        {
+            return
+                sourceType
+                    .WrapAsEnumerable()
+                    .Concat(sourceType.GetInterfaces())
+                    .Select(x => x.GetProperty(propertyName)).FirstOrDefault(x => x != null);
         }
 
 

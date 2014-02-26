@@ -77,6 +77,10 @@
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
+    <Compile Include="Ioc\DummyImplementation.cs" />
+    <Compile Include="Ioc\IDummyContract.cs" />
+    <Compile Include="Ioc\IocTestsBase.cs" />
+    <Compile Include="Ioc\TinyIocTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="Patch\DeltaTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
