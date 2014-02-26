@@ -50,12 +50,6 @@ namespace Pomona.Common
         }
 
 
-        public static MethodInfo GetDelegateInvokeMethod(this Type delegateType)
-        {
-            return delegateType.GetMethod("Invoke");
-        }
-
-
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
             var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);
