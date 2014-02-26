@@ -70,6 +70,7 @@
     <Compile Include="NancyTestingWebClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ApiChangeVerifier.cs" />
+    <Compile Include="SolutionTestsHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
