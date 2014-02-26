@@ -236,6 +236,7 @@
     <Compile Include="PropertyMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeMappingFilterBase.cs" />
+    <Compile Include="TypeSystem\SubclassComparer.cs" />
     <Compile Include="UnknownTypeException.cs" />
     <Compile Include="UriResolver.cs" />
   </ItemGroup>
@@ -255,7 +256,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGen\XmlDoc\" />
-    <Folder Include="TypeSystem\" />
     <Folder Include="Visitors\" />
   </ItemGroup>
   <ItemGroup>

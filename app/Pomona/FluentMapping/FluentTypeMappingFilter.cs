@@ -39,6 +39,7 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
+using Pomona.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -637,22 +638,5 @@ namespace TestNs
             propertyOptions = typeMapping.GetPropertyOptions(propertyInfo);
             return true;
         }
-
-        #region Nested type: SubclassComparer
-
-        private class SubclassComparer : IComparer<Type>
-        {
-            public int Compare(Type x, Type y)
-            {
-                if (x == y)
-                    return 0;
-
-                return x.IsAssignableFrom(y)
-                    ? -1
-                    : 1;
-            }
-        }
-
-        #endregion
     }
 }
