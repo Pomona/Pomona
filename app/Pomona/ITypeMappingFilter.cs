@@ -100,6 +100,7 @@ namespace Pomona
 
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
+        bool DeleteOfTypeIsAllowed(Type type);
 
         Action<object> GetOnDeserializedHook(Type type);
         HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);

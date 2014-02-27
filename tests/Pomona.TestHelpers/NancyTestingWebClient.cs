@@ -61,6 +61,9 @@ namespace Pomona.TestHelpers
                 case "GET":
                     browserMethod = browser.Get;
                     break;
+                case "DELETE":
+                    browserMethod = browser.Delete;
+                    break;
                 default:
                     throw new NotImplementedException();
             }

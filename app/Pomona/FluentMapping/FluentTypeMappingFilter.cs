@@ -180,6 +180,12 @@ namespace TestNs
         }
 
 
+        public bool DeleteOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.DeleteAllowed, () => wrappedFilter.DeleteOfTypeIsAllowed(type));
+        }
+
+
         public Action<object> GetOnDeserializedHook(Type type)
         {
             return FromMappingOrDefault(type,

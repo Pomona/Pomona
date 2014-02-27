@@ -135,8 +135,10 @@ namespace Pomona
         public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
         {
             // TODO: Get allowed methods from filter
-            var allowedMethods = HttpMethod.Get | (filter.PatchOfTypeIsAllowed(exportedType) ? HttpMethod.Patch : 0)
-                             | (filter.PostOfTypeIsAllowed(exportedType) ? HttpMethod.Post : 0);
+            var allowedMethods = HttpMethod.Get |
+                                (filter.PatchOfTypeIsAllowed(exportedType) ? HttpMethod.Patch : 0) |
+                                (filter.PostOfTypeIsAllowed(exportedType) ? HttpMethod.Post : 0) |
+                                (filter.DeleteOfTypeIsAllowed(exportedType) ? HttpMethod.Delete : 0);
 
             var type = exportedType.Type;
             var details = new ExportedTypeDetails(exportedType,

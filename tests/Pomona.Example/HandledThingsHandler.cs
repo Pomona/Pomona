@@ -26,16 +26,35 @@
 
 #endregion
 
+using System;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
     public class HandledThingsHandler
     {
+        private readonly CritterRepository repository;
+
+
+        public HandledThingsHandler(CritterRepository repository)
+        {
+            if (repository == null)
+                throw new ArgumentNullException("repository");
+            this.repository = repository;
+        }
+
+
+        public void Delete(HandledThing handledThing)
+        {
+            this.repository.Delete(handledThing);
+        }
+
+
         public HandledThing Post(HandledThing handledThing)
         {
             handledThing.Marker = "HANDLER WAS HERE!";
-            return handledThing;
+            return (HandledThing)this.repository.Post(handledThing);
         }
     }
 }

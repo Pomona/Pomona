@@ -70,6 +70,8 @@ namespace Pomona.Common
         public abstract string GetUriOfType(Type type);
         public abstract T Reload<T>(T resource);
 
+        public abstract void Delete<T>(T resource)
+            where T : class, IClientResource;
 
         public abstract T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
             where T : class, IClientResource;
@@ -168,6 +170,12 @@ namespace Pomona.Common
         public override IWebClient WebClient
         {
             get { return this.webClient; }
+        }
+
+        public override void Delete<T>(T resource)
+        {
+            var uri = ((IHasResourceUri)resource).Uri;
+            SendHttpRequest(uri, "DELETE");
         }
 
 

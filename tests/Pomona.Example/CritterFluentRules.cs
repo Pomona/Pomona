@@ -40,7 +40,7 @@ namespace Pomona.Example
     {
         public void Map(ITypeMappingConfigurator<HandledThing> map)
         {
-            map.HandledBy<HandledThingsHandler>();
+            map.DeleteAllowed().HandledBy<HandledThingsHandler>();
         }
 
 

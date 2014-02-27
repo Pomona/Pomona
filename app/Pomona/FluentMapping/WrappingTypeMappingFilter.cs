@@ -115,6 +115,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual bool DeleteOfTypeIsAllowed(Type type)
+        {
+            return this.wrappedFilter.DeleteOfTypeIsAllowed(type);
+        }
+
+
         public virtual Action<object> GetOnDeserializedHook(Type type)
         {
             return this.wrappedFilter.GetOnDeserializedHook(type);

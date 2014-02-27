@@ -30,11 +30,22 @@ using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Example.Models;
+
 namespace Pomona.SystemTests.Handlers
 {
     [TestFixture]
     public class ResourceHandlerTests : ClientTestsBase
     {
+        [Test]
+        public void DeleteHandledThing_CallsHandleDeleteMethod()
+        {
+            var entity = Save(new HandledThing() { Foo = "to be exterminated." });
+            Client.HandledThings.Delete(Client.HandledThings.GetLazy(entity.Id));
+            Assert.That(Repository.List<HandledThing>(), Is.Not.Contains(entity));
+        }
+
+
         [Category("TODO")]
         [Test]
         public void GetHandledThing_CallsHandlerGetMethod()

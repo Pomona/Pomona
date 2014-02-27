@@ -67,6 +67,7 @@
     <Compile Include="HttpUtility.cs" />
     <Compile Include="IClientRepository.cs" />
     <Compile Include="IClientTypeResolver.cs" />
+    <Compile Include="IDeletableRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
     <Compile Include="Internals\ClientSerializationContextProvider.cs" />

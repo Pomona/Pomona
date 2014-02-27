@@ -60,6 +60,9 @@ namespace Pomona.FluentMapping
             Expression<Func<TDeclaringType, IConstructorControl<TDeclaringType>, TDeclaringType>> constructExpr);
 
 
+        ITypeMappingConfigurator<TDeclaringType> DeleteAllowed();
+        ITypeMappingConfigurator<TDeclaringType> DeleteDenied();
+
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);
         ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository();
 

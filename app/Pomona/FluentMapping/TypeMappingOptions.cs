@@ -53,6 +53,8 @@ namespace Pomona.FluentMapping
         private DefaultPropertyInclusionMode defaultPropertyInclusionMode =
             DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
 
+        private bool? deleteAllowed;
+
         private bool? isExposedAsRepository;
 
         private bool? isIndependentTypeRoot;
@@ -90,6 +92,11 @@ namespace Pomona.FluentMapping
         {
             get { return this.defaultPropertyInclusionMode; }
             set { this.defaultPropertyInclusionMode = value; }
+        }
+
+        public bool? DeleteAllowed
+        {
+            get { return this.deleteAllowed; }
         }
 
         public List<Type> HandlerTypes
@@ -287,6 +294,20 @@ namespace Pomona.FluentMapping
                     return this;
 
                 throw new NotImplementedException();
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> DeleteAllowed()
+            {
+                this.owner.deleteAllowed = true;
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> DeleteDenied()
+            {
+                this.owner.deleteAllowed = false;
+                return this;
             }
 
 

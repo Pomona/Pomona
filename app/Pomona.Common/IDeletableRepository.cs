@@ -26,11 +26,11 @@
 
 #endregion
 
-namespace Pomona.Example.Models
+namespace Pomona.Common
 {
-    public class HandledThing : EntityBase
+    public interface IDeletableRepository<TResource>
+        where TResource : class, IClientResource
     {
-        public string Foo { get; set; }
-        public string Marker { get; set; }
+        void Delete(TResource resource);
     }
 }

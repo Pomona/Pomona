@@ -41,7 +41,6 @@ using Newtonsoft.Json.Converters;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
@@ -52,14 +51,16 @@ namespace Pomona
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
         private readonly HashSet<Type> sourceTypesCached;
 
-        protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
-        {
-            sourceTypesCached = new HashSet<Type>(sourceTypes);
-        }
 
         static TypeMappingFilterBase()
         {
             jsonSupportedNativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
+        }
+
+
+        protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
+        {
+            this.sourceTypesCached = new HashSet<Type>(sourceTypes);
         }
 
 
@@ -70,19 +71,21 @@ namespace Pomona
 
         private HashSet<Type> SourceTypes
         {
-            get
-            {
-                return this.sourceTypesCached;
-            }
+            get { return this.sourceTypesCached; }
         }
 
         #region ITypeMappingFilter Members
-
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
+            return false;
+        }
+
+
+        public virtual bool DeleteOfTypeIsAllowed(Type type)
+        {
             return false;
         }
 
@@ -189,6 +192,13 @@ namespace Pomona
         }
 
 
+        public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
+                   (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
+        }
+
+
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
@@ -213,19 +223,6 @@ namespace Pomona
         }
 
 
-        public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
-        {
-            return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
-                   (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
-        }
-
-
-        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
-        {
-            return null;
-        }
-
-
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
@@ -245,6 +242,12 @@ namespace Pomona
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
             return propertyInfo.PropertyType;
+        }
+
+
+        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
+        {
+            return null;
         }
 
 
@@ -401,7 +404,8 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
-            return type.IsEnum || IsNativelySupportedType(type) || type == typeof(byte[]) || TypeIsMappedAsCollection(type);
+            return type.IsEnum || IsNativelySupportedType(type) || type == typeof(byte[])
+                   || TypeIsMappedAsCollection(type);
         }
 
 

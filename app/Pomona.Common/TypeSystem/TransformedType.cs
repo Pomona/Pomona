@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,9 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<ExportedTypeDetails> exportedTypeDetails;
 
+        private Func<IDictionary<PropertySpec, object>, object> createFunc;
+        private Delegate createUsingPropertySourceFunc;
+
 
         public TransformedType(IExportedTypeResolver typeResolver,
             Type type,
@@ -49,103 +52,15 @@ namespace Pomona.Common.TypeSystem
             this.exportedTypeDetails = CreateLazy(() => typeResolver.LoadExportedTypeDetails(this));
         }
 
-        public virtual ResourceInfoAttribute ResourceInfo
+
+        public virtual HttpMethod AllowedMethods
         {
-            get { return DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault(); }
+            get { return ExportedTypeDetails.AllowedMethods; }
         }
 
-        private class ConstructorPropertySource<T> : IConstructorPropertySource<T>
+        public virtual PropertyMapping PrimaryId
         {
-            private IDictionary<PropertySpec, object> args;
-
-
-            public ConstructorPropertySource(IDictionary<PropertySpec, object> args)
-            {
-                this.args = args;
-            }
-
-
-            public T Requires()
-            {
-                throw new NotImplementedException();
-            }
-
-            public T Optional()
-            {
-                throw new NotImplementedException();
-            }
-
-            public TParentType Parent<TParentType>()
-            {
-                throw new NotImplementedException();
-            }
-
-            public TContext Context<TContext>()
-            {
-                throw new NotImplementedException();
-            }
-
-            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
-            {
-                defaultFactory = defaultFactory ?? (() =>
-                {
-                    throw new InvalidOperationException("Unable to get required property.");
-                });
-
-                // TODO: Optimize a lot!!!
-                return
-                    this.args.Where(x => x.Key.PropertyInfo.Name == propertyInfo.Name).Select(x => (TProperty)x.Value).MaybeFirst()
-                        .OrDefault(defaultFactory);
-            }
-        }
-
-        protected override TypeSerializationMode OnLoadSerializationMode()
-        {
-            return TypeSerializationMode.Complex;
-        }
-
-
-        private Delegate createUsingPropertySourceFunc;
-
-        public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
-        {
-            if (typeof(T) != Type)
-                throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));
-            if (createUsingPropertySourceFunc == null)
-            {
-                var param = Expression.Parameter(typeof (IConstructorPropertySource<T>));
-                var expr = Expression.Lambda<Func<IConstructorPropertySource<T>, T>>(Expression.Invoke(Constructor.InjectingConstructorExpression, param), param);
-                createUsingPropertySourceFunc = expr.Compile();
-            }
-
-            return ((Func<IConstructorPropertySource<T>,T>)createUsingPropertySourceFunc)(propertySource);
-        }
-
-        private Func<IDictionary<PropertySpec, object>, object> createFunc;
-
-        public override object Create(IDictionary<PropertySpec, object> args)
-        {
-            if (createFunc == null)
-            {
-                var argsParam = Expression.Parameter(typeof(IDictionary<PropertySpec, object>));
-                Type makeGenericType = typeof(ConstructorPropertySource<>).MakeGenericType(
-                    Constructor.InjectingConstructorExpression.ReturnType);
-                ConstructorInfo constructorInfo = makeGenericType.GetConstructor(new[]
-                    { typeof(IDictionary<PropertySpec, object>) });
-
-                if (constructorInfo == null)
-                    throw new InvalidOperationException("Unable to find constructor for ConstructorPropertySource (should not get here).");
-
-                this.createFunc =
-                    Expression.Lambda<Func<IDictionary<PropertySpec, object>, object>>(
-                        Expression.Convert(
-                            Expression.Invoke(Constructor.InjectingConstructorExpression,
-                                Expression.New(
-                                    constructorInfo, argsParam)),
-                            typeof(object)),
-                        argsParam).Compile();
-            }
-            return createFunc(args);
+            get { return ExportedTypeDetails.PrimaryId; }
         }
 
         public new virtual IEnumerable<PropertyMapping> Properties
@@ -153,14 +68,19 @@ namespace Pomona.Common.TypeSystem
             get { return base.Properties.Cast<PropertyMapping>(); }
         }
 
+        public virtual ResourceInfoAttribute ResourceInfo
+        {
+            get { return DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault(); }
+        }
+
+        public bool DeleteAllowed
+        {
+            get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
+        }
+
         public PropertyMapping ETagProperty
         {
             get { return ExportedTypeDetails.ETagProperty; }
-        }
-
-        public bool MappedAsValueObject
-        {
-            get { return ExportedTypeDetails.MappedAsValueObject; }
         }
 
         public override bool IsAlwaysExpanded
@@ -168,12 +88,15 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.AlwaysExpand; }
         }
 
+        public bool MappedAsValueObject
+        {
+            get { return ExportedTypeDetails.MappedAsValueObject; }
+        }
+
         public Action<object> OnDeserialized
         {
             get { return ExportedTypeDetails.OnDeserialized; }
         }
-
-        public virtual HttpMethod AllowedMethods {get { return ExportedTypeDetails.AllowedMethods; }}
 
         public bool PatchAllowed
         {
@@ -188,11 +111,6 @@ namespace Pomona.Common.TypeSystem
         public bool PostAllowed
         {
             get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
-        }
-
-        public virtual PropertyMapping PrimaryId
-        {
-            get { return ExportedTypeDetails.PrimaryId; }
         }
 
         public IEnumerable<TransformedType> SubTypes
@@ -214,6 +132,54 @@ namespace Pomona.Common.TypeSystem
         protected ExportedTypeDetails ExportedTypeDetails
         {
             get { return this.exportedTypeDetails.Value; }
+        }
+
+
+        public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
+        {
+            if (typeof(T) != Type)
+                throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));
+            if (this.createUsingPropertySourceFunc == null)
+            {
+                var param = Expression.Parameter(typeof(IConstructorPropertySource<T>));
+                var expr =
+                    Expression.Lambda<Func<IConstructorPropertySource<T>, T>>(
+                        Expression.Invoke(Constructor.InjectingConstructorExpression, param),
+                        param);
+                this.createUsingPropertySourceFunc = expr.Compile();
+            }
+
+            return ((Func<IConstructorPropertySource<T>, T>)this.createUsingPropertySourceFunc)(propertySource);
+        }
+
+
+        public override object Create(IDictionary<PropertySpec, object> args)
+        {
+            if (this.createFunc == null)
+            {
+                var argsParam = Expression.Parameter(typeof(IDictionary<PropertySpec, object>));
+                var makeGenericType = typeof(ConstructorPropertySource<>).MakeGenericType(
+                    Constructor.InjectingConstructorExpression.ReturnType);
+                var constructorInfo = makeGenericType.GetConstructor(new[]
+                { typeof(IDictionary<PropertySpec, object>) });
+
+                if (constructorInfo == null)
+                {
+                    throw new InvalidOperationException(
+                        "Unable to find constructor for ConstructorPropertySource (should not get here).");
+                }
+
+                this.createFunc =
+                    Expression.Lambda<Func<IDictionary<PropertySpec, object>, object>>(
+                        Expression.Convert(
+                            Expression.Invoke(Constructor.InjectingConstructorExpression,
+                                Expression.New(
+                                    constructorInfo,
+                                    argsParam)),
+                            typeof(object)),
+                        argsParam).Compile();
+            }
+            return this.createFunc(args);
         }
 
 
@@ -263,6 +229,12 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        protected override TypeSerializationMode OnLoadSerializationMode()
+        {
+            return TypeSerializationMode.Complex;
+        }
+
+
         private static void TakeLeftmostPathPart(string path, out string leftName, out string remainingPropPath)
         {
             var leftPathSeparatorIndex = path.IndexOf('.');
@@ -283,5 +255,57 @@ namespace Pomona.Common.TypeSystem
         {
             return new PropertyMapping(TypeResolver, property, () => this);
         }
+
+        #region Nested type: ConstructorPropertySource
+
+        private class ConstructorPropertySource<T> : IConstructorPropertySource<T>
+        {
+            private readonly IDictionary<PropertySpec, object> args;
+
+
+            public ConstructorPropertySource(IDictionary<PropertySpec, object> args)
+            {
+                this.args = args;
+            }
+
+
+            public TContext Context<TContext>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
+            {
+                defaultFactory = defaultFactory
+                                 ?? (() => { throw new InvalidOperationException("Unable to get required property."); });
+
+                // TODO: Optimize a lot!!!
+                return
+                    this.args.Where(x => x.Key.PropertyInfo.Name == propertyInfo.Name).Select(x => (TProperty)x.Value)
+                        .MaybeFirst()
+                        .OrDefault(defaultFactory);
+            }
+
+
+            public T Optional()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TParentType Parent<TParentType>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public T Requires()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        #endregion
     }
 }

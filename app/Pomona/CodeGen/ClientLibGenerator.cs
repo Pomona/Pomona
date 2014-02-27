@@ -874,6 +874,13 @@ namespace Pomona.CodeGen
                                 .InterfaceType));
             }
 
+            if (tt.DeleteAllowed || tt.MergedTypes.Any(x => x.DeleteAllowed))
+            {
+                interfacesToImplement.Add(
+                    Import(typeof(IDeletableRepository<>))
+                        .MakeGenericInstanceType(resourceTypeInfo.InterfaceType));
+            }
+
             var repoInterface = CreateRepositoryType(resourceTypeInfo.CustomRepositoryInterface,
                 resourceTypeInfo,
                 MethodAttributes.Abstract |

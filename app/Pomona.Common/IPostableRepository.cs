@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,11 @@ namespace Pomona.Common
         TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource;
 
-        TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options)
+
+        TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
             where TSubResource : class, TResource;
+
 
         TPostResponseResource Post(Action<TResource> postAction);
     }

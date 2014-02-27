@@ -194,5 +194,11 @@ namespace Pomona.TestingClient
         {
             return GetEnumerator();
         }
+
+
+        public void Delete(TResource resource)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

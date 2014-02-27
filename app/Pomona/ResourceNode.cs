@@ -30,7 +30,9 @@ using System;
 using System.Linq;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.RequestProcessing;
 
 namespace Pomona
 {
@@ -113,7 +115,7 @@ namespace Pomona
 
         protected override IPomonaRequestProcessor OnGetRequestProcessor(PomonaRequest request)
         {
-            return base.OnGetRequestProcessor(request);
+            return Type.ResourceHandlers.EmptyIfNull().Select(HandlerRequestProcessor.Create).FirstOrDefault();
         }
     }
 }
