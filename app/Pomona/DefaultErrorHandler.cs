@@ -54,7 +54,8 @@ namespace Pomona
                 return;
 
             object exceptionObject;
-            context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject);
+            if (!context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject))
+                return;
 
             var exception = UnwrapException((Exception) exceptionObject);
 
