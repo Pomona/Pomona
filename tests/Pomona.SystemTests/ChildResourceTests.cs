@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,18 @@ namespace Pomona.SystemTests
 
             Assert.That(planetUri, Is.EqualTo("http://test/galaxies/milkyway/planetary-systems/solar/planets/earth"));
             Client.Get<IPlanet>(planetUri);
+        }
+
+
+        [Category("TODO")]
+        [Test]
+        public void PatchPlanetarySystemAddPlanet_IsSuccessful()
+        {
+            CreateTestData();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var patchedPlanetarySystem = Client.Patch(planetarySystem,
+                x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
+            Assert.Fail("TEST NOT FINISHED");
         }
 
 
