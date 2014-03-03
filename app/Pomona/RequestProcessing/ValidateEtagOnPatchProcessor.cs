@@ -90,11 +90,11 @@ namespace Pomona.RequestProcessing
 
         private void ProcessPostToChildResourceRepository(PomonaRequest request, string ifMatch)
         {
-            var queryableNode = request.Node as QueryableNode;
-            if (request.Method != HttpMethod.Post || queryableNode == null)
+            var collectionNode = request.Node as ResourceCollectionNode;
+            if (request.Method != HttpMethod.Post || collectionNode == null)
                 return;
 
-            var parentNode = queryableNode.Parent as ResourceNode;
+            var parentNode = collectionNode.Parent as ResourceNode;
             if (parentNode != null)
                 ValidateResourceEtag(ifMatch, parentNode);
         }

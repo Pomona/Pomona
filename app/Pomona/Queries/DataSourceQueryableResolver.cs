@@ -48,7 +48,7 @@ namespace Pomona.Queries
         }
 
 
-        protected override IQueryable<TResource> Resolve<TResource, TBaseResource>(QueryableNode<TBaseResource> node)
+        protected override IQueryable<TResource> Resolve<TResource, TBaseResource>(ResourceCollectionNode<TBaseResource> node)
         {
             if (node.Value is IQueryable<TResource>)
                 return (IQueryable<TResource>)node.Value;
@@ -64,7 +64,7 @@ namespace Pomona.Queries
         }
 
 
-        private static IQueryable<TResource> GetByParentId<TResource>(QueryableNode node,
+        private static IQueryable<TResource> GetByParentId<TResource>(ResourceCollectionNode node,
             ResourceType itemResourceType,
             IQueryable<TResource> queryable)
         {

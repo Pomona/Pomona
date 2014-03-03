@@ -35,11 +35,11 @@ namespace Pomona.Queries
     public interface IQueryableResolver
     {
         /// <summary>
-        /// Get the QueryableNode as IQueryable
+        /// Get the ResourceCollectionNode as IQueryable
         /// </summary>
         /// <param name="node">The node to get corresponding IQueryable for.</param>
         /// <param name="ofType">Optional: The subclass to get.</param>
         /// <returns>The resulting IQueryable if success, null if not.</returns>
-        IQueryable Resolve(QueryableNode node, TypeSpec ofType = null);
+        IQueryable Resolve(ResourceCollectionNode node, TypeSpec ofType = null);
     }
 }

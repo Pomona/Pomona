@@ -63,9 +63,9 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse ProcessQueryableNodeCallToHandler(PomonaRequest request, QueryableNode queryableNode)
+        private PomonaResponse ProcessCollectionNodeCallToHandler(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
-            ResourceType resourceType = queryableNode.ItemResourceType;
+            ResourceType resourceType = collectionNode.ItemResourceType;
             if (!resourceType.IsRootResource)
             {
                 var parentType = resourceType.ParentResourceType;
@@ -79,7 +79,7 @@ namespace Pomona.RequestProcessing
                 if (method != null)
                 {
                     var form = request.Bind(resourceType);
-                    var result =  method.Invoke(dataSource, new object[] { queryableNode.Parent.Value, form });
+                    var result =  method.Invoke(dataSource, new object[] { collectionNode.Parent.Value, form });
                     if (!(result is PomonaResponse))
                     {
                         return new PomonaResponse(result, HttpStatusCode.Created, request.ExpandedPaths);
@@ -91,7 +91,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse ProcessQueryableNodeCallToDataSource(PomonaRequest request, QueryableNode queryableNode)
+        private PomonaResponse ProcessCollectionNodeCallToDataSource(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
             var form = request.Bind();
             return postMethod(form.GetType(), this, form, request);
@@ -99,28 +99,28 @@ namespace Pomona.RequestProcessing
 
         public virtual PomonaResponse Process(PomonaRequest request)
         {
-            var queryableNode = request.Node as QueryableNode;
+            var collectionNode = request.Node as ResourceCollectionNode;
             var resourceNode = request.Node as ResourceNode;
 
             if (resourceNode != null)
             {
                 return ProcessResourceNode(request, resourceNode);
             }
-            if (queryableNode != null)
+            if (collectionNode != null)
             {
-                return ProcessQueryableNode(request, queryableNode);
+                return ProcessCollectionNode(request, collectionNode);
             }
 
             return null;
         }
 
 
-        private PomonaResponse ProcessQueryableNode(PomonaRequest request, QueryableNode queryableNode)
+        private PomonaResponse ProcessCollectionNode(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
             switch (request.Method)
             {
                 case HttpMethod.Post:
-                    return PostToCollection(request, queryableNode);
+                    return PostToCollection(request, collectionNode);
                 default:
                     return null;
             }
@@ -169,10 +169,10 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse PostToCollection(PomonaRequest request, QueryableNode queryableNode)
+        private PomonaResponse PostToCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
-            return ProcessQueryableNodeCallToHandler(request, queryableNode)
-                   ?? ProcessQueryableNodeCallToDataSource(request, queryableNode);
+            return ProcessCollectionNodeCallToHandler(request, collectionNode)
+                   ?? ProcessCollectionNodeCallToDataSource(request, collectionNode);
         }
 
 

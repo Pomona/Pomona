@@ -33,7 +33,7 @@ namespace Pomona.Queries
 {
     public class DefaultQueryableResolver : QueryableResolverBase
     {
-        protected override IQueryable<TResource> Resolve<TResource, TBaseResource>(QueryableNode<TBaseResource> node)
+        protected override IQueryable<TResource> Resolve<TResource, TBaseResource>(ResourceCollectionNode<TBaseResource> node)
         {
             var queryable = ((IEnumerable)node.Value).AsQueryable();
             if (queryable is IQueryable<TResource>)

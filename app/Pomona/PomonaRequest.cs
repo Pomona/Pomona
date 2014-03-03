@@ -130,15 +130,15 @@ namespace Pomona
 
         public PomonaQuery ParseQuery()
         {
-            var queryableNode = this.node as QueryableNode;
-            if (queryableNode == null)
+            var collectionNode = this.node as ResourceCollectionNode;
+            if (collectionNode == null)
                 throw new InvalidOperationException("Queries are only valid for Queryable nodes.");
 
             return
                 new PomonaHttpQueryTransformer(this.node.TypeMapper,
                     new QueryExpressionParser(new QueryTypeResolver(this.node.TypeMapper))).TransformRequest(
                         this.context,
-                        queryableNode.ItemResourceType);
+                        collectionNode.ItemResourceType);
         }
 
 

@@ -57,9 +57,9 @@ namespace Pomona.RequestProcessing
             var resourceNode = request.Node as ResourceNode;
             if (resourceNode != null)
                 return ProcessResourceNode(request, resourceNode);
-            var queryableNode = request.Node as QueryableNode;
-            if (queryableNode != null)
-                return ProcessQueryableNode(request, queryableNode);
+            var collectionNode = request.Node as ResourceCollectionNode;
+            if (collectionNode != null)
+                return ProcessCollectionNode(request, collectionNode);
             return null;
         }
 
@@ -104,7 +104,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse PostToCollection(PomonaRequest request, QueryableNode queryableNode)
+        private PomonaResponse PostToCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
             var form = request.Bind();
             var method = GetResourceHandlerMethod(request.Method, form.GetType());
@@ -122,12 +122,12 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse ProcessQueryableNode(PomonaRequest request, QueryableNode queryableNode)
+        private PomonaResponse ProcessCollectionNode(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
             switch (request.Method)
             {
                 case HttpMethod.Post:
-                    return PostToCollection(request, queryableNode);
+                    return PostToCollection(request, collectionNode);
 
                 default:
                     return null;

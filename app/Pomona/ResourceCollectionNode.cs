@@ -37,10 +37,10 @@ using Pomona.RequestProcessing;
 
 namespace Pomona
 {
-    public class QueryableNode<TItem, TId> : QueryableNode<TItem>
+    public class ResourceCollectionNode<TItem, TId> : ResourceCollectionNode<TItem>
         where TItem : class
     {
-        public QueryableNode(ITypeMapper typeMapper,
+        public ResourceCollectionNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
             Func<object> valueFetcher,
@@ -80,9 +80,9 @@ namespace Pomona
         }
     }
 
-    public abstract class QueryableNode<T> : QueryableNode
+    public abstract class ResourceCollectionNode<T> : ResourceCollectionNode
     {
-        protected QueryableNode(ITypeMapper typeMapper,
+        protected ResourceCollectionNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
             Func<object> valueFetcher,
@@ -96,13 +96,13 @@ namespace Pomona
     /// Node representing an URI segment with a collection of resources.
     /// TODO: Rename this to CollectionNode?
     /// </summary>
-    public abstract class QueryableNode : PathNode
+    public abstract class ResourceCollectionNode : PathNode
     {
         private readonly TypeSpec collectionType;
         private readonly System.Lazy<object> valueLazy;
 
 
-        protected QueryableNode(ITypeMapper typeMapper,
+        protected ResourceCollectionNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
             Func<object> valueFetcher,

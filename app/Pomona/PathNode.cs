@@ -144,7 +144,7 @@ namespace Pomona
 
                 var idType = elementType.PrimaryId.PropertyType.Type;
                 return (PathNode)Activator.CreateInstance(
-                    typeof(QueryableNode<,>).MakeGenericType(new[] { elementType.Type, idType }),
+                    typeof(ResourceCollectionNode<,>).MakeGenericType(new[] { elementType.Type, idType }),
                     typeMapper,
                     parent,
                     name,
