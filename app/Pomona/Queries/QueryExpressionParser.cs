@@ -82,8 +82,8 @@ namespace Pomona.Queries
                 var asNode = (BinaryOperatorNode) node;
                 if (asNode.Right.NodeType != NodeType.Symbol)
                 {
-                    throw new PomonaExpressionSyntaxException(
-                        "Need to specify a property name on left side of as in select expression.");
+                    throw QueryParseException.Create(node.ParserNode,
+                        "Need to specify a property name on left side of as in select expression.", parsedString, null, QueryParseErrorReason.GenericError);
                 }
                 propertyName = ((SymbolNode) asNode.Right).Name;
                 node = asNode.Left;
@@ -91,8 +91,8 @@ namespace Pomona.Queries
             else
             {
                 if (!TryGetImplicitPropertyName(node, out propertyName))
-                    throw new PomonaExpressionSyntaxException(
-                        string.Format("Unable to infer property name of select expression ({0})", node));
+                    throw QueryParseException.Create(node.ParserNode,
+                        string.Format("Unable to infer property name of select expression ({0})", node), parsedString, null, QueryParseErrorReason.GenericError);
             }
 
             var exprParser = new NodeTreeToExpressionConverter(queryPropertyResolver, parsedString);
