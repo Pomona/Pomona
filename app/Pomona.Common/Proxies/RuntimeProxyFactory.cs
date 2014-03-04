@@ -39,10 +39,17 @@ namespace Pomona.Common.Proxies
     {
         internal static ModuleBuilder CreateRuntimeModule(string assemblyNameString)
         {
+            AssemblyBuilder asmBuilder;
+            return CreateRuntimeModule(assemblyNameString, out asmBuilder);
+        }
+
+
+        internal static ModuleBuilder CreateRuntimeModule(string assemblyNameString, out AssemblyBuilder asmBuilder)
+        {
             var assemblyName = new AssemblyName(assemblyNameString);
 
-            var asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            var modBuilder = asmBuilder.DefineDynamicModule(assemblyNameString, false);
+            asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
+            var modBuilder = asmBuilder.DefineDynamicModule(assemblyNameString + ".dll", true);
             return modBuilder;
         }
 
@@ -144,7 +151,8 @@ namespace Pomona.Common.Proxies
             var type = typeof (T);
             var typeName = type.Name;
             var assemblyNameString = typeName + "Proxy" + Guid.NewGuid().ToString();
-            var modBuilder = EmitHelpers.CreateRuntimeModule(assemblyNameString);
+            AssemblyBuilder asmBuilder;
+            var modBuilder = EmitHelpers.CreateRuntimeModule(assemblyNameString, out asmBuilder);
 
             var proxyBaseType = typeof (TProxyBase);
             var proxyBuilder = new WrappedPropertyProxyBuilder(modBuilder, proxyBaseType,
@@ -155,6 +163,7 @@ namespace Pomona.Common.Proxies
             var typeDef = proxyBuilder.CreateProxyType(typeName, type.WrapAsEnumerable());
 
             proxyType = typeDef.CreateType();
+            // asmBuilder.Save(assemblyNameString + ".dll"); // <-- For debugging of generated proxies
         }
 
 
