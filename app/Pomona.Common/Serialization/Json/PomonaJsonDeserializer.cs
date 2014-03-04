@@ -274,10 +274,17 @@ namespace Pomona.Common.Serialization.Json
 
                     DeserializeThroughContext(itemNode, new Reader(jitem));
                     if (itemNode.Operation != DeserializerNodeOperation.Patch)
-                        collection.Add((TElement)itemNode.Value);
+                    {
+                        if (!(itemNode.ExpectedBaseType is TransformedType)
+                            || itemNode.ExpectedBaseType.IsAnonymous()
+                            || !collection.Contains((TElement)itemNode.Value))
+                        {
+                            collection.Add((TElement)itemNode.Value);
+                        }
+                    }
                 }
             }
-
+            
             if (node.Value == null)
                 node.Value = collection;
         }

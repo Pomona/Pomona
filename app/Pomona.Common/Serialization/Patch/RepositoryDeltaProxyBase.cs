@@ -26,23 +26,48 @@
 
 #endregion
 
-using System.Linq;
+using System;
+using System.Reflection;
 
 using Pomona.Common.Proxies;
 
-namespace Pomona.Common
+namespace Pomona.Common.Serialization.Patch
 {
-    public interface IQueryableRepository<TResource> : IClientRepository, IQueryable<TResource>
-        where TResource : class, IClientResource
+    public class RepositoryDeltaProxyBase<TElement, TRepository> : CollectionDelta<TElement>, IDelta<TRepository>
     {
-        object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : class, IPostForm, IClientResource;
+        protected RepositoryDeltaProxyBase()
+            : base()
+        {
+        }
 
 
-        IQueryable<TResource> Query();
+        public new TRepository Original
+        {
+            get { return (TRepository)base.Original; }
+        }
 
 
-        IQueryable<TSubResource> Query<TSubResource>()
-            where TSubResource : TResource;
+        protected virtual TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
+        {
+            return property.Get((TOwner)base.Original);
+        }
+
+
+        protected virtual object OnInvokeMethod(MethodInfo methodInfo, object[] args)
+        {
+            if (methodInfo.Name == "Post")
+            {
+                Add((TElement)args[0]);
+                return null;
+            }
+            throw new NotImplementedException();
+        }
+
+
+        protected virtual void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
+        {
+            throw new NotSupportedException("Setting property " + property.Name
+                                            + " is not supported through delta proxy.");
+        }
     }
 }

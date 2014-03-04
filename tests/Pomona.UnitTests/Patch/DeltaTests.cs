@@ -155,7 +155,8 @@ namespace Pomona.UnitTests.Patch
                 this.typeMapper.GetClassMapping(
                     typeof(ITestResource)),
                 this.typeMapper,
-                null);
+                null,
+                typeof(ITestResource));
 
             Assert.IsFalse(((Delta)proxy).IsDirty);
             return proxy;

@@ -163,6 +163,7 @@
     <Compile Include="Serialization\Patch\IObjectDelta.cs" />
     <Compile Include="Serialization\Patch\ObjectDelta.cs" />
     <Compile Include="Serialization\Patch\ObjectDeltaProxyBase.cs" />
+    <Compile Include="Serialization\Patch\RepositoryDeltaProxyBase.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
     <Compile Include="Serialization\SerializeOptions.cs" />

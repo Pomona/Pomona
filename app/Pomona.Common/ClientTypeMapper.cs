@@ -61,26 +61,32 @@ namespace Pomona.Common
 
         public Type GetResourceNonProxyInterfaceType(Type type)
         {
-            if (!typeof(IClientResource).IsAssignableFrom(type))
-                return type;
-
             if (!type.IsInterface)
             {
-                var interfaces =
-                    type.GetInterfaces().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToArray();
-                IEnumerable<Type> exceptTheseInterfaces =
-                    interfaces.SelectMany(
-                        x => x.GetInterfaces().Where(y => typeof(IClientResource).IsAssignableFrom(y))).
-                        Distinct().ToArray();
-                var mostSubtypedInterface =
-                    interfaces
-                        .Except(
-                            exceptTheseInterfaces)
-                        .Single();
-
-                type = mostSubtypedInterface;
+                if (typeof(IClientResource).IsAssignableFrom(type))
+                    return GetMainInterfaceFromConcreteType(typeof(IClientResource), type);
+                if (typeof(IClientRepository).IsAssignableFrom(type))
+                    return GetMainInterfaceFromConcreteType(typeof(IClientRepository), type);
             }
 
+            return type;
+        }
+
+
+        private static Type GetMainInterfaceFromConcreteType(Type interfaceType, Type type)
+        {
+            var interfaces =
+                type.GetInterfaces().Where(interfaceType.IsAssignableFrom).ToArray();
+            IEnumerable<Type> exceptTheseInterfaces =
+                interfaces.SelectMany(
+                    x => x.GetInterfaces().Where(interfaceType.IsAssignableFrom)).
+                    Distinct().ToArray();
+
+            var mostSubtypedInterface =
+                interfaces
+                    .Except(exceptTheseInterfaces).Single(x => !x.IsGenericType);
+
+            type = mostSubtypedInterface;
             return type;
         }
 
@@ -253,7 +259,8 @@ namespace Pomona.Common
                 this.GetClassMapping(
                     resourceInfo.InterfaceType),
                 this,
-                null);
+                null,
+                resourceInfo.InterfaceType);
 
             return serverPatchForm;
         }

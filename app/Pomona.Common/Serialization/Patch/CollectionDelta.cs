@@ -33,6 +33,7 @@ using System.Linq;
 using System.Reflection;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Patch
@@ -184,10 +185,22 @@ namespace Pomona.Common.Serialization.Patch
         internal static object CreateTypedCollectionDelta(object original,
             TypeSpec type,
             ITypeMapper typeMapper,
-            Delta parent)
+            Delta parent,
+            Type propertyType)
         {
             var collectionType = typeof(CollectionDelta<,>).MakeGenericType(type.ElementType.Type,
                 type.Type);
+            if (!propertyType.IsAssignableFrom(collectionType))
+            {
+                // Need to create a runtime proxy for custom collection (repository).
+                var repoProxyBaseType = typeof(RepositoryDeltaProxyBase<,>).MakeGenericType(type.ElementType, type.Type);
+                var proxy = (CollectionDelta)RuntimeProxyFactory.Create(repoProxyBaseType, type.Type);
+                proxy.Original = new object[] { }; // Don't want to track original items of child repositories.
+                proxy.Type = type;
+                proxy.TypeMapper = typeMapper;
+                proxy.Parent = parent;
+                return proxy;
+            }
             return Activator.CreateInstance(collectionType, original, type, typeMapper, parent);
         }
 
@@ -208,7 +221,7 @@ namespace Pomona.Common.Serialization.Patch
                 {
                     var origItemType = TypeMapper.GetClassMapping(origItem.GetType());
                     if (origItemType.SerializationMode == TypeSerializationMode.Complex)
-                        yield return CreateNestedDelta(origItem, origItemType);
+                        yield return CreateNestedDelta(origItem, origItemType, Type.ElementType);
                 }
             }
         }
@@ -222,11 +235,16 @@ namespace Pomona.Common.Serialization.Patch
 
     public abstract class CollectionDelta<TElement> : CollectionDelta, IList<TElement>
     {
-        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        protected CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
             if (!type.IsCollection)
                 throw new ArgumentException("Original value must be collection type!");
+        }
+
+
+        protected CollectionDelta()
+        {
         }
 
 
@@ -329,9 +347,9 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType)
+        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyTye)
         {
-            return ObjectDeltaProxyBase.CreateDeltaProxy(propValue, propValueType, TypeMapper, this);
+            return ObjectDeltaProxyBase.CreateDeltaProxy(propValue, propValueType, TypeMapper, this, propertyTye);
         }
 
 

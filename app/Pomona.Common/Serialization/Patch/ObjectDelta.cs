@@ -75,7 +75,7 @@ namespace Pomona.Common.Serialization.Patch
                 var propValueType = TypeMapper.GetClassMapping(propValue.GetType());
                 if (propValueType.SerializationMode != TypeSerializationMode.Value)
                 {
-                    var nestedDelta = CreateNestedDelta(propValue, propValueType);
+                    var nestedDelta = CreateNestedDelta(propValue, propValueType, prop.PropertyType);
                     TrackedProperties[propertyName] = nestedDelta;
                     return nestedDelta;
                 }

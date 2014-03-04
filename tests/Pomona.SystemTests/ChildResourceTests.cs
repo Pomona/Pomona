@@ -66,15 +66,14 @@ namespace Pomona.SystemTests
         }
 
 
-        [Category("TODO")]
         [Test]
-        public void PatchPlanetarySystemAddPlanet_IsSuccessful()
+        public void PatchPlanetarySystemPostPlanetToChildRepository_IsSuccessful()
         {
             CreateTestData();
             var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
             var patchedPlanetarySystem = Client.Patch(planetarySystem,
                 x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
-            Assert.Fail("TEST NOT FINISHED");
+            Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
         }
 
 
