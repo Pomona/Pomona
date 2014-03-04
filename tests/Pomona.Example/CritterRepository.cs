@@ -62,12 +62,12 @@ namespace Pomona.Example
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.Query<object, object>());
             saveCollectionMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(
-                    x => x.SaveCollection((ICollection<EntityBase>)null));
+                    x => x.SaveCollection((ICollection<EntityBase>)null, null));
             saveDictionaryMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(
-                    x => x.SaveDictionary((IDictionary<object, EntityBase>)null));
+                    x => x.SaveDictionary((IDictionary<object, EntityBase>)null, null));
             saveInternalMethod =
-                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.SaveInternal<EntityBase>(null));
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.SaveInternal<EntityBase>(null, null));
             deleteInternalMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.DeleteInternal<EntityBase>(null));
         }
@@ -304,21 +304,32 @@ namespace Pomona.Example
 
         public T Save<T>(T entity)
         {
+            return Save(entity, new HashSet<object>());
+        }
+
+        public T Save<T>(T entity, HashSet<object> savedObjects)
+        {
             var mappedTypeInstance = GetBaseUriType<T>();
             var saveMethodInstance = saveInternalMethod.MakeGenericMethod(mappedTypeInstance);
-            return (T)saveMethodInstance.Invoke(this, new object[] { entity });
+            return (T)saveMethodInstance.Invoke(this, new object[] { entity, savedObjects });
         }
 
 
-        public T SaveInternal<T>(T entity)
+        public T SaveInternal<T>(T entity, HashSet<object> savedObjects)
         {
+            if (savedObjects.Contains(entity))
+                return entity;
+
+            savedObjects.Add(entity);
             var entityCast = (EntityBase)((object)entity);
 
-            if (entityCast.Id != 0)
-                return entity;
-            entityCast.Id = this.idCounter++;
-            if (this.notificationsEnabled)
-                Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
+            if (entityCast.Id == 0)
+            {
+                entityCast.Id = this.idCounter++;
+                if (this.notificationsEnabled)
+                    Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
+                GetEntityList<T>().Add(entity);
+            }
 
             foreach (var prop in entity.GetType().GetProperties())
             {
@@ -328,7 +339,7 @@ namespace Pomona.Example
                 {
                     var value = prop.GetValue(entity, null);
                     if (value != null)
-                        saveInternalMethod.MakeGenericMethod(propType).Invoke(this, new[] { value });
+                        saveInternalMethod.MakeGenericMethod(propType).Invoke(this, new[] { value, savedObjects });
                 }
                 else if (TypeUtils.TryGetTypeArguments(propType, typeof(ICollection<>), out genericArguments))
                 {
@@ -336,7 +347,7 @@ namespace Pomona.Example
                     {
                         var value = prop.GetValue(entity, null);
                         if (value != null)
-                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value });
+                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value, savedObjects });
                     }
                 }
                 else if (TypeUtils.TryGetTypeArguments(propType, typeof(IDictionary<,>), out genericArguments))
@@ -345,12 +356,11 @@ namespace Pomona.Example
                     {
                         var value = prop.GetValue(entity, null);
                         if (value != null)
-                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value });
+                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value, savedObjects });
                     }
                 }
             }
 
-            GetEntityList<T>().Add(entity);
             return entity;
         }
 
@@ -451,19 +461,19 @@ namespace Pomona.Example
         }
 
 
-        private object SaveCollection<T>(ICollection<T> collection)
+        private object SaveCollection<T>(ICollection<T> collection, HashSet<object> savedObjects)
             where T : EntityBase
         {
             foreach (var item in collection)
-                Save(item);
+                Save(item, savedObjects);
             return collection;
         }
 
 
-        private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
+        private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary, HashSet<object> savedObjects)
             where TValue : EntityBase
         {
-            SaveCollection(dictionary.Values);
+            SaveCollection(dictionary.Values, savedObjects);
             return dictionary;
         }
     }
