@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Pomona.Common.Proxies;
@@ -35,6 +36,7 @@ namespace Pomona.Common.Serialization.Patch
 {
     public class RepositoryDeltaProxyBase<TElement, TRepository> : CollectionDelta<TElement>, IDelta<TRepository>
     {
+
         protected RepositoryDeltaProxyBase()
             : base()
         {
@@ -55,9 +57,14 @@ namespace Pomona.Common.Serialization.Patch
 
         protected virtual object OnInvokeMethod(MethodInfo methodInfo, object[] args)
         {
-            if (methodInfo.Name == "Post")
+            if (methodInfo.Name == "Post" && args.Length == 1)
             {
                 Add((TElement)args[0]);
+                return null;
+            }
+            if (methodInfo.Name == "Delete" && args.Length == 1)
+            {
+                Remove((TElement)args[0]);
                 return null;
             }
             throw new NotImplementedException();

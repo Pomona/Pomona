@@ -225,6 +225,12 @@ namespace Pomona.Common.Serialization.Json
                 isPatching = true;
             }
 
+            if (isPatching && node.Operation == DeserializerNodeOperation.Post)
+            {
+                // Clear list and add new items
+                collection.Clear();
+            }
+
             foreach (var jitem in jarr)
             {
                 var jobj = jitem as JObject;

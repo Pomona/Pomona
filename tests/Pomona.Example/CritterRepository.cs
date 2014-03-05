@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -54,6 +55,7 @@ namespace Pomona.Example
         private int idCounter;
 
         private bool notificationsEnabled;
+        private readonly static MethodInfo getEntityListMethod;
 
 
         static CritterRepository()
@@ -70,6 +72,8 @@ namespace Pomona.Example
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.SaveInternal<EntityBase>(null, null));
             deleteInternalMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.DeleteInternal<EntityBase>(null));
+            getEntityListMethod =
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.GetEntityList<EntityBase>());
         }
 
 
@@ -105,7 +109,7 @@ namespace Pomona.Example
         {
             lock (this.syncLock)
             {
-                return GetEntityList<T>();
+                return new ReadOnlyCollection<T>(GetEntityList<T>());
             }
         }
 
@@ -317,13 +321,15 @@ namespace Pomona.Example
 
         public T SaveInternal<T>(T entity, HashSet<object> savedObjects)
         {
+            var typeSpec = typeMapper.GetClassMapping(typeof(T));
+
             if (savedObjects.Contains(entity))
                 return entity;
 
             savedObjects.Add(entity);
             var entityCast = (EntityBase)((object)entity);
 
-            if (entityCast.Id == 0)
+            if (entityCast.Id == 0 && typeSpec is ResourceType)
             {
                 entityCast.Id = this.idCounter++;
                 if (this.notificationsEnabled)
@@ -440,13 +446,21 @@ namespace Pomona.Example
         private IList<T> GetEntityList<T>()
         {
             var type = typeof(T);
-            object list;
-            if (!this.entityLists.TryGetValue(type, out list))
+            var tt = (ResourceType)typeMapper.GetClassMapping(type);
+            if (tt.IsRootResource)
             {
-                list = new List<T>();
-                this.entityLists[type] = list;
+                object list;
+                if (!this.entityLists.TryGetValue(type, out list))
+                {
+                    list = new List<T>();
+                    this.entityLists[type] = list;
+                }
+                return (IList<T>)list;
             }
-            return (IList<T>)list;
+            if (tt.ParentToChildProperty == null)
+                throw new InvalidOperationException("Expected a parent-child assosciation.");
+            var parents = (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
+            return parents.SelectMany(p => (IEnumerable<T>)tt.ParentToChildProperty.GetValue(p)).ToList();
         }
 
 

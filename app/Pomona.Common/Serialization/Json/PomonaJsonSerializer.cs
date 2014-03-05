@@ -387,6 +387,11 @@ namespace Pomona.Common.Serialization.Json
                 {
                     jsonWriter.WritePropertyName("!" + prop.JsonName);                    
                 }
+                else if (propNode.ValueType.SerializationMode == TypeSerializationMode.Array
+                         && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault())
+                {
+                    jsonWriter.WritePropertyName("!" + prop.JsonName);
+                }
                 else
                 {
                     jsonWriter.WritePropertyName(prop.JsonName);

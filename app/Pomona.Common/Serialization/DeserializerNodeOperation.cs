@@ -29,6 +29,7 @@ namespace Pomona.Common.Serialization
         Default,
         Post,
         Patch,
-        Delete
+        Delete,
+        Put
     }
 }

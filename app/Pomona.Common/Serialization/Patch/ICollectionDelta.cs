@@ -31,5 +31,6 @@ namespace Pomona.Common.Serialization.Patch
         IEnumerable<object> RemovedItems { get; }
         IEnumerable<Delta> ModifiedItems { get; }
         IEnumerable<object> AddedItems { get; }
+        bool Cleared { get; }
     }
 }

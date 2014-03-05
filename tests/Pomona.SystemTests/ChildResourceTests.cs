@@ -76,6 +76,18 @@ namespace Pomona.SystemTests
             Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
         }
 
+        [Test]
+        public void PatchPlanetarySystemPostDeletePlanetFromChildRepository_IsSuccessful()
+        {
+            CreateTestData();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetToDelete = planetarySystem.Planets.First();
+            var patchedPlanetarySystem = Client.Patch(planetarySystem,
+                x => x.Planets.Delete(planetToDelete));
+            Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name),
+                Is.Not.Contains(planetToDelete.Name));
+        }
+
 
         [Test]
         public void PostPlanetToPlanetarySystem_IsSuccessful()
