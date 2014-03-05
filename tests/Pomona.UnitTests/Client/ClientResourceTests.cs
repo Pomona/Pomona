@@ -26,38 +26,50 @@
 
 #endregion
 
-using System.Collections.Generic;
+using NUnit.Framework;
 
+using Pomona.Common;
 using Pomona.Common.Proxies;
 
-namespace Pomona.Common
+namespace Pomona.UnitTests.Client
 {
-    public static class ClientResourceExtensions
+    [TestFixture]
+    public class ClientResourceTests
     {
-        public static bool IsLoaded<T>(this IEnumerable<T> collection)
-            where T : IClientResource
+        public class DummyForm : PostResourceBase, IClientResource
         {
-            var lazyProxy = collection as ILazyProxy;
-            return lazyProxy == null || lazyProxy.IsLoaded;
+        }
+
+        public class DummyResource : ResourceBase, IClientResource
+        {
         }
 
 
-        public static bool IsLoaded(this IClientResource resource)
+        [Test]
+        public void IsPersisted_OnPostForm_ReturnsFalse()
         {
-            var lazyProxy = resource as ILazyProxy;
-            return lazyProxy == null || lazyProxy.IsLoaded;
+            Assert.That((new DummyForm()).IsPersisted(), Is.False);
         }
 
 
-        public static bool IsPersisted(this IClientResource resource)
+        [Test]
+        public void IsPersisted_OnResourceForm_ReturnsFalse()
         {
-            return !IsTransient(resource);
+            Assert.That((new DummyResource()).IsPersisted(), Is.True);
         }
 
 
-        public static bool IsTransient(this IClientResource resource)
+        [Test]
+        public void IsTransient_OnPostForm_ReturnsTrue()
         {
-            return resource is IPostForm;
+            Assert.That((new DummyForm()).IsTransient(), Is.True);
+        }
+
+
+        [Test]
+        public void IsTransient_OnResourceForm_ReturnsFalse()
+        {
+            Assert.That((new DummyResource()).IsTransient(), Is.False);
         }
     }
 }

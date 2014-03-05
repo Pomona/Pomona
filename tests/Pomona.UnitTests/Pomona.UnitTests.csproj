@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\ClientResourceTests.cs" />
     <Compile Include="Client\CritterServiceTestsBase.cs" />
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
