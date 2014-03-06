@@ -46,11 +46,15 @@ namespace Pomona.SystemTests.Handlers
         }
 
 
-        [Category("TODO")]
         [Test]
         public void GetHandledThing_CallsHandlerGetMethod()
         {
-            Assert.Fail("NOT YET IMPLEMENTED");
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            Assert.That(thingEntity.FetchedCounter, Is.EqualTo(0));
+            var thingResource = Client.HandledThings.Get(thingEntity.Id);
+            Assert.That(thingResource.Id, Is.EqualTo(thingEntity.Id));
+            Assert.That(thingResource.FetchedCounter, Is.EqualTo(1));
+            Assert.That(thingEntity.FetchedCounter, Is.EqualTo(1));
         }
 
 

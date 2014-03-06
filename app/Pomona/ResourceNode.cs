@@ -55,6 +55,8 @@ namespace Pomona
 
             this.type = new System.Lazy<ResourceType>(() =>
             {
+                if (expectedType != null && !expectedType.SubTypes.Any())
+                    return expectedType;
                 var localValue = Value;
                 if (Value == null)
                     return expectedType;

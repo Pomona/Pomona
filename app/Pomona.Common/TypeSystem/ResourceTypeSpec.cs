@@ -208,7 +208,7 @@ namespace Pomona.Common.TypeSystem
                     rt.PrimaryId.Name);
             }
             else
-                sb.AppendFormat("{0}/{{{1}{2}}}", rt.UriRelativePath, parentPath, rt.PrimaryId.Name);
+                sb.AppendFormat("{0}/{{{1}{2}}}", rt.UriRelativePath, parentPath, rt.PrimaryId.JsonName);
         }
 
 

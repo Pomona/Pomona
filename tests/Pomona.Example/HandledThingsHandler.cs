@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Linq;
 
 using Pomona.Example.Models;
 
@@ -48,6 +49,14 @@ namespace Pomona.Example
         public void Delete(HandledThing handledThing)
         {
             this.repository.Delete(handledThing);
+        }
+
+
+        public HandledThing Get(int id)
+        {
+            var thing = this.repository.Query<HandledThing>().First(x => x.Id == id);
+            thing.FetchedCounter++;
+            return thing;
         }
 
 

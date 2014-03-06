@@ -39,7 +39,7 @@ namespace Pomona.Common.TypeSystem
     public class TransformedType : RuntimeTypeSpec
     {
         private readonly Lazy<ExportedTypeDetails> exportedTypeDetails;
-
+        private readonly Lazy<IEnumerable<TransformedType>> subTypes;
         private Func<IDictionary<PropertySpec, object>, object> createFunc;
         private Delegate createUsingPropertySourceFunc;
 
@@ -49,6 +49,9 @@ namespace Pomona.Common.TypeSystem
             Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
+            this.subTypes = CreateLazy(() => (IEnumerable<TransformedType>)typeResolver.GetAllTransformedTypes()
+                .Where(x => x.BaseType == this)
+                .SelectMany(x => x.SubTypes.Concat(x)).ToList());
             this.exportedTypeDetails = CreateLazy(() => typeResolver.LoadExportedTypeDetails(this));
         }
 
@@ -115,13 +118,7 @@ namespace Pomona.Common.TypeSystem
 
         public IEnumerable<TransformedType> SubTypes
         {
-            get
-            {
-                return
-                    TypeResolver.GetAllTransformedTypes()
-                        .Where(x => x.BaseType == this)
-                        .SelectMany(x => x.SubTypes.Concat(x));
-            }
+            get { return this.subTypes.Value; }
         }
 
         public new IExportedTypeResolver TypeResolver

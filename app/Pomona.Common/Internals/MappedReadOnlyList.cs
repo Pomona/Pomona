@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,12 +26,44 @@
 
 #endregion
 
-namespace Pomona.Example.Models
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Pomona.Common.Internals
 {
-    public class HandledThing : EntityBase
+    public class MappedReadOnlyList<TOuter, TInner> : MappedReadOnlyCollection<TOuter, TInner>, IList<TOuter>
     {
-        public string Foo { get; set; }
-        public string Marker { get; set; }
-        public int FetchedCounter { get; set; }
+        public MappedReadOnlyList(IList<TInner> inner, Func<TInner, TOuter> map)
+            : base(inner, map)
+        {
+        }
+
+
+        public TOuter this[int index]
+        {
+            get { return Map(((IList<TInner>)Inner)[index]); }
+            set { throw new NotSupportedException("Collection is read-only"); }
+        }
+
+
+        public int IndexOf(TOuter item)
+        {
+            return
+                Inner.Select((x, i) => new { x, i }).Where(y => EqualityComparer<TOuter>.Default.Equals(Map(y.x), item))
+                    .Select(y => (int?)y.i).FirstOrDefault() ?? -1;
+        }
+
+
+        public void Insert(int index, TOuter item)
+        {
+            throw new NotSupportedException("Collection is read-only");
+        }
+
+
+        public void RemoveAt(int index)
+        {
+            throw new NotSupportedException("Collection is read-only");
+        }
     }
 }

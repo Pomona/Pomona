@@ -78,6 +78,9 @@
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\GenericInvoker.cs" />
     <Compile Include="Internals\GenericInvokerBase.cs" />
+    <Compile Include="Internals\MappedReadOnlyCollection.cs" />
+    <Compile Include="Internals\MappedReadOnlyList.cs" />
+    <Compile Include="Internals\MappedReadOnlyListExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\PomonaClientExtensions.cs" />

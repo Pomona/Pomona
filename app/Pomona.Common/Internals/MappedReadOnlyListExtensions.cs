@@ -26,12 +26,16 @@
 
 #endregion
 
-namespace Pomona.Example.Models
+using System;
+using System.Collections.Generic;
+
+namespace Pomona.Common.Internals
 {
-    public class HandledThing : EntityBase
+    public static class MappedReadOnlyListExtensions
     {
-        public string Foo { get; set; }
-        public string Marker { get; set; }
-        public int FetchedCounter { get; set; }
+        public static IList<TOuter> MapList<TOuter, TInner>(this IList<TInner> inner, Func<TInner, TOuter> mapFunction)
+        {
+            return new MappedReadOnlyList<TOuter, TInner>(inner, mapFunction);
+        }
     }
 }
