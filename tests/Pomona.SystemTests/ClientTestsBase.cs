@@ -63,7 +63,6 @@ namespace Pomona.SystemTests
         public override Client CreateHttpTestingClient(string baseUri)
         {
             return new Client(baseUri, new HttpWebRequestClient());
-            return new Client(baseUri);
         }
 
 

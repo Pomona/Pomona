@@ -219,7 +219,7 @@ namespace Pomona.Example
         }
 
 
-        public Critter CreateRandomCritter(Random rng = null, int? rngSeed = null, bool forceMusicalCritter = false)
+        public Critter CreateRandomCritter(Random rng = null, int? rngSeed = null, bool forceMusicalCritter = false, bool addToRandomFarm = true)
         {
             if (rng == null)
                 rng = new Random(rngSeed ?? 75648382 + this.idCounter);
@@ -247,11 +247,14 @@ namespace Pomona.Example
             CreateSubscriptions(rng, critter, 3);
 
             // Add to one of the farms
-            var farms = GetEntityList<Farm>();
-            var chosenFarm = farms[rng.Next(farms.Count)];
+            if (addToRandomFarm)
+            {
+                var farms = GetEntityList<Farm>();
+                var chosenFarm = farms[rng.Next(farms.Count)];
 
-            chosenFarm.Critters.Add(critter);
-            critter.Farm = chosenFarm;
+                chosenFarm.Critters.Add(critter);
+                critter.Farm = chosenFarm;
+            }
 
             // Patch on a random hat
             Save(critter.Hat);

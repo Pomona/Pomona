@@ -83,7 +83,7 @@ namespace Pomona.Common.Serialization.Patch
 
         public IEnumerable<object> AddedItems
         {
-            get { return this.added; }
+            get { return this.added.Select(x => x is Delta ? ((Delta)x).Original : x); }
         }
 
         public bool Cleared
@@ -113,7 +113,7 @@ namespace Pomona.Common.Serialization.Patch
 
         public IEnumerable<object> RemovedItems
         {
-            get { return this.removed; }
+            get { return this.removed.Select(x => x is Delta ? ((Delta)x).Original : x); }
         }
 
         protected ISet<Delta> TrackedItems
@@ -198,7 +198,8 @@ namespace Pomona.Common.Serialization.Patch
             if (IsPersistedItem(item))
             {
                 item = GetWrappedItem(item);
-                this.removed.Remove(item);
+                if (!this.removed.Remove(item))
+                    added.Add(item);
                 SetDirty();
             }
             else
@@ -229,7 +230,8 @@ namespace Pomona.Common.Serialization.Patch
                 item = GetWrappedItem(item);
                 if (this.cleared || this.removed.Contains(item))
                     return false;
-                this.removed.Add(item);
+                if (!this.added.Remove(item))
+                    this.removed.Add(item);
                 SetDirty();
                 return true;
             }

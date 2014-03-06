@@ -173,6 +173,17 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PatchFarm_AddExistingCritterToFarm()
+        {
+            var farmEntity = Save(new Farm("The latest farm"));
+            var critterEntity = Repository.CreateRandomCritter(rngSeed: 3473873, addToRandomFarm: false);
+            var farmResource = Client.Farms.GetLazy(farmEntity.Id);
+            Client.Farms.Patch(farmResource,
+                f => ((IList<ICritter>)f.Critters).Add(Client.Critters.GetLazy(critterEntity.Id)));
+            Assert.That(farmEntity.Critters, Contains.Item(critterEntity));
+        }
+
+        [Test]
         public void PatchCritter_UpdateStringProperty()
         {
             var critter = Save(new Critter());
