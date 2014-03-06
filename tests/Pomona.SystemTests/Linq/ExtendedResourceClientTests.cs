@@ -101,6 +101,26 @@ namespace Pomona.SystemTests.Linq
         }
 
 
+        public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(
+            string capturedArgument)
+        {
+            return
+                Client.DictionaryContainers.Query<IExtendedResource>().Where(x => x.CustomString == capturedArgument)
+                    .ToList();
+        }
+
+
+        private IDictionaryContainer PostResourceWithAttributes()
+        {
+            return Client.DictionaryContainers.Post<IDictionaryContainer>(
+                x =>
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
+        }
+
+
         [Test]
         public void PatchExtendedResource_SetAttribute_UpdatesAttribute()
         {
@@ -116,20 +136,6 @@ namespace Pomona.SystemTests.Linq
                 Client.Patch(resource, x => { x.Text = "UPDATED!"; });
 
             Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
-        }
-
-
-        [Test]
-        public void Query_ExtendedResource_UsingValueFromClosure()
-        {
-            var response = Query_ExtendedResource_UsingValueFromClosure_GenericMethod<IExtendedResource>("NO RESULTS WILL BE FOUND");
-            Assert.That(response.Count, Is.EqualTo(0));
-        }
-
-
-        public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(string capturedArgument)
-        {
-            return Client.DictionaryContainers.Query<IExtendedResource>().Where(x => x.CustomString == capturedArgument).ToList();
         }
 
 
@@ -277,36 +283,6 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void WrapResource_IsSuccessful()
-        {
-            var resource = PostResourceWithAttributes();
-            var wrapped = resource.Wrap<IDictionaryContainer, IExtendedResource>();
-            Assert.That(wrapped.CustomString, Is.EqualTo("Lalalala"));
-            Assert.That(wrapped.OtherCustom, Is.EqualTo("Blob rob"));
-        }
-
-        [Test]
-        public void UnwrapResource_IsSuccessful()
-        {
-            var resource = PostResourceWithAttributes();
-            var unwrapped = Client.DictionaryContainers.Query<IExtendedResource>().First(x => x.Id == resource.Id).Unwrap<IDictionaryContainer>();
-            Assert.That(unwrapped, Is.Not.AssignableTo<IExtendedResource>());
-        }
-
-
-
-        private IDictionaryContainer PostResourceWithAttributes()
-        {
-            return Client.DictionaryContainers.Post<IDictionaryContainer>(
-                x =>
-                {
-                    x.Map.Add("CustomString", "Lalalala");
-                    x.Map.Add("OtherCustom", "Blob rob");
-                });
-        }
-
-
-        [Test]
         public void QueryExtendedResource_UsingFirstOrDefault_ReturnsExtendedResource()
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
@@ -418,6 +394,44 @@ namespace Pomona.SystemTests.Linq
         {
             var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
             Assert.That(extendedMusicalCritter.Farm, Is.Not.Null);
+        }
+
+
+        [Test]
+        public void Query_ExtendedResource_UsingValueFromClosure()
+        {
+            var response =
+                Query_ExtendedResource_UsingValueFromClosure_GenericMethod<IExtendedResource>("NO RESULTS WILL BE FOUND");
+            Assert.That(response.Count, Is.EqualTo(0));
+        }
+
+
+        [Test(Description = "Regression test for problem with TransformAdditionalPropertiesToAttributesVisitor.")]
+        public void Query_ExtendedResource_UsingValueFromStaticField()
+        {
+            Assert.DoesNotThrow(() => Client.DictionaryContainers.Query<IExtendedResource>().Where(
+                x => DateTime.UtcNow > DateTime.MinValue && x.Id == 33).ToList());
+        }
+
+
+        [Test]
+        public void UnwrapResource_IsSuccessful()
+        {
+            var resource = PostResourceWithAttributes();
+            var unwrapped =
+                Client.DictionaryContainers.Query<IExtendedResource>().First(x => x.Id == resource.Id)
+                    .Unwrap<IDictionaryContainer>();
+            Assert.That(unwrapped, Is.Not.AssignableTo<IExtendedResource>());
+        }
+
+
+        [Test]
+        public void WrapResource_IsSuccessful()
+        {
+            var resource = PostResourceWithAttributes();
+            var wrapped = resource.Wrap<IDictionaryContainer, IExtendedResource>();
+            Assert.That(wrapped.CustomString, Is.EqualTo("Lalalala"));
+            Assert.That(wrapped.OtherCustom, Is.EqualTo("Blob rob"));
         }
     }
 }

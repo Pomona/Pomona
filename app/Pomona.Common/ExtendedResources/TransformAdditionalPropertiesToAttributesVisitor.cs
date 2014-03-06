@@ -103,9 +103,9 @@ namespace Pomona.Common.ExtendedResources
 
             // Evaluate closures at this point
             var nodeExpression = Visit(node.Expression);
-            if (nodeExpression.NodeType == ExpressionType.Constant)
+            if (nodeExpression == null || nodeExpression.NodeType == ExpressionType.Constant)
             {
-                var target = ((ConstantExpression)nodeExpression).Value;
+                var target =  nodeExpression != null ? ((ConstantExpression)nodeExpression).Value : null;
 
                 if (propInfo != null)
                     return Expression.Constant(propInfo.GetValue(target, null), propInfo.PropertyType);
