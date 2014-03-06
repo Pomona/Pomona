@@ -227,6 +227,7 @@
     <Compile Include="Schemas\SchemaArrayItem.cs" />
     <Compile Include="Schemas\SchemaPropertyEntry.cs" />
     <Compile Include="Schemas\SchemaTypeEntry.cs" />
+    <Compile Include="ServerContextResolver.cs" />
     <Compile Include="ServerDeserializationContext.cs" />
     <Compile Include="ServerSerializationContextProvider.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />

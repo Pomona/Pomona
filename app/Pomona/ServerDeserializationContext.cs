@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,9 +36,8 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class ServerDeserializationContext : IDeserializationContext
+    public class ServerDeserializationContext : ServerContextResolver, IDeserializationContext
     {
-        private readonly NancyContext nancyContext;
         private readonly IResourceResolver resourceResolver;
         private readonly IResourceNode targetNode;
         private readonly ITypeMapper typeMapper;
@@ -48,11 +47,11 @@ namespace Pomona
             IResourceResolver resourceResolver,
             IResourceNode targetNode,
             NancyContext nancyContext)
+            : base(nancyContext)
         {
             this.typeMapper = typeMapper;
             this.resourceResolver = resourceResolver;
             this.targetNode = targetNode;
-            this.nancyContext = nancyContext;
         }
 
 
@@ -113,14 +112,6 @@ namespace Pomona
                 targetProp.Name,
                 node.ValueType.Name,
                 null);
-        }
-
-
-        public T GetContext<T>()
-        {
-            if (typeof(T) == typeof(NancyContext))
-                return (T)((object)this.nancyContext);
-            throw new InvalidOperationException("Unable to resolve context of type " + typeof(T));
         }
 
 

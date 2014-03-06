@@ -228,6 +228,7 @@ namespace Pomona.Common.Serialization.Json
             if (isPatching && node.Operation == DeserializerNodeOperation.Post)
             {
                 // Clear list and add new items
+                node.CheckItemAccessRights(HttpMethod.Delete);
                 collection.Clear();
             }
 
