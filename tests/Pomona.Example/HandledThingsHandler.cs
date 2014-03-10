@@ -46,6 +46,12 @@ namespace Pomona.Example
         }
 
 
+        public HandledThing Patch(HandledThing handledThing)
+        {
+            handledThing.PatchCounter++;
+            return repository.Save(handledThing);
+        }
+
         public void Delete(HandledThing handledThing)
         {
             this.repository.Delete(handledThing);

@@ -58,11 +58,16 @@ namespace Pomona.SystemTests.Handlers
         }
 
 
-        [Category("TODO")]
         [Test]
         public void PatchHandledThing_CallsHandlerPatchMethod()
         {
-            Assert.Fail("NOT YET IMPLEMENTED");
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            Assert.That(thingEntity.PatchCounter, Is.EqualTo(0));
+            var thingResource = Client.HandledThings.Patch(Client.HandledThings.GetLazy(thingEntity.Id),
+                p => p.Marker = "dudida");
+            Assert.That(thingResource.PatchCounter, Is.EqualTo(1));
+            Assert.That(thingEntity.PatchCounter, Is.EqualTo(1));
+            Assert.That(thingResource.Marker, Is.EqualTo("dudida"));
         }
 
 

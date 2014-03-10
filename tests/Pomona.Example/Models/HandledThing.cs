@@ -30,8 +30,16 @@ namespace Pomona.Example.Models
 {
     public class HandledThing : EntityBase
     {
-        public string Foo { get; set; }
-        public string Marker { get; set; }
+        private string marker;
         public int FetchedCounter { get; set; }
+        public string Foo { get; set; }
+
+        public string Marker
+        {
+            get { return this.marker; }
+            set { this.marker = value; }
+        }
+
+        public int PatchCounter { get; set; }
     }
 }
