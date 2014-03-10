@@ -32,6 +32,7 @@ using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Serialization;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -123,7 +124,18 @@ namespace Pomona
                  && property.AccessMode.HasFlag(HttpMethod.Post)) ||
                 (targetNode.Operation == DeserializerNodeOperation.Patch
                  && property.AccessMode.HasFlag(HttpMethod.Put)))
-                property.SetValue(targetNode.Value, propertyValue, targetNode.Context);
+            {
+                var target = targetNode.Value;
+                var targetAsDelta = target as ObjectDelta;
+                if (targetAsDelta != null)
+                {
+                    targetAsDelta.SetPropertyValue(property.Name, propertyValue);
+                }
+                else
+                {
+                    property.SetValue(targetNode.Value, propertyValue, targetNode.Context);
+                }
+            }
             else
             {
                 var propPath = string.IsNullOrEmpty(targetNode.ExpandPath)

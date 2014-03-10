@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,9 @@
 
 #endregion
 
+using System;
+
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -37,6 +40,7 @@ namespace Pomona.Common.Serialization
         private readonly PropertySpec property;
 
         private string expandPath;
+        private object value;
         private TypeSpec valueType;
 
 
@@ -49,6 +53,9 @@ namespace Pomona.Common.Serialization
         }
 
         #region Implementation of IDeserializerNode
+
+        private bool propertyIsLoaded;
+        private bool isDirty;
 
         public IDeserializationContext Context
         {
@@ -84,16 +91,66 @@ namespace Pomona.Common.Serialization
 
         public string Uri { get; set; }
 
+
+        public void Commit()
+        {
+            if (isDirty)
+            {
+                if (parent == null || parent.Value == null)
+                    throw new InvalidOperationException("To commit a property change the target can not be null.");
+                parent.SetProperty(property, value);
+                isDirty = false;
+            }
+        }
+
+        public object Value
+        {
+            get
+            {
+                if (!this.propertyIsLoaded)
+                {
+                    var parentValue = Parent.Value;
+                    var objectDeltaParent = parentValue as ObjectDelta;
+                    if (objectDeltaParent != null)
+                    {
+                        this.value = objectDeltaParent.GetPropertyValue(property.Name);
+                    }
+                    else
+                    {
+                        this.value = parentValue != null
+                            ? this.property.GetValue(parentValue, this.context)
+                            : null;
+                    }
+                    propertyIsLoaded = true;
+                }
+                return this.value;
+            }
+            set
+            {
+                if (this.propertyIsLoaded && this.value == value)
+                {
+                    return;
+                }
+                this.value = value;
+                isDirty = true;
+                this.propertyIsLoaded = true;
+            }
+        }
+
+        public TypeSpec ValueType
+        {
+            get { return this.valueType; }
+        }
+
         IResourceNode IResourceNode.Parent
         {
             get { return Parent ?? Context.TargetNode; }
         }
 
-        public object Value { get; set; }
 
-        public TypeSpec ValueType
+        public void CheckAccessRights(HttpMethod method)
         {
-            get { return this.valueType; }
+            Context.CheckAccessRights(this.property, method);
         }
 
 
@@ -117,13 +174,7 @@ namespace Pomona.Common.Serialization
 
         public void SetValueType(TypeSpec type)
         {
-            valueType = context.GetClassMapping(type);
-        }
-
-
-        public void CheckAccessRights(HttpMethod method)
-        {
-            Context.CheckAccessRights(this.property, method);
+            this.valueType = this.context.GetClassMapping(type);
         }
 
         #endregion

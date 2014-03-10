@@ -37,6 +37,7 @@ using Newtonsoft.Json.Serialization;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization.Patch;
 
 using ResourceType = Pomona.Common.TypeSystem.ResourceType;
 
@@ -144,6 +145,12 @@ namespace Pomona.RequestProcessing
         private PomonaResponse PatchResourceNode(PomonaRequest request)
         {
             var patchedObject = request.Bind();
+            var deltaObject = patchedObject as ObjectDelta;
+            if (deltaObject != null)
+            {
+                deltaObject.Apply();
+                patchedObject = deltaObject.Original;
+            }
             return this.patchMethod(patchedObject.GetType(), this, patchedObject, request);
         }
 

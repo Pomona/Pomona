@@ -565,11 +565,8 @@ namespace Pomona.Common.Serialization.Json
                         {
                             Operation = propContainer.Operation
                         };
-                        var oldValue = propNode.Value = propNode.Property.GetValue(this.node.Value, propNode.Context);
                         deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
-                        var newValue = propNode.Value;
-                        if (oldValue != newValue)
-                            this.node.SetProperty(prop, newValue);
+                        propNode.Commit();
                     }
                 }
             }

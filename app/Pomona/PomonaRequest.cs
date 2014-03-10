@@ -34,6 +34,7 @@ using Nancy;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
+using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
@@ -120,6 +121,8 @@ namespace Pomona
                     patchedObject = patchedObject ?? Node.Value;
                     if (patchedObject != null)
                         type = TypeMapper.GetClassMapping(patchedObject.GetType());
+
+                    patchedObject = new ObjectDelta(patchedObject, type, TypeMapper);
                 }
 
                 this.deserializedBody = Deserialize(type as TransformedType, NancyRequest.Body, patchedObject);
