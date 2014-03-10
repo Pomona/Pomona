@@ -120,6 +120,15 @@ namespace Pomona.RequestProcessing
         }
 
 
+        private PomonaResponse PatchResource(PomonaRequest request, ResourceNode resourceNode)
+        {
+            var resource = request.Bind(); // Will patch resourceNode.Value by default.
+            var method = GetHandlerMethodTakingResource(request.Method, resource.GetType());
+
+            return InvokeHandlerAndWrapResponse(request, method, new object[] { resource });
+        }
+
+
         private PomonaResponse GetResource(PomonaRequest request, ResourceNode resourceNode)
         {
             var method = GetHandlerMethodTakingId(request.Method.ToString(),
@@ -191,6 +200,8 @@ namespace Pomona.RequestProcessing
                     return DeleteResource(request, resourceNode);
                 case HttpMethod.Get:
                     return GetResource(request, resourceNode);
+                case HttpMethod.Patch:
+                    return PatchResource(request, resourceNode);
                 default:
                     return null;
             }
