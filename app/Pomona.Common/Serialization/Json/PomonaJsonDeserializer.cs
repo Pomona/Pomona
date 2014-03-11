@@ -488,7 +488,7 @@ namespace Pomona.Common.Serialization.Json
             public void Deserialize()
             {
                 SetUri();
-                if (this.node.Value == null)
+                if (this.node.Value == null || this.node.Operation == DeserializerNodeOperation.Post)
                 {
                     if (!(this.node.ValueType is TransformedType))
                         throw new NotSupportedException("Only knows how to deserialize TransformedType.");

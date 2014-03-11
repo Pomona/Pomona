@@ -148,13 +148,32 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchCritter_UpdatePropertyOfValueObject()
         {
-            var critter = Save(new Critter());
+            var critter =
+                Save(new Critter()
+                {
+                    CrazyValue = new CrazyValueObject() { Info = "the info", Sickness = "the sickness" }
+                });
             var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
             Client.Patch(resource,
                 x =>
-                    x.CrazyValue = new CrazyValueObjectForm { Sickness = "Just crazy thats all" });
+                    x.CrazyValue.Sickness ="Just crazy thats all" );
 
             Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
+        }
+
+
+        [Test]
+        public void PatchCritter_ReplacesValueObject()
+        {
+            var critter =
+                Save(new Critter()
+                {
+                    CrazyValue = new CrazyValueObject() { Info = "the info", Sickness = "the sickness" }
+                });
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x => x.CrazyValue = new CrazyValueObjectForm() { Info = "new info" });
+            Assert.That(critter.CrazyValue.Sickness, Is.EqualTo(null));
         }
 
 
