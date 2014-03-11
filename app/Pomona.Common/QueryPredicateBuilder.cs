@@ -464,6 +464,8 @@ namespace Pomona.Common
 
         private string GetEncodedConstant(Type valueType, object value)
         {
+            if (value == null)
+                return "null";
             Type enumerableElementType;
             if (valueType != typeof (string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {
@@ -498,8 +500,6 @@ namespace Pomona.Common
                 case TypeCode.Decimal:
                     return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
-                    if (value == null)
-                        return "null";
                     if (value is Guid)
                         return string.Format("guid'{0}'", ((Guid)value));
                     if (value is Type)

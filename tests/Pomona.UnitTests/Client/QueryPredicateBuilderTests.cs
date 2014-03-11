@@ -72,6 +72,7 @@ namespace Pomona.UnitTests.Client
             public IList<int> ListOfInts { get; set; }
             public IList<double> ListOfDoubles { get; set; }
             public IList<decimal> ListOfDecimals { get; set; }
+            public TestResource RelatedResource { get; set; }
         }
 
         public class Container
@@ -145,6 +146,23 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => TestEnum.Tick == x.SomeNullableEnum, "'Tick' eq someNullableEnum");
         }
 
+        [Test]
+        public void BuildComparisonWithNullFromClosure_ReturnsCorrectString()
+        {
+            string nullstring = null;
+            AssertBuild(x=>x.Jalla==nullstring, "jalla eq null");
+        }
+
+        [Test]
+        public void BuildComparisonWithNull_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla == null, "jalla eq null");
+        }
+        [Test]
+        public void BuildComparisonWithNullInComplexObject_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.RelatedResource.Jalla == null, "relatedResource.jalla eq null");
+        }
 
         [Test]
         public void BuildComparisonWithStaticMethodToBeTurnedToConstant_ReturnsCorrectString()
