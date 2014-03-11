@@ -201,14 +201,15 @@ namespace Pomona.Common.TypeSystem
                     sb,
                     string.Format("{0}{1}.",
                         parentPath,
-                        useJsonNameStyle ? rt.ChildToParentProperty.Name : rt.ChildToParentProperty.JsonName));
+                        useJsonNameStyle ? rt.ChildToParentProperty.JsonName : rt.ChildToParentProperty.Name));
                 sb.AppendFormat("/{0}/{{{1}{2}}}",
                     rt.ParentToChildProperty.UriName,
                     parentPath,
                     rt.PrimaryId.Name);
             }
             else
-                sb.AppendFormat("{0}/{{{1}{2}}}", rt.UriRelativePath, parentPath, rt.PrimaryId.JsonName);
+                sb.AppendFormat("{0}/{{{1}{2}}}", rt.UriRelativePath, parentPath,
+                    useJsonNameStyle ? rt.PrimaryId.JsonName : rt.PrimaryId.Name);
         }
 
 
