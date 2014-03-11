@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,11 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 
 namespace Pomona.UnitTests.Client
@@ -36,9 +42,9 @@ namespace Pomona.UnitTests.Client
     {
         public class FooBar : IClientResource
         {
-            public int SomeInt { get; set; }
             public decimal SomeDecimal { get; set; }
             public double SomeDouble { get; set; }
+            public int SomeInt { get; set; }
             public string SomeString { get; set; }
             public IList<TestResource> TestResources { get; set; }
         }
@@ -52,9 +58,7 @@ namespace Pomona.UnitTests.Client
 
         public class TestResource : IClientResource
         {
-            public bool OnOrOff { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
-            public IDictionary<string, object> StringObjectAttributes { get; set; }
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
             public dynamic Boo { get; set; }
@@ -63,16 +67,17 @@ namespace Pomona.UnitTests.Client
             public int Id { get; set; }
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
+            public IList<decimal> ListOfDecimals { get; set; }
+            public IList<double> ListOfDoubles { get; set; }
+            public IList<int> ListOfInts { get; set; }
+            public bool OnOrOff { get; set; }
             public double Precise { get; set; }
-            public TestEnum? SomeNullableEnum { get; set; }
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
+            public TestEnum? SomeNullableEnum { get; set; }
+            public IDictionary<string, object> StringObjectAttributes { get; set; }
             public TimeSpan TimeSpan { get; set; }
             public object UnknownProperty { get; set; }
-            public IList<int> ListOfInts { get; set; }
-            public IList<double> ListOfDoubles { get; set; }
-            public IList<decimal> ListOfDecimals { get; set; }
-            public TestResource RelatedResource { get; set; }
         }
 
         public class Container
@@ -112,11 +117,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.SomeList.All(y => y.SomeString == "lalala"), "someList.all(y:y.someString eq 'lalala')");
         }
 
+
         [Test]
         public void BuildAnyExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeList.Any(), "someList.any()");
         }
+
 
         [Test]
         public void BuildAnyLambdaExpression_ReturnsCorrectString()
@@ -128,7 +135,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildCastToIntExpression_ReturnsCorrectString()
         {
-            AssertBuild(x => (int) x.Precise, "cast(precise,t'Int32')");
+            AssertBuild(x => (int)x.Precise, "cast(precise,t'Int32')");
         }
 
 
@@ -139,6 +146,7 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => TestEnum.Tick == x.SomeEnum, "'Tick' eq someEnum");
         }
 
+
         [Test]
         public void BuildComparisonWithNullableEnum_ReturnsCorrectString()
         {
@@ -146,23 +154,6 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => TestEnum.Tick == x.SomeNullableEnum, "'Tick' eq someNullableEnum");
         }
 
-        [Test]
-        public void BuildComparisonWithNullFromClosure_ReturnsCorrectString()
-        {
-            string nullstring = null;
-            AssertBuild(x=>x.Jalla==nullstring, "jalla eq null");
-        }
-
-        [Test]
-        public void BuildComparisonWithNull_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.Jalla == null, "jalla eq null");
-        }
-        [Test]
-        public void BuildComparisonWithNullInComplexObject_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.RelatedResource.Jalla == null, "relatedResource.jalla eq null");
-        }
 
         [Test]
         public void BuildComparisonWithStaticMethodToBeTurnedToConstant_ReturnsCorrectString()
@@ -181,16 +172,18 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
         }
 
+
         [Test]
         public void BuildConditional_ReturnsCorrectString()
         {
             AssertBuild(x => x.Precise > 1.0 ? x.Bonga : "boo", "iif((precise gt 1.0),bonga,'boo')");
         }
 
+
         [Test]
         public void BuildConstantArrayOfSimpleValuesContains_ReturnsCorrectString()
         {
-            var array = new[] {3, 2, 4};
+            var array = new[] { 3, 2, 4 };
             AssertBuild(x => array.Contains(x.Id), "id in [3,2,4]");
         }
 
@@ -198,30 +191,34 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
         {
-            var container = new Container {Junk = "Kirk"};
+            var container = new Container { Junk = "Kirk" };
             var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == container.Junk);
             var queryString = builder.ToString();
             Assert.That(queryString, Is.EqualTo("jalla eq 'Kirk'"));
         }
 
+
         [Test]
         public void BuildConvertChangeType_FromObjectToString_ReturnsCorrectString()
         {
-            AssertBuild(x => Convert.ChangeType(x.UnknownProperty, typeof (string)),
-                        "convert(unknownProperty,t'String')");
+            AssertBuild(x => Convert.ChangeType(x.UnknownProperty, typeof(string)),
+                "convert(unknownProperty,t'String')");
         }
+
 
         [Test]
         public void BuildConvertChangeType_FromStringToInt32_ReturnsCorrectString()
         {
-            AssertBuild(x => Convert.ChangeType(x.Bonga, typeof (int)), "convert(bonga,t'Int32')");
+            AssertBuild(x => Convert.ChangeType(x.Bonga, typeof(int)), "convert(bonga,t'Int32')");
         }
+
 
         [Test]
         public void BuildConvertChangeType_FromStringToNullableInt32_ReturnsCorrectString()
         {
-            AssertBuild(x => Convert.ChangeType(x.Bonga, typeof (int?)), "convert(bonga,t'Int32?')");
+            AssertBuild(x => Convert.ChangeType(x.Bonga, typeof(int?)), "convert(bonga,t'Int32?')");
         }
+
 
         [Test]
         public void BuildCountOfList_ReturnsCorrectString()
@@ -262,6 +259,7 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45'"));
         }
 
+
         [Test]
         public void BuildDecimalEnumerableAverageExpression_ReturnsCorrectString()
         {
@@ -275,11 +273,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.SomeList.Average(y => y.SomeDecimal), "someList.average(y:y.someDecimal)");
         }
 
+
         [Test]
         public void BuildDecimalEnumerableSumExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.ListOfDecimals.Sum(), "sum(listOfDecimals)");
         }
+
 
         [Test]
         public void BuildDecimalEnumerableSumWithSelectorExpression_ReturnsCorrectString()
@@ -287,11 +287,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.SomeList.Sum(y => y.SomeDecimal), "someList.sum(y:y.someDecimal)");
         }
 
+
         [Test]
         public void BuildDecimal_ReturnsCorrectString()
         {
             AssertBuild(x => 10.25m, "10.25m");
         }
+
 
         [Test]
         public void BuildDoubleEnumerableAverageExpression_ReturnsCorrectString()
@@ -299,17 +301,20 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.ListOfDoubles.Average(), "average(listOfDoubles)");
         }
 
+
         [Test]
         public void BuildDoubleEnumerableAverageWithSelectorExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeList.Average(y => y.SomeDouble), "someList.average(y:y.someDouble)");
         }
 
+
         [Test]
         public void BuildDoubleEnumerableSumExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.ListOfDoubles.Sum(), "sum(listOfDoubles)");
         }
+
 
         [Test]
         public void BuildDoubleEnumerableSumWithSelectorExpression_ReturnsCorrectString()
@@ -340,17 +345,20 @@ namespace Pomona.UnitTests.Client
             Assert.That(queryString, Is.EqualTo("jalla eq 'What'"));
         }
 
+
         [Test]
         public void BuildExpressionWithNotEqualOperator_ReturnsCorrectString()
         {
             AssertBuild(x => x.Id != 823, "id ne 823");
         }
 
+
         [Test]
         public void BuildExpressionWithNotOperator_ReturnsCorrectString()
         {
             AssertBuild(x => !x.OnOrOff, "not (onOrOff)");
         }
+
 
         [Test]
         public void BuildFalse_ReturnsCorrectString()
@@ -363,8 +371,9 @@ namespace Pomona.UnitTests.Client
         public void BuildFirstOrDefaultWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.FirstOrDefault(x => x.SomeString == "blah"),
-                        "someList.firstdefault(x:x.someString eq 'blah')");
+                "someList.firstdefault(x:x.someString eq 'blah')");
         }
+
 
         [Test]
         public void BuildFirstWithPredicate_ReturnsCorrectString()
@@ -405,11 +414,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla.IndexOf("banana") == 2, "indexof(jalla,'banana') eq 2");
         }
 
+
         [Test]
         public void BuildIntEnumerableSumExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.ListOfInts.Sum(), "sum(listOfInts)");
         }
+
 
         [Test]
         public void BuildIntEnumerableSumWithSelectorExpression_ReturnsCorrectString()
@@ -417,11 +428,12 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.SomeList.Sum(y => y.SomeInt), "someList.sum(y:y.someInt)");
         }
 
+
         [Test]
         public void BuildJoinExpression_ReturnsCorrectString()
         {
             AssertBuild(x => string.Join(";", x.SomeList.Select(y => y.SomeString)),
-                        "someList.select(y:y.someString).join(';')");
+                "someList.select(y:y.someString).join(';')");
         }
 
 
@@ -435,7 +447,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildNewArrayOfSimpleValuesContains_ReturnsCorrectString()
         {
-            AssertBuild(x => (new[] {3, 2, 4}).Contains(x.Id), "id in [3,2,4]");
+            AssertBuild(x => (new[] { 3, 2, 4 }).Contains(x.Id), "id in [3,2,4]");
         }
 
 
@@ -452,11 +464,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla == null, "jalla eq null");
         }
 
+
         [Test]
         public void BuildNullableIntTypeLiteral_ReturnsCorrectString()
         {
-            AssertBuild(x => typeof (int?), "t'Int32?'");
+            AssertBuild(x => typeof(int?), "t'Int32?'");
         }
+
 
         [Test]
         public void BuildObjectEqualsString_ReturnsCorrectString()
@@ -464,6 +478,7 @@ namespace Pomona.UnitTests.Client
             // Implicit as for comparison with object and other types
             AssertBuild(x => x.UnknownProperty as int? > 1234, "unknownProperty gt 1234");
         }
+
 
         [Test]
         public void BuildObjectIsOfType_ReturnsCorrectString()
@@ -515,11 +530,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Jalla.Replace("a", "e") == "crezy", "replace(jalla,'a','e') eq 'crezy'");
         }
 
+
         [Test]
         public void BuildSafeGetExpression_UsingKeyValidForShortHandSafeGetSyntax_ReturnsCorrectString()
         {
             AssertBuild(x => x.Attributes.SafeGet("ka") == "boom", "attributes.ka eq 'boom'");
         }
+
 
         [Test]
         public void BuildSafeGetExpression_UsingKeyWithNonSymbolCharacters_ReturnsCorrectString()
@@ -527,33 +544,38 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => x.Attributes.SafeGet("ka blo bla") == "boom", "attributes.safeget('ka blo bla') eq 'boom'");
         }
 
-        [Test]
-        public void BuildSafeGetFromObjectDictAsString_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
-                        "stringObjectAttributes.Hei as t'String'");
-        }
-
-        [Test]
-        public void BuildSafeGetFromObjectDictAsStringComparedWithString_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == "Nada",
-                        "stringObjectAttributes.Hei eq 'Nada'");
-        }
 
         [Test]
         public void BuildSafeGetFromObjectDictAsStringComparedWithNull_ReturnsCorrectString()
         {
             AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == null,
-                        "(stringObjectAttributes.Hei as t'String') eq null");
+                "(stringObjectAttributes.Hei as t'String') eq null");
         }
+
+
+        [Test]
+        public void BuildSafeGetFromObjectDictAsStringComparedWithString_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == "Nada",
+                "stringObjectAttributes.Hei eq 'Nada'");
+        }
+
+
+        [Test]
+        public void BuildSafeGetFromObjectDictAsString_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
+                "stringObjectAttributes.Hei as t'String'");
+        }
+
 
         [Test]
         public void BuildSingleOrDefaultWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.SingleOrDefault(x => x.SomeString == "blah"),
-                        "someList.singledefault(x:x.someString eq 'blah')");
+                "someList.singledefault(x:x.someString eq 'blah')");
         }
+
 
         [Test]
         public void BuildSingleOrDefault_ReturnsCorrectString()
@@ -561,11 +583,13 @@ namespace Pomona.UnitTests.Client
             AssertBuild(y => y.SomeList.SingleOrDefault(), "someList.singledefault()");
         }
 
+
         [Test]
         public void BuildSingleWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.Single(x => x.SomeString == "blah"), "someList.single(x:x.someString eq 'blah')");
         }
+
 
         [Test]
         public void BuildSingle_ReturnsCorrectString()
