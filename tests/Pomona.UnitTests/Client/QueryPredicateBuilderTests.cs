@@ -466,6 +466,13 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildNullableEnumHasValue_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeNullableEnum.HasValue, "someNullableEnum.hasValue()");
+        }
+
+
+        [Test]
         public void BuildNullableIntTypeLiteral_ReturnsCorrectString()
         {
             AssertBuild(x => typeof(int?), "t'Int32?'");
