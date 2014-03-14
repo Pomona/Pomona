@@ -15,6 +15,7 @@
     <copyright>Copyright Karsten N. Strand 2012</copyright>
     <tags>REST linq mapping</tags>
     <dependencies>
+      <dependency id="Pomona" version="$version$" />
       <dependency id="Pomona.Common" version="$version$" />
     </dependencies>
   </metadata>
