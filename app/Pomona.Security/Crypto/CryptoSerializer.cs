@@ -42,13 +42,18 @@ namespace Pomona.Security.Crypto
     public class CryptoSerializer
     {
         private readonly ISiteKeyProvider siteKeyProvider;
+        private readonly RandomNumberGenerator randomNumberGenerator;
 
         private bool compressionEnabled = true;
 
-
-        public CryptoSerializer(ISiteKeyProvider siteKeyProvider)
+        public CryptoSerializer(ISiteKeyProvider siteKeyProvider, RandomNumberGenerator randomNumberGenerator)
         {
+            if (siteKeyProvider == null)
+                throw new ArgumentNullException("siteKeyProvider");
+            if (randomNumberGenerator == null)
+                throw new ArgumentNullException("randomNumberGenerator");
             this.siteKeyProvider = siteKeyProvider;
+            this.randomNumberGenerator = randomNumberGenerator;
         }
 
 
@@ -113,7 +118,9 @@ namespace Pomona.Security.Crypto
                 }
                 using (var codec = GetCodec())
                 {
-                    codec.GenerateIV();
+                    var iv = new byte[codec.BlockSize / 8];
+                    randomNumberGenerator.GetBytes(iv);
+                    codec.IV = iv;
 
                     //codec.IV = Enumerable.Repeat((byte)99, codec.BlockSize / 8).ToArray();
                     using (var encryptor = codec.CreateEncryptor())

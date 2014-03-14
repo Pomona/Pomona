@@ -1,4 +1,5 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,19 +23,81 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
+using System;
+using System.Security.Cryptography;
+
 using NUnit.Framework;
+
+using Pomona.Security.Authentication;
+using Pomona.Security.Crypto;
 
 namespace Pomona.UnitTests.Security.Crypto
 {
     [TestFixture]
     public class CryptoSerializerTests
     {
-        [Test]
-        public void CryptoSerialier_GotSufficientTestCoverage()
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
         {
-            Assert.Fail("Remember to write some tests!");
+            this.serializer = new CryptoSerializer(new FixedSiteKeyProvider(), new NonRandomGenerator());
+        }
+
+        #endregion
+
+        private CryptoSerializer serializer;
+
+        public class FixedSiteKeyProvider : ISiteKeyProvider
+        {
+            private static readonly byte[] key =
+            {
+                0xa2, 0xaf, 0x89, 0x23, 0x75, 0x06, 0xc4, 0x62, 0xc8, 0xef, 0x37, 0xcb, 0xa0, 0x01, 0xae, 0xdf,
+                0x3a, 0xef, 0x27, 0x2b, 0xcb, 0x8a, 0xc5, 0xe7, 0x8d, 0xa2, 0x6e, 0xeb, 0x59, 0x76, 0xeb, 0x0e
+            };
+
+            public byte[] SiteKey
+            {
+                get { return key; }
+            }
+        }
+
+        public class NonRandomGenerator : RandomNumberGenerator
+        {
+            public override void GetBytes(byte[] data)
+            {
+                for (var i = 0; i < data.Length; i++)
+                    data[i] = (byte)i;
+            }
+
+
+            public override void GetNonZeroBytes(byte[] data)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class TestClass
+        {
+            public string Bar { get; set; }
+            public string Foo { get; set; }
+        }
+
+
+        [TestCase("krakra", "go to gate")]
+        [TestCase("this string is quite a bit longer sorry about that maybe you should consider shortening this down",
+            "djhskj")]
+        [TestCase("abcd", "ehfkdjfklsdfjklsdjfl")]
+        public void SerializeThenDeserialize_ReturnsCorrectValues(string fooValue, string barValue)
+        {
+            var obj = new TestClass() { Foo = fooValue, Bar = barValue };
+            var serialized = this.serializer.SerializeEncryptedHexString(obj);
+            var deserialized = this.serializer.DeserializeEncryptedHexString<TestClass>(serialized);
+            Assert.That(deserialized.Foo, Is.EqualTo(fooValue));
+            Assert.That(deserialized.Bar, Is.EqualTo(barValue));
         }
     }
 }
