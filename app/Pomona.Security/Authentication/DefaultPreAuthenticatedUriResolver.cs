@@ -32,12 +32,12 @@ namespace Pomona.Security.Authentication
 {
     public class DefaultPreAuthenticatedUriResolver : IPreAuthenticatedUriResolver
     {
-        private readonly AuthenticatedUrlHelper authenticatedUrlHelper;
+        private readonly IPreAuthenticatedUriProvider authenticatedUrlHelper;
         private readonly IUriResolver uriResolver;
 
 
         public DefaultPreAuthenticatedUriResolver(IUriResolver uriResolver,
-            AuthenticatedUrlHelper authenticatedUrlHelper)
+            IPreAuthenticatedUriProvider authenticatedUrlHelper)
         {
             if (uriResolver == null)
                 throw new ArgumentNullException("uriResolver");
@@ -50,7 +50,7 @@ namespace Pomona.Security.Authentication
 
         public string GetPreAuthenticatedUriFor(object entity, DateTime? expiration = null)
         {
-            return this.authenticatedUrlHelper.CreatePreAuthorizedUrl(this.uriResolver.GetUriFor(entity), expiration);
+            return this.authenticatedUrlHelper.CreatePreAuthenticatedUrl(this.uriResolver.GetUriFor(entity), expiration);
         }
     }
 }

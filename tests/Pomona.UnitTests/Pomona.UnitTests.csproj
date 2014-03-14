@@ -94,6 +94,7 @@
     <Compile Include="Schemas\ApiChangeVerifierTests.cs" />
     <Compile Include="Schemas\SchemaTests.cs" />
     <Compile Include="Security\Authentication\DefaultPreAuthenticatedUriResolverTests.cs" />
+    <Compile Include="Security\Authentication\PreAuthenticatedUriProviderTests.cs" />
     <Compile Include="Security\Crypto\CryptoSerializerTests.cs" />
     <Compile Include="SingularToPluralTranslatorTests.cs" />
     <Compile Include="TypeExtensionsTests.cs" />

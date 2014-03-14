@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,31 +26,11 @@
 
 #endregion
 
-using NSubstitute;
-
-using NUnit.Framework;
-
-using Pomona.Example.Models;
-using Pomona.Security.Authentication;
-
-namespace Pomona.UnitTests.Security.Authentication
+namespace Pomona.Security.Crypto
 {
-    [TestFixture]
-    public class DefaultPreAuthenticatedUriResolverTests
+    public interface ICryptoSerializer
     {
-        [Test]
-        public void GetPreAuthenticatedUriFor_ReturnsPreAuthenticatedUriForResource()
-        {
-            // Very much mocked, just check that GetPreAuthenticatedUriFor actually calls IUriResolver and IPreAuthenticatedUriProvider
-            var uriResolverMock = Substitute.For<IUriResolver>();
-            var critter = new Critter();
-            uriResolverMock.GetUriFor(critter).Returns("http://api/entities/0");
-            var preAuthenticatedUriProviderMock = Substitute.For<IPreAuthenticatedUriProvider>();
-            preAuthenticatedUriProviderMock.CreatePreAuthenticatedUrl("http://api/entities/0", null).Returns(
-                "http://api/entities/0?$token=XYZ");
-            var resolver = new DefaultPreAuthenticatedUriResolver(uriResolverMock, preAuthenticatedUriProviderMock);
-            Assert.That(resolver.GetPreAuthenticatedUriFor(critter, null),
-                Is.EqualTo("http://api/entities/0?$token=XYZ"));
-        }
+        T Deserialize<T>(string hexString);
+        string Serialize(object obj);
     }
 }

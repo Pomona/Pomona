@@ -29,7 +29,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -39,14 +39,15 @@ using Pomona.Security.Authentication;
 
 namespace Pomona.Security.Crypto
 {
-    public class CryptoSerializer
+    public abstract class CryptoSerializerBase : ICryptoSerializer
     {
-        private readonly ISiteKeyProvider siteKeyProvider;
         private readonly RandomNumberGenerator randomNumberGenerator;
+        private readonly ISiteKeyProvider siteKeyProvider;
 
         private bool compressionEnabled = true;
 
-        public CryptoSerializer(ISiteKeyProvider siteKeyProvider, RandomNumberGenerator randomNumberGenerator)
+
+        public CryptoSerializerBase(ISiteKeyProvider siteKeyProvider, RandomNumberGenerator randomNumberGenerator)
         {
             if (siteKeyProvider == null)
                 throw new ArgumentNullException("siteKeyProvider");
@@ -63,10 +64,25 @@ namespace Pomona.Security.Crypto
         }
 
 
-        public T DeserializeEncryptedHexString<T>(string hexString)
+        public T Deserialize<T>(string hexString)
         {
-            var encryptedTokenBytes = DecodeHexBytes<T>(hexString);
-            using (var codec = GetCodec())
+            if (hexString == null)
+                throw new ArgumentNullException("hexString");
+            try
+            {
+                return DeserializeUnprotected<T>(hexString);
+            }
+            catch (Exception ex)
+            {
+                throw new SerializationException("Unable to deserialize encrypted string", ex);
+            }
+        }
+
+
+        private T DeserializeUnprotected<T>(string hexString)
+        {
+            var encryptedTokenBytes = DecodeUrlSafeBase64<T>(hexString);
+            using (var codec = GetInitializedCodec())
             {
                 var blockSizeBytes = codec.BlockSize / 8; // Should be 128/8 = 16 bytes
                 var iv = new byte[blockSizeBytes];
@@ -74,7 +90,7 @@ namespace Pomona.Security.Crypto
                 codec.IV = iv;
                 var cipherTextLength = encryptedTokenBytes.Length - blockSizeBytes;
 
-                using (var decryptor = codec.CreateDecryptor())
+                using (var decryptor = codec.CreateDecryptor(codec.Key, codec.IV))
                 {
                     var plainBytes = decryptor.TransformFinalBlock(encryptedTokenBytes,
                         blockSizeBytes
@@ -100,7 +116,7 @@ namespace Pomona.Security.Crypto
         }
 
 
-        public string SerializeEncryptedHexString(object obj)
+        public string Serialize(object obj)
         {
             using (var memStream = new MemoryStream())
             {
@@ -116,14 +132,14 @@ namespace Pomona.Security.Crypto
                         gzipStream.Flush();
                     }
                 }
-                using (var codec = GetCodec())
+                using (var codec = GetInitializedCodec())
                 {
                     var iv = new byte[codec.BlockSize / 8];
-                    randomNumberGenerator.GetBytes(iv);
+                    this.randomNumberGenerator.GetBytes(iv);
                     codec.IV = iv;
 
                     //codec.IV = Enumerable.Repeat((byte)99, codec.BlockSize / 8).ToArray();
-                    using (var encryptor = codec.CreateEncryptor())
+                    using (var encryptor = codec.CreateEncryptor(codec.Key, codec.IV))
                     {
                         var plainBytes = memStream.ToArray();
                         var encryptedMessageBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
@@ -134,22 +150,21 @@ namespace Pomona.Security.Crypto
                             ivAndEncryptedMessageBytes,
                             codec.IV.Length,
                             encryptedMessageBytes.Length);
-                        return EncodeHexBytes(ivAndEncryptedMessageBytes);
+                        return EncodeUrlSafeBase64(ivAndEncryptedMessageBytes);
                     }
                 }
             }
         }
 
 
-        private static byte[] DecodeHexBytes<T>(string hexString)
+        private static byte[] DecodeUrlSafeBase64<T>(string hexString)
         {
             // Url-safe base64
             return Convert.FromBase64String(hexString.Replace('-', '+').Replace('_', '/').Replace('.', '='));
-            return SoapHexBinary.Parse(hexString).Value;
         }
 
 
-        private static string EncodeHexBytes(byte[] ivAndEncryptedMessageBytes)
+        private static string EncodeUrlSafeBase64(byte[] ivAndEncryptedMessageBytes)
         {
             return Convert.ToBase64String(ivAndEncryptedMessageBytes).Replace('+', '-').Replace('/', '_').Replace('=',
                 '.');
@@ -172,16 +187,22 @@ namespace Pomona.Security.Crypto
         }
 
 
-        private SymmetricAlgorithm GetCodec()
+        private SymmetricAlgorithm GetInitializedCodec()
+        {
+            var codec = CreateSymmetricalAlgorithm();
+
+            codec.Key = KeyBytes;
+            codec.Mode = CipherMode.CFB; // For arbitrary lenghts
+            codec.Padding = PaddingMode.None;
+            codec.FeedbackSize = 8;
+            return codec;
+        }
+
+        protected virtual SymmetricAlgorithm CreateSymmetricalAlgorithm()
         {
             var codec = Rijndael.Create();
             if (codec == null)
                 throw new InvalidOperationException("What? Should not get a null crypto codec!");
-
-            codec.Key = this.KeyBytes;
-            codec.Mode = CipherMode.CFB; // For arbitrary lenghts
-            codec.Padding = PaddingMode.None;
-            codec.FeedbackSize = 8;
             return codec;
         }
     }

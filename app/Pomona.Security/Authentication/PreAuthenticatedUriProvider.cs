@@ -33,12 +33,12 @@ using Pomona.Security.Crypto;
 
 namespace Pomona.Security.Authentication
 {
-    public class AuthenticatedUrlHelper
+    public class PreAuthenticatedUriProvider : IPreAuthenticatedUriProvider
     {
-        private readonly CryptoSerializer cryptoSerializer;
+        private readonly ICryptoSerializer cryptoSerializer;
 
 
-        public AuthenticatedUrlHelper(CryptoSerializer cryptoSerializer)
+        public PreAuthenticatedUriProvider(ICryptoSerializer cryptoSerializer)
         {
             if (cryptoSerializer == null)
                 throw new ArgumentNullException("cryptoSerializer");
@@ -46,7 +46,39 @@ namespace Pomona.Security.Authentication
         }
 
 
-        public static string AddQueryParameterString(string url, string key, string value)
+        public string CreatePreAuthenticatedUrl(string urlString, DateTime? expiration = null)
+        {
+            // Path and query is part of verified url
+            var url = new Uri(urlString);
+            var verifiedUrlPart = url.PathAndQuery;
+            var urlToken = new UrlToken() { Path = verifiedUrlPart, Expiration = expiration };
+            var tokenParameter = this.cryptoSerializer.Serialize(urlToken);
+            return AddQueryParameterString(urlString, "$token", tokenParameter);
+        }
+
+
+        public bool VerifyPreAuthenticatedUrl(string urlString, DateTime verificationTime)
+        {
+            var query = HttpUtility.ParseQueryString(new Uri(urlString).Query);
+            var tokenParameter = query.Get("$token");
+            UrlToken urlToken;
+            try
+            {
+                urlToken = this.cryptoSerializer.Deserialize<UrlToken>(tokenParameter);
+            }
+            catch
+            {
+                // TODO: Find out what exceptions to see as yeah you know..
+                return false;
+            }
+            var urlWithoutToken = new Uri(RemoveQueryStringByKey(urlString, "$token"));
+            if (urlToken.Expiration.HasValue && urlToken.Expiration < verificationTime)
+                return false;
+            return urlToken.Path == urlWithoutToken.PathAndQuery;
+        }
+
+
+        private static string AddQueryParameterString(string url, string key, string value)
         {
             var uri = new Uri(url);
 
@@ -54,6 +86,9 @@ namespace Pomona.Security.Authentication
             var newQueryString = HttpUtility.ParseQueryString(uri.Query);
 
             // this removes the key if exists
+            newQueryString.Remove(key);
+
+            // ..and adds the new one
             newQueryString.Add(key, value);
 
             // this gets the page path from root without QueryString
@@ -65,7 +100,7 @@ namespace Pomona.Security.Authentication
         }
 
 
-        public static string RemoveQueryStringByKey(string url, string key)
+        private static string RemoveQueryStringByKey(string url, string key)
         {
             var uri = new Uri(url);
 
@@ -81,35 +116,6 @@ namespace Pomona.Security.Authentication
             return newQueryString.Count > 0
                 ? String.Format("{0}?{1}", pagePathWithoutQueryString, newQueryString)
                 : pagePathWithoutQueryString;
-        }
-
-
-        public virtual DateTime OnGetUtcNow()
-        {
-            return DateTime.UtcNow;
-        }
-
-
-        public string CreatePreAuthorizedUrl(string urlString, DateTime? expiration = null)
-        {
-            // Path and query is part of verified url
-            var url = new Uri(urlString);
-            var verifiedUrlPart = url.PathAndQuery;
-            var urlToken = new UrlToken() { PathQueryHash = verifiedUrlPart, Expiration = expiration };
-            var tokenParameter = this.cryptoSerializer.SerializeEncryptedHexString(urlToken);
-            return AddQueryParameterString(urlString, "$token", tokenParameter);
-        }
-
-
-        public bool VerifyPreAuthorizedUrl(string urlString)
-        {
-            var query = HttpUtility.ParseQueryString(new Uri(urlString).Query);
-            var tokenParameter = query.Get("$token");
-            var urlToken = this.cryptoSerializer.DeserializeEncryptedHexString<UrlToken>(tokenParameter);
-            var urlWithoutToken = new Uri(RemoveQueryStringByKey(urlString, "$token"));
-            if (urlToken.Expiration.HasValue && urlToken.Expiration < OnGetUtcNow())
-                return false;
-            return urlToken.PathQueryHash == urlWithoutToken.PathAndQuery;
         }
     }
 }

@@ -38,6 +38,6 @@ namespace Pomona.Security.Authentication
         public DateTime? Expiration { get; set; }
 
         [JsonProperty("h")]
-        public string PathQueryHash { get; set; }
+        public string Path { get; set; }
     }
 }
