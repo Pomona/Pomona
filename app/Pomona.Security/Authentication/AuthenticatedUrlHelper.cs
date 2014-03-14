@@ -29,6 +29,7 @@
 using System;
 
 using Pomona.Common;
+using Pomona.Security.Crypto;
 
 namespace Pomona.Security.Authentication
 {

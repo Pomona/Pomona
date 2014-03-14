@@ -35,7 +35,9 @@ using System.Text;
 
 using Newtonsoft.Json;
 
-namespace Pomona.Security.Authentication
+using Pomona.Security.Authentication;
+
+namespace Pomona.Security.Crypto
 {
     public class CryptoSerializer
     {
@@ -169,7 +171,7 @@ namespace Pomona.Security.Authentication
             if (codec == null)
                 throw new InvalidOperationException("What? Should not get a null crypto codec!");
 
-            codec.Key = KeyBytes;
+            codec.Key = this.KeyBytes;
             codec.Mode = CipherMode.CFB; // For arbitrary lenghts
             codec.Padding = PaddingMode.None;
             codec.FeedbackSize = 8;

@@ -48,11 +48,11 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Authentication\AuthenticatedUrlHelper.cs" />
-    <Compile Include="Authentication\CryptoSerializer.cs" />
     <Compile Include="Authentication\IPreAuthenticatedUriResolver.cs" />
     <Compile Include="Authentication\ISiteKeyProvider.cs" />
     <Compile Include="Authentication\DefaultPreAuthenticatedUriResolver.cs" />
     <Compile Include="Authentication\UrlToken.cs" />
+    <Compile Include="Crypto\CryptoSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
