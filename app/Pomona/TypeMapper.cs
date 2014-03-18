@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -45,7 +46,7 @@ namespace Pomona
     {
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
-        private readonly Dictionary<Type, TypeSpec> mappings = new Dictionary<Type, TypeSpec>();
+        private readonly ConcurrentDictionary<Type, TypeSpec> mappings = new ConcurrentDictionary<Type, TypeSpec>();
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
@@ -288,7 +289,7 @@ namespace Pomona
         {
             type = this.filter.ResolveRealTypeForProxy(type);
 
-            return this.mappings.GetOrCreate(type, () => CreateClassMapping(type));
+            return this.mappings.GetOrAdd(type, CreateClassMapping);
         }
 
 
