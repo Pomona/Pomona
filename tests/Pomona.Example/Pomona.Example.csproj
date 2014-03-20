@@ -68,6 +68,7 @@
     <Compile Include="CritterPomonaConfiguration.cs" />
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
+    <Compile Include="ExposedInterfaceInternalImplementation.cs" />
     <Compile Include="GalaxyRules.cs" />
     <Compile Include="GuidThingFluentRules.cs" />
     <Compile Include="GuidThingHandler.cs" />
@@ -98,8 +99,11 @@
     <Compile Include="Models\GuidThing.cs" />
     <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
+    <Compile Include="Models\IEntityWithId.cs" />
+    <Compile Include="Models\INonExposedBaseInterface.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
+    <Compile Include="Models\IExposedInterface.cs" />
     <Compile Include="Models\InheritedUnpostableThing.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\GenericBaseClass.cs" />

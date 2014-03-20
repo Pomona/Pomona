@@ -38,6 +38,15 @@ namespace Pomona.Example
 {
     public class CritterFluentRules
     {
+        public void Map(ITypeMappingConfigurator<IExposedInterface> map)
+        {
+            map
+                .Named("ExposedInterface")
+                .WithPluralName("ExposedInterfaces")
+                .AsConcrete()
+                .ConstructedUsing(c => new ExposedInterfaceInternalImplementation());
+        }
+
         public void Map(ITypeMappingConfigurator<HandledThing> map)
         {
             map.DeleteAllowed().HandledBy<HandledThingsHandler>();

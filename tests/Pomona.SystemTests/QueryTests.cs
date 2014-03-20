@@ -37,6 +37,7 @@ using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
+using Pomona.Example;
 using Pomona.Example.Models;
 
 using CustomEnum = Pomona.Example.Models.CustomEnum;
@@ -112,6 +113,14 @@ namespace Pomona.SystemTests
             Assert.That(critters.Count, Is.EqualTo(2));
         }
 
+
+        [Test]
+        public void QueryExposedInterface_ReturnsSingleExposedInterfaceResource()
+        {
+            var entity = Save(new ExposedInterfaceInternalImplementation() { FooBar = "lalala" });
+            var resultResource = Client.ExposedInterfaces.Query(x => x.FooBar == "lalala").First();
+            Assert.That(entity.Id, Is.EqualTo(resultResource.Id));
+        }
 
         [Test]
         public void QueryDictionaryContainer_WhereAttributeContainsValueAndKey_ReturnsCorrectResults()

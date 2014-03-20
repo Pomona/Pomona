@@ -214,8 +214,10 @@ namespace Pomona.Example
                     .Where(
                         x =>
                             (x.Namespace == "Pomona.Example.Models"
-                             || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
-                            && !x.IsGenericTypeDefinition);
+                            || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
+                            && x.IsPublic
+                            && !x.IsGenericTypeDefinition
+                            && x != typeof(INonExposedBaseInterface));
         }
 
 
@@ -335,7 +337,7 @@ namespace Pomona.Example
                 return entity;
 
             savedObjects.Add(entity);
-            var entityCast = (EntityBase)((object)entity);
+            var entityCast = (IEntityWithId)(entity);
 
             if (entityCast.Id == 0 && typeSpec is ResourceType)
             {
@@ -349,7 +351,7 @@ namespace Pomona.Example
             {
                 Type[] genericArguments;
                 var propType = prop.PropertyType;
-                if (typeof(EntityBase).IsAssignableFrom(propType))
+                if (typeof(IEntityWithId).IsAssignableFrom(propType))
                 {
                     var value = prop.GetValue(entity, null);
                     if (value != null)
@@ -357,7 +359,7 @@ namespace Pomona.Example
                 }
                 else if (TypeUtils.TryGetTypeArguments(propType, typeof(ICollection<>), out genericArguments))
                 {
-                    if (typeof(EntityBase).IsAssignableFrom(genericArguments[0]))
+                    if (typeof(IEntityWithId).IsAssignableFrom(genericArguments[0]))
                     {
                         var value = prop.GetValue(entity, null);
                         if (value != null)

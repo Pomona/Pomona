@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,16 +26,15 @@
 
 #endregion
 
-namespace Pomona.Example.Models
-{
-    public abstract class EntityBase : IEntityWithId
-    {
-        int IEntityWithId.Id
-        {
-            get { return Id; }
-            set { Id = value; }
-        }
+using Pomona.Example.Models;
 
-        public int Id { get; internal set; }
+namespace Pomona.Example
+{
+    internal class ExposedInterfaceInternalImplementation : IExposedInterface, IEntityWithId
+    {
+        public string FooBar { get; set; }
+        public int Id { get; set; }
+
+        public int PropertyFromInheritedInterface { get; set; }
     }
 }
