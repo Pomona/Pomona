@@ -136,6 +136,10 @@ namespace Pomona.Common.TypeSystem
         {
             if (typeof(T) != Type)
                 throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));
+
+            if (Constructor == null)
+                throw new MissingMethodException("Pomona was unable to instantiate type " + Name + ", Constructor property was null.");
+
             if (this.createUsingPropertySourceFunc == null)
             {
                 var param = Expression.Parameter(typeof(IConstructorPropertySource<T>));
