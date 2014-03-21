@@ -115,6 +115,7 @@
     <Compile Include="Models\OrderItem.cs" />
     <Compile Include="Models\OrderResponse.cs" />
     <Compile Include="Models\PurchaseOrder.cs" />
+    <Compile Include="Models\RenamedThing.cs" />
     <Compile Include="Models\SimpleAttribute.cs" />
     <Compile Include="Models\HiddenBaseInMiddle.cs" />
     <Compile Include="Models\StringListContainer.cs" />

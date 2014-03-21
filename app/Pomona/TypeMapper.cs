@@ -189,9 +189,13 @@ namespace Pomona
 
         public override string LoadName(MemberSpec memberSpec)
         {
-            return
-                memberSpec.Maybe().OfType<PropertySpec>().Select(x => this.filter.GetPropertyMappedName(x.PropertyInfo))
-                    .OrDefault(() => base.LoadName(memberSpec));
+            return memberSpec
+                .Maybe()
+                .Switch()
+                    .Case<PropertySpec>().Then(x => filter.GetPropertyMappedName(x.PropertyInfo))
+                    .Case<TypeSpec>().Then(x => filter.GetTypeMappedName(x.Type))
+                .EndSwitch()
+                .OrDefault(() => base.LoadName(memberSpec));
         }
 
 

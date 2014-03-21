@@ -139,6 +139,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual string GetTypeMappedName(Type type)
+        {
+            return this.wrappedFilter.GetTypeMappedName(type);
+        }
+
+
         public virtual string GetPluralNameForType(Type type)
         {
             return this.wrappedFilter.GetPluralNameForType(type);

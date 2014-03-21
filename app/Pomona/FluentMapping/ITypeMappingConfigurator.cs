@@ -85,6 +85,8 @@ namespace Pomona.FluentMapping
                     IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
 
 
+        ITypeMappingConfigurator<TDeclaringType> Named(string exposedTypeName);
+
         ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action);
 
         ITypeMappingConfigurator<TDeclaringType> PatchAllowed();

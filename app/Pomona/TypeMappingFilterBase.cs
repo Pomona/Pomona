@@ -150,6 +150,12 @@ namespace Pomona
         }
 
 
+        public string GetTypeMappedName(Type type)
+        {
+            return type.Name;
+        }
+
+
         public virtual string GetPluralNameForType(Type type)
         {
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);

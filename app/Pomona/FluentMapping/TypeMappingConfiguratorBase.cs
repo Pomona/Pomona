@@ -151,6 +151,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> Named(string exposedTypeName)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> OnDeserialized(Action<TDeclaring> action)
         {
             return this;

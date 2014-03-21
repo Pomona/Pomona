@@ -222,6 +222,12 @@ namespace TestNs
         }
 
 
+        public string GetTypeMappedName(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.Name, () => wrappedFilter.GetTypeMappedName(type));
+        }
+
+
         public string GetPluralNameForType(Type type)
         {
             return FromMappingOrDefault(type, x => x.PluralName, () => this.wrappedFilter.GetPluralNameForType(type));

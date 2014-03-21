@@ -61,6 +61,7 @@ namespace Pomona.FluentMapping
 
         private bool? isUriBaseType;
         private bool? isValueObject;
+        private string name;
         private Action<object> onDeserialized;
 
         private bool? patchAllowed;
@@ -154,6 +155,11 @@ namespace Pomona.FluentMapping
         public IDictionary<string, PropertyMappingOptions> PropertyOptions
         {
             get { return this.propertyOptions; }
+        }
+
+        internal string Name
+        {
+            get { return name; }
         }
 
 
@@ -363,6 +369,13 @@ namespace Pomona.FluentMapping
                 if (options != null)
                     options(new PropertyOptionsBuilder<TDeclaringType, TPropertyType>(propOptions));
 
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> Named(string exposedTypeName)
+            {
+                this.owner.name = exposedTypeName;
                 return this;
             }
 

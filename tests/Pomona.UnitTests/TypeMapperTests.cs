@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,21 @@ namespace Pomona.UnitTests
         #endregion
 
         private TypeMapper typeMapper;
+
+
+        [Test]
+        public void ChangePluralNameWorksCorrectly()
+        {
+            Assert.That(((TransformedType)this.typeMapper.GetClassMapping<RenamedThing>()).PluralName,
+                Is.EqualTo("ThingsWithNewName"));
+        }
+
+
+        [Test]
+        public void ChangeTypeNameWorksCorrectly()
+        {
+            Assert.That(this.typeMapper.GetClassMapping<RenamedThing>().Name, Is.EqualTo("GotNewName"));
+        }
 
 
         [Test]

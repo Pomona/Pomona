@@ -44,6 +44,12 @@ namespace Pomona.Example
         }
 
 
+        public void Map(ITypeMappingConfigurator<RenamedThing> map)
+        {
+            map.Named("GotNewName").WithPluralName("ThingsWithNewName");
+        }
+
+
         public void Map(ITypeMappingConfigurator<UnhandledThing> map)
         {
             // HandledThingsHandler got not matching methods for unhandled thing. Which means request should be passed to the DataSource instead.

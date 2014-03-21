@@ -94,6 +94,7 @@ namespace Pomona
         bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);
         LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
         bool PropertyIsEtag(PropertyInfo propertyInfo);
+        string GetTypeMappedName(Type type);
         string GetPluralNameForType(Type type);
         PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
         HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec);
