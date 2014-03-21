@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,23 @@ namespace Pomona.UnitTests.TypeSystem
         {
         }
 
+        public abstract class Animal
+        {
+            public string Name { get; set; }
+        }
+
+        public class Dog
+        {
+        }
+
+        public class Cat : Animal
+        {
+        }
+
+        public class GoldenRetriever : Dog
+        {
+        }
+
 
         [Test]
         public void Maybe_FromEmptyNullable_HasNoValue()
@@ -79,6 +96,141 @@ namespace Pomona.UnitTests.TypeSystem
         public void Select_NullValue_HasNoValue()
         {
             Assert.That("blah".Maybe().Select(x => (string)null).HasValue, Is.False);
+        }
+
+
+        [Test]
+        public void SwitchNonGeneric_TakingEmptyMaybe_MatchingNoCase_ReturnsEmptyMaybe()
+        {
+            Assert.That(
+                Maybe<Animal>
+                    .Empty
+                    .Switch()
+                    .Case<GoldenRetriever>().Then(x => "golden woff")
+                    .Case<Dog>().Then(x => "woff")
+                    .EndSwitch()
+                    .HasValue,
+                Is.False);
+        }
+
+
+        [Test]
+        public void SwitchNonGeneric_TakingNonEmptyMaybe_MatchingNoCase_ReturnsEmptyMaybe()
+        {
+            var cat = new Cat();
+            Assert.That(cat
+                .Maybe()
+                .Switch()
+                .Case<GoldenRetriever>().Then(x => "golden woff")
+                .Case<Dog>().Then(x => "woff")
+                .EndSwitch()
+                .HasValue,
+                Is.False);
+        }
+
+
+        [Test]
+        public void SwitchNonGeneric_TakingNonEmptyMaybe_MatchingPredicate_ExecutesFunc()
+        {
+            var cat = new Cat() { Name = "oswald" };
+            Assert.That(cat
+                .Maybe()
+                .Switch()
+                .Case<GoldenRetriever>().Then(x => "golden woff")
+                .Case<Cat>(x => x.Name == "oswald").Then(x => "see mouse!")
+                .EndSwitch()
+                .Value,
+                Is.EqualTo("see mouse!"));
+        }
+
+
+        [Test]
+        public void SwitchNonGeneric_TakingNonEmptyMaybe_MatchingSecondCastCase_ExecutesSecondFunc()
+        {
+            var animal = new Dog();
+            Assert.That(animal
+                .Maybe()
+                .Switch()
+                .Case<Cat>().Then(x => "miauu")
+                .Case<Dog>().Then(x => "woff")
+                .EndSwitch()
+                .Value,
+                Is.EqualTo("woff"));
+        }
+
+
+        [Test]
+        public void Switch_TakingEmptyMaybe_MatchingNoCase_ReturnsEmptyMaybe()
+        {
+            Assert.That(
+                Maybe<Animal>
+                    .Empty
+                    .Switch<string>()
+                    .Case<GoldenRetriever>().Then(x => "golden woff")
+                    .Case<Dog>().Then(x => "woff")
+                    .EndSwitch()
+                    .HasValue,
+                Is.False);
+        }
+
+
+        [Test]
+        public void Switch_TakingNonEmptyMaybe_MatchingFirstCastCase_ExecutesFirstFunc()
+        {
+            var animal = new Cat();
+            Assert.That(animal
+                .Maybe()
+                .Switch<string>()
+                .Case<Cat>().Then(x => "miauu")
+                .Case<Dog>().Then(x => "woff")
+                .EndSwitch()
+                .Value,
+                Is.EqualTo("miauu"));
+        }
+
+
+        [Test]
+        public void Switch_TakingNonEmptyMaybe_MatchingNoCase_ReturnsEmptyMaybe()
+        {
+            var cat = new Cat();
+            Assert.That(cat
+                .Maybe()
+                .Switch<string>()
+                .Case<GoldenRetriever>().Then(x => "golden woff")
+                .Case<Dog>().Then(x => "woff")
+                .EndSwitch()
+                .HasValue,
+                Is.False);
+        }
+
+
+        [Test]
+        public void Switch_TakingNonEmptyMaybe_MatchingPredicate_ExecutesFunc()
+        {
+            var cat = new Cat() { Name = "oswald" };
+            Assert.That(cat
+                .Maybe()
+                .Switch<string>()
+                .Case<GoldenRetriever>().Then(x => "golden woff")
+                .Case<Cat>(x => x.Name == "oswald").Then(x => "see mouse!")
+                .EndSwitch()
+                .Value,
+                Is.EqualTo("see mouse!"));
+        }
+
+
+        [Test]
+        public void Switch_TakingNonEmptyMaybe_MatchingSecondCastCase_ExecutesSecondFunc()
+        {
+            var animal = new Dog();
+            Assert.That(animal
+                .Maybe()
+                .Switch<string>()
+                .Case<Cat>().Then(x => "miauu")
+                .Case<Dog>().Then(x => "woff")
+                .EndSwitch()
+                .Value,
+                Is.EqualTo("woff"));
         }
     }
 }

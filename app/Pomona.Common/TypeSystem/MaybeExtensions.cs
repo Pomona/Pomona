@@ -30,6 +30,7 @@ namespace Pomona.Common.TypeSystem
     public static class MaybeExtensions
     {
         public static Maybe<T> Maybe<T>(this T val)
+            where T : class
         {
             return ReferenceEquals(val, null) ? TypeSystem.Maybe<T>.Empty : new Maybe<T>(val);
         }
