@@ -112,9 +112,12 @@ namespace Pomona.Schemas
             IEnumerable<PropertyMapping> properties = transformedType.Properties;
             if (resourceTypeSpec == null || !resourceTypeSpec.IsUriBaseType)
             {
-                extends = transformedType.BaseType.Name;
-                var propsOfBaseType = new HashSet<string>(transformedType.BaseType.Properties.Select(x => x.Name));
-                properties = properties.Where(x => !propsOfBaseType.Contains(x.Name));
+                if (transformedType.BaseType != null && transformedType.BaseType != typeof(object))
+                {
+                    extends = transformedType.BaseType.Name;
+                    var propsOfBaseType = new HashSet<string>(transformedType.BaseType.Properties.Select(x => x.Name));
+                    properties = properties.Where(x => !propsOfBaseType.Contains(x.Name));
+                }
             }
 
             var typeName = transformedType.Name;
