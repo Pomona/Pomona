@@ -214,13 +214,20 @@ namespace Pomona.Common.Linq
         }
 
 
+        internal void QAny<TSource>()
+        {
+            takeCount = 1;
+            projection = QueryProjection.Any;
+        }
+
+
         internal void QAny<TSource>(Expression<Func<TSource, bool>> predicate)
         {
             // TODO: When count is supported it will work better..
             QWhere(predicate);
-            takeCount = 1;
-            projection = QueryProjection.Any;
+            QAny<TSource>();
         }
+
 
         internal void QSum<TSource>(Expression<Func<TSource, int>> propertySelector)
         {

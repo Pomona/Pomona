@@ -63,6 +63,13 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_Any_ReturnsTrue()
+        {
+            var any = Client.Critters.Query().Any();
+            Assert.That(any, Is.True);
+        }
+
+        [Test]
         public void QueryCritter_AnyWithNameEqualToRandomGuid_ReturnsFalse()
         {
             var hasCritterWithGuid =
