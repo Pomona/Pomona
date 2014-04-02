@@ -63,13 +63,6 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_Any_ReturnsTrue()
-        {
-            var any = Client.Critters.Query().Any();
-            Assert.That(any, Is.True);
-        }
-
-        [Test]
         public void QueryCritter_AnyWithNameEqualToRandomGuid_ReturnsFalse()
         {
             var hasCritterWithGuid =
@@ -79,18 +72,18 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_Count_ReturnsCount()
+        public void QueryCritter_Any_ReturnsTrue()
         {
-            var expected = Repository.List<Critter>().Count;
-            Assert.That(Client.Critters.Query().Count(), Is.EqualTo(expected));
+            var any = Client.Critters.Query().Any();
+            Assert.That(any, Is.True);
         }
 
 
         [Test]
-        public void QueryCritter_WithPropertyNotAllowedInExpression_ThrowsBadRequestException_HavingUsefulErrorMessage()
+        public void QueryCritter_Count_ReturnsCount()
         {
-            var ex = Assert.Throws<BadRequestException>(() => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
-            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
+            var expected = Repository.List<Critter>().Count;
+            Assert.That(Client.Critters.Query().Count(), Is.EqualTo(expected));
         }
 
 
@@ -454,6 +447,25 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_WhereSingle_ReturnsCorrectCritter()
+        {
+            // Just take some random critter
+            var critter = CritterEntities.Skip(1).Take(1).First();
+            // Search by its name
+            var critterResource =
+                Client.Query<ICritter>().Single(x => x.Name == critter.Name && x.Guid == critter.Guid);
+            Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
+        }
+
+
+        [Test]
+        public void QueryCritter_WhereSingle_ThrowsExceptionOnMultipleMatches()
+        {
+            Assert.Throws<InvalidOperationException>(() => Client.Query<ICritter>().Single());
+        }
+
+
+        [Test]
         public void QueryCritter_WhereThenSelectAnonymousClass_ReturnsCorrectValues()
         {
             var expected = CritterEntities
@@ -557,6 +569,16 @@ namespace Pomona.SystemTests.Linq
         {
             var ex = Assert.Throws<InvalidOperationException>(() => Client.Query<ICritter>().First(x => false));
             Assert.That(ex.Message, Is.EqualTo("Sequence contains no matching element"));
+        }
+
+
+        [Test]
+        public void QueryCritter_WithPropertyNotAllowedInExpression_ThrowsBadRequestException_HavingUsefulErrorMessage()
+        {
+            var ex =
+                Assert.Throws<BadRequestException>(
+                    () => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
+            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
         }
 
 

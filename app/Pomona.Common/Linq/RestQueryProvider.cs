@@ -114,6 +114,12 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                     projection = "firstordefault";
                     break;
+                case RestQueryableTreeParser.QueryProjection.Single:
+                    projection = "single";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
+                    projection = "singleordefault";
+                    break;
                 case RestQueryableTreeParser.QueryProjection.Max:
                     projection = "max";
                     break;
@@ -209,6 +215,9 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.First:
                     return GetFirst<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                case RestQueryableTreeParser.QueryProjection.Single:
+                    return GetFirst<T>(uri);
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
