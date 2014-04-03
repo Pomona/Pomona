@@ -91,6 +91,7 @@
     <Compile Include="Queries\ParseFilterTests.cs" />
     <Compile Include="Queries\ParseSelectTests.cs" />
     <Compile Include="Queries\QueryExpressionParserTestsBase.cs" />
+    <Compile Include="Scheduler\LinqBasedJobStoreTests.cs" />
     <Compile Include="Schemas\ApiChangeVerifierTests.cs" />
     <Compile Include="Schemas\SchemaTests.cs" />
     <Compile Include="Security\Authentication\DefaultPreAuthenticatedUriResolverTests.cs" />
@@ -112,6 +113,10 @@
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona.Scheduler\Pomona.Scheduler.csproj">
+      <Project>{CFA3F173-4441-4773-BF3D-97F2818AAE1F}</Project>
+      <Name>Pomona.Scheduler</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\app\Pomona.Security\Pomona.Security.csproj">
       <Project>{E3F16859-445A-4EA1-BE17-A4AD51AC4B2B}</Project>
