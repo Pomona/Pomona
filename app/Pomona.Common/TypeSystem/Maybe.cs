@@ -123,6 +123,14 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public Maybe<TRet> Switch<TRet>(Func<ITypeSwitch, ITypeSwitch<TRet>> cases)
+        {
+            if (cases == null)
+                throw new ArgumentNullException("cases");
+            return cases(Switch()).EndSwitch();
+        }
+
+
         public ITypeSwitch Switch()
         {
             return new TypeSwitch(this);

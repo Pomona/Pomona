@@ -160,6 +160,25 @@ namespace Pomona.UnitTests.TypeSystem
 
 
         [Test]
+        public void SwitchWithCasesAsLambdaArgument_HavingNullDelegate_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => "what".Maybe().Switch<string>(null));
+        }
+
+
+        [Test]
+        public void SwitchWithCasesAsLambdaArgument_InvokesCasesDelegate()
+        {
+            Assert.That("what".Maybe()
+                .Switch(c => c
+                    .Case(x => x == "what").Then(x => "yeah")
+                    .Case(x => x == "moo").Then(x => "cow")
+                ).Value,
+                Is.EqualTo("yeah"));
+        }
+
+
+        [Test]
         public void Switch_TakingEmptyMaybe_MatchingNoCase_ReturnsEmptyMaybe()
         {
             Assert.That(
