@@ -48,6 +48,15 @@ namespace Pomona.SystemTests
     public class PostTests : ClientTestsBase
     {
         [Test]
+        public void PostThing_IdentifiedByGuid_IsSuccessful()
+        {
+            var guidThing = Client.GuidThings.Post(new GuidThingForm());
+            var guid = guidThing.Id;
+            var reloadedThing = Client.Reload(guidThing);
+            Assert.That(reloadedThing.Id, Is.EqualTo(guid));
+        }
+
+        [Test]
         public void PostBlob_HavingByteArray()
         {
             var dataBytes = Encoding.ASCII.GetBytes("Lalalala");

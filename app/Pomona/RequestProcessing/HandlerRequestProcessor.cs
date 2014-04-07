@@ -135,9 +135,15 @@ namespace Pomona.RequestProcessing
                 resourceNode.Type.PrimaryId.PropertyType,
                 resourceNode.Type);
 
+
+            // If id is not parseable to type of primary id pass on null, and 404 later if no other handlers found.
+            object parsedId;
+            if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId))
+                return null;
+
             return InvokeHandlerAndWrapResponse(request,
                 method,
-                new[] { Convert.ChangeType(resourceNode.Name, resourceNode.Type.PrimaryId.PropertyType) });
+                new[] { parsedId });
         }
 
 

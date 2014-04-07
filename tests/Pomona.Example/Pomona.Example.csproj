@@ -69,6 +69,8 @@
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
     <Compile Include="GalaxyRules.cs" />
+    <Compile Include="GuidThingFluentRules.cs" />
+    <Compile Include="GuidThingHandler.cs" />
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
@@ -91,6 +93,7 @@
     <Compile Include="Models\FailingThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\Blob.cs" />
+    <Compile Include="Models\GuidThing.cs" />
     <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />

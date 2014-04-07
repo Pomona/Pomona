@@ -173,7 +173,10 @@ namespace Pomona
 
         protected object ParseId(string id)
         {
-            return Convert.ChangeType(id, ItemIdType.Type);
+            object parsedId;
+            if (!id.TryParse(ItemIdType.Type, out parsedId))
+                throw new InvalidOperationException("Unable to parse id to type " + ItemIdType.Type);
+            return parsedId;
         }
     }
 }
