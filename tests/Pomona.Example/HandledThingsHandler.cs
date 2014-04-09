@@ -46,12 +46,6 @@ namespace Pomona.Example
         }
 
 
-        public HandledThing Patch(HandledThing handledThing)
-        {
-            handledThing.PatchCounter++;
-            return repository.Save(handledThing);
-        }
-
         public void Delete(HandledThing handledThing)
         {
             this.repository.Delete(handledThing);
@@ -63,6 +57,13 @@ namespace Pomona.Example
             var thing = this.repository.Query<HandledThing>().First(x => x.Id == id);
             thing.FetchedCounter++;
             return thing;
+        }
+
+
+        public HandledThing Patch(HandledThing handledThing)
+        {
+            handledThing.PatchCounter++;
+            return this.repository.Save(handledThing);
         }
 
 
