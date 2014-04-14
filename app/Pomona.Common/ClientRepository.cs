@@ -56,7 +56,7 @@ namespace Pomona.Common
 
         public override TPostResponseResource Post(IPostForm form)
         {
-            RequestOptions requestOptions = new RequestOptions();
+            var requestOptions = new RequestOptions();
             AddEtagOptions(requestOptions);
             return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form), requestOptions);
         }
@@ -74,6 +74,32 @@ namespace Pomona.Common
         }
 
 
+        public override TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+        {
+            return base.Post<TSubResource, TSubResponseResource>(postAction,
+                x =>
+                {
+                    if (options != null)
+                        options(x);
+                    AddEtagOptions(x);
+                });
+        }
+
+
+        public override TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+        {
+            return base.Post(postAction,
+                x =>
+                {
+                    if (options != null)
+                        options(x);
+                    AddEtagOptions(x);
+                });
+        }
+
+
         private void AddEtagOptions(IRequestOptions options)
         {
             var parentResourceInfo = Client.GetMostInheritedResourceInterfaceInfo(this.parent.GetType());
@@ -85,9 +111,10 @@ namespace Pomona.Common
         }
     }
 
-    public class ClientRepository<TResource, TPostResponseResource> :
-        IClientRepository<TResource, TPostResponseResource>,
-        IQueryable<TResource>
+    public class ClientRepository<TResource, TPostResponseResource>
+        :
+            IClientRepository<TResource, TPostResponseResource>,
+            IQueryable<TResource>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -146,10 +173,34 @@ namespace Pomona.Common
         }
 
 
+        public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource
+        {
+            var requestOptions = RequestOptions.Create(options, typeof(TSubResponseResource));
+            return (TSubResponseResource)this.client.Post(Uri, postAction, requestOptions);
+        }
+
+
         public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
             Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, RequestOptions.Create(options, typeof(TPostResponseResource)));
+            return
+                (TPostResponseResource)
+                    this.client.Post(Uri, postAction, RequestOptions.Create(options, typeof(TPostResponseResource)));
+        }
+
+
+        public virtual TPostResponseResource Post(Action<TResource> postAction)
+        {
+            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+        }
+
+
+        public void Delete(TResource resource)
+        {
+            Client.Delete(resource);
         }
 
 
@@ -186,9 +237,11 @@ namespace Pomona.Common
         }
 
 
-        public virtual TPostResponseResource Post(Action<TResource> postAction)
+        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+            return Post<TSubResource, TSubResponseResource>(postAction, null);
         }
 
 
@@ -228,12 +281,6 @@ namespace Pomona.Common
             return string.Format("{0}/{1}",
                 this.uri,
                 HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
-        }
-
-
-        public void Delete(TResource resource)
-        {
-            Client.Delete(resource);
         }
     }
 }

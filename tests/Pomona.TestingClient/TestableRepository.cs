@@ -95,6 +95,18 @@ namespace Pomona.TestingClient
         }
 
 
+        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction) where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
+        {
+            throw new NotImplementedException();
+        }
+
+
         public TResource Get(object id)
         {
             ResourceInfoAttribute resourceInfo;

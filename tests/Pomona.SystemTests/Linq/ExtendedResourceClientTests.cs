@@ -92,6 +92,11 @@ namespace Pomona.SystemTests.Linq
         {
         }
 
+        public interface ICustomOrderResponse : IOrderResponse
+        {
+            new ICustomOrder Order { get; set; }
+        }
+
         public interface IDecoratedMusicalCritter : IMusicalCritter
         {
             new IDecoratedMusicalFarm Farm { get; set; }
@@ -181,6 +186,19 @@ namespace Pomona.SystemTests.Linq
             Assert.That(response, Is.AssignableTo<IOrderResponse>());
         }
 
+
+
+        [Test]
+        public void PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseIsExtendedType_ReturnsCorrectResponse()
+        {
+            var response = Client.Orders.Post<ICustomOrder, ICustomOrderResponse>(co =>
+            {
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
+            });
+            Assert.That(response, Is.AssignableTo<ICustomOrderResponse>());
+            Assert.That(response.Order, Is.AssignableTo<ICustomOrder>());
+        }
 
         [Test]
         public void QueryExtendedResource2_WhereDictIsOnBaseInterface_ReturnsExtendedResource2()

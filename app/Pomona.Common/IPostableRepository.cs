@@ -43,6 +43,17 @@ namespace Pomona.Common
             where TSubResource : class, TResource;
 
 
+        TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource;
+
+
+        TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource;
+
+
         TPostResponseResource Post(Action<TResource> postAction);
     }
 }

@@ -76,6 +76,7 @@ namespace Pomona.Common
             return this;
         }
 
+
         protected void Expand(LambdaExpression expression)
         {
             if (expandedPaths.Length > 0)
@@ -86,7 +87,8 @@ namespace Pomona.Common
         public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions, Type expectedResponseType = null)
         {
             var requestOptions = new RequestOptions<T>(expectedResponseType);
-            optionActions(requestOptions);
+            if (optionActions != null)
+                optionActions(requestOptions);
             return requestOptions;
         }
     }
