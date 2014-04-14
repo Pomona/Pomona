@@ -27,16 +27,31 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
     internal class RequestOptions : IRequestOptions
     {
+        private readonly Type expectedResponseType;
+
+        public Type ExpectedResponseType
+        {
+            get { return this.expectedResponseType; }
+        }
+
         private readonly StringBuilder expandedPaths = new StringBuilder();
 
         private readonly List<Action<WebClientRequestMessage>> requestModifyActions =
             new List<Action<WebClientRequestMessage>>();
+
+
+        internal RequestOptions(Type expectedResponseType = null)
+        {
+            this.expectedResponseType = expectedResponseType;
+        }
+
 
         public string ExpandedPaths
         {
@@ -68,9 +83,9 @@ namespace Pomona.Common
             expandedPaths.Append(expression.GetPropertyPath(true));
         }
 
-        public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions)
+        public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions, Type expectedResponseType = null)
         {
-            var requestOptions = new RequestOptions<T>();
+            var requestOptions = new RequestOptions<T>(expectedResponseType);
             optionActions(requestOptions);
             return requestOptions;
         }
@@ -78,6 +93,12 @@ namespace Pomona.Common
 
     internal class RequestOptions<T> : RequestOptions, IRequestOptions<T>
     {
+        internal RequestOptions(Type expectedResponseType = null)
+            : base(expectedResponseType)
+        {
+        }
+
+
         IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
         {
             ModifyRequest(action);

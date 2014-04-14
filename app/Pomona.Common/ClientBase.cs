@@ -407,9 +407,26 @@ namespace Pomona.Common
             
             var serverTypeResult = PostServerType(uri, postForm.WrappedResource, options);
 
-            return typeMapper.WrapResource(serverTypeResult,
-                extendedResourceInfo.ServerType,
-                extendedResourceInfo.ExtendedType);
+            var expectedResponseType = options != null ? options.ExpectedResponseType : null;
+
+            if ((expectedResponseType == null || expectedResponseType == postForm.UserTypeInfo.ServerType) &&
+                postForm.UserTypeInfo.ServerType.IsInstanceOfType(serverTypeResult))
+            {
+                return typeMapper.WrapResource(serverTypeResult,
+                    extendedResourceInfo.ServerType,
+                    extendedResourceInfo.ExtendedType);
+            }
+
+            ExtendedResourceInfo responseExtendedInfo;
+            if (expectedResponseType != null
+                && typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
+            {
+                return typeMapper.WrapResource(serverTypeResult,
+                    responseExtendedInfo.ServerType,
+                    responseExtendedInfo.ExtendedType);
+            }
+
+            return serverTypeResult;
         }
 
 

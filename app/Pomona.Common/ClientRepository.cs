@@ -149,7 +149,7 @@ namespace Pomona.Common
         public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
             Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, RequestOptions.Create(options));
+            return (TPostResponseResource)this.client.Post(Uri, postAction, RequestOptions.Create(options, typeof(TPostResponseResource)));
         }
 
 

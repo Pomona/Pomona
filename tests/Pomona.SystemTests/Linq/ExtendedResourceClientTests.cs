@@ -88,6 +88,10 @@ namespace Pomona.SystemTests.Linq
         {
         }
 
+        public interface ICustomOrder : IOrder
+        {
+        }
+
         public interface IDecoratedMusicalCritter : IMusicalCritter
         {
             new IDecoratedMusicalFarm Farm { get; set; }
@@ -163,6 +167,18 @@ namespace Pomona.SystemTests.Linq
             var musicalCritter =
                 (IDecoratedMusicalCritter)Client.Post<IDecoratedMusicalCritter>(x => x.Farm = extendedFarm);
             Assert.That(musicalCritter.Farm.Id, Is.EqualTo(extendedFarm.Id));
+        }
+
+
+        [Test]
+        public void PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsCorrectResponse()
+        {
+            var response = Client.Orders.Post<ICustomOrder>(co =>
+            {
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
+            });
+            Assert.That(response, Is.AssignableTo<IOrderResponse>());
         }
 
 
