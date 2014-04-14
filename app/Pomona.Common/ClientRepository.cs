@@ -64,7 +64,7 @@ namespace Pomona.Common
 
         public override TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
         {
-            throw new NotImplementedException();
+            return base.Post(postAction, AddEtagOptions);
         }
 
 

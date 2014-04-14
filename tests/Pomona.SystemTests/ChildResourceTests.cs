@@ -104,6 +104,21 @@ namespace Pomona.SystemTests
         }
 
         [Test]
+        public void PostPlanetToPlanetarySystem_UsingGenericPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
+        {
+            CreateTestData();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
+            planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
+            Assert.Throws<PreconditionFailedException>(
+                () => planetarySystem.Planets.Post<IPlanet>(planetForm => 
+                {
+                    planetForm.Moons.Add(new MoonForm() { Name = "jalla" });
+                    planetForm.Name = "Jupiter";
+                }));
+        }
+
+        [Test]
         public void PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
         {
             CreateTestData();
@@ -111,7 +126,7 @@ namespace Pomona.SystemTests
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(
-                () => planetarySystem.Planets.Post(planetForm => 
+                () => planetarySystem.Planets.Post(planetForm =>
                 {
                     planetForm.Moons.Add(new MoonForm() { Name = "jalla" });
                     planetForm.Name = "Jupiter";
