@@ -56,7 +56,9 @@ namespace Pomona.Common
 
         public override TPostResponseResource Post(IPostForm form)
         {
-            return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form), GetEtagOptions());
+            RequestOptions requestOptions = new RequestOptions();
+            AddEtagOptions(requestOptions);
+            return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form), requestOptions);
         }
 
 
@@ -66,17 +68,20 @@ namespace Pomona.Common
         }
 
 
-        private RequestOptions GetEtagOptions()
+        public override TPostResponseResource Post(Action<TResource> postAction)
+        {
+            return base.Post(postAction, AddEtagOptions);
+        }
+
+
+        private void AddEtagOptions(IRequestOptions options)
         {
             var parentResourceInfo = Client.GetMostInheritedResourceInterfaceInfo(this.parent.GetType());
-            RequestOptions options = null;
             if (parentResourceInfo.HasEtagProperty)
             {
                 var etag = parentResourceInfo.EtagProperty.GetValue(this.parent, null);
-                options = new RequestOptions();
                 options.ModifyRequest(r => r.Headers.Add("If-Match", string.Format("\"{0}\"", etag)));
             }
-            return options;
         }
     }
 
@@ -181,9 +186,9 @@ namespace Pomona.Common
         }
 
 
-        public TPostResponseResource Post(Action<TResource> postActionBlah)
+        public virtual TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post(Uri, postActionBlah, null);
+            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
         }
 
 

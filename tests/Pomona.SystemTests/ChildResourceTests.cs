@@ -103,9 +103,23 @@ namespace Pomona.SystemTests
             Assert.That(planet.PlanetarySystem.Id, Is.EqualTo(planetarySystem.Id));
         }
 
+        [Test]
+        public void PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
+        {
+            CreateTestData();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
+            planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
+            Assert.Throws<PreconditionFailedException>(
+                () => planetarySystem.Planets.Post(planetForm => 
+                {
+                    planetForm.Moons.Add(new MoonForm() { Name = "jalla" });
+                    planetForm.Name = "Jupiter";
+                }));
+        }
 
         [Test]
-        public void PostPlanetToPlanetarySystem_WithModifiedEtagOnParent()
+        public void PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingForm_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
         {
             CreateTestData();
             var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();

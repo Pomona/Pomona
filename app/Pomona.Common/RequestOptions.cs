@@ -31,7 +31,7 @@ using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
-    internal class RequestOptions
+    internal class RequestOptions : IRequestOptions
     {
         private readonly StringBuilder expandedPaths = new StringBuilder();
 
@@ -55,9 +55,10 @@ namespace Pomona.Common
             }
         }
 
-        public void ModifyRequest(Action<WebClientRequestMessage> action)
+        public IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action)
         {
             requestModifyActions.Add(action);
+            return this;
         }
 
         protected void Expand(LambdaExpression expression)
@@ -88,5 +89,6 @@ namespace Pomona.Common
             Expand(expression);
             return this;
         }
+
     }
 }
