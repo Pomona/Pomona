@@ -39,8 +39,8 @@ using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
-    public class ChildResourceRepository<TResource, TPostResponseResource>
-        : ClientRepository<TResource, TPostResponseResource>
+    public class ChildResourceRepository<TResource, TPostResponseResource, TId>
+        : ClientRepository<TResource, TPostResponseResource, TId>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -111,10 +111,11 @@ namespace Pomona.Common
         }
     }
 
-    public class ClientRepository<TResource, TPostResponseResource>
+    public class ClientRepository<TResource, TPostResponseResource, TId>
         :
             IClientRepository<TResource, TPostResponseResource>,
-            IQueryable<TResource>
+            IQueryable<TResource>,
+            IGettableRepository<TResource, TId>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -203,22 +204,9 @@ namespace Pomona.Common
             Client.Delete(resource);
         }
 
-
-        public TResource Get(object id)
-        {
-            return this.client.Get<TResource>(GetResourceUri(id));
-        }
-
-
         public IEnumerator<TResource> GetEnumerator()
         {
             return this.results != null ? this.results.GetEnumerator() : Query().GetEnumerator();
-        }
-
-
-        public TResource GetLazy(object id)
-        {
-            return this.client.GetLazy<TResource>(GetResourceUri(id));
         }
 
 
@@ -281,6 +269,18 @@ namespace Pomona.Common
             return string.Format("{0}/{1}",
                 this.uri,
                 HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
+        }
+
+
+        public TResource Get(TId id)
+        {
+            return this.client.Get<TResource>(GetResourceUri(id));
+        }
+
+
+        public TResource GetLazy(TId id)
+        {
+            return this.client.GetLazy<TResource>(GetResourceUri(id));
         }
     }
 }

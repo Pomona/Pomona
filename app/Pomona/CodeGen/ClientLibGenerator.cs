@@ -410,7 +410,7 @@ namespace Pomona.CodeGen
             {
                 var basePostMethodRef =
                     Import(
-                        Import(typeof(ClientRepository<,>)).Resolve().GetMethods()
+                        Import(typeof(ClientRepository<,,>)).Resolve().GetMethods()
                             .Single(
                                 x =>
                                     x.Name == "Post" && x.Parameters.Count == 1 &&
@@ -425,44 +425,6 @@ namespace Pomona.CodeGen
                 ilproc.Emit(OpCodes.Callvirt, basePostMethodRef);
 
                 ilproc.Emit(OpCodes.Castclass, postReturnTypeRef);
-                ilproc.Emit(OpCodes.Ret);
-            }
-        }
-
-
-        private void AddRepositoryGetByIdMethod(TypeCodeGenInfo rti,
-            MethodAttributes methodAttributes,
-            bool isImplementation,
-            TransformedType tt,
-            TypeDefinition repoTypeDef,
-            TypeDefinition baseTypeGenericDef,
-            TypeReference[] baseTypeGenericArgs,
-            string methodName)
-        {
-            var method = new MethodDefinition(methodName, methodAttributes, rti.InterfaceType);
-            var idType = tt.PrimaryId.PropertyType;
-            if (!(idType is TypeSpec))
-                throw new NotSupportedException("Id needs to be a shared type.");
-            var idTypeRef = Import(idType.Type);
-            method.Parameters.Add(new ParameterDefinition(tt.PrimaryId.LowerCaseName,
-                0,
-                idTypeRef));
-            repoTypeDef.Methods.Add(method);
-
-            if (isImplementation)
-            {
-                var baseGetMethodRef =
-                    Import(Import(typeof(ClientRepository<,>)).Resolve().Methods.First(x => x.Name == methodName))
-                        .MakeHostInstanceGeneric(baseTypeGenericArgs);
-                var ilproc = method.Body.GetILProcessor();
-
-                ilproc.Emit(OpCodes.Ldarg_0);
-                ilproc.Emit(OpCodes.Ldarg_1);
-                if (idType.Type.IsValueType)
-                    ilproc.Emit(OpCodes.Box, idTypeRef);
-                else
-                    ilproc.Emit(OpCodes.Castclass, idTypeRef);
-                ilproc.Emit(OpCodes.Callvirt, baseGetMethodRef);
                 ilproc.Emit(OpCodes.Ret);
             }
         }
@@ -857,6 +819,14 @@ namespace Pomona.CodeGen
             var interfacesToImplement = new List<TypeReference> { queryableRepoType };
 
             var tt = resourceTypeInfo.TransformedType as ResourceType;
+
+            if (tt.PrimaryId != null)
+            {
+                interfacesToImplement.Add(
+                    Import(typeof(IGettableRepository<,>)).MakeGenericInstanceType(resourceTypeInfo.InterfaceType,
+                        resourceTypeInfo.PrimaryIdTypeReference));
+            }
+
             if (tt.PatchAllowed || tt.MergedTypes.Any(x => x.PatchAllowed))
             {
                 interfacesToImplement.Add(
@@ -939,25 +909,6 @@ namespace Pomona.CodeGen
                         baseTypeGenericDef,
                         baseTypeGenericArgs);
                 }
-            }
-            if (tt.PrimaryId != null)
-            {
-                AddRepositoryGetByIdMethod(rti,
-                    methodAttributes,
-                    isImplementation,
-                    tt,
-                    repoTypeDef,
-                    baseTypeGenericDef,
-                    baseTypeGenericArgs,
-                    "Get");
-                AddRepositoryGetByIdMethod(rti,
-                    methodAttributes,
-                    isImplementation,
-                    tt,
-                    repoTypeDef,
-                    baseTypeGenericDef,
-                    baseTypeGenericArgs,
-                    "GetLazy");
             }
 
             // Constructor
@@ -1360,10 +1311,10 @@ namespace Pomona.CodeGen
                         if (resourceType.IsUriBaseType)
                         {
                             if (resourceType.IsRootResource && resourceType.IsExposedAsRepository)
-                                return typeof(ClientRepository<,>);
+                                return typeof(ClientRepository<,,>);
                             if (resourceType.ParentToChildProperty != null
                                 && resourceType.ParentToChildProperty.ExposedAsRepository)
-                                return typeof(ChildResourceRepository<,>);
+                                return typeof(ChildResourceRepository<,,>);
                         }
                     }
                     return null;
@@ -1386,7 +1337,8 @@ namespace Pomona.CodeGen
                     return
                         parent.Import(this.customRepositoryBaseType.Value).MakeGenericInstanceType(
                             InterfaceType,
-                            PostReturnTypeReference);
+                            PostReturnTypeReference,
+                            PrimaryIdTypeReference);
                 });
 
                 this.interfaceType = new TypeDefinition(
@@ -1419,6 +1371,17 @@ namespace Pomona.CodeGen
             public TypeDefinition InterfaceType
             {
                 get { return this.interfaceType; }
+            }
+
+            public TypeReference PrimaryIdTypeReference
+            {
+                get
+                {
+                    return
+                        parent.Import(transformedType.PrimaryId != null
+                            ? transformedType.PrimaryId.PropertyType
+                            : typeof(object));
+                }
             }
 
             public TypeDefinition LazyProxyType { get; set; }

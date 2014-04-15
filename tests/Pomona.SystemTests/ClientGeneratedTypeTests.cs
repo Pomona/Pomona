@@ -127,7 +127,7 @@ namespace Pomona.SystemTests
                     Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                             x.PropertyType.IsGenericType
-                            && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,>)))
+                            && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,,>)))
             {
                 var value = prop.GetValue(Client, null);
                 if (value == null)
