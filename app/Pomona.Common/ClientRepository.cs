@@ -115,7 +115,8 @@ namespace Pomona.Common
         :
             IClientRepository<TResource, TPostResponseResource, TId>,
             IQueryable<TResource>,
-            IGettableRepository<TResource, TId>
+            IGettableRepository<TResource, TId>,
+            IDeletableByIdRepository<TId>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
@@ -268,6 +269,12 @@ namespace Pomona.Common
         public IQueryable<TResource> Query()
         {
             return this.client.Query<TResource>(this.uri);
+        }
+
+
+        void IDeletableByIdRepository<TId>.Delete(TId id)
+        {
+            client.Delete(GetLazy(id));
         }
 
 

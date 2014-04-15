@@ -67,6 +67,7 @@
     <Compile Include="HttpUtility.cs" />
     <Compile Include="IClientRepository.cs" />
     <Compile Include="IClientTypeResolver.cs" />
+    <Compile Include="IDeletableByIdRepository.cs" />
     <Compile Include="IDeletableRepository.cs" />
     <Compile Include="IGettableRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />

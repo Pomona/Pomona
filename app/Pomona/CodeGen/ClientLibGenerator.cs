@@ -849,6 +849,12 @@ namespace Pomona.CodeGen
                 interfacesToImplement.Add(
                     Import(typeof(IDeletableRepository<>))
                         .MakeGenericInstanceType(resourceTypeInfo.InterfaceType));
+                if (tt.PrimaryId != null)
+                {
+                    interfacesToImplement.Add(
+                        Import(typeof(IDeletableByIdRepository<>)).MakeGenericInstanceType(
+                            resourceTypeInfo.PrimaryIdTypeReference));
+                }
             }
 
             var repoInterface = CreateRepositoryType(resourceTypeInfo.CustomRepositoryInterface,

@@ -38,6 +38,15 @@ namespace Pomona.SystemTests.Handlers
     public class ResourceHandlerTests : ClientTestsBase
     {
         [Test]
+        public void DeleteHandledThing_ById_CallsHandleDeleteMethod()
+        {
+            var entity = Save(new HandledThing() { Foo = "to be exterminated." });
+            Client.HandledThings.Delete(entity.Id);
+            Assert.That(Repository.List<HandledThing>(), Is.Not.Contains(entity));
+        }
+
+
+        [Test]
         public void DeleteHandledThing_CallsHandleDeleteMethod()
         {
             var entity = Save(new HandledThing() { Foo = "to be exterminated." });
