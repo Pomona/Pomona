@@ -176,20 +176,8 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsCorrectResponse()
-        {
-            var response = Client.Orders.Post<ICustomOrder>(co =>
-            {
-                co.Description = "Custom order";
-                co.Items.Add(new OrderItemForm());
-            });
-            Assert.That(response, Is.AssignableTo<IOrderResponse>());
-        }
-
-
-
-        [Test]
-        public void PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseIsExtendedType_ReturnsCorrectResponse()
+        public void
+            PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseIsExtendedType_ReturnsCorrectResponse()
         {
             var response = Client.Orders.Post<ICustomOrder, ICustomOrderResponse>(co =>
             {
@@ -199,6 +187,21 @@ namespace Pomona.SystemTests.Linq
             Assert.That(response, Is.AssignableTo<ICustomOrderResponse>());
             Assert.That(response.Order, Is.AssignableTo<ICustomOrder>());
         }
+
+
+        [Test]
+        public void
+            PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsCorrectResponse
+            ()
+        {
+            var response = Client.Orders.Post<ICustomOrder>(co =>
+            {
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
+            });
+            Assert.That(response, Is.AssignableTo<IOrderResponse>());
+        }
+
 
         [Test]
         public void QueryExtendedResource2_WhereDictIsOnBaseInterface_ReturnsExtendedResource2()
@@ -356,6 +359,23 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Key, Is.EqualTo("Lalalala"));
+        }
+
+
+        [Category("TODO")]
+        [Test(
+            Description =
+                "client.SomeRepo.OfType<T>() does not work when T is an extended client resource. Should ideally work like client.SomeRepo.Query<T>."
+            )]
+        public void QueryExtendedResourcesUsingOfTypeDirectlyOnRepository_ReturnsExtendedResource()
+        {
+            var dictionaryContainer = PostResourceWithAttributes();
+
+            var results = Client.StringToObjectDictionaryContainers.OfType<IExtendedResource>()
+                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
         }
 
 
