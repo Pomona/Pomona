@@ -57,7 +57,7 @@ namespace Pomona.TestingClient
                 x =>
                     x
                         .OnGetRepository
-                        <object, IClientRepository<IClientResource, IClientResource>, IClientResource, IClientResource>(
+                        <object, IClientRepository<IClientResource, IClientResource, object>, IClientResource, IClientResource, object>(
                             null));
 
         private static readonly MethodInfo querySubResourceMethod =
@@ -256,13 +256,21 @@ namespace Pomona.TestingClient
                 resourceType = typeArgs[0];
                 postResponseType = typeArgs.Last(); // [1] when IPostableRepository implemented, [0] when not.
 
+                Type primaryIdType = typeof(object);
+                Type[] gettableRepoType;
+                if (propType.TryExtractTypeArguments(typeof(IGettableRepository<,>), out gettableRepoType))
+                {
+                    primaryIdType = gettableRepoType[1];
+                }
+
                 object repository;
                 if (!this.repositoryCache.TryGetValue(property.Name, out repository))
                 {
                     repository = onGetRepositoryMethod.MakeGenericMethod(typeof(TOwner),
                         propType,
                         resourceType,
-                        postResponseType)
+                        postResponseType,
+                        primaryIdType)
                         .Invoke(this, new object[] { property });
                     this.repositoryCache[property.Name] = repository;
                 }
@@ -274,14 +282,14 @@ namespace Pomona.TestingClient
         }
 
 
-        protected virtual TPropType OnGetRepository<TOwner, TPropType, TResource, TPostResponseType>(
+        protected virtual TPropType OnGetRepository<TOwner, TPropType, TResource, TPostResponseType, TId>(
             PropertyWrapper<TOwner, TPropType> property)
             where TPropType : IClientRepository
             where TResource : class, IClientResource
             where TPostResponseType : IClientResource
         {
-            var mockedRepo = RuntimeProxyFactory<MockedRepository<TResource, TPostResponseType>, TPropType>.Create();
-            ((MockedRepository<TResource, TPostResponseType>)((object)mockedRepo)).Client = this;
+            var mockedRepo = RuntimeProxyFactory<MockedRepository<TResource, TPostResponseType, TId>, TPropType>.Create();
+            ((MockedRepository<TResource, TPostResponseType, TId>)((object)mockedRepo)).Client = this;
             return mockedRepo;
         }
 

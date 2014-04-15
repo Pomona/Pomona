@@ -38,7 +38,7 @@ using Pomona.Common.Proxies;
 
 namespace Pomona.TestingClient
 {
-    public class MockedRepository<TResource, TPostReturnType> : IClientRepository<TResource, TPostReturnType>
+    public class MockedRepository<TResource, TPostReturnType, TId> : IClientRepository<TResource, TPostReturnType, TId>
         where TResource : class, IClientResource
         where TPostReturnType : IClientResource
     {

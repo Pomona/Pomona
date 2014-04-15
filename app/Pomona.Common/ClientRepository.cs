@@ -113,7 +113,7 @@ namespace Pomona.Common
 
     public class ClientRepository<TResource, TPostResponseResource, TId>
         :
-            IClientRepository<TResource, TPostResponseResource>,
+            IClientRepository<TResource, TPostResponseResource, TId>,
             IQueryable<TResource>,
             IGettableRepository<TResource, TId>
         where TResource : class, IClientResource
@@ -201,12 +201,25 @@ namespace Pomona.Common
 
         public void Delete(TResource resource)
         {
-            Client.Delete(resource);
+            this.client.Delete(resource);
         }
+
+
+        public TResource Get(TId id)
+        {
+            return this.client.Get<TResource>(GetResourceUri(id));
+        }
+
 
         public IEnumerator<TResource> GetEnumerator()
         {
             return this.results != null ? this.results.GetEnumerator() : Query().GetEnumerator();
+        }
+
+
+        public TResource GetLazy(TId id)
+        {
+            return this.client.GetLazy<TResource>(GetResourceUri(id));
         }
 
 
@@ -269,18 +282,6 @@ namespace Pomona.Common
             return string.Format("{0}/{1}",
                 this.uri,
                 HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
-        }
-
-
-        public TResource Get(TId id)
-        {
-            return this.client.Get<TResource>(GetResourceUri(id));
-        }
-
-
-        public TResource GetLazy(TId id)
-        {
-            return this.client.GetLazy<TResource>(GetResourceUri(id));
         }
     }
 }
