@@ -291,7 +291,6 @@ namespace TestNs
             return FromMappingOrDefault(propertyInfo,
                 x => x.OnSetDelegate,
                 () => wrappedFilter.GetPropertySetter(propertyInfo));
-            return this.wrappedFilter.GetPropertySetter(propertyInfo);
         }
 
 
