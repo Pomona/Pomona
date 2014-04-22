@@ -55,6 +55,9 @@
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="Expressions\IMatchContext.cs" />
+    <Compile Include="Expressions\SearchReplaceVisitor.cs" />
+    <Compile Include="Expressions\TreePatternMatcher.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryable.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryProvider.cs" />

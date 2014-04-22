@@ -96,6 +96,14 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public T OrDefault(T defaultValue)
+        {
+            if (this.hasValue)
+                return this.value;
+            return defaultValue;
+        }
+
+
         public T OrDefault(Func<T> defaultFactory = null)
         {
             if (this.hasValue)
