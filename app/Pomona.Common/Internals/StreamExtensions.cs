@@ -36,7 +36,7 @@ namespace Pomona.Common.Internals
         /// 
         /// (this method was taken from http://geekswithblogs.net/sdorman/archive/2009/01/10/reading-all-bytes-from-a-stream.aspx)
         /// </summary>
-        /// <param name="stream">The stream to read.</param>
+        /// <param name="source">The stream to read.</param>
         /// <returns>A byte array containing the contents of the stream.</returns>
         /// <exception cref="NotSupportedException">The stream does not support reading.</exception>
         /// <exception cref="ObjectDisposedException">Methods were called after the stream was closed.</exception>
