@@ -157,6 +157,13 @@ namespace TestNs
             return this.wrappedFilter.GetClientLibraryType(type);
         }
 
+
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
+        }
+
+
         public bool GenerateIndependentClient()
         {
             return this.wrappedFilter.GenerateIndependentClient();

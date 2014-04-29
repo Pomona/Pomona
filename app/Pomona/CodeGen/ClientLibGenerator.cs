@@ -236,6 +236,26 @@ namespace Pomona.CodeGen
         }
 
 
+        private void AddAttribute(ICustomAttributeProvider customAttributeProvider,
+            CustomAttributeData customAttributeData)
+        {
+            var ctor = Import(customAttributeData.Constructor);
+            var custAttr = new CustomAttribute(ctor);
+            foreach (var ctorArg in customAttributeData.ConstructorArguments.EmptyIfNull())
+            {
+                custAttr.ConstructorArguments.Add(new CustomAttributeArgument(Import(ctorArg.ArgumentType),
+                    ctorArg.Value));
+            }
+            foreach (var ctorParam in customAttributeData.NamedArguments.EmptyIfNull())
+            {
+                var typedValue = ctorParam.TypedValue;
+                custAttr.Properties.Add(new CustomAttributeNamedArgument(ctorParam.MemberInfo.Name,
+                    new CustomAttributeArgument(Import(typedValue.ArgumentType), typedValue.Value)));
+            }
+            customAttributeProvider.CustomAttributes.Add(custAttr);
+        }
+
+
         private PropertyDefinition AddAutomaticProperty(TypeDefinition declaringType,
             string name,
             TypeReference propertyType)
@@ -666,6 +686,10 @@ namespace Pomona.CodeGen
                         new CustomAttributeNamedArgument("AccessMode",
                             new CustomAttributeArgument(Import(typeof(HttpMethod)),
                                 prop.AccessMode)));
+
+                    var attributes = this.typeMapper.Filter.GetClientLibraryAttributes(prop.PropertyInfo);
+                    foreach (var attr in attributes)
+                        AddAttribute(interfacePropDef, attr);
 
                     FieldDefinition backingField;
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
@@ -1379,17 +1403,6 @@ namespace Pomona.CodeGen
                 get { return this.interfaceType; }
             }
 
-            public TypeReference PrimaryIdTypeReference
-            {
-                get
-                {
-                    return
-                        parent.Import(transformedType.PrimaryId != null
-                            ? transformedType.PrimaryId.PropertyType
-                            : typeof(object));
-                }
-            }
-
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PatchFormType { get; set; }
             public TypeDefinition PocoType { get; set; }
@@ -1398,6 +1411,17 @@ namespace Pomona.CodeGen
             public TypeReference PostReturnTypeReference
             {
                 get { return this.postReturnTypeReference.Value; }
+            }
+
+            public TypeReference PrimaryIdTypeReference
+            {
+                get
+                {
+                    return
+                        this.parent.Import(this.transformedType.PrimaryId != null
+                            ? this.transformedType.PrimaryId.PropertyType
+                            : typeof(object));
+                }
             }
 
             public TransformedType TransformedType

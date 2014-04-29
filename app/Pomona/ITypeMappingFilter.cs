@@ -47,6 +47,7 @@ namespace Pomona
         string GetClientAssemblyName();
         string GetClientInformationalVersion();
         Type GetClientLibraryType(Type type);
+        IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member);
 
         /// <summary>
         /// This will make sure we generate a client dll with no dependency on Pomona.Common.

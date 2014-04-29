@@ -182,6 +182,12 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void ObsoletePropertyIsCopiedFromServerProperty()
+        {
+            Assert.That(typeof(ICritter).GetProperty("ObsoletedProperty").GetCustomAttributes(true).OfType<ObsoleteAttribute>(), Is.Not.Empty);
+        }
+
+        [Test]
         public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
         {
             Assert.That(typeof(IInheritsFromHiddenBase).GetInterfaces(), Has.Member(typeof(IEntityBase)));

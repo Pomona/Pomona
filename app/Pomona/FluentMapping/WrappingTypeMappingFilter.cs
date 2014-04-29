@@ -67,6 +67,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
+        }
+
+
         public virtual bool GenerateIndependentClient()
         {
             return this.wrappedFilter.GenerateIndependentClient();

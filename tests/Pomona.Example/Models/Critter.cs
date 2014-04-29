@@ -89,6 +89,10 @@ namespace Pomona.Example.Models
         }
 
         public string Name { get; set; }
+
+        [Obsolete("This is old and obsolete!")]
+        public string ObsoletedProperty { get; set; }
+
         public string OnlyWritableByInheritedResource { get; protected set; }
         public string Password { get; set; }
         public string Protected { get; protected set; }

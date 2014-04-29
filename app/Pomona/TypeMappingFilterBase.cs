@@ -108,6 +108,12 @@ namespace Pomona
         }
 
 
+        public virtual IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return member.GetCustomAttributesData().Where(x => x.Constructor.DeclaringType == typeof(ObsoleteAttribute));
+        }
+
+
         public virtual Type GetClientLibraryType(Type type)
         {
             if (type == null)
@@ -147,12 +153,6 @@ namespace Pomona
         public virtual PropertyInfo GetParentToChildProperty(Type type)
         {
             return null;
-        }
-
-
-        public string GetTypeMappedName(Type type)
-        {
-            return type.Name;
         }
 
 
@@ -460,6 +460,12 @@ namespace Pomona
             }
 
             return foreignPropCandicates.Count == 1 ? foreignPropCandicates[0] : null;
+        }
+
+
+        public string GetTypeMappedName(Type type)
+        {
+            return type.Name;
         }
 
 
