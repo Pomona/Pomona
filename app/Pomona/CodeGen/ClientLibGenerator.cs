@@ -574,9 +574,9 @@ namespace Pomona.CodeGen
                         FieldAttributes.FamANDAssem | FieldAttributes.Family
                         | FieldAttributes.Static | FieldAttributes.Literal
                         | FieldAttributes.HasDefault,
-                        this.module.TypeSystem.Int32);
+                        typeDef);
 
-                    memberFieldDef.Constant = value;
+                    memberFieldDef.Constant =(int)value;
 
                     typeDef.Fields.Add(memberFieldDef);
                 }
