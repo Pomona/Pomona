@@ -71,6 +71,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
+        {
+            return this.wrappedFilter.ClientEnumIsGeneratedAsStringEnum(enumType);
+        }
+
+
         public virtual bool DeleteOfTypeIsAllowed(Type type)
         {
             return this.wrappedFilter.DeleteOfTypeIsAllowed(type);

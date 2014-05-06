@@ -119,6 +119,12 @@ namespace TestNs
         }
 
 
+        public bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
+        {
+            return wrappedFilter.ClientEnumIsGeneratedAsStringEnum(enumType);
+        }
+
+
         public bool DeleteOfTypeIsAllowed(Type type)
         {
             return FromMappingOrDefault(type, x => x.DeleteAllowed, () => this.wrappedFilter.DeleteOfTypeIsAllowed(type));

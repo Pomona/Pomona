@@ -117,6 +117,7 @@ namespace Pomona
 
         // NOTE: This should probably take a TypeSpec not a clr Type
         bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
+        bool ClientEnumIsGeneratedAsStringEnum(Type enumType);
         IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member);
         Type GetClientLibraryType(Type type);
 

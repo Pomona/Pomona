@@ -32,9 +32,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
+using Newtonsoft.Json.Converters;
+
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
+using Pomona.Common.Serialization.Json;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
 
@@ -232,6 +235,15 @@ namespace Pomona.Common
                 typeSpec.Type.GetProperties()
                     .Concat(typeSpec.Type.GetInterfaces().SelectMany(x => x.GetProperties()))
                     .Select(x => WrapProperty(typeSpec, x));
+        }
+
+
+        public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        {
+            var typeSpec = memberSpec as RuntimeTypeSpec;
+            if (typeSpec != null && typeof(IStringEnum).IsAssignableFrom(typeSpec))
+                return base.LoadDeclaredAttributes(memberSpec).Append(new CustomJsonConverterAttribute(new StringEnumJsonConverter()));
+            return base.LoadDeclaredAttributes(memberSpec);
         }
 
 

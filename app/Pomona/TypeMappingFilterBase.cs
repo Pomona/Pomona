@@ -88,6 +88,12 @@ namespace Pomona
         }
 
 
+        public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
+        {
+            return false;
+        }
+
+
         public virtual bool DeleteOfTypeIsAllowed(Type type)
         {
             return false;

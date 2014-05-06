@@ -41,6 +41,7 @@ using Pomona.Common.Web;
 using Pomona.Example.Models;
 
 using CustomEnum = Critters.Client.CustomEnum;
+using CustomStringEnum = Critters.Client.CustomStringEnum;
 
 namespace Pomona.SystemTests
 {
@@ -52,14 +53,16 @@ namespace Pomona.SystemTests
         {
             try
             {
-                var critter = (IAbstractAnimal)Client.Post<IAbstractAnimal>(x => { });
+                var critter = (IAbstractAnimal)Client.Post<IAbstractAnimal>(x =>
+                {
+                });
                 throw new Exception("Pomona didn't throw an exception despite posting an abstract class!");
             }
             catch (MissingMethodException e)
             {
                 StringAssert.Contains("Cannot create an abstract class.",
-                    e.Message,
-                    "Pomona should warn about posting an abstract class");
+                                      e.Message,
+                                      "Pomona should warn about posting an abstract class");
             }
         }
 
@@ -70,17 +73,19 @@ namespace Pomona.SystemTests
         {
             try
             {
-                var critter = (IAbstractOnServerAnimal)Client.Post<IAbstractOnServerAnimal>(x => { });
+                var critter = (IAbstractOnServerAnimal)Client.Post<IAbstractOnServerAnimal>(x =>
+                {
+                });
                 throw new Exception("Pomona didn't throw an exception despite receiving an abstract class!");
             }
             catch (Exception e)
             {
                 StringAssert.Contains("Pomona was unable to instantiate type ",
-                    e.Message,
-                    "Pomona should warn about posting an abstract class");
+                                      e.Message,
+                                      "Pomona should warn about posting an abstract class");
                 StringAssert.Contains(", as it's an abstract type.",
-                    e.Message,
-                    "Pomona should warn about posting an abstract class");
+                                      e.Message,
+                                      "Pomona should warn about posting an abstract class");
             }
         }
 
@@ -241,7 +246,7 @@ namespace Pomona.SystemTests
                     Strength = 34
                 });
             },
-                o => o.Expand(x => x.Weapons));
+                                                                o => o.Expand(x => x.Weapons));
             Assert.That(critter.Weapons, Is.InstanceOf<List<IWeapon>>());
         }
 
@@ -249,7 +254,10 @@ namespace Pomona.SystemTests
         [Test]
         public void PostDictionaryContainer_WithItemSetInDictionary()
         {
-            var response = (IDictionaryContainer)Client.Post<IDictionaryContainer>(x => { x.Map["cow"] = "moo"; });
+            var response = (IDictionaryContainer)Client.Post<IDictionaryContainer>(x =>
+            {
+                x.Map["cow"] = "moo";
+            });
             Assert.That(response.Map.ContainsKey("cow"));
             Assert.That(response.Map["cow"] == "moo");
         }
@@ -287,7 +295,10 @@ namespace Pomona.SystemTests
         public void PostHasCustomEnum()
         {
             var response = Client.HasCustomEnums.Post(
-                x => { x.TheEnumValue = CustomEnum.Tock; });
+                x =>
+                {
+                    x.TheEnumValue = CustomEnum.Tock;
+                });
 
             Assert.That(response.TheEnumValue, Is.EqualTo(CustomEnum.Tock));
         }
@@ -297,7 +308,10 @@ namespace Pomona.SystemTests
         public void PostHasNullableCustomEnum_WithNonNullValue()
         {
             var response = Client.HasCustomNullableEnums.Post(
-                x => { x.TheEnumValue = CustomEnum.Tock; });
+                x =>
+                {
+                    x.TheEnumValue = CustomEnum.Tock;
+                });
             Assert.That(response.TheEnumValue.HasValue, Is.True);
             Assert.That(response.TheEnumValue.Value, Is.EqualTo(CustomEnum.Tock));
         }
@@ -307,7 +321,10 @@ namespace Pomona.SystemTests
         public void PostHasNullableCustomEnum_WithNull()
         {
             var response = Client.HasCustomNullableEnums.Post(
-                x => { x.TheEnumValue = null; });
+                x =>
+                {
+                    x.TheEnumValue = null;
+                });
             Assert.That(response.TheEnumValue.HasValue, Is.False);
         }
 
@@ -318,7 +335,10 @@ namespace Pomona.SystemTests
             var propval = "Jalla jalla";
             var junk =
                 (IJunkWithRenamedProperty)
-                    Client.Post<IJunkWithRenamedProperty>(x => { x.BeautifulAndExposed = propval; });
+                    Client.Post<IJunkWithRenamedProperty>(x =>
+                    {
+                        x.BeautifulAndExposed = propval;
+                    });
 
             Assert.That(junk.BeautifulAndExposed, Is.EqualTo(propval));
         }
@@ -441,7 +461,10 @@ namespace Pomona.SystemTests
         {
             DateTime? maybeDateTime = new DateTime(2011, 10, 22, 1, 33, 22);
             var response = Client.ThingWithNullableDateTimes.Post(
-                x => { x.MaybeDateTime = maybeDateTime; });
+                x =>
+                {
+                    x.MaybeDateTime = maybeDateTime;
+                });
 
             Assert.That(response.MaybeDateTime.HasValue, Is.True);
             Assert.That(response.MaybeDateTime, Is.EqualTo(maybeDateTime));
@@ -452,7 +475,10 @@ namespace Pomona.SystemTests
         public void PostThingWithNullableDateTime_WithNullValue()
         {
             var response = Client.ThingWithNullableDateTimes.Post(
-                x => { x.MaybeDateTime = null; });
+                x =>
+                {
+                    x.MaybeDateTime = null;
+                });
 
             Assert.That(response.MaybeDateTime.HasValue, Is.False);
         }
@@ -463,7 +489,10 @@ namespace Pomona.SystemTests
         {
             var uri = new Uri("http://bahaha");
             var response = Client.ThingWithPropertyNamedUris.Post(
-                x => { x.Uri = uri; });
+                x =>
+                {
+                    x.Uri = uri;
+                });
 
             Assert.That(response.Uri, Is.EqualTo(uri));
         }
@@ -548,6 +577,14 @@ namespace Pomona.SystemTests
                     () => Client.Weapons.Post(new WeaponForm { Price = 12345 }));
             Assert.That(ex.Body, Is.Not.Null);
             Assert.That(ex.Body.Member, Is.EqualTo("Model"));
+        }
+
+
+        [Test]
+        public void Post_Thing_Having_StringEnum_Property()
+        {
+            var resource = Client.HasCustomStringEnums.Post(f => f.Value = CustomStringEnum.Mouse);
+            Assert.That(resource.Value, Is.EqualTo(CustomStringEnum.Mouse));
         }
     }
 }

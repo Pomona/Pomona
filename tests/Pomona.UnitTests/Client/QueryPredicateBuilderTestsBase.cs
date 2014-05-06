@@ -30,7 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Example.Models;
 using Pomona.UnitTests.Queries;
 
 namespace Pomona.UnitTests.Client
@@ -90,6 +92,7 @@ namespace Pomona.UnitTests.Client
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
             public TestEnum? SomeNullableEnum { get; set; }
+            public StringEnumTemplate SomeStringEnum { get; set; }
             public IQueryableFooBarRepo SomeQueryable { get; set; }
             public IDictionary<string, object> StringObjectAttributes { get; set; }
             public TimeSpan TimeSpan { get; set; }

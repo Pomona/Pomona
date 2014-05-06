@@ -192,7 +192,7 @@ namespace Pomona.Common.Serialization.Json
             }
 
             var jsonConverter = node.ValueType.GetCustomJsonConverter();
-            if (node.ValueType is EnumTypeSpec)
+            if (jsonConverter == null && node.ValueType is EnumTypeSpec)
                 jsonConverter = new StringEnumConverter();
 
 

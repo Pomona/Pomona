@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -106,6 +107,12 @@ namespace Pomona.CodeGen
         }
 
 
+        private AssemblyDefinition LoadAssemblyHavingType<T>()
+        {
+            var readerParameters = new ReaderParameters { AssemblyResolver = GetAssemblyResolver() };
+            return AssemblyDefinition.ReadAssembly(typeof(T).Assembly.Location, readerParameters);
+        }
+
         public void CreateClientDll(Stream stream)
         {
             var transformedTypes = this.typeMapper.TransformedTypes.ToList();
@@ -121,8 +128,7 @@ namespace Pomona.CodeGen
             var version = new Version(this.typeMapper.Filter.ApiVersion.PadTo(4));
             if (PomonaClientEmbeddingEnabled)
             {
-                var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };
-                assembly = AssemblyDefinition.ReadAssembly(typeof(ResourceBase).Assembly.Location, readerParameters);
+                assembly = LoadPomonaCommonAssembly();
                 assembly.CustomAttributes.Clear();
             }
             else
@@ -152,6 +158,7 @@ namespace Pomona.CodeGen
             this.enumClientTypeDict = new Dictionary<EnumTypeSpec, TypeReference>();
 
             BuildEnumTypes();
+            BuildStringEnumTypes();
 
             BuildInterfacesAndPocoTypes(transformedTypes);
 
@@ -209,6 +216,12 @@ namespace Pomona.CodeGen
             stream.Write(array, 0, array.Length);
 
             //assembly.Write(stream);
+        }
+
+
+        private AssemblyDefinition LoadPomonaCommonAssembly()
+        {
+            return LoadAssemblyHavingType<ResourceBase>();
         }
 
 
@@ -559,7 +572,7 @@ namespace Pomona.CodeGen
 
         private void BuildEnumTypes()
         {
-            foreach (var enumType in this.typeMapper.EnumTypes)
+            foreach (var enumType in this.typeMapper.EnumTypes.Where(x => !typeMapper.Filter.ClientEnumIsGeneratedAsStringEnum(x)))
             {
                 var typeDef = new TypeDefinition(this.@namespace,
                                                  enumType.Name,
@@ -601,6 +614,50 @@ namespace Pomona.CodeGen
             }
         }
 
+        private void BuildStringEnumTypes()
+        {
+            foreach (var enumType in this.typeMapper.EnumTypes.Where(x => typeMapper.Filter.ClientEnumIsGeneratedAsStringEnum(x)))
+            {
+                var tdf = new TypeDefinitionCloner(module);
+                var typeDef = tdf.Clone(LoadAssemblyHavingType<StringEnumTemplate>().MainModule.GetType(typeof(StringEnumTemplate).FullName));
+                typeDef.Namespace = @namespace;
+                typeDef.Name = enumType.Name;
+                typeDef.Attributes = TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.Sealed
+                                     | TypeAttributes.Public | TypeAttributes.BeforeFieldInit;
+                //var ctor = typeDef.GetConstructors().First(x => x.Parameters.Count == 1);
+
+                var memberTemplate = typeDef.Fields.First(x => x.Name == "MemberTemplate");
+                var memberFieldAttr = memberTemplate.Attributes;
+                var memberFieldType = memberTemplate.FieldType;
+                typeDef.Fields.Remove(memberTemplate);
+                var cctor = typeDef.Methods.First(x => x.Name == ".cctor");
+                var ctor = typeDef.Methods.First(x => x.Name == ".ctor" && x.Parameters.Count == 1);
+                var defaultField = typeDef.Fields.First(x => x.Name == "defaultValue");
+                cctor.Body.Instructions.Clear();
+                var ilGen = cctor.Body.GetILProcessor();
+
+                foreach (var kvp in enumType.EnumValues)
+                {
+
+                    var name = kvp.Key;
+                    var value = kvp.Value;
+                    var field = new FieldDefinition(name, memberFieldAttr, memberFieldType);
+                    typeDef.Fields.Add(field);
+
+                    ilGen.Emit(OpCodes.Ldstr, name);
+                    ilGen.Emit(OpCodes.Newobj, ctor);
+                    if (value == 0)
+                    {
+                        ilGen.Emit(OpCodes.Dup);
+                        ilGen.Emit(OpCodes.Stsfld, defaultField);
+                    }
+                    ilGen.Emit(OpCodes.Stsfld, field);
+                }
+                ilGen.Emit(OpCodes.Ret);
+
+                this.enumClientTypeDict[enumType] = typeDef;
+            }
+        }
 
         private void BuildInterfacesAndPocoTypes(IEnumerable<TransformedType> transformedTypes)
         {

@@ -32,8 +32,10 @@ using System.Linq.Expressions;
 
 using NUnit.Framework;
 
+using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.Client
 {
@@ -112,6 +114,13 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.SomeNullableEnum == TestEnum.Tock, "someNullableEnum eq 'Tock'");
             AssertBuild(x => TestEnum.Tick == x.SomeNullableEnum, "'Tick' eq someNullableEnum");
+        }
+
+
+        [Test]
+        public void BuildStringEnumConstant_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeStringEnum == StringEnumTemplate.MemberTemplate, "someStringEnum eq 'MemberTemplate'");
         }
 
 

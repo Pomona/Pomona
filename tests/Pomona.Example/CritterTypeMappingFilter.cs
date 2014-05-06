@@ -48,6 +48,12 @@ namespace Pomona.Example
         }
 
 
+        public override bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
+        {
+            return enumType == typeof(CustomStringEnum);
+        }
+
+
         public override PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
         {
             if (propertyInfo.Name == "IsNotAllowedInFilters")

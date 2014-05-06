@@ -39,6 +39,15 @@ using Pomona.Common.Proxies;
 
 namespace Pomona.Common
 {
+    public interface IStringEnum
+    {
+    }
+
+    public interface IStringEnum<T> : IStringEnum
+        where T : struct
+    {
+    }
+
     public class ChildResourceRepository<TResource, TPostResponseResource, TId>
         : ClientRepository<TResource, TPostResponseResource, TId>
         where TResource : class, IClientResource

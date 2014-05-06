@@ -742,6 +742,9 @@ namespace Pomona.Common
                 default:
                     break;
             }
+
+            if (typeof(IStringEnum).IsAssignableFrom(valueType))
+                return EncodeString(value.ToString());
             return null;
         }
 

@@ -235,6 +235,7 @@
     <Compile Include="Serialization\Json\PomonaJsonSerializer.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerFactory.cs" />
     <Compile Include="Serialization\Json\PomonaJsonSerializerTypeEntry.cs" />
+    <Compile Include="Serialization\Json\StringEnumJsonConverter.cs" />
     <Compile Include="Serialization\Patch\CollectionDelta.cs" />
     <Compile Include="Serialization\Patch\Delta.cs" />
     <Compile Include="Serialization\Patch\DictionaryDelta.cs" />
@@ -255,6 +256,7 @@
     <Compile Include="Serialization\Xml\PomonaXmlSerializer.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlSerializerFactory.cs" />
     <Compile Include="SortOrder.cs" />
+    <Compile Include="StringEnumExtensions.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="TypeSystem\Calculator.cs" />
     <Compile Include="TypeSystem\ClientType.cs" />

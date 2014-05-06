@@ -41,6 +41,7 @@ using Pomona.Example;
 using Pomona.Example.Models;
 
 using CustomEnum = Pomona.Example.Models.CustomEnum;
+using CustomStringEnum = Pomona.Example.Models.CustomStringEnum;
 
 namespace Pomona.SystemTests
 {
@@ -121,6 +122,15 @@ namespace Pomona.SystemTests
         private string SomeCrazyMethod(string s)
         {
             return new string(s.ToCharArray().Reverse().ToArray());
+        }
+
+
+        [Test]
+        public void Query_Where_StringEnum_Equals_Constant_Is_Successful()
+        {
+            Save(new HasCustomStringEnum() { Value = CustomStringEnum.Cat });
+            var result = Client.HasCustomStringEnums.First(x => x.Value == Critters.Client.CustomStringEnum.Cat);
+            Assert.That(result.Value, Is.EqualTo(Critters.Client.CustomStringEnum.Cat));
         }
 
 
