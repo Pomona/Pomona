@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -65,8 +66,8 @@ namespace Pomona.FluentMapping
             }
         }
 
-        private readonly IDictionary<string, TypeMappingOptions> typeMappingDict =
-            new Dictionary<string, TypeMappingOptions>();
+        private readonly ConcurrentDictionary<string, TypeMappingOptions> typeMappingDict =
+            new ConcurrentDictionary<string, TypeMappingOptions>();
 
         private readonly ITypeMappingFilter wrappedFilter;
         private readonly IEnumerable<Type> sourceTypes;
@@ -481,14 +482,14 @@ namespace TestNs
         internal TypeMappingOptions GetTypeMapping(Type type)
         {
             TypeMappingOptions typeMapping;
-            if (!this.typeMappingDict.TryGetValue(type.FullName, out typeMapping))
-            {
-                typeMapping = new TypeMappingOptions(type);
-                typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
-                this.typeMappingDict[type.FullName] = typeMapping;
-            }
 
-            return typeMapping;
+            return this.typeMappingDict.GetOrAdd(type.FullName,
+                k =>
+                {
+                    typeMapping = new TypeMappingOptions(type);
+                    typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
+                    return typeMapping;
+                });
         }
 
 

@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -45,8 +46,8 @@ namespace Pomona.FluentMapping
         private readonly Type declaringType;
         private readonly List<Type> handlerTypes = new List<Type>();
 
-        private readonly IDictionary<string, PropertyMappingOptions> propertyOptions =
-            new Dictionary<string, PropertyMappingOptions>();
+        private readonly ConcurrentDictionary<string, PropertyMappingOptions> propertyOptions =
+            new ConcurrentDictionary<string, PropertyMappingOptions>();
 
         private ConstructorSpec constructor;
 
@@ -152,14 +153,9 @@ namespace Pomona.FluentMapping
             get { return this.postResponseType; }
         }
 
-        public IDictionary<string, PropertyMappingOptions> PropertyOptions
-        {
-            get { return this.propertyOptions; }
-        }
-
         internal string Name
         {
-            get { return name; }
+            get { return this.name; }
         }
 
 
@@ -189,7 +185,7 @@ namespace Pomona.FluentMapping
                     "No property with name " + name + " found on type " + this.declaringType.FullName);
             }
 
-            return this.propertyOptions.GetOrCreate(propInfo.Name, () => new PropertyMappingOptions(propInfo));
+            return this.propertyOptions.GetOrAdd(propInfo.Name, pi => new PropertyMappingOptions(propInfo));
         }
 
 
@@ -198,9 +194,9 @@ namespace Pomona.FluentMapping
             if (propertyExpr == null)
                 throw new ArgumentNullException("propertyExpr");
             var propInfo = propertyExpr.ExtractPropertyInfo();
-            var propOptions = this.propertyOptions.GetOrCreate(
+            var propOptions = this.propertyOptions.GetOrAdd(
                 propInfo.Name,
-                () => new PropertyMappingOptions(propInfo));
+                pi => new PropertyMappingOptions(propInfo));
             return propOptions;
         }
 
