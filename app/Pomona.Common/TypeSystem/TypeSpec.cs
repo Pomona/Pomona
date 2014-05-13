@@ -81,6 +81,8 @@ namespace Pomona.Common.TypeSystem
             get { return true; }
         }
 
+        public abstract bool IsAbstract { get; }
+
         public virtual bool IsArray
         {
             get { return Type.IsArray; }

@@ -79,7 +79,6 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<string> name;
         private readonly ITypeResolver typeResolver;
 
-
         protected MemberSpec(ITypeResolver typeResolver, MemberInfo member)
         {
             if (typeResolver == null)

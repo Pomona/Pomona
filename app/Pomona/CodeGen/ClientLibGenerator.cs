@@ -168,8 +168,12 @@ namespace Pomona.CodeGen
 
             CreateProxies(
                 new PostFormProxyBuilder(this),
-                (info, def) => { info.PostFormType = def; },
-                typeIsGeneratedPredicate : x => x.TransformedType.PostAllowed);
+                (info, def) =>
+                {
+                    info.PostFormType = def;
+                    def.IsAbstract = info.TransformedType.IsAbstract;
+                },
+                typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
 
             CreateClientInterface("IClient");
             CreateClientType("Client");

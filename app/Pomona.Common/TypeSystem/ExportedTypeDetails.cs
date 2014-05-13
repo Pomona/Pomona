@@ -47,7 +47,7 @@ namespace Pomona.Common.TypeSystem
             string pluralName,
             Action<object> onDeserialized,
             bool mappedAsValueObject,
-            bool alwaysExpand)
+            bool alwaysExpand, bool isAbstract)
         {
             this.type = type;
             this.allowedMethods = allowedMethods;
@@ -56,6 +56,7 @@ namespace Pomona.Common.TypeSystem
             this.mappedAsValueObject = mappedAsValueObject;
             this.type = type;
             this.alwaysExpand = alwaysExpand;
+            this.isAbstract = isAbstract;
         }
 
 
@@ -89,9 +90,16 @@ namespace Pomona.Common.TypeSystem
             get { return this.pluralName; }
         }
 
+        private readonly bool isAbstract;
+
         public PropertyMapping PrimaryId
         {
             get { return this.type.AllProperties.OfType<PropertyMapping>().FirstOrDefault(x => x.IsPrimaryKey); }
+        }
+
+        public bool IsAbstract
+        {
+            get { return isAbstract; }
         }
     }
 }
