@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,11 +41,12 @@ namespace Pomona
     public abstract class PathNode : IResourceNode
     {
         private readonly string name;
+        private readonly PathNodeType nodeType;
         private readonly PathNode parent;
         private readonly ITypeMapper typeMapper;
 
 
-        protected PathNode(ITypeMapper typeMapper, PathNode parent, string name)
+        protected PathNode(ITypeMapper typeMapper, PathNode parent, string name, PathNodeType nodeType)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -54,6 +55,7 @@ namespace Pomona
             this.typeMapper = typeMapper;
             this.parent = parent;
             this.name = name;
+            this.nodeType = nodeType;
         }
 
 
@@ -70,9 +72,9 @@ namespace Pomona
             get { return this.name; }
         }
 
-        IResourceNode IResourceNode.Parent
+        public PathNodeType NodeType
         {
-            get { return Parent; }
+            get { return this.nodeType; }
         }
 
         public PathNode Parent
@@ -91,6 +93,11 @@ namespace Pomona
         }
 
         public abstract object Value { get; }
+
+        IResourceNode IResourceNode.Parent
+        {
+            get { return Parent; }
+        }
 
         protected internal virtual TypeSpec ExpectedPostType
         {

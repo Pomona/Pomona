@@ -48,7 +48,7 @@ namespace Pomona
             string name,
             Func<object> valueFetcher,
             ResourceType expectedType)
-            : base(typeMapper, parent, name)
+            : base(typeMapper, parent, name, PathNodeType.Resource)
         {
             this.value = new System.Lazy<object>(valueFetcher);
             this.expectedType = expectedType;
