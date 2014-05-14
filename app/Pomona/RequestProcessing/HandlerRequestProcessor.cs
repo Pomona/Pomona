@@ -249,8 +249,9 @@ namespace Pomona.RequestProcessing
 
             public object Invoke(object target, PomonaRequest request)
             {
+                var args = new object[Parameters.Count];
                 object resourceArg = null;
-
+                object resourceIdArg = null;
                 var httpMethod = request.Method;
 
                 if (request.Node.NodeType == PathNodeType.Resource)
@@ -264,7 +265,7 @@ namespace Pomona.RequestProcessing
                             if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId))
                                 throw new NotImplementedException("What to do when ID won't parse here??");
 
-                            resourceArg = parsedId;
+                            resourceIdArg = parsedId;
                         }
                             break;
                         case HttpMethod.Patch:
@@ -285,7 +286,30 @@ namespace Pomona.RequestProcessing
                             break;
                     }
                 }
-                return this.methodInfo.Invoke(target, new object[] { resourceArg });
+                for (var i = 0; i < Parameters.Count; i++)
+                {
+                    var p = Parameters[i];
+                    if (p.IsResource && p.Type.IsInstanceOfType(resourceArg))
+                        args[i] = resourceArg;
+                    else if (p.Type == typeof(PomonaRequest))
+                        args[i] = request;
+                    else if (p.Type == typeof(NancyContext))
+                        args[i] = request.NancyContext;
+                    else if (p.Type == typeof(TypeMapper))
+                        args[i] = request.TypeMapper;
+                    else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
+                        args[i] = resourceIdArg;
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            string.Format(
+                                "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
+                                this.methodInfo.ReflectedType,
+                                this.methodInfo.Name,
+                                p.Name));
+                    }
+                }
+                return this.methodInfo.Invoke(target, args);
             }
 
 
@@ -380,6 +404,11 @@ namespace Pomona.RequestProcessing
             public bool IsResource
             {
                 get { return TypeSpec is ResourceType; }
+            }
+
+            public string Name
+            {
+                get { return this.parameterInfo.Name; }
             }
 
             public Type Type
