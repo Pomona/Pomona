@@ -36,7 +36,7 @@ using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.TypeSystem;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.RequestProcessing
 {
@@ -55,14 +55,8 @@ namespace Pomona.RequestProcessing
 
     public class HandlerRequestProcessor<THandler> : HandlerRequestProcessor
     {
-        private static readonly ConcurrentDictionary<string, MethodInfo> handlerMethodCache =
-            new ConcurrentDictionary<string, MethodInfo>();
-
-
-        public static IEnumerable<Method> GetHandlerMethods()
-        {
-            return typeof(THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance).Select(x => new Method(x));
-        }
+        private static readonly ConcurrentDictionary<string, Method> handlerMethodCache =
+            new ConcurrentDictionary<string, Method>();
 
 
         public override PomonaResponse Process(PomonaRequest request)
@@ -77,79 +71,41 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private static MethodInfo GetHandlerMethodTakingId(string methodName, Type idType, Type resourceType)
+        public IEnumerable<Method> GetHandlerMethods(TypeMapper mapper)
         {
-            var cacheKey = string.Format("GetHandlerMethodTakingId::{0}::{1}", idType.FullName, resourceType.FullName);
-
-            return handlerMethodCache.GetOrAdd(cacheKey,
-                k => GetHandlerMethods()
-                    .Where(x => x.NameStartsWith(methodName) && x.ReturnsType(resourceType))
-                    .Where(x => x.Parameters.Count == 1 && x.ParameterTypes[0] == idType)
-                    .OrderBy(x => x.ReturnType, new SubclassComparer())
-                    .Select(x => x.MethodInfo)
-                    .FirstOrDefault());
-        }
-
-
-        private static MethodInfo GetHandlerMethodTakingResource(HttpMethod method, Type formType)
-        {
-            return GetHandlerMethodTakingResource(method.ToString(), formType);
-        }
-
-
-        private static MethodInfo GetHandlerMethodTakingResource(string methodName, Type formType)
-        {
-            var cacheKey = string.Format("GetHandlerMethodTakingResource::{0}::{1}", methodName, formType.FullName);
-            return handlerMethodCache.GetOrAdd(cacheKey,
-                k => GetHandlerMethods()
-                    .Where(x => x.Name.ToLowerInvariant().StartsWith(methodName.ToLowerInvariant()))
-                    .Where(x => x.Parameters.Count == 1)
-                    .Where(x => x.ParameterTypes[0].IsAssignableFrom(formType))
-                    .OrderByDescending(x => x.ParameterTypes[0], new SubclassComparer())
-                    .Select(x => x.MethodInfo)
-                    .FirstOrDefault());
+            return
+                typeof(THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance).Select(
+                    x => new Method(x, mapper));
         }
 
 
         private PomonaResponse DeleteResource(PomonaRequest request, ResourceNode resourceNode)
         {
             var resource = resourceNode.Value;
-            var method = GetHandlerMethodTakingResource(request.Method, resource.GetType());
+            var method = GetHandlerMethod(request.Method, resource.GetType(), PathNodeType.Resource, request.TypeMapper);
 
-            return InvokeHandlerAndWrapResponse(request, method, new object[] { resource });
+            return InvokeAndWrap(request, method);
         }
 
 
-        private PomonaResponse PatchResource(PomonaRequest request, ResourceNode resourceNode)
+        private Method GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType, TypeMapper mapper)
         {
-            var resource = request.Bind(); // Will patch resourceNode.Value by default.
-            var method = GetHandlerMethodTakingResource(request.Method, resource.GetType());
-
-            return InvokeHandlerAndWrapResponse(request, method, new object[] { resource });
+            var cacheKey = string.Format("{0}:{1}:{2}", method, resourceType.FullName, nodeType);
+            return handlerMethodCache.GetOrAdd(cacheKey,
+                k => ResolveHandlerMethod(method, resourceType, nodeType, mapper));
         }
 
 
         private PomonaResponse GetResource(PomonaRequest request, ResourceNode resourceNode)
         {
-            var method = GetHandlerMethodTakingId(request.Method.ToString(),
-                resourceNode.Type.PrimaryId.PropertyType,
-                resourceNode.Type);
+            var method = GetHandlerMethod(request.Method, resourceNode.Type, resourceNode.NodeType, request.TypeMapper);
 
-
-            // If id is not parseable to type of primary id pass on null, and 404 later if no other handlers found.
-            object parsedId;
-            if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId))
-                return null;
-
-            return InvokeHandlerAndWrapResponse(request,
-                method,
-                new[] { parsedId });
+            return InvokeAndWrap(request, method);
         }
 
 
-        private PomonaResponse InvokeHandlerAndWrapResponse(PomonaRequest request,
-            MethodInfo method,
-            object[] methodParams,
+        private PomonaResponse InvokeAndWrap(PomonaRequest request,
+            Method method,
             HttpStatusCode? statusCode = null)
         {
             // Continue to next request processor if method was not found.
@@ -157,7 +113,7 @@ namespace Pomona.RequestProcessing
                 return null;
 
             var handler = request.NancyContext.Resolve(typeof(THandler));
-            var result = method.Invoke(handler, methodParams);
+            var result = method.Invoke(handler, request);
             var resultAsResponse = result as PomonaResponse;
             if (resultAsResponse != null)
                 return resultAsResponse;
@@ -173,14 +129,22 @@ namespace Pomona.RequestProcessing
         }
 
 
+        private PomonaResponse PatchResource(PomonaRequest request, ResourceNode resourceNode)
+        {
+            var resource = resourceNode.Value;
+            var method = GetHandlerMethod(request.Method, resource.GetType(), PathNodeType.Resource, request.TypeMapper);
+
+            return InvokeAndWrap(request, method);
+        }
+
+
         private PomonaResponse PostToCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
             var form = request.Bind();
-            var method = GetHandlerMethodTakingResource(request.Method, form.GetType());
+            var method = GetHandlerMethod(request.Method, form.GetType(), collectionNode.NodeType, request.TypeMapper);
 
-            return InvokeHandlerAndWrapResponse(request,
+            return InvokeAndWrap(request,
                 method,
-                new object[] { form },
                 statusCode : HttpStatusCode.Created);
         }
 
@@ -213,23 +177,42 @@ namespace Pomona.RequestProcessing
             }
         }
 
+
+        private Method ResolveHandlerMethod(HttpMethod method,
+            Type resourceType,
+            PathNodeType nodeType,
+            TypeMapper mapper)
+        {
+            var typeSpec = mapper.GetClassMapping(resourceType);
+            var matches = GetHandlerMethods(mapper).Where(x => x.Match(method, nodeType, typeSpec)).ToList();
+            if (matches.Count > 1)
+                throw new NotImplementedException("Method overload resolution not implemented");
+            return matches.FirstOrDefault();
+        }
+
         #region Nested type: Method
 
         public class Method
         {
             private readonly MethodInfo methodInfo;
 
-            private readonly Lazy<IList<Type>> parameterTypes;
-            private readonly Lazy<IList<ParameterInfo>> parameters;
+            private readonly System.Lazy<IList<Type>> parameterTypes;
+            private readonly System.Lazy<IList<Parameter>> parameters;
+            private readonly TypeMapper typeMapper;
 
 
-            public Method(MethodInfo methodInfo)
+            public Method(MethodInfo methodInfo, TypeMapper typeMapper)
             {
                 if (methodInfo == null)
                     throw new ArgumentNullException("methodInfo");
+                if (typeMapper == null)
+                    throw new ArgumentNullException("typeMapper");
                 this.methodInfo = methodInfo;
-                this.parameters = new Lazy<IList<ParameterInfo>>(methodInfo.GetParameters);
-                this.parameterTypes = new Lazy<IList<Type>>(() => Parameters.MapList(x => x.ParameterType));
+                this.typeMapper = typeMapper;
+                this.parameters =
+                    new System.Lazy<IList<Parameter>>(
+                        () => methodInfo.GetParameters().Select(x => new Parameter(x, this)).ToList());
+                this.parameterTypes = new System.Lazy<IList<Type>>(() => Parameters.MapList(x => x.Type));
             }
 
 
@@ -248,7 +231,7 @@ namespace Pomona.RequestProcessing
                 get { return this.parameterTypes.Value; }
             }
 
-            public IList<ParameterInfo> Parameters
+            public IList<Parameter> Parameters
             {
                 get { return this.parameters.Value; }
             }
@@ -256,6 +239,92 @@ namespace Pomona.RequestProcessing
             public Type ReturnType
             {
                 get { return this.methodInfo.ReturnType; }
+            }
+
+            public TypeMapper TypeMapper
+            {
+                get { return this.typeMapper; }
+            }
+
+
+            public object Invoke(object target, PomonaRequest request)
+            {
+                var args = new object[Parameters.Count];
+                object resourceArg = null;
+                object resourceIdArg = null;
+                var httpMethod = request.Method;
+
+                if (request.Node.NodeType == PathNodeType.Resource)
+                {
+                    switch (httpMethod)
+                    {
+                        case HttpMethod.Get:
+                        {
+                            var resourceNode = (ResourceNode)request.Node;
+                            object parsedId;
+                            if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId))
+                                throw new NotImplementedException("What to do when ID won't parse here??");
+
+                            resourceIdArg = parsedId;
+                        }
+                            break;
+                        case HttpMethod.Patch:
+                        case HttpMethod.Post:
+                            resourceArg = request.Bind();
+                            break;
+                        default:
+                            resourceArg = request.Node.Value;
+                            break;
+                    }
+                }
+                else if (request.Node.NodeType == PathNodeType.Collection)
+                {
+                    switch (httpMethod)
+                    {
+                        case HttpMethod.Post:
+                            resourceArg = request.Bind();
+                            break;
+                    }
+                }
+                for (var i = 0; i < Parameters.Count; i++)
+                {
+                    var p = Parameters[i];
+                    if (p.IsResource && p.Type.IsInstanceOfType(resourceArg))
+                        args[i] = resourceArg;
+                    else if (p.Type == typeof(PomonaRequest))
+                        args[i] = request;
+                    else if (p.Type == typeof(NancyContext))
+                        args[i] = request.NancyContext;
+                    else if (p.Type == typeof(TypeMapper))
+                        args[i] = request.TypeMapper;
+                    else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
+                        args[i] = resourceIdArg;
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            string.Format(
+                                "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
+                                this.methodInfo.ReflectedType,
+                                this.methodInfo.Name,
+                                p.Name));
+                    }
+                }
+                return this.methodInfo.Invoke(target, args);
+            }
+
+
+            public bool Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
+            {
+                if (!this.methodInfo.Name.StartsWith(method.ToString()))
+                    return false;
+                switch (nodeType)
+                {
+                    case PathNodeType.Collection:
+                        return MatchCollectionNodeRequest(method, (ResourceType)resourceType);
+                    case PathNodeType.Resource:
+                        return MatchResourceNodeRequest(method, (ResourceType)resourceType);
+                }
+                return false;
             }
 
 
@@ -268,6 +337,92 @@ namespace Pomona.RequestProcessing
             public bool ReturnsType(Type returnType)
             {
                 return returnType.IsAssignableFrom(this.methodInfo.ReturnType);
+            }
+
+
+            private bool MatchCollectionNodeRequest(HttpMethod method, ResourceType resourceType)
+            {
+                switch (method)
+                {
+                    case HttpMethod.Post:
+                        return MatchMethodTakingResourceObject(resourceType);
+                }
+                return false;
+            }
+
+
+            private bool MatchMethodTakingResourceId(ResourceType resourceType)
+            {
+                if (this.methodInfo.ReturnType != resourceType.Type)
+                    return false;
+
+                var idParam = Parameters.SingleOrDefault(x => x.Type == resourceType.PrimaryId.PropertyType.Type);
+                return idParam != null;
+            }
+
+
+            private bool MatchMethodTakingResourceObject(ResourceType resourceType)
+            {
+                var resourceTypeParam = Parameters.Where(x => x.IsResource && x.Type.IsAssignableFrom(resourceType));
+                return resourceTypeParam.Any();
+            }
+
+
+            private bool MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
+            {
+                switch (httpMethod)
+                {
+                    case HttpMethod.Delete:
+                        return MatchMethodTakingResourceObject(resourceType);
+                    case HttpMethod.Patch:
+                        return MatchMethodTakingResourceObject(resourceType);
+                    case HttpMethod.Get:
+                        return MatchMethodTakingResourceId(resourceType);
+                }
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Nested type: Parameter
+
+        public class Parameter
+        {
+            private readonly Method method;
+            private readonly ParameterInfo parameterInfo;
+            private TypeSpec typeSpec;
+
+
+            public Parameter(ParameterInfo parameterInfo, Method method)
+            {
+                this.parameterInfo = parameterInfo;
+                this.method = method;
+            }
+
+
+            public bool IsResource
+            {
+                get { return TypeSpec is ResourceType; }
+            }
+
+            public string Name
+            {
+                get { return this.parameterInfo.Name; }
+            }
+
+            public Type Type
+            {
+                get { return this.parameterInfo.ParameterType; }
+            }
+
+            public TypeSpec TypeSpec
+            {
+                get
+                {
+                    this.method.TypeMapper.TryGetTypeSpec(this.parameterInfo.ParameterType, out this.typeSpec);
+                    return this.typeSpec;
+                }
             }
         }
 

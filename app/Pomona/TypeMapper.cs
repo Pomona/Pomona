@@ -338,5 +338,15 @@ namespace Pomona
         {
             return FromType(type);
         }
+
+
+        public bool TryGetTypeSpec(Type type, out TypeSpec typeSpec)
+        {
+            typeSpec = null;
+            if (!Filter.TypeIsMapped(type))
+                return false;
+            typeSpec = GetClassMapping(type);
+            return true;
+        }
     }
 }

@@ -107,7 +107,7 @@ namespace Pomona
             string name,
             Func<object> valueFetcher,
             TypeSpec collectionType)
-            : base(typeMapper, parent, name)
+            : base(typeMapper, parent, name, PathNodeType.Collection)
         {
             if (valueFetcher == null)
                 throw new ArgumentNullException("valueFetcher");

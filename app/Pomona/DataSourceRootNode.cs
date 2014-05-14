@@ -46,7 +46,7 @@ namespace Pomona
 
 
         public DataSourceRootNode(ITypeMapper typeMapper, IPomonaDataSource dataSource)
-            : base(typeMapper, null, "/")
+            : base(typeMapper, null, "/", PathNodeType.Custom)
         {
             if (dataSource == null)
                 throw new ArgumentNullException("dataSource");

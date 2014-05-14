@@ -156,6 +156,7 @@
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NoCloseStreamWriter.cs" />
     <Compile Include="PathNode.cs" />
+    <Compile Include="PathNodeType.cs" />
     <Compile Include="Plumbing\PomonaStartup.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
