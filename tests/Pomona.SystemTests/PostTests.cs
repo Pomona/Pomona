@@ -469,23 +469,17 @@ namespace Pomona.SystemTests
             Assert.That(ex.Body.Member, Is.EqualTo("Model"));
         }
 
-        public abstract class Animal
-        {
-            public string Name { get; set; }
-        }
-
         [Test]
-        public void PostAbstractClass_ThrowsException()
+        public void PostAbstractClass_ThrowsExceptionOnClient()
         {
             try
             {
                 var critter = (IAbstractAnimal)Client.Post<IAbstractAnimal>(x => {});
                 throw new Exception("Pomona didn't throw an exception despite receiving an abstract class!");
             }
-            catch (Exception e)
+            catch (MissingMethodException e)
             {
-                StringAssert.Contains("Pomona was unable to instantiate type", e.Message, "Pomona should warn about posting an abstract class");
-                StringAssert.Contains("as it's an abstract type.", e.Message, "Pomona should warn about posting an abstract class");
+                StringAssert.Contains("Cannot create an abstract class.", e.Message, "Pomona should warn about posting an abstract class");
             }
         }
     }
