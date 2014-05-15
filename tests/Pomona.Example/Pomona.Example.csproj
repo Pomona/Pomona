@@ -73,6 +73,7 @@
     <Compile Include="GuidThingHandler.cs" />
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
     <Compile Include="Models\CaptureCommand.cs" />
     <Compile Include="Models\Cat.cs" />
