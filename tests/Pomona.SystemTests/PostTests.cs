@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 
 using Critters.Client;
@@ -466,6 +467,20 @@ namespace Pomona.SystemTests
                     () => Client.Weapons.Post(new WeaponForm { Price = 12345 }));
             Assert.That(ex.Body, Is.Not.Null);
             Assert.That(ex.Body.Member, Is.EqualTo("Model"));
+        }
+
+        [Test]
+        public void PostAbstractClass_ThrowsExceptionOnClient()
+        {
+            try
+            {
+                var critter = (IAbstractAnimal)Client.Post<IAbstractAnimal>(x => {});
+                throw new Exception("Pomona didn't throw an exception despite receiving an abstract class!");
+            }
+            catch (MissingMethodException e)
+            {
+                StringAssert.Contains("Cannot create an abstract class.", e.Message, "Pomona should warn about posting an abstract class");
+            }
         }
     }
 }

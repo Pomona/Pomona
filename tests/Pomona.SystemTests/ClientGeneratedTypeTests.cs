@@ -116,6 +116,11 @@ namespace Pomona.SystemTests
             Assert.That(typeof(Client).Assembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
         }
 
+        [Test]
+        public void AbstractClassOnServerIsAbstractOnClient()
+        {
+            Assert.That(typeof (AbstractAnimalForm).IsAbstract);
+        }
 
         [Test]
         public void ClientLibraryIsCorrectlyGenerated()

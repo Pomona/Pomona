@@ -108,5 +108,6 @@ namespace Pomona
         HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
         PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
         IEnumerable<Type> GetResourceHandlers(Type type);
+        Boolean GetTypeIsAbstract(Type type);
     }
 }

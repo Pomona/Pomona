@@ -191,7 +191,8 @@ namespace Pomona.Common
                     null,
                     null,
                     true,
-                    true);
+                    true,
+                    false);
             }
 
             var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
@@ -202,7 +203,8 @@ namespace Pomona.Common
                 ria.UrlRelativePath != null ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath) : null,
                 null,
                 ria.IsValueObject,
-                true);
+                true,
+                false);
         }
 
 

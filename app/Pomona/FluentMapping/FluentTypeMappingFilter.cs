@@ -223,6 +223,11 @@ namespace TestNs
             return FromMappingOrDefault(type, x => x.HandlerTypes, () => wrappedFilter.GetResourceHandlers(type));
         }
 
+        public bool GetTypeIsAbstract(Type type)
+        {
+            return this.wrappedFilter.GetTypeIsAbstract(type);
+        }
+
 
         public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
         {

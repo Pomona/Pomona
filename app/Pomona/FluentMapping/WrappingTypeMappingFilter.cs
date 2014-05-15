@@ -187,6 +187,11 @@ namespace Pomona.FluentMapping
             return this.wrappedFilter.GetResourceHandlers(type);
         }
 
+        public virtual bool GetTypeIsAbstract(Type type)
+        {
+            return this.wrappedFilter.GetTypeIsAbstract(type);
+        }
+
 
         public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
         {
