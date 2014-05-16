@@ -122,7 +122,6 @@
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="DataSourceRootNode.cs" />
     <Compile Include="DefaultTypeMappingFilter.cs" />
-    <Compile Include="EnumType.cs" />
     <Compile Include="Fetcher\BatchFetcher.cs">
       <SubType>Code</SubType>
     </Compile>
