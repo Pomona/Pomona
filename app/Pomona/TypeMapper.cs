@@ -147,7 +147,8 @@ namespace Pomona
                 this.filter.GetPluralNameForType(type),
                 this.filter.GetOnDeserializedHook(type),
                 this.filter.TypeIsMappedAsValueObject(type),
-                this.filter.TypeIsMappedAsValueObject(type));
+                this.filter.TypeIsMappedAsValueObject(type),
+                this.filter.GetTypeIsAbstract(type));
 
             return details;
         }

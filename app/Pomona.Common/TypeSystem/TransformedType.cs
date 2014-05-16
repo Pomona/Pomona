@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -131,14 +132,25 @@ namespace Pomona.Common.TypeSystem
             get { return this.exportedTypeDetails.Value; }
         }
 
+        public override bool IsAbstract
+        {
+            get
+            {
+                return ExportedTypeDetails.IsAbstract;
+            }
+        }
+
 
         public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
         {
             if (typeof(T) != Type)
                 throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));
 
+            if(IsAbstract)
+                throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name + ", as it's an abstract type.");
+
             if (Constructor == null)
-                throw new MissingMethodException("Pomona was unable to instantiate type " + Name + ", Constructor property was null.");
+                throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name + ", Constructor property was null.");
 
             if (this.createUsingPropertySourceFunc == null)
             {
