@@ -51,6 +51,10 @@ namespace Pomona.Example
             this.repository.Delete(handledThing);
         }
 
+        public IQueryable<HandledThing> Query(int id)
+        {
+            return this.repository.Query<HandledThing>();
+        }
 
         public HandledThing Get(int id)
         {
