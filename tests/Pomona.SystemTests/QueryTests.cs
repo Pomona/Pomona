@@ -180,6 +180,33 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void QueryHashSetContainer_WithSetExpanded_ReturnsCorrectHashSet()
+        {
+            var hashSetEntity =
+                (SetCollectionContainer)Repository.Post(new SetCollectionContainer()
+                {
+                    TheSet = { (Critter)Repository.Post(Repository.CreateRandomCritter(rngSeed: 1235534)) }
+                });
+            var theSet = Client.SetCollectionContainers.Expand(x => x.TheSet).First(x => x.Id == hashSetEntity.Id).TheSet;
+            Assert.That(theSet, Is.TypeOf<HashSet<ICritter>>());
+            Assert.That(theSet.Count, Is.EqualTo(1));
+        }
+
+
+        [Test]
+        public void QueryHashSetContainer_WithSetLazy_ReturnsCorrectHashSet()
+        {
+            var hashSetEntity =
+                (SetCollectionContainer)Repository.Post(new SetCollectionContainer()
+                {
+                    TheSet = { (Critter)Repository.Post(Repository.CreateRandomCritter(rngSeed: 1235534)) }
+                });
+            var theSet = Client.SetCollectionContainers.First(x => x.Id == hashSetEntity.Id).TheSet;
+            Assert.That(theSet, Is.TypeOf<LazySetProxy<ICritter>>());
+            Assert.That(theSet.Count, Is.EqualTo(1));
+        }
+
+        [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
         {
             var musicalCritter =

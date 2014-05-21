@@ -97,6 +97,7 @@
     <Compile Include="Models\GuidThing.cs" />
     <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
+    <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
     <Compile Include="Models\InheritedUnpostableThing.cs" />
     <Compile Include="Models\Order.cs" />

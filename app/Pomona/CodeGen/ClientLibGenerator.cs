@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -76,7 +77,7 @@ namespace Pomona.CodeGen
             this.allowedReferencedAssemblies = new[]
             {
                 /*mscorlib*/typeof(string).Assembly, typeof(IPomonaClient).Assembly, /*System.Core*/
-                typeof(Func<>).Assembly, /*System*/ typeof(Uri).Assembly
+                typeof(Func<>).Assembly, /*System*/ typeof(Uri).Assembly, typeof(HashSet<>).Assembly
             };
             PomonaClientEmbeddingEnabled = true;
         }
@@ -388,7 +389,8 @@ namespace Pomona.CodeGen
             else if (propertyType.IsCollection && !propertyType.IsArray)
             {
                 var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
-                var listReference = Import(typeof(List<>));
+                var implementationType = propertyType.Type.IsGenericInstanceOf(typeof(ISet<>)) ? typeof(HashSet<>) : typeof(List<>);
+                var listReference = Import(implementationType);
                 var listCtor = listReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
                 var listCtorInstance =
                     Import(listCtor).MakeHostInstanceGeneric(genericInstanceFieldType.GenericArguments[0]);
