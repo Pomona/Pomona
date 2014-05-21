@@ -27,43 +27,88 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Pomona.Common.Proxies
 {
-    public class LazyListProxy<T> : LazyCollectionProxyBase<T, IList<T>>, IList<T>
+    public abstract class LazyCollectionProxyBase<T, TCollection> : LazyCollectionProxy, ICollection<T>
+        where TCollection : ICollection<T>
     {
-        public LazyListProxy(string uri, IPomonaClient clientBase)
+        private TCollection dontTouchwrappedList;
+
+
+        public LazyCollectionProxyBase(string uri, IPomonaClient clientBase)
             : base(uri, clientBase)
         {
         }
 
-        #region IList<T> Members
 
-        public T this[int index]
+        public int Count
         {
-            get { return WrappedList[index]; }
-            set { throw new NotSupportedException("Not allowed to modify a REST'ed list"); }
+            get { return WrappedList.Count; }
+        }
+
+        public override bool IsLoaded
+        {
+            get { return this.dontTouchwrappedList != null; }
+        }
+
+        public bool IsReadOnly
+        {
+            get { return true; }
+        }
+
+        public TCollection WrappedList
+        {
+            get
+            {
+                if (this.dontTouchwrappedList == null)
+                    this.dontTouchwrappedList = clientBase.Get<TCollection>(uri);
+                return this.dontTouchwrappedList;
+            }
         }
 
 
-        public int IndexOf(T item)
-        {
-            return WrappedList.IndexOf(item);
-        }
-
-
-        public void Insert(int index, T item)
+        public void Add(T item)
         {
             throw new NotSupportedException("Not allowed to modify a REST'ed list");
         }
 
 
-        public void RemoveAt(int index)
+        public void Clear()
         {
             throw new NotSupportedException("Not allowed to modify a REST'ed list");
         }
 
-        #endregion
+
+        public bool Contains(T item)
+        {
+            return WrappedList.Contains(item);
+        }
+
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            WrappedList.CopyTo(array, arrayIndex);
+        }
+
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return WrappedList.GetEnumerator();
+        }
+
+
+        public bool Remove(T item)
+        {
+            throw new NotSupportedException("Not allowed to modify a REST'ed list");
+        }
+
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }

@@ -216,7 +216,14 @@ namespace Pomona.Common.Serialization.Json
             ICollection<TElement> collection;
             if (node.Value == null)
             {
-                collection = new List<TElement>();
+                if (node.ExpectedBaseType != null && node.ExpectedBaseType == typeof(ISet<TElement>))
+                {
+                    collection = new HashSet<TElement>();
+                }
+                else
+                {
+                    collection = new List<TElement>();                    
+                }
                 isPatching = false;
             }
             else

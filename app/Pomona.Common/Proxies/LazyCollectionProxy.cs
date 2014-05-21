@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,39 +31,42 @@ using System.Collections.Generic;
 
 namespace Pomona.Common.Proxies
 {
-    public class LazyListProxy<T> : LazyCollectionProxyBase<T, IList<T>>, IList<T>
+    public abstract class LazyCollectionProxy : ILazyProxy, IHasResourceUri
     {
-        public LazyListProxy(string uri, IPomonaClient clientBase)
-            : base(uri, clientBase)
+        protected readonly IPomonaClient clientBase;
+        protected readonly string uri;
+
+
+        protected LazyCollectionProxy(string uri, IPomonaClient clientBase)
         {
-        }
-
-        #region IList<T> Members
-
-        public T this[int index]
-        {
-            get { return WrappedList[index]; }
-            set { throw new NotSupportedException("Not allowed to modify a REST'ed list"); }
-        }
-
-
-        public int IndexOf(T item)
-        {
-            return WrappedList.IndexOf(item);
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            this.uri = uri;
+            this.clientBase = clientBase;
         }
 
 
-        public void Insert(int index, T item)
+        public abstract bool IsLoaded { get; }
+
+        public string Uri
         {
-            throw new NotSupportedException("Not allowed to modify a REST'ed list");
+            get { return this.uri; }
+            set { }
         }
 
 
-        public void RemoveAt(int index)
+        internal static object CreateForType(Type collectionType, string uri, IPomonaClient clientBase)
         {
-            throw new NotSupportedException("Not allowed to modify a REST'ed list");
+            Type[] genArgs;
+            if (collectionType.TryExtractTypeArguments(typeof(ISet<>), out genArgs))
+            {
+                return Activator.CreateInstance(typeof(LazySetProxy<>).MakeGenericType(genArgs), uri, clientBase);
+            }
+            if (collectionType.TryExtractTypeArguments(typeof(IEnumerable<>), out genArgs))
+            {
+                return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(genArgs), uri, clientBase);
+            }
+            throw new NotSupportedException("Unable to create lazy list proxy for collection type " + collectionType);
         }
-
-        #endregion
     }
 }
