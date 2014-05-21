@@ -165,6 +165,13 @@ namespace Pomona.RequestProcessing
                         args[0] = request.Node.Parent.Value;
                     }
                 }
+                else if (Parameters.Count != 0)
+                {
+                    throw new PomonaException("Type " + resourceType.Name +
+                                              " has no parent resource type, but a parent element of type " +
+                                              Parameters[0].Type.Name +
+                                              " was specified.");
+                }
             }
             else
             {
