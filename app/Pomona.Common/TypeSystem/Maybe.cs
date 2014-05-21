@@ -135,6 +135,8 @@ namespace Pomona.Common.TypeSystem
         {
             if (cases == null)
                 throw new ArgumentNullException("cases");
+            if (!hasValue)
+                return Maybe<TRet>.Empty;
             return cases(Switch()).EndSwitch();
         }
 
