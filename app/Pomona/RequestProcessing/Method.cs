@@ -98,6 +98,10 @@ namespace Pomona.RequestProcessing
             object resourceIdArg = null;
             var httpMethod = request.Method;
 
+            ResourceType resourceType = null;
+            ResourceType parentResourceType = null;
+            Type[] genericType = methodInfo.ReturnType.GetGenericArguments();
+
             if (request.Node.NodeType == PathNodeType.Resource)
             {
                 switch (httpMethod)
@@ -106,7 +110,8 @@ namespace Pomona.RequestProcessing
                     {
                         var resourceNode = (ResourceNode) request.Node;
                         object parsedId;
-                        if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId))
+                        if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId) &&
+                            !typeof (IQueryable<Object>).IsAssignableFrom(methodInfo.ReturnType))
                             throw new NotImplementedException("What to do when ID won't parse here??");
 
                         resourceIdArg = parsedId;
@@ -130,9 +135,22 @@ namespace Pomona.RequestProcessing
                         break;
                 }
             }
+
+            // If the method returns an IQueryable<Object> and takes a parent resource parameter,
+            // check that the parameter is actually the parent resource type of the resouce type.
+            if (genericType.Length == 1 && typeof (IQueryable<Object>).IsAssignableFrom(methodInfo.ReturnType))
+            {
+                resourceType = TypeMapper.FromType(genericType[0]) as ResourceType;
+                if (resourceType != null)
+                {
+                    parentResourceType = resourceType.ParentResourceType;
+                }
+            }
+
             for (var i = 0; i < Parameters.Count; i++)
             {
                 var p = Parameters[i];
+
                 if (p.IsResource && p.Type.IsInstanceOfType(resourceArg))
                     args[i] = resourceArg;
                 else if (p.Type == typeof (PomonaRequest))
@@ -141,6 +159,19 @@ namespace Pomona.RequestProcessing
                     args[i] = request.NancyContext;
                 else if (p.Type == typeof (TypeMapper))
                     args[i] = request.TypeMapper;
+                else if (parentResourceType != null && parentResourceType.Type == p.Type)
+                {
+                    if (request.Node != null && request.Node.Parent != null)
+                        args[i] = request.Node.Parent.Value;
+                    else
+                    {
+                        String errorString = "Type " + resourceType.Name +
+                                             " has the parent resource type " +
+                                             parentResourceType.Name +
+                                             ", but no parent element was specified.";
+                        throw new PomonaException(errorString);
+                    }
+                }
                 else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
                     args[i] = resourceIdArg;
                 else
@@ -177,7 +208,6 @@ namespace Pomona.RequestProcessing
             return Name.ToLowerInvariant().StartsWith(start.ToLowerInvariant());
         }
 
-
         public bool ReturnsType(Type returnType)
         {
             return returnType.IsAssignableFrom(methodInfo.ReturnType);
@@ -209,17 +239,12 @@ namespace Pomona.RequestProcessing
             {
                 ParameterInfo[] parentParameter = methodInfo.GetParameters();
                 if (parentParameter.Length != 1 ||
-                    !parentParameter[0].ParameterType.Equals(resourceType.ParentResourceType))
+                    parentParameter[0].ParameterType != resourceType.ParentResourceType.Type)
                     return false;
             }
 
             // Check that it returns an IQueryable<Object>.
-            if (!typeof (IQueryable<Object>).IsAssignableFrom(methodInfo.ReturnType))
-                return false;
-
-            // Check that the IQueryable has the correct generic type, e.g. IQueryable<TypeName>.
-            Type[] genericType = methodInfo.ReturnType.GetGenericArguments();
-            if (genericType.Length != 1 || !genericType[0].Name.Equals(resourceType.Type.Name))
+            if (!typeof (IQueryable<>).MakeGenericType(resourceType.Type).IsAssignableFrom(methodInfo.ReturnType))
                 return false;
 
             return true;

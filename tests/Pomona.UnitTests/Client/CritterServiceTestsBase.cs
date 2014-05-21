@@ -118,8 +118,8 @@ namespace Pomona.UnitTests.Client
                     var critterBootstrapper = new CritterBootstrapper();
                     cachedNancyTestingClientRepository = critterBootstrapper.Repository;
                     cachedNancyTestingClient = CreateInMemoryTestingClient(this.baseUri, critterBootstrapper);
-                    TypeMapper = critterBootstrapper.TypeMapper;
                 }
+                TypeMapper = cachedNancyTestingClientRepository.TypeMapper;
                 this.client = cachedNancyTestingClient;
                 Repository = cachedNancyTestingClientRepository;
             }
