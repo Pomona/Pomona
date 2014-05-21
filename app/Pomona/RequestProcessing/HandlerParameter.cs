@@ -31,14 +31,14 @@ namespace Pomona.RequestProcessing
 
     #region Nested type: Parameter
 
-    public class Parameter
+    public class HandlerParameter
     {
-        private readonly Method method;
+        private readonly HandlerMethod method;
         private readonly ParameterInfo parameterInfo;
         private TypeSpec typeSpec;
 
 
-        public Parameter(ParameterInfo parameterInfo, Method method)
+        public HandlerParameter(ParameterInfo parameterInfo, HandlerMethod method)
         {
             this.parameterInfo = parameterInfo;
             this.method = method;

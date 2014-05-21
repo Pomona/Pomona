@@ -47,8 +47,8 @@ namespace Pomona.RequestProcessing
 
     public class HandlerRequestProcessor<THandler> : HandlerRequestProcessor
     {
-        private static readonly ConcurrentDictionary<string, Method> handlerMethodCache =
-            new ConcurrentDictionary<string, Method>();
+        private static readonly ConcurrentDictionary<string, HandlerMethod> handlerMethodCache =
+            new ConcurrentDictionary<string, HandlerMethod>();
 
 
         public override PomonaResponse Process(PomonaRequest request)
@@ -63,11 +63,11 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public IEnumerable<Method> GetHandlerMethods(TypeMapper mapper)
+        public IEnumerable<HandlerMethod> GetHandlerMethods(TypeMapper mapper)
         {
             return
                 typeof (THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance).Select(
-                    x => new Method(x, mapper));
+                    x => new HandlerMethod(x, mapper));
         }
 
 
@@ -80,7 +80,8 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private Method GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType, TypeMapper mapper)
+        private HandlerMethod GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType,
+            TypeMapper mapper)
         {
             var cacheKey = string.Format("{0}:{1}:{2}", method, resourceType.FullName, nodeType);
             return handlerMethodCache.GetOrAdd(cacheKey,
@@ -97,7 +98,7 @@ namespace Pomona.RequestProcessing
 
 
         private PomonaResponse InvokeAndWrap(PomonaRequest request,
-            Method method,
+            HandlerMethod method,
             HttpStatusCode? statusCode = null)
         {
             // Continue to next request processor if method was not found.
@@ -170,7 +171,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private Method ResolveHandlerMethod(HttpMethod method,
+        private HandlerMethod ResolveHandlerMethod(HttpMethod method,
             Type resourceType,
             PathNodeType nodeType,
             TypeMapper mapper)
