@@ -98,9 +98,7 @@ namespace Pomona.RequestProcessing
             object resourceIdArg = null;
             var httpMethod = request.Method;
 
-            ResourceType resourceType = null;
             ResourceType parentResourceType = null;
-            Type[] returnTypeArgs = methodInfo.ReturnType.GetGenericArguments();
 
             if (request.Node.NodeType == PathNodeType.Resource)
             {
@@ -140,66 +138,64 @@ namespace Pomona.RequestProcessing
             // check that the parameter is actually the parent resource type of the resouce type.
             if (typeof (IQueryable<Object>).IsAssignableFrom(methodInfo.ReturnType))
             {
-                resourceType = request.Node.Type as ResourceType;
+                var resourceType = request.Node.Type as ResourceType;
                 if (resourceType != null)
                     parentResourceType = resourceType.ParentResourceType;
-                if (parentResourceType != null)
-                {
-                    if (Parameters.Count != 1)
-                    {
-                        throw new PomonaException("Type " + resourceType.Name +
-                                                  " has the parent resource type " +
-                                                  parentResourceType.Name +
-                                                  ", but no parent element was specified.");
-                    }
-                    else if (parentResourceType.Type != Parameters[0].Type)
-                    {
-                        throw new PomonaException("Type " + resourceType.Name +
-                                                  " has the parent resource type " +
-                                                  parentResourceType.Name +
-                                                  ", but a parent element of type " + Parameters[0].Type.Name +
-                                                  " was specified.");
-                    }
-                    else
-                    {
-                        args[0] = request.Node.Parent.Value;
-                    }
-                }
-                else if (Parameters.Count != 0)
-                {
-                    throw new PomonaException("Type " + resourceType.Name +
-                                              " has no parent resource type, but a parent element of type " +
-                                              Parameters[0].Type.Name +
-                                              " was specified.");
-                }
-            }
-            else
-            {
-                for (var i = 0; i < Parameters.Count; i++)
-                {
-                    var p = Parameters[i];
+                var resourceCount = Parameters.Count(x => x.IsResource);
+                var resourceParameter = Parameters.FirstOrDefault(x => x.IsResource);
 
-                    if (p.IsResource && p.Type.IsInstanceOfType(resourceArg))
-                        args[i] = resourceArg;
-                    else if (p.Type == typeof (PomonaRequest))
-                        args[i] = request;
-                    else if (p.Type == typeof (NancyContext))
-                        args[i] = request.NancyContext;
-                    else if (p.Type == typeof (TypeMapper))
-                        args[i] = request.TypeMapper;
-                    else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
-                        args[i] = resourceIdArg;
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            string.Format(
-                                "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
-                                methodInfo.ReflectedType,
-                                methodInfo.Name,
-                                p.Name));
-                    }
+                if (resourceCount == 0 && parentResourceType != null)
+                {
+                    throw new PomonaException("Type " + request.Node.Type.Name +
+                                              " has the parent resource type " +
+                                              parentResourceType.Name +
+                                              ", but no parent element was specified.");
+                }
+
+                if (resourceCount == 1)
+                {
+                    if (parentResourceType == null)
+                        throw new PomonaException("Type " + request.Node.Type.Name +
+                                                  " has no parent resource type, but a parent element of type " +
+                                                  resourceParameter.Type.Name +
+                                                  " was specified.");
+
+                    if (parentResourceType != resourceParameter.Type)
+                        throw new PomonaException("Type " + request.Node.Type.Name +
+                                                  " has the parent resource type " +
+                                                  parentResourceType.Name +
+                                                  ", but a parent element of type " + resourceParameter.Type.Name +
+                                                  " was specified.");
+
+                    resourceArg = request.Node.Parent.Value;
                 }
             }
+
+            for (var i = 0; i < Parameters.Count; i++)
+            {
+                var p = Parameters[i];
+
+                if (p.IsResource && p.Type.IsInstanceOfType(resourceArg))
+                    args[i] = resourceArg;
+                else if (p.Type == typeof (PomonaRequest))
+                    args[i] = request;
+                else if (p.Type == typeof (NancyContext))
+                    args[i] = request.NancyContext;
+                else if (p.Type == typeof (TypeMapper))
+                    args[i] = request.TypeMapper;
+                else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
+                    args[i] = resourceIdArg;
+                else
+                {
+                    throw new InvalidOperationException(
+                        string.Format(
+                            "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
+                            methodInfo.ReflectedType,
+                            methodInfo.Name,
+                            p.Name));
+                }
+            }
+
             return methodInfo.Invoke(target, args);
         }
 
