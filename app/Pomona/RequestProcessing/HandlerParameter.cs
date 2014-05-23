@@ -1,9 +1,7 @@
-#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -24,23 +22,53 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
+using System;
+using System.Reflection;
+using Pomona.Common.TypeSystem;
 
-using Critters.Client;
-using NUnit.Framework;
-using System.Linq;
-
-namespace Pomona.SystemTests
+namespace Pomona.RequestProcessing
 {
-    [TestFixture]
-    public class PostToResourceTests : ClientTestsBase
+
+    #region Nested type: Parameter
+
+    public class HandlerParameter
     {
-        [Test]
-        public void PostCaptureCommandToCritter_IsSuccessful()
+        private readonly HandlerMethod method;
+        private readonly ParameterInfo parameterInfo;
+        private TypeSpec typeSpec;
+
+
+        public HandlerParameter(ParameterInfo parameterInfo, HandlerMethod method)
         {
-            var critterResource = Client.Critters.Query().First();
-            critterResource = (ICritter)Client.Critters.Post(critterResource, new CaptureCommandForm() {FooBar = "lalala"});
-            Assert.That(critterResource.IsCaptured, Is.True);
+            this.parameterInfo = parameterInfo;
+            this.method = method;
+        }
+
+
+        public bool IsResource
+        {
+            get { return TypeSpec is ResourceType; }
+        }
+
+        public string Name
+        {
+            get { return parameterInfo.Name; }
+        }
+
+        public Type Type
+        {
+            get { return parameterInfo.ParameterType; }
+        }
+
+        public TypeSpec TypeSpec
+        {
+            get
+            {
+                method.TypeMapper.TryGetTypeSpec(parameterInfo.ParameterType, out typeSpec);
+                return typeSpec;
+            }
         }
     }
+
+    #endregion
 }

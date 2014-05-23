@@ -146,7 +146,7 @@ namespace Pomona.Example
             lock (this.syncLock)
             {
                 var entityType = typeof(T);
-                var entityUriBaseType = ((ResourceType)this.typeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
+                var entityUriBaseType = ((ResourceType)this.TypeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
 
                 return
                     (IQueryable<T>)
@@ -199,6 +199,11 @@ namespace Pomona.Example
                 lock (this.syncLock)
                     return this.queryLog;
             }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return typeMapper; }
         }
 
 
@@ -324,7 +329,7 @@ namespace Pomona.Example
 
         public T SaveInternal<T>(T entity, HashSet<object> savedObjects)
         {
-            var typeSpec = typeMapper.GetClassMapping(typeof(T));
+            var typeSpec = TypeMapper.GetClassMapping(typeof(T));
 
             if (savedObjects.Contains(entity))
                 return entity;
@@ -438,7 +443,7 @@ namespace Pomona.Example
 
         private Type GetBaseUriType<T>()
         {
-            var transformedType = (TransformedType)this.typeMapper.GetClassMapping<T>();
+            var transformedType = (TransformedType)this.TypeMapper.GetClassMapping<T>();
             var mappedTypeInstance =
                 (transformedType.Maybe().OfType<ResourceType>().Select(x => (TransformedType)x.UriBaseType).OrDefault(
                     () => transformedType)).Type;
@@ -449,7 +454,7 @@ namespace Pomona.Example
         private IList<T> GetEntityList<T>()
         {
             var type = typeof(T);
-            var tt = (ResourceType)typeMapper.GetClassMapping(type);
+            var tt = (ResourceType)TypeMapper.GetClassMapping(type);
             if (tt.IsRootResource)
             {
                 object list;
