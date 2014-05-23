@@ -123,10 +123,12 @@ namespace Pomona.SystemTests
             var patched = Client.Critters.Patch(Client.Critters.Get(critter.Id),
                 x =>
                 {
-                    x.SimpleAttributes = new List<ISimpleAttribute>()
-                    {
-                        new SimpleAttributeForm() { Key = "B", Value = "2" }
-                    };
+                    //x.SimpleAttributes = new List<ISimpleAttribute>()
+                    //{
+                    //    new SimpleAttributeForm() { Key = "B", Value = "2" }
+                    //};
+                    x.SimpleAttributes.Clear();
+                    x.SimpleAttributes.Add(new SimpleAttributeForm() { Key = "B", Value = "2" });
                 });
 
             Assert.That(patched.SimpleAttributes.Count, Is.EqualTo(1));

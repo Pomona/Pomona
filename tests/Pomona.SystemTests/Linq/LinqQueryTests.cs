@@ -126,16 +126,40 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_GetSumOfDecimalProperty()
+        public void QueryCritter_GetSumOfDecimal()
         {
             var expected = CritterEntities.Sum(x => (decimal)x.Id);
             var actual = Client.Query<ICritter>().Sum(x => (decimal)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
+        [Test]
+        public void QueryCritter_GetSumOfNullableDecimal()
+        {
+            var expected = CritterEntities.Sum(x => (decimal?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (decimal?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
 
         [Test]
-        public void QueryCritter_GetSumOfDoubleProperty()
+        public void QueryCritter_GetSumOfNullableInt()
+        {
+            var expected = CritterEntities.Sum(x => (int?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (int?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_GetSumOfNullableDouble()
+        {
+            var expected = CritterEntities.Sum(x => (double?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (double?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GetSumOfDouble()
         {
             var expected = CritterEntities.Sum(x => (double)x.Id);
             var actual = Client.Query<ICritter>().Sum(x => (double)x.Id);
@@ -144,7 +168,7 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_GetSumOfIntProperty()
+        public void QueryCritter_GetSumOfInt()
         {
             var expected = CritterEntities.Sum(x => x.Name.Length);
             var actual = Client.Query<ICritter>().Sum(x => x.Name.Length);

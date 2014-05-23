@@ -357,6 +357,11 @@ namespace Pomona.Common.Linq
 
         internal void QSelect<TSource, TResult>(Expression<Func<TSource, TResult>> selector)
         {
+            QSelect((LambdaExpression)selector);
+        }
+
+        internal void QSelect(LambdaExpression selector)
+        {
             if (this.expandedPaths.Length > 0)
                 throw new NotSupportedException("Pomona LINQ provider does not support using Expand() before Select()");
             this.selectExpression = this.selectExpression != null ? MergeWhereAfterSelect(selector) : selector;
@@ -401,27 +406,48 @@ namespace Pomona.Common.Linq
 
         internal void QSum<TSource>(Expression<Func<TSource, int>> propertySelector)
         {
-            QSelect(propertySelector);
-            QSum();
+            Sum(propertySelector);
         }
 
 
         internal void QSum<TSource>(Expression<Func<TSource, decimal>> propertySelector)
         {
-            QSelect(propertySelector);
-            QSum();
+            Sum(propertySelector);
         }
 
 
         internal void QSum<TSource>(Expression<Func<TSource, double>> propertySelector)
         {
-            QSelect(propertySelector);
-            QSum();
+            Sum(propertySelector);
+        }
+
+        internal void QSum<TSource>(Expression<Func<TSource, int?>> propertySelector)
+        {
+            Sum(propertySelector);
+        }
+
+
+        internal void QSum<TSource>(Expression<Func<TSource, decimal?>> propertySelector)
+        {
+            Sum(propertySelector);
+        }
+
+
+        internal void QSum<TSource>(Expression<Func<TSource, double?>> propertySelector)
+        {
+            Sum(propertySelector);
         }
 
 
         internal void QSum()
         {
+            Sum();
+        }
+
+        private void Sum(LambdaExpression propertySelector = null)
+        {
+            if (propertySelector != null)
+                QSelect(propertySelector);
             this.projection = QueryProjection.Sum;
         }
 
