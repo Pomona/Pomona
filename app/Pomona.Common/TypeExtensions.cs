@@ -355,8 +355,13 @@ namespace Pomona.Common
                 if ((wantedType.GenericParameterAttributes & GenericParameterAttributes.DefaultConstructorConstraint) ==
                     GenericParameterAttributes.DefaultConstructorConstraint)
                 {
-                    if (!wantedType.IsValueType && actualType.GetConstructor(Type.EmptyTypes) == null)
+                    var isValueType = wantedType.IsValueType
+                                      || (wantedType.GenericParameterAttributes
+                                          & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+                    if (!isValueType && actualType.GetConstructor(Type.EmptyTypes) == null)
+                    {
                         return false;
+                    }
                 }
 
                 typeArgsWasResolved = true;
