@@ -56,6 +56,11 @@ namespace Pomona.UnitTests.Client
             Tock
         }
 
+        public interface IQueryableFooBarRepo : IQueryable<FooBar>
+        {
+            
+        }
+
         public class TestResource : IClientResource
         {
             public IDictionary<string, string> Attributes { get; set; }
@@ -74,6 +79,7 @@ namespace Pomona.UnitTests.Client
             public double Precise { get; set; }
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
+            public IQueryableFooBarRepo SomeQueryable { get; set; }
             public TestEnum? SomeNullableEnum { get; set; }
             public IDictionary<string, object> StringObjectAttributes { get; set; }
             public TimeSpan TimeSpan { get; set; }
@@ -528,6 +534,14 @@ namespace Pomona.UnitTests.Client
             AssertBuild(
                 x => x.SomeList.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
                 "someList.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
+        }
+
+        [Test]
+        public void BuildRecursiveLambdaExpressionOnQueryableRepository_ReturnsCorrectString()
+        {
+            AssertBuild(
+                x => x.SomeQueryable.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
+                "someQueryable.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
         }
 
 

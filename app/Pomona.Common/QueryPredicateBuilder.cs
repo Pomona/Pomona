@@ -606,11 +606,15 @@ namespace Pomona.Common
 
                 var enumerableMethod =
                     typeof (Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
-                                       .FirstOrDefault(x => x.Name == method.Name &&
-                                                            x.GetParameters()
+                                        .Where(x => x.Name == method.Name)
+                                        .Select(x => new {parameters = x.GetParameters(), mi = x})
+                                        .Where(x => x.parameters.Length == wantedArgs.Length &&
+                                                            x.parameters
                                                              .Select(y => y.ParameterType)
                                                              .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
-                                                             .All(y => y));
+                                                             .All(y => y))
+                                        .Select(x => x.mi)
+                                        .FirstOrDefault();
 
                 if (enumerableMethod != null)
                 {
