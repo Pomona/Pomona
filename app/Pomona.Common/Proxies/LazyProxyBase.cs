@@ -71,14 +71,6 @@ namespace Pomona.Common.Proxies
         }
 
 
-        protected object OnPropertyGet(string propertyName)
-        {
-            Fetch();
-
-            // TODO: Optimize this, maybe OnPropertyGet could provide a lambda to return the prop value from an interface.
-            return proxyTargetType.GetProperty(propertyName).GetValue(proxyTarget, null);
-        }
-
         private void Fetch()
         {
             if (proxyTarget == null)
@@ -91,13 +83,6 @@ namespace Pomona.Common.Proxies
                 }
             }
         }
-
-
-        protected void OnPropertySet(string propertyName, object value)
-        {
-            throw new NotImplementedException();
-        }
-
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
