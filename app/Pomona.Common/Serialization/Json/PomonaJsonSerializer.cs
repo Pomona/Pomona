@@ -370,7 +370,7 @@ namespace Pomona.Common.Serialization.Json
                 propertiesToSerialize = cacheTypeEntry.ManuallyWrittenProperties;
             }
 
-            propertiesToSerialize = propertiesToSerialize ?? node.ValueType.Properties;
+            propertiesToSerialize = propertiesToSerialize ?? node.ValueType.AllProperties;
 
             propertiesToSerialize = propertiesToSerialize.Where(x => node.Context.PropertyIsSerialized(x));
 

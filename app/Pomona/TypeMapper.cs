@@ -204,9 +204,16 @@ namespace Pomona
         {
             if (typeSpec is TransformedType)
             {
+                var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
+                    ? typeSpec.Type.GetInterfaces().Where(x => !filter.TypeIsMapped(x)).SelectMany(
+                        x => x.GetProperties())
+                    : Enumerable.Empty<PropertyInfo>();
+
                 return typeSpec.Type
                     .GetProperties(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public
-                                   | BindingFlags.NonPublic).Where(x => this.filter.PropertyIsIncluded(x))
+                                   | BindingFlags.NonPublic)
+                    .Concat(propertiesFromNonMappedInterfaces)
+                    .Where(x => this.filter.PropertyIsIncluded(x))
                     .Select(x => WrapProperty(typeSpec, x));
             }
 
@@ -274,6 +281,17 @@ namespace Pomona
         public override PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
         {
             return filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
+        }
+
+
+        public override IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
+        {
+            if (typeSpec is TransformedType)
+            {
+                return base.LoadInterfaces(typeSpec).Where(x => filter.TypeIsMappedAsTransformedType(x));
+            }
+
+            return base.LoadInterfaces(typeSpec);
         }
 
 
