@@ -49,6 +49,8 @@ namespace Pomona.UnitTests.Client
 
         private CritterHost critterHost;
 
+        protected bool RequestTraceEnabled { get; set; }
+
         public virtual bool UseSelfHostedHttpServer
         {
             get { return UseSelfHostedHttpServerDefault; }
@@ -139,6 +141,7 @@ namespace Pomona.UnitTests.Client
         [SetUp]
         public virtual void SetUp()
         {
+            RequestTraceEnabled = true;
             Repository.ResetTestData();
         }
 

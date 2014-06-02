@@ -53,9 +53,12 @@ namespace Pomona.SystemTests
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
             requestLog.Add(e);
-            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                e.Request,
-                (object)e.Response ?? "(nothing received)");
+            if (RequestTraceEnabled)
+            {
+                Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
+                    e.Request,
+                    (object)e.Response ?? "(nothing received)");
+            }
         }
 
         private readonly List<ClientRequestLogEventArgs> requestLog = new List<ClientRequestLogEventArgs>();

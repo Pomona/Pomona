@@ -439,6 +439,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues_ManyTimes()
         {
+            RequestTraceEnabled = false;
             var expected =
                 CritterEntities.Where(
                     x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
