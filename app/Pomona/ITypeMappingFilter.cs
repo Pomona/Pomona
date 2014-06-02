@@ -56,7 +56,6 @@ namespace Pomona
 
         bool IsIndependentTypeRoot(Type type);
         JsonConverter GetJsonConverterForType(Type type);
-        PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);
         Type GetPostReturnType(Type type);
         Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo);
         string GetPropertyMappedName(PropertyInfo propertyInfo);

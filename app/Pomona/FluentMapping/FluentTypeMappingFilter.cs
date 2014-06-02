@@ -229,12 +229,6 @@ namespace TestNs
         }
 
 
-        public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
-        {
-            return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
-        }
-
-
         public string GetTypeMappedName(Type type)
         {
             return FromMappingOrDefault(type, x => x.Name, () => wrappedFilter.GetTypeMappedName(type));

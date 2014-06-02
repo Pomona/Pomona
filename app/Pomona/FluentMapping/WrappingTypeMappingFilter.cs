@@ -133,12 +133,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
-        {
-            return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
-        }
-
-
         public virtual PropertyInfo GetParentToChildProperty(Type type)
         {
             return this.wrappedFilter.GetParentToChildProperty(type);

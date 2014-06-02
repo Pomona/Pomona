@@ -438,36 +438,6 @@ namespace Pomona
         }
 
 
-        public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
-        {
-            if (collectionProperty == null)
-                throw new ArgumentNullException("collectionProperty");
-            Type[] genericArguments;
-            if (
-                !TypeUtils.TryGetTypeArguments(
-                    collectionProperty.PropertyType,
-                    typeof(IEnumerable<>),
-                    out genericArguments))
-                return null;
-
-            var elementType = genericArguments[0];
-
-            var foreignPropCandicates =
-                elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
-            if (foreignPropCandicates.Count > 1)
-            {
-                Log(
-                    "WARNING: Not mapping foreign key relation of one-to-many collection property "
-                    + collectionProperty.Name
-                    + " of type "
-                    + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
-                    + string.Join(", ", foreignPropCandicates.Select(x => x.Name)) + " (of " + elementType.FullName);
-            }
-
-            return foreignPropCandicates.Count == 1 ? foreignPropCandicates[0] : null;
-        }
-
-
         public string GetTypeMappedName(Type type)
         {
             return type.Name;
