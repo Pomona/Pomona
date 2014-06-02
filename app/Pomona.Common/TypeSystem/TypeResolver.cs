@@ -196,9 +196,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual PropertySpec FromProperty(PropertyInfo propertyInfo)
+        public virtual PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo)
         {
-            return FromType(propertyInfo.ReflectedType).GetPropertyByName(propertyInfo.Name, false);
+            return FromType(reflectedType).GetPropertyByName(propertyInfo.Name, false);
         }
 
         public virtual TypeSpec FromType(Type type)

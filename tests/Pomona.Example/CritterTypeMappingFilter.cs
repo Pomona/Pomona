@@ -86,7 +86,7 @@ namespace Pomona.Example
         }
 
 
-        public override LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        public override LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             try
             {
@@ -99,7 +99,7 @@ namespace Pomona.Example
                 catch
                 {
                 }
-                return base.GetDecompiledPropertyFormula(propertyInfo);
+                return base.GetDecompiledPropertyFormula(type, propertyInfo);
             }
             catch (Exception ex)
             {
@@ -136,14 +136,14 @@ namespace Pomona.Example
         }
 
 
-        public override bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        public override bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof(DictionaryContainer) && propertyInfo.Name == "Map")
                 return true;
             if (propertyInfo.DeclaringType == typeof(OrderResponse) && propertyInfo.Name == "Order")
                 return true;
 
-            return base.PropertyIsAlwaysExpanded(propertyInfo);
+            return base.PropertyIsAlwaysExpanded(type, propertyInfo);
         }
 
 

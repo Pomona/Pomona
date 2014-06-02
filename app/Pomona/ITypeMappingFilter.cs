@@ -78,10 +78,10 @@ namespace Pomona
         PropertyInfo GetParentToChildProperty(Type type);
         PropertyInfo GetChildToParentProperty(Type type);
 
-        bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo);
+        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
 
-        bool PropertyIsIncluded(PropertyInfo propertyInfo);
-        bool PropertyIsPrimaryId(PropertyInfo propertyInfo);
+        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
         Type ResolveRealTypeForProxy(Type type);
         bool TypeIsMapped(Type type);
         bool TypeIsMappedAsCollection(Type type);
@@ -89,14 +89,14 @@ namespace Pomona
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
         bool TypeIsExposedAsRepository(Type type);
-        bool PropertyIsAttributes(PropertyInfo propertyInfo);
-        LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo);
-        bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);
-        LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
-        bool PropertyIsEtag(PropertyInfo propertyInfo);
+        bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
+        bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
         string GetTypeMappedName(Type type);
         string GetPluralNameForType(Type type);
-        PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
+        PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
         HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec);
 
         bool PostOfTypeIsAllowed(Type type);

@@ -508,7 +508,7 @@ namespace Pomona.Common.Serialization.Json
             public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
             {
                 var type = this.node.ValueType;
-                var targetProp = type.TypeResolver.FromProperty(propertyInfo);
+                var targetProp = type.TypeResolver.FromProperty(type, propertyInfo);
                 PropertyContainer propContainer;
                 if (!this.propertyDict.TryGetValue(targetProp.JsonName, out propContainer))
                 {

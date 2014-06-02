@@ -122,7 +122,7 @@ namespace Pomona
         }
 
 
-        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -190,8 +190,7 @@ namespace Pomona
         }
 
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
-            ParameterInfo ctorParameterInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
             if (ctorParameterInfo != null)
                 return PropertyCreateMode.Required;
@@ -210,7 +209,7 @@ namespace Pomona
         }
 
 
-        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -300,7 +299,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
+        public virtual bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -308,7 +307,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -316,7 +315,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -324,7 +323,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -332,7 +331,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -341,7 +340,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");

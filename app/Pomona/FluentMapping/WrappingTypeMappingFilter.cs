@@ -103,9 +103,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetDecompiledPropertyFormula(propertyInfo);
+            return this.wrappedFilter.GetDecompiledPropertyFormula(type, propertyInfo);
         }
 
 
@@ -163,10 +163,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
-            ParameterInfo ctorParameterInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
-            return this.wrappedFilter.GetPropertyCreateMode(propertyInfo, ctorParameterInfo);
+            return this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo, ctorParameterInfo);
         }
 
 
@@ -187,9 +186,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyFormula(propertyInfo);
+            return this.wrappedFilter.GetPropertyFormula(type, propertyInfo);
         }
 
 
@@ -253,39 +252,39 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
+        public virtual bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyFormulaIsDecompiled(propertyInfo);
+            return this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo);
+            return this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsAttributes(propertyInfo);
+            return this.wrappedFilter.PropertyIsAttributes(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsEtag(propertyInfo);
+            return this.wrappedFilter.PropertyIsEtag(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
+            return this.wrappedFilter.PropertyIsIncluded(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsPrimaryId(propertyInfo);
+            return this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo);
         }
 
 

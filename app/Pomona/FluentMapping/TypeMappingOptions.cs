@@ -176,16 +176,17 @@ namespace Pomona.FluentMapping
         internal PropertyMappingOptions GetPropertyOptions(PropertyInfo propertyInfo)
         {
             var name = propertyInfo.Name;
-            var propInfo = this.declaringType.GetProperty(name,
-                BindingFlags.Public | BindingFlags.NonPublic
-                | (propertyInfo.IsStatic() ? BindingFlags.Static : BindingFlags.Instance));
-            if (propInfo == null)
-            {
-                throw new InvalidOperationException(
-                    "No property with name " + name + " found on type " + this.declaringType.FullName);
-            }
+            //var propInfo = this.declaringType.GetProperty(name,
+            //    BindingFlags.Public | BindingFlags.NonPublic
+            //    | (propertyInfo.IsStatic() ? BindingFlags.Static : BindingFlags.Instance));
+            //if (propInfo == null)
+            //{
+            //    throw new InvalidOperationException(
+            //        "No property with name " + name + " found on type " + this.declaringType.FullName);
+            //}
 
-            return this.propertyOptions.GetOrAdd(propInfo.Name, pi => new PropertyMappingOptions(propInfo));
+            //return this.propertyOptions.GetOrAdd(propInfo.Name, pi => new PropertyMappingOptions(propInfo));
+            return this.propertyOptions.GetOrAdd(propertyInfo.Name, pi => new PropertyMappingOptions(propertyInfo));
         }
 
 

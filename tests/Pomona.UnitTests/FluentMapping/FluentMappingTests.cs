@@ -223,10 +223,10 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesOverriddenPropertyInInheritedClass()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.ToBeOverridden)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.ToBeOverridden)), Is.True);
 
             var propInfo = typeof(Top).GetProperty("ToBeOverridden");
-            Assert.That(filter.PropertyIsIncluded(propInfo), Is.True);
+            Assert.That(filter.PropertyIsIncluded(typeof(Top), propInfo), Is.True);
         }
 
 
@@ -234,8 +234,8 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.Id)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.Id)), Is.True);
         }
 
 
@@ -243,7 +243,7 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
+            Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
         }
 
 
@@ -251,7 +251,7 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToIncludedByDefault_MakesPropertyIncludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.True);
         }
 
 

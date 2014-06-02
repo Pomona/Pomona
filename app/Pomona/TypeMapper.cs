@@ -110,14 +110,14 @@ namespace Pomona
         {
             var propInfo = propertyMapping.PropertyInfo;
             var details = new ExportedPropertyDetails(
-                this.filter.PropertyIsAttributes(propInfo),
-                this.filter.PropertyIsEtag(propInfo),
-                this.filter.PropertyIsPrimaryId(propInfo),
+                this.filter.PropertyIsAttributes(propertyMapping.ReflectedType, propInfo),
+                this.filter.PropertyIsEtag(propertyMapping.ReflectedType, propInfo),
+                this.filter.PropertyIsPrimaryId(propertyMapping.ReflectedType, propInfo),
                 this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
                 this.filter.GetPropertyItemAccessMode(propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
                 NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propInfo)),
-                this.filter.PropertyIsAlwaysExpanded(propInfo));
+                this.filter.PropertyIsAlwaysExpanded(propertyMapping.ReflectedType, propInfo));
             return details;
         }
 
@@ -175,9 +175,9 @@ namespace Pomona
             var propSpec = memberSpec as PropertySpec;
             if (propSpec != null)
             {
-                var formulaExpr = filter.GetPropertyFormula(propSpec.PropertyInfo)
-                                  ?? (filter.PropertyFormulaIsDecompiled(propSpec.PropertyInfo)
-                                      ? filter.GetDecompiledPropertyFormula(propSpec.PropertyInfo)
+                var formulaExpr = filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo)
+                                  ?? (filter.PropertyFormulaIsDecompiled(propSpec.ReflectedType, propSpec.PropertyInfo)
+                                      ? filter.GetDecompiledPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo)
                                       : null);
                 if (formulaExpr != null)
                 {
@@ -213,7 +213,7 @@ namespace Pomona
                     .GetProperties(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public
                                    | BindingFlags.NonPublic)
                     .Concat(propertiesFromNonMappedInterfaces)
-                    .Where(x => this.filter.PropertyIsIncluded(x))
+                    .Where(x => this.filter.PropertyIsIncluded(typeSpec.Type, x))
                     .Select(x => WrapProperty(typeSpec, x));
             }
 
