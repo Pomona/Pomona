@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,15 +36,16 @@ using System.Linq.Expressions;
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
-using Pomona.Common.Serialization;
 
 namespace Pomona.Common
 {
-    public class ChildResourceRepository<TResource, TPostResponseResource> : ClientRepository<TResource, TPostResponseResource>
+    public class ChildResourceRepository<TResource, TPostResponseResource, TId>
+        : ClientRepository<TResource, TPostResponseResource, TId>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
         private readonly IClientResource parent;
+
 
         public ChildResourceRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
             : base(client, uri, results, parent)
@@ -55,39 +56,74 @@ namespace Pomona.Common
 
         public override TPostResponseResource Post(IPostForm form)
         {
-            return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form),GetEtagOptions());
-        }
-
-
-        private RequestOptions GetEtagOptions()
-        {
-            var parentResourceInfo = Client.GetMostInheritedResourceInterfaceInfo(this.parent.GetType());
-            RequestOptions options = null;
-            if (parentResourceInfo.HasEtagProperty)
-            {
-                var etag = parentResourceInfo.EtagProperty.GetValue(this.parent, null);
-                options = new RequestOptions();
-                options.ModifyRequest(r => r.Headers.Add("If-Match", string.Format("\"{0}\"", etag)));
-            }
-            return options;
+            var requestOptions = new RequestOptions();
+            AddEtagOptions(requestOptions);
+            return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form), requestOptions);
         }
 
 
         public override TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
         {
-            throw new NotImplementedException();
+            return base.Post(postAction, AddEtagOptions);
+        }
+
+
+        public override TPostResponseResource Post(Action<TResource> postAction)
+        {
+            return base.Post(postAction, AddEtagOptions);
+        }
+
+
+        public override TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+        {
+            return base.Post<TSubResource, TSubResponseResource>(postAction,
+                x =>
+                {
+                    if (options != null)
+                        options(x);
+                    AddEtagOptions(x);
+                });
+        }
+
+
+        public override TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+        {
+            return base.Post(postAction,
+                x =>
+                {
+                    if (options != null)
+                        options(x);
+                    AddEtagOptions(x);
+                });
+        }
+
+
+        private void AddEtagOptions(IRequestOptions options)
+        {
+            var parentResourceInfo = Client.GetMostInheritedResourceInterfaceInfo(this.parent.GetType());
+            if (parentResourceInfo.HasEtagProperty)
+            {
+                var etag = parentResourceInfo.EtagProperty.GetValue(this.parent, null);
+                options.ModifyRequest(r => r.Headers.Add("If-Match", string.Format("\"{0}\"", etag)));
+            }
         }
     }
 
-    public class ClientRepository<TResource, TPostResponseResource> :
-        IClientRepository<TResource, TPostResponseResource>, IQueryable<TResource>
+    public class ClientRepository<TResource, TPostResponseResource, TId>
+        :
+            IClientRepository<TResource, TPostResponseResource, TId>,
+            IQueryable<TResource>,
+            IGettableRepository<TResource, TId>,
+            IDeletableByIdRepository<TId>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
         private readonly ClientBase client;
 
-        private readonly string uri;
         private readonly IEnumerable<TResource> results;
+        private readonly string uri;
 
 
         public ClientRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
@@ -100,78 +136,9 @@ namespace Pomona.Common
         }
 
 
-        internal ClientBase Client
+        public Type ElementType
         {
-            get { return client; }
-        }
-
-        public string Uri
-        {
-            get { return uri; }
-        }
-
-
-        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
-        {
-            return client.Patch(resource, patchAction, options);
-        }
-
-        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
-            where TSubResource : class, TResource
-        {
-            return Patch(resource, patchAction, null);
-        }
-
-        public virtual TPostResponseResource Post(IPostForm form)
-        {
-            return (TPostResponseResource)client.Post(Uri, (TResource)((object)form), null);
-        }
-
-
-        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
-            where TSubResource : class, TResource
-        {
-            return (TPostResponseResource)client.Post(Uri, postAction, null);
-        }
-
-        public IQueryable<TSubResource> Query<TSubResource>()
-            where TSubResource : TResource
-        {
-            return client.Query<TSubResource>(uri);
-        }
-
-        public TPostResponseResource Post(Action<TResource> postActionBlah)
-        {
-            return (TPostResponseResource)client.Post(Uri, postActionBlah, null);
-        }
-
-        public object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : class, IPostForm, IClientResource
-        {
-            if (resource == null) throw new ArgumentNullException("resource");
-            if (form == null) throw new ArgumentNullException("form");
-
-            return client.Post(((IHasResourceUri)resource).Uri, form, null);
-        }
-
-        public TResource Get(object id)
-        {
-            return client.Get<TResource>(GetResourceUri(id));
-        }
-
-        public IQueryable<TResource> Query()
-        {
-            return client.Query<TResource>(uri);
-        }
-
-        public IEnumerator<TResource> GetEnumerator()
-        {
-            return results != null ? results.GetEnumerator() : Query().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            get { return typeof(TResource); }
         }
 
         public Expression Expression
@@ -179,24 +146,149 @@ namespace Pomona.Common
             get { return Expression.Constant(Query()); }
         }
 
-        public Type ElementType
-        {
-            get { return typeof (TResource); }
-        }
-
         public IQueryProvider Provider
         {
-            get { return new RestQueryProvider(client); }
+            get { return new RestQueryProvider(this.client); }
         }
 
-        public TResource GetLazy(object id)
+        public string Uri
         {
-            return client.GetLazy<TResource>(GetResourceUri(id));
+            get { return this.uri; }
         }
+
+        internal ClientBase Client
+        {
+            get { return this.client; }
+        }
+
+
+        public virtual TPostResponseResource Post(IPostForm form)
+        {
+            return (TPostResponseResource)this.client.Post(Uri, (TResource)((object)form), null);
+        }
+
+
+        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource
+        {
+            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+        }
+
+
+        public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource
+        {
+            var requestOptions = RequestOptions.Create(options, typeof(TSubResponseResource));
+            return (TSubResponseResource)this.client.Post(Uri, postAction, requestOptions);
+        }
+
+
+        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
+            Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return
+                (TPostResponseResource)
+                    this.client.Post(Uri, postAction, RequestOptions.Create(options, typeof(TPostResponseResource)));
+        }
+
+
+        public virtual TPostResponseResource Post(Action<TResource> postAction)
+        {
+            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+        }
+
+
+        public void Delete(TResource resource)
+        {
+            this.client.Delete(resource);
+        }
+
+
+        public TResource Get(TId id)
+        {
+            return this.client.Get<TResource>(GetResourceUri(id));
+        }
+
+
+        public IEnumerator<TResource> GetEnumerator()
+        {
+            return this.results != null ? this.results.GetEnumerator() : Query().GetEnumerator();
+        }
+
+
+        public TResource GetLazy(TId id)
+        {
+            return this.client.GetLazy<TResource>(GetResourceUri(id));
+        }
+
+
+        public TSubResource Patch<TSubResource>(TSubResource resource,
+            Action<TSubResource> patchAction,
+            Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return this.client.Patch(resource, patchAction, options);
+        }
+
+
+        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
+            where TSubResource : class, TResource
+        {
+            return Patch(resource, patchAction, null);
+        }
+
+
+        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource
+        {
+            return Post<TSubResource, TSubResponseResource>(postAction, null);
+        }
+
+
+        public object Post<TPostForm>(TResource resource, TPostForm form)
+            where TPostForm : class, IPostForm, IClientResource
+        {
+            if (resource == null)
+                throw new ArgumentNullException("resource");
+            if (form == null)
+                throw new ArgumentNullException("form");
+
+            return this.client.Post(((IHasResourceUri)resource).Uri, form, null);
+        }
+
+
+        public IQueryable<TSubResource> Query<TSubResource>()
+            where TSubResource : TResource
+        {
+            return this.client.Query<TSubResource>(this.uri);
+        }
+
+
+        public IQueryable<TResource> Query()
+        {
+            return this.client.Query<TResource>(this.uri);
+        }
+
+
+        void IDeletableByIdRepository<TId>.Delete(TId id)
+        {
+            client.Delete(GetLazy(id));
+        }
+
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
 
         private string GetResourceUri(object id)
         {
-            return string.Format("{0}/{1}", uri, HttpUtility.UrlPathEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
+            return string.Format("{0}/{1}",
+                this.uri,
+                HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
         }
     }
 }

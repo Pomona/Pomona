@@ -61,26 +61,32 @@ namespace Pomona.Common
 
         public Type GetResourceNonProxyInterfaceType(Type type)
         {
-            if (!typeof(IClientResource).IsAssignableFrom(type))
-                return type;
-
             if (!type.IsInterface)
             {
-                var interfaces =
-                    type.GetInterfaces().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToArray();
-                IEnumerable<Type> exceptTheseInterfaces =
-                    interfaces.SelectMany(
-                        x => x.GetInterfaces().Where(y => typeof(IClientResource).IsAssignableFrom(y))).
-                        Distinct().ToArray();
-                var mostSubtypedInterface =
-                    interfaces
-                        .Except(
-                            exceptTheseInterfaces)
-                        .Single();
-
-                type = mostSubtypedInterface;
+                if (typeof(IClientResource).IsAssignableFrom(type))
+                    return GetMainInterfaceFromConcreteType(typeof(IClientResource), type);
+                if (typeof(IClientRepository).IsAssignableFrom(type))
+                    return GetMainInterfaceFromConcreteType(typeof(IClientRepository), type);
             }
 
+            return type;
+        }
+
+
+        private static Type GetMainInterfaceFromConcreteType(Type interfaceType, Type type)
+        {
+            var interfaces =
+                type.GetInterfaces().Where(interfaceType.IsAssignableFrom).ToArray();
+            IEnumerable<Type> exceptTheseInterfaces =
+                interfaces.SelectMany(
+                    x => x.GetInterfaces().Where(interfaceType.IsAssignableFrom)).
+                    Distinct().ToArray();
+
+            var mostSubtypedInterface =
+                interfaces
+                    .Except(exceptTheseInterfaces).Single(x => !x.IsGenericType);
+
+            type = mostSubtypedInterface;
             return type;
         }
 
@@ -185,7 +191,8 @@ namespace Pomona.Common
                     null,
                     null,
                     true,
-                    true);
+                    true,
+                    false);
             }
 
             var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
@@ -196,7 +203,8 @@ namespace Pomona.Common
                 ria.UrlRelativePath != null ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath) : null,
                 null,
                 ria.IsValueObject,
-                true);
+                true,
+                false);
         }
 
 
@@ -228,7 +236,7 @@ namespace Pomona.Common
         {
             var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
 
-            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null);
+            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null, Enumerable.Empty<Type>());
         }
 
 
@@ -241,7 +249,7 @@ namespace Pomona.Common
                 var info = extendedResourceProxy.UserTypeInfo;
                 return
                     this.extendedResourceMapper.WrapForm(
-                        CreatePatchForm(info.ServerType, extendedResourceProxy.ProxyTarget),
+                        CreatePatchForm(info.ServerType, extendedResourceProxy.WrappedResource),
                         info.ExtendedType);
             }
 
@@ -253,7 +261,8 @@ namespace Pomona.Common
                 this.GetClassMapping(
                     resourceInfo.InterfaceType),
                 this,
-                null);
+                null,
+                resourceInfo.InterfaceType);
 
             return serverPatchForm;
         }

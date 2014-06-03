@@ -41,17 +41,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Mono.Reflection.1.0.0.0\lib\Mono.Reflection.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy, Version=0.22.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.22.0\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.0.22.2\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=0.22.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy.Hosting.Self, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.22.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.Hosting.Self.0.22.2\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -72,7 +72,11 @@
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
     <Compile Include="GalaxyRules.cs" />
+    <Compile Include="GuidThingFluentRules.cs" />
+    <Compile Include="GuidThingHandler.cs" />
+    <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
     <Compile Include="Models\CaptureCommand.cs" />
     <Compile Include="Models\Cat.cs" />
@@ -92,7 +96,11 @@
     <Compile Include="Models\Existence\Moon.cs" />
     <Compile Include="Models\FailingThing.cs" />
     <Compile Include="Models\Farm.cs" />
+    <Compile Include="Models\Blob.cs" />
+    <Compile Include="Models\GuidThing.cs" />
+    <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
+    <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
     <Compile Include="Models\InheritedUnpostableThing.cs" />
     <Compile Include="Models\Order.cs" />
@@ -115,6 +123,7 @@
     <Compile Include="Models\OrderItem.cs" />
     <Compile Include="Models\OrderResponse.cs" />
     <Compile Include="Models\PurchaseOrder.cs" />
+    <Compile Include="Models\RenamedThing.cs" />
     <Compile Include="Models\SimpleAttribute.cs" />
     <Compile Include="Models\HiddenBaseInMiddle.cs" />
     <Compile Include="Models\StringListContainer.cs" />
@@ -128,6 +137,7 @@
     <Compile Include="Models\ThingWithRenamedProperties.cs" />
     <Compile Include="Models\ThingWithUri.cs" />
     <Compile Include="Models\Unconstructable.cs" />
+    <Compile Include="Models\UnhandledThing.cs" />
     <Compile Include="Models\UnpatchableThing.cs" />
     <Compile Include="Models\UnpostableThing.cs" />
     <Compile Include="Models\UnpostableThingOnServer.cs" />

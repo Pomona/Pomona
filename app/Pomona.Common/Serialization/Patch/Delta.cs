@@ -77,7 +77,7 @@ namespace Pomona.Common.Serialization.Patch
                 oldDeltaValue.Parent = null;
         }
 
-        protected virtual object CreateNestedDelta(object propValue, TypeSpec propValueType)
+        protected virtual object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyType)
         {
             if (propValueType.SerializationMode == TypeSerializationMode.Complex)
             {

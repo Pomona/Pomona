@@ -1,6 +1,4 @@
-﻿#region License
-
-// ----------------------------------------------------------------------------
+﻿// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2014 Karsten Nikolai Strand
@@ -24,12 +22,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 using Pomona.CodeGen;
 using Pomona.Common.Internals;
 using Pomona.Example;
@@ -49,7 +44,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);
             }
 
             using (
@@ -59,7 +54,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             {
                 ClientLibGenerator.WriteClientLibrary(new TypeMapper(new IndependentClientDllConfiguration()),
                     file,
-                    embedPomonaClient : true);
+                    embedPomonaClient: true);
             }
 
             Console.WriteLine("Wrote client dll.");
@@ -95,13 +90,41 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
         #endregion
 
+        private class ModifiedTypeMappingFilter : CritterTypeMappingFilter
+        {
+            public ModifiedTypeMappingFilter(IEnumerable<Type> sourceTypes)
+                : base(sourceTypes)
+            {
+            }
+
+
+            public override Boolean GetTypeIsAbstract(Type type)
+            {
+                if (type == typeof (AbstractOnServerAnimal))
+                    return false;
+                return base.GetTypeIsAbstract(type);
+            }
+        }
+
         #region Nested type: ModifiedCritterPomonaConfiguration
 
         private class ModifiedCritterPomonaConfiguration : CritterPomonaConfiguration
         {
+            private readonly ITypeMappingFilter typeMappingFilter;
+
+            public ModifiedCritterPomonaConfiguration()
+            {
+                typeMappingFilter = new ModifiedTypeMappingFilter(SourceTypes);
+            }
+
             public override IEnumerable<object> FluentRuleObjects
             {
                 get { return base.FluentRuleObjects.Concat(new ModifiedFluentRules()); }
+            }
+
+            public override ITypeMappingFilter TypeMappingFilter
+            {
+                get { return typeMappingFilter; }
             }
         }
 

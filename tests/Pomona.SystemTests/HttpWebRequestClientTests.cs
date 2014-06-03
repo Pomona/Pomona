@@ -58,6 +58,16 @@ namespace Pomona.SystemTests
         }
 
 
+        [Category("TODO")]
+        [Test(Description = "Encoding of some identifiers (?&/) is not working properly, this is due to behaviour in Nancy hosts. Maybe we need custom encoding?")]
+        public void QueryGalaxyHavingQuestionMarkInName_ReturnsCorrectResource()
+        {
+            var galaxy = Client.Galaxies.Post(new GalaxyForm() { Name = "The Joker?" });
+            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
+            galaxy = Client.Reload(galaxy);
+            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
+        }
+
         [Test]
         public void Get_UsingQuery_ReturnsEntities()
         {

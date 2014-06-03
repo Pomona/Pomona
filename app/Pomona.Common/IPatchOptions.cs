@@ -28,9 +28,13 @@ using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
-    public interface IRequestOptions<T>
+    public interface IRequestOptions
     {
-        IRequestOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
+        IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action);
+    }
+    public interface IRequestOptions<T> : IRequestOptions
+    {
+        new IRequestOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
         IRequestOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
     }
 }

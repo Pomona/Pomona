@@ -86,5 +86,10 @@ namespace Pomona.Common.Serialization
         }
 
         #endregion
+
+        public T GetContext<T>()
+        {
+            return new NoContextResolver().GetContext<T>();
+        }
     }
 }

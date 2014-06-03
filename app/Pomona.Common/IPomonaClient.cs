@@ -34,7 +34,7 @@ namespace Pomona.Common
         Task<T> GetAsync<T>(string uri);
         T Get<T>(string uri);
         string GetUriOfType(Type type);
-
+        T Reload<T>(T resource);
         IQueryable<T> Query<T>();
     }
 }

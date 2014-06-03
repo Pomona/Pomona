@@ -46,17 +46,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy, Version=0.22.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.22.0\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.0.22.2\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Testing, Version=0.22.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy.Testing, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Testing.0.22.0\lib\net40\Nancy.Testing.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.Testing.0.22.2\lib\net40\Nancy.Testing.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NSubstitute, Version=1.6.1.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -75,12 +75,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\ClientResourceTests.cs" />
     <Compile Include="Client\CritterServiceTestsBase.cs" />
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
+    <Compile Include="ExpressionTreeMatcherTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTests.cs" />
+    <Compile Include="Ioc\DummyImplementation.cs" />
+    <Compile Include="Ioc\IDummyContract.cs" />
+    <Compile Include="Ioc\IocTestsBase.cs" />
+    <Compile Include="Ioc\TinyIocTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="Patch\DeltaTests.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
@@ -90,13 +96,19 @@
     <Compile Include="Queries\ParseFilterTests.cs" />
     <Compile Include="Queries\ParseSelectTests.cs" />
     <Compile Include="Queries\QueryExpressionParserTestsBase.cs" />
+    <Compile Include="Scheduler\LinqBasedJobStoreTests.cs" />
     <Compile Include="Schemas\ApiChangeVerifierTests.cs" />
     <Compile Include="Schemas\SchemaTests.cs" />
+    <Compile Include="Security\Authentication\DefaultPreAuthenticatedUriResolverTests.cs" />
+    <Compile Include="Security\Authentication\PreAuthenticatedUriProviderTests.cs" />
+    <Compile Include="Security\Crypto\CryptoSerializerTests.cs" />
     <Compile Include="SingularToPluralTranslatorTests.cs" />
+    <Compile Include="SolutionTests.cs" />
     <Compile Include="TypeExtensionsTests.cs" />
     <Compile Include="TypeMapperTests.cs" />
     <Compile Include="TypeSystem\ConstructorSpecTests.cs" />
     <Compile Include="TypeSystem\MaybeTests.cs" />
+    <Compile Include="TypeSystem\SubclassComparerTests.cs" />
     <Compile Include="TypeSystem\TypeSystemTests.cs" />
     <Compile Include="UriResolverTests.cs" />
   </ItemGroup>
@@ -111,6 +123,14 @@
     <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
       <Project>{ee396a59-956e-4dee-b222-991f2274ed67}</Project>
       <Name>Pomona</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona.Scheduler\Pomona.Scheduler.csproj">
+      <Project>{CFA3F173-4441-4773-BF3D-97F2818AAE1F}</Project>
+      <Name>Pomona.Scheduler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona.Security\Pomona.Security.csproj">
+      <Project>{E3F16859-445A-4EA1-BE17-A4AD51AC4B2B}</Project>
+      <Name>Pomona.Security</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
       <Project>{2c37dede-f3cf-4cf2-bc9a-84fbd7eb39a0}</Project>

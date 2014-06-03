@@ -20,7 +20,7 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<PlanetarySystem> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.Planets, o => o.ExposedAsRepository())
+                .Include(x => x.Planets, o => o.ExposedAsRepository().Allow(HttpMethod.Post).ItemsAllow(HttpMethod.Delete))
                 .AsChildResourceOf(x => x.Galaxy, x => x.PlanetarySystems);
         }
 
@@ -41,6 +41,8 @@ namespace Pomona.Example
             map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets)
                 .ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()))
                 .Include(x => x.Moons, o => o.Writable());
+            map.PostAllowed();
+            map.DeleteAllowed();
 
         }
     }

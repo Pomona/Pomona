@@ -46,7 +46,7 @@ namespace Pomona
 
 
         public DataSourceRootNode(ITypeMapper typeMapper, IPomonaDataSource dataSource)
-            : base(typeMapper, null, "/")
+            : base(typeMapper, null, "/", PathNodeType.Custom)
         {
             if (dataSource == null)
                 throw new ArgumentNullException("dataSource");
@@ -80,11 +80,10 @@ namespace Pomona
             if (type == null)
                 throw new ResourceNotFoundException("Unable to locate root resource.");
 
-            var queryable = queryMethodInvoker(type, this.dataSource);
             return CreateNode(TypeMapper,
                 this,
                 name,
-                () => queryable,
+                () => queryMethodInvoker(type, this.dataSource),
                 TypeMapper.GetClassMapping(typeof(ICollection<>).MakeGenericType(type.Type)));
         }
 

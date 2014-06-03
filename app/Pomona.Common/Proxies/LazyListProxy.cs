@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,65 +27,15 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Pomona.Common.Proxies
 {
-    public abstract class LazyListProxy : ILazyProxy, IHasResourceUri
+    public class LazyListProxy<T> : LazyCollectionProxyBase<T, IList<T>>, IList<T>
     {
-        protected readonly IPomonaClient clientBase;
-        protected readonly string uri;
-
-
-        protected LazyListProxy(string uri, IPomonaClient clientBase)
-        {
-            if (uri == null)
-                throw new ArgumentNullException("uri");
-            this.uri = uri;
-            this.clientBase = clientBase;
-        }
-
-
-        public abstract bool IsLoaded { get; }
-
-        public string Uri
-        {
-            get { return this.uri; }
-            set { }
-        }
-
-
-        internal static object CreateForType(Type elementType, string uri, IPomonaClient clientBase)
-        {
-            return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(elementType), uri, clientBase);
-        }
-    }
-
-    public class LazyListProxy<T> : LazyListProxy, IList<T>
-    {
-        private IList<T> dontTouchwrappedList;
-
-
         public LazyListProxy(string uri, IPomonaClient clientBase)
             : base(uri, clientBase)
         {
-        }
-
-
-        public override bool IsLoaded
-        {
-            get { return this.dontTouchwrappedList != null; }
-        }
-
-        public IList<T> WrappedList
-        {
-            get
-            {
-                if (this.dontTouchwrappedList == null)
-                    this.dontTouchwrappedList = clientBase.Get<IList<T>>(uri);
-                return this.dontTouchwrappedList;
-            }
         }
 
         #region IList<T> Members
@@ -94,46 +44,6 @@ namespace Pomona.Common.Proxies
         {
             get { return WrappedList[index]; }
             set { throw new NotSupportedException("Not allowed to modify a REST'ed list"); }
-        }
-
-        public int Count
-        {
-            get { return WrappedList.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
-
-
-        public void Add(T item)
-        {
-            throw new NotSupportedException("Not allowed to modify a REST'ed list");
-        }
-
-
-        public void Clear()
-        {
-            throw new NotSupportedException("Not allowed to modify a REST'ed list");
-        }
-
-
-        public bool Contains(T item)
-        {
-            return WrappedList.Contains(item);
-        }
-
-
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            WrappedList.CopyTo(array, arrayIndex);
-        }
-
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return WrappedList.GetEnumerator();
         }
 
 
@@ -149,21 +59,9 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public bool Remove(T item)
-        {
-            throw new NotSupportedException("Not allowed to modify a REST'ed list");
-        }
-
-
         public void RemoveAt(int index)
         {
             throw new NotSupportedException("Not allowed to modify a REST'ed list");
-        }
-
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
 
         #endregion

@@ -30,7 +30,9 @@ using System;
 using System.Linq;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.RequestProcessing;
 
 namespace Pomona
 {
@@ -46,12 +48,15 @@ namespace Pomona
             string name,
             Func<object> valueFetcher,
             ResourceType expectedType)
-            : base(typeMapper, parent, name)
+            : base(typeMapper, parent, name, PathNodeType.Resource)
         {
             this.value = new System.Lazy<object>(valueFetcher);
             this.expectedType = expectedType;
+
             this.type = new System.Lazy<ResourceType>(() =>
             {
+                if (expectedType != null && !expectedType.SubTypes.Any())
+                    return expectedType;
                 var localValue = Value;
                 if (Value == null)
                     return expectedType;
@@ -100,13 +105,19 @@ namespace Pomona
                   || Type.TryGetPropertyByUriName(name, out property)))
                 throw new ResourceNotFoundException("Resource not found");
 
-            return CreateNode(TypeMapper, this, name, () => property.Getter(Value), property.PropertyType);
+            return CreateNode(TypeMapper, this, name, () => property.GetValue(Value), property.PropertyType);
         }
 
 
         protected override TypeSpec OnGetType()
         {
             return Type;
+        }
+
+
+        protected override IPomonaRequestProcessor OnGetRequestProcessor(PomonaRequest request)
+        {
+            return Type.ResourceHandlers.EmptyIfNull().Select(HandlerRequestProcessor.Create).FirstOrDefault();
         }
     }
 }

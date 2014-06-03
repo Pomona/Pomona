@@ -55,7 +55,7 @@ namespace Pomona.RequestProcessing
             if (etagProp == null)
                 throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
 
-            if ((string)etagProp.Getter(resourceNode.Value) != ifMatch)
+            if ((string)etagProp.GetValue(resourceNode.Value) != ifMatch)
                 throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
             return true;
         }
@@ -90,11 +90,11 @@ namespace Pomona.RequestProcessing
 
         private void ProcessPostToChildResourceRepository(PomonaRequest request, string ifMatch)
         {
-            var queryableNode = request.Node as QueryableNode;
-            if (request.Method != HttpMethod.Post || queryableNode == null)
+            var collectionNode = request.Node as ResourceCollectionNode;
+            if (request.Method != HttpMethod.Post || collectionNode == null)
                 return;
 
-            var parentNode = queryableNode.Parent as ResourceNode;
+            var parentNode = collectionNode.Parent as ResourceNode;
             if (parentNode != null)
                 ValidateResourceEtag(ifMatch, parentNode);
         }

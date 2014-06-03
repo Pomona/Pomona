@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,22 +28,24 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
-using Pomona.Example.Models.Existence;
 
 namespace Pomona.Example
 {
     public class CritterRepository
     {
+        private static readonly MethodInfo deleteInternalMethod;
+        private static readonly MethodInfo queryMethod;
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
         private static readonly MethodInfo saveInternalMethod;
-        private static readonly MethodInfo queryMethod;
 
         private readonly List<PomonaQuery> queryLog = new List<PomonaQuery>();
         private readonly object syncLock = new object();
@@ -53,6 +55,8 @@ namespace Pomona.Example
         private int idCounter;
 
         private bool notificationsEnabled;
+        private readonly static MethodInfo getEntityListMethod;
+
 
         static CritterRepository()
         {
@@ -60,30 +64,35 @@ namespace Pomona.Example
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.Query<object, object>());
             saveCollectionMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(
-                    x => x.SaveCollection((ICollection<EntityBase>)null));
+                    x => x.SaveCollection((ICollection<EntityBase>)null, null));
             saveDictionaryMethod =
                 ReflectionHelper.GetMethodDefinition<CritterRepository>(
-                    x => x.SaveDictionary((IDictionary<object, EntityBase>)null));
+                    x => x.SaveDictionary((IDictionary<object, EntityBase>)null, null));
             saveInternalMethod =
-                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.SaveInternal<EntityBase>(null));
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.SaveInternal<EntityBase>(null, null));
+            deleteInternalMethod =
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.DeleteInternal<EntityBase>(null));
+            getEntityListMethod =
+                ReflectionHelper.GetMethodDefinition<CritterRepository>(x => x.GetEntityList<EntityBase>());
         }
 
 
         public CritterRepository(TypeMapper typeMapper)
         {
-            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             this.typeMapper = typeMapper;
             ResetTestData();
-            notificationsEnabled = true;
+            this.notificationsEnabled = true;
         }
 
         #region IPomonaDataSource Members
 
         public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery pq)
         {
-            lock (syncLock)
+            lock (this.syncLock)
             {
-                queryLog.Add(pq);
+                this.queryLog.Add(pq);
 
                 var visitor = new MakeDictAccessesSafeVisitor();
                 pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
@@ -95,18 +104,15 @@ namespace Pomona.Example
             }
         }
 
-        public object Post<T>(T newObject)
-        {
-            lock (syncLock)
-            {
-                newObject = Save(newObject);
-                var order = newObject as Order;
-                if (order != null)
-                    return new OrderResponse(order);
 
-                return newObject;
+        public ICollection<T> List<T>()
+        {
+            lock (this.syncLock)
+            {
+                return new ReadOnlyCollection<T>(GetEntityList<T>());
             }
         }
+
 
         public object Patch<T>(T updatedObject)
         {
@@ -119,13 +125,28 @@ namespace Pomona.Example
             return updatedObject;
         }
 
+
+        public object Post<T>(T newObject)
+        {
+            lock (this.syncLock)
+            {
+                newObject = Save(newObject);
+                var order = newObject as Order;
+                if (order != null)
+                    return new OrderResponse(order);
+
+                return newObject;
+            }
+        }
+
+
         public IQueryable<T> Query<T>()
             where T : class
         {
-            lock (syncLock)
+            lock (this.syncLock)
             {
                 var entityType = typeof(T);
-                var entityUriBaseType = ((ResourceType)typeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
+                var entityUriBaseType = ((ResourceType)this.TypeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
 
                 return
                     (IQueryable<T>)
@@ -133,13 +154,13 @@ namespace Pomona.Example
             }
         }
 
-        public ICollection<T> List<T>()
+
+        private static string GetDictItemOrDefault(IDictionary<string, string> dict, string key)
         {
-            lock (syncLock)
-            {
-                return GetEntityList<T>();
-            }
+            string value;
+            return dict.TryGetValue(key, out value) ? value : Guid.NewGuid().ToString();
         }
+
 
         private IQueryable<TEntity> Query<TEntityBase, TEntity>()
         {
@@ -150,13 +171,6 @@ namespace Pomona.Example
             //throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
 
             return GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
-        }
-
-
-        private static string GetDictItemOrDefault(IDictionary<string, string> dict, string key)
-        {
-            string value;
-            return dict.TryGetValue(key, out value) ? value : Guid.NewGuid().ToString();
         }
 
 
@@ -180,121 +194,80 @@ namespace Pomona.Example
 
         public List<PomonaQuery> QueryLog
         {
-            get { lock (syncLock) return queryLog; }
+            get
+            {
+                lock (this.syncLock)
+                    return this.queryLog;
+            }
         }
+
+        public TypeMapper TypeMapper
+        {
+            get { return typeMapper; }
+        }
+
 
         public static IEnumerable<Type> GetEntityTypes()
         {
             return
-                typeof (CritterModule).Assembly.GetTypes()
-                                      .Where(x => (x.Namespace == "Pomona.Example.Models" || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models"))) && !x.IsGenericTypeDefinition);
+                typeof(CritterModule).Assembly.GetTypes()
+                    .Where(
+                        x =>
+                            (x.Namespace == "Pomona.Example.Models"
+                             || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
+                            && !x.IsGenericTypeDefinition);
         }
 
-
-        public void ResetTestData()
-        {
-            lock (syncLock)
-            {
-                idCounter = 1;
-                entityLists = new Dictionary<Type, object>();
-                notificationsEnabled = false;
-                CreateRandomData();
-                notificationsEnabled = true;
-                queryLog.Clear();
-            }
-        }
-
-        private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary)
-            where TValue : EntityBase
-        {
-            SaveCollection(dictionary.Values);
-            return dictionary;
-        }
-
-        private object SaveCollection<T>(ICollection<T> collection)
-            where T : EntityBase
-        {
-            foreach (var item in collection)
-            {
-                Save(item);
-            }
-            return collection;
-        }
-
-        public T Save<T>(T entity)
-        {
-            var mappedTypeInstance = GetBaseUriType<T>();
-            var saveMethodInstance = saveInternalMethod.MakeGenericMethod(mappedTypeInstance);
-            return (T)saveMethodInstance.Invoke(this, new object[] { entity });
-        }
-
-        private Type GetBaseUriType<T>()
-        {
-            var transformedType = (TransformedType) typeMapper.GetClassMapping<T>();
-            var mappedTypeInstance = (transformedType.Maybe().OfType<ResourceType>().Select(x => (TransformedType)x.UriBaseType).OrDefault(() => transformedType)).Type;
-            return mappedTypeInstance;
-        }
-
-        public T SaveInternal<T>(T entity)
-        {
-            var entityCast = (EntityBase)((object)entity);
-
-            if (entityCast.Id != 0)
-                return entity;
-            entityCast.Id = idCounter++;
-            if (notificationsEnabled)
-                Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
-
-            foreach (var prop in entity.GetType().GetProperties())
-            {
-                Type[] genericArguments;
-                var propType = prop.PropertyType;
-                if (typeof (EntityBase).IsAssignableFrom(propType))
-                {
-                    var value = prop.GetValue(entity, null);
-                    if (value != null)
-                        saveInternalMethod.MakeGenericMethod(propType).Invoke(this, new[] { value });
-                }
-                else if (TypeUtils.TryGetTypeArguments(propType, typeof (ICollection<>), out genericArguments))
-                {
-                    if (typeof (EntityBase).IsAssignableFrom(genericArguments[0]))
-                    {
-                        var value = prop.GetValue(entity, null);
-                        if (value != null)
-                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value });
-                    }
-                }
-                else if (TypeUtils.TryGetTypeArguments(propType, typeof (IDictionary<,>), out genericArguments))
-                {
-                    if (typeof (EntityBase).IsAssignableFrom(genericArguments[1]))
-                    {
-                        var value = prop.GetValue(entity, null);
-                        if (value != null)
-                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value });
-                    }
-                }
-            }
-
-            GetEntityList<T>().Add(entity);
-            return entity;
-        }
 
         public void AddToEntityList<T>(T entity)
         {
         }
 
-        private void CreateFarms()
+
+        public Critter CreateRandomCritter(Random rng = null, int? rngSeed = null, bool forceMusicalCritter = false, bool addToRandomFarm = true)
         {
-            Save(new Farm("Insanity valley"));
-            Save(new Farm("Broken boulevard"));
+            if (rng == null)
+                rng = new Random(rngSeed ?? 75648382 + this.idCounter);
+
+            Critter critter;
+            if (forceMusicalCritter || rng.NextDouble() > 0.76)
+            {
+                var musicalCritter = new MusicalCritter("written in the stars")
+                {
+                    BandName = Words.GetBandName(rng),
+                    Instrument = Save(new Instrument { Type = Words.GetCoolInstrument(rng) })
+                };
+                critter = musicalCritter;
+            }
+            else
+                critter = new Critter();
+
+            critter.CreatedOn = DateTime.UtcNow.AddDays(-rng.NextDouble() * 50.0);
+
+            critter.Name = Words.GetAnimalWithPersonality(rng);
+
+            critter.CrazyValue = new CrazyValueObject { Sickness = Words.GetCritterHealthDiagnosis(rng, critter.Name) };
+
+            CreateWeapons(rng, critter, 24);
+            CreateSubscriptions(rng, critter, 3);
+
+            // Add to one of the farms
+            if (addToRandomFarm)
+            {
+                var farms = GetEntityList<Farm>();
+                var chosenFarm = farms[rng.Next(farms.Count)];
+
+                chosenFarm.Critters.Add(critter);
+                critter.Farm = chosenFarm;
+            }
+
+            // Patch on a random hat
+            Save(critter.Hat);
+            Save(critter);
+
+            return critter;
         }
 
-
-        private void CreateJunkWithNullables()
-        {
-            Save(new JunkWithNullableInt { Maybe = 1337, MentalState = "I'm happy, I have value!" });
-            Save(new JunkWithNullableInt { Maybe = null, MentalState = "I got nothing in life. So sad.." });
-        }
 
         public void CreateRandomData(int critterCount = 5, int weaponModelCount = 3)
         {
@@ -315,45 +288,108 @@ namespace Pomona.Example
                 Save(loner);
         }
 
-        public Critter CreateRandomCritter(Random rng = null, int? rngSeed = null, bool forceMusicalCritter = false)
+
+        public void Delete<T>(T entity)
         {
-            if (rng == null)
-                rng = new Random(rngSeed ?? 75648382 + idCounter);
-
-            Critter critter;
-            if (forceMusicalCritter || rng.NextDouble() > 0.76)
+            lock (this.syncLock)
             {
-                var musicalCritter = new MusicalCritter("written in the stars")
-                    {
-                        BandName = Words.GetBandName(rng),
-                        Instrument = Save(new Instrument { Type = Words.GetCoolInstrument(rng) })
-                    };
-                critter = musicalCritter;
+                var mappedTypeInstance = GetBaseUriType<T>();
+                var deleteMethodInstance = deleteInternalMethod.MakeGenericMethod(mappedTypeInstance);
+                deleteMethodInstance.Invoke(this, new object[] { entity });
             }
-            else
-                critter = new Critter();
+        }
 
-            critter.CreatedOn = DateTime.UtcNow.AddDays(-rng.NextDouble()*50.0);
 
-            critter.Name = Words.GetAnimalWithPersonality(rng);
+        public void ResetTestData()
+        {
+            lock (this.syncLock)
+            {
+                this.idCounter = 1;
+                this.entityLists = new Dictionary<Type, object>();
+                this.notificationsEnabled = false;
+                CreateRandomData();
+                this.notificationsEnabled = true;
+                this.queryLog.Clear();
+            }
+        }
 
-            critter.CrazyValue = new CrazyValueObject { Sickness = Words.GetCritterHealthDiagnosis(rng, critter.Name) };
 
-            CreateWeapons(rng, critter, 24);
-            CreateSubscriptions(rng, critter, 3);
+        public T Save<T>(T entity)
+        {
+            return Save(entity, new HashSet<object>());
+        }
 
-            // Add to one of the farms
-            var farms = GetEntityList<Farm>();
-            var chosenFarm = farms[rng.Next(farms.Count)];
+        public T Save<T>(T entity, HashSet<object> savedObjects)
+        {
+            var mappedTypeInstance = GetBaseUriType<T>();
+            var saveMethodInstance = saveInternalMethod.MakeGenericMethod(mappedTypeInstance);
+            return (T)saveMethodInstance.Invoke(this, new object[] { entity, savedObjects });
+        }
 
-            chosenFarm.Critters.Add(critter);
-            critter.Farm = chosenFarm;
 
-            // Patch on a random hat
-            Save(critter.Hat);
-            Save(critter);
+        public T SaveInternal<T>(T entity, HashSet<object> savedObjects)
+        {
+            var typeSpec = TypeMapper.GetClassMapping(typeof(T));
 
-            return critter;
+            if (savedObjects.Contains(entity))
+                return entity;
+
+            savedObjects.Add(entity);
+            var entityCast = (EntityBase)((object)entity);
+
+            if (entityCast.Id == 0 && typeSpec is ResourceType)
+            {
+                entityCast.Id = this.idCounter++;
+                if (this.notificationsEnabled)
+                    Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
+                GetEntityList<T>().Add(entity);
+            }
+
+            foreach (var prop in entity.GetType().GetProperties())
+            {
+                Type[] genericArguments;
+                var propType = prop.PropertyType;
+                if (typeof(EntityBase).IsAssignableFrom(propType))
+                {
+                    var value = prop.GetValue(entity, null);
+                    if (value != null)
+                        saveInternalMethod.MakeGenericMethod(propType).Invoke(this, new[] { value, savedObjects });
+                }
+                else if (TypeUtils.TryGetTypeArguments(propType, typeof(ICollection<>), out genericArguments))
+                {
+                    if (typeof(EntityBase).IsAssignableFrom(genericArguments[0]))
+                    {
+                        var value = prop.GetValue(entity, null);
+                        if (value != null)
+                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value, savedObjects });
+                    }
+                }
+                else if (TypeUtils.TryGetTypeArguments(propType, typeof(IDictionary<,>), out genericArguments))
+                {
+                    if (typeof(EntityBase).IsAssignableFrom(genericArguments[1]))
+                    {
+                        var value = prop.GetValue(entity, null);
+                        if (value != null)
+                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value, savedObjects });
+                    }
+                }
+            }
+
+            return entity;
+        }
+
+
+        private void CreateFarms()
+        {
+            Save(new Farm("Insanity valley"));
+            Save(new Farm("Broken boulevard"));
+        }
+
+
+        private void CreateJunkWithNullables()
+        {
+            Save(new JunkWithNullableInt { Maybe = 1337, MentalState = "I'm happy, I have value!" });
+            Save(new JunkWithNullableInt { Maybe = null, MentalState = "I got nothing in life. So sad.." });
         }
 
 
@@ -367,11 +403,11 @@ namespace Pomona.Example
                 var subscription =
                     Save(
                         new Subscription(weaponType)
-                            {
-                                Critter = critter,
-                                Sku = rng.Next(0, 9999).ToString(),
-                                StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))
-                            });
+                        {
+                            Critter = critter,
+                            Sku = rng.Next(0, 9999).ToString(),
+                            StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))
+                        });
                 critter.Subscriptions.Add(subscription);
             }
         }
@@ -389,26 +425,50 @@ namespace Pomona.Example
                         ? Save(new Weapon(weaponType) { Strength = rng.NextDouble() })
                         : Save<Weapon>(
                             new Gun(weaponType)
-                                {
-                                    Strength = rng.NextDouble(),
-                                    ExplosionFactor = rng.NextDouble(),
-                                    Price = (decimal)(rng.NextDouble()*10)
-                                });
+                            {
+                                Strength = rng.NextDouble(),
+                                ExplosionFactor = rng.NextDouble(),
+                                Price = (decimal)(rng.NextDouble() * 10)
+                            });
                 critter.Weapons.Add(weapon);
             }
         }
 
 
+        private void DeleteInternal<T>(T entity)
+        {
+            GetEntityList<T>().Remove(entity);
+        }
+
+
+        private Type GetBaseUriType<T>()
+        {
+            var transformedType = (TransformedType)this.TypeMapper.GetClassMapping<T>();
+            var mappedTypeInstance =
+                (transformedType.Maybe().OfType<ResourceType>().Select(x => (TransformedType)x.UriBaseType).OrDefault(
+                    () => transformedType)).Type;
+            return mappedTypeInstance;
+        }
+
+
         private IList<T> GetEntityList<T>()
         {
-            var type = typeof (T);
-            object list;
-            if (!entityLists.TryGetValue(type, out list))
+            var type = typeof(T);
+            var tt = (ResourceType)TypeMapper.GetClassMapping(type);
+            if (tt.IsRootResource)
             {
-                list = new List<T>();
-                entityLists[type] = list;
+                object list;
+                if (!this.entityLists.TryGetValue(type, out list))
+                {
+                    list = new List<T>();
+                    this.entityLists[type] = list;
+                }
+                return (IList<T>)list;
             }
-            return (IList<T>)list;
+            if (tt.ParentToChildProperty == null)
+                throw new InvalidOperationException("Expected a parent-child assosciation.");
+            var parents = (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
+            return parents.SelectMany(p => (IEnumerable<T>)tt.ParentToChildProperty.GetValue(p)).ToList();
         }
 
 
@@ -420,6 +480,23 @@ namespace Pomona.Example
                 throw new InvalidOperationException("No random entity to get. Count 0.");
 
             return entityList[rng.Next(0, entityList.Count)];
+        }
+
+
+        private object SaveCollection<T>(ICollection<T> collection, HashSet<object> savedObjects)
+            where T : EntityBase
+        {
+            foreach (var item in collection)
+                Save(item, savedObjects);
+            return collection;
+        }
+
+
+        private object SaveDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary, HashSet<object> savedObjects)
+            where TValue : EntityBase
+        {
+            SaveCollection(dictionary.Values, savedObjects);
+            return dictionary;
         }
     }
 }

@@ -36,12 +36,12 @@ namespace Pomona.RequestProcessing
             if (!request.Node.Exists)
                 throw new ResourceNotFoundException("Resource not found.");
 
-            var queryableNode = request.Node as QueryableNode;
-            if (queryableNode != null)
+            var collectionNode = request.Node as ResourceCollectionNode;
+            if (collectionNode != null)
             {
                 var pomonaQuery = request.ParseQuery();
                 return request.Node.GetQueryExecutor()
-                              .ApplyAndExecute(queryableNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
+                              .ApplyAndExecute(collectionNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
             }
             var resourceNode = request.Node as ResourceNode;
             if (resourceNode != null)

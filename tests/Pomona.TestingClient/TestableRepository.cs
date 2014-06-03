@@ -38,7 +38,7 @@ using Pomona.Common.Proxies;
 
 namespace Pomona.TestingClient
 {
-    public class MockedRepository<TResource, TPostReturnType> : IClientRepository<TResource, TPostReturnType>
+    public class MockedRepository<TResource, TPostReturnType, TId> : IClientRepository<TResource, TPostReturnType, TId>
         where TResource : class, IClientResource
         where TPostReturnType : IClientResource
     {
@@ -86,6 +86,24 @@ namespace Pomona.TestingClient
             var form = (TSubResource) Activator.CreateInstance(resInfo.PostFormType);
             postAction(form);
             return (TPostReturnType) client.OnPost((PostResourceBase) ((object) form));
+        }
+
+
+        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return Post(postAction);
+        }
+
+
+        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction) where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -187,6 +205,12 @@ namespace Pomona.TestingClient
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+
+        public void Delete(TResource resource)
+        {
+            throw new NotImplementedException();
         }
     }
 }

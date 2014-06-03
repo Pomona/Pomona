@@ -172,7 +172,7 @@ namespace Pomona
         }
 
 
-        private PomonaResponse GetResource()
+        private PomonaResponse ProcessRequest()
         {
             var pathNodes = GetPathNodes();
             var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource);
@@ -262,11 +262,12 @@ namespace Pomona
         {
             var path = "/" + type.UriRelativePath;
 
-            Register(Get, path + "/{remaining*}", x => GetResource());
-            Register(Get, path, x => GetResource());
-            Register(Post, path, x => GetResource());
-            Register(Patch, path + "/{remaining*}", x => GetResource());
-            Register(Post, path + "/{remaining*}", x => GetResource());
+            Register(Get, path + "/{remaining*}", x => ProcessRequest());
+            Register(Get, path, x => ProcessRequest());
+            Register(Post, path, x => ProcessRequest());
+            Register(Patch, path + "/{remaining*}", x => ProcessRequest());
+            Register(Post, path + "/{remaining*}", x => ProcessRequest());
+            Register(Delete, path + "/{remaining*}", x => ProcessRequest());
         }
 
 

@@ -27,12 +27,14 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -62,6 +64,12 @@ namespace Pomona.FluentMapping
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo);
+        }
+
+
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
         }
 
 
@@ -95,9 +103,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetDecompiledPropertyFormula(propertyInfo);
+            return this.wrappedFilter.GetDecompiledPropertyFormula(type, propertyInfo);
         }
 
 
@@ -113,21 +121,27 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual bool DeleteOfTypeIsAllowed(Type type)
+        {
+            return this.wrappedFilter.DeleteOfTypeIsAllowed(type);
+        }
+
+
         public virtual Action<object> GetOnDeserializedHook(Type type)
         {
             return this.wrappedFilter.GetOnDeserializedHook(type);
         }
 
 
-        public virtual PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
-        {
-            return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
-        }
-
-
         public virtual PropertyInfo GetParentToChildProperty(Type type)
         {
             return this.wrappedFilter.GetParentToChildProperty(type);
+        }
+
+
+        public virtual string GetTypeMappedName(Type type)
+        {
+            return this.wrappedFilter.GetTypeMappedName(type);
         }
 
 
@@ -149,10 +163,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
-            ParameterInfo ctorParameterInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
-            return this.wrappedFilter.GetPropertyCreateMode(propertyInfo, ctorParameterInfo);
+            return this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo, ctorParameterInfo);
         }
 
 
@@ -162,13 +175,24 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
         {
-            return this.wrappedFilter.GetPropertyFormula(propertyInfo);
+            return this.wrappedFilter.GetResourceHandlers(type);
+        }
+
+        public virtual bool GetTypeIsAbstract(Type type)
+        {
+            return this.wrappedFilter.GetTypeIsAbstract(type);
         }
 
 
-        public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.GetPropertyFormula(type, propertyInfo);
+        }
+
+
+        public virtual Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertyGetter(propertyInfo);
         }
@@ -186,7 +210,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        public virtual Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertySetter(propertyInfo);
         }
@@ -228,39 +252,39 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
+        public virtual bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyFormulaIsDecompiled(propertyInfo);
+            return this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo);
+            return this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsAttributes(propertyInfo);
+            return this.wrappedFilter.PropertyIsAttributes(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsEtag(propertyInfo);
+            return this.wrappedFilter.PropertyIsEtag(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
+            return this.wrappedFilter.PropertyIsIncluded(type, propertyInfo);
         }
 
 
-        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsPrimaryId(propertyInfo);
+            return this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo);
         }
 
 

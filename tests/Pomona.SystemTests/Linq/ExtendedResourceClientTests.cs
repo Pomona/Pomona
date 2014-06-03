@@ -34,6 +34,7 @@ using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 
@@ -87,6 +88,15 @@ namespace Pomona.SystemTests.Linq
         {
         }
 
+        public interface ICustomOrder : IOrder
+        {
+        }
+
+        public interface ICustomOrderResponse : IOrderResponse
+        {
+            new ICustomOrder Order { get; set; }
+        }
+
         public interface IDecoratedMusicalCritter : IMusicalCritter
         {
             new IDecoratedMusicalFarm Farm { get; set; }
@@ -97,6 +107,26 @@ namespace Pomona.SystemTests.Linq
         {
             new ITestClientResource Container { get; set; }
             new IList<ITestClientResource> OtherContainers { get; set; }
+        }
+
+
+        public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(
+            string capturedArgument)
+        {
+            return
+                Client.DictionaryContainers.Query<IExtendedResource>().Where(x => x.CustomString == capturedArgument)
+                    .ToList();
+        }
+
+
+        private IDictionaryContainer PostResourceWithAttributes()
+        {
+            return Client.DictionaryContainers.Post<IDictionaryContainer>(
+                x =>
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
         }
 
 
@@ -142,6 +172,34 @@ namespace Pomona.SystemTests.Linq
             var musicalCritter =
                 (IDecoratedMusicalCritter)Client.Post<IDecoratedMusicalCritter>(x => x.Farm = extendedFarm);
             Assert.That(musicalCritter.Farm.Id, Is.EqualTo(extendedFarm.Id));
+        }
+
+
+        [Test]
+        public void
+            PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseIsExtendedType_ReturnsCorrectResponse()
+        {
+            var response = Client.Orders.Post<ICustomOrder, ICustomOrderResponse>(co =>
+            {
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
+            });
+            Assert.That(response, Is.AssignableTo<ICustomOrderResponse>());
+            Assert.That(response.Order, Is.AssignableTo<ICustomOrder>());
+        }
+
+
+        [Test]
+        public void
+            PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsCorrectResponse
+            ()
+        {
+            var response = Client.Orders.Post<ICustomOrder>(co =>
+            {
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
+            });
+            Assert.That(response, Is.AssignableTo<IOrderResponse>());
         }
 
 
@@ -247,12 +305,7 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
 
-            var dictionaryContainer = Client.DictionaryContainers.Post<IDictionaryContainer>(
-                x =>
-                {
-                    x.Map.Add("CustomString", "Lalalala");
-                    x.Map.Add("OtherCustom", "Blob rob");
-                });
+            var dictionaryContainer = PostResourceWithAttributes();
 
             var results = Client.Query<IExtendedResource>()
                 .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
@@ -306,6 +359,23 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Key, Is.EqualTo("Lalalala"));
+        }
+
+
+        [Category("TODO")]
+        [Test(
+            Description =
+                "client.SomeRepo.OfType<T>() does not work when T is an extended client resource. Should ideally work like client.SomeRepo.Query<T>."
+            )]
+        public void QueryExtendedResourcesUsingOfTypeDirectlyOnRepository_ReturnsExtendedResource()
+        {
+            var dictionaryContainer = PostResourceWithAttributes();
+
+            var results = Client.StringToObjectDictionaryContainers.OfType<IExtendedResource>()
+                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
         }
 
 
@@ -378,6 +448,44 @@ namespace Pomona.SystemTests.Linq
         {
             var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
             Assert.That(extendedMusicalCritter.Farm, Is.Not.Null);
+        }
+
+
+        [Test]
+        public void Query_ExtendedResource_UsingValueFromClosure()
+        {
+            var response =
+                Query_ExtendedResource_UsingValueFromClosure_GenericMethod<IExtendedResource>("NO RESULTS WILL BE FOUND");
+            Assert.That(response.Count, Is.EqualTo(0));
+        }
+
+
+        [Test(Description = "Regression test for problem with TransformAdditionalPropertiesToAttributesVisitor.")]
+        public void Query_ExtendedResource_UsingValueFromStaticField()
+        {
+            Assert.DoesNotThrow(() => Client.DictionaryContainers.Query<IExtendedResource>().Where(
+                x => DateTime.UtcNow > DateTime.MinValue && x.Id == 33).ToList());
+        }
+
+
+        [Test]
+        public void UnwrapResource_IsSuccessful()
+        {
+            var resource = PostResourceWithAttributes();
+            var unwrapped =
+                Client.DictionaryContainers.Query<IExtendedResource>().First(x => x.Id == resource.Id)
+                    .Unwrap<IDictionaryContainer>();
+            Assert.That(unwrapped, Is.Not.AssignableTo<IExtendedResource>());
+        }
+
+
+        [Test]
+        public void WrapResource_IsSuccessful()
+        {
+            var resource = PostResourceWithAttributes();
+            var wrapped = resource.Wrap<IDictionaryContainer, IExtendedResource>();
+            Assert.That(wrapped.CustomString, Is.EqualTo("Lalalala"));
+            Assert.That(wrapped.OtherCustom, Is.EqualTo("Blob rob"));
         }
     }
 }

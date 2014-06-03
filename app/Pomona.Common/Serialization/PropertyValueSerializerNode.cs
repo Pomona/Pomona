@@ -96,7 +96,7 @@ namespace Pomona.Common.Serialization
             {
                 if (!propertyIsLoaded)
                 {
-                    propertyValue = property.Getter(parentNode.Value);
+                    propertyValue = property.GetValue(parentNode.Value, Context);
                     propertyIsLoaded = true;
                 }
                 return propertyValue;

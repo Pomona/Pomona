@@ -33,6 +33,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
@@ -46,6 +47,7 @@ namespace Pomona
         string GetClientAssemblyName();
         string GetClientInformationalVersion();
         Type GetClientLibraryType(Type type);
+        IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member);
 
         /// <summary>
         /// This will make sure we generate a client dll with no dependency on Pomona.Common.
@@ -54,11 +56,10 @@ namespace Pomona
 
         bool IsIndependentTypeRoot(Type type);
         JsonConverter GetJsonConverterForType(Type type);
-        PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty);
         Type GetPostReturnType(Type type);
-        Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo);
+        Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo);
         string GetPropertyMappedName(PropertyInfo propertyInfo);
-        Action<object, object> GetPropertySetter(PropertyInfo propertyInfo);
+        Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo);
         Type GetPropertyType(PropertyInfo propertyInfo);
         ConstructorSpec GetTypeConstructor(Type type);
 
@@ -77,10 +78,10 @@ namespace Pomona
         PropertyInfo GetParentToChildProperty(Type type);
         PropertyInfo GetChildToParentProperty(Type type);
 
-        bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo);
+        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
 
-        bool PropertyIsIncluded(PropertyInfo propertyInfo);
-        bool PropertyIsPrimaryId(PropertyInfo propertyInfo);
+        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
         Type ResolveRealTypeForProxy(Type type);
         bool TypeIsMapped(Type type);
         bool TypeIsMappedAsCollection(Type type);
@@ -88,20 +89,24 @@ namespace Pomona
         bool TypeIsMappedAsTransformedType(Type type);
         bool TypeIsMappedAsValueObject(Type type);
         bool TypeIsExposedAsRepository(Type type);
-        bool PropertyIsAttributes(PropertyInfo propertyInfo);
-        LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo);
-        bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo);
-        LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo);
-        bool PropertyIsEtag(PropertyInfo propertyInfo);
+        bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
+        bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
+        string GetTypeMappedName(Type type);
         string GetPluralNameForType(Type type);
-        PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
+        PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
         HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec);
 
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
+        bool DeleteOfTypeIsAllowed(Type type);
 
         Action<object> GetOnDeserializedHook(Type type);
         HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
         PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
+        IEnumerable<Type> GetResourceHandlers(Type type);
+        Boolean GetTypeIsAbstract(Type type);
     }
 }

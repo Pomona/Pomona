@@ -151,7 +151,10 @@ namespace Pomona
             if (query.SelectExpression != null)
                 elementType = typeMapper.GetClassMapping(query.SelectExpression.ReturnType);
 
-            if (query.Projection == PomonaQuery.ProjectionType.First || query.Projection == PomonaQuery.ProjectionType.FirstOrDefault)
+            if (query.Projection == PomonaQuery.ProjectionType.First
+                || query.Projection == PomonaQuery.ProjectionType.FirstOrDefault
+                || query.Projection == PomonaQuery.ProjectionType.Single
+                || query.Projection == PomonaQuery.ProjectionType.SingleOrDefault)
                 query.ResultType = elementType;
         }
 

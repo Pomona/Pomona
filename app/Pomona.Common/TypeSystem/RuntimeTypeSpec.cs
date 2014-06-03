@@ -128,6 +128,10 @@ namespace Pomona.Common.TypeSystem
             return Enumerable.Empty<PropertySpec>();
         }
 
+        public override bool IsAbstract
+        {
+            get { return Type.IsAbstract; }
+        }
 
         protected internal override RuntimeTypeDetails OnLoadRuntimeTypeDetails()
         {

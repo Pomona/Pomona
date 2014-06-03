@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -100,6 +100,18 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> DeleteAllowed()
+        {
+            return this;
+        }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> DeleteDenied()
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> Exclude(Expression<Func<TDeclaring, object>> property)
         {
             return this;
@@ -107,6 +119,24 @@ namespace Pomona.FluentMapping
 
 
         public virtual ITypeMappingConfigurator<TDeclaring> ExposedAsRepository()
+        {
+            return this;
+        }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> HandledBy<THandler>()
+        {
+            return this;
+        }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(
+            Expression<Func<TDeclaring, IEnumerable<TItem>>> property,
+            Expression<Func<TItem, TDeclaring>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func
+                <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
+                    IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
         {
             return this;
         }
@@ -121,7 +151,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> property, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+        public virtual ITypeMappingConfigurator<TDeclaring> Named(string exposedTypeName)
         {
             return this;
         }

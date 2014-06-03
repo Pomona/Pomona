@@ -464,6 +464,8 @@ namespace Pomona.Common
 
         private string GetEncodedConstant(Type valueType, object value)
         {
+            if (value == null)
+                return "null";
             Type enumerableElementType;
             if (valueType != typeof (string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {
@@ -498,8 +500,6 @@ namespace Pomona.Common
                 case TypeCode.Decimal:
                     return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
-                    if (value == null)
-                        return "null";
                     if (value is Guid)
                         return string.Format("guid'{0}'", ((Guid)value));
                     if (value is Type)
@@ -606,11 +606,15 @@ namespace Pomona.Common
 
                 var enumerableMethod =
                     typeof (Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
-                                       .FirstOrDefault(x => x.Name == method.Name &&
-                                                            x.GetParameters()
+                                        .Where(x => x.Name == method.Name)
+                                        .Select(x => new {parameters = x.GetParameters(), mi = x})
+                                        .Where(x => x.parameters.Length == wantedArgs.Length &&
+                                                            x.parameters
                                                              .Select(y => y.ParameterType)
                                                              .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
-                                                             .All(y => y));
+                                                             .All(y => y))
+                                        .Select(x => x.mi)
+                                        .FirstOrDefault();
 
                 if (enumerableMethod != null)
                 {

@@ -216,13 +216,27 @@ namespace Pomona.Common.Serialization.Json
             ICollection<TElement> collection;
             if (node.Value == null)
             {
-                collection = new List<TElement>();
+                if (node.ExpectedBaseType != null && node.ExpectedBaseType == typeof(ISet<TElement>))
+                {
+                    collection = new HashSet<TElement>();
+                }
+                else
+                {
+                    collection = new List<TElement>();                    
+                }
                 isPatching = false;
             }
             else
             {
                 collection = (ICollection<TElement>)node.Value;
                 isPatching = true;
+            }
+
+            if (isPatching && node.Operation == DeserializerNodeOperation.Post)
+            {
+                // Clear list and add new items
+                node.CheckItemAccessRights(HttpMethod.Delete);
+                collection.Clear();
             }
 
             foreach (var jitem in jarr)
@@ -256,7 +270,7 @@ namespace Pomona.Common.Serialization.Json
                         else
                             throw new PomonaSerializationException("Unexpected json patch identifier property.");
                         itemNode.Value =
-                            collection.Cast<object>().First(x => identifierValue.Equals(identifyProp.Getter(x)));
+                            collection.Cast<object>().First(x => identifierValue.Equals(identifyProp.GetValue(x, itemNode.Context)));
                     }
                 }
 
@@ -274,10 +288,17 @@ namespace Pomona.Common.Serialization.Json
 
                     DeserializeThroughContext(itemNode, new Reader(jitem));
                     if (itemNode.Operation != DeserializerNodeOperation.Patch)
-                        collection.Add((TElement)itemNode.Value);
+                    {
+                        if (!(itemNode.ExpectedBaseType is TransformedType)
+                            || itemNode.ExpectedBaseType.IsAnonymous()
+                            || !collection.Contains((TElement)itemNode.Value))
+                        {
+                            collection.Add((TElement)itemNode.Value);
+                        }
+                    }
                 }
             }
-
+            
             if (node.Value == null)
                 node.Value = collection;
         }
@@ -467,14 +488,14 @@ namespace Pomona.Common.Serialization.Json
             {
                 // This is a bit confusing. node.Context refers to the deserializationContext, ResolveContext
                 // actually resolves context of type TContext, which for now is limited to mean NancyContext.
-                return node.Context.ResolveContext<TContext>();
+                return node.Context.GetContext<TContext>();
             }
 
 
             public void Deserialize()
             {
                 SetUri();
-                if (this.node.Value == null)
+                if (this.node.Value == null || this.node.Operation == DeserializerNodeOperation.Post)
                 {
                     if (!(this.node.ValueType is TransformedType))
                         throw new NotSupportedException("Only knows how to deserialize TransformedType.");
@@ -487,7 +508,7 @@ namespace Pomona.Common.Serialization.Json
             public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
             {
                 var type = this.node.ValueType;
-                var targetProp = type.TypeResolver.FromProperty(propertyInfo);
+                var targetProp = type.TypeResolver.FromProperty(type, propertyInfo);
                 PropertyContainer propContainer;
                 if (!this.propertyDict.TryGetValue(targetProp.JsonName, out propContainer))
                 {
@@ -551,7 +572,7 @@ namespace Pomona.Common.Serialization.Json
                         {
                             Operation = propContainer.Operation
                         };
-                        var oldValue = propNode.Value = propNode.Property.Getter(this.node.Value);
+                        var oldValue = propNode.Value = propNode.Property.GetValue(this.node.Value, propNode.Context);
                         deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
                         var newValue = propNode.Value;
                         if (oldValue != newValue)

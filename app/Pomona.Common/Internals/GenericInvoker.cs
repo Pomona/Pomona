@@ -185,17 +185,10 @@ namespace Pomona.Common.Internals
                 return wrappedFunc;
             }
 
-
-            private static MethodInfo GetDelegateInvokeMethod(Type delegateType)
-            {
-                return delegateType.GetMethod("Invoke");
-            }
-
-
             private TDel WrapInstanceGenericMethod<TDel>(int typeArgCount, LambdaExpression expr)
                 where TDel : class
             {
-                var tDelInvoke = GetDelegateInvokeMethod(typeof(TDel));
+                var tDelInvoke = typeof(TDel).GetDelegateInvokeMethod();
                 var innerDelegateSignature =
                     tDelInvoke.GetParameters().Skip(typeArgCount).Select(x => x.ParameterType).Concat(
                         tDelInvoke.ReturnType).ToArray();

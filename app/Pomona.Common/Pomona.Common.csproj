@@ -40,9 +40,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -59,9 +59,13 @@
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="Expressions\IMatchContext.cs" />
+    <Compile Include="Expressions\SearchReplaceVisitor.cs" />
+    <Compile Include="Expressions\TreePatternMatcher.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryable.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\ExtendedQueryProvider.cs" />
+    <Compile Include="ExtendedResources\ExtendedResourceExtensions.cs" />
     <Compile Include="ExtendedResources\ExtendedResourceMapper.cs" />
     <Compile Include="ExtendedResources\IExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitor.cs" />
@@ -70,6 +74,9 @@
     <Compile Include="HttpUtility.cs" />
     <Compile Include="IClientRepository.cs" />
     <Compile Include="IClientTypeResolver.cs" />
+    <Compile Include="IDeletableByIdRepository.cs" />
+    <Compile Include="IDeletableRepository.cs" />
+    <Compile Include="IGettableRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
     <Compile Include="Internals\ClientSerializationContextProvider.cs" />
@@ -80,6 +87,9 @@
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\GenericInvoker.cs" />
     <Compile Include="Internals\GenericInvokerBase.cs" />
+    <Compile Include="Internals\MappedReadOnlyCollection.cs" />
+    <Compile Include="Internals\MappedReadOnlyList.cs" />
+    <Compile Include="Internals\MappedReadOnlyListExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
     <Compile Include="Internals\PomonaClientExtensions.cs" />
@@ -104,6 +114,12 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\RestQueryRoot.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="Proxies\IExtendedResourceProxy.cs" />
+    <Compile Include="Proxies\LazyCollectionProxyBase.cs" />
+    <Compile Include="Proxies\LazyListProxy.cs" />
+    <Compile Include="Proxies\LazySetProxy.cs" />
+    <Compile Include="QueryResultBase.cs" />
+    <Compile Include="QuerySetResult.cs" />
     <Compile Include="RequestOptions.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ExtendedFormBase.cs" />
@@ -112,7 +128,7 @@
     <Compile Include="Proxies\PostResourceDictionary.cs" />
     <Compile Include="Proxies\PostResourceList.cs" />
     <Compile Include="Proxies\RuntimeProxyFactory.cs" />
-    <Compile Include="Proxies\LazyListProxy.cs" />
+    <Compile Include="Proxies\LazyCollectionProxy.cs" />
     <Compile Include="Proxies\LazyProxyBase.cs" />
     <Compile Include="PomonaResourceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -164,6 +180,7 @@
     <Compile Include="Serialization\Patch\IObjectDelta.cs" />
     <Compile Include="Serialization\Patch\ObjectDelta.cs" />
     <Compile Include="Serialization\Patch\ObjectDeltaProxyBase.cs" />
+    <Compile Include="Serialization\Patch\RepositoryDeltaProxyBase.cs" />
     <Compile Include="Serialization\PropertyValueDeserializerNode.cs" />
     <Compile Include="Serialization\PropertyValueSerializerNode.cs" />
     <Compile Include="Serialization\SerializeOptions.cs" />
@@ -187,6 +204,7 @@
     <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
     <Compile Include="TypeSystem\IClientTypeFactory.cs" />
     <Compile Include="TypeSystem\IConstructorControl.cs" />
+    <Compile Include="TypeSystem\IContextResolver.cs" />
     <Compile Include="TypeSystem\IExportedTypeResolver.cs" />
     <Compile Include="TypeSystem\ITypeFactory.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
@@ -194,6 +212,7 @@
     <Compile Include="TypeSystem\Maybe.cs" />
     <Compile Include="TypeSystem\MaybeExtensions.cs" />
     <Compile Include="TypeSystem\MemberSpec.cs" />
+    <Compile Include="TypeSystem\NoContextResolver.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
     <Compile Include="TypeSystem\PropertyFlags.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttribute.cs" />
@@ -201,7 +220,7 @@
     <Compile Include="TypeSystem\PropertyMapping.cs" />
     <Compile Include="TypeSystem\PropertySpec.cs" />
     <Compile Include="TypeSystem\ResourceTypeDetails.cs" />
-    <Compile Include="TypeSystem\ResourceTypeSpec.cs" />
+    <Compile Include="TypeSystem\ResourceType.cs" />
     <Compile Include="TypeSystem\RuntimePropertySpec.cs" />
     <Compile Include="TypeSystem\RuntimeTypeDetails.cs" />
     <Compile Include="TypeSystem\RuntimeTypeSpec.cs" />

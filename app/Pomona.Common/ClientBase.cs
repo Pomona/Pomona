@@ -70,6 +70,10 @@ namespace Pomona.Common
 
 
         public abstract string GetUriOfType(Type type);
+        public abstract T Reload<T>(T resource);
+
+        public abstract void Delete<T>(T resource)
+            where T : class, IClientResource;
 
         public abstract T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
             where T : class, IClientResource;
@@ -108,6 +112,12 @@ namespace Pomona.Common
         private readonly ITextSerializer serializer;
         private readonly ITextSerializerFactory serializerFactory;
         private static readonly ClientTypeMapper typeMapper;
+
+        internal static ClientTypeMapper ClientTypeMapper
+        {
+            get { return typeMapper; }
+        }
+
         private readonly IWebClient webClient;
 
 
@@ -115,6 +125,23 @@ namespace Pomona.Common
         {
             // Preload resource info attributes..
             typeMapper = new ClientTypeMapper(typeof(TClient).Assembly);
+        }
+
+
+        public override T Reload<T>(T resource)
+        {
+            var resourceWithUri = resource as IHasResourceUri;
+            if (resourceWithUri == null)
+                throw new ArgumentException("Could not find resource URI, resouce not of type IHasResourceUri.", "resource");
+
+            if (resourceWithUri.Uri == null)
+                throw new ArgumentException("Uri on resource was null.", "resource");
+
+            if (!typeof(T).IsInterface)
+                throw new ArgumentException("Type should be an interface inherited from a known resource type.");
+
+            var resourceType = this.GetMostInheritedResourceInterface(typeof(T));
+            return (T)Get(resourceWithUri.Uri, resourceType);
         }
 
 
@@ -145,6 +172,12 @@ namespace Pomona.Common
         public override IWebClient WebClient
         {
             get { return this.webClient; }
+        }
+
+        public override void Delete<T>(T resource)
+        {
+            var uri = ((IHasResourceUri)resource).Uri;
+            SendHttpRequest(uri, "DELETE");
         }
 
 
@@ -418,7 +451,7 @@ namespace Pomona.Common
         private object PatchExtendedType(ExtendedFormBase patchForm, RequestOptions requestOptions)
         {
             var extendedResourceInfo = patchForm.UserTypeInfo;
-            var serverTypeResult = PatchServerType(patchForm.ProxyTarget, requestOptions);
+            var serverTypeResult = PatchServerType(patchForm.WrappedResource, requestOptions);
 
             return typeMapper.WrapResource(serverTypeResult,
                 extendedResourceInfo.ServerType,
@@ -439,11 +472,28 @@ namespace Pomona.Common
         {
             var extendedResourceInfo = postForm.UserTypeInfo;
             
-            var serverTypeResult = PostServerType(uri, postForm.ProxyTarget, options);
+            var serverTypeResult = PostServerType(uri, postForm.WrappedResource, options);
 
-            return typeMapper.WrapResource(serverTypeResult,
-                extendedResourceInfo.ServerType,
-                extendedResourceInfo.ExtendedType);
+            var expectedResponseType = options != null ? options.ExpectedResponseType : null;
+
+            if ((expectedResponseType == null || expectedResponseType == postForm.UserTypeInfo.ServerType) &&
+                postForm.UserTypeInfo.ServerType.IsInstanceOfType(serverTypeResult))
+            {
+                return typeMapper.WrapResource(serverTypeResult,
+                    extendedResourceInfo.ServerType,
+                    extendedResourceInfo.ExtendedType);
+            }
+
+            ExtendedResourceInfo responseExtendedInfo;
+            if (expectedResponseType != null
+                && typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
+            {
+                return typeMapper.WrapResource(serverTypeResult,
+                    responseExtendedInfo.ServerType,
+                    responseExtendedInfo.ExtendedType);
+            }
+
+            return serverTypeResult;
         }
 
 

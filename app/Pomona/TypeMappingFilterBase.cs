@@ -51,14 +51,16 @@ namespace Pomona
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
         private readonly HashSet<Type> sourceTypesCached;
 
-        protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
-        {
-            sourceTypesCached = new HashSet<Type>(sourceTypes);
-        }
 
         static TypeMappingFilterBase()
         {
             jsonSupportedNativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
+        }
+
+
+        protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
+        {
+            this.sourceTypesCached = new HashSet<Type>(sourceTypes);
         }
 
 
@@ -69,19 +71,21 @@ namespace Pomona
 
         private HashSet<Type> SourceTypes
         {
-            get
-            {
-                return this.sourceTypesCached;
-            }
+            get { return this.sourceTypesCached; }
         }
 
         #region ITypeMappingFilter Members
-
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
+            return false;
+        }
+
+
+        public virtual bool DeleteOfTypeIsAllowed(Type type)
+        {
             return false;
         }
 
@@ -104,6 +108,12 @@ namespace Pomona
         }
 
 
+        public virtual IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return member.GetCustomAttributesData().Where(x => x.Constructor.DeclaringType == typeof(ObsoleteAttribute));
+        }
+
+
         public virtual Type GetClientLibraryType(Type type)
         {
             if (type == null)
@@ -112,7 +122,7 @@ namespace Pomona
         }
 
 
-        public virtual LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -126,6 +136,8 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
+            //if (type == typeof(byte[]))
+            //    return new BinaryConverter();
             if (IsNullableType(type) && type.GetGenericArguments()[0].IsEnum)
                 return new StringEnumConverter();
             return null;
@@ -147,6 +159,11 @@ namespace Pomona
         public virtual string GetPluralNameForType(Type type)
         {
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
+        }
+
+        public virtual Boolean GetTypeIsAbstract(Type type)
+        {
+            return type.IsAbstract;
         }
 
 
@@ -173,8 +190,7 @@ namespace Pomona
         }
 
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo,
-            ParameterInfo ctorParameterInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
             if (ctorParameterInfo != null)
                 return PropertyCreateMode.Required;
@@ -186,7 +202,14 @@ namespace Pomona
         }
 
 
-        public virtual LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
+                   (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
+        }
+
+
+        public virtual LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -194,23 +217,9 @@ namespace Pomona
         }
 
 
-        public virtual Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public virtual Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            var selfParam = Expression.Parameter(typeof(object), "x");
-            var expr = Expression.Lambda<Func<object, object>>(
-                Expression.Convert(
-                    Expression.MakeMemberAccess(
-                        Expression.Convert(selfParam, propertyInfo.DeclaringType),
-                        propertyInfo
-                        ),
-                    typeof(object)
-                    ),
-                selfParam
-                );
-
-            return expr.Compile();
+            return null;
         }
 
 
@@ -224,13 +233,6 @@ namespace Pomona
         }
 
 
-        public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
-        {
-            return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
-                   (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
-        }
-
-
         public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
@@ -239,33 +241,9 @@ namespace Pomona
         }
 
 
-        public virtual Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        public virtual Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            if (!propertyInfo.CanWrite)
-            {
-                return (obj, value) =>
-                {
-                    throw new InvalidOperationException(
-                        "Property " + propertyInfo.Name + " of " + propertyInfo.DeclaringType + " is not writable.");
-                };
-            }
-
-            var selfParam = Expression.Parameter(typeof(object), "x");
-            var valueParam = Expression.Parameter(typeof(object), "value");
-            var expr = Expression.Lambda<Action<object, object>>(
-                Expression.Assign(
-                    Expression.Property(
-                        Expression.Convert(selfParam, propertyInfo.DeclaringType),
-                        propertyInfo
-                        ),
-                    Expression.Convert(valueParam, propertyInfo.PropertyType)
-                    ),
-                selfParam,
-                valueParam);
-
-            return expr.Compile();
+            return null;
         }
 
 
@@ -274,6 +252,12 @@ namespace Pomona
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
             return propertyInfo.PropertyType;
+        }
+
+
+        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
+        {
+            return null;
         }
 
 
@@ -315,7 +299,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
+        public virtual bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -323,7 +307,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -331,7 +315,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -339,7 +323,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsEtag(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -347,7 +331,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsIncluded(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -356,7 +340,7 @@ namespace Pomona
         }
 
 
-        public virtual bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -430,7 +414,8 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
-            return type.IsEnum || IsNativelySupportedType(type) || TypeIsMappedAsCollection(type);
+            return type.IsEnum || IsNativelySupportedType(type) || type == typeof(byte[])
+                   || TypeIsMappedAsCollection(type);
         }
 
 
@@ -452,33 +437,9 @@ namespace Pomona
         }
 
 
-        public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
+        public string GetTypeMappedName(Type type)
         {
-            if (collectionProperty == null)
-                throw new ArgumentNullException("collectionProperty");
-            Type[] genericArguments;
-            if (
-                !TypeUtils.TryGetTypeArguments(
-                    collectionProperty.PropertyType,
-                    typeof(IEnumerable<>),
-                    out genericArguments))
-                return null;
-
-            var elementType = genericArguments[0];
-
-            var foreignPropCandicates =
-                elementType.GetProperties().Where(x => x.PropertyType == collectionProperty.DeclaringType).ToList();
-            if (foreignPropCandicates.Count > 1)
-            {
-                Log(
-                    "WARNING: Not mapping foreign key relation of one-to-many collection property "
-                    + collectionProperty.Name
-                    + " of type "
-                    + collectionProperty.DeclaringType.FullName + " since there are multiple candidates on other side: "
-                    + string.Join(", ", foreignPropCandicates.Select(x => x.Name)) + " (of " + elementType.FullName);
-            }
-
-            return foreignPropCandicates.Count == 1 ? foreignPropCandicates[0] : null;
+            return type.Name;
         }
 
 

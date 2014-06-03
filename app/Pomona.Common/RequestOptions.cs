@@ -27,16 +27,31 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
-    internal class RequestOptions
+    internal class RequestOptions : IRequestOptions
     {
+        private readonly Type expectedResponseType;
+
+        public Type ExpectedResponseType
+        {
+            get { return this.expectedResponseType; }
+        }
+
         private readonly StringBuilder expandedPaths = new StringBuilder();
 
         private readonly List<Action<WebClientRequestMessage>> requestModifyActions =
             new List<Action<WebClientRequestMessage>>();
+
+
+        internal RequestOptions(Type expectedResponseType = null)
+        {
+            this.expectedResponseType = expectedResponseType;
+        }
+
 
         public string ExpandedPaths
         {
@@ -55,10 +70,12 @@ namespace Pomona.Common
             }
         }
 
-        public void ModifyRequest(Action<WebClientRequestMessage> action)
+        public IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action)
         {
             requestModifyActions.Add(action);
+            return this;
         }
+
 
         protected void Expand(LambdaExpression expression)
         {
@@ -66,10 +83,24 @@ namespace Pomona.Common
                 expandedPaths.Append(',');
             expandedPaths.Append(expression.GetPropertyPath(true));
         }
+
+        public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions, Type expectedResponseType = null)
+        {
+            var requestOptions = new RequestOptions<T>(expectedResponseType);
+            if (optionActions != null)
+                optionActions(requestOptions);
+            return requestOptions;
+        }
     }
 
     internal class RequestOptions<T> : RequestOptions, IRequestOptions<T>
     {
+        internal RequestOptions(Type expectedResponseType = null)
+            : base(expectedResponseType)
+        {
+        }
+
+
         IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
         {
             ModifyRequest(action);
@@ -81,5 +112,6 @@ namespace Pomona.Common
             Expand(expression);
             return this;
         }
+
     }
 }

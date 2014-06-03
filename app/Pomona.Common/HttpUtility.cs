@@ -33,7 +33,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Pomona.Common
@@ -692,6 +694,40 @@ namespace Pomona.Common
 #endif
         }
 
+        private readonly static byte[] pathSegmentNonEncodedChars = "(),[]_-.".Select(x => (byte)x).ToArray();
+
+        public static string UrlPathSegmentEncode(string s)
+        {
+            var sb = new StringBuilder(s.Length * 2);
+            UrlPathSegmentEncode(sb, s);
+            return sb.ToString();
+        }
+
+        public static void UrlPathSegmentEncode(StringBuilder stringBuilder, string s)
+        {
+            if (stringBuilder == null)
+                throw new ArgumentNullException("stringBuilder");
+            if (s == null)
+                throw new ArgumentNullException("s");
+
+            if (s == ".")
+                stringBuilder.Append("%2E");
+            if (s == "..")
+                stringBuilder.Append("%2E%2E");
+
+            var bytes = Encoding.UTF8.GetBytes(s);
+            foreach (var c in bytes)
+            {
+                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || pathSegmentNonEncodedChars.Contains(c))
+                {
+                    stringBuilder.Append((char)c);
+                }
+                else
+                {
+                    stringBuilder.AppendFormat(CultureInfo.InvariantCulture, "%{0:X2}", (int)c);
+                }
+            }
+        }
 
         public static NameValueCollection ParseQueryString(string query)
         {

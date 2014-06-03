@@ -110,6 +110,31 @@ namespace Pomona.SystemTests
         }
 
 
+        [Category("TODO")]
+        [Test(Description = "Known to not be working correctly")]
+        public void PatchCritter_ReplaceCollection_RemovesItemsNotInReplacingCollection()
+        {
+            var critter =
+                Save(new Critter()
+                {
+                    Name = "bah",
+                    SimpleAttributes = new List<SimpleAttribute>() { new SimpleAttribute() { Key = "A", Value = "1" } }
+                });
+            var patched = Client.Critters.Patch(Client.Critters.Get(critter.Id),
+                x =>
+                {
+                    //x.SimpleAttributes = new List<ISimpleAttribute>()
+                    //{
+                    //    new SimpleAttributeForm() { Key = "B", Value = "2" }
+                    //};
+                    x.SimpleAttributes.Clear();
+                    x.SimpleAttributes.Add(new SimpleAttributeForm() { Key = "B", Value = "2" });
+                });
+
+            Assert.That(patched.SimpleAttributes.Count, Is.EqualTo(1));
+        }
+
+
         [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
@@ -125,13 +150,32 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchCritter_UpdatePropertyOfValueObject()
         {
-            var critter = Save(new Critter());
+            var critter =
+                Save(new Critter()
+                {
+                    CrazyValue = new CrazyValueObject() { Info = "the info", Sickness = "the sickness" }
+                });
             var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
             Client.Patch(resource,
                 x =>
-                    x.CrazyValue = new CrazyValueObjectForm { Sickness = "Just crazy thats all" });
+                    x.CrazyValue.Sickness ="Just crazy thats all" );
 
             Assert.That(critter.CrazyValue.Sickness, Is.EqualTo("Just crazy thats all"));
+        }
+
+
+        [Test]
+        public void PatchCritter_ReplacesValueObject()
+        {
+            var critter =
+                Save(new Critter()
+                {
+                    CrazyValue = new CrazyValueObject() { Info = "the info", Sickness = "the sickness" }
+                });
+            var resource = Client.Query<ICritter>().First(x => x.Id == critter.Id);
+            Client.Patch(resource,
+                x => x.CrazyValue = new CrazyValueObjectForm() { Info = "new info" });
+            Assert.That(critter.CrazyValue.Sickness, Is.EqualTo(null));
         }
 
 
@@ -148,6 +192,17 @@ namespace Pomona.SystemTests
             Assert.That(critter.Hat, Is.EqualTo(hat));
         }
 
+
+        [Test]
+        public void PatchFarm_AddExistingCritterToFarm()
+        {
+            var farmEntity = Save(new Farm("The latest farm"));
+            var critterEntity = Repository.CreateRandomCritter(rngSeed: 3473873, addToRandomFarm: false);
+            var farmResource = Client.Farms.GetLazy(farmEntity.Id);
+            Client.Farms.Patch(farmResource,
+                f => ((IList<ICritter>)f.Critters).Add(Client.Critters.GetLazy(critterEntity.Id)));
+            Assert.That(farmEntity.Critters, Contains.Item(critterEntity));
+        }
 
         [Test]
         public void PatchCritter_UpdateStringProperty()

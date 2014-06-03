@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,9 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 
 namespace Pomona.UnitTests.Queries
@@ -38,11 +44,13 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDecimals.average()", _this => _this.ListOfDecimals.Average());
         }
 
+
         [Test]
         public void ParseAverageOfDecimalsWithSelector_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.average(y:y.someDecimal)", _this => _this.Children.Average(y => y.SomeDecimal));
         }
+
 
         [Test]
         public void ParseAverageOfDoubleEnumerable_ReturnsCorrectExpression()
@@ -50,11 +58,13 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDoubles.average()", _this => _this.ListOfDoubles.Average());
         }
 
+
         [Test]
         public void ParseAverageOfDoublesWithSelector_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.average(y:y.precise)", _this => _this.Children.Average(y => y.Precise));
         }
+
 
         [Test]
         public void ParseConditional_ReturnsCorrectExpression()
@@ -62,25 +72,43 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("iif(text eq 'lalala', 'yes', 'no')", _this => _this.Text == "lalala" ? "yes" : "no");
         }
 
+
         [Test]
         public void ParseConvertToIntExpression_ReturnsCorrectExpression()
         {
-            ParseAndAssert("convert(text,t'Int32')", _this => (int) Convert.ChangeType(_this.Text, typeof (int)));
+            ParseAndAssert("convert(text,t'Int32')", _this => (int)Convert.ChangeType(_this.Text, typeof(int)));
         }
+
+
+        [Test]
+        public void ParseEnumComparison_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("anEnumValue eq 'Moo'", _this => _this.AnEnumValue == TestEnum.Moo);
+        }
+
+
+        [Test]
+        public void ParseEnumNotEqual_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("anEnumValue ne 'Moo'", _this => _this.AnEnumValue != TestEnum.Moo);
+        }
+
 
         [Test]
         public void ParseFirstOrDefaultWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.firstdefault(x:x.number eq 4)",
-                           _this => _this.Children.FirstOrDefault(x => x.Number == 4));
+                _this => _this.Children.FirstOrDefault(x => x.Number == 4));
         }
+
 
         [Test]
         public void ParseFirstWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.first(x:x.number eq 4)",
-                           _this => _this.Children.First(x => x.Number == 4));
+                _this => _this.Children.First(x => x.Number == 4));
         }
+
 
         [Test]
         public void ParseMaxOfEnumerable_ReturnsCorrectExpression()
@@ -91,6 +119,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfFloats.max()", _this => _this.ListOfFloats.Max());
         }
 
+
         [Test]
         public void ParseMaxWithSelector_ReturnsCorrectExpression()
         {
@@ -99,6 +128,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDecimals.max(y: y)", _this => _this.ListOfDecimals.Max(y => y));
             ParseAndAssert("listOfFloats.max(y: y)", _this => _this.ListOfFloats.Max(y => y));
         }
+
 
         [Test]
         public void ParseMinOfIntEnumerable_ReturnsCorrectExpression()
@@ -109,6 +139,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfFloats.min()", _this => _this.ListOfFloats.Min());
         }
 
+
         [Test]
         public void ParseMinWithSelector_ReturnsCorrectExpression()
         {
@@ -118,11 +149,34 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfFloats.min(y: y)", _this => _this.ListOfFloats.Min(y => y));
         }
 
+
+        [Test]
+        public void ParseNotEquals_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("number ne 3", _this => _this.Number != 3);
+        }
+
+
+        [Test]
+        public void ParseNullableEnumComparison_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("NullableEnum eq 'Moo'", _this => _this.NullableEnum == TestEnum.Moo);
+        }
+
+
+        [Test]
+        public void ParseNullableEnumHasValue_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("nullableEnum.hasValue()", _this => _this.NullableEnum.HasValue);
+        }
+
+
         [Test]
         public void ParseObjectIsOfType_ReturnsCorrectExpression()
         {
             ParseAndAssert("isof(unknownProperty,t'Int32')", _this => _this.UnknownProperty is int);
         }
+
 
         [Test]
         public void ParseSafeGetFromObjectDictionaryAsStringExpression_ReturnsCorrectExpression()
@@ -130,11 +184,12 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("objectAttributes.Hei as t'String'", _this => _this.ObjectAttributes.SafeGet("Hei") as string);
         }
 
+
         [Test]
         public void ParseSingleOrDefaultWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.singledefault(x:x.number eq 4)",
-                           _this => _this.Children.SingleOrDefault(x => x.Number == 4));
+                _this => _this.Children.SingleOrDefault(x => x.Number == 4));
         }
 
 
@@ -144,12 +199,14 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("children.singledefault()", _this => _this.Children.SingleOrDefault());
         }
 
+
         [Test]
         public void ParseSingleWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.single(x:x.number eq 4)",
-                           _this => _this.Children.Single(x => x.Number == 4));
+                _this => _this.Children.Single(x => x.Number == 4));
         }
+
 
         [Test]
         public void ParseSingle_ReturnsCorrectExpression()
@@ -164,17 +221,20 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDecimals.sum()", _this => _this.ListOfDecimals.Sum());
         }
 
+
         [Test]
         public void ParseSumOfDoubleEnumerable_ReturnsCorrectExpression()
         {
             ParseAndAssert("listOfDoubles.sum()", _this => _this.ListOfDoubles.Sum());
         }
 
+
         [Test]
         public void ParseSumOfIntEnumerable_ReturnsCorrectExpression()
         {
             ParseAndAssert("listOfInts.sum()", _this => _this.ListOfInts.Sum());
         }
+
 
         [Test]
         public void ParseSumWithSelectorOfDecimal_ReturnsCorrectExpression()
@@ -184,22 +244,11 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
-        public void ParseEnumComparison_ReturnsCorrectExpression()
-        {
-            ParseAndAssert("anEnumValue eq 'Moo'", _this => _this.AnEnumValue == TestEnum.Moo);
-        }
-
-        [Test]
-        public void ParseNullableEnumComparison_ReturnsCorrectExpression()
-        {
-            ParseAndAssert("NullableEnum eq 'Moo'", _this => _this.NullableEnum == TestEnum.Moo);
-        }
-
-        [Test]
         public void ParseSumWithSelectorOfDouble_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.sum(x: x.precise)", _this => _this.Children.Sum(x => x.Precise));
         }
+
 
         [Test]
         public void ParseSumWithSelectorOfInt_ReturnsCorrectExpression()
@@ -207,16 +256,18 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("children.sum(x: x.number)", _this => _this.Children.Sum(x => x.Number));
         }
 
+
         [Test]
         public void ParseTypeNameLiteralExpression_WithInt32_ReturnsCorrectExpression()
         {
-            ParseAndAssert("t'Int32'", _this => typeof (int));
+            ParseAndAssert("t'Int32'", _this => typeof(int));
         }
+
 
         [Test]
         public void ParseTypeNameLiteralExpression_WithNullableInt32_ReturnsCorrectExpression()
         {
-            ParseAndAssert("t'Int32?'", _this => typeof (int?));
+            ParseAndAssert("t'Int32?'", _this => typeof(int?));
         }
     }
 }

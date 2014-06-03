@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,13 +32,12 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
-    public interface IDeserializationContext
+    public interface IDeserializationContext : IContextResolver
     {
         IResourceNode TargetNode { get; }
         void CheckAccessRights(PropertySpec property, HttpMethod method);
         void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method);
         object CreateReference(IDeserializerNode node);
-
 
         void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction);
 
@@ -46,8 +45,6 @@ namespace Pomona.Common.Serialization
 
         TypeSpec GetTypeByName(string typeName);
         void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp);
-
-        T ResolveContext<T>();
 
         void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue);
     }

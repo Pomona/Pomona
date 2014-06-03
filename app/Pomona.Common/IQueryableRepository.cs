@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System.Linq;
+
 using Pomona.Common.Proxies;
 
 namespace Pomona.Common
@@ -34,12 +35,14 @@ namespace Pomona.Common
     public interface IQueryableRepository<TResource> : IClientRepository, IQueryable<TResource>
         where TResource : class, IClientResource
     {
+        object Post<TPostForm>(TResource resource, TPostForm form)
+            where TPostForm : class, IPostForm, IClientResource;
+
+
         IQueryable<TResource> Query();
+
 
         IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource;
-
-        object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : class, IPostForm, IClientResource;
     }
 }

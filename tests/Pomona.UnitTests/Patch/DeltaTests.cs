@@ -155,7 +155,8 @@ namespace Pomona.UnitTests.Patch
                 this.typeMapper.GetClassMapping(
                     typeof(ITestResource)),
                 this.typeMapper,
-                null);
+                null,
+                typeof(ITestResource));
 
             Assert.IsFalse(((Delta)proxy).IsDirty);
             return proxy;
@@ -203,10 +204,10 @@ namespace Pomona.UnitTests.Patch
         public void AddItemToChildren_IsInAddedItemsAndMarksParentAsDirty()
         {
             var proxy = GetObjectProxy();
-            proxy.Children.Add(new TestResource { Info = "AddedChild" });
+            proxy.Children.Add(new TestResourcePostForm() { Info = "AddedChild" });
             var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
             Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(1));
-            Assert.That(childCollectionDelta.AddedItems.First().Info, Is.EqualTo("AddedChild"));
+            Assert.That(childCollectionDelta.AddedItems.Cast<ITestResource>().First().Info, Is.EqualTo("AddedChild"));
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
             Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
             Assert.That(((Delta)proxy).IsDirty);

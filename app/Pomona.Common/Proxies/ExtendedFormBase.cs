@@ -34,7 +34,7 @@ namespace Pomona.Common.Proxies
     {
         bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
         {
-            var targetSerializable = ProxyTarget as IPomonaSerializable;
+            var targetSerializable = WrappedResource as IPomonaSerializable;
             if (targetSerializable == null)
                 return false;
 

@@ -53,14 +53,14 @@ namespace Pomona.Common.Serialization.Patch
             return proxy;
         }
 
-        public static object CreateDeltaProxy(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent)
+        public static object CreateDeltaProxy(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent, Type propertyType)
         {
             if (type.SerializationMode == TypeSerializationMode.Complex)
             {
                 return Create(original, type, typeMapper, parent);
             }
             if (type.IsCollection)
-                return CollectionDelta.CreateTypedCollectionDelta(original, type, typeMapper, parent);
+                return CollectionDelta.CreateTypedCollectionDelta(original, type, typeMapper, parent, propertyType);
             if (type.IsDictionary)
             {
                 var dictType = (DictionaryTypeSpec)type;
@@ -82,9 +82,9 @@ namespace Pomona.Common.Serialization.Patch
             SetPropertyValue(property.Name, value);
         }
 
-        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType)
+        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyType)
         {
-            return CreateDeltaProxy(propValue, propValueType, TypeMapper, this);
+            return CreateDeltaProxy(propValue, propValueType, TypeMapper, this, propertyType);
         }
     }
 

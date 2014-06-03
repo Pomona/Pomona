@@ -76,6 +76,16 @@ namespace Pomona.SystemTests.TestingClient
 
 
         [Test]
+        public void Get_Critter_ById()
+        {
+            var critterResource = new CritterResource() { Name = "donald" };
+            this.mockControl.Save(critterResource);
+            var critter = this.testClient.Critters.Get(critterResource.Id);
+            Assert.That(critter, Is.Not.Null);
+        }
+
+
+        [Test]
         public void Query_AllCritters_NoCrittersInStore_ReturnsEmptyList()
         {
             var emptyCritterResults = this.testClient.Critters.Query().ToList();

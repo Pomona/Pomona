@@ -68,14 +68,14 @@ namespace Pomona.Common.Serialization.Patch
             PropertySpec prop;
             if (TryGetPropertyByName(propertyName, out prop))
             {
-                var propValue = prop.Getter(Original);
+                var propValue = prop.GetValue(Original);
                 if (propValue == null)
                     return null;
 
                 var propValueType = TypeMapper.GetClassMapping(propValue.GetType());
                 if (propValueType.SerializationMode != TypeSerializationMode.Value)
                 {
-                    var nestedDelta = CreateNestedDelta(propValue, propValueType);
+                    var nestedDelta = CreateNestedDelta(propValue, propValueType, prop.PropertyType);
                     TrackedProperties[propertyName] = nestedDelta;
                     return nestedDelta;
                 }
@@ -101,7 +101,7 @@ namespace Pomona.Common.Serialization.Patch
             PropertySpec prop;
             if (TryGetPropertyByName(propertyName, out prop) && prop.PropertyType.SerializationMode == TypeSerializationMode.Value)
             {
-                object oldValue = prop.Getter(Original);
+                object oldValue = prop.GetValue(Original);
                 if ((value != null && value.Equals(oldValue)) || (value == null && oldValue == null))
                 {
                     trackedProperties.Remove(propertyName);
@@ -147,7 +147,7 @@ namespace Pomona.Common.Serialization.Patch
                 else
                 {
                     var propInfo = propLookup[kvp.Key].First();
-                    propInfo.Setter(Original, kvp.Value);
+                    propInfo.SetValue(Original, kvp.Value);
                 }
             }
             if (Parent == null)

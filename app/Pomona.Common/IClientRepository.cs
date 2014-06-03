@@ -35,17 +35,14 @@ namespace Pomona.Common
         string Uri { get; }
     }
 
-    public interface IClientRepository<TResource, TPostResponseResource> : IQueryableRepository<TResource>,
+    public interface IClientRepository<TResource, TPostResponseResource, TId> : IQueryableRepository<TResource>,
                                                                            IPatchableRepository<TResource>,
                                                                            IPostableRepository
-                                                                               <TResource, TPostResponseResource>
+                                                                               <TResource, TPostResponseResource>,
+                                                                           IDeletableRepository<TResource>
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
         TPostResponseResource Post(IPostForm form);
-
-
-        TResource Get(object id);
-        TResource GetLazy(object id);
     }
 }

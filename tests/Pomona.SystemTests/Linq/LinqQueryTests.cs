@@ -72,6 +72,14 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_Any_ReturnsTrue()
+        {
+            var any = Client.Critters.Query().Any();
+            Assert.That(any, Is.True);
+        }
+
+
+        [Test]
         public void QueryCritter_Count_ReturnsCount()
         {
             var expected = Repository.List<Critter>().Count;
@@ -80,26 +88,19 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_WithPropertyNotAllowedInExpression_ThrowsBadRequestException_HavingUsefulErrorMessage()
-        {
-            var ex = Assert.Throws<BadRequestException>(() => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
-            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
-        }
-
-
-        [Test]
         public void QueryCritter_FirstLazy_ReturnsLazyCritter()
         {
-            Repository.CreateRandomCritter(new Random());
-            var expected = CritterEntities.First(x => x.Id % 2 == 0);
-            var lazyCritter = Client.Query<ICritter>().Where(x => x.Id % 2 == 0).FirstLazy();
+            var randCritter = Repository.CreateRandomCritter(new Random());
+            var expected = CritterEntities.First(x => x.Id == randCritter.Id);
+            var lazyCritter = Client.Query<ICritter>().Where(x => x.Id == randCritter.Id).FirstLazy();
             var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
-            Assert.That(beforeLoadUri, Is.StringContaining("$filter=(id+mod+2)+eq+0"));
+            var predicate = string.Format("$filter=id+eq+{0}", randCritter.Id);
+            Assert.That(beforeLoadUri, Is.StringContaining(predicate));
             Console.WriteLine(beforeLoadUri);
             // Should load uri when retrieving name
             var name = lazyCritter.Name;
             var afterLoadUri = ((IHasResourceUri)lazyCritter).Uri;
-            Assert.That(afterLoadUri, Is.Not.StringContaining("$filter=(id+mod+2)+eq+0"));
+            Assert.That(afterLoadUri, Is.Not.StringContaining(predicate));
             Console.WriteLine(afterLoadUri);
             Assert.That(name, Is.EqualTo(expected.Name));
         }
@@ -125,16 +126,40 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_GetSumOfDecimalProperty()
+        public void QueryCritter_GetSumOfDecimal()
         {
             var expected = CritterEntities.Sum(x => (decimal)x.Id);
             var actual = Client.Query<ICritter>().Sum(x => (decimal)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
+        [Test]
+        public void QueryCritter_GetSumOfNullableDecimal()
+        {
+            var expected = CritterEntities.Sum(x => (decimal?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (decimal?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
 
         [Test]
-        public void QueryCritter_GetSumOfDoubleProperty()
+        public void QueryCritter_GetSumOfNullableInt()
+        {
+            var expected = CritterEntities.Sum(x => (int?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (int?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void QueryCritter_GetSumOfNullableDouble()
+        {
+            var expected = CritterEntities.Sum(x => (double?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (double?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GetSumOfDouble()
         {
             var expected = CritterEntities.Sum(x => (double)x.Id);
             var actual = Client.Query<ICritter>().Sum(x => (double)x.Id);
@@ -143,7 +168,7 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryCritter_GetSumOfIntProperty()
+        public void QueryCritter_GetSumOfInt()
         {
             var expected = CritterEntities.Sum(x => x.Name.Length);
             var actual = Client.Query<ICritter>().Sum(x => x.Name.Length);
@@ -414,6 +439,7 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_WhereFirstOrDefaultFromWeapons_ReturnsCorrectValues_ManyTimes()
         {
+            RequestTraceEnabled = false;
             var expected =
                 CritterEntities.Where(
                     x => x.Weapons.FirstOrDefault() != null && x.Weapons.FirstOrDefault().Strength > 0.5)
@@ -442,6 +468,25 @@ namespace Pomona.SystemTests.Linq
             var critterResource =
                 Client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
+        }
+
+
+        [Test]
+        public void QueryCritter_WhereSingle_ReturnsCorrectCritter()
+        {
+            // Just take some random critter
+            var critter = CritterEntities.Skip(1).Take(1).First();
+            // Search by its name
+            var critterResource =
+                Client.Query<ICritter>().Single(x => x.Name == critter.Name && x.Guid == critter.Guid);
+            Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
+        }
+
+
+        [Test]
+        public void QueryCritter_WhereSingle_ThrowsExceptionOnMultipleMatches()
+        {
+            Assert.Throws<InvalidOperationException>(() => Client.Query<ICritter>().Single());
         }
 
 
@@ -549,6 +594,16 @@ namespace Pomona.SystemTests.Linq
         {
             var ex = Assert.Throws<InvalidOperationException>(() => Client.Query<ICritter>().First(x => false));
             Assert.That(ex.Message, Is.EqualTo("Sequence contains no matching element"));
+        }
+
+
+        [Test]
+        public void QueryCritter_WithPropertyNotAllowedInExpression_ThrowsBadRequestException_HavingUsefulErrorMessage()
+        {
+            var ex =
+                Assert.Throws<BadRequestException>(
+                    () => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
+            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
         }
 
 

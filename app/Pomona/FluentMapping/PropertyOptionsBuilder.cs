@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 using System;
 using System.Linq.Expressions;
 
+using Nancy;
 using Nancy.Extensions;
 
 using Pomona.Common;
@@ -51,16 +52,16 @@ namespace Pomona.FluentMapping
 
         #region Implementation of IPropertyOptionsBuilder<TDeclaringType,TPropertyType>
 
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Allow(HttpMethod method)
         {
-            this.options.AlwaysExpanded = true;
+            this.options.SetAccessModeFlag(method);
             return this;
         }
 
 
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
         {
-            this.options.ExposedAsRepository = true;
+            this.options.AlwaysExpanded = true;
             return this;
         }
 
@@ -86,6 +87,34 @@ namespace Pomona.FluentMapping
         }
 
 
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Deny(HttpMethod method)
+        {
+            this.options.ClearAccessModeFlag(method);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
+        {
+            this.options.ExposedAsRepository = true;
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsAllow(HttpMethod method)
+        {
+            this.options.SetItemAccessModeFlag(method);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsDeny(HttpMethod method)
+        {
+            this.options.ClearItemAccessModeFlag(method);
+            return this;
+        }
+
+
         public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Named(string name)
         {
             this.options.Name = name;
@@ -93,12 +122,49 @@ namespace Pomona.FluentMapping
         }
 
 
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnGet(
+            Func<TDeclaringType, TPropertyType> getter)
+        {
+            this.options.OnGetDelegate = (target, contextResolver) => getter((TDeclaringType)target);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnGet<TContext>(
+            Func<TDeclaringType, TContext, TPropertyType> getter)
+        {
+            this.options.OnGetDelegate =
+                (target, contextResolver) => getter((TDeclaringType)target, contextResolver.GetContext<TContext>());
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnSet(
+            Action<TDeclaringType, TPropertyType> setter)
+        {
+            this.options.OnSetDelegate =
+                (target, value, contextResolver) =>
+                    setter((TDeclaringType)target, (TPropertyType)value);
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnSet<TContext>(
+            Action<TDeclaringType, TPropertyType, TContext> setter)
+        {
+            this.options.OnSetDelegate =
+                (target, value, contextResolver) =>
+                    setter((TDeclaringType)target, (TPropertyType)value, contextResolver.GetContext<TContext>());
+            return this;
+        }
+
+
         public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly()
         {
             this.options.CreateMode = PropertyCreateMode.Excluded;
-            
-            HttpMethod allMutatingMethods = HttpMethod.Patch | HttpMethod.Post | HttpMethod.Delete
-                                            | HttpMethod.Put;
+
+            var allMutatingMethods = HttpMethod.Patch | HttpMethod.Post | HttpMethod.Delete
+                                     | HttpMethod.Put;
 
             this.options.SetAccessModeFlag(HttpMethod.Get);
             this.options.ClearAccessModeFlag(allMutatingMethods);
@@ -133,9 +199,18 @@ namespace Pomona.FluentMapping
         }
 
 
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(PropertyCreateMode createMode)
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithCreateMode(
+            PropertyCreateMode createMode)
         {
             this.options.CreateMode = createMode;
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithItemAccessMode(HttpMethod method)
+        {
+            this.options.ItemMethodMask = ~(default(HttpMethod));
+            this.options.ItemMethod = method;
             return this;
         }
 
@@ -153,42 +228,6 @@ namespace Pomona.FluentMapping
             this.options.SetAccessModeFlag(HttpMethod.Patch | HttpMethod.Post);
             return this;
         }
-
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithItemAccessMode(HttpMethod method)
-        {
-            this.options.ItemMethodMask = ~(default(HttpMethod));
-            this.options.ItemMethod = method;
-            return this;
-        }
-
-
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Allow(HttpMethod method)
-        {
-            this.options.SetAccessModeFlag(method);
-            return this;
-        }
-
-
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Deny(HttpMethod method)
-        {
-            this.options.ClearAccessModeFlag(method);
-            return this;
-        }
-
-
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsAllow(HttpMethod method)
-        {
-            this.options.SetItemAccessModeFlag(method);
-            return this;
-        }
-
-
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ItemsDeny(HttpMethod method)
-        {
-            this.options.ClearItemAccessModeFlag(method);
-            return this;
-        }
-
 
         #endregion
     }

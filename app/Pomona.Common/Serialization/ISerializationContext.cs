@@ -27,7 +27,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
-    public interface ISerializationContext
+    public interface ISerializationContext : IContextResolver
     {
         TypeSpec GetClassMapping(Type type);
         string GetUri(object value);

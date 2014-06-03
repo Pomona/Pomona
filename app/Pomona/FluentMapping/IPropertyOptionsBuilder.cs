@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
@@ -96,8 +98,20 @@ namespace Pomona.FluentMapping
 
 
 
+        [Obsolete("Use OnQuery instead")]
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula);
+
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnSet<TContext>(Action<TDeclaringType, TPropertyType, TContext> setter);
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnSet(Action<TDeclaringType, TPropertyType> setter);
+
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnGet<TContext>(Func<TDeclaringType, TContext, TPropertyType> getter);
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnGet(Func<TDeclaringType, TPropertyType> getter);
+
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnQuery(Expression<Func<TDeclaringType, TPropertyType>> getter);
+
 
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> WithAccessMode(HttpMethod method);

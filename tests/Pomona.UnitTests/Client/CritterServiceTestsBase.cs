@@ -49,6 +49,8 @@ namespace Pomona.UnitTests.Client
 
         private CritterHost critterHost;
 
+        protected bool RequestTraceEnabled { get; set; }
+
         public virtual bool UseSelfHostedHttpServer
         {
             get { return UseSelfHostedHttpServerDefault; }
@@ -118,8 +120,8 @@ namespace Pomona.UnitTests.Client
                     var critterBootstrapper = new CritterBootstrapper();
                     cachedNancyTestingClientRepository = critterBootstrapper.Repository;
                     cachedNancyTestingClient = CreateInMemoryTestingClient(this.baseUri, critterBootstrapper);
-                    TypeMapper = critterBootstrapper.TypeMapper;
                 }
+                TypeMapper = cachedNancyTestingClientRepository.TypeMapper;
                 this.client = cachedNancyTestingClient;
                 Repository = cachedNancyTestingClientRepository;
             }
@@ -137,8 +139,9 @@ namespace Pomona.UnitTests.Client
 
 
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
+            RequestTraceEnabled = true;
             Repository.ResetTestData();
         }
 

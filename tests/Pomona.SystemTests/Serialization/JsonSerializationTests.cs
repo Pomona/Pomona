@@ -49,7 +49,9 @@ namespace Pomona.SystemTests.Serialization
         [SetUp]
         public void SetUp()
         {
-            var factory = new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(clientTypeMapper, Substitute.For<IPomonaClient>()));
+            var factory =
+                new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(this.clientTypeMapper,
+                    Substitute.For<IPomonaClient>()));
             this.deserializer = factory.GetDeserializer();
         }
 
@@ -61,6 +63,28 @@ namespace Pomona.SystemTests.Serialization
         public class TestClass : IClientResource
         {
             public string FooBar { get; set; }
+        }
+
+
+        [Test]
+        public void DateTimeWithUTCMarkAtEndDeserializesCorrectly()
+        {
+            var obj =
+                this.deserializer.DeserializeFromString<IStringToObjectDictionaryContainer>(
+                    "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00Z' } } }");
+            Assert.That((DateTime)obj.Map.SafeGet("blah"),
+                Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Utc)));
+        }
+
+
+        [Test]
+        public void DateTimeWithoutUTCMarkAtEndDeserializesCorrectly()
+        {
+            var obj =
+                this.deserializer.DeserializeFromString<IStringToObjectDictionaryContainer>(
+                    "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00' } } }");
+            Assert.That((DateTime)obj.Map.SafeGet("blah"),
+                Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Local)));
         }
 
 

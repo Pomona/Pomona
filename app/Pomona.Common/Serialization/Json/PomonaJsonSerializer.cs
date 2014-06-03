@@ -61,8 +61,6 @@ namespace Pomona.Common.Serialization.Json
         private static readonly ConcurrentDictionary<TypeSpec, PomonaJsonSerializerTypeEntry> typeEntryDict =
             new ConcurrentDictionary<TypeSpec, PomonaJsonSerializerTypeEntry>();
 
-        #region Implementation of ISerializer<PomonaJsonSerializerState>
-
         private static readonly MethodInfo serializeDictionaryGenericMethod =
             ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
                 x => x.SerializeDictionaryGeneric<object>(null, null, null));
@@ -187,6 +185,7 @@ namespace Pomona.Common.Serialization.Json
             var jsonConverter = node.ValueType.GetCustomJsonConverter();
             if (node.ValueType is EnumTypeSpec)
                 jsonConverter = new StringEnumConverter();
+
 
             if (jsonConverter != null)
                 jsonConverter.WriteJson(writer.JsonWriter, value, null);
@@ -353,7 +352,7 @@ namespace Pomona.Common.Serialization.Json
                     throw new PomonaSerializationException("When we are removing complex object a primary id is required.");
 
                 jsonWriter.WritePropertyName((node.IsRemoved ? "-@" : "*@") + primaryId.JsonName);
-                jsonWriter.WriteValue(primaryId.Getter(node.Value));
+                jsonWriter.WriteValue(primaryId.GetValue(node.Value, node.Context));
                 if (node.IsRemoved)
                 {
                     jsonWriter.WriteEndObject();
@@ -371,7 +370,7 @@ namespace Pomona.Common.Serialization.Json
                 propertiesToSerialize = cacheTypeEntry.ManuallyWrittenProperties;
             }
 
-            propertiesToSerialize = propertiesToSerialize ?? node.ValueType.Properties;
+            propertiesToSerialize = propertiesToSerialize ?? node.ValueType.AllProperties;
 
             propertiesToSerialize = propertiesToSerialize.Where(x => node.Context.PropertyIsSerialized(x));
 
@@ -388,6 +387,11 @@ namespace Pomona.Common.Serialization.Json
                 {
                     jsonWriter.WritePropertyName("!" + prop.JsonName);                    
                 }
+                else if (propNode.ValueType.SerializationMode == TypeSerializationMode.Array
+                         && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault())
+                {
+                    jsonWriter.WritePropertyName("!" + prop.JsonName);
+                }
                 else
                 {
                     jsonWriter.WritePropertyName(prop.JsonName);
@@ -397,7 +401,6 @@ namespace Pomona.Common.Serialization.Json
             jsonWriter.WriteEndObject();
         }
 
-        #endregion
 
         private static bool TryGetTypeEntry(TypeSpec mappedType, out PomonaJsonSerializerTypeEntry typeEntry)
         {

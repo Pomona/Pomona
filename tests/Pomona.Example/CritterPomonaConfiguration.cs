@@ -46,6 +46,7 @@ namespace Pomona.Example
             {
                 yield return new CritterFluentRules();
                 yield return new GalaxyRules();
+                yield return new GuidThingFluentRules();
             }
         }
 

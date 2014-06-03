@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,32 +28,46 @@
 
 using System;
 
+using Nancy;
+
 using Pomona.Common;
-using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
-using System.Linq;
 
 namespace Pomona.Example
 {
     public class CritterFluentRules
     {
-        //if (propertyInfo.DeclaringType == typeof(JunkWithRenamedProperty)
-        //    && propertyInfo.Name == "ReallyUglyPropertyName")
-        //    return "BeautifulAndExposed";
+        public void Map(ITypeMappingConfigurator<HandledThing> map)
+        {
+            map.DeleteAllowed().HandledBy<HandledThingsHandler>();
+        }
 
-        //if (propertyInfo.DeclaringType == typeof(ThingWithRenamedProperties)
-        //    && propertyInfo.Name == "Junky")
-        //    return "DiscoFunky";
+
+        public void Map(ITypeMappingConfigurator<RenamedThing> map)
+        {
+            map.Named("GotNewName").WithPluralName("ThingsWithNewName");
+        }
+
+
+        public void Map(ITypeMappingConfigurator<UnhandledThing> map)
+        {
+            // HandledThingsHandler got not matching methods for unhandled thing. Which means request should be passed to the DataSource instead.
+            map.HandledBy<HandledThingsHandler>();
+        }
+
+
         public void Map(ITypeMappingConfigurator<UnpostableThing> map)
         {
             map.PostDenied();
         }
 
+
         public void Map(ITypeMappingConfigurator<AbstractAnimal> map)
         {
             map.Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly());
         }
+
 
         public void Map(ITypeMappingConfigurator<UnpostableThingOnServer> map)
         {
@@ -61,30 +75,36 @@ namespace Pomona.Example
             map.PostDenied();
         }
 
+
         public void Map(ITypeMappingConfigurator<UnpatchableThing> map)
         {
             map.PatchDenied();
         }
+
 
         public void Map(ITypeMappingConfigurator<MusicalCritter> map)
         {
             map.ConstructedUsing((c) => new MusicalCritter(c.Optional().OnlyWritableByInheritedResource));
         }
 
+
         public void Map(ITypeMappingConfigurator<JunkWithRenamedProperty> map)
         {
             map.Include(x => x.ReallyUglyPropertyName, o => o.Named("BeautifulAndExposed"));
         }
+
 
         public void Map(ITypeMappingConfigurator<ThingIndependentFromBase> map)
         {
             map.AsIndependentTypeRoot();
         }
 
+
         public void Map(ITypeMappingConfigurator<StringToObjectDictionaryContainer> map)
         {
             map.Include(x => x.Map, o => o.AsAttributes());
         }
+
 
         public void Map(ITypeMappingConfigurator<DictionaryContainer> map)
         {
@@ -105,21 +125,29 @@ namespace Pomona.Example
             map.AsUriBaseType();
         }
 
+
         public void Map(ITypeMappingConfigurator<OrderResponse> map)
         {
             map.AsValueObject();
         }
 
+
         public void Map(ITypeMappingConfigurator<Loner> map)
         {
             map.ConstructedUsing(
-                (c) => new Loner(c.Requires().Name, c.Requires().Strength, c.Optional().OptionalInfo, c.Optional().OptionalDate));
+                (c) =>
+                    new Loner(c.Requires().Name,
+                        c.Requires().Strength,
+                        c.Optional().OptionalInfo,
+                        c.Optional().OptionalDate));
         }
+
 
         public void Map(ITypeMappingConfigurator<ErrorStatus> map)
         {
             map.AsValueObject();
         }
+
 
         public void Map(ITypeMappingConfigurator<Subscription> map)
         {
@@ -127,19 +155,36 @@ namespace Pomona.Example
             map.Exclude(x => x.Critter);
         }
 
+
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()
-               .Include(x => x.CrazyValue)
-               .Include(x => x.CreatedOn)
-               .Include(x => x.Subscriptions, o => o.AlwaysExpanded().Writable())
-               .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id%6))
-               .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
-               .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
-               .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
-               .Include(x => x.Weapons, o => o.Writable())
-               .OnDeserialized(c => c.FixParentReferences());
+                .Include(x => x.CrazyValue)
+                .Include(x => x.CreatedOn)
+                .Include(x => x.Subscriptions, o => o.AlwaysExpanded().Writable())
+                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id % 6))
+                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
+                .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
+                .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
+                .Include(x => x.Weapons, o => o.Writable())
+                .Include(x => x.RelativeImageUrl,
+                    o => o.Named("AbsoluteImageUrl")
+                        .OnGet<NancyContext>((critter, ctx) =>
+                        {
+                            var absUrl = ctx.Request.Url.Clone();
+                            absUrl.Path = critter.RelativeImageUrl;
+                            absUrl.Query = null;
+                            return absUrl.ToString();
+                        })
+                        .OnSet<NancyContext>(
+                            (critter, value, ctx) =>
+                            {
+                                critter.RelativeImageUrl =
+                                    new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
+                            }))
+                .OnDeserialized(c => c.FixParentReferences());
         }
+
 
         public void Map(ITypeMappingConfigurator<HasReadOnlyDictionaryProperty> map)
         {
@@ -148,20 +193,23 @@ namespace Pomona.Example
                     o.AsAttributes().WithAccessMode(HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post));
         }
 
+
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
         {
             map.Include(x => x.ETag, o => o.AsEtag());
         }
+
 
         public void Map(ITypeMappingConfigurator<CaptureCommand> map)
         {
             map.AsValueObject();
         }
 
+
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
             map.ConstructedUsing(x => new Gun(x.Requires().Model))
-               .Include(x => x.ExplosionFactor);
+                .Include(x => x.ExplosionFactor);
         }
     }
 }

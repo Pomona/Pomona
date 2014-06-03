@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 
 using Critters.Client;
 
@@ -40,12 +42,113 @@ using Pomona.Common;
 namespace Pomona.SystemTests
 {
     [TestFixture]
-    public class ClientGeneratedTypeTests
+    public class ClientGeneratedTypeTests : ClientTestsBase
     {
+        private static void PeVerify(string dllPath)
+        {
+            var programFilesX86Path = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ??
+                                      Environment.GetEnvironmentVariable("ProgramFiles");
+            Assert.NotNull(programFilesX86Path);
+
+            var peverifyPath = Path.Combine(programFilesX86Path,
+                @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
+            if (!File.Exists(peverifyPath))
+                Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
+
+            var peVerifyArguments = string.Format("\"{0}\" /md /il", dllPath.Replace("\"", "\\\""));
+
+            var proc = new Process
+            {
+                StartInfo =
+                    new ProcessStartInfo(peverifyPath, peVerifyArguments)
+                    {
+                        CreateNoWindow = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = false,
+                        UseShellExecute = false
+                    }
+            };
+            proc.Start();
+            Console.Write(proc.StandardOutput.ReadToEnd());
+            proc.WaitForExit();
+            Assert.That(proc.ExitCode, Is.EqualTo(0), "PEVerify returned error code " + proc.ExitCode);
+        }
+
+
+        [Test]
+        public void AllPropertyTypesOfClientTypesAreAllowed()
+        {
+            var clientAssembly = typeof(ICritter).Assembly;
+            var allPropTypes =
+                clientAssembly.GetExportedTypes().SelectMany(
+                    x => x.GetProperties().Select(y => y.PropertyType)).Distinct();
+
+            var allTypesOk = true;
+            foreach (var type in allPropTypes)
+            {
+                if (!IsAllowedType(type))
+                {
+                    allTypesOk = false;
+                    var typeLocal = type;
+                    var propsWithType = clientAssembly
+                        .GetExportedTypes()
+                        .SelectMany(x => x.GetProperties())
+                        .Where(x => x.PropertyType == typeLocal).ToList();
+                    foreach (var propertyInfo in propsWithType)
+                    {
+                        Console.WriteLine(
+                            "Property {0} of {1} has type {2} of assembly {3}, which should not be referenced by client!",
+                            propertyInfo.Name,
+                            propertyInfo.DeclaringType.FullName,
+                            propertyInfo.PropertyType.FullName,
+                            propertyInfo.PropertyType.Assembly.FullName);
+                    }
+                }
+            }
+
+            Assert.IsTrue(allTypesOk, "There was properties in CritterClient with references to disallowed assemblies.");
+        }
+
+
         [Test]
         public void AssemblyVersionSetToApiVersionFromTypeMappingFilter()
         {
             Assert.That(typeof(Client).Assembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
+        }
+
+        [Test]
+        public void AbstractClassOnServerIsAbstractOnClient()
+        {
+            Assert.That(typeof (AbstractAnimalForm).IsAbstract);
+        }
+
+        [Test]
+        public void ClientLibraryIsCorrectlyGenerated()
+        {
+            var foundError = false;
+            var errors = new StringBuilder();
+            foreach (
+                var prop in
+                    Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                        x =>
+                            x.PropertyType.IsGenericType
+                            && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,,>)))
+            {
+                var value = prop.GetValue(Client, null);
+                if (value == null)
+                {
+                    foundError = true;
+                    errors.AppendFormat("Property {0} of generated client lib is null\r\n", prop.Name);
+                }
+                if (prop.GetSetMethod(true).IsPublic)
+                {
+                    foundError = true;
+                    errors.AppendFormat("Property {0} of generated client lib has a public setter.\r\n", prop.Name);
+                }
+            }
+
+            if (foundError)
+                Assert.Fail("Found the following errors on generated client lib: {0}\r\n", errors);
         }
 
 
@@ -84,6 +187,12 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void ObsoletePropertyIsCopiedFromServerProperty()
+        {
+            Assert.That(typeof(ICritter).GetProperty("ObsoletedProperty").GetCustomAttributes(true).OfType<ObsoleteAttribute>(), Is.Not.Empty);
+        }
+
+        [Test]
         public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
         {
             Assert.That(typeof(IInheritsFromHiddenBase).GetInterfaces(), Has.Member(typeof(IEntityBase)));
@@ -93,63 +202,33 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void PeVerify_HasExitCode0()
-        {
-            PeVerify(typeof (ICritter).Assembly.Location);
-        }
-
-
-        [Test]
         public void PeVerify_ClientWithEmbeddedPomonaCommon_HasExitCode0()
         {
-            string origDllPath = typeof(ICritter).Assembly.Location;
-            string dllDir = Path.GetDirectoryName(origDllPath);
+            var origDllPath = typeof(ICritter).Assembly.Location;
+            var dllDir = Path.GetDirectoryName(origDllPath);
             var clientWithEmbeddedStuffName = Path.Combine(dllDir, "..\\..\\..\\..\\lib\\IndependentCritters.dll");
-            string newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
+            var newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
             File.Copy(clientWithEmbeddedStuffName, newDllPath, true);
             PeVerify(newDllPath);
         }
 
+
+        [Test]
+        public void PeVerify_HasExitCode0()
+        {
+            PeVerify(typeof(ICritter).Assembly.Location);
+        }
+
+
         [Test(Description = "This test has been added since more errors are discovered when dll has been renamed.")]
         public void PeVerify_RenamedToAnotherDllName_StillHasExitCode0()
         {
-
-            string origDllPath = typeof(ICritter).Assembly.Location;
+            var origDllPath = typeof(ICritter).Assembly.Location;
             Console.WriteLine(Path.GetDirectoryName(origDllPath));
-            string newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.tmp");
+            var newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.tmp");
             File.Copy(origDllPath, newDllPath, true);
             PeVerify(newDllPath);
             //Assert.Inconclusive();
-        }
-
-        private static void PeVerify(string dllPath)
-        {
-            var programFilesX86Path = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ??
-                                      Environment.GetEnvironmentVariable("ProgramFiles");
-            Assert.NotNull(programFilesX86Path);
-
-            var peverifyPath = Path.Combine(programFilesX86Path,
-                @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
-            if (!File.Exists(peverifyPath))
-                Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
-
-            var peVerifyArguments = string.Format("\"{0}\" /md /il", dllPath.Replace("\"", "\\\""));
-
-            var proc = new Process
-                {
-                    StartInfo =
-                        new ProcessStartInfo(peverifyPath, peVerifyArguments)
-                            {
-                                CreateNoWindow = true,
-                                RedirectStandardOutput = true,
-                                RedirectStandardError = false,
-                                UseShellExecute = false
-                            }
-                };
-            proc.Start();
-            Console.Write(proc.StandardOutput.ReadToEnd());
-            proc.WaitForExit();
-            Assert.That(proc.ExitCode, Is.EqualTo(0), "PEVerify returned error code " + proc.ExitCode);
         }
 
 

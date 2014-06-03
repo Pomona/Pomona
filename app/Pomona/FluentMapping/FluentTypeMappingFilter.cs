@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -37,7 +38,9 @@ using Newtonsoft.Json;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
+using Pomona.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
@@ -63,8 +66,8 @@ namespace Pomona.FluentMapping
             }
         }
 
-        private readonly IDictionary<string, TypeMappingOptions> typeMappingDict =
-            new Dictionary<string, TypeMappingOptions>();
+        private readonly ConcurrentDictionary<string, TypeMappingOptions> typeMappingDict =
+            new ConcurrentDictionary<string, TypeMappingOptions>();
 
         private readonly ITypeMappingFilter wrappedFilter;
         private readonly IEnumerable<Type> sourceTypes;
@@ -132,7 +135,7 @@ namespace TestNs
 
         public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(propertyInfo,
+            return FromMappingOrDefault(propertyInfo.ReflectedType, propertyInfo,
                 x => x.ExposedAsRepository,
                 () => wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo));
         }
@@ -155,15 +158,22 @@ namespace TestNs
             return this.wrappedFilter.GetClientLibraryType(type);
         }
 
+
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
+        }
+
+
         public bool GenerateIndependentClient()
         {
             return this.wrappedFilter.GenerateIndependentClient();
         }
 
 
-        public LambdaExpression GetDecompiledPropertyFormula(PropertyInfo propertyInfo)
+        public LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetDecompiledPropertyFormula(propertyInfo);
+            return this.wrappedFilter.GetDecompiledPropertyFormula(type, propertyInfo);
         }
 
 
@@ -178,6 +188,12 @@ namespace TestNs
         }
 
 
+        public bool DeleteOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.DeleteAllowed, () => wrappedFilter.DeleteOfTypeIsAllowed(type));
+        }
+
+
         public Action<object> GetOnDeserializedHook(Type type)
         {
             return FromMappingOrDefault(type,
@@ -188,7 +204,9 @@ namespace TestNs
 
         public HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(propertyInfo,
+            return FromMappingOrDefault(
+                propertyInfo.ReflectedType,
+                propertyInfo,
                 x =>
                     (x.ItemMethod & x.ItemMethodMask)
                     | (this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
@@ -202,9 +220,20 @@ namespace TestNs
         }
 
 
-        public PropertyInfo GetOneToManyCollectionForeignKey(PropertyInfo collectionProperty)
+        public IEnumerable<Type> GetResourceHandlers(Type type)
         {
-            return this.wrappedFilter.GetOneToManyCollectionForeignKey(collectionProperty);
+            return FromMappingOrDefault(type, x => x.HandlerTypes, () => wrappedFilter.GetResourceHandlers(type));
+        }
+
+        public bool GetTypeIsAbstract(Type type)
+        {
+            return this.wrappedFilter.GetTypeIsAbstract(type);
+        }
+
+
+        public string GetTypeMappedName(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.Name, () => wrappedFilter.GetTypeMappedName(type));
         }
 
 
@@ -225,7 +254,9 @@ namespace TestNs
 
         public HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec)
         {
-            return FromMappingOrDefault(propertyInfo,
+            return FromMappingOrDefault(
+                propertyInfo.ReflectedType,
+                propertyInfo,
                 x =>
                     (x.Method & x.MethodMask)
                     | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec) & ~(x.MethodMask)),
@@ -233,40 +264,49 @@ namespace TestNs
         }
 
 
-        public PropertyCreateMode GetPropertyCreateMode(PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
+        public PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
         {
-            return FromMappingOrDefault(propertyInfo,
+            return FromMappingOrDefault(type, propertyInfo,
                 x => x.CreateMode,
-                () => this.wrappedFilter.GetPropertyCreateMode(propertyInfo, ctorParameterInfo));
+                () => this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo, ctorParameterInfo));
         }
 
 
-        public LambdaExpression GetPropertyFormula(PropertyInfo propertyInfo)
+        public LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(propertyInfo,
+            return FromMappingOrDefault(type, propertyInfo,
                 x => x.Formula,
-                () => this.wrappedFilter.GetPropertyFormula(propertyInfo));
+                () => this.wrappedFilter.GetPropertyFormula(type, propertyInfo));
         }
 
 
-        public Func<object, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyGetter(propertyInfo);
+            return FromMappingOrDefault(
+                propertyInfo.ReflectedType,
+                propertyInfo,
+                x => x.OnGetDelegate,
+                () => this.wrappedFilter.GetPropertyGetter(propertyInfo));
         }
 
 
         public string GetPropertyMappedName(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
+                propertyInfo.ReflectedType,
                 propertyInfo,
                 x => x.Name,
                 () => this.wrappedFilter.GetPropertyMappedName(propertyInfo));
         }
 
 
-        public Action<object, object> GetPropertySetter(PropertyInfo propertyInfo)
+        public Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertySetter(propertyInfo);
+            return FromMappingOrDefault(
+                propertyInfo.ReflectedType,
+                propertyInfo,
+                x => x.OnSetDelegate,
+                () => wrappedFilter.GetPropertySetter(propertyInfo));
         }
 
 
@@ -324,45 +364,52 @@ namespace TestNs
         }
 
 
-        public bool PropertyFormulaIsDecompiled(PropertyInfo propertyInfo)
-        {
-            return FromMappingOrDefault(propertyInfo,
-                x => x.PropertyFormulaIsDecompiled,
-                () => this.wrappedFilter.PropertyFormulaIsDecompiled(propertyInfo));
-        }
-
-
-        public bool PropertyIsAlwaysExpanded(PropertyInfo propertyInfo)
-        {
-            return FromMappingOrDefault(propertyInfo,
-                x => x.AlwaysExpanded,
-                () => this.wrappedFilter.PropertyIsAlwaysExpanded(propertyInfo));
-        }
-
-
-        public bool PropertyIsAttributes(PropertyInfo propertyInfo)
+        public bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
+                type,
+                propertyInfo,
+                x => x.PropertyFormulaIsDecompiled,
+                () => this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo));
+        }
+
+
+        public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(
+                type,
+                propertyInfo,
+                x => x.AlwaysExpanded,
+                () => this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo));
+        }
+
+
+        public bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(
+                type,
                 propertyInfo,
                 x => x.IsAttributesProperty,
-                () => this.wrappedFilter.PropertyIsAttributes(propertyInfo));
+                () => this.wrappedFilter.PropertyIsAttributes(type, propertyInfo));
         }
 
 
-        public bool PropertyIsEtag(PropertyInfo propertyInfo)
+        public bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(propertyInfo,
+            return FromMappingOrDefault(
+                type,
+                propertyInfo,
                 x => x.IsEtagProperty,
-                () => this.wrappedFilter.PropertyIsEtag(propertyInfo));
+                () => this.wrappedFilter.PropertyIsEtag(type, propertyInfo));
         }
 
 
-        public bool PropertyIsIncluded(PropertyInfo propertyInfo)
+        public bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo)
         {
             TypeMappingOptions typeMapping;
             PropertyMappingOptions propertyOptions;
-            if (!TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMapping, out propertyOptions))
-                return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
+            if (!TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMapping, out propertyOptions))
+                return this.wrappedFilter.PropertyIsIncluded(type, propertyInfo);
 
             if (propertyOptions.InclusionMode == PropertyInclusionMode.Excluded)
                 return false;
@@ -374,7 +421,7 @@ namespace TestNs
             {
                 if (typeMapping.DefaultPropertyInclusionMode ==
                     DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault)
-                    return this.wrappedFilter.PropertyIsIncluded(propertyInfo);
+                    return this.wrappedFilter.PropertyIsIncluded(type, propertyInfo);
 
                 if (typeMapping.DefaultPropertyInclusionMode ==
                     DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping)
@@ -391,12 +438,13 @@ namespace TestNs
         }
 
 
-        public bool PropertyIsPrimaryId(PropertyInfo propertyInfo)
+        public bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
+                type,
                 propertyInfo,
                 x => x.IsPrimaryKey,
-                () => this.wrappedFilter.PropertyIsPrimaryId(propertyInfo));
+                () => this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo));
         }
 
 
@@ -450,14 +498,14 @@ namespace TestNs
         internal TypeMappingOptions GetTypeMapping(Type type)
         {
             TypeMappingOptions typeMapping;
-            if (!this.typeMappingDict.TryGetValue(type.FullName, out typeMapping))
-            {
-                typeMapping = new TypeMappingOptions(type);
-                typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
-                this.typeMappingDict[type.FullName] = typeMapping;
-            }
 
-            return typeMapping;
+            return this.typeMappingDict.GetOrAdd(type.FullName,
+                k =>
+                {
+                    typeMapping = new TypeMappingOptions(type);
+                    typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
+                    return typeMapping;
+                });
         }
 
 
@@ -584,6 +632,7 @@ namespace TestNs
 
 
         private T FromMappingOrDefault<T>(
+            Type type,
             PropertyInfo propertyInfo,
             Func<PropertyMappingOptions, T> ifMappingExist,
             Func<T> ifMappingMissing)
@@ -592,7 +641,7 @@ namespace TestNs
             PropertyMappingOptions propertyOptions;
             object result = null;
 
-            if (TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMappingOptions, out propertyOptions))
+            if (TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMappingOptions, out propertyOptions))
                 result = ifMappingExist(propertyOptions);
 
             if (result == null)
@@ -603,6 +652,7 @@ namespace TestNs
 
 
         private T FromMappingOrDefault<T>(
+            Type type,
             PropertyInfo propertyInfo,
             Func<PropertyMappingOptions, T?> ifMappingExist,
             Func<T> ifMappingMissing)
@@ -612,7 +662,7 @@ namespace TestNs
             PropertyMappingOptions propertyOptions;
             object result = null;
 
-            if (TryGetTypeMappingAndPropertyOptions(propertyInfo, out typeMappingOptions, out propertyOptions))
+            if (TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMappingOptions, out propertyOptions))
                 result = ifMappingExist(propertyOptions);
 
             if (result == null)
@@ -623,30 +673,14 @@ namespace TestNs
 
 
         private bool TryGetTypeMappingAndPropertyOptions(
+            Type reflectedType,
             PropertyInfo propertyInfo,
             out TypeMappingOptions typeMapping,
             out PropertyMappingOptions propertyOptions)
         {
-            typeMapping = GetTypeMapping(propertyInfo.ReflectedType);
+            typeMapping = GetTypeMapping(reflectedType);
             propertyOptions = typeMapping.GetPropertyOptions(propertyInfo);
             return true;
         }
-
-        #region Nested type: SubclassComparer
-
-        private class SubclassComparer : IComparer<Type>
-        {
-            public int Compare(Type x, Type y)
-            {
-                if (x == y)
-                    return 0;
-
-                return x.IsAssignableFrom(y)
-                    ? -1
-                    : 1;
-            }
-        }
-
-        #endregion
     }
 }

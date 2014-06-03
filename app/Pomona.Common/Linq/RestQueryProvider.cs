@@ -118,6 +118,12 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                     projection = "firstordefault";
                     break;
+                case RestQueryableTreeParser.QueryProjection.Single:
+                    projection = "single";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
+                    projection = "singleordefault";
+                    break;
                 case RestQueryableTreeParser.QueryProjection.Max:
                     projection = "max";
                     break;
@@ -200,6 +206,7 @@ namespace Pomona.Common.Linq
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
                 proxy.Uri = uri;
                 proxy.Client = this.client;
+                proxy.ProxyTargetType = resourceInfo.PocoType;
                 return proxy;
             }
 
@@ -210,6 +217,9 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.First:
                     return GetFirst<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                case RestQueryableTreeParser.QueryProjection.Single:
+                    return GetFirst<T>(uri);
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:

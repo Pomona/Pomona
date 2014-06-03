@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,13 +29,15 @@
 using System;
 using System.Collections.Generic;
 
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class ServerSerializationContext : ISerializationContext
+    public class ServerSerializationContext : ServerContextResolver, ISerializationContext
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
@@ -47,46 +49,51 @@ namespace Pomona
         public ServerSerializationContext(
             string expandedPaths,
             bool debugMode,
-            IUriResolver uriResolver)
+            IUriResolver uriResolver,
+            NancyContext nancyContext
+            )
+            : base(nancyContext)
         {
+            if (nancyContext == null)
+                throw new ArgumentNullException("nancyContext");
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;
-            typeMapper = uriResolver.TypeMapper;
+            this.typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
 
         public bool DebugMode
         {
-            get { return debugMode; }
+            get { return this.debugMode; }
         }
 
         public ITypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
 
         internal HashSet<string> ExpandedPaths
         {
-            get { return expandedPaths; }
+            get { return this.expandedPaths; }
         }
 
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return typeMapper.GetClassMapping(type);
+            return this.typeMapper.GetClassMapping(type);
         }
 
 
         public string GetUri(PropertySpec property, object entity)
         {
-            return uriResolver.GetUriFor(property, entity);
+            return this.uriResolver.GetUriFor(property, entity);
         }
 
 
         public string GetUri(object value)
         {
-            return uriResolver.GetUriFor(value);
+            return this.uriResolver.GetUriFor(value);
         }
 
 
@@ -95,21 +102,9 @@ namespace Pomona
             if (path == string.Empty)
                 return true;
 
-            return expandedPaths.Contains(path.ToLower());
+            return this.expandedPaths.Contains(path.ToLower());
         }
 
-
-        public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
-        {
-            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded ||
-                             PathToBeExpanded(node.ExpandPath) ||
-                             (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!")) ||
-                             IsAlwaysExpandedPropertyNode(node);
-
-            node.SerializeAsReference = !isExpanded;
-
-            nodeSerializerAction(node);
-        }
 
         public bool PropertyIsSerialized(PropertySpec property)
         {
@@ -119,6 +114,21 @@ namespace Pomona
             return property.IsSerialized;
         }
 
+
+        public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
+        {
+            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded ||
+                             PathToBeExpanded(node.ExpandPath) ||
+                             (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
+                             ||
+                             IsAlwaysExpandedPropertyNode(node);
+
+            node.SerializeAsReference = !isExpanded;
+
+            nodeSerializerAction(node);
+        }
+
+
         private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
         {
             if (node.ExpectedBaseType.IsCollection && node.ExpectedBaseType.ElementType.IsAlwaysExpanded)
@@ -126,9 +136,7 @@ namespace Pomona
 
             if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
                 IsAlwaysExpandedPropertyNode(node.ParentNode))
-            {
                 return true;
-            }
 
             var propNode = node as PropertyValueSerializerNode;
             if (propNode == null)

@@ -318,7 +318,7 @@ namespace Pomona.Queries
                 case NodeType.Div:
                     return Expression.Divide(leftChild, rightChild);
                 case NodeType.Equal:
-                    return ParseEqualOperator(leftChild, rightChild);
+                    return ParseBinaryOperator(leftChild, rightChild, ExpressionType.Equal);
                 case NodeType.LessThan:
                     return Expression.LessThan(leftChild, rightChild);
                 case NodeType.GreaterThan:
@@ -328,7 +328,7 @@ namespace Pomona.Queries
                 case NodeType.LessThanOrEqual:
                     return Expression.LessThanOrEqual(leftChild, rightChild);
                 case NodeType.NotEqual:
-                    return Expression.NotEqual(leftChild, rightChild);
+                    return ParseBinaryOperator(leftChild, rightChild, ExpressionType.NotEqual);
                 default:
                     throw new NotImplementedException(
                         "Don't know how to handle node type " + binaryOperatorNode.NodeType);
@@ -423,11 +423,11 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseEqualOperator(Expression leftChild, Expression rightChild)
+        private Expression ParseBinaryOperator(Expression leftChild, Expression rightChild, ExpressionType expressionType)
         {
             TryDetectAndConvertEnumComparison(ref leftChild, ref rightChild, true);
             TryDetectAndConvertNullableEnumComparison(ref leftChild, ref rightChild, true);
-            return Expression.Equal(leftChild, rightChild);
+            return Expression.MakeBinary(expressionType, leftChild, rightChild);
         }
 
 

@@ -29,6 +29,8 @@
 using System;
 using System.Linq.Expressions;
 
+using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
@@ -118,6 +120,36 @@ namespace Pomona.FluentMapping
             Expression<Func<TDeclaring, TProperty>> formula)
         {
             return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnSet<TContext>(Action<TDeclaring, TProperty, TContext> setter)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnSet(Action<TDeclaring, TProperty> setter)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnGet<TContext>(Func<TDeclaring, TContext, TProperty> getter)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnGet(Func<TDeclaring, TProperty> getter)
+        {
+            return this;
+        }
+
+
+        IPropertyOptionsBuilder<TDeclaring, TProperty> IPropertyOptionsBuilder<TDeclaring, TProperty>.OnQuery(Expression<Func<TDeclaring, TProperty>> getter)
+        {
+            return UsingFormula(getter);
         }
 
 

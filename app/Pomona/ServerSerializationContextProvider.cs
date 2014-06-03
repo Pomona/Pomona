@@ -63,7 +63,7 @@ namespace Pomona
         public ISerializationContext GetSerializationContext(SerializeOptions options)
         {
             options = options ?? new SerializeOptions();
-            return new ServerSerializationContext(options.ExpandedPaths, false, uriResolver);
+            return new ServerSerializationContext(options.ExpandedPaths, false, uriResolver, nancyContext);
         }
     }
 }

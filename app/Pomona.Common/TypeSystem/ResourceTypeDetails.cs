@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
@@ -34,6 +35,8 @@ namespace Pomona.Common.TypeSystem
     public class ResourceTypeDetails
     {
         private readonly PropertyInfo childToParentPropertyInfo;
+        private readonly IEnumerable<Type> resourceHandlers;
+
         private readonly bool isExposedAsRepository;
         private readonly PropertyInfo parentToChildPropertyInfo;
         private readonly Type postReturnType;
@@ -46,7 +49,8 @@ namespace Pomona.Common.TypeSystem
             bool isExposedAsRepository,
             Type postReturnType,
             PropertyInfo parentToChildPropertyInfo,
-            PropertyInfo childToParentPropertyInfo)
+            PropertyInfo childToParentPropertyInfo,
+            IEnumerable<Type> resourceHandlers)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -56,12 +60,18 @@ namespace Pomona.Common.TypeSystem
             this.postReturnType = postReturnType;
             this.parentToChildPropertyInfo = parentToChildPropertyInfo;
             this.childToParentPropertyInfo = childToParentPropertyInfo;
+            this.resourceHandlers = resourceHandlers;
         }
 
 
         public PropertyMapping ChildToParentProperty
         {
             get { return (PropertyMapping)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
+        }
+
+        public IEnumerable<Type> ResourceHandlers
+        {
+            get { return this.resourceHandlers; }
         }
 
         public bool IsExposedAsRepository
@@ -92,6 +102,9 @@ namespace Pomona.Common.TypeSystem
             get { return (TransformedType)this.type.TypeResolver.FromType(this.postReturnType); }
         }
 
-        public string UriRelativePath { get { return uriRelativePath; } }
+        public string UriRelativePath
+        {
+            get { return this.uriRelativePath; }
+        }
     }
 }

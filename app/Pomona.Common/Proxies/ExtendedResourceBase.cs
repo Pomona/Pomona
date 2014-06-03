@@ -31,9 +31,9 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
 {
-    public class ExtendedResourceBase : IHasResourceUri
+    public class ExtendedResourceBase : IHasResourceUri, IExtendedResourceProxy
     {
-        public object ProxyTarget { get; private set; }
+        public object WrappedResource { get; private set; }
         internal ExtendedResourceInfo UserTypeInfo { get; private set; }
         internal IClientTypeResolver Client { get; private set; }
 
@@ -47,12 +47,12 @@ namespace Pomona.Common.Proxies
             if (proxyTarget == null) throw new ArgumentNullException("proxyTarget");
             Client = client;
             UserTypeInfo = userTypeInfo;
-            ProxyTarget = proxyTarget;
+            this.WrappedResource = proxyTarget;
         }
 
         string IHasResourceUri.Uri
         {
-            get { return ((IHasResourceUri) ProxyTarget).Uri; }
+            get { return ((IHasResourceUri) this.WrappedResource).Uri; }
             set { throw new NotSupportedException(); }
         }
 
@@ -80,13 +80,13 @@ namespace Pomona.Common.Proxies
 
         private bool IsServerKnownProperty<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            return property.PropertyInfo.DeclaringType.IsInstanceOfType(ProxyTarget);
+            return property.PropertyInfo.DeclaringType.IsInstanceOfType(this.WrappedResource);
         }
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             if (IsServerKnownProperty(property))
-                return property.Getter((TOwner) ProxyTarget);
+                return property.Getter((TOwner) this.WrappedResource);
 
             // Check if this is a new'ed property on interface that is client type:
             ExtendedResourceInfo memberUserTypeInfo;
@@ -95,7 +95,7 @@ namespace Pomona.Common.Proxies
                 var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
                 if (serverProp != null && serverProp.PropertyType.IsAssignableFrom(typeof (TPropType)))
                 {
-                    var propValue = serverProp.GetValue(ProxyTarget, null);
+                    var propValue = serverProp.GetValue(this.WrappedResource, null);
                     if (propValue == null)
                         return default(TPropType);
                     return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () =>
@@ -117,7 +117,7 @@ namespace Pomona.Common.Proxies
                 var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
                 if (serverProp != null)
                 {
-                    var propValue = serverProp.GetValue(ProxyTarget, null);
+                    var propValue = serverProp.GetValue(this.WrappedResource, null);
                     if (propValue == null)
                         return default(TPropType);
 
@@ -139,7 +139,7 @@ namespace Pomona.Common.Proxies
 
         private TPropType OnGetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property)
         {
-            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(ProxyTarget, null);
+            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(this.WrappedResource, null);
             TDictValue value;
             if (dict.TryGetValue(property.Name, out value))
                 return (TPropType)((object)value);
@@ -152,12 +152,12 @@ namespace Pomona.Common.Proxies
             var valueAsExtendedResource = value as ExtendedResourceBase;
             if (valueAsExtendedResource != null)
             {
-                unwrappedValue = valueAsExtendedResource.ProxyTarget;
+                unwrappedValue = valueAsExtendedResource.WrappedResource;
             }
 
             if (IsServerKnownProperty(property))
             {
-                property.Set((TOwner)ProxyTarget, (TPropType)unwrappedValue);
+                property.Set((TOwner)this.WrappedResource, (TPropType)unwrappedValue);
                 return;
             }
 
@@ -167,7 +167,7 @@ namespace Pomona.Common.Proxies
                     UserTypeInfo.ServerType.GetPropertySearchInheritedInterfaces(property.Name);
                 if (underlyingServerProperty != null)
                 {
-                    underlyingServerProperty.SetValue(ProxyTarget, unwrappedValue, null);
+                    underlyingServerProperty.SetValue(this.WrappedResource, unwrappedValue, null);
                     return;
                 }
             }
@@ -181,7 +181,7 @@ namespace Pomona.Common.Proxies
         protected virtual bool OnSetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property,
                                                                    TPropType value)
         {
-            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(ProxyTarget, null);
+            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(this.WrappedResource, null);
             dict[property.Name] = (TDictValue)((object)value);
             return false;
         }

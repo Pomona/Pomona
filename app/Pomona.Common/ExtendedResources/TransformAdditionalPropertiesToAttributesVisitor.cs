@@ -101,6 +101,19 @@ namespace Pomona.Common.ExtendedResources
             var propInfo = member as PropertyInfo;
             var visitedExpression = Visit(node.Expression);
 
+            // Evaluate closures at this point
+            var nodeExpression = Visit(node.Expression);
+            if (nodeExpression == null || nodeExpression.NodeType == ExpressionType.Constant)
+            {
+                var target =  nodeExpression != null ? ((ConstantExpression)nodeExpression).Value : null;
+
+                if (propInfo != null)
+                    return Expression.Constant(propInfo.GetValue(target, null), propInfo.PropertyType);
+                var fieldInfo = node.Member as FieldInfo;
+                if (fieldInfo != null)
+                    return Expression.Constant(fieldInfo.GetValue(target), fieldInfo.FieldType);
+            }
+
             if (IsUserType(member.DeclaringType, out declaringUserTypeInfo))
             {
                 if (propInfo == null)
@@ -186,7 +199,7 @@ namespace Pomona.Common.ExtendedResources
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var modifiedMethod = ReplaceInGenericMethod(node.Method);
+            var modifiedMethod = TypeUtils.ReplaceInGenericMethod(node.Method, ReplaceType);
             var modifiedArguments = node.Arguments.Select(Visit).ToList();
 
             return Expression.Call(
@@ -223,49 +236,17 @@ namespace Pomona.Common.ExtendedResources
 
         public Type ReplaceInGenericArguments(Type typeToSearch)
         {
-            return ReplaceInGenericArguments(typeToSearch,
-                t =>
-                {
-                    ExtendedResourceInfo userTypeInfo;
-                    if (IsUserType(t, out userTypeInfo))
-                        return userTypeInfo.ServerType;
-
-                    return t;
-                });
+            return TypeUtils.ReplaceInGenericArguments(typeToSearch, ReplaceType);
         }
 
 
-        private Type ReplaceInGenericArguments(Type typeToSearch, Func<Type, Type> typeReplacer)
+        private Type ReplaceType(Type t)
         {
-            typeToSearch = typeReplacer(typeToSearch);
+            ExtendedResourceInfo userTypeInfo;
+            if (IsUserType(t, out userTypeInfo))
+                return userTypeInfo.ServerType;
 
-            if (typeToSearch.IsGenericType)
-            {
-                var genArgs = typeToSearch.GetGenericArguments();
-                var newGenArgs =
-                    genArgs.Select(x => ReplaceInGenericArguments(x, typeReplacer)).ToArray();
-
-                if (newGenArgs.SequenceEqual(genArgs))
-                    return typeToSearch;
-
-                return typeToSearch.GetGenericTypeDefinition().MakeGenericType(newGenArgs);
-            }
-
-            return typeToSearch;
-        }
-
-
-        private MethodInfo ReplaceInGenericMethod(MethodInfo methodToSearch)
-        {
-            if (!methodToSearch.IsGenericMethod)
-                return methodToSearch;
-
-            var genArgs = methodToSearch.GetGenericArguments();
-            var newGenArgs = genArgs.Select(ReplaceInGenericArguments).ToArray();
-            if (genArgs.SequenceEqual(newGenArgs))
-                return methodToSearch;
-
-            return methodToSearch.GetGenericMethodDefinition().MakeGenericMethod(newGenArgs);
+            return t;
         }
 
 

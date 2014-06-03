@@ -42,9 +42,11 @@ namespace Pomona
     public class PomonaRequest
     {
         private readonly NancyContext context;
+
         private readonly HttpMethod method;
         private readonly PathNode node;
         private readonly ITextSerializerFactory serializerFactory;
+        private object deserializedBody;
 
 
         public PomonaRequest(PathNode node,
@@ -85,6 +87,11 @@ namespace Pomona
             get { return this.method; }
         }
 
+        public NancyContext NancyContext
+        {
+            get { return this.context; }
+        }
+
         public Request NancyRequest
         {
             get { return this.context.Request; }
@@ -103,31 +110,35 @@ namespace Pomona
 
         public object Bind(TypeSpec type = null, object patchedObject = null)
         {
-            if (Method == HttpMethod.Post)
-                type = type ?? Node.ExpectedPostType;
-
-            if (Method == HttpMethod.Patch)
+            if (this.deserializedBody == null)
             {
-                patchedObject = patchedObject ?? Node.Value;
-                if (patchedObject != null)
-                    type = TypeMapper.GetClassMapping(patchedObject.GetType());
-            }
+                if (Method == HttpMethod.Post)
+                    type = type ?? Node.ExpectedPostType;
 
-            return Deserialize(type as TransformedType, NancyRequest.Body, patchedObject);
+                if (Method == HttpMethod.Patch)
+                {
+                    patchedObject = patchedObject ?? Node.Value;
+                    if (patchedObject != null)
+                        type = TypeMapper.GetClassMapping(patchedObject.GetType());
+                }
+
+                this.deserializedBody = Deserialize(type as TransformedType, NancyRequest.Body, patchedObject);
+            }
+            return this.deserializedBody;
         }
 
 
         public PomonaQuery ParseQuery()
         {
-            var queryableNode = this.node as QueryableNode;
-            if (queryableNode == null)
+            var collectionNode = this.node as ResourceCollectionNode;
+            if (collectionNode == null)
                 throw new InvalidOperationException("Queries are only valid for Queryable nodes.");
 
             return
                 new PomonaHttpQueryTransformer(this.node.TypeMapper,
                     new QueryExpressionParser(new QueryTypeResolver(this.node.TypeMapper))).TransformRequest(
                         this.context,
-                        queryableNode.ItemResourceType);
+                        collectionNode.ItemResourceType);
         }
 
 
@@ -136,7 +147,12 @@ namespace Pomona
             using (var textReader = new StreamReader(body))
             {
                 return this.serializerFactory.GetDeserializer().Deserialize(textReader,
-                    new DeserializeOptions() { Target = patchedObject, ExpectedBaseType = expectedBaseType, TargetNode = Node });
+                    new DeserializeOptions()
+                    {
+                        Target = patchedObject,
+                        ExpectedBaseType = expectedBaseType,
+                        TargetNode = Node
+                    });
             }
         }
     }

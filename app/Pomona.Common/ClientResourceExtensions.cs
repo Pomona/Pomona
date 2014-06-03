@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System.Collections.Generic;
+
 using Pomona.Common.Proxies;
 
 namespace Pomona.Common
@@ -40,10 +41,23 @@ namespace Pomona.Common
             return lazyProxy == null || lazyProxy.IsLoaded;
         }
 
+
         public static bool IsLoaded(this IClientResource resource)
         {
             var lazyProxy = resource as ILazyProxy;
             return lazyProxy == null || lazyProxy.IsLoaded;
+        }
+
+
+        public static bool IsPersisted(this IClientResource resource)
+        {
+            return !IsTransient(resource);
+        }
+
+
+        public static bool IsTransient(this IClientResource resource)
+        {
+            return resource is IPostForm;
         }
     }
 }

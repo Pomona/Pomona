@@ -44,6 +44,8 @@ namespace Pomona
             Default,
             First,
             FirstOrDefault,
+            Single,
+            SingleOrDefault,
             Max,
             Min,
             Sum,
@@ -193,12 +195,13 @@ namespace Pomona
         {
             switch (Projection)
             {
+                case ProjectionType.Single:
                 case ProjectionType.First:
                     {
                         object result;
                         try
                         {
-                            result = totalQueryable.First();
+                            result = this.Projection == ProjectionType.First ? totalQueryable.First() : totalQueryable.Single();
                         }
                         catch (InvalidOperationException)
                         {
@@ -211,6 +214,8 @@ namespace Pomona
                     }
                 case ProjectionType.FirstOrDefault:
                     return new PomonaResponse(this, totalQueryable.FirstOrDefault());
+                case ProjectionType.SingleOrDefault:
+                    return new PomonaResponse(this, totalQueryable.SingleOrDefault());
                 case ProjectionType.Max:
                     return new PomonaResponse(this, totalQueryable.Max());
                 case ProjectionType.Min:
@@ -285,20 +290,6 @@ namespace Pomona
                                              .Invoke(null, new object[] { queryable, tuple.Item1 });
             }
             return queryable;
-#if false
-            if (OrderByExpression != null)
-            {
-                var orderMethod = SortOrder == SortOrder.Descending
-                                      ? QueryableMethods.OrderByDescending
-                                      : QueryableMethods.OrderBy;
-
-                queryable = (IQueryable) orderMethod
-                                             .MakeGenericMethod(queryable.ElementType, OrderByExpression.ReturnType)
-                                             .Invoke(null, new object[] {queryable, OrderByExpression});
-            }
-            return queryable;
-#endif
-            throw new NotImplementedException();
         }
     }
 }

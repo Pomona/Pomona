@@ -81,7 +81,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public T ResolveContext<T>()
+        public T GetContext<T>()
         {
             throw new NotSupportedException();
         }
@@ -99,7 +99,7 @@ namespace Pomona.Common.Serialization
                 Type repoImplementationType = clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
                     t => t.Assembly.GetTypes().First(x => !x.IsInterface && x.IsClass && t.IsAssignableFrom(x)));
 
-                var listProxyValue = propertyValue as LazyListProxy;
+                var listProxyValue = propertyValue as LazyCollectionProxy;
                 object repo;
                 if (listProxyValue != null)
                 {
@@ -116,11 +116,11 @@ namespace Pomona.Common.Serialization
                         propertyValue,
                         target.Value);
                 }
-                property.Setter(target.Value, repo);
+                property.SetValue(target.Value, repo);
                 return;
             }
 
-            property.Setter(target.Value, propertyValue);
+            property.SetValue(target.Value, propertyValue);
         }
 
 
@@ -161,8 +161,7 @@ namespace Pomona.Common.Serialization
             }*/
             if (type.SerializationMode == TypeSerializationMode.Array)
             {
-                var lazyListType = typeof (LazyListProxy<>).MakeGenericType(type.ElementType.Type);
-                return Activator.CreateInstance(lazyListType, uri, client);
+                return LazyCollectionProxy.CreateForType(type, uri, client);
             }
             if (type is TransformedType && type.SerializationMode == TypeSerializationMode.Complex)
             {

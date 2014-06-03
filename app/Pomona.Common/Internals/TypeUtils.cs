@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Pomona.Common.Internals
 {
@@ -130,5 +131,41 @@ namespace Pomona.Common.Internals
             genericArguments = genericTypeImplementation.GetGenericArguments();
             return true;
         }
+
+
+
+        public static Type ReplaceInGenericArguments(Type typeToSearch, Func<Type, Type> typeReplacer)
+        {
+            typeToSearch = typeReplacer(typeToSearch);
+
+            if (typeToSearch.IsGenericType)
+            {
+                var genArgs = typeToSearch.GetGenericArguments();
+                var newGenArgs =
+                    genArgs.Select(x => ReplaceInGenericArguments(x, typeReplacer)).ToArray();
+
+                if (newGenArgs.SequenceEqual(genArgs))
+                    return typeToSearch;
+
+                return typeToSearch.GetGenericTypeDefinition().MakeGenericType(newGenArgs);
+            }
+
+            return typeToSearch;
+        }
+
+
+        public static MethodInfo ReplaceInGenericMethod(MethodInfo methodToSearch, Func<Type, Type> typeReplacer)
+        {
+            if (!methodToSearch.IsGenericMethod)
+                return methodToSearch;
+
+            var genArgs = methodToSearch.GetGenericArguments();
+            var newGenArgs = genArgs.Select(x => ReplaceInGenericArguments(x, typeReplacer)).ToArray();
+            if (genArgs.SequenceEqual(newGenArgs))
+                return methodToSearch;
+
+            return methodToSearch.GetGenericMethodDefinition().MakeGenericMethod(newGenArgs);
+        }
+
     }
 }

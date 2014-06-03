@@ -36,19 +36,19 @@ namespace Pomona.Queries
 {
     public abstract class QueryableResolverBase : IQueryableResolver
     {
-        private static readonly Func<Type, Type, QueryableResolverBase, QueryableNode, IQueryable> resolveMethodInvoker
+        private static readonly Func<Type, Type, QueryableResolverBase, ResourceCollectionNode, IQueryable> resolveMethodInvoker
             =
-            GenericInvoker.Instance<QueryableResolverBase>().CreateFunc2<QueryableNode, IQueryable>(
+            GenericInvoker.Instance<QueryableResolverBase>().CreateFunc2<ResourceCollectionNode, IQueryable>(
                 x => x.Resolve<object, object>(null));
 
 
-        public virtual IQueryable Resolve(QueryableNode node, TypeSpec ofType)
+        public virtual IQueryable Resolve(ResourceCollectionNode node, TypeSpec ofType)
         {
             return resolveMethodInvoker(ofType ?? node.ItemResourceType, node.ItemResourceType, this, node);
         }
 
 
-        protected abstract IQueryable<TResource> Resolve<TResource, TBaseResource>(QueryableNode<TBaseResource> node)
+        protected abstract IQueryable<TResource> Resolve<TResource, TBaseResource>(ResourceCollectionNode<TBaseResource> node)
             where TResource : class, TBaseResource
             where TBaseResource : class;
     }
