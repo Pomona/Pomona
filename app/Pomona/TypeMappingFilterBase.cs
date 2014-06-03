@@ -392,12 +392,6 @@ namespace Pomona
         }
 
 
-        public virtual bool TypeIsMapped()
-        {
-            return TypeIsMapped(null);
-        }
-
-
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             if (type == null)
