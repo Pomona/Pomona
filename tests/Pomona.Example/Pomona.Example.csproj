@@ -73,10 +73,11 @@
     <Compile Include="GuidThingHandler.cs" />
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="ModelProxies\BearProxy.cs" />
     <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
     <Compile Include="Models\CaptureCommand.cs" />
-    <Compile Include="Models\Cat.cs" />
+    <Compile Include="Models\Bear.cs" />
     <Compile Include="Models\ColorfulThing.cs" />
     <Compile Include="Models\CrazyValueObject.cs" />
     <Compile Include="Models\Critter.cs" />

@@ -1,5 +1,4 @@
 ﻿#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,47 +22,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
 #endregion
 
-using Critters.Client;
+using Pomona.Example.Models;
 
-using NUnit.Framework;
-
-using Pomona.Common;
-using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.SystemTests.TypeSystem
+namespace Pomona.Example.ModelProxies
 {
-    [TestFixture]
-    public class ClientTypeMapperTests
+    public class BearProxy : Bear
     {
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.clientTypeMapper = new ClientTypeMapper(typeof(ICritter).WrapAsEnumerable());
-        }
-
-        #endregion
-
-        private ClientTypeMapper clientTypeMapper;
-
-
-        [Test]
-        public void CritterType_ReturnsCorrectPluralName()
-        {
-            var critterType = (ResourceType)this.clientTypeMapper.FromType(typeof(ICritter));
-            Assert.That(critterType.PluralName, Is.EqualTo("Critters"));
-        }
-
-
-        [Test]
-        public void GetMappedTypeFromProxyType_ReturnsCorrectResourceType()
-        {
-            Assert.That(this.clientTypeMapper.FromType(typeof(CritterLazyProxy)).Type, Is.EqualTo(typeof(ICritter)));
-        }
     }
 }

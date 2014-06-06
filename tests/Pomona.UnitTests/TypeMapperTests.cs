@@ -33,6 +33,7 @@ using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
+using Pomona.Example.ModelProxies;
 using Pomona.Example.Models;
 
 namespace Pomona.UnitTests
@@ -52,6 +53,12 @@ namespace Pomona.UnitTests
 
         private TypeMapper typeMapper;
 
+
+        [Test]
+        public void GetTypeForProxyTypeInheritedFromMappedType_ReturnsMappedBaseType()
+        {
+            Assert.That(typeMapper.FromType(typeof(BearProxy)).Type, Is.EqualTo(typeof(Bear)));
+        }
 
         [Test]
         public void ChangePluralNameWorksCorrectly()

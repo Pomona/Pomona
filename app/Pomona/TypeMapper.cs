@@ -46,7 +46,6 @@ namespace Pomona
     {
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
-        private readonly ConcurrentDictionary<Type, TypeSpec> mappings = new ConcurrentDictionary<Type, TypeSpec>();
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
@@ -81,7 +80,7 @@ namespace Pomona
 
         public IEnumerable<EnumTypeSpec> EnumTypes
         {
-            get { return this.mappings.Values.OfType<EnumTypeSpec>(); }
+            get { return this.TypeMap.Values.OfType<EnumTypeSpec>(); }
         }
 
         public ITypeMappingFilter Filter
@@ -96,7 +95,7 @@ namespace Pomona
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return this.mappings.Values.OfType<TransformedType>(); }
+            get { return this.TypeMap.Values.OfType<TransformedType>(); }
         }
 
 
@@ -310,9 +309,13 @@ namespace Pomona
 
         public TypeSpec GetClassMapping(Type type)
         {
-            type = this.filter.ResolveRealTypeForProxy(type);
+            return FromType(type);
+        }
 
-            return this.mappings.GetOrAdd(type, CreateClassMapping);
+
+        sealed protected override Type MapExposedClrType(Type type)
+        {
+            return this.filter.ResolveRealTypeForProxy(type);
         }
 
 
