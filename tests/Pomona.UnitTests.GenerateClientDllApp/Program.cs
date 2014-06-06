@@ -98,7 +98,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             }
 
 
-            public override Boolean GetTypeIsAbstract(Type type)
+            public override bool GetTypeIsAbstract(Type type)
             {
                 if (type == typeof (AbstractOnServerAnimal))
                     return false;

@@ -161,7 +161,7 @@ namespace Pomona
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
         }
 
-        public virtual Boolean GetTypeIsAbstract(Type type)
+        public virtual bool GetTypeIsAbstract(Type type)
         {
             return type.IsAbstract;
         }
