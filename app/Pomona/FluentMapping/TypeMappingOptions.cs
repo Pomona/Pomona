@@ -32,7 +32,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
@@ -55,6 +54,7 @@ namespace Pomona.FluentMapping
             DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
 
         private bool? deleteAllowed;
+        private bool? isAbstract;
 
         private bool? isExposedAsRepository;
 
@@ -104,6 +104,11 @@ namespace Pomona.FluentMapping
         public List<Type> HandlerTypes
         {
             get { return this.handlerTypes; }
+        }
+
+        public bool? IsAbstract
+        {
+            get { return this.isAbstract; }
         }
 
         public bool? IsExposedAsRepository
@@ -236,6 +241,13 @@ namespace Pomona.FluentMapping
             }
 
 
+            public override ITypeMappingConfigurator<TDeclaringType> AsAbstract()
+            {
+                this.owner.isAbstract = true;
+                return this;
+            }
+
+
             public override ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
                 Expression<Func<TDeclaringType, TParent>> parentProperty,
                 Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty)
@@ -246,6 +258,13 @@ namespace Pomona.FluentMapping
                     throw new ArgumentNullException("collectionProperty");
                 this.owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
                 this.owner.ParentToChildProperty = collectionProperty.ExtractPropertyInfo();
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> AsConcrete()
+            {
+                this.owner.isAbstract = false;
                 return this;
             }
 

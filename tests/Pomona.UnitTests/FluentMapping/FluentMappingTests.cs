@@ -174,8 +174,16 @@ namespace Pomona.UnitTests.FluentMapping
             DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null,
             Action<ITypeMappingConfigurator<TestEntityBase>> mappingOverride = null)
         {
+            return GetMappingFilter<TestEntityBase>(defaultPropertyInclusionMode, mappingOverride);
+        }
+
+
+        private static FluentTypeMappingFilter GetMappingFilter<T>(
+            DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null,
+            Action<ITypeMappingConfigurator<T>> mappingOverride = null)
+        {
             var sourceTypes = typeof(FluentMappingTests).GetNestedTypes().Where(
-                x => typeof(TestEntityBase).IsAssignableFrom(x)).ToList();
+                x => typeof(T).IsAssignableFrom(x)).ToList();
             var typeMappingFilter = new TestTypeMappingFilter(sourceTypes, defaultPropertyInclusionMode);
             var fluentRuleDelegates = mappingOverride != null ? new Delegate[] { mappingOverride } : new Delegate[] { };
             var fluentMappingFilter = new FluentTypeMappingFilter(
@@ -196,10 +204,25 @@ namespace Pomona.UnitTests.FluentMapping
         {
             var property = propertyExpr.ExtractPropertyInfo();
             Action<ITypeMappingConfigurator<TestEntityBase>> map = x => x.Include(propertyExpr, propertyOptions);
-            var origFilter = GetMappingFilter();
+            var origFilter = GetMappingFilter<TestEntityBase>();
             var changedFilter = GetMappingFilter(mappingOverride : map);
             var origValue = filterExecutor(origFilter, property);
             var changedValue = filterExecutor(changedFilter, property);
+            origChangedAssertAction(origValue, changedValue);
+            return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
+        }
+
+
+        private Tuple<TFilterResult, TFilterResult> CheckHowChangeInTypeRuleAffectsFilter<T, TFilterResult>(
+            Action<ITypeMappingConfigurator<T>>
+                typeConfigurator,
+            Func<ITypeMappingFilter, Type, TFilterResult> filterExecutor,
+            Action<TFilterResult, TFilterResult> origChangedAssertAction)
+        {
+            var origFilter = GetMappingFilter<T>();
+            var changedFilter = GetMappingFilter(mappingOverride : typeConfigurator);
+            var origValue = filterExecutor(origFilter, typeof(T));
+            var changedValue = filterExecutor(changedFilter, typeof(T));
             origChangedAssertAction(origValue, changedValue);
             return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
         }
@@ -220,10 +243,40 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void AsAbstract_GivenTypeThatWouldBeConcreteByConvention_MakesTypeAbstract()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(
+                x => x.AsAbstract(),
+                (f, t) => f.GetTypeIsAbstract(t),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo(true));
+                });
+        }
+
+
+        [Test]
+        public void AsConcrete_GivenTypeThatWouldBeAbstractByConvention_MakesTypeNonAbstract()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<TestEntityBase, bool>(
+                x => x.AsConcrete(),
+                (f, t) => f.GetTypeIsAbstract(t),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo(false));
+                });
+        }
+
+
+        [Test]
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesOverriddenPropertyInInheritedClass()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.ToBeOverridden)), Is.True);
+            Assert.That(
+                filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.ToBeOverridden)),
+                Is.True);
 
             var propInfo = typeof(Top).GetProperty("ToBeOverridden");
             Assert.That(filter.PropertyIsIncluded(typeof(Top), propInfo), Is.True);
@@ -234,7 +287,8 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_IncludesPropertyInInheritedClass()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.Id)), Is.True);
+            Assert.That(filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.Id)),
+                Is.True);
             Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.Id)), Is.True);
         }
 
@@ -243,7 +297,9 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToExcludedByDefault_MakesPropertyExcludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.False);
+            Assert.That(
+                filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.WillMapToDefault)),
+                Is.False);
         }
 
 
@@ -251,7 +307,9 @@ namespace Pomona.UnitTests.FluentMapping
         public void DefaultPropertyInclusionMode_SetToIncludedByDefault_MakesPropertyIncludedByDefault()
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault);
-            Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.WillMapToDefault)), Is.True);
+            Assert.That(
+                filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.WillMapToDefault)),
+                Is.True);
         }
 
 

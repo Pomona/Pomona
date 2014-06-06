@@ -227,7 +227,7 @@ namespace TestNs
 
         public bool GetTypeIsAbstract(Type type)
         {
-            return this.wrappedFilter.GetTypeIsAbstract(type);
+            return FromMappingOrDefault(type, x => x.IsAbstract, () => wrappedFilter.GetTypeIsAbstract(type));
         }
 
 

@@ -96,5 +96,8 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
         ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
         ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
+
+        ITypeMappingConfigurator<TDeclaringType> AsAbstract();
+        ITypeMappingConfigurator<TDeclaringType> AsConcrete();
     }
 }

@@ -203,5 +203,17 @@ namespace Pomona.FluentMapping
         {
             return this;
         }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> AsAbstract()
+        {
+            return this;
+        }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> AsConcrete()
+        {
+            return this;
+        }
     }
 }
