@@ -254,12 +254,10 @@ namespace Pomona
         }
 
 
-        private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
+        private Type GetKnownDeclaringType(Type reflectedType, PropertyInfo propertyInfo)
         {
             // Hack, IGrouping
-
             var propBaseDefinition = propertyInfo.GetBaseDefinition();
-            var reflectedType = propertyInfo.ReflectedType;
             return reflectedType.GetFullTypeHierarchy()
                                 .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
                                 .TakeUntil(x => filter.IsIndependentTypeRoot(x))
@@ -271,7 +269,7 @@ namespace Pomona
         {
             if (propertySpec is PropertyMapping)
             {
-                return FromType(GetKnownDeclaringType(propertySpec.PropertyInfo));
+                return FromType(GetKnownDeclaringType(propertySpec.ReflectedType, propertySpec.PropertyInfo));
             }
             return base.LoadDeclaringType(propertySpec);
         }

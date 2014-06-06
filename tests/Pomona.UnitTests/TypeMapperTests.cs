@@ -86,6 +86,16 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
+        {
+            var tt = typeMapper.GetClassMapping<IExposedInterface>();
+            var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyFromInheritedInterface");
+            Assert.That(prop, Is.Not.Null, "Unable to find property PropertyFromInheritedInterface");
+            Assert.That(prop.DeclaringType, Is.EqualTo(tt));
+        }
+
+
+        [Test]
         public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
         {
             var tt =

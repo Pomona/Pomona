@@ -43,6 +43,7 @@ namespace Pomona.Example
             map
                 .Named("ExposedInterface")
                 .WithPluralName("ExposedInterfaces")
+                .Include(x => x.PropertyFromInheritedInterface)
                 .AsConcrete()
                 .ConstructedUsing(c => new ExposedInterfaceInternalImplementation());
         }
