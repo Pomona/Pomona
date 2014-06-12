@@ -269,10 +269,16 @@ namespace Pomona.Common.Internals
                 args.Add(arg);
             }
 
+            Expression body;
             if (method.IsStatic)
-                return Expression.Lambda<T>(Expression.Convert(Expression.Call(method, args), returnType), lambdaParams);
-            return Expression.Lambda<T>(Expression.Convert(Expression.Call(instanceParam, method, args), returnType),
-                lambdaParams);
+                body = Expression.Call(method, args);
+            else
+            {
+                body = Expression.Call(instanceParam, method, args);
+            }
+            if (returnType != typeof(void))
+                body = Expression.Convert(body, returnType);
+            return Expression.Lambda<T>(body, lambdaParams);
         }
 
 
