@@ -92,10 +92,6 @@ namespace Pomona
         #region TypeMappingConventions
         bool IsIndependentTypeRoot(Type type);
         Type GetPostReturnType(Type type);
-        Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
-        Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo);
-        string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
-        Type GetPropertyType(Type type, PropertyInfo propertyInfo);
         ConstructorSpec GetTypeConstructor(Type type);
         /// <summary>
         /// This returns what URI this type will be mapped to.
@@ -108,18 +104,25 @@ namespace Pomona
         Type GetUriBaseType(Type type);
         PropertyInfo GetParentToChildProperty(Type type);
         PropertyInfo GetChildToParentProperty(Type type);
-        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
         Type ResolveRealTypeForProxy(Type type);
         bool TypeIsExposedAsRepository(Type type);
-        bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
-        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
         string GetTypeMappedName(Type type);
         string GetPluralNameForType(Type type);
         IEnumerable<Type> GetResourceHandlers(Type type);
         bool GetTypeIsAbstract(Type type);
+        #endregion
+
+        #region Property mapping conventions
+        bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
+        Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
+        Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo);
+        string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
+        Type GetPropertyType(Type type, PropertyInfo propertyInfo);
         #endregion
     }
 }
