@@ -64,6 +64,12 @@ namespace Pomona
         }
 
 
+        internal static IUriResolver GetUriResolver(this NancyContext nancyContext)
+        {
+            return (IUriResolver)nancyContext.Items[typeof(IUriResolver).FullName];
+        }
+
+
         internal static RuntimeContainerWrapper GetIocContainerWrapper(this NancyContext context)
         {
             object childContainer;

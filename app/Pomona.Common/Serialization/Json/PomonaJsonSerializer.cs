@@ -271,7 +271,7 @@ namespace Pomona.Common.Serialization.Json
         {
             var dictType = node.ExpectedBaseType as DictionaryTypeSpec;
             if (dictType == null)
-                throw new PomonaSerializationException("Unable to serialize dictionary of typespec " + node.ExpectedBaseType.GetType());
+                throw new PomonaSerializationException("Unable to serialize dictionary of typespec " + (node.ExpectedBaseType != null ? node.ExpectedBaseType.GetType().ToString() : " (unknown)"));
 
             var keyMappedType = dictType.KeyType.Type;
 

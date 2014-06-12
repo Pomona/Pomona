@@ -73,19 +73,14 @@ namespace Pomona
                 .Distinct())
                 RegisterRoutesFor(transformedType);
 
+            // For root resource links!
+            Register(Get, "/", x => ProcessRequest());
+
             Get["/schemas"] = x => GetSchemas();
 
             Get[String.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName())] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
-
-            Get["/"] = x => GetJsonBrowserHtmlResponse();
-            RegisterResourceContent("antlr3-all-min.js");
-            RegisterResourceContent("antlr3-all.js");
-            RegisterResourceContent("PomonaQueryJsLexer.js");
-            RegisterResourceContent("PomonaQueryJsParser.js");
-            RegisterResourceContent("QueryEditor.css");
-            RegisterResourceContent("QueryEditor.js");
         }
 
 
@@ -168,7 +163,7 @@ namespace Pomona
 
         private LinkedListNode<string> GetPathNodes()
         {
-            return new LinkedList<string>(Request.Url.Path.Split('/').Select(HttpUtility.UrlDecode)).First;
+            return new LinkedList<string>(Request.Url.Path.Split(new [] {'/'}, StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode)).First;
         }
 
 
@@ -177,7 +172,7 @@ namespace Pomona
             var pathNodes = GetPathNodes();
             var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource);
             PathNode node = rootNode;
-            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Skip(1).Select(x => x.Value))
+            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
                 node = node.GetChildNode(pathPart);
 
             var pomonaRequest = new PomonaRequest(node,

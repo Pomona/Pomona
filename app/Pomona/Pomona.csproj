@@ -258,21 +258,6 @@
     <Folder Include="CodeGen\XmlDoc\" />
     <Folder Include="Visitors\" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Content\jsonbrowser.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Content\antlr3-all-min.js" />
-    <EmbeddedResource Include="Content\PomonaQueryJsLexer.js" />
-    <EmbeddedResource Include="Content\PomonaQueryJsParser.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Content\antlr3-all.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Content\QueryEditor.css" />
-    <EmbeddedResource Include="Content\QueryEditor.js" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>

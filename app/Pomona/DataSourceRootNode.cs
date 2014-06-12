@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
@@ -43,6 +44,7 @@ namespace Pomona
             GenericInvoker.Instance<IPomonaDataSource>().CreateFunc1<IQueryable>(x => x.Query<object>());
 
         private readonly IPomonaDataSource dataSource;
+        private HttpMethod allowedMethods;
 
 
         public DataSourceRootNode(ITypeMapper typeMapper, IPomonaDataSource dataSource)
@@ -69,13 +71,17 @@ namespace Pomona
             get { return this.dataSource; }
         }
 
+        public override HttpMethod AllowedMethods
+        {
+            get { return HttpMethod.Get; }
+        }
+
+
 
         public override PathNode GetChildNode(string name)
         {
-            var type = ((TypeMapper)TypeMapper).TransformedTypes.OfType<ResourceType>().FirstOrDefault(
-                x =>
-                    x.IsUriBaseType && x.IsRootResource
-                    && string.Equals(x.UriRelativePath, name, StringComparison.InvariantCultureIgnoreCase));
+            var type = GetRootResourceBaseTypes()
+                .FirstOrDefault(x => string.Equals(x.UriRelativePath, name, StringComparison.InvariantCultureIgnoreCase));
 
             if (type == null)
                 throw new ResourceNotFoundException("Unable to locate root resource.");
@@ -85,6 +91,13 @@ namespace Pomona
                 name,
                 () => queryMethodInvoker(type, this.dataSource),
                 TypeMapper.GetClassMapping(typeof(ICollection<>).MakeGenericType(type.Type)));
+        }
+
+
+        internal IEnumerable<ResourceType> GetRootResourceBaseTypes()
+        {
+            return ((TypeMapper)TypeMapper).TransformedTypes.OfType<ResourceType>()
+                .Where(x => x.IsUriBaseType && x.IsRootResource);
         }
 
 

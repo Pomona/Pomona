@@ -50,9 +50,12 @@ namespace Pomona.Plumbing
         {
             pipelines.BeforeRequest.AddItemToEndOfPipeline(context =>
             {
+                UriResolver uriResolver = new UriResolver(this.typeMapper, new BaseUriResolver(context));
+
+                context.Items[typeof(IUriResolver).FullName] = uriResolver;
                 context.Items[typeof(ISerializationContextProvider).FullName] =
                     new ServerSerializationContextProvider(
-                        new UriResolver(this.typeMapper, new BaseUriResolver(context)),
+                        uriResolver,
                         new ResourceResolver(this.typeMapper, context, this.routeResolver),
                         context);
                 return null;
