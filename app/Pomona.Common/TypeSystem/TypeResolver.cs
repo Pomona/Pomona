@@ -42,12 +42,23 @@ namespace Pomona.Common.TypeSystem
 
         public TypeResolver()
         {
+            var typeSpecTypes = new[]
+            {
+                typeof(ClientType),
+                typeof(DictionaryTypeSpec),
+                typeof(EnumerableTypeSpec),
+                typeof(EnumTypeSpec),
+                typeof(RuntimeTypeSpec)
+            };
             typeFactories =
+                /*
                 GetType().WalkTree(x => x.BaseType)
                 .TakeUntil(x => x == typeof(object))
                 .Select(x => x.Assembly).Distinct()
                 .SelectMany(x => x.GetTypes())
                     .Where(x => typeof(TypeSpec).IsAssignableFrom(x))
+                 */
+                typeSpecTypes
                     .SelectMany(
                         x =>
                             x.GetMethod("GetFactory", BindingFlags.Static | BindingFlags.Public)
