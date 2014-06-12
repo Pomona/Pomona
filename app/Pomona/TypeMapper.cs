@@ -113,9 +113,9 @@ namespace Pomona
                 this.filter.PropertyIsEtag(propertyMapping.ReflectedType, propInfo),
                 this.filter.PropertyIsPrimaryId(propertyMapping.ReflectedType, propInfo),
                 this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
-                this.filter.GetPropertyItemAccessMode(propInfo),
+                this.filter.GetPropertyItemAccessMode(propertyMapping.ReflectedType, propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propInfo)),
+                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propertyMapping.ReflectedType, propInfo)),
                 this.filter.PropertyIsAlwaysExpanded(propertyMapping.ReflectedType, propInfo));
             return details;
         }
@@ -192,7 +192,7 @@ namespace Pomona
             return memberSpec
                 .Maybe()
                 .Switch()
-                    .Case<PropertySpec>().Then(x => filter.GetPropertyMappedName(x.PropertyInfo))
+                    .Case<PropertySpec>().Then(x => filter.GetPropertyMappedName(x.ReflectedType, x.PropertyInfo))
                     .Case<TypeSpec>().Then(x => filter.GetTypeMappedName(x.Type))
                 .EndSwitch()
                 .OrDefault(() => base.LoadName(memberSpec));
@@ -222,13 +222,13 @@ namespace Pomona
 
         public override Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec)
         {
-            return filter.GetPropertyGetter(propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
+            return filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
         }
 
 
         public override Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec)
         {
-            return filter.GetPropertySetter(propertySpec.PropertyInfo) ?? base.LoadSetter(propertySpec);
+            return filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadSetter(propertySpec);
         }
 
 

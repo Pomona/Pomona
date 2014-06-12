@@ -65,7 +65,7 @@ namespace Pomona
         bool PostOfTypeIsAllowed(Type type);
         bool PatchOfTypeIsAllowed(Type type);
         bool DeleteOfTypeIsAllowed(Type type);
-        HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
+        HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo);
         PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
         #endregion
 
@@ -92,10 +92,10 @@ namespace Pomona
         #region TypeMappingConventions
         bool IsIndependentTypeRoot(Type type);
         Type GetPostReturnType(Type type);
-        Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo);
-        Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo);
-        string GetPropertyMappedName(PropertyInfo propertyInfo);
-        Type GetPropertyType(PropertyInfo propertyInfo);
+        Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
+        Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo);
+        string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
+        Type GetPropertyType(Type type, PropertyInfo propertyInfo);
         ConstructorSpec GetTypeConstructor(Type type);
         /// <summary>
         /// This returns what URI this type will be mapped to.

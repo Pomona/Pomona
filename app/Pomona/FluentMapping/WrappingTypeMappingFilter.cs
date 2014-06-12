@@ -192,33 +192,33 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public virtual Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyGetter(propertyInfo);
+            return this.wrappedFilter.GetPropertyGetter(type, propertyInfo);
         }
 
 
-        public virtual HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        public virtual HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo);
+            return this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo);
         }
 
 
-        public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
+        public virtual string GetPropertyMappedName(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyMappedName(propertyInfo);
+            return this.wrappedFilter.GetPropertyMappedName(type, propertyInfo);
         }
 
 
-        public virtual Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
+        public virtual Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertySetter(propertyInfo);
+            return this.wrappedFilter.GetPropertySetter(type, propertyInfo);
         }
 
 
-        public virtual Type GetPropertyType(PropertyInfo propertyInfo)
+        public virtual Type GetPropertyType(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyType(propertyInfo);
+            return this.wrappedFilter.GetPropertyType(type, propertyInfo);
         }
 
 

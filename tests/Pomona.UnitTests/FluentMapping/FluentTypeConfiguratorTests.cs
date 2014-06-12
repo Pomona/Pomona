@@ -137,8 +137,9 @@ namespace Pomona.UnitTests.FluentMapping
         public void RuleForBaseClass_IsAlsoAppliedToInheritedClass()
         {
             var fluentMappingFilter = GetMappingFilter();
+            var propertyInfo = GetPropInfo<Specialized>(x => x.ToBeRenamed);
             Assert.That(
-                fluentMappingFilter.GetPropertyMappedName(GetPropInfo<Specialized>(x => x.ToBeRenamed)),
+                fluentMappingFilter.GetPropertyMappedName(propertyInfo.ReflectedType, propertyInfo),
                 Is.EqualTo("NewName"));
         }
 

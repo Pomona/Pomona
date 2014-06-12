@@ -68,7 +68,7 @@ namespace Pomona.UnitTests.FluentMapping
         {
             CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
                 x => x.ItemsAllow(HttpMethod.Delete),
-                (f, p) => f.GetPropertyItemAccessMode(p),
+                (f, p) => f.GetPropertyItemAccessMode(p.ReflectedType, p),
                 (origValue, changedValue) =>
                 {
                     Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
@@ -82,7 +82,7 @@ namespace Pomona.UnitTests.FluentMapping
         {
             CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
                 x => x.ItemsDeny(HttpMethod.Get),
-                (f, p) => f.GetPropertyItemAccessMode(p),
+                (f, p) => f.GetPropertyItemAccessMode(p.ReflectedType, p),
                 (origValue, changedValue) =>
                 {
                     Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
@@ -95,8 +95,9 @@ namespace Pomona.UnitTests.FluentMapping
         public void RenameRule_GivesPropertyANewName()
         {
             var fluentMappingFilter = GetMappingFilter();
+            var propertyInfo = GetPropInfo<Top>(x => x.ToBeRenamed);
             Assert.That(
-                fluentMappingFilter.GetPropertyMappedName(GetPropInfo<Top>(x => x.ToBeRenamed)),
+                fluentMappingFilter.GetPropertyMappedName(propertyInfo.ReflectedType, propertyInfo),
                 Is.EqualTo("NewName"));
         }
     }
