@@ -30,6 +30,6 @@ namespace Pomona.Example.Models
 {
     public interface INonExposedBaseInterface
     {
-        int PropertyFromInheritedInterface { get; }
+        int PropertyFromInheritedInterface { get; set; }
     }
 }

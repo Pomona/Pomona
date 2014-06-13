@@ -42,6 +42,7 @@ namespace Pomona.Example
         {
             map
                 .Named("ExposedInterface")
+                .AsUriBaseType()
                 .WithPluralName("ExposedInterfaces")
                 .Include(x => x.PropertyFromInheritedInterface)
                 .AsConcrete()

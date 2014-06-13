@@ -117,7 +117,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryExposedInterface_ReturnsSingleExposedInterfaceResource()
         {
-            var entity = Save(new ExposedInterfaceInternalImplementation() { FooBar = "lalala" });
+            var entity = Save(new ExposedInterfaceInternalImplementation() { FooBar = "lalala", PropertyFromInheritedInterface = 123});
             var resultResource = Client.ExposedInterfaces.Query(x => x.FooBar == "lalala").First();
             Assert.That(entity.Id, Is.EqualTo(resultResource.Id));
         }

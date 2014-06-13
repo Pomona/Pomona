@@ -252,7 +252,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostExposedInterface_ReturnsExposedInterfaceResource()
         {
-            var entity = Client.ExposedInterfaces.Post(f => f.FooBar = "lalalSaa");
+            var entity = Client.ExposedInterfaces.Post(new ExposedInterfaceForm() {FooBar = "aslkjdsk", PropertyFromInheritedInterface = 1234});
             Assert.That(entity, Is.TypeOf<ExposedInterfaceResource>());
         }
 
