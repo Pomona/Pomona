@@ -47,8 +47,8 @@ namespace Pomona.RequestProcessing
 
     public class HandlerRequestProcessor<THandler> : HandlerRequestProcessor
     {
-        private static readonly ConcurrentDictionary<string, HandlerMethod> handlerMethodCache =
-            new ConcurrentDictionary<string, HandlerMethod>();
+        private static readonly ConcurrentDictionary<string, HandlerMethodInvoker> handlerMethodCache =
+            new ConcurrentDictionary<string, HandlerMethodInvoker>();
 
 
         public override PomonaResponse Process(PomonaRequest request)
@@ -80,7 +80,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethod GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType,
+        private HandlerMethodInvoker GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType,
             TypeMapper mapper)
         {
             var cacheKey = string.Format("{0}:{1}:{2}", method, resourceType.FullName, nodeType);
@@ -98,7 +98,7 @@ namespace Pomona.RequestProcessing
 
 
         private PomonaResponse InvokeAndWrap(PomonaRequest request,
-            HandlerMethod method,
+            HandlerMethodInvoker method,
             HttpStatusCode? statusCode = null)
         {
             // Continue to next request processor if method was not found.
@@ -171,13 +171,13 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethod ResolveHandlerMethod(HttpMethod method,
+        private HandlerMethodInvoker ResolveHandlerMethod(HttpMethod method,
             Type resourceType,
             PathNodeType nodeType,
             TypeMapper mapper)
         {
             var typeSpec = mapper.GetClassMapping(resourceType);
-            var matches = GetHandlerMethods(mapper).Where(x => x.Match(method, nodeType, typeSpec)).ToList();
+            var matches = GetHandlerMethods(mapper).Select(x => x.Match(method, nodeType, typeSpec)).Where(x => x != null).ToList();
             if (matches.Count > 1)
                 throw new NotImplementedException("Method overload resolution not implemented");
             return matches.FirstOrDefault();

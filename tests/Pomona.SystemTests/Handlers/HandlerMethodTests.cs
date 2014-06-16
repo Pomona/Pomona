@@ -84,6 +84,7 @@ namespace Pomona.SystemTests
         {
             var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("GetPlanetarySystems"),
                 TypeMapper);
+            var invoker = new DefaultHandlerMethodInvoker(methodObject);
 
             var parentNode = new ResourceNode(TypeMapper, null, "Test", delegate() { return new Galaxy(); },
                 TypeMapper.FromType(typeof (Galaxy)) as ResourceType);
@@ -93,14 +94,15 @@ namespace Pomona.SystemTests
             var pomonaRequest = new PomonaRequest(pathNode, nancyContext,
                 serializerFactory);
 
-            Assert.DoesNotThrow(() => methodObject.Invoke(this, pomonaRequest));
+            Assert.DoesNotThrow(() => invoker.Invoke(this, pomonaRequest));
         }
 
         [Test]
         public void Invoke_Method_Requires_ParentResource()
         {
-            var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("QueryPlanetarySystems"),
+            var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("QueryPlanetarySystems"),
                 TypeMapper);
+            var invoker = new DefaultHandlerMethodInvoker(methodObject);
 
             var pathNode = new ResourceNode(TypeMapper, null, "Test",
                 delegate() { return null; }, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
@@ -108,7 +110,7 @@ namespace Pomona.SystemTests
             var pomonaRequest = new PomonaRequest(pathNode, nancyContext,
                 serializerFactory);
 
-            var e = Assert.Throws<PomonaException>(() => methodObject.Invoke(this, pomonaRequest));
+            var e = Assert.Throws<PomonaException>(() => invoker.Invoke(this, pomonaRequest));
             Assert.AreEqual(
                 "Type PlanetarySystem has the parent resource type Galaxy, but no parent element was specified.",
                 e.Message);
@@ -118,6 +120,7 @@ namespace Pomona.SystemTests
         public void Invoke_Method_Returns_Expected_Object()
         {
             var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
+            var invoker = new DefaultHandlerMethodInvoker(methodObject);
 
             var pathNode = new ResourceNode(TypeMapper, null, "Test",
                 delegate() { return null; }, TypeMapper.FromType(typeof (Critter)) as ResourceType);
@@ -125,7 +128,7 @@ namespace Pomona.SystemTests
             var pomonaRequest = new PomonaRequest(pathNode, nancyContext,
                 serializerFactory);
 
-            var returnedObject = methodObject.Invoke(this, pomonaRequest);
+            var returnedObject = invoker.Invoke(this, pomonaRequest);
 
             Assert.IsInstanceOf(typeof (IQueryable<Critter>), returnedObject);
         }
@@ -138,7 +141,7 @@ namespace Pomona.SystemTests
                 TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof (PlanetarySystem))), Is.False);
+                    TypeMapper.GetClassMapping(typeof (PlanetarySystem))), Is.Null);
         }
 
         [Test]
@@ -148,7 +151,7 @@ namespace Pomona.SystemTests
                 TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof (PlanetarySystem))), Is.True);
+                    TypeMapper.GetClassMapping(typeof (PlanetarySystem))), Is.Not.Null);
         }
 
 
@@ -158,7 +161,7 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("GetCrayons"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof (Critter))), Is.False);
+                    TypeMapper.GetClassMapping(typeof (Critter))), Is.Null);
         }
 
         [Test]
@@ -167,7 +170,7 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof (MusicalCritter))), Is.False);
+                    TypeMapper.GetClassMapping(typeof (MusicalCritter))), Is.Null);
         }
 
         [Test]
@@ -176,7 +179,7 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof (Critter))), Is.True);
+                    TypeMapper.GetClassMapping(typeof (Critter))), Is.Not.Null);
         }
     }
 }
