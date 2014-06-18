@@ -35,13 +35,15 @@ namespace Pomona
     public class BaseUriResolver : IBaseUriProvider
     {
         private readonly NancyContext context;
+        private readonly string pomonaroot;
 
 
-        public BaseUriResolver(NancyContext context)
+        public BaseUriResolver(NancyContext context,string pomonaRoot)
         {
             if (context == null)
                 throw new ArgumentNullException("context");
             this.context = context;
+            this.pomonaroot = pomonaRoot;
         }
 
 
@@ -51,12 +53,14 @@ namespace Pomona
             {
                 var request = this.context.Request;
                 var appUrl = request.Url.BasePath ?? string.Empty;
-                var uriString = String.Format("{0}://{1}:{2}{3}{4}",
+                var uriString = String.Format("{0}://{1}:{2}{3}{4}{5}",
                     request.Url.Scheme,
                     request.Url.HostName,
                     request.Url.Port,
                     appUrl,
-                    appUrl.EndsWith("/") ? String.Empty : "/");
+                    pomonaroot,
+                    pomonaroot.EndsWith("/") ? String.Empty : "/")
+                    ;
 
                 return new Uri(uriString);
             }

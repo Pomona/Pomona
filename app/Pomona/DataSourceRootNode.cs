@@ -47,8 +47,8 @@ namespace Pomona
         private HttpMethod allowedMethods;
 
 
-        public DataSourceRootNode(ITypeMapper typeMapper, IPomonaDataSource dataSource)
-            : base(typeMapper, null, "/", PathNodeType.Custom)
+        public DataSourceRootNode(ITypeMapper typeMapper, IPomonaDataSource dataSource,string rootPath)
+            : base(typeMapper, null, rootPath, PathNodeType.Custom)
         {
             if (dataSource == null)
                 throw new ArgumentNullException("dataSource");
