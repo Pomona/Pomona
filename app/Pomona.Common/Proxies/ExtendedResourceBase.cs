@@ -34,7 +34,7 @@ namespace Pomona.Common.Proxies
     public class ExtendedResourceBase : IHasResourceUri, IExtendedResourceProxy
     {
         public object WrappedResource { get; private set; }
-        internal ExtendedResourceInfo UserTypeInfo { get; private set; }
+        public ExtendedResourceInfo UserTypeInfo { get; private set; }
         internal IClientTypeResolver Client { get; private set; }
 
         private static MethodInfo createProxyListMethod =

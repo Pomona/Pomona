@@ -275,12 +275,7 @@ namespace Pomona.Common
             if (form == null)
                 throw new ArgumentNullException("form");
 
-            var type = typeof(T);
-            ExtendedResourceInfo userTypeInfo;
-            if (typeMapper.TryGetExtendedTypeInfo(type, out userTypeInfo))
-                return PostExtendedType(uri, (ExtendedFormBase)((object)form), options);
-
-            return PostServerType(uri, form, options);
+            return dispatcher.SendRequest(uri, form, "POST", options);
         }
 
 
@@ -364,41 +359,6 @@ namespace Pomona.Common
             AddIfMatchToPatch(postForm, requestOptions);
 
             return this.dispatcher.SendRequest(uri, postForm, "PATCH", requestOptions);
-        }
-
-
-        private object PostExtendedType(string uri, ExtendedFormBase postForm, RequestOptions options)
-        {
-            var extendedResourceInfo = postForm.UserTypeInfo;
-
-            var serverTypeResult = PostServerType(uri, postForm.WrappedResource, options);
-
-            var expectedResponseType = options != null ? options.ExpectedResponseType : null;
-
-            if ((expectedResponseType == null || expectedResponseType == postForm.UserTypeInfo.ServerType) &&
-                postForm.UserTypeInfo.ServerType.IsInstanceOfType(serverTypeResult))
-            {
-                return typeMapper.WrapResource(serverTypeResult,
-                    extendedResourceInfo.ServerType,
-                    extendedResourceInfo.ExtendedType);
-            }
-
-            ExtendedResourceInfo responseExtendedInfo;
-            if (expectedResponseType != null
-                && typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
-            {
-                return typeMapper.WrapResource(serverTypeResult,
-                    responseExtendedInfo.ServerType,
-                    responseExtendedInfo.ExtendedType);
-            }
-
-            return serverTypeResult;
-        }
-
-
-        private object PostServerType(string uri, object postForm, RequestOptions options)
-        {
-            return this.dispatcher.SendRequest(uri, postForm, "POST", options);
         }
     }
 }

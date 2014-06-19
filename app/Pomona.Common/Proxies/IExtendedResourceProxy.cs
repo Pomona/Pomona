@@ -26,10 +26,13 @@
 
 #endregion
 
+using Pomona.Common.Internals;
+
 namespace Pomona.Common.Proxies
 {
     public interface IExtendedResourceProxy
     {
         object WrappedResource { get; }
+        ExtendedResourceInfo UserTypeInfo { get; }
     }
 }
