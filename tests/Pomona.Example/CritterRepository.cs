@@ -116,7 +116,7 @@ namespace Pomona.Example
 
         public object Patch<T>(T updatedObject)
         {
-            var etagEntity = updatedObject as EtaggedEntity;
+            var etagEntity = updatedObject as ISetEtaggedEntity;
             if (etagEntity != null)
                 etagEntity.SetEtag(Guid.NewGuid().ToString());
 

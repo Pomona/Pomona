@@ -277,8 +277,6 @@ namespace Pomona.Common
 
             return dispatcher.SendRequest(uri, form, "POST", options);
         }
-
-
         private void AddIfMatchToPatch(object postForm, RequestOptions requestOptions)
         {
             string etagValue = null;
@@ -335,30 +333,25 @@ namespace Pomona.Common
         {
             if (form == null)
                 throw new ArgumentNullException("form");
-            if (form is ExtendedFormBase)
-                return (T)PatchExtendedType((ExtendedFormBase)((object)form), requestOptions);
 
-            return (T)PatchServerType(form, requestOptions);
+            var uri = GetUriOfForm(form);
+
+            AddIfMatchToPatch(form, requestOptions);
+            return (T)dispatcher.SendRequest(uri, form, "PATCH", requestOptions);
         }
 
 
-        private object PatchExtendedType(ExtendedFormBase patchForm, RequestOptions requestOptions)
+        private string GetUriOfForm(object form)
         {
-            var extendedResourceInfo = patchForm.UserTypeInfo;
-            var serverTypeResult = PatchServerType(patchForm.WrappedResource, requestOptions);
-
-            return typeMapper.WrapResource(serverTypeResult,
-                extendedResourceInfo.ServerType,
-                extendedResourceInfo.ExtendedType);
-        }
-
-
-        private object PatchServerType(object postForm, RequestOptions requestOptions)
-        {
-            var uri = ((IHasResourceUri)((IDelta)postForm).Original).Uri;
-            AddIfMatchToPatch(postForm, requestOptions);
-
-            return this.dispatcher.SendRequest(uri, postForm, "PATCH", requestOptions);
+            if (form == null)
+                throw new ArgumentNullException("form");
+            var delta = form as IDelta;
+            if (delta != null)
+                return ((IHasResourceUri)delta.Original).Uri;
+            var extendedProxy = form as IExtendedResourceProxy;
+            if (extendedProxy != null)
+                return GetUriOfForm(extendedProxy.WrappedResource);
+            throw new InvalidOperationException("Unable to retrieve uri from resource of type " + form.GetType().FullName);
         }
     }
 }

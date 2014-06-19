@@ -114,6 +114,7 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<StringToObjectDictionaryContainer> map)
         {
             map.Include(x => x.Map, o => o.AsAttributes());
+            map.Include(x => x.ETag, o => o.AsEtag());
         }
 
 

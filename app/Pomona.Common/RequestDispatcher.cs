@@ -72,9 +72,7 @@ namespace Pomona.Common
         {
             var bodyAsExtendedProxy = body as IExtendedResourceProxy;
             if (bodyAsExtendedProxy != null)
-            {
                 return SendExtendedResourceRequest(uri, bodyAsExtendedProxy, httpMethod, options, responseBaseType);
-            }
 
             var response = SendHttpRequest(uri, httpMethod, body, null, options);
             return response != null ? Deserialize(response, responseBaseType) : null;
@@ -92,73 +90,27 @@ namespace Pomona.Common
             if (serverTypeResult == null)
                 return null;
 
-
             var expectedResponseType = options != null ? options.ExpectedResponseType : null;
 
             if ((expectedResponseType == null || expectedResponseType == info.ServerType) &&
                 info.ServerType.IsInstanceOfType(serverTypeResult))
             {
-                return typeMapper.WrapResource(serverTypeResult,
+                return this.typeMapper.WrapResource(serverTypeResult,
                     info.ServerType,
                     info.ExtendedType);
             }
 
             ExtendedResourceInfo responseExtendedInfo;
             if (expectedResponseType != null
-                && typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
+                && this.typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
             {
-                return typeMapper.WrapResource(serverTypeResult,
+                return this.typeMapper.WrapResource(serverTypeResult,
                     responseExtendedInfo.ServerType,
                     responseExtendedInfo.ExtendedType);
             }
 
             return serverTypeResult;
         }
-
-        //internal override object Post<T>(string uri, T form, RequestOptions options)
-        //{
-        //    if (uri == null)
-        //        throw new ArgumentNullException("uri");
-        //    if (form == null)
-        //        throw new ArgumentNullException("form");
-
-        //    var type = typeof(T);
-        //    ExtendedResourceInfo userTypeInfo;
-        //    if (typeMapper.TryGetExtendedTypeInfo(type, out userTypeInfo))
-        //        return PostExtendedType(uri, (ExtendedFormBase)((object)form), options);
-
-        //    return PostServerType(uri, form, options);
-        //}
-
-
-        //private object PostExtendedType(string uri, ExtendedFormBase postForm, RequestOptions options)
-        //{
-        //    var extendedResourceInfo = postForm.UserTypeInfo;
-
-        //    var serverTypeResult = PostServerType(uri, postForm.WrappedResource, options);
-
-        //    var expectedResponseType = options != null ? options.ExpectedResponseType : null;
-
-        //    if ((expectedResponseType == null || expectedResponseType == postForm.UserTypeInfo.ServerType) &&
-        //        postForm.UserTypeInfo.ServerType.IsInstanceOfType(serverTypeResult))
-        //    {
-        //        return typeMapper.WrapResource(serverTypeResult,
-        //            extendedResourceInfo.ServerType,
-        //            extendedResourceInfo.ExtendedType);
-        //    }
-
-        //    ExtendedResourceInfo responseExtendedInfo;
-        //    if (expectedResponseType != null
-        //        && typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
-        //    {
-        //        return typeMapper.WrapResource(serverTypeResult,
-        //            responseExtendedInfo.ServerType,
-        //            responseExtendedInfo.ExtendedType);
-        //    }
-
-        //    return serverTypeResult;
-        //}
-
 
 
         private object Deserialize(string jsonString, Type expectedType)

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,18 +26,33 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
-    public class StringToObjectDictionaryContainer : EntityBase
+    public class StringToObjectDictionaryContainer : EntityBase, ISetEtaggedEntity
     {
+        private string eTag = Guid.NewGuid().ToString();
+
+
         public StringToObjectDictionaryContainer()
         {
             Map = new Dictionary<string, object>();
         }
 
 
+        public string ETag
+        {
+            get { return this.eTag; }
+        }
+
         public IDictionary<string, object> Map { get; set; }
+
+
+        public void SetEtag(string newEtagValue)
+        {
+            this.eTag = newEtagValue;
+        }
     }
 }
