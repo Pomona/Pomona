@@ -111,6 +111,7 @@ namespace Pomona.Common
             typeMapper = new ClientTypeMapper(typeof(TClient).Assembly);
         }
 
+
         protected ClientBase(string baseUri, IWebClient webClient)
         {
             this.webClient = webClient ?? new HttpWebRequestClient();
@@ -177,12 +178,6 @@ namespace Pomona.Common
             proxy.Client = this;
             proxy.ProxyTargetType = typeInfo.PocoType;
             return (T)((object)proxy);
-        }
-
-
-        private string GetUriOfType(Type type)
-        {
-            return BaseUri + this.GetResourceInfoForType(type).UrlRelativePath;
         }
 
 
@@ -274,8 +269,10 @@ namespace Pomona.Common
             if (form == null)
                 throw new ArgumentNullException("form");
 
-            return dispatcher.SendRequest(uri, form, "POST", options);
+            return this.dispatcher.SendRequest(uri, form, "POST", options);
         }
+
+
         private void AddIfMatchToPatch(object postForm, RequestOptions requestOptions)
         {
             string etagValue = null;
@@ -288,6 +285,27 @@ namespace Pomona.Common
                 requestOptions.ModifyRequest(
                     request => request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)));
             }
+        }
+
+
+        private string GetUriOfForm(object form)
+        {
+            if (form == null)
+                throw new ArgumentNullException("form");
+            var delta = form as IDelta;
+            if (delta != null)
+                return ((IHasResourceUri)delta.Original).Uri;
+            var extendedProxy = form as IExtendedResourceProxy;
+            if (extendedProxy != null)
+                return GetUriOfForm(extendedProxy.WrappedResource);
+            throw new InvalidOperationException("Unable to retrieve uri from resource of type "
+                                                + form.GetType().FullName);
+        }
+
+
+        private string GetUriOfType(Type type)
+        {
+            return BaseUri + this.GetResourceInfoForType(type).UrlRelativePath;
         }
 
 
@@ -336,21 +354,7 @@ namespace Pomona.Common
             var uri = GetUriOfForm(form);
 
             AddIfMatchToPatch(form, requestOptions);
-            return (T)dispatcher.SendRequest(uri, form, "PATCH", requestOptions);
-        }
-
-
-        private string GetUriOfForm(object form)
-        {
-            if (form == null)
-                throw new ArgumentNullException("form");
-            var delta = form as IDelta;
-            if (delta != null)
-                return ((IHasResourceUri)delta.Original).Uri;
-            var extendedProxy = form as IExtendedResourceProxy;
-            if (extendedProxy != null)
-                return GetUriOfForm(extendedProxy.WrappedResource);
-            throw new InvalidOperationException("Unable to retrieve uri from resource of type " + form.GetType().FullName);
+            return (T)this.dispatcher.SendRequest(uri, form, "PATCH", requestOptions);
         }
     }
 }
