@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,27 +26,12 @@
 
 #endregion
 
-using System;
+using System.Linq;
 
 namespace Pomona.Common.Linq
 {
-    public class RestQueryRoot<T> : RestQuery<T>, IRestQueryRoot
+    internal interface IRestQueryRoot : IQueryable
     {
-        private readonly string uri;
-
-
-        public RestQueryRoot(RestQueryProvider provider, string uri)
-            : base(provider)
-        {
-            if (uri == null)
-                throw new ArgumentNullException("uri");
-            this.uri = uri;
-        }
-
-
-        public string Uri
-        {
-            get { return this.uri; }
-        }
+        string Uri { get; }
     }
 }

@@ -101,6 +101,7 @@
     <Compile Include="IQueryableRepository.cs" />
     <Compile Include="IRequestDispatcher.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
+    <Compile Include="Linq\IRestQueryRoot.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />
     <Compile Include="Linq\QueryableBase.cs" />
