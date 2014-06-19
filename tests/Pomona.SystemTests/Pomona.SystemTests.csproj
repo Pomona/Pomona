@@ -45,6 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\DelegateDecompiler.0.9.1.0\lib\net40-Client\DelegateDecompiler.dll</HintPath>
     </Reference>
+    <Reference Include="Extra.Client">
+      <HintPath>..\..\lib\Extra.Client.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Reflection, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Mono.Reflection.1.0.0.0\lib\Mono.Reflection.dll</HintPath>
@@ -87,6 +90,7 @@
     <Compile Include="ClientGeneratedTypeTests.cs" />
     <Compile Include="ExceptionHandlingTests.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />
+    <Compile Include="ExtraDataTests.cs" />
     <Compile Include="GetFromUriTests.cs" />
     <Compile Include="Handlers\ResourceHandlerTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />

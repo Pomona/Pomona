@@ -29,6 +29,7 @@ using Pomona.CodeGen;
 using Pomona.Common.Internals;
 using Pomona.Example;
 using Pomona.Example.Models;
+using Pomona.Example.SimpleExtraSite;
 using Pomona.FluentMapping;
 
 namespace Pomona.UnitTests.GenerateClientDllApp
@@ -45,6 +46,10 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
                 ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);
+            }
+            using (var file = new FileStream(@"..\..\..\..\lib\Extra.Client.dll", FileMode.OpenOrCreate))
+            {
+                ClientLibGenerator.WriteClientLibrary(new TypeMapper(new SimplePomonaConfiguration()), file,embedPomonaClient:false);
             }
 
             using (

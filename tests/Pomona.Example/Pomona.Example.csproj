@@ -148,6 +148,11 @@
     <Compile Include="Models\WebColor.cs" />
     <Compile Include="NotKnownToDataSourceAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleExtraSite\SimpleDataSource.cs" />
+    <Compile Include="SimpleExtraSite\SimpleExtraData.cs" />
+    <Compile Include="SimpleExtraSite\SimpleExtraModule.cs" />
+    <Compile Include="SimpleExtraSite\SimplePomonaConfiguration.cs" />
+    <Compile Include="SimpleExtraSite\SimpleTypeMappingFilter.cs" />
     <Compile Include="ThrowOnCalculatedPropertyVisitor.cs" />
     <Compile Include="WebColorConverter.cs" />
     <Compile Include="Words.cs" />
