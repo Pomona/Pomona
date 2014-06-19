@@ -116,7 +116,6 @@ namespace Pomona.Common
             this.webClient = webClient ?? new HttpWebRequestClient();
 
             this.baseUri = baseUri;
-            // BaseUri = "http://localhost:2211/";
 
             var serializerFactory =
                 new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(typeMapper, this));
