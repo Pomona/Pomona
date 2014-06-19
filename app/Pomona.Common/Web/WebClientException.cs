@@ -113,7 +113,7 @@ namespace Pomona.Common.Web
             }
         }
 
-        public static WebClientException Create(IPomonaClient client, WebClientRequestMessage request,
+        public static WebClientException Create(IClientTypeResolver client, WebClientRequestMessage request,
                                                 WebClientResponseMessage response,
                                                 object bodyObject, Exception innerException)
         {

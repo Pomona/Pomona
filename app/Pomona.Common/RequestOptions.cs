@@ -32,7 +32,7 @@ using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
-    internal class RequestOptions : IRequestOptions
+    public class RequestOptions : IRequestOptions
     {
         private readonly Type expectedResponseType;
 

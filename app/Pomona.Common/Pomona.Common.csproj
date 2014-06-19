@@ -99,6 +99,7 @@
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="IPostableRepository.cs" />
     <Compile Include="IQueryableRepository.cs" />
+    <Compile Include="IRequestDispatcher.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="Proxies\LazySetProxy.cs" />
     <Compile Include="QueryResultBase.cs" />
     <Compile Include="QuerySetResult.cs" />
+    <Compile Include="RequestDispatcher.cs" />
     <Compile Include="RequestOptions.cs" />
     <Compile Include="PomonaSerializationException.cs" />
     <Compile Include="Proxies\ExtendedFormBase.cs" />
