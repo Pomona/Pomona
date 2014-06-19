@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 namespace Pomona.Common.Linq
@@ -42,6 +43,8 @@ namespace Pomona.Common.Linq
         public RestQueryRoot(RestQueryProvider provider, string uri)
             : base(provider)
         {
+            if (uri == null)
+                throw new ArgumentNullException("uri");
             this.uri = uri;
         }
 

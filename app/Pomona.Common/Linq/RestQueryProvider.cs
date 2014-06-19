@@ -184,7 +184,7 @@ namespace Pomona.Common.Linq
             if (parser.IncludeTotalCount)
                 builder.AppendParameter("$totalcount", "true");
 
-            return (parser.RepositoryUri ?? this.client.GetUriOfType(parser.ElementType)) + "?" + builder;
+            return parser.RepositoryUri + "?" + builder;
         }
 
 

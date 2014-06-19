@@ -64,9 +64,6 @@ namespace Pomona.Common
             where T : class, IClientResource;
 
 
-        public abstract string GetUriOfType(Type type);
-
-
         public abstract T Patch<T>(T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
             where T : class, IClientResource;
 
@@ -184,7 +181,7 @@ namespace Pomona.Common
         }
 
 
-        public override string GetUriOfType(Type type)
+        private string GetUriOfType(Type type)
         {
             return BaseUri + this.GetResourceInfoForType(type).UrlRelativePath;
         }
