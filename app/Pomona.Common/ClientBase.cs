@@ -122,18 +122,6 @@ namespace Pomona.Common
         protected ClientBase(string uri, IWebClient webClient)
             : this(uri, CreateDefaultRequestDispatcher(webClient))
         {
-            webClient = webClient ?? new HttpWebRequestClient();
-
-            this.baseUri = uri;
-
-            this.dispatcher = new RequestDispatcher(
-                typeMapper,
-                webClient,
-                new PomonaJsonSerializerFactory());
-
-            this.serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this);
-
-            InstantiateClientRepositories();
         }
 
 
