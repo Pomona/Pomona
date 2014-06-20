@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2014 Karsten Nikolai Strand
@@ -22,12 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -51,66 +54,68 @@ namespace Pomona.RequestProcessing
                 throw new ArgumentNullException("typeMapper");
             this.methodInfo = methodInfo;
             this.typeMapper = typeMapper;
-            parameters =
+            this.parameters =
                 new System.Lazy<IList<HandlerParameter>>(
                     () => methodInfo.GetParameters().Select(x => new HandlerParameter(x, this)).ToList());
-            parameterTypes = new System.Lazy<IList<Type>>(() => Parameters.MapList(x => x.Type));
+            this.parameterTypes = new System.Lazy<IList<Type>>(() => Parameters.MapList(x => x.Type));
         }
 
 
         public MethodInfo MethodInfo
         {
-            get { return methodInfo; }
+            get { return this.methodInfo; }
         }
 
         public string Name
         {
-            get { return methodInfo.Name; }
+            get { return this.methodInfo.Name; }
         }
 
         public IList<Type> ParameterTypes
         {
-            get { return parameterTypes.Value; }
+            get { return this.parameterTypes.Value; }
         }
 
         public IList<HandlerParameter> Parameters
         {
-            get { return parameters.Value; }
+            get { return this.parameters.Value; }
         }
 
         public Type ReturnType
         {
-            get { return methodInfo.ReturnType; }
+            get { return this.methodInfo.ReturnType; }
         }
 
         public TypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
+
 
         public HandlerMethodInvoker Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
         {
-            if (!methodInfo.Name.StartsWith(method.ToString()))
-                return null;
             switch (nodeType)
             {
                 case PathNodeType.Collection:
-                    return MatchCollectionNodeRequest(method, (ResourceType) resourceType);
+                    return MatchCollectionNodeRequest(method, (ResourceType)resourceType);
                 case PathNodeType.Resource:
-                    return MatchResourceNodeRequest(method, (ResourceType) resourceType);
+                    if (!this.methodInfo.Name.StartsWith(method.ToString()))
+                        return null;
+                    return MatchResourceNodeRequest(method, (ResourceType)resourceType);
             }
             return null;
         }
 
 
-        public bool NameStartsWith(string start)
+        public bool NameStartsWith(HttpMethod method)
         {
-            return Name.ToLowerInvariant().StartsWith(start.ToLowerInvariant());
+            return Name.StartsWith(method.ToString());
         }
+
 
         public bool ReturnsType(Type returnType)
         {
-            return returnType.IsAssignableFrom(methodInfo.ReturnType);
+            return returnType.IsAssignableFrom(this.methodInfo.ReturnType);
         }
 
 
@@ -119,47 +124,47 @@ namespace Pomona.RequestProcessing
             switch (method)
             {
                 case HttpMethod.Post:
-                    return MatchMethodTakingResourceObject(resourceType);
+                    return NameStartsWith(method) ? MatchMethodTakingResourceObject(resourceType) : null;
                 case HttpMethod.Get:
                     return MatchMethodReturningQueryable(resourceType);
             }
             return null;
         }
 
+
         private HandlerMethodInvoker MatchMethodReturningQueryable(ResourceType resourceType)
         {
             // Check that the method is called "Get", "Query", "Get<TypeName>s" or "Query<TypeName>s".
-            if (!methodInfo.Name.Equals("Get") && !methodInfo.Name.Equals("Query") &&
-                !methodInfo.Name.Equals("Get" + resourceType.PluralName) &&
-                !methodInfo.Name.Equals("Query" + resourceType.PluralName))
+            if (!this.methodInfo.Name.Equals("Get") && !this.methodInfo.Name.Equals("Query") &&
+                !this.methodInfo.Name.Equals("Get" + resourceType.PluralName) &&
+                !this.methodInfo.Name.Equals("Query" + resourceType.PluralName))
                 return null;
 
             // Check that the it takes a parameter of type Parent if the type is a child resource of Parent.
             if (resourceType.ParentResourceType != null)
             {
-                ParameterInfo[] parentParameter = methodInfo.GetParameters();
+                var parentParameter = this.methodInfo.GetParameters();
                 if (parentParameter.Length != 1 ||
                     parentParameter[0].ParameterType != resourceType.ParentResourceType.Type)
                     return null;
             }
 
             // Check that it returns an IQueryable<Object>.
-            if (!typeof (IQueryable<>).MakeGenericType(resourceType.Type).IsAssignableFrom(methodInfo.ReturnType))
+            if (!typeof(IQueryable<>).MakeGenericType(resourceType.Type).IsAssignableFrom(this.methodInfo.ReturnType))
                 return null;
 
             return new DefaultHandlerMethodInvoker(this);
         }
 
+
         private HandlerMethodInvoker MatchMethodTakingResourceId(ResourceType resourceType)
         {
-            if (methodInfo.ReturnType != resourceType.Type)
+            if (this.methodInfo.ReturnType != resourceType.Type)
                 return null;
 
             var idParam = Parameters.SingleOrDefault(x => x.Type == resourceType.PrimaryId.PropertyType.Type);
             if (idParam != null)
-            {
                 return new DefaultHandlerMethodInvoker(this);
-            }
             return null;
         }
 
@@ -173,6 +178,9 @@ namespace Pomona.RequestProcessing
 
         private HandlerMethodInvoker MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
         {
+            if (!NameStartsWith(httpMethod))
+                return null;
+
             switch (httpMethod)
             {
                 case HttpMethod.Delete:

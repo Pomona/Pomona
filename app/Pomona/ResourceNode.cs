@@ -97,7 +97,7 @@ namespace Pomona
         }
 
 
-        public override PathNode GetChildNode(string name)
+        public override PathNode GetChildNode(string name, IPomonaContext context, IRequestProcessorPipeline pipeline)
         {
             PropertySpec property;
             if (

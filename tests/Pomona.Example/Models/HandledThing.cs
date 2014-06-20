@@ -41,5 +41,6 @@ namespace Pomona.Example.Models
         }
 
         public int PatchCounter { get; set; }
+        public int QueryCounter { get; set; }
     }
 }

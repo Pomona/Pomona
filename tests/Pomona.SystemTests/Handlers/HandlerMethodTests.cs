@@ -46,6 +46,11 @@ namespace Pomona.SystemTests
             return new List<Critter>().AsQueryable(); // Why not?
         }
 
+        public IQueryable<Critter> QueryCritters()
+        {
+            return new List<Critter>().AsQueryable(); // Why not?
+        }
+
         public IQueryable<Critter> GetCrayons()
         {
             return new List<Critter>().AsQueryable();
@@ -91,8 +96,7 @@ namespace Pomona.SystemTests
             var pathNode = new ResourceNode(TypeMapper, parentNode, "Test",
                 delegate() { return null; }, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
 
-            var pomonaRequest = new PomonaRequest(pathNode, nancyContext,
-                serializerFactory);
+            var pomonaRequest = CreateOuterPomonaRequest(pathNode, nancyContext, serializerFactory);
 
             Assert.DoesNotThrow(() => invoker.Invoke(this, pomonaRequest));
         }
@@ -107,14 +111,20 @@ namespace Pomona.SystemTests
             var pathNode = new ResourceNode(TypeMapper, null, "Test",
                 delegate() { return null; }, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
 
-            var pomonaRequest = new PomonaRequest(pathNode, nancyContext,
-                serializerFactory);
+            PomonaRequest pomonaRequest = CreateOuterPomonaRequest(pathNode, nancyContext, serializerFactory);
 
             var e = Assert.Throws<PomonaException>(() => invoker.Invoke(this, pomonaRequest));
             Assert.AreEqual(
                 "Type PlanetarySystem has the parent resource type Galaxy, but no parent element was specified.",
                 e.Message);
         }
+
+
+        private static PomonaRequest CreateOuterPomonaRequest(ResourceNode pathNode, NancyContext nancyContext, ITextSerializerFactory textSerializerFactory)
+        {
+            return new PomonaContext(nancyContext, textSerializerFactory).CreateOuterRequest(pathNode);
+        }
+
 
         [Test]
         public void Invoke_Method_Returns_Expected_Object()
@@ -125,8 +135,7 @@ namespace Pomona.SystemTests
             var pathNode = new ResourceNode(TypeMapper, null, "Test",
                 delegate() { return null; }, TypeMapper.FromType(typeof (Critter)) as ResourceType);
 
-            var pomonaRequest = new PomonaRequest(pathNode, nancyContext,
-                serializerFactory);
+            var pomonaRequest = CreateOuterPomonaRequest(pathNode, nancyContext, serializerFactory);
 
             var returnedObject = invoker.Invoke(this, pomonaRequest);
 
@@ -154,7 +163,6 @@ namespace Pomona.SystemTests
                     TypeMapper.GetClassMapping(typeof (PlanetarySystem))), Is.Not.Null);
         }
 
-
         [Test]
         public void Match_QueryMethod_Does_Not_Match_IncorrectMethodName()
         {
@@ -174,12 +182,21 @@ namespace Pomona.SystemTests
         }
 
         [Test]
-        public void Match_QueryMethod_Matches_CorrectSignature()
+        public void Match_QueryMethod_PrefixedWithGet_Matches_CorrectSignature()
         {
             var methodObject = new HandlerMethod(typeof (HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
                     TypeMapper.GetClassMapping(typeof (Critter))), Is.Not.Null);
+        }
+
+        [Test]
+        public void Match_QueryMethod_PrefixedWithQuery_Matches_CorrectSignature()
+        {
+            var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("QueryCritters"), TypeMapper);
+            Assert.That(
+                methodObject.Match(HttpMethod.Get, PathNodeType.Collection,
+                    TypeMapper.GetClassMapping(typeof(Critter))), Is.Not.Null);
         }
     }
 }

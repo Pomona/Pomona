@@ -35,6 +35,7 @@ using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Queries;
 
 namespace Pomona.RequestProcessing
 {
@@ -50,6 +51,10 @@ namespace Pomona.RequestProcessing
             GenericInvoker.Instance<DataSourceRequestProcessor>().CreateFunc1<object, PomonaRequest, PomonaResponse>(
                 x => x.Post<object>(null, null));
 
+
+        private readonly Func<Type, DataSourceRequestProcessor, PomonaRequest, PomonaResponse> queryMethod =
+            GenericInvoker.Instance<DataSourceRequestProcessor>().CreateFunc1<PomonaRequest, PomonaResponse>(
+                x => x.Query<object>(null));
 
         public DataSourceRequestProcessor(IPomonaDataSource dataSource)
         {
@@ -75,6 +80,22 @@ namespace Pomona.RequestProcessing
             return null;
         }
 
+
+        public PomonaResponse Query<T>(PomonaRequest request)
+            where T : class
+        {
+            var qresolver = new DataSourceQueryableResolver(dataSource);
+            ResourceCollectionNode collectionNode = (ResourceCollectionNode)request.Node;
+            if (request.ExecuteQueryable)
+            {
+                var pomonaQuery = request.ParseQuery();
+                return request
+                    .Node
+                    .GetQueryExecutor()
+                    .ApplyAndExecute(qresolver.Resolve(collectionNode, pomonaQuery.OfType), pomonaQuery);
+            }
+            return new PomonaResponse(qresolver.Resolve(collectionNode, collectionNode.ItemResourceType));
+        }
 
         public PomonaResponse Patch<T>(T form, PomonaRequest request)
             where T : class
@@ -132,8 +153,15 @@ namespace Pomona.RequestProcessing
                 case HttpMethod.Post:
                     return PostToCollection(request, collectionNode);
                 default:
-                    return null;
+                    return GetFromCollection(request, collectionNode);
+                    //return null;
             }
+        }
+
+
+        private PomonaResponse GetFromCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
+        {
+            return queryMethod(collectionNode.ItemResourceType, this, request);
         }
 
 
@@ -176,7 +204,7 @@ namespace Pomona.RequestProcessing
         {
             if (request.Method == HttpMethod.Get)
             {
-                var uriResolver = request.NancyContext.GetUriResolver();
+                var uriResolver = request.Context.NancyContext.GetUriResolver();
                 var repos =
                     new SortedDictionary<string, string>(
                         dataSourceRootNode.GetRootResourceBaseTypes().ToDictionary(x => x.UriRelativePath,

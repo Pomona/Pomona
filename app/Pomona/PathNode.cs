@@ -35,6 +35,7 @@ using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
+using Pomona.RequestProcessing;
 
 namespace Pomona
 {
@@ -104,7 +105,7 @@ namespace Pomona
             get { return null; }
         }
 
-        public abstract PathNode GetChildNode(string name);
+        public abstract PathNode GetChildNode(string name, IPomonaContext context, IRequestProcessorPipeline pipeline);
 
 
         public virtual IQueryExecutor GetQueryExecutor()

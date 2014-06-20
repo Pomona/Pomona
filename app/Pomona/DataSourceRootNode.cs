@@ -78,7 +78,7 @@ namespace Pomona
 
 
 
-        public override PathNode GetChildNode(string name)
+        public override PathNode GetChildNode(string name, IPomonaContext context, IRequestProcessorPipeline pipeline)
         {
             var type = GetRootResourceBaseTypes()
                 .FirstOrDefault(x => string.Equals(x.UriRelativePath, name, StringComparison.InvariantCultureIgnoreCase));

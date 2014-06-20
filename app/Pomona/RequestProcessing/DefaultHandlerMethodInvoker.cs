@@ -145,7 +145,7 @@ namespace Pomona.RequestProcessing
                 else if (p.Type == typeof(PomonaRequest))
                     args[i] = request;
                 else if (p.Type == typeof(NancyContext))
-                    args[i] = request.NancyContext;
+                    args[i] = request.Context.NancyContext;
                 else if (p.Type == typeof(TypeMapper))
                     args[i] = request.TypeMapper;
                 else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())

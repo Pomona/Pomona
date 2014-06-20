@@ -105,11 +105,17 @@ namespace Pomona.RequestProcessing
             if (method == null)
                 return null;
 
-            var handler = request.NancyContext.Resolve(typeof (THandler));
+            var handler = request.Context.Resolve(typeof (THandler));
             var result = method.Invoke(handler, request);
             var resultAsResponse = result as PomonaResponse;
             if (resultAsResponse != null)
                 return resultAsResponse;
+
+            IQueryable resultAsQueryable = result as IQueryable;
+            if (resultAsQueryable != null && request.ExecuteQueryable)
+            {
+                return request.Node.GetQueryExecutor().ApplyAndExecute(resultAsQueryable, request.ParseQuery());
+            }
 
             var responseBody = result;
             if (method.ReturnType == typeof (void))
@@ -148,10 +154,21 @@ namespace Pomona.RequestProcessing
             {
                 case HttpMethod.Post:
                     return PostToCollection(request, collectionNode);
+                case HttpMethod.Get:
+                    return GetCollection(request, collectionNode);
 
                 default:
                     return null;
             }
+        }
+
+
+        private PomonaResponse GetCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
+        {
+
+            var method = GetHandlerMethod(request.Method, collectionNode.ItemResourceType, collectionNode.NodeType, request.TypeMapper);
+
+            return InvokeAndWrap(request, method);
         }
 
 

@@ -26,7 +26,7 @@ using System.Collections.Generic;
 
 namespace Pomona.RequestProcessing
 {
-    public interface IRequestProcessorPipeline
+    public interface IRequestProcessorPipeline : IPomonaRequestProcessor
     {
         IEnumerable<IPomonaRequestProcessor> Before { get; }
         IEnumerable<IPomonaRequestProcessor> After { get; }

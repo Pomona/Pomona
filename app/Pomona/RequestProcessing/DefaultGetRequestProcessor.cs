@@ -22,6 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
+
 using Pomona.Common;
 
 namespace Pomona.RequestProcessing
@@ -39,9 +41,15 @@ namespace Pomona.RequestProcessing
             var collectionNode = request.Node as ResourceCollectionNode;
             if (collectionNode != null)
             {
-                var pomonaQuery = request.ParseQuery();
-                return request.Node.GetQueryExecutor()
-                              .ApplyAndExecute(collectionNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
+                if (request.ExecuteQueryable)
+                {
+                    if (!request.HasQuery)
+                        throw new InvalidOperationException("Can't execute query when HasQuery is false (TODO: CLEAN UP THIS PROPER).");
+                    var pomonaQuery = request.ParseQuery();
+                    return request.Node.GetQueryExecutor()
+                        .ApplyAndExecute(collectionNode.GetAsQueryable(pomonaQuery.OfType), pomonaQuery);
+                }
+                return new PomonaResponse(collectionNode.GetAsQueryable());
             }
             var resourceNode = request.Node as ResourceNode;
             if (resourceNode != null)

@@ -94,6 +94,8 @@ namespace Pomona.Example
         public IQueryable<T> Query<T>()
             where T : class
         {
+            if (typeof(T)== typeof(HandledThing))
+                throw new InvalidOperationException("Error: Should not call data source when querying HandledThing.");
             return this.store.Query<T>();
         }
     }

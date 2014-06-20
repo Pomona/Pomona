@@ -146,6 +146,7 @@
     <Compile Include="IBaseUriProvider.cs" />
     <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
+    <Compile Include="IPomonaContext.cs" />
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
@@ -159,6 +160,7 @@
     <Compile Include="Plumbing\PomonaStartup.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
+    <Compile Include="PomonaContext.cs" />
     <Compile Include="PomonaCsvResponseProcessor.cs" />
     <Compile Include="PomonaError.cs" />
     <Compile Include="PomonaException.cs" />

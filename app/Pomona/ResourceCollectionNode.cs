@@ -56,16 +56,16 @@ namespace Pomona
         }
 
 
-        public override PathNode GetChildNode(string name)
+        public override PathNode GetChildNode(string name, IPomonaContext context, IRequestProcessorPipeline pipeline)
         {
             if (ItemResourceType.PrimaryId == null)
                 throw new ArgumentException("Resource in collection needs to have a primary id.");
 
-            return CreateNode(TypeMapper, this, name, () => GetChildNodeFromQueryableById(name), ItemResourceType);
+            return CreateNode(TypeMapper, this, name, () => GetChildNodeFromQueryableById(name, context, pipeline), ItemResourceType);
         }
 
 
-        private TItem GetChildNodeFromQueryableById(string name)
+        private TItem GetChildNodeFromQueryableById(string name, IPomonaContext context, IRequestProcessorPipeline pipeline)
         {
             var id = (TId)ParseId(name);
             var predicateParam = Expression.Parameter(typeof(TItem));
@@ -73,7 +73,7 @@ namespace Pomona
                 Expression.Equal(ItemResourceType.PrimaryId.CreateGetterExpression(predicateParam),
                     Expression.Constant(id)),
                 predicateParam);
-            var queryable = ((IQueryable<TItem>)GetAsQueryable()).EmptyIfNull().Where(predicate);
+            var queryable = ((IQueryable<TItem>) pipeline.Process(context.CreateNestedRequest(this, HttpMethod.Get)).Entity).EmptyIfNull().Where(predicate);
             
             var result = queryable.FirstOrDefault();
             return result;

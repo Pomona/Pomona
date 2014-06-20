@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,32 +24,24 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Pomona.Queries;
 
-namespace Pomona.RequestProcessing
+using Nancy;
+
+using Pomona.Common;
+using Pomona.Common.Serialization;
+using Pomona.Common.TypeSystem;
+
+namespace Pomona
 {
-    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline
+    public interface IPomonaContext : IContextResolver
     {
-        public PomonaResponse Process(PomonaRequest request)
-        {
-            return    Before
-                      .Concat(request.Node.GetRequestProcessors(request))
-                      .Concat(After)
-                      .Select(x => x.Process(request))
-                      .FirstOrDefault(response => response != null);
-        }
-
-        public virtual IEnumerable<IPomonaRequestProcessor> Before
-        {
-            get { yield return new ValidateEtagProcessor(); }
-        }
-
-        public IEnumerable<IPomonaRequestProcessor> After
-        {
-            get { yield return new DefaultGetRequestProcessor(); }
-        }
+        NancyContext NancyContext { get; }
+        PomonaRequest CreateNestedRequest(PathNode node, HttpMethod httpMethod);
+        PomonaRequest CreateOuterRequest(PathNode pathNode);
+        ITextDeserializer GetDeserializer();
+        object Resolve(Type type);
     }
 }

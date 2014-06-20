@@ -26,6 +26,8 @@
 
 #endregion
 
+using System.Linq;
+
 using Critters.Client;
 
 using NUnit.Framework;
@@ -53,6 +55,17 @@ namespace Pomona.SystemTests.Handlers
             Client.HandledThings.Delete(Client.HandledThings.GetLazy(entity.Id));
             Assert.That(Repository.List<HandledThing>(), Is.Not.Contains(entity));
         }
+
+        [Test]
+        public void QueryHandledThing_CallsHandlerQueryMethod()
+        {
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            Assert.That(thingEntity.FetchedCounter, Is.EqualTo(0));
+            var thingResource = Client.HandledThings.Query().First(x => x.Foo == "blabla");
+            Assert.That(thingResource.Id, Is.EqualTo(thingEntity.Id));
+            Assert.That(thingResource.QueryCounter, Is.EqualTo(1));
+        }
+
 
 
         [Test]

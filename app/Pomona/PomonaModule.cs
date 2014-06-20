@@ -198,17 +198,18 @@ namespace Pomona
             var pathNodes = GetPathNodes();
             var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource,ModulePath);
             PathNode node = rootNode;
-            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
-                node = node.GetChildNode(pathPart);
+            DefaultRequestProcessorPipeline pipeline = new DefaultRequestProcessorPipeline();
+            var pomonaContext = new PomonaContext(Context, new PomonaJsonSerializerFactory());
 
-            var pomonaRequest = new PomonaRequest(node,
-                Context,
-                new PomonaJsonSerializerFactory());
+            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
+                node = node.GetChildNode(pathPart, pomonaContext, pipeline);
+
+            var pomonaRequest = pomonaContext.CreateOuterRequest(node);
 
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
 
-            var response = new DefaultRequestProcessorPipeline().Process(pomonaRequest);
+            var response = pipeline.Process(pomonaRequest);
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
             return response;
