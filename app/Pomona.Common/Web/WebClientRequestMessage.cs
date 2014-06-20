@@ -30,7 +30,7 @@ namespace Pomona.Common.Web
     public class WebClientRequestMessage
     {
         private readonly byte[] data;
-        private readonly IHttpHeaders headers = new HttpHeaders();
+        private readonly HttpHeaders headers = new HttpHeaders();
         private readonly string method;
         private readonly string uri;
         private readonly string protocolVersion = "1.1";
@@ -65,7 +65,7 @@ namespace Pomona.Common.Web
             this.method = method;
         }
 
-        public IHttpHeaders Headers
+        public HttpHeaders Headers
         {
             get { return headers; }
         }

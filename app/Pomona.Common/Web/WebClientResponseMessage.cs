@@ -31,13 +31,13 @@ namespace Pomona.Common.Web
     public class WebClientResponseMessage
     {
         private readonly byte[] data;
-        private readonly IHttpHeaders headers;
+        private readonly HttpHeaders headers;
         private readonly string protocolVersion;
         private readonly HttpStatusCode statusCode;
         private readonly string uri;
 
         public WebClientResponseMessage(string uri, byte[] data, HttpStatusCode statusCode,
-                                        IHttpHeaders headers, string protocolVersion)
+                                        HttpHeaders headers, string protocolVersion)
         {
             this.headers = headers;
             this.uri = uri;
@@ -46,7 +46,7 @@ namespace Pomona.Common.Web
             this.protocolVersion = protocolVersion;
         }
 
-        public IHttpHeaders Headers
+        public HttpHeaders Headers
         {
             get { return headers; }
         }
