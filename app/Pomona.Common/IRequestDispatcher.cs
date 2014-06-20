@@ -37,6 +37,9 @@ namespace Pomona.Common
     {
         IWebClient WebClient { get; }
 
+        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+
+
         object SendRequest(
             ISerializationContextProvider provider,
             string uri,
@@ -44,7 +47,5 @@ namespace Pomona.Common
             string httpMethod,
             RequestOptions options = null,
             Type responseBaseType = null);
-
-        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
     }
 }
