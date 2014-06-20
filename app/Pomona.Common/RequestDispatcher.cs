@@ -43,6 +43,7 @@ namespace Pomona.Common
 {
     public class RequestDispatcher : IRequestDispatcher
     {
+        private readonly HttpHeaders defaultHeaders;
         private readonly ITextSerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
         private readonly IWebClient webClient;
@@ -50,8 +51,10 @@ namespace Pomona.Common
 
         public RequestDispatcher(ClientTypeMapper typeMapper,
             IWebClient webClient,
-            ITextSerializerFactory serializerFactory)
+            ITextSerializerFactory serializerFactory,
+            HttpHeaders defaultHeaders = null)
         {
+            this.defaultHeaders = defaultHeaders;
             if (typeMapper != null)
                 this.typeMapper = typeMapper;
             if (webClient != null)
@@ -200,6 +203,8 @@ namespace Pomona.Common
                 if (options != null)
                     options.ApplyRequestModifications(request);
 
+                AddDefaultHeaders(request);
+
                 request.Headers.Add("Accept", "application/json");
                 response = this.webClient.Send(request);
                 responseString = (response.Data != null && response.Data.Length > 0)
@@ -232,6 +237,13 @@ namespace Pomona.Common
             }
 
             return responseString;
+        }
+
+
+        private void AddDefaultHeaders(WebClientRequestMessage request)
+        {
+            if (this.defaultHeaders != null)
+                this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
         }
     }
 }
