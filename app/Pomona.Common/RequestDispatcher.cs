@@ -66,6 +66,8 @@ namespace Pomona.Common
             get { return this.webClient; }
         }
 
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+
 
         public object SendRequest(
             ISerializationContextProvider provider,
@@ -77,14 +79,18 @@ namespace Pomona.Common
         {
             var bodyAsExtendedProxy = body as IExtendedResourceProxy;
             if (bodyAsExtendedProxy != null)
-                return SendExtendedResourceRequest(provider, uri, bodyAsExtendedProxy, httpMethod, options, responseBaseType);
+            {
+                return SendExtendedResourceRequest(provider,
+                    uri,
+                    bodyAsExtendedProxy,
+                    httpMethod,
+                    options,
+                    responseBaseType);
+            }
 
             var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
             return response != null ? Deserialize(response, responseBaseType, provider) : null;
         }
-
-
-        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
         protected virtual object SendExtendedResourceRequest(
@@ -96,7 +102,12 @@ namespace Pomona.Common
             Type responseBaseType = null)
         {
             var info = body.UserTypeInfo;
-            var serverTypeResult = SendRequest(serializationContextProvider, uri, body.WrappedResource, httpMethod, options, null);
+            var serverTypeResult = SendRequest(serializationContextProvider,
+                uri,
+                body.WrappedResource,
+                httpMethod,
+                options,
+                null);
             if (serverTypeResult == null)
                 return null;
 
@@ -123,7 +134,9 @@ namespace Pomona.Common
         }
 
 
-        private object Deserialize(string jsonString, Type expectedType, ISerializationContextProvider serializationContextProvider)
+        private object Deserialize(string jsonString,
+            Type expectedType,
+            ISerializationContextProvider serializationContextProvider)
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jToken = JToken.Parse(jsonString);
@@ -145,7 +158,9 @@ namespace Pomona.Common
 
                         var totalCount = (int)jObject.GetValue("totalCount");
 
-                        var deserializedItems = Deserialize(itemsToken.ToString(), expectedType, serializationContextProvider);
+                        var deserializedItems = Deserialize(itemsToken.ToString(),
+                            expectedType,
+                            serializationContextProvider);
                         return QueryResult.Create((IEnumerable)deserializedItems,
                             /* TODO */ 0,
                             totalCount,
@@ -171,8 +186,10 @@ namespace Pomona.Common
             WebClientResponseMessage response = null;
             if (requestBodyEntity != null)
             {
-                requestBytes = this.serializerFactory.GetSerializer(serializationContextProvider).SerializeToBytes(requestBodyEntity,
-                    new SerializeOptions() { ExpectedBaseType = requestBodyBaseType });
+                requestBytes =
+                    this.serializerFactory.GetSerializer(serializationContextProvider).SerializeToBytes(
+                        requestBodyEntity,
+                        new SerializeOptions() { ExpectedBaseType = requestBodyBaseType });
             }
             var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
