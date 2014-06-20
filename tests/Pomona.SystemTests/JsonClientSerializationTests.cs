@@ -63,9 +63,9 @@ namespace Pomona.SystemTests
         private JObject SerializeAndGetJsonObject<T>(T value)
         {
             var serializerFactory =
-                new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(this.typeMapper,
+                new PomonaJsonSerializerFactory();
+            var serializer = serializerFactory.GetSerializer(new ClientSerializationContextProvider(this.typeMapper,
                     Substitute.For<IPomonaClient>()));
-            var serializer = serializerFactory.GetSerializer();
             Console.WriteLine("Serialized object to json:");
             var jsonString = serializer.SerializeToString(value);
             Console.WriteLine(jsonString);

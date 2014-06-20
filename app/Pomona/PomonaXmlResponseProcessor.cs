@@ -39,9 +39,9 @@ namespace Pomona
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
             new[] {new Tuple<string, MediaRange>("xml", MediaRange.FromString("application/xml"))};
 
-        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context, ISerializationContextProvider contextProvider)
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context)
         {
-            return new PomonaXmlSerializerFactory(contextProvider);
+            return new PomonaXmlSerializerFactory();
         }
 
 

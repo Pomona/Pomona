@@ -67,14 +67,16 @@ namespace Pomona.SystemTests
 
         public NancyContext nancyContext;
         public ITextSerializerFactory serializerFactory;
+        private ClientSerializationContextProvider serializationContextProvider;
+
 
         [TestFixtureSetUp]
         public void Init()
         {
             nancyContext = new NancyContext();
             nancyContext.Request = new Request("Get", "http://test");
-            serializerFactory = new PomonaJsonSerializerFactory(
-                new ClientSerializationContextProvider(new ClientTypeMapper(Assembly.GetExecutingAssembly()), Client));
+            this.serializationContextProvider = new ClientSerializationContextProvider(new ClientTypeMapper(Assembly.GetExecutingAssembly()), Client);
+            serializerFactory = new PomonaJsonSerializerFactory();
         }
 
         [Test]

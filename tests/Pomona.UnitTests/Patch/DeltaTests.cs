@@ -186,8 +186,8 @@ namespace Pomona.UnitTests.Patch
         {
             var jsonSerializer =
                 (ITextSerializer)
-                    (new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(this.typeMapper,
-                        Substitute.For<IPomonaClient>())).GetSerializer());
+                    (new PomonaJsonSerializerFactory().GetSerializer(new ClientSerializationContextProvider(this.typeMapper,
+                        Substitute.For<IPomonaClient>())));
             using (var stringWriter = new StringWriter())
             {
                 jsonSerializer.Serialize(stringWriter,

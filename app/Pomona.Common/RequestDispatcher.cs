@@ -64,7 +64,15 @@ namespace Pomona.Common
         }
 
 
-        public object SendRequest(string uri,
+        public IWebClient WebClient
+        {
+            get { return this.webClient; }
+        }
+
+
+        public object SendRequest(
+            ISerializationContextProvider provider,
+            string uri,
             object body,
             string httpMethod,
             RequestOptions options,
@@ -72,21 +80,23 @@ namespace Pomona.Common
         {
             var bodyAsExtendedProxy = body as IExtendedResourceProxy;
             if (bodyAsExtendedProxy != null)
-                return SendExtendedResourceRequest(uri, bodyAsExtendedProxy, httpMethod, options, responseBaseType);
+                return SendExtendedResourceRequest(provider, uri, bodyAsExtendedProxy, httpMethod, options, responseBaseType);
 
-            var response = SendHttpRequest(uri, httpMethod, body, null, options);
-            return response != null ? Deserialize(response, responseBaseType) : null;
+            var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
+            return response != null ? Deserialize(response, responseBaseType, provider) : null;
         }
 
 
-        protected virtual object SendExtendedResourceRequest(string uri,
+        protected virtual object SendExtendedResourceRequest(
+            ISerializationContextProvider serializationContextProvider,
+            string uri,
             IExtendedResourceProxy body,
             string httpMethod,
             RequestOptions options,
             Type responseBaseType = null)
         {
             var info = body.UserTypeInfo;
-            var serverTypeResult = SendRequest(uri, body.WrappedResource, httpMethod, options, null);
+            var serverTypeResult = SendRequest(serializationContextProvider, uri, body.WrappedResource, httpMethod, options, null);
             if (serverTypeResult == null)
                 return null;
 
@@ -113,7 +123,7 @@ namespace Pomona.Common
         }
 
 
-        private object Deserialize(string jsonString, Type expectedType)
+        private object Deserialize(string jsonString, Type expectedType, ISerializationContextProvider serializationContextProvider)
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jToken = JToken.Parse(jsonString);
@@ -135,7 +145,7 @@ namespace Pomona.Common
 
                         var totalCount = (int)jObject.GetValue("totalCount");
 
-                        var deserializedItems = Deserialize(itemsToken.ToString(), expectedType);
+                        var deserializedItems = Deserialize(itemsToken.ToString(), expectedType, serializationContextProvider);
                         return QueryResult.Create((IEnumerable)deserializedItems,
                             /* TODO */ 0,
                             totalCount,
@@ -144,12 +154,14 @@ namespace Pomona.Common
                 }
             }
 
-            return this.serializerFactory.GetDeserializer().DeserializeString(jsonString,
+            return this.serializerFactory.GetDeserializer(serializationContextProvider).DeserializeString(jsonString,
                 new DeserializeOptions() { ExpectedBaseType = expectedType });
         }
 
 
-        private string SendHttpRequest(string uri,
+        private string SendHttpRequest(
+            ISerializationContextProvider serializationContextProvider,
+            string uri,
             string httpMethod,
             object requestBodyEntity,
             TypeSpec requestBodyBaseType,
@@ -159,7 +171,7 @@ namespace Pomona.Common
             WebClientResponseMessage response = null;
             if (requestBodyEntity != null)
             {
-                requestBytes = this.serializerFactory.GetSerializer().SerializeToBytes(requestBodyEntity,
+                requestBytes = this.serializerFactory.GetSerializer(serializationContextProvider).SerializeToBytes(requestBodyEntity,
                     new SerializeOptions() { ExpectedBaseType = requestBodyBaseType });
             }
             var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
@@ -184,7 +196,7 @@ namespace Pomona.Common
                                                   .Any(x => x.StartsWith("application/json"));
 
                     var responseObject = gotJsonResponseBody
-                        ? Deserialize(responseString, null)
+                        ? Deserialize(responseString, null, serializationContextProvider)
                         : null;
 
                     throw WebClientException.Create(this.typeMapper, request, response, responseObject, null);

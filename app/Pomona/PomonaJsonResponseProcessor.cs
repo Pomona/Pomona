@@ -110,10 +110,9 @@ namespace Pomona
         }
 
 
-        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context,
-            ISerializationContextProvider contextProvider)
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context)
         {
-            return new PomonaJsonSerializerFactory(contextProvider);
+            return new PomonaJsonSerializerFactory();
         }
 
 

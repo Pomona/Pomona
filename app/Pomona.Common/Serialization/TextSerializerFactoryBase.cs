@@ -34,13 +34,7 @@ namespace Pomona.Common.Serialization
         : TextSerializerFactoryBase<TSerializer, ITextDeserializer>
         where TSerializer : ITextSerializer
     {
-        protected TextSerializerFactoryBase(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
-        {
-        }
-
-
-        public sealed override ITextDeserializer GetDeserializer()
+        public sealed override ITextDeserializer GetDeserializer(ISerializationContextProvider contextProvider)
         {
             throw new NotSupportedException("Deserialization not supported for format.");
         }
@@ -50,36 +44,20 @@ namespace Pomona.Common.Serialization
         where TSerializer : ITextSerializer
         where TDeserializer : ITextDeserializer
     {
-        private readonly ISerializationContextProvider contextProvider;
+        public abstract TDeserializer GetDeserializer(ISerializationContextProvider contextProvider);
+
+        public abstract TSerializer GetSerializer(ISerializationContextProvider contextProvider);
 
 
-        protected TextSerializerFactoryBase(ISerializationContextProvider contextProvider)
+        ITextDeserializer ITextSerializerFactory.GetDeserializer(ISerializationContextProvider contextProvider)
         {
-            if (contextProvider == null)
-                throw new ArgumentNullException("contextProvider");
-            this.contextProvider = contextProvider;
+            return GetDeserializer(contextProvider);
         }
 
 
-        protected ISerializationContextProvider ContextProvider
+        ITextSerializer ITextSerializerFactory.GetSerializer(ISerializationContextProvider contextProvider)
         {
-            get { return this.contextProvider; }
-        }
-
-        public abstract TDeserializer GetDeserializer();
-
-        public abstract TSerializer GetSerializer();
-
-
-        ITextDeserializer ITextSerializerFactory.GetDeserializer()
-        {
-            return GetDeserializer();
-        }
-
-
-        ITextSerializer ITextSerializerFactory.GetSerializer()
-        {
-            return GetSerializer();
+            return GetSerializer(contextProvider);
         }
     }
 }

@@ -28,11 +28,18 @@
 
 using System;
 
+using Pomona.Common.Serialization;
+using Pomona.Common.Web;
+
 namespace Pomona.Common
 {
     public interface IRequestDispatcher
     {
-        object SendRequest(string uri,
+        IWebClient WebClient { get; }
+
+        object SendRequest(
+            ISerializationContextProvider provider,
+            string uri,
             object body,
             string httpMethod,
             RequestOptions options = null,

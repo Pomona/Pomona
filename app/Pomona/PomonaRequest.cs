@@ -146,7 +146,7 @@ namespace Pomona
         {
             using (var textReader = new StreamReader(body))
             {
-                return this.serializerFactory.GetDeserializer().Deserialize(textReader,
+                return this.serializerFactory.GetDeserializer(NancyContext.GetSerializationContextProvider()).Deserialize(textReader,
                     new DeserializeOptions()
                     {
                         Target = patchedObject,

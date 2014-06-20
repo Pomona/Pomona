@@ -203,7 +203,7 @@ namespace Pomona
 
             var pomonaRequest = new PomonaRequest(node,
                 Context,
-                new PomonaJsonSerializerFactory(Context.GetSerializationContextProvider()));
+                new PomonaJsonSerializerFactory());
 
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);

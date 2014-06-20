@@ -30,15 +30,9 @@ namespace Pomona.Common.Serialization.Xml
 {
     public class PomonaXmlSerializerFactory : TextSerializerFactoryBase<PomonaXmlSerializer>
     {
-        public PomonaXmlSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
+        public override PomonaXmlSerializer GetSerializer(ISerializationContextProvider contextProvider)
         {
-        }
-
-
-        public override PomonaXmlSerializer GetSerializer()
-        {
-            return new PomonaXmlSerializer(ContextProvider);
+            return new PomonaXmlSerializer(contextProvider);
         }
     }
 }

@@ -30,15 +30,9 @@ namespace Pomona.Common.Serialization.Csv
 {
     public class PomonaCsvSerializerFactory : TextSerializerFactoryBase<PomonaCsvSerializer>
     {
-        public PomonaCsvSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
+        public override PomonaCsvSerializer GetSerializer(ISerializationContextProvider contextProvider)
         {
-        }
-
-
-        public override PomonaCsvSerializer GetSerializer()
-        {
-            return new PomonaCsvSerializer(ContextProvider);
+            return new PomonaCsvSerializer(contextProvider);
         }
     }
 }

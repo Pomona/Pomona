@@ -30,7 +30,7 @@ namespace Pomona.Common.Serialization
 {
     public interface ITextSerializerFactory
     {
-        ITextDeserializer GetDeserializer();
-        ITextSerializer GetSerializer();
+        ITextDeserializer GetDeserializer(ISerializationContextProvider contextProvider);
+        ITextSerializer GetSerializer(ISerializationContextProvider contextProvider);
     }
 }

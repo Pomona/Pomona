@@ -33,6 +33,7 @@ using System.Linq;
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
+using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.Web;
@@ -102,7 +103,7 @@ namespace Pomona.Common
         private readonly string baseUri;
 
         private readonly IRequestDispatcher dispatcher;
-        private readonly IWebClient webClient;
+        private ISerializationContextProvider serializationContextProvider;
 
 
         static ClientBase()
@@ -114,17 +115,18 @@ namespace Pomona.Common
 
         protected ClientBase(string baseUri, IWebClient webClient)
         {
-            this.webClient = webClient ?? new HttpWebRequestClient();
+            webClient = webClient ?? new HttpWebRequestClient();
 
             this.baseUri = baseUri;
 
             var serializerFactory =
-                new PomonaJsonSerializerFactory(new ClientSerializationContextProvider(typeMapper, this));
+                new PomonaJsonSerializerFactory();
             this.dispatcher = new RequestDispatcher(
                 typeMapper,
-                this.webClient,
+                webClient,
                 serializerFactory,
                 RaiseRequestCompleted);
+            this.serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this);
 
             InstantiateClientRepositories();
         }
@@ -142,7 +144,7 @@ namespace Pomona.Common
 
         public override IWebClient WebClient
         {
-            get { return this.webClient; }
+            get { return dispatcher.WebClient; }
         }
 
         internal static ClientTypeMapper ClientTypeMapper
@@ -154,13 +156,13 @@ namespace Pomona.Common
         public override void Delete<T>(T resource)
         {
             var uri = ((IHasResourceUri)resource).Uri;
-            this.dispatcher.SendRequest(uri, null, "DELETE");
+            this.dispatcher.SendRequest(serializationContextProvider, uri, null, "DELETE");
         }
 
 
         public override object Get(string uri, Type type)
         {
-            return this.dispatcher.SendRequest(uri, null, "GET", null, type);
+            return this.dispatcher.SendRequest(serializationContextProvider, uri, null, "GET", null, type);
         }
 
 
@@ -269,7 +271,7 @@ namespace Pomona.Common
             if (form == null)
                 throw new ArgumentNullException("form");
 
-            return this.dispatcher.SendRequest(uri, form, "POST", options);
+            return this.dispatcher.SendRequest(serializationContextProvider, uri, form, "POST", options);
         }
 
 
@@ -354,7 +356,7 @@ namespace Pomona.Common
             var uri = GetUriOfForm(form);
 
             AddIfMatchToPatch(form, requestOptions);
-            return (T)this.dispatcher.SendRequest(uri, form, "PATCH", requestOptions);
+            return (T)this.dispatcher.SendRequest(serializationContextProvider, uri, form, "PATCH", requestOptions);
         }
     }
 }

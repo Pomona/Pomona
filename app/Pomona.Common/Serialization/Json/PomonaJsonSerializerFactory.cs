@@ -30,21 +30,15 @@ namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonSerializerFactory : TextSerializerFactoryBase<PomonaJsonSerializer, PomonaJsonDeserializer>
     {
-        public PomonaJsonSerializerFactory(ISerializationContextProvider contextProvider)
-            : base(contextProvider)
+        public override PomonaJsonDeserializer GetDeserializer(ISerializationContextProvider contextProvider)
         {
+            return new PomonaJsonDeserializer(contextProvider);
         }
 
 
-        public override PomonaJsonDeserializer GetDeserializer()
+        public override PomonaJsonSerializer GetSerializer(ISerializationContextProvider contextProvider)
         {
-            return new PomonaJsonDeserializer(ContextProvider);
-        }
-
-
-        public override PomonaJsonSerializer GetSerializer()
-        {
-            return new PomonaJsonSerializer(ContextProvider);
+            return new PomonaJsonSerializer(contextProvider);
         }
     }
 }

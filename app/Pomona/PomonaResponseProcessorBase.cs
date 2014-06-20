@@ -67,9 +67,8 @@ namespace Pomona
                 return new Response { StatusCode = pomonaResponse.StatusCode };
 
             jsonString =
-                GetSerializerFactory(context,
-                    context.GetSerializationContextProvider())
-                    .GetSerializer().SerializeToString(pomonaResponse.Entity,
+                GetSerializerFactory(context)
+                    .GetSerializer(context.GetSerializationContextProvider()).SerializeToString(pomonaResponse.Entity,
                         new SerializeOptions()
                         {
                             ExpandedPaths = pomonaResponse.ExpandedPaths,
@@ -124,8 +123,7 @@ namespace Pomona
         }
 
 
-        protected abstract ITextSerializerFactory GetSerializerFactory(NancyContext context,
-            ISerializationContextProvider contextProvider);
+        protected abstract ITextSerializerFactory GetSerializerFactory(NancyContext context);
 
 
         protected bool IsTextHtmlContentType(MediaRange requestedMediaRange)

@@ -38,9 +38,9 @@ namespace Pomona
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
             new[] {new Tuple<string, MediaRange>("csv", MediaRange.FromString("text/plain"))};
 
-        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context, ISerializationContextProvider contextProvider)
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context)
         {
-            return new PomonaCsvSerializerFactory(contextProvider);
+            return new PomonaCsvSerializerFactory();
         }
 
 
