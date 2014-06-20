@@ -715,9 +715,9 @@ namespace Pomona.CodeGen
         }
 
 
-        private void CreateClientConstructor(MethodReference clientBaseTypeCtor,
-            TypeDefinition clientTypeDefinition,
-            bool includeWebClientArgument)
+        private void CreateClientConstructor(
+            MethodReference clientBaseTypeCtor,
+            TypeDefinition clientTypeDefinition)
         {
             var ctor = new MethodDefinition(
                 ".ctor",
@@ -725,29 +725,25 @@ namespace Pomona.CodeGen
                 | MethodAttributes.Public,
                 VoidTypeRef);
 
-            ctor.Parameters.Add(new ParameterDefinition("uri", ParameterAttributes.None, StringTypeRef));
+            clientBaseTypeCtor
+                .Parameters
+                .Select(x => new ParameterDefinition(x.Name, x.Attributes, x.ParameterType))
+                .AddTo(ctor.Parameters);
 
-            if (includeWebClientArgument)
-            {
-                ctor.Parameters.Add(new ParameterDefinition("webClient",
-                    ParameterAttributes.None,
-                    Import(typeof(IWebClient))));
-            }
 
             ctor.Body.MaxStackSize = 8;
             var ctorIlProcessor = ctor.Body.GetILProcessor();
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
-            ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_1));
-            if (includeWebClientArgument)
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_2));
-            else
-                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldnull));
+            foreach (var param in ctor.Parameters)
+            {
+                ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg, param));
+            }
+
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, clientBaseTypeCtor));
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
             clientTypeDefinition.Methods.Add(ctor);
         }
-
 
         private void CreateClientInterface(string interfaceName)
         {
@@ -779,13 +775,12 @@ namespace Pomona.CodeGen
             var clientBaseTypeGenericInstance = clientBaseTypeRef.MakeGenericInstanceType(clientTypeDefinition);
             clientTypeDefinition.BaseType = clientBaseTypeGenericInstance;
 
-            var clientBaseTypeCtor =
-                Import(
-                    clientBaseTypeRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 2))
-                    .MakeHostInstanceGeneric(clientTypeDefinition);
-
-            CreateClientConstructor(clientBaseTypeCtor, clientTypeDefinition, false);
-            CreateClientConstructor(clientBaseTypeCtor, clientTypeDefinition, true);
+            clientBaseTypeRef
+                .Resolve()
+                .GetConstructors()
+                .Where(x => !x.IsStatic)
+                .Select(x => Import(x).MakeHostInstanceGeneric(clientTypeDefinition))
+                .ForEach(x => CreateClientConstructor(x, clientTypeDefinition));
 
             AddRepositoryPropertiesToClientType(clientTypeDefinition);
 

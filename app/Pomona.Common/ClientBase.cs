@@ -103,7 +103,7 @@ namespace Pomona.Common
         private readonly string baseUri;
 
         private readonly IRequestDispatcher dispatcher;
-        private ISerializationContextProvider serializationContextProvider;
+        private readonly ISerializationContextProvider serializationContextProvider;
 
 
         static ClientBase()
@@ -113,20 +113,42 @@ namespace Pomona.Common
         }
 
 
-        protected ClientBase(string baseUri, IWebClient webClient)
+        protected ClientBase(string uri)
+            : this(uri, (IRequestDispatcher)null)
+        {
+        }
+
+
+        protected ClientBase(string uri, IWebClient webClient)
+            : this(uri, CreateDefaultRequestDispatcher(webClient))
         {
             webClient = webClient ?? new HttpWebRequestClient();
 
-            this.baseUri = baseUri;
+            this.baseUri = uri;
 
-            var serializerFactory =
-                new PomonaJsonSerializerFactory();
             this.dispatcher = new RequestDispatcher(
                 typeMapper,
                 webClient,
-                serializerFactory,
-                RaiseRequestCompleted);
+                new PomonaJsonSerializerFactory());
+
             this.serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this);
+
+            InstantiateClientRepositories();
+        }
+
+
+        protected ClientBase(string uri, IRequestDispatcher dispatcher)
+        {
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+
+            dispatcher = dispatcher ?? CreateDefaultRequestDispatcher();
+
+            this.baseUri = uri;
+            this.dispatcher = dispatcher;
+            this.serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this);
+
+            dispatcher.RequestCompleted += (s, e) => RaiseRequestCompleted(e.Request, e.Response, e.ThrownException);
 
             InstantiateClientRepositories();
         }
@@ -144,7 +166,7 @@ namespace Pomona.Common
 
         public override IWebClient WebClient
         {
-            get { return dispatcher.WebClient; }
+            get { return this.dispatcher.WebClient; }
         }
 
         internal static ClientTypeMapper ClientTypeMapper
@@ -156,13 +178,13 @@ namespace Pomona.Common
         public override void Delete<T>(T resource)
         {
             var uri = ((IHasResourceUri)resource).Uri;
-            this.dispatcher.SendRequest(serializationContextProvider, uri, null, "DELETE");
+            this.dispatcher.SendRequest(this.serializationContextProvider, uri, null, "DELETE");
         }
 
 
         public override object Get(string uri, Type type)
         {
-            return this.dispatcher.SendRequest(serializationContextProvider, uri, null, "GET", null, type);
+            return this.dispatcher.SendRequest(this.serializationContextProvider, uri, null, "GET", null, type);
         }
 
 
@@ -271,7 +293,16 @@ namespace Pomona.Common
             if (form == null)
                 throw new ArgumentNullException("form");
 
-            return this.dispatcher.SendRequest(serializationContextProvider, uri, form, "POST", options);
+            return this.dispatcher.SendRequest(this.serializationContextProvider, uri, form, "POST", options);
+        }
+
+
+        private static IRequestDispatcher CreateDefaultRequestDispatcher(IWebClient webClient = null)
+        {
+            return new RequestDispatcher(
+                typeMapper,
+                webClient ?? new HttpWebRequestClient(),
+                new PomonaJsonSerializerFactory());
         }
 
 
@@ -356,7 +387,7 @@ namespace Pomona.Common
             var uri = GetUriOfForm(form);
 
             AddIfMatchToPatch(form, requestOptions);
-            return (T)this.dispatcher.SendRequest(serializationContextProvider, uri, form, "PATCH", requestOptions);
+            return (T)this.dispatcher.SendRequest(this.serializationContextProvider, uri, form, "PATCH", requestOptions);
         }
     }
 }

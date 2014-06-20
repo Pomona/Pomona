@@ -43,7 +43,6 @@ namespace Pomona.Common
 {
     public class RequestDispatcher : IRequestDispatcher
     {
-        private readonly Action<WebClientRequestMessage, WebClientResponseMessage, Exception> onRequestCompleted;
         private readonly ITextSerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
         private readonly IWebClient webClient;
@@ -51,8 +50,7 @@ namespace Pomona.Common
 
         public RequestDispatcher(ClientTypeMapper typeMapper,
             IWebClient webClient,
-            ITextSerializerFactory serializerFactory,
-            Action<WebClientRequestMessage, WebClientResponseMessage, Exception> onRequestCompleted = null)
+            ITextSerializerFactory serializerFactory)
         {
             if (typeMapper != null)
                 this.typeMapper = typeMapper;
@@ -60,7 +58,6 @@ namespace Pomona.Common
                 this.webClient = webClient;
             if (serializerFactory != null)
                 this.serializerFactory = serializerFactory;
-            this.onRequestCompleted = onRequestCompleted;
         }
 
 
@@ -85,6 +82,9 @@ namespace Pomona.Common
             var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
             return response != null ? Deserialize(response, responseBaseType, provider) : null;
         }
+
+
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
         protected virtual object SendExtendedResourceRequest(
@@ -209,8 +209,9 @@ namespace Pomona.Common
             }
             finally
             {
-                if (this.onRequestCompleted != null)
-                    this.onRequestCompleted(request, response, thrownException);
+                var eh = RequestCompleted;
+                if (eh != null)
+                    eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
             }
 
             return responseString;

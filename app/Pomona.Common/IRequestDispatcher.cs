@@ -44,5 +44,7 @@ namespace Pomona.Common
             string httpMethod,
             RequestOptions options = null,
             Type responseBaseType = null);
+
+        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
     }
 }
