@@ -178,6 +178,10 @@ namespace Pomona.Example
                 .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                 .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
                 .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
+                .IncludeAs<string>(x => x.IntExposedAsString,
+                    o =>
+                        o.OnGet(x => x.IntExposedAsString.ToString()).OnQuery(x => x.IntExposedAsString.ToString())
+                            .OnSet((c, v) => c.IntExposedAsString = int.Parse(v)))
                 .Include(x => x.Weapons, o => o.Writable())
                 .Include(x => x.RelativeImageUrl,
                     o => o.Named("AbsoluteImageUrl")

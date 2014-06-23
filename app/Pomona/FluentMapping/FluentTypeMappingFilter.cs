@@ -312,7 +312,10 @@ namespace TestNs
 
         public Type GetPropertyType(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyType(type, propertyInfo);
+            return FromMappingOrDefault(type,
+                propertyInfo,
+                o => o.PropertyType,
+                () => wrappedFilter.GetPropertyType(type, propertyInfo));
         }
 
         public ConstructorSpec GetTypeConstructor(Type type)

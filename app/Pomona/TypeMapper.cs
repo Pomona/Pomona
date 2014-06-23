@@ -153,6 +153,17 @@ namespace Pomona
         }
 
 
+        public override TypeSpec LoadPropertyType(PropertySpec propertySpec)
+        {
+            var propMapping = propertySpec as PropertyMapping;
+            if (propMapping != null)
+            {
+                return FromType(this.filter.GetPropertyType(propMapping.ReflectedType, propMapping.PropertyInfo));
+            }
+            return base.LoadPropertyType(propertySpec);
+        }
+
+
         public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
         {
             var attrs = base.LoadDeclaredAttributes(memberSpec);

@@ -98,6 +98,8 @@ namespace Pomona.Example.Models
         public string Protected { get; protected set; }
         public bool PublicAndReadOnlyThroughApi { get; set; }
 
+        public int IntExposedAsString { get; set; }
+
         public string RelativeImageUrl { get; set; }
 
         public IList<SimpleAttribute> SimpleAttributes { get; set; }

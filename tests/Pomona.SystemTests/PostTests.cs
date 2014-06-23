@@ -208,6 +208,17 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PostCritter_SetIntPropertyExposedAsStringToValidNumber_UpdatesEntityProperty()
+        {
+            var form = new CritterForm() { Name = "The postbear", IntExposedAsString = "348738" };
+            var resource = Client.Critters.Post(form);
+            Assert.That(resource.IntExposedAsString, Is.EqualTo("348738"));
+            var entity = CritterEntities.Single(x => x.Id == resource.Id);
+            Assert.That(entity.IntExposedAsString, Is.EqualTo(348738));
+        }
+
+
+        [Test]
         public void PostCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
         {
             var critter = Client.Critters.Post<IMusicalCritter>(x =>
@@ -252,7 +263,12 @@ namespace Pomona.SystemTests
         [Test]
         public void PostExposedInterface_ReturnsExposedInterfaceResource()
         {
-            var entity = Client.ExposedInterfaces.Post(new ExposedInterfaceForm() {FooBar = "aslkjdsk", PropertyFromInheritedInterface = 1234});
+            var entity =
+                Client.ExposedInterfaces.Post(new ExposedInterfaceForm()
+                {
+                    FooBar = "aslkjdsk",
+                    PropertyFromInheritedInterface = 1234
+                });
             Assert.That(entity, Is.TypeOf<ExposedInterfaceResource>());
         }
 

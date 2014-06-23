@@ -40,7 +40,6 @@ namespace Pomona.FluentMapping
     {
         private readonly PropertyInfo propertyInfo;
 
-
         public PropertyMappingOptions(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
@@ -81,6 +80,9 @@ namespace Pomona.FluentMapping
         public Func<object, IContextResolver, object> OnGetDelegate { get; set; }
 
         public Action<object, object, IContextResolver> OnSetDelegate { get; set; }
+
+        public Type PropertyType { get; set; }
+
 
         internal void ClearAccessModeFlag(HttpMethod method)
         {
