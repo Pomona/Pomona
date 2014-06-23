@@ -40,7 +40,7 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("0.7.12.1")]
-[assembly: AssemblyFileVersion("0.7.17.1")]
-[assembly: AssemblyInformationalVersion("0.7.17")]
+[assembly: AssemblyVersion("0.8.0.1")]
+[assembly: AssemblyFileVersion("0.8.0.1")]
+[assembly: AssemblyInformationalVersion("0.8.0")]
 [assembly: ComVisible(false)]
