@@ -67,16 +67,6 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void PatchPlanetarySystemPostPlanetToChildRepository_IsSuccessful()
-        {
-            CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
-            var patchedPlanetarySystem = Client.Patch(planetarySystem,
-                x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
-            Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
-        }
-
-        [Test]
         public void PatchPlanetarySystemPostDeletePlanetFromChildRepository_IsSuccessful()
         {
             CreateTestData();
@@ -86,6 +76,27 @@ namespace Pomona.SystemTests
                 x => x.Planets.Delete(planetToDelete));
             Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name),
                 Is.Not.Contains(planetToDelete.Name));
+        }
+
+
+        [Test]
+        public void PatchPlanetarySystemPostPlanetToChildRepository_IsSuccessful()
+        {
+            CreateTestData();
+            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var patchedPlanetarySystem = Client.Patch(planetarySystem,
+                x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
+            Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
+        }
+
+
+        [Test]
+        public void PostMoonToPlanet_UsingPatch_IsSuccessful()
+        {
+            CreateTestData();
+            var planet = Client.Galaxies.First().PlanetarySystems.First().Planets.First();
+            var patchedPlanet = Client.Patch(planet, p => p.Moons.Add(new MoonForm() { Name = "A new moon" }));
+            Assert.That(patchedPlanet.Moons.Any(x => x.Name == "A new moon"), Is.True);
         }
 
 
@@ -103,23 +114,29 @@ namespace Pomona.SystemTests
             Assert.That(planet.PlanetarySystem.Id, Is.EqualTo(planetarySystem.Id));
         }
 
+
         [Test]
-        public void PostPlanetToPlanetarySystem_UsingGenericPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
+        public void
+            PostPlanetToPlanetarySystem_UsingGenericPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException
+            ()
         {
             CreateTestData();
             var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(
-                () => planetarySystem.Planets.Post<IPlanet>(planetForm => 
+                () => planetarySystem.Planets.Post<IPlanet>(planetForm =>
                 {
                     planetForm.Moons.Add(new MoonForm() { Name = "jalla" });
                     planetForm.Name = "Jupiter";
                 }));
         }
 
+
         [Test]
-        public void PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
+        public void
+            PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException
+            ()
         {
             CreateTestData();
             var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
@@ -133,8 +150,11 @@ namespace Pomona.SystemTests
                 }));
         }
 
+
         [Test]
-        public void PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingForm_WithModifiedEtagOnParent_ThrowsPreconditionFailedException()
+        public void
+            PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingForm_WithModifiedEtagOnParent_ThrowsPreconditionFailedException
+            ()
         {
             CreateTestData();
             var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();

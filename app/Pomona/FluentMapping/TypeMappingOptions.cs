@@ -262,15 +262,6 @@ namespace Pomona.FluentMapping
             }
 
 
-            public override ITypeMappingConfigurator<TDeclaringType> IncludeAs<TPropertyType>(Expression<Func<TDeclaringType, object>> property, Func<IPropertyOptionsBuilder<TDeclaringType, TPropertyType>, IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
-            {
-                if (property == null)
-                    throw new ArgumentNullException("property");
-                var propInfo = property.ExtractPropertyInfo();
-                return Include(propInfo, options);
-            }
-
-
             public override ITypeMappingConfigurator<TDeclaringType> AsConcrete()
             {
                 this.owner.isAbstract = false;
@@ -375,6 +366,7 @@ namespace Pomona.FluentMapping
                     <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
                         IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
             {
+                var propInfo = property.ExtractPropertyInfo();
                 return Include(property, options);
             }
 
@@ -388,25 +380,20 @@ namespace Pomona.FluentMapping
                 if (property == null)
                     throw new ArgumentNullException("property");
                 var propInfo = property.ExtractPropertyInfo();
-                return Include(propInfo, options);
+                return Include(propInfo, options, propInfo.PropertyType);
             }
 
 
-            private ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
-                PropertyInfo propInfo,
+            public override ITypeMappingConfigurator<TDeclaringType> IncludeAs<TPropertyType>(
+                Expression<Func<TDeclaringType, object>> property,
                 Func
                     <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
                         IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
             {
-                var propOptions = this.owner.GetPropertyOptions(propInfo);
-
-                propOptions.InclusionMode = PropertyInclusionMode.Included;
-                propOptions.PropertyType = typeof(TPropertyType);
-
-                if (options != null)
-                    options(new PropertyOptionsBuilder<TDeclaringType, TPropertyType>(propOptions));
-
-                return this;
+                if (property == null)
+                    throw new ArgumentNullException("property");
+                var propInfo = property.ExtractPropertyInfo();
+                return Include(propInfo, options);
             }
 
 
@@ -470,6 +457,25 @@ namespace Pomona.FluentMapping
             public override ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName)
             {
                 this.owner.pluralName = pluralName;
+                return this;
+            }
+
+
+            private ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
+                PropertyInfo propInfo,
+                Func
+                    <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
+                        IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null,
+                Type propertyType = null)
+            {
+                var propOptions = this.owner.GetPropertyOptions(propInfo);
+
+                propOptions.InclusionMode = PropertyInclusionMode.Included;
+                propOptions.PropertyType = propertyType ?? typeof(TPropertyType);
+
+                if (options != null)
+                    options(new PropertyOptionsBuilder<TDeclaringType, TPropertyType>(propOptions));
+
                 return this;
             }
 

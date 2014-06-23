@@ -36,11 +36,9 @@ namespace Pomona.Example
             map.HasChildren(x => x.Moons,
                 x => x.Planet,
                 x => x.AsUriBaseType()
-                    .AsChildResourceOf(y => y.Planet, y => y.Moons)
-                    .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())), x => x);
+                    .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())), x => x.Writable());
             map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets)
-                .ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()))
-                .Include(x => x.Moons, o => o.Writable());
+                .ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()));
             map.PostAllowed();
             map.DeleteAllowed();
 
