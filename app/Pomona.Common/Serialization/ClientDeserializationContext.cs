@@ -148,7 +148,8 @@ namespace Pomona.Common.Serialization
         public object CreateReference(IDeserializerNode node)
         {
             var uri = node.Uri;
-            var type = node.ExpectedBaseType;/*
+            var type = node.ValueType;
+            /*
             if (type.Type.IsGenericType && type.Type.GetGenericTypeDefinition() == typeof(ClientRepository<,>))
             {
                 if (node.Parent != null)

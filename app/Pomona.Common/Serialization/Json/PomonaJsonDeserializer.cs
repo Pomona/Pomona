@@ -162,6 +162,9 @@ namespace Pomona.Common.Serialization.Json
             var jobj = reader.Token as JObject;
             if (jobj == null)
                 return false;
+
+            SetNodeValueType(node, jobj);
+
             JToken refStringToken;
             if (!jobj.TryGetValue("_ref", out refStringToken) || refStringToken.Type != JTokenType.String)
                 return false;
@@ -435,7 +438,7 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private bool SetNodeValueType(IDeserializerNode node, JObject jobj)
+        private static bool SetNodeValueType(IDeserializerNode node, JObject jobj)
         {
             JToken explicitTypeSpec;
             if (jobj.TryGetValue("_type", out explicitTypeSpec))

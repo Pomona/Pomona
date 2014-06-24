@@ -61,6 +61,19 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetResourceWithReferenceToSubclassedResource_CreatesSubclassedLazyProxy()
+        {
+            var critterEntity = Repository.CreateRandomCritter(rngSeed : 65236);
+            var referencedMusicalCritterEntity = Repository.CreateRandomCritter(rngSeed : 57823,
+                forceMusicalCritter : true);
+            critterEntity.ReferenceToAnotherCritter = referencedMusicalCritterEntity;
+
+            var critterResource = Client.Critters.Get(critterEntity.Id);
+            Assert.That(critterResource.ReferenceToAnotherCritter, Is.TypeOf<MusicalCritterLazyProxy>());
+        }
+
+
+        [Test]
         public void GetResourceById_UsingClientRepository_ReturnsResource()
         {
             var critterEntity = CritterEntities.First();
