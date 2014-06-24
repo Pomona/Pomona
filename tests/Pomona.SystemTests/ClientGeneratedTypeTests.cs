@@ -35,6 +35,8 @@ using System.Text;
 
 using Critters.Client;
 
+using Mono.Cecil;
+
 using NUnit.Framework;
 
 using Pomona.Common;
@@ -282,6 +284,17 @@ namespace Pomona.SystemTests
             File.Copy(origDllPath, newDllPath, true);
             PeVerify(newDllPath);
             //Assert.Inconclusive();
+        }
+
+
+        [Ignore("This test is only applicable when DISABLE_PROXY_GENERATION is set.")]
+        [Test]
+        public void PomonaCommonHaveZeroReferencesToEmitNamespace()
+        {
+            var assembly = AssemblyDefinition.ReadAssembly(typeof(IClientResource).Assembly.Location);
+            var trefs =
+                assembly.MainModule.GetTypeReferences().Where(x => x.Namespace == "System.Reflection.Emit").ToList();
+            Assert.That(trefs, Is.Empty);
         }
 
 
