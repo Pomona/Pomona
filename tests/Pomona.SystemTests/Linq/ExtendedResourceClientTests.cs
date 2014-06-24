@@ -418,6 +418,7 @@ namespace Pomona.SystemTests.Linq
 
             Assert.That(resource.Container, Is.Not.Null);
             Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
+            Assert.That(resource.OtherContainers.Count, Is.EqualTo(1));
             Assert.That(resource.OtherContainers[0].Jalla, Is.EqualTo("blabla"));
         }
 
