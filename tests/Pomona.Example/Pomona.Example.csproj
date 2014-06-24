@@ -41,13 +41,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Mono.Reflection.1.0.0.0\lib\Mono.Reflection.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.22.2\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.0.23.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Nancy.Hosting.Self, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Hosting.Self.0.22.2\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.Hosting.Self.0.23.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -71,15 +71,17 @@
     <Compile Include="CritterPomonaConfiguration.cs" />
     <Compile Include="CritterTypeMappingFilter.cs" />
     <Compile Include="CustomListWrapper.cs" />
+    <Compile Include="ExposedInterfaceInternalImplementation.cs" />
     <Compile Include="GalaxyRules.cs" />
     <Compile Include="GuidThingFluentRules.cs" />
     <Compile Include="GuidThingHandler.cs" />
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="ModelProxies\BearProxy.cs" />
     <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
     <Compile Include="Models\CaptureCommand.cs" />
-    <Compile Include="Models\Cat.cs" />
+    <Compile Include="Models\Bear.cs" />
     <Compile Include="Models\ColorfulThing.cs" />
     <Compile Include="Models\CrazyValueObject.cs" />
     <Compile Include="Models\Critter.cs" />
@@ -100,8 +102,11 @@
     <Compile Include="Models\GuidThing.cs" />
     <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
+    <Compile Include="Models\IEntityWithId.cs" />
+    <Compile Include="Models\INonExposedBaseInterface.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
+    <Compile Include="Models\IExposedInterface.cs" />
     <Compile Include="Models\InheritedUnpostableThing.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\GenericBaseClass.cs" />
@@ -146,6 +151,11 @@
     <Compile Include="Models\WebColor.cs" />
     <Compile Include="NotKnownToDataSourceAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleExtraSite\SimpleDataSource.cs" />
+    <Compile Include="SimpleExtraSite\SimpleExtraData.cs" />
+    <Compile Include="SimpleExtraSite\SimpleExtraModule.cs" />
+    <Compile Include="SimpleExtraSite\SimplePomonaConfiguration.cs" />
+    <Compile Include="SimpleExtraSite\SimpleTypeMappingFilter.cs" />
     <Compile Include="ThrowOnCalculatedPropertyVisitor.cs" />
     <Compile Include="WebColorConverter.cs" />
     <Compile Include="Words.cs" />

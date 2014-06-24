@@ -41,29 +41,58 @@ namespace Pomona
 {
     public interface ITypeMappingFilter
     {
-        string ApiVersion { get; }
+        #region Undecided stuff:
+        JsonConverter GetJsonConverterForType(Type type);
+        bool TypeIsMapped(Type type);
+        bool TypeIsMappedAsCollection(Type type);
+        bool TypeIsMappedAsSharedType(Type type);
+        bool TypeIsMappedAsTransformedType(Type type);
+        bool TypeIsMappedAsValueObject(Type type);
+        Action<object> GetOnDeserializedHook(Type type);
         DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
-        bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
-        string GetClientAssemblyName();
-        string GetClientInformationalVersion();
-        Type GetClientLibraryType(Type type);
-        IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member);
+        #endregion
 
+        #region Delegate decompiler related methods
+        // The methods below should maybe be provided in an addon, to remove dependency on DelegateCompiler
+        bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo);
+        #endregion
+
+
+        #region Access rules, don't know where to put this yet
+        PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
+        HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec);
+        bool PostOfTypeIsAllowed(Type type);
+        bool PatchOfTypeIsAllowed(Type type);
+        bool DeleteOfTypeIsAllowed(Type type);
+        HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo);
+        PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
+        #endregion
+
+        #region ApiMetadataConfiguration
+        string ApiVersion { get; }
+        #endregion
+
+
+        #region GeneratedClientConfiguration
+        string GetClientAssemblyName(); // Maybe expose as property ClientAssemblyName instead
+        string GetClientInformationalVersion(); // Expose as property ClientInformationalVersion instead
         /// <summary>
         /// This will make sure we generate a client dll with no dependency on Pomona.Common.
         /// </summary>
         bool GenerateIndependentClient();
+        #endregion
 
+        #region GeneratedClientConventions
+        Type GetClientLibraryType(Type type); // NOTE: This should probably take a TypeSpec not a clr Type
+        bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo);
+        IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member);
+        #endregion
+
+        #region TypeMappingConventions
         bool IsIndependentTypeRoot(Type type);
-        JsonConverter GetJsonConverterForType(Type type);
         Type GetPostReturnType(Type type);
-        Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo);
-        string GetPropertyMappedName(PropertyInfo propertyInfo);
-        Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo);
-        Type GetPropertyType(PropertyInfo propertyInfo);
         ConstructorSpec GetTypeConstructor(Type type);
-
-
         /// <summary>
         /// This returns what URI this type will be mapped to.
         /// For example if this method returns the type Animal when passed Dog
@@ -73,40 +102,27 @@ namespace Pomona
         /// <param name="type"></param>
         /// <returns></returns>
         Type GetUriBaseType(Type type);
-
-
         PropertyInfo GetParentToChildProperty(Type type);
         PropertyInfo GetChildToParentProperty(Type type);
-
-        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
-
-        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
         Type ResolveRealTypeForProxy(Type type);
-        bool TypeIsMapped(Type type);
-        bool TypeIsMappedAsCollection(Type type);
-        bool TypeIsMappedAsSharedType(Type type);
-        bool TypeIsMappedAsTransformedType(Type type);
-        bool TypeIsMappedAsValueObject(Type type);
         bool TypeIsExposedAsRepository(Type type);
-        bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
-        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
-        bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo);
-        LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
         string GetTypeMappedName(Type type);
         string GetPluralNameForType(Type type);
-        PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo);
-        HttpMethod GetPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec);
-
-        bool PostOfTypeIsAllowed(Type type);
-        bool PatchOfTypeIsAllowed(Type type);
-        bool DeleteOfTypeIsAllowed(Type type);
-
-        Action<object> GetOnDeserializedHook(Type type);
-        HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo);
-        PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo);
         IEnumerable<Type> GetResourceHandlers(Type type);
-        Boolean GetTypeIsAbstract(Type type);
+        bool GetTypeIsAbstract(Type type);
+        #endregion
+
+        #region Property mapping conventions
+        bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
+        bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
+        Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
+        Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo);
+        string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
+        Type GetPropertyType(Type type, PropertyInfo propertyInfo);
+        #endregion
     }
 }

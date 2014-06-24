@@ -48,11 +48,11 @@
     </Reference>
     <Reference Include="Nancy, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.0.22.2\lib\net40\Nancy.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.0.23.0\lib\net40\Nancy.dll</HintPath>
     </Reference>
     <Reference Include="Nancy.Testing, Version=0.22.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nancy.Testing.0.22.2\lib\net40\Nancy.Testing.dll</HintPath>
+      <HintPath>..\..\packages\Nancy.Testing.0.23.0\lib\net40\Nancy.Testing.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -82,7 +82,9 @@
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="ExpressionTreeMatcherTests.cs" />
-    <Compile Include="FluentMapping\FluentMappingTests.cs" />
+    <Compile Include="FluentMapping\FluentMappingTestsBase.cs" />
+    <Compile Include="FluentMapping\FluentPropertyConfiguratorTests.cs" />
+    <Compile Include="FluentMapping\FluentTypeConfiguratorTests.cs" />
     <Compile Include="Ioc\DummyImplementation.cs" />
     <Compile Include="Ioc\IDummyContract.cs" />
     <Compile Include="Ioc\IocTestsBase.cs" />

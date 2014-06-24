@@ -36,16 +36,29 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly IEnumerable<ITypeFactory> typeFactories;
 
-        private readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
+        protected ConcurrentDictionary<Type, TypeSpec> TypeMap { get { return typeMap; } }
+
+        readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
 
         public TypeResolver()
         {
+            var typeSpecTypes = new[]
+            {
+                typeof(ClientType),
+                typeof(DictionaryTypeSpec),
+                typeof(EnumerableTypeSpec),
+                typeof(EnumTypeSpec),
+                typeof(RuntimeTypeSpec)
+            };
             typeFactories =
+                /*
                 GetType().WalkTree(x => x.BaseType)
                 .TakeUntil(x => x == typeof(object))
                 .Select(x => x.Assembly).Distinct()
                 .SelectMany(x => x.GetTypes())
                     .Where(x => typeof(TypeSpec).IsAssignableFrom(x))
+                 */
+                typeSpecTypes
                     .SelectMany(
                         x =>
                             x.GetMethod("GetFactory", BindingFlags.Static | BindingFlags.Public)
@@ -203,9 +216,22 @@ namespace Pomona.Common.TypeSystem
 
         public virtual TypeSpec FromType(Type type)
         {
+            type = MapExposedClrType(type);
             var typeSpec = typeMap.GetOrAdd(type, CreateType);
             return typeSpec;
         }
+
+
+        /// <summary>
+        /// This method is responsible for mapping from a proxy or hidden clr type to an exposed type.
+        /// </summary>
+        /// <param name="type">The potentially hidden type.</param>
+        /// <returns>An exposed type, which will often be the same type as given in argument.</returns>
+        protected virtual Type MapExposedClrType(Type type)
+        {
+            return type;
+        }
+
 
         protected virtual TypeSpec CreateType(Type type)
         {

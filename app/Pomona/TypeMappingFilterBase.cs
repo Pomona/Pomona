@@ -161,7 +161,7 @@ namespace Pomona
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
         }
 
-        public virtual Boolean GetTypeIsAbstract(Type type)
+        public virtual bool GetTypeIsAbstract(Type type)
         {
             return type.IsAbstract;
         }
@@ -217,13 +217,13 @@ namespace Pomona
         }
 
 
-        public virtual Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public virtual Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
             return null;
         }
 
 
-        public virtual HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        public virtual HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo.PropertyType.IsGenericInstanceOf(typeof(IDictionary<,>)))
                 return HttpMethod.Delete | HttpMethod.Put | HttpMethod.Get | HttpMethod.Post | HttpMethod.Patch;
@@ -233,7 +233,7 @@ namespace Pomona
         }
 
 
-        public virtual string GetPropertyMappedName(PropertyInfo propertyInfo)
+        public virtual string GetPropertyMappedName(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -241,13 +241,13 @@ namespace Pomona
         }
 
 
-        public virtual Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
+        public virtual Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
             return null;
         }
 
 
-        public virtual Type GetPropertyType(PropertyInfo propertyInfo)
+        public virtual Type GetPropertyType(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
@@ -389,12 +389,6 @@ namespace Pomona
                    || TypeIsMappedAsCollection(type)
                    || type.IsAnonymous()
                    || TypeIsIGrouping(type);
-        }
-
-
-        public virtual bool TypeIsMapped()
-        {
-            return TypeIsMapped(null);
         }
 
 

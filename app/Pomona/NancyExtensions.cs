@@ -31,7 +31,7 @@ using System.Linq;
 using System.Threading;
 
 using Nancy;
-
+using Nancy.Routing;
 using Pomona.Common.Serialization;
 using Pomona.Ioc;
 
@@ -57,12 +57,22 @@ namespace Pomona
             };
         }
 
-
+        internal static IRouteResolver GetRouteResolver(this NancyContext nancyContext)
+        {
+            return (IRouteResolver)nancyContext.Items[typeof(IRouteResolver).FullName];
+        }
+        
         internal static ISerializationContextProvider GetSerializationContextProvider(this NancyContext nancyContext)
         {
             return (ISerializationContextProvider)nancyContext.Items[typeof(ISerializationContextProvider).FullName];
         }
 
+
+        internal static IUriResolver GetUriResolver(this NancyContext nancyContext)
+        {
+            return (IUriResolver)nancyContext.Items[typeof(IUriResolver).FullName];
+        }
+        
 
         internal static RuntimeContainerWrapper GetIocContainerWrapper(this NancyContext context)
         {

@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -87,6 +86,11 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.ETagProperty; }
         }
 
+        public override bool IsAbstract
+        {
+            get { return ExportedTypeDetails.IsAbstract; }
+        }
+
         public override bool IsAlwaysExpanded
         {
             get { return ExportedTypeDetails.AlwaysExpand; }
@@ -132,25 +136,23 @@ namespace Pomona.Common.TypeSystem
             get { return this.exportedTypeDetails.Value; }
         }
 
-        public override bool IsAbstract
-        {
-            get
-            {
-                return ExportedTypeDetails.IsAbstract;
-            }
-        }
-
 
         public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
         {
             if (typeof(T) != Type)
                 throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));
 
-            if(IsAbstract)
-                throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name + ", as it's an abstract type.");
+            if (IsAbstract)
+            {
+                throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name
+                                                       + ", as it's an abstract type.");
+            }
 
             if (Constructor == null)
-                throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name + ", Constructor property was null.");
+            {
+                throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name
+                                                       + ", Constructor property was null.");
+            }
 
             if (this.createUsingPropertySourceFunc == null)
             {
@@ -196,46 +198,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public Expression CreateExpressionForExternalPropertyPath(string externalPath)
-        {
-            var parameter = Expression.Parameter(Type, "x");
-            var propertyAccessExpression = CreateExpressionForExternalPropertyPath(parameter, externalPath);
-
-            return Expression.Lambda(propertyAccessExpression, parameter);
-        }
-
-
-        public Expression CreateExpressionForExternalPropertyPath(Expression instance, string externalPath)
-        {
-            string externalPropertyName, remainingExternalPath;
-            TakeLeftmostPathPart(externalPath, out externalPropertyName, out remainingExternalPath);
-
-            var prop =
-                Properties.First(
-                    x => String.Equals(x.Name, externalPropertyName, StringComparison.InvariantCultureIgnoreCase));
-
-            if (!prop.AccessMode.HasFlag(HttpMethod.Get))
-                throw new InvalidOperationException("Property is not allowed in expresssion.");
-
-            var propertyAccessExpression = prop.CreateGetterExpression(instance);
-
-            if (remainingExternalPath != null)
-            {
-                // TODO Error handling here when remaningpath does not represents a TransformedType
-                var transformedPropType = prop.PropertyType as TransformedType;
-                if (transformedPropType == null)
-                {
-                    throw new InvalidOperationException(
-                        "Can not filter by subproperty when property is not TransformedType");
-                }
-                return transformedPropType.CreateExpressionForExternalPropertyPath(
-                    propertyAccessExpression,
-                    remainingExternalPath);
-            }
-            return propertyAccessExpression;
-        }
-
-
         public object GetId(object entity)
         {
             return PrimaryId.GetValue(entity);
@@ -245,22 +207,6 @@ namespace Pomona.Common.TypeSystem
         protected override TypeSerializationMode OnLoadSerializationMode()
         {
             return TypeSerializationMode.Complex;
-        }
-
-
-        private static void TakeLeftmostPathPart(string path, out string leftName, out string remainingPropPath)
-        {
-            var leftPathSeparatorIndex = path.IndexOf('.');
-            if (leftPathSeparatorIndex == -1)
-            {
-                leftName = path;
-                remainingPropPath = null;
-            }
-            else
-            {
-                leftName = path.Substring(0, leftPathSeparatorIndex);
-                remainingPropPath = path.Substring(leftPathSeparatorIndex + 1);
-            }
         }
 
 

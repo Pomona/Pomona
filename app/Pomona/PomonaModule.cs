@@ -37,6 +37,7 @@ using Nancy;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.RequestProcessing;
@@ -52,7 +53,14 @@ namespace Pomona
 
         protected PomonaModule(
             IPomonaDataSource dataSource,
-            TypeMapper typeMapper)
+            TypeMapper typeMapper) : this(dataSource, typeMapper, "/")
+        {
+        }
+
+        protected PomonaModule(
+            IPomonaDataSource dataSource,
+            TypeMapper typeMapper,
+            string baseUrl):base(baseUrl)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
@@ -73,19 +81,32 @@ namespace Pomona
                 .Distinct())
                 RegisterRoutesFor(transformedType);
 
+            // For root resource links!
+            Register(Get, "/", x => ProcessRequest());
+
             Get["/schemas"] = x => GetSchemas();
 
             Get[String.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName())] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
 
-            Get["/"] = x => GetJsonBrowserHtmlResponse();
-            RegisterResourceContent("antlr3-all-min.js");
-            RegisterResourceContent("antlr3-all.js");
-            RegisterResourceContent("PomonaQueryJsLexer.js");
-            RegisterResourceContent("PomonaQueryJsParser.js");
-            RegisterResourceContent("QueryEditor.css");
-            RegisterResourceContent("QueryEditor.js");
+            RegisterSerializationProvider(typeMapper);
+        }
+
+        private void RegisterSerializationProvider(TypeMapper typeMapper)
+        {
+            Before += (ctx =>
+                {
+                    UriResolver uriResolver = new UriResolver(typeMapper, new BaseUriResolver(ctx,ModulePath));
+
+                    ctx.Items[typeof (IUriResolver).FullName] = uriResolver;
+                    ctx.Items[typeof (ISerializationContextProvider).FullName] =
+                        new ServerSerializationContextProvider(
+                            uriResolver,
+                            new ResourceResolver(typeMapper, ctx, ctx.GetRouteResolver()),
+                            ctx);
+                    return null;
+                });
         }
 
 
@@ -168,16 +189,16 @@ namespace Pomona
 
         private LinkedListNode<string> GetPathNodes()
         {
-            return new LinkedList<string>(Request.Url.Path.Split('/').Select(HttpUtility.UrlDecode)).First;
+            return new LinkedList<string>(Request.Url.Path.Substring(ModulePath.Length).Split(new [] {'/'}, StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode)).First;
         }
 
 
         private PomonaResponse ProcessRequest()
         {
             var pathNodes = GetPathNodes();
-            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource);
+            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource,ModulePath);
             PathNode node = rootNode;
-            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Skip(1).Select(x => x.Value))
+            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
                 node = node.GetChildNode(pathPart);
 
             var pomonaRequest = new PomonaRequest(node,

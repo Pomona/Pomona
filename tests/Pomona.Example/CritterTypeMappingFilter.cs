@@ -147,6 +147,14 @@ namespace Pomona.Example
         }
 
 
+        public override Type ResolveRealTypeForProxy(Type type)
+        {
+            if (typeof(IExposedInterface).IsAssignableFrom(type))
+                return typeof(IExposedInterface);
+            return base.ResolveRealTypeForProxy(type);
+        }
+
+
         public override bool TypeIsMapped(Type type)
         {
             if (type == typeof(ExcludedThing) || type == typeof(HiddenBaseInMiddle))

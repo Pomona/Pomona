@@ -1377,9 +1377,12 @@ namespace Pomona.CodeGen
                             PrimaryIdTypeReference);
                 });
 
+                // Add I in front of name if resource is class type, do not for interfaces to avoid IIWhatever name.
+                var name = "I" + transformedType.Name;
+
                 this.interfaceType = new TypeDefinition(
                     parent.assemblyName,
-                    "I" + transformedType.Name,
+                    name,
                     TypeAttributes.Interface | TypeAttributes.Public |
                     TypeAttributes.Abstract);
             }

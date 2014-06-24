@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,12 +39,31 @@ namespace Pomona.SystemTests.TypeSystem
     [TestFixture]
     public class ClientTypeMapperTests
     {
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.clientTypeMapper = new ClientTypeMapper(typeof(ICritter).WrapAsEnumerable());
+        }
+
+        #endregion
+
+        private ClientTypeMapper clientTypeMapper;
+
+
         [Test]
         public void CritterType_ReturnsCorrectPluralName()
         {
-            var clientTypeMapper = new ClientTypeMapper(typeof(ICritter).WrapAsEnumerable());
-            var critterType = (ResourceType)clientTypeMapper.FromType(typeof(ICritter));
+            var critterType = (ResourceType)this.clientTypeMapper.FromType(typeof(ICritter));
             Assert.That(critterType.PluralName, Is.EqualTo("Critters"));
+        }
+
+
+        [Test]
+        public void GetMappedTypeFromProxyType_ReturnsCorrectResourceType()
+        {
+            Assert.That(this.clientTypeMapper.FromType(typeof(CritterLazyProxy)).Type, Is.EqualTo(typeof(ICritter)));
         }
     }
 }

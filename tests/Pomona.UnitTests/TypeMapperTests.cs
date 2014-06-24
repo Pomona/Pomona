@@ -33,6 +33,7 @@ using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
+using Pomona.Example.ModelProxies;
 using Pomona.Example.Models;
 
 namespace Pomona.UnitTests
@@ -52,6 +53,12 @@ namespace Pomona.UnitTests
 
         private TypeMapper typeMapper;
 
+
+        [Test]
+        public void GetTypeForProxyTypeInheritedFromMappedType_ReturnsMappedBaseType()
+        {
+            Assert.That(typeMapper.FromType(typeof(BearProxy)).Type, Is.EqualTo(typeof(Bear)));
+        }
 
         [Test]
         public void ChangePluralNameWorksCorrectly()
@@ -75,6 +82,16 @@ namespace Pomona.UnitTests
             Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
             var idProp = tt.Properties.First(x => x.Name == "Id");
             Assert.That(idProp.DeclaringType, Is.EqualTo(this.typeMapper.GetClassMapping<EntityBase>()));
+        }
+
+
+        [Test]
+        public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
+        {
+            var tt = typeMapper.GetClassMapping<IExposedInterface>();
+            var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyFromInheritedInterface");
+            Assert.That(prop, Is.Not.Null, "Unable to find property PropertyFromInheritedInterface");
+            Assert.That(prop.DeclaringType, Is.EqualTo(tt));
         }
 
 

@@ -46,7 +46,6 @@ namespace Pomona
     {
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
-        private readonly ConcurrentDictionary<Type, TypeSpec> mappings = new ConcurrentDictionary<Type, TypeSpec>();
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
@@ -81,7 +80,7 @@ namespace Pomona
 
         public IEnumerable<EnumTypeSpec> EnumTypes
         {
-            get { return this.mappings.Values.OfType<EnumTypeSpec>(); }
+            get { return this.TypeMap.Values.OfType<EnumTypeSpec>(); }
         }
 
         public ITypeMappingFilter Filter
@@ -96,7 +95,7 @@ namespace Pomona
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return this.mappings.Values.OfType<TransformedType>(); }
+            get { return this.TypeMap.Values.OfType<TransformedType>(); }
         }
 
 
@@ -114,9 +113,9 @@ namespace Pomona
                 this.filter.PropertyIsEtag(propertyMapping.ReflectedType, propInfo),
                 this.filter.PropertyIsPrimaryId(propertyMapping.ReflectedType, propInfo),
                 this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
-                this.filter.GetPropertyItemAccessMode(propInfo),
+                this.filter.GetPropertyItemAccessMode(propertyMapping.ReflectedType, propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propInfo)),
+                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propertyMapping.ReflectedType, propInfo)),
                 this.filter.PropertyIsAlwaysExpanded(propertyMapping.ReflectedType, propInfo));
             return details;
         }
@@ -193,7 +192,7 @@ namespace Pomona
             return memberSpec
                 .Maybe()
                 .Switch()
-                    .Case<PropertySpec>().Then(x => filter.GetPropertyMappedName(x.PropertyInfo))
+                    .Case<PropertySpec>().Then(x => filter.GetPropertyMappedName(x.ReflectedType, x.PropertyInfo))
                     .Case<TypeSpec>().Then(x => filter.GetTypeMappedName(x.Type))
                 .EndSwitch()
                 .OrDefault(() => base.LoadName(memberSpec));
@@ -223,13 +222,13 @@ namespace Pomona
 
         public override Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec)
         {
-            return filter.GetPropertyGetter(propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
+            return filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
         }
 
 
         public override Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec)
         {
-            return filter.GetPropertySetter(propertySpec.PropertyInfo) ?? base.LoadSetter(propertySpec);
+            return filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadSetter(propertySpec);
         }
 
 
@@ -255,12 +254,10 @@ namespace Pomona
         }
 
 
-        private Type GetKnownDeclaringType(PropertyInfo propertyInfo)
+        private Type GetKnownDeclaringType(Type reflectedType, PropertyInfo propertyInfo)
         {
             // Hack, IGrouping
-
             var propBaseDefinition = propertyInfo.GetBaseDefinition();
-            var reflectedType = propertyInfo.ReflectedType;
             return reflectedType.GetFullTypeHierarchy()
                                 .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
                                 .TakeUntil(x => filter.IsIndependentTypeRoot(x))
@@ -272,7 +269,7 @@ namespace Pomona
         {
             if (propertySpec is PropertyMapping)
             {
-                return FromType(GetKnownDeclaringType(propertySpec.PropertyInfo));
+                return FromType(GetKnownDeclaringType(propertySpec.ReflectedType, propertySpec.PropertyInfo));
             }
             return base.LoadDeclaringType(propertySpec);
         }
@@ -310,9 +307,13 @@ namespace Pomona
 
         public TypeSpec GetClassMapping(Type type)
         {
-            type = this.filter.ResolveRealTypeForProxy(type);
+            return FromType(type);
+        }
 
-            return this.mappings.GetOrAdd(type, CreateClassMapping);
+
+        sealed protected override Type MapExposedClrType(Type type)
+        {
+            return this.filter.ResolveRealTypeForProxy(type);
         }
 
 

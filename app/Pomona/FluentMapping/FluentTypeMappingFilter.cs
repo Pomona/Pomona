@@ -202,15 +202,15 @@ namespace TestNs
         }
 
 
-        public HttpMethod GetPropertyItemAccessMode(PropertyInfo propertyInfo)
+        public HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
-                propertyInfo.ReflectedType,
+                type,
                 propertyInfo,
                 x =>
                     (x.ItemMethod & x.ItemMethodMask)
-                    | (this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo) & ~(x.ItemMethodMask)),
-                () => this.wrappedFilter.GetPropertyItemAccessMode(propertyInfo));
+                    | (this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo) & ~(x.ItemMethodMask)),
+                () => this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo));
         }
 
 
@@ -227,7 +227,7 @@ namespace TestNs
 
         public bool GetTypeIsAbstract(Type type)
         {
-            return this.wrappedFilter.GetTypeIsAbstract(type);
+            return FromMappingOrDefault(type, x => x.IsAbstract, () => wrappedFilter.GetTypeIsAbstract(type));
         }
 
 
@@ -280,39 +280,39 @@ namespace TestNs
         }
 
 
-        public Func<object, IContextResolver, object> GetPropertyGetter(PropertyInfo propertyInfo)
+        public Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
-                propertyInfo.ReflectedType,
+                type,
                 propertyInfo,
                 x => x.OnGetDelegate,
-                () => this.wrappedFilter.GetPropertyGetter(propertyInfo));
+                () => this.wrappedFilter.GetPropertyGetter(type, propertyInfo));
         }
 
 
-        public string GetPropertyMappedName(PropertyInfo propertyInfo)
+        public string GetPropertyMappedName(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
-                propertyInfo.ReflectedType,
+                type,
                 propertyInfo,
                 x => x.Name,
-                () => this.wrappedFilter.GetPropertyMappedName(propertyInfo));
+                () => this.wrappedFilter.GetPropertyMappedName(type, propertyInfo));
         }
 
 
-        public Action<object, object, IContextResolver> GetPropertySetter(PropertyInfo propertyInfo)
+        public Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(
-                propertyInfo.ReflectedType,
+                type,
                 propertyInfo,
                 x => x.OnSetDelegate,
-                () => wrappedFilter.GetPropertySetter(propertyInfo));
+                () => wrappedFilter.GetPropertySetter(type, propertyInfo));
         }
 
 
-        public Type GetPropertyType(PropertyInfo propertyInfo)
+        public Type GetPropertyType(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.GetPropertyType(propertyInfo);
+            return this.wrappedFilter.GetPropertyType(type, propertyInfo);
         }
 
         public ConstructorSpec GetTypeConstructor(Type type)

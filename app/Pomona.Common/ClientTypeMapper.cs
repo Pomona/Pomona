@@ -49,7 +49,7 @@ namespace Pomona.Common
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return FromType(GetResourceNonProxyInterfaceType(type));
+            return FromType(type);
         }
 
 
@@ -59,7 +59,7 @@ namespace Pomona.Common
         }
 
 
-        public Type GetResourceNonProxyInterfaceType(Type type)
+        protected override sealed Type MapExposedClrType(Type type)
         {
             if (!type.IsInterface)
             {
@@ -236,7 +236,13 @@ namespace Pomona.Common
         {
             var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
 
-            return new ResourceTypeDetails(resourceType, ria.UrlRelativePath, false, resourceType, null, null, Enumerable.Empty<Type>());
+            return new ResourceTypeDetails(resourceType,
+                ria.UrlRelativePath,
+                false,
+                resourceType,
+                null,
+                null,
+                Enumerable.Empty<Type>());
         }
 
 

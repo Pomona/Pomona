@@ -87,7 +87,7 @@ namespace Pomona.Common.Proxies
                         return (TPropType)valueObjectForm;
                     }
                 }
-                throw new InvalidOperationException("Update value for " + property.Name + " has not been set");
+                return default(TPropType);
             }
 
             return (TPropType)value;

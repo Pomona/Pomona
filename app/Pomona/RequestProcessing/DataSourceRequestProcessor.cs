@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,25 +27,21 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-
-using Mono.Cecil;
 
 using Nancy;
 
-using Newtonsoft.Json.Serialization;
-
 using Pomona.Common;
 using Pomona.Common.Internals;
-
-using ResourceType = Pomona.Common.TypeSystem.ResourceType;
 
 namespace Pomona.RequestProcessing
 {
     public class DataSourceRequestProcessor : IPomonaRequestProcessor
     {
         private readonly IPomonaDataSource dataSource;
-        
+
         private readonly Func<Type, DataSourceRequestProcessor, object, PomonaRequest, PomonaResponse> patchMethod =
             GenericInvoker.Instance<DataSourceRequestProcessor>().CreateFunc1<object, PomonaRequest, PomonaResponse>(
                 x => x.Patch<object>(null, null));
@@ -63,81 +59,34 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse ProcessCollectionNodeCallToHandler(PomonaRequest request, ResourceCollectionNode collectionNode)
-        {
-            ResourceType resourceType = collectionNode.ItemResourceType;
-            if (!resourceType.IsRootResource)
-            {
-                var parentType = resourceType.ParentResourceType;
-                // First attempt to locate handler with signature Post(ParentType, ResourceType)
-                var method = dataSource.GetType().GetMethod("Post",
-                    BindingFlags.Instance | BindingFlags.Public,
-                    null,
-                    new Type[] { parentType, resourceType },
-                    null);
-
-                if (method != null)
-                {
-                    var form = request.Bind(resourceType);
-                    var result =  method.Invoke(dataSource, new object[] { collectionNode.Parent.Value, form });
-                    if (!(result is PomonaResponse))
-                    {
-                        return new PomonaResponse(result, HttpStatusCode.Created, request.ExpandedPaths);
-                    }
-                    return (PomonaResponse)result;
-                }
-            }
-            return null;
-        }
-
-
-        private PomonaResponse ProcessCollectionNodeCallToDataSource(PomonaRequest request, ResourceCollectionNode collectionNode)
-        {
-            var form = request.Bind();
-            return postMethod(form.GetType(), this, form, request);
-        }
-
         public virtual PomonaResponse Process(PomonaRequest request)
         {
+            var dataSourceRootNode = request.Node as DataSourceRootNode;
             var collectionNode = request.Node as ResourceCollectionNode;
             var resourceNode = request.Node as ResourceNode;
 
+            if (dataSourceRootNode != null)
+                return ProcessDataSourceRootNode(request, dataSourceRootNode);
             if (resourceNode != null)
-            {
                 return ProcessResourceNode(request, resourceNode);
-            }
             if (collectionNode != null)
-            {
                 return ProcessCollectionNode(request, collectionNode);
-            }
 
             return null;
         }
 
 
-        private PomonaResponse ProcessCollectionNode(PomonaRequest request, ResourceCollectionNode collectionNode)
+        public PomonaResponse Patch<T>(T form, PomonaRequest request)
+            where T : class
         {
-            switch (request.Method)
-            {
-                case HttpMethod.Post:
-                    return PostToCollection(request, collectionNode);
-                default:
-                    return null;
-            }
+            return new PomonaResponse(this.dataSource.Patch(form), HttpStatusCode.OK, request.ExpandedPaths);
         }
 
 
-        private PomonaResponse ProcessResourceNode(PomonaRequest request, ResourceNode resourceNode)
+        public PomonaResponse Post<T>(T form, PomonaRequest request)
+            where T : class
         {
-            switch (request.Method)
-            {
-                case HttpMethod.Post:
-                    return PostToResourceNode(request, resourceNode);
-                case HttpMethod.Patch:
-                    return PatchResourceNode(request);
-                default:
-                    return null;
-            }
+            return new PomonaResponse(this.dataSource.Post(form), HttpStatusCode.Created, request.ExpandedPaths);
         }
 
 
@@ -145,6 +94,13 @@ namespace Pomona.RequestProcessing
         {
             var patchedObject = request.Bind();
             return this.patchMethod(patchedObject.GetType(), this, patchedObject, request);
+        }
+
+
+        private PomonaResponse PostToCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
+        {
+            return ProcessCollectionNodeCallToHandler(request, collectionNode)
+                   ?? ProcessCollectionNodeCallToDataSource(request, collectionNode);
         }
 
 
@@ -169,24 +125,82 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse PostToCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
+        private PomonaResponse ProcessCollectionNode(PomonaRequest request, ResourceCollectionNode collectionNode)
         {
-            return ProcessCollectionNodeCallToHandler(request, collectionNode)
-                   ?? ProcessCollectionNodeCallToDataSource(request, collectionNode);
+            switch (request.Method)
+            {
+                case HttpMethod.Post:
+                    return PostToCollection(request, collectionNode);
+                default:
+                    return null;
+            }
         }
 
 
-        public PomonaResponse Patch<T>(T form, PomonaRequest request)
-            where T : class
+        private PomonaResponse ProcessCollectionNodeCallToDataSource(PomonaRequest request,
+            ResourceCollectionNode collectionNode)
         {
-            return new PomonaResponse(this.dataSource.Patch(form), HttpStatusCode.OK, request.ExpandedPaths);
+            var form = request.Bind();
+            return this.postMethod(form.GetType(), this, form, request);
         }
 
 
-        public PomonaResponse Post<T>(T form, PomonaRequest request)
-            where T : class
+        private PomonaResponse ProcessCollectionNodeCallToHandler(PomonaRequest request,
+            ResourceCollectionNode collectionNode)
         {
-            return new PomonaResponse(this.dataSource.Post(form), HttpStatusCode.Created, request.ExpandedPaths);
+            var resourceType = collectionNode.ItemResourceType;
+            if (!resourceType.IsRootResource)
+            {
+                var parentType = resourceType.ParentResourceType;
+                // First attempt to locate handler with signature Post(ParentType, ResourceType)
+                var method = this.dataSource.GetType().GetMethod("Post",
+                    BindingFlags.Instance | BindingFlags.Public,
+                    null,
+                    new Type[] { parentType, resourceType },
+                    null);
+
+                if (method != null)
+                {
+                    var form = request.Bind(resourceType);
+                    var result = method.Invoke(this.dataSource, new object[] { collectionNode.Parent.Value, form });
+                    if (!(result is PomonaResponse))
+                        return new PomonaResponse(result, HttpStatusCode.Created, request.ExpandedPaths);
+                    return (PomonaResponse)result;
+                }
+            }
+            return null;
+        }
+
+
+        private PomonaResponse ProcessDataSourceRootNode(PomonaRequest request, DataSourceRootNode dataSourceRootNode)
+        {
+            if (request.Method == HttpMethod.Get)
+            {
+                var uriResolver = request.NancyContext.GetUriResolver();
+                var repos =
+                    new SortedDictionary<string, string>(
+                        dataSourceRootNode.GetRootResourceBaseTypes().ToDictionary(x => x.UriRelativePath,
+                            x => uriResolver.RelativeToAbsoluteUri(x.UriRelativePath)));
+
+                return new PomonaResponse(repos,
+                    resultType : request.TypeMapper.GetClassMapping<IDictionary<string, string>>());
+            }
+
+            return null;
+        }
+
+
+        private PomonaResponse ProcessResourceNode(PomonaRequest request, ResourceNode resourceNode)
+        {
+            switch (request.Method)
+            {
+                case HttpMethod.Post:
+                    return PostToResourceNode(request, resourceNode);
+                case HttpMethod.Patch:
+                    return PatchResourceNode(request);
+                default:
+                    return null;
+            }
         }
     }
 }

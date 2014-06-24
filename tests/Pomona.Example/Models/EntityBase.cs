@@ -28,8 +28,14 @@
 
 namespace Pomona.Example.Models
 {
-    public abstract class EntityBase
+    public abstract class EntityBase : IEntityWithId
     {
+        int IEntityWithId.Id
+        {
+            get { return Id; }
+            set { Id = value; }
+        }
+
         public int Id { get; internal set; }
     }
 }
