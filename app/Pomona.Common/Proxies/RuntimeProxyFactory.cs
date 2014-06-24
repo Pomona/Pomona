@@ -27,104 +27,14 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+#if !DISABLE_PROXY_GENERATION
 using System.Reflection.Emit;
+#endif
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
 {
-    public static class EmitHelpers
-    {
-        internal static ModuleBuilder CreateRuntimeModule(string assemblyNameString)
-        {
-            AssemblyBuilder asmBuilder;
-            return CreateRuntimeModule(assemblyNameString, out asmBuilder);
-        }
-
-
-        internal static ModuleBuilder CreateRuntimeModule(string assemblyNameString, out AssemblyBuilder asmBuilder)
-        {
-            var assemblyName = new AssemblyName(assemblyNameString);
-
-            asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-            var modBuilder = asmBuilder.DefineDynamicModule(assemblyNameString + ".dll", true);
-            return modBuilder;
-        }
-
-
-        internal static TypeBuilder CreateRuntimeTypeBuilder(string @namespace, string name, TypeAttributes? typeAttributes = null, Type baseType = null, IEnumerable<Type> implementedInterfaces = null)
-        {
-            baseType = baseType ?? typeof(object);
-            var typeBuilder = CreateRuntimeModule(@namespace).DefineType(@namespace + "." + name,
-                typeAttributes ?? (TypeAttributes.Public),
-                baseType ?? typeof(object),
-                implementedInterfaces.EmptyIfNull().ToArray());
-
-            var proxyBaseCtor =
-                baseType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).First(
-                    x => x.GetParameters().Length == 0);
-
-            var ctor =
-    typeBuilder.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.SpecialName |
-                                MethodAttributes.RTSpecialName
-                                | MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
-
-            var ctorIlProcessor = ctor.GetILGenerator();
-            ctorIlProcessor.Emit(OpCodes.Ldarg_0);
-            ctorIlProcessor.Emit(OpCodes.Call, proxyBaseCtor);
-            ctorIlProcessor.Emit(OpCodes.Ret);
-
-            return typeBuilder;
-
-        }
-
-
-
-        public static Type CreatePocoType(string @namespace, string name, IEnumerable<KeyValuePair<string, Type>> properties)
-        {
-            var typeBuilder = CreateRuntimeTypeBuilder(@namespace, name);
-            var fullName = @namespace + "." + name;
-            properties.ForEach(x =>
-            {
-                var propertyType = x.Value;
-                var prop = typeBuilder.DefineProperty(x.Key, PropertyAttributes.None, x.Value, Type.EmptyTypes);
-                var field = typeBuilder.DefineField("_" + x.Key.LowercaseFirstLetter(), x.Value, FieldAttributes.Private);
-                var accessorMethodAttributes = MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                                       MethodAttributes.HideBySig
-                                       | MethodAttributes.Virtual | MethodAttributes.Public;
-                var getter = typeBuilder.DefineMethod(
-                    "get_" + name,
-                    accessorMethodAttributes,
-                    propertyType, Type.EmptyTypes);
-
-                var getIl = getter.GetILGenerator();
-                getIl.Emit(OpCodes.Ldarg_0);
-                getIl.Emit(OpCodes.Ldfld, field);
-                getIl.Emit(OpCodes.Ret);
-
-                prop.SetGetMethod(getter);
-
-                var setter = typeBuilder.DefineMethod(
-                    "set_" + name,
-                    accessorMethodAttributes,
-                    null, new[] { propertyType });
-
-                setter.DefineParameter(0, ParameterAttributes.None, "value");
-
-                prop.SetSetMethod(setter);
-
-                var setIl = setter.GetILGenerator();
-                setIl.Emit(OpCodes.Ldarg_0);
-                setIl.Emit(OpCodes.Ldarg_1);
-                setIl.Emit(OpCodes.Stfld, field);
-                setIl.Emit(OpCodes.Ret);
-            });
-            return typeBuilder.CreateType();
-        }
-    }
-
     public static class RuntimeProxyFactory
     {
         private static readonly MethodInfo createMethod =
@@ -143,11 +53,16 @@ namespace Pomona.Common.Proxies
 
     public static class RuntimeProxyFactory<TProxyBase, T>
     {
+#if !DISABLE_PROXY_GENERATION
         private static readonly Type proxyType;
-
+#endif
 
         static RuntimeProxyFactory()
         {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
+
             var type = typeof (T);
             var typeName = type.Name;
             var assemblyNameString = typeName + "Proxy" + Guid.NewGuid().ToString();
@@ -163,13 +78,17 @@ namespace Pomona.Common.Proxies
             var typeDef = proxyBuilder.CreateProxyType(typeName, type.WrapAsEnumerable());
 
             proxyType = typeDef.CreateType();
-            // asmBuilder.Save(assemblyNameString + ".dll"); // <-- For debugging of generated proxies
+#endif
         }
 
 
         public static T Create()
         {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
             return (T)Activator.CreateInstance(proxyType);
+#endif
         }
     }
 }

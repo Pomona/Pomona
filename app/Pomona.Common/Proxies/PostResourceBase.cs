@@ -34,10 +34,6 @@ using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Proxies
 {
-    public interface IPostForm : IPomonaSerializable
-    {
-    }
-
     public class PostResourceBase : IPostForm
     {
         protected Dictionary<string, bool> dirtyMap = new Dictionary<string, bool>();

@@ -20,7 +20,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
@@ -112,7 +112,9 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\RestQueryRoot.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="Proxies\EmitHelpers.cs" />
     <Compile Include="Proxies\IExtendedResourceProxy.cs" />
+    <Compile Include="Proxies\IPostForm.cs" />
     <Compile Include="Proxies\LazyCollectionProxyBase.cs" />
     <Compile Include="Proxies\LazyListProxy.cs" />
     <Compile Include="Proxies\LazySetProxy.cs" />

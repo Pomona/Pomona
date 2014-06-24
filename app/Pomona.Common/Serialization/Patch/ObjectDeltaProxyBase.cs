@@ -23,6 +23,8 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
+
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 
@@ -42,6 +44,9 @@ namespace Pomona.Common.Serialization.Patch
 
         private static object Create(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent)
         {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
             var proxy =
                 RuntimeProxyFactory.Create(typeof (ObjectDeltaProxyBase<>).MakeGenericType(type.Type),
                                            type.Type);
@@ -51,6 +56,7 @@ namespace Pomona.Common.Serialization.Patch
             odpb.TypeMapper = typeMapper;
             odpb.Parent = parent;
             return proxy;
+#endif
         }
 
         public static object CreateDeltaProxy(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent, Type propertyType)

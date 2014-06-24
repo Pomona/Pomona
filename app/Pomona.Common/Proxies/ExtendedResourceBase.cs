@@ -58,12 +58,17 @@ namespace Pomona.Common.Proxies
 
         private IList<TElement> CreateProxyList<TElement>(IEnumerable source, ExtendedResourceInfo userTypeInfo)
         {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
+
             return new List<TElement>(source.Cast<object>().Select(x =>
                 {
                     var element = RuntimeProxyFactory<ExtendedResourceBase, TElement>.Create();
                     ((ExtendedResourceBase)((object)element)).Initialize(Client, userTypeInfo, x);
                     return element;
                 }));
+#endif
         }
 
 
@@ -98,6 +103,9 @@ namespace Pomona.Common.Proxies
                     var propValue = serverProp.GetValue(this.WrappedResource, null);
                     if (propValue == null)
                         return default(TPropType);
+#if DISABLE_PROXY_GENERATION
+                   throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
                     return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () =>
                         {
                             var nestedProxy = RuntimeProxyFactory<ExtendedResourceBase, TPropType>.Create();
@@ -106,6 +114,7 @@ namespace Pomona.Common.Proxies
 
                             return nestedProxy;
                         });
+#endif
                 }
             }
 

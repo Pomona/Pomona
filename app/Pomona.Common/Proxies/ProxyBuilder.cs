@@ -26,6 +26,8 @@
 
 #endregion
 
+#if !DISABLE_PROXY_GENERATION
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -405,3 +407,5 @@ namespace Pomona.Common.Proxies
         }
     }
 }
+
+#endif

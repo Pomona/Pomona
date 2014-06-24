@@ -267,6 +267,9 @@ namespace Pomona.Common.Serialization.Patch
                 type.Type);
             if (!propertyType.IsAssignableFrom(collectionType))
             {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
                 // Need to create a runtime proxy for custom collection (repository).
                 var repoProxyBaseType = typeof(RepositoryDeltaProxyBase<,>).MakeGenericType(type.ElementType, type.Type);
                 var proxy = (CollectionDelta)RuntimeProxyFactory.Create(repoProxyBaseType, type.Type);
@@ -275,6 +278,7 @@ namespace Pomona.Common.Serialization.Patch
                 proxy.TypeMapper = typeMapper;
                 proxy.Parent = parent;
                 return proxy;
+#endif
             }
             return Activator.CreateInstance(collectionType, original, type, typeMapper, parent);
         }

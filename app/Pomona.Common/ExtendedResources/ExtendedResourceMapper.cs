@@ -53,6 +53,10 @@ namespace Pomona.Common.ExtendedResources
 
         public object WrapForm(object serverPatchForm, Type extendedType)
         {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
+
             ExtendedResourceInfo info;
             if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType, clientTypeResolver, out info))
                 throw new ArgumentException("extendedType is not inherited from a Pomona resource interface.", "extendedType");
@@ -62,6 +66,7 @@ namespace Pomona.Common.ExtendedResources
                     RuntimeProxyFactory.Create(typeof(ExtendedFormBase), info.ExtendedType);
             userPostForm.Initialize(this.clientTypeResolver, info, serverPatchForm);
             return userPostForm;
+#endif
         }
 
 
@@ -74,11 +79,16 @@ namespace Pomona.Common.ExtendedResources
         private object CreateClientSideResourceProxy(ExtendedResourceInfo userTypeInfo,
             object wrappedResource)
         {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
+
             var proxy =
                 (ExtendedResourceBase)
                     RuntimeProxyFactory.Create(typeof(ExtendedResourceBase), userTypeInfo.ExtendedType);
             proxy.Initialize(this.clientTypeResolver, userTypeInfo, wrappedResource);
             return proxy;
+#endif
         }
 
 
