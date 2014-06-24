@@ -36,17 +36,12 @@ namespace Pomona.Common.Web
     public class WrappedHttpClient : IWebClient
     {
         private readonly HttpClient httpClient;
-        private readonly HttpHeaders headers;
+        private readonly HttpHeaders defaultHeaders;
 
-        public WrappedHttpClient()
+        public WrappedHttpClient(HttpHeaders defaultHeaders = null)
         {
             httpClient = new HttpClient();
-            headers = new HttpHeaders();
-        }
-
-        public IHttpHeaders Headers
-        {
-            get { return headers; }
+            this.defaultHeaders = defaultHeaders ?? new HttpHeaders();
         }
 
         public NetworkCredential Credentials { get; set; }
@@ -66,7 +61,7 @@ namespace Pomona.Common.Web
             if (requestMessage.Data != null)
                 httpRequestMessage.Content = new ByteArrayContent(requestMessage.Data);
 
-            foreach (var header in Headers.Concat(requestMessage.Headers))
+            foreach (var header in this.defaultHeaders.Concat(requestMessage.Headers))
             {
                 httpRequestMessage.Headers.Add(header.Key, header.Value);
             }

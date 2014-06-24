@@ -65,7 +65,7 @@ namespace Pomona.SystemTests
 
         public override Client CreateHttpTestingClient(string baseUri)
         {
-            return new Client(baseUri, new HttpWebRequestClient(new HttpHeaders() {{"MongoHeader", "lalaal"}}));
+            return new Client(baseUri, new WrappedHttpClient());
         }
 
 
