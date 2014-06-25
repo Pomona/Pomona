@@ -26,6 +26,11 @@
 
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 using NUnit.Framework;
 
 using Pomona.TestHelpers;
@@ -35,10 +40,68 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class SolutionTests
     {
+        private static void NoSourceCodeContains(string shouldNotCountainString)
+        {
+            var path = Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>());
+
+            Console.WriteLine("Searching path " + path);
+
+            var sourceCodeFiles = Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories);
+
+            var foundFilesWithNoCommitMessage = false;
+
+            foreach (var file in sourceCodeFiles)
+            {
+                var fileText = File.ReadAllText(file);
+                var fileName = file.Replace(path + Path.DirectorySeparatorChar, String.Empty);
+                var lines = fileText.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                IList<Tuple<int, int, string>> finds = new List<Tuple<int, int, string>>();
+
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    var lineNumber = i + 1;
+                    var index = line.IndexOf(String.Concat(' ', shouldNotCountainString),
+                        StringComparison.InvariantCulture);
+                    if (index == -1)
+                        continue;
+
+                    finds.Add(new Tuple<int, int, string>(lineNumber, index, line));
+                }
+
+                if (!finds.Any())
+                    continue;
+
+                foundFilesWithNoCommitMessage = true;
+
+                Console.WriteLine("Found '{0}' in '{1}':", shouldNotCountainString, fileName);
+
+                foreach (var find in finds)
+                {
+                    var lineNumber = find.Item1;
+                    var index = find.Item2;
+                    var line = find.Item3;
+                    Console.Write("- ({0}, {1}): ", lineNumber, index);
+                    Console.WriteLine(line.Trim());
+                }
+            }
+
+            Assert.That(foundFilesWithNoCommitMessage, Is.False, "Found files with '{0}'.", shouldNotCountainString);
+        }
+
+
         [Test]
         public void AllPackagesInSolutionHaveSameVersion()
         {
             SolutionTestsHelper.VerifyNugetPackageReferences(SolutionTestsHelper.FindSolutionPathOf(this));
+        }
+
+
+        [Test]
+        public void NoSourceCodeContainsNoCommit()
+        {
+            const string commitBlockString = "NO" + "COMMIT";
+            NoSourceCodeContains(commitBlockString);
         }
     }
 }
