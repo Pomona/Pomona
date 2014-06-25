@@ -58,7 +58,6 @@ namespace Pomona.UnitTests.Client
 
         public interface IQueryableFooBarRepo : IQueryable<FooBar>
         {
-            
         }
 
         public class TestResource : IClientResource
@@ -79,8 +78,8 @@ namespace Pomona.UnitTests.Client
             public double Precise { get; set; }
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
-            public IQueryableFooBarRepo SomeQueryable { get; set; }
             public TestEnum? SomeNullableEnum { get; set; }
+            public IQueryableFooBarRepo SomeQueryable { get; set; }
             public IDictionary<string, object> StringObjectAttributes { get; set; }
             public TimeSpan TimeSpan { get; set; }
             public object UnknownProperty { get; set; }
@@ -267,6 +266,14 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildDecimalConstantMultiplication_ReturnsFoldedConstantString()
+        {
+            var a = 12.34m;
+            AssertBuild(x => a * 11.1m, "136.974m");
+        }
+
+
+        [Test]
         public void BuildDecimalEnumerableAverageExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.ListOfDecimals.Average(), "average(listOfDecimals)");
@@ -436,6 +443,18 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildIntegerConstantAddition_ReturnsFoldedConstantString()
+        {
+            var param = Expression.Parameter(typeof(TestResource), "x");
+            AssertBuild(
+                Expression.Lambda<Func<TestResource, int>>(
+                    Expression.Add(Expression.Constant(5), Expression.Constant(10)),
+                    param),
+                "15");
+        }
+
+
+        [Test]
         public void BuildJoinExpression_ReturnsCorrectString()
         {
             AssertBuild(x => string.Join(";", x.SomeList.Select(y => y.SomeString)),
@@ -529,19 +548,22 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildRecursiveLambdaExpressionOnQueryableRepository_ReturnsCorrectString()
+        {
+            AssertBuild(
+                x =>
+                    x.SomeQueryable.Any(
+                        y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
+                "someQueryable.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
+        }
+
+
+        [Test]
         public void BuildRecursiveLambdaExpression_ReturnsCorrectString()
         {
             AssertBuild(
                 x => x.SomeList.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
                 "someList.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
-        }
-
-        [Test]
-        public void BuildRecursiveLambdaExpressionOnQueryableRepository_ReturnsCorrectString()
-        {
-            AssertBuild(
-                x => x.SomeQueryable.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
-                "someQueryable.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
         }
 
 

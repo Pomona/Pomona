@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,19 +34,21 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+
 using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
+using Pomona.Common.Linq;
 
 namespace Pomona.Common
 {
-    public class QueryPredicateBuilder
+    public class QueryPredicateBuilder : ExpressionVisitor
     {
         protected static readonly ReadOnlyDictionary<ExpressionType, string> binaryExpressionNodeDict;
+        private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };
+
+        private static readonly HashSet<Type> nativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
 
         private static readonly HashSet<char> validSymbolCharacters =
             new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
-
-        private static readonly HashSet<Type> nativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
 
         private readonly LambdaExpression lambda;
         private readonly ParameterExpression thisParameter;
@@ -55,21 +57,21 @@ namespace Pomona.Common
         static QueryPredicateBuilder()
         {
             var binExprDict = new Dictionary<ExpressionType, string>
-                {
-                    { ExpressionType.AndAlso, "and" },
-                    { ExpressionType.OrElse, "or" },
-                    { ExpressionType.Equal, "eq" },
-                    { ExpressionType.NotEqual, "ne" },
-                    { ExpressionType.GreaterThan, "gt" },
-                    { ExpressionType.GreaterThanOrEqual, "ge" },
-                    { ExpressionType.LessThan, "lt" },
-                    { ExpressionType.LessThanOrEqual, "le" },
-                    { ExpressionType.Subtract, "sub" },
-                    { ExpressionType.Add, "add" },
-                    { ExpressionType.Multiply, "mul" },
-                    { ExpressionType.Divide, "div" },
-                    { ExpressionType.Modulo, "mod" }
-                };
+            {
+                { ExpressionType.AndAlso, "and" },
+                { ExpressionType.OrElse, "or" },
+                { ExpressionType.Equal, "eq" },
+                { ExpressionType.NotEqual, "ne" },
+                { ExpressionType.GreaterThan, "gt" },
+                { ExpressionType.GreaterThanOrEqual, "ge" },
+                { ExpressionType.LessThan, "lt" },
+                { ExpressionType.LessThanOrEqual, "le" },
+                { ExpressionType.Subtract, "sub" },
+                { ExpressionType.Add, "add" },
+                { ExpressionType.Multiply, "mul" },
+                { ExpressionType.Divide, "div" },
+                { ExpressionType.Modulo, "mod" }
+            };
 
             binaryExpressionNodeDict = new ReadOnlyDictionary<ExpressionType, string>(binExprDict);
         }
@@ -100,8 +102,8 @@ namespace Pomona.Common
         {
             // Strip away redundant parens around query
             var visitor = new PreBuildVisitor();
-            var preprocessedBody = visitor.Visit(lambda.Body);
-            var queryFilterString = Build(preprocessedBody);
+            var preprocessedBody = visitor.Visit(this.lambda.Body);
+            var queryFilterString = Visit(preprocessedBody).ToString();
             if (queryFilterString.Length > 1 && queryFilterString[0] == '('
                 && queryFilterString[queryFilterString.Length - 1] == ')')
                 queryFilterString = queryFilterString.Substring(1, queryFilterString.Length - 2);
@@ -109,10 +111,207 @@ namespace Pomona.Common
         }
 
 
-        private static bool IsValidSymbolString(string text)
+        public override Expression Visit(Expression node)
         {
-            var containsOnlyValidSymbolCharacters = text.All(x => validSymbolCharacters.Contains(x));
-            return text.Length > 0 && (!char.IsNumber(text[0])) && containsOnlyValidSymbolCharacters;
+            if (node == null)
+                return null;
+            var visitedNode = base.Visit(node) as PomonaExtendedExpression;
+            if (visitedNode == null)
+                throw new InvalidOperationException("Visit method not implemented for " + node.NodeType);
+
+            return visitedNode;
+        }
+
+
+        protected override Expression VisitBinary(BinaryExpression node)
+        {
+            string opString;
+            if (!binaryExpressionNodeDict.TryGetValue(node.NodeType, out opString))
+                return NotSupported(node, "BinaryExpression NodeType " + node.NodeType + " not yet handled.");
+
+            // Detect comparison with enum
+
+            var left = node.Left;
+            var right = node.Right;
+
+            left = FixBinaryComparisonConversion(left, right);
+            right = FixBinaryComparisonConversion(right, left);
+
+            TryDetectAndConvertEnumComparison(ref left, ref right, true);
+            TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
+
+            return Format("({0} {1} {2})", Visit(left), opString, Visit(right));
+        }
+
+
+        protected override Expression VisitConditional(ConditionalExpression node)
+        {
+            return Format("iif({0},{1},{2})",
+                Visit(node.Test),
+                Visit(node.IfTrue),
+                Visit(node.IfFalse));
+        }
+
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            var valueType = node.Type;
+            var value = node.Value;
+            return Terminal(GetEncodedConstant(valueType, value));
+        }
+
+
+        protected override Expression VisitLambda<T>(Expression<T> node)
+        {
+            if (node.Parameters.Count != 1)
+                return NotSupported(node, "Only supports one parameter in lambda expression for now.");
+
+            var param = node.Parameters[0];
+            var predicateBuilder = new QueryPredicateBuilder(node, this.thisParameter);
+            return Format("{0}:{1}", param.Name, predicateBuilder);
+        }
+
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            Expression odataExpression;
+            if (TryMapKnownOdataFunction(
+                node.Member,
+                Enumerable.Repeat(node.Expression, 1),
+                out odataExpression))
+                return odataExpression;
+
+            if (node.Expression != this.thisParameter)
+                return Format("{0}.{1}", Visit(node.Expression), GetMemberName(node.Member));
+            return new QuerySegmentExpression(GetMemberName(node.Member));
+        }
+
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (node.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
+                return Format("{0} in {1}", Visit(node.Arguments[1]), Visit(node.Arguments[0]));
+
+            if (node.Method.UniqueToken() == OdataFunctionMapping.ListContainsMethod.UniqueToken())
+                return Format("{0} in {1}", Visit(node.Arguments[0]), Visit(node.Object));
+
+            if (node.Method.UniqueToken() == OdataFunctionMapping.DictStringStringGetMethod.UniqueToken())
+            {
+                var quotedKey = Visit(node.Arguments[0]);
+                //var key = DecodeQuotedString(quotedKey);
+                /* 
+                if (ContainsOnlyValidSymbolCharacters(key))
+                    return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
+                return Format("{0}[{1}]", Visit(node.Object), quotedKey);
+            }
+            if (node.Method.UniqueToken() == OdataFunctionMapping.SafeGetMethod.UniqueToken())
+            {
+                var constantKeyExpr = node.Arguments[1] as ConstantExpression;
+                if (constantKeyExpr != null && constantKeyExpr.Type == typeof(string) &&
+                    IsValidSymbolString((string)constantKeyExpr.Value))
+                    return Format("{0}.{1}", Visit(node.Arguments[0]), constantKeyExpr.Value);
+            }
+
+            Expression odataExpression;
+
+            // Include this (object) parameter as first argument if not null!
+            var args = node.Object != null
+                ? Enumerable.Repeat(node.Object, 1).Concat(node.Arguments)
+                : node.Arguments;
+
+            if (
+                !TryMapKnownOdataFunction(node.Method, args, out odataExpression))
+            {
+                return NotSupported(node,
+                    "Don't know what to do with method " + node.Method.Name + " declared in "
+                    + node.Method.DeclaringType.FullName);
+            }
+
+            return odataExpression;
+        }
+
+
+        protected override Expression VisitNewArray(NewArrayExpression node)
+        {
+            var elements = node.Expressions.Select(Visit).Cast<object>().ToArray();
+            var format = "["
+                         + string.Join(",", Enumerable.Range(0, elements.Length).Select(x => string.Concat("{", x, "}")))
+                         + "]";
+            return Format(format, elements);
+        }
+
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (node == this.thisParameter)
+                return Terminal("this");
+            return Terminal(node.Name);
+        }
+
+
+        protected override Expression VisitTypeBinary(TypeBinaryExpression node)
+        {
+            switch (node.NodeType)
+            {
+                case ExpressionType.TypeIs:
+                    var typeOperand = node.TypeOperand;
+                    //if (!typeOperand.IsInterface || !typeof (IClientResource).IsAssignableFrom(typeOperand))
+                    //{
+                    //    throw new InvalidOperationException(
+                    //        typeOperand.FullName
+                    //        + " is not an interface and/or does not implement type IClientResource.");
+                    //}
+                    var jsonTypeName = GetExternalTypeName(typeOperand);
+                    if (node.Expression == this.thisParameter)
+                        return Format("isof({0})", jsonTypeName);
+                    else
+                    {
+                        return Format("isof({0},{1})",
+                            Visit(node.Expression),
+                            Visit(Expression.Constant(typeOperand)));
+                    }
+
+                    // TODO: Proper typename resolving
+
+                default:
+                    throw new NotImplementedException(
+                        "Don't know how to handle TypeBinaryExpression with NodeType " + node.NodeType);
+            }
+        }
+
+
+        protected override Expression VisitUnary(UnaryExpression unaryExpression)
+        {
+            switch (unaryExpression.NodeType)
+            {
+                case ExpressionType.Not:
+                    return Format("not ({0})", Visit(unaryExpression.Operand));
+
+                case ExpressionType.TypeAs:
+                    return Format("({0} as {1})",
+                        Visit(unaryExpression.Operand),
+                        GetExternalTypeName(unaryExpression.Type));
+
+                case ExpressionType.Convert:
+                    if (unaryExpression.Operand.Type.IsEnum)
+                        return Visit(unaryExpression.Operand);
+
+                    if (unaryExpression.Operand == this.thisParameter)
+                    {
+                        return Format("cast({0})", GetExternalTypeName(unaryExpression.Type));
+                        // throw new NotImplementedException("Only know how to cast `this` to something else");
+                    }
+                    else
+                    {
+                        return Format("cast({0},{1})",
+                            Visit(unaryExpression.Operand),
+                            GetExternalTypeName(unaryExpression.Type));
+                    }
+
+                default:
+                    return NotSupported(unaryExpression,
+                        "NodeType " + unaryExpression.NodeType + " in UnaryExpression not yet handled.");
+            }
         }
 
 
@@ -145,31 +344,23 @@ namespace Pomona.Common
             // Yeah, there's probably a more elegant way to do this, but don't care about finding it out right now.
             // This should work.
             return value != (long)value
-                       ? value.ToString("R", CultureInfo.InvariantCulture)
-                       : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
+                ? value.ToString("R", CultureInfo.InvariantCulture)
+                : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
         }
 
-        private string GetExternalTypeName(Type typeOperand)
+
+        private static QuerySegmentExpression Format(string format, params object[] args)
         {
-            var postfixSymbol = string.Empty;
-            if (typeOperand.UniqueToken() == typeof (Nullable<>).UniqueToken())
-            {
-                typeOperand = Nullable.GetUnderlyingType(typeOperand);
-                postfixSymbol = "?";
-            }
+            return new QuerySegmentExpression(format, args);
+        }
 
-            string typeName;
 
-            if (nativeTypes.Contains(typeOperand))
-                typeName = string.Format("{0}{1}", typeOperand.Name, postfixSymbol);
-            else
-            {
-                var resourceInfoAttribute =
-                    typeOperand.GetCustomAttributes(typeof (ResourceInfoAttribute), false).
-                                OfType<ResourceInfoAttribute>().First();
-                typeName = resourceInfoAttribute.JsonTypeName;
-            }
-            return EncodeString(typeName, "t");
+        private static Type GetFuncInExpression(Type t)
+        {
+            Type[] typeArgs;
+            if (t.TryExtractTypeArguments(typeof(IQueryable<>), out typeArgs))
+                return typeof(IEnumerable<>).MakeGenericType(typeArgs[0]);
+            return t.TryExtractTypeArguments(typeof(Expression<>), out typeArgs) ? typeArgs[0] : t;
         }
 
 
@@ -197,248 +388,65 @@ namespace Pomona.Common
             throw new InvalidOperationException("Don't know how to get value from member of type " + member.GetType());
         }
 
-        private string Build(Expression expr)
+
+        private static bool IsValidSymbolString(string text)
         {
-            var binaryExpr = expr as BinaryExpression;
-            if (binaryExpr != null)
-                return BuildFromBinaryExpression(binaryExpr);
+            var containsOnlyValidSymbolCharacters = text.All(x => validSymbolCharacters.Contains(x));
+            return text.Length > 0 && (!char.IsNumber(text[0])) && containsOnlyValidSymbolCharacters;
+        }
 
-            var memberExpr = expr as MemberExpression;
-            if (memberExpr != null)
-                return BuildFromMemberExpression(memberExpr);
 
-            var constantExpr = expr as ConstantExpression;
-            if (constantExpr != null)
-                return BuildFromConstantExpression(constantExpr);
+        private static NotSupportedByProviderExpression NotSupported(Expression node, string message)
+        {
+            return new NotSupportedByProviderExpression(node, new NotSupportedException(message));
+        }
 
-            var callExpr = expr as MethodCallExpression;
-            if (callExpr != null)
-                return BuildFromMethodCallExpression(callExpr);
 
-            var typeBinaryExpression = expr as TypeBinaryExpression;
-            if (typeBinaryExpression != null)
-                return BuildFromTypeBinaryExpression(typeBinaryExpression);
-
-            var unaryExpression = expr as UnaryExpression;
-            if (unaryExpression != null)
-                return BuildFromUnaryExpression(unaryExpression);
-
-            var lambdaExpression = expr as LambdaExpression;
-            if (lambdaExpression != null)
-                return BuildFromLambdaExpression(lambdaExpression);
-
-            var conditionalExpression = expr as ConditionalExpression;
-            if (conditionalExpression != null)
-                return BuildFromConditionalExpression(conditionalExpression);
-
-            var parameterExpression = expr as ParameterExpression;
-            if (parameterExpression != null)
+        private static void ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref MemberInfo member,
+            ref IEnumerable<Expression>
+                arguments)
+        {
+            var firstArg = arguments.First();
+            Type[] queryableTypeArgs;
+            var method = member as MethodInfo;
+            if (method != null && method.IsStatic &&
+                firstArg.Type.TryExtractTypeArguments(typeof(IQueryable<>), out queryableTypeArgs))
             {
-                if (parameterExpression == thisParameter)
-                    return "this";
-                return parameterExpression.Name;
-            }
+                // Try to find matching method taking IEnumerable instead
+                var wantedArgs =
+                    method.GetGenericMethodDefinition()
+                        .GetParameters()
+                        .Select(x => GetFuncInExpression(x.ParameterType))
+                        .ToArray();
 
-            var newArrayExpression = expr as NewArrayExpression;
-            if (newArrayExpression != null)
-                return BuildFromNewArrayExpression(newArrayExpression);
+                var enumerableMethod =
+                    typeof(Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                        .Where(x => x.Name == method.Name)
+                        .Select(x => new { parameters = x.GetParameters(), mi = x })
+                        .Where(x => x.parameters.Length == wantedArgs.Length &&
+                                    x.parameters
+                                        .Select(y => y.ParameterType)
+                                        .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
+                                        .All(y => y))
+                        .Select(x => x.mi)
+                        .FirstOrDefault();
 
-            throw new NotImplementedException("NodeType " + expr.NodeType + " not yet handled.");
-        }
-
-        private string BuildFromConditionalExpression(ConditionalExpression conditionalExpression)
-        {
-            return string.Format("iif({0},{1},{2})", Build(conditionalExpression.Test),
-                                 Build(conditionalExpression.IfTrue),
-                                 Build(conditionalExpression.IfFalse));
-        }
-
-
-        private string BuildFromBinaryExpression(BinaryExpression binaryExpr)
-        {
-            string opString;
-            if (!binaryExpressionNodeDict.TryGetValue(binaryExpr.NodeType, out opString))
-            {
-                throw new NotImplementedException(
-                    "BinaryExpression NodeType " + binaryExpr.NodeType + " not yet handled.");
-            }
-
-            // Detect comparison with enum
-
-            var left = binaryExpr.Left;
-            var right = binaryExpr.Right;
-
-            left = FixBinaryComparisonConversion(left, right);
-            right = FixBinaryComparisonConversion(right, left);
-
-            TryDetectAndConvertEnumComparison(ref left, ref right, true);
-            TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
-
-            return string.Format("({0} {1} {2})", Build(left), opString, Build(right));
-        }
-
-        private Expression FixBinaryComparisonConversion(Expression expr, Expression other)
-        {
-            var otherIsNull = other.NodeType == ExpressionType.Constant && ((ConstantExpression)other).Value == null;
-            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression)expr).Operand.Type == typeof (object) && !otherIsNull)
-            {
-                return ((UnaryExpression)expr).Operand;
-            }
-            else if (expr.NodeType == ExpressionType.Convert && expr.Type.IsNullable() &&
-                     Nullable.GetUnderlyingType(expr.Type) == ((UnaryExpression)expr).Operand.Type)
-            {
-                return ((UnaryExpression)expr).Operand;
-            }
-            return expr;
-        }
-
-
-        private string BuildFromConstantExpression(ConstantExpression constantExpr)
-        {
-            var valueType = constantExpr.Type;
-            var value = constantExpr.Value;
-            return GetEncodedConstant(valueType, value);
-        }
-
-
-        private string BuildFromLambdaExpression(LambdaExpression lambdaExpression)
-        {
-            if (lambdaExpression.Parameters.Count != 1)
-                throw new NotImplementedException("Only supports one parameter in lambda expression for now.");
-
-            var param = lambdaExpression.Parameters[0];
-            var predicateBuilder = new QueryPredicateBuilder(lambdaExpression, thisParameter);
-            return string.Format("{0}:{1}", param.Name, predicateBuilder);
-        }
-
-
-        private string BuildFromMemberExpression(MemberExpression memberExpr)
-        {
-            string odataExpression;
-            if (TryMapKnownOdataFunction(
-                memberExpr.Member, Enumerable.Repeat(memberExpr.Expression, 1), out odataExpression))
-                return odataExpression;
-
-            if (memberExpr.Expression != thisParameter)
-                return string.Format("{0}.{1}", Build(memberExpr.Expression), GetMemberName(memberExpr.Member));
-            return GetMemberName(memberExpr.Member);
-        }
-
-
-        private string BuildFromMethodCallExpression(MethodCallExpression callExpr)
-        {
-            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
-                return Build(callExpr.Arguments[1]) + " in " + Build(callExpr.Arguments[0]);
-
-            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.ListContainsMethod.UniqueToken())
-                return Build(callExpr.Arguments[0]) + " in " + Build(callExpr.Object);
-
-            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.DictStringStringGetMethod.UniqueToken())
-            {
-                var quotedKey = Build(callExpr.Arguments[0]);
-                var key = DecodeQuotedString(quotedKey);
-                /* 
-                if (ContainsOnlyValidSymbolCharacters(key))
-                    return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
-                return string.Format("{0}[{1}]", Build(callExpr.Object), quotedKey);
-            }
-            if (callExpr.Method.UniqueToken() == OdataFunctionMapping.SafeGetMethod.UniqueToken())
-            {
-                var constantKeyExpr = callExpr.Arguments[1] as ConstantExpression;
-                if (constantKeyExpr != null && constantKeyExpr.Type == typeof (string) &&
-                    IsValidSymbolString((string)constantKeyExpr.Value))
+                if (enumerableMethod != null)
                 {
-                    return string.Format("{0}.{1}", Build(callExpr.Arguments[0]), constantKeyExpr.Value);
+                    arguments =
+                        arguments.Select(x => x.NodeType == ExpressionType.Quote ? ((UnaryExpression)x).Operand : x);
+                    if (enumerableMethod.IsGenericMethodDefinition)
+                        member = enumerableMethod.MakeGenericMethod(((MethodInfo)member).GetGenericArguments());
+                    else
+                        member = enumerableMethod;
                 }
             }
-
-            string odataExpression;
-
-            // Include this (object) parameter as first argument if not null!
-            var args = callExpr.Object != null
-                           ? Enumerable.Repeat(callExpr.Object, 1).Concat(callExpr.Arguments)
-                           : callExpr.Arguments;
-
-            if (
-                !TryMapKnownOdataFunction(callExpr.Method, args, out odataExpression))
-            {
-                throw new NotImplementedException(
-                    "Don't know what to do with method " + callExpr.Method.Name + " declared in "
-                    + callExpr.Method.DeclaringType.FullName);
-            }
-
-            return odataExpression;
         }
 
 
-        private string BuildFromNewArrayExpression(NewArrayExpression newArrayExpression)
+        private static QuerySegmentExpression Terminal(string value)
         {
-            return string.Format("[{0}]", string.Join(",", newArrayExpression.Expressions.Select(Build)));
-        }
-
-
-        private string BuildFromTypeBinaryExpression(TypeBinaryExpression typeBinaryExpression)
-        {
-            switch (typeBinaryExpression.NodeType)
-            {
-                case ExpressionType.TypeIs:
-                    var typeOperand = typeBinaryExpression.TypeOperand;
-                    //if (!typeOperand.IsInterface || !typeof (IClientResource).IsAssignableFrom(typeOperand))
-                    //{
-                    //    throw new InvalidOperationException(
-                    //        typeOperand.FullName
-                    //        + " is not an interface and/or does not implement type IClientResource.");
-                    //}
-                    var jsonTypeName = GetExternalTypeName(typeOperand);
-                    if (typeBinaryExpression.Expression == thisParameter)
-                    {
-                        return string.Format("isof({0})", jsonTypeName);
-                    }
-                    else
-                    {
-                        return string.Format("isof({0},{1})", Build(typeBinaryExpression.Expression),
-                                             Build(Expression.Constant(typeOperand)));
-                    }
-
-                    // TODO: Proper typename resolving
-
-                default:
-                    throw new NotImplementedException(
-                        "Don't know how to handle TypeBinaryExpression with NodeType " + typeBinaryExpression.NodeType);
-            }
-        }
-
-
-        private string BuildFromUnaryExpression(UnaryExpression unaryExpression)
-        {
-            switch (unaryExpression.NodeType)
-            {
-                case ExpressionType.Not:
-                    return string.Format("not ({0})", Build(unaryExpression.Operand));
-
-                case ExpressionType.TypeAs:
-                    return string.Format("({0} as {1})", Build(unaryExpression.Operand),
-                                         GetExternalTypeName(unaryExpression.Type));
-
-                case ExpressionType.Convert:
-                    if (unaryExpression.Operand.Type.IsEnum)
-                        return Build(unaryExpression.Operand);
-
-                    if (unaryExpression.Operand == thisParameter)
-                    {
-                        return string.Format("cast({0})", GetExternalTypeName(unaryExpression.Type));
-                        // throw new NotImplementedException("Only know how to cast `this` to something else");
-                    }
-                    else
-                    {
-                        return string.Format("cast({0},{1})", Build(unaryExpression.Operand),
-                                             GetExternalTypeName(unaryExpression.Type));
-                    }
-
-                default:
-                    throw new NotImplementedException(
-                        "NodeType " + unaryExpression.NodeType + " in UnaryExpression not yet handled.");
-            }
+            return new QuerySegmentExpression(value);
         }
 
 
@@ -462,12 +470,25 @@ namespace Pomona.Common
         }
 
 
+        private Expression FixBinaryComparisonConversion(Expression expr, Expression other)
+        {
+            var otherIsNull = other.NodeType == ExpressionType.Constant && ((ConstantExpression)other).Value == null;
+            if (expr.NodeType == ExpressionType.TypeAs && ((UnaryExpression)expr).Operand.Type == typeof(object)
+                && !otherIsNull)
+                return ((UnaryExpression)expr).Operand;
+            else if (expr.NodeType == ExpressionType.Convert && expr.Type.IsNullable() &&
+                     Nullable.GetUnderlyingType(expr.Type) == ((UnaryExpression)expr).Operand.Type)
+                return ((UnaryExpression)expr).Operand;
+            return expr;
+        }
+
+
         private string GetEncodedConstant(Type valueType, object value)
         {
             if (value == null)
                 return "null";
             Type enumerableElementType;
-            if (valueType != typeof (string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
+            if (valueType != typeof(string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {
                 // This handles arrays in constant expressions
                 var elements = string
@@ -514,20 +535,45 @@ namespace Pomona.Common
                 "Don't know how to send constant of type " + valueType.FullName + " yet..");
         }
 
-        private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };
+
+        private string GetExternalTypeName(Type typeOperand)
+        {
+            var postfixSymbol = string.Empty;
+            if (typeOperand.UniqueToken() == typeof(Nullable<>).UniqueToken())
+            {
+                typeOperand = Nullable.GetUnderlyingType(typeOperand);
+                postfixSymbol = "?";
+            }
+
+            string typeName;
+
+            if (nativeTypes.Contains(typeOperand))
+                typeName = string.Format("{0}{1}", typeOperand.Name, postfixSymbol);
+            else
+            {
+                var resourceInfoAttribute =
+                    typeOperand.GetCustomAttributes(typeof(ResourceInfoAttribute), false).
+                        OfType<ResourceInfoAttribute>().First();
+                typeName = resourceInfoAttribute.JsonTypeName;
+            }
+            return EncodeString(typeName, "t");
+        }
+
 
         private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
             var unaryLeft = left as UnaryExpression;
-            Type underlyingType = left.Type;
-            if (enumUnderlyingTypes.Contains(underlyingType) && unaryLeft != null && left.NodeType == ExpressionType.Convert &&
+            var underlyingType = left.Type;
+            if (enumUnderlyingTypes.Contains(underlyingType) && unaryLeft != null
+                && left.NodeType == ExpressionType.Convert &&
                 unaryLeft.Operand.Type.IsEnum)
             {
                 if (right.Type == underlyingType && right.NodeType == ExpressionType.Constant)
                 {
                     var rightConstant = (ConstantExpression)right;
                     left = unaryLeft.Operand;
-                    right = Expression.Constant(Enum.ToObject(unaryLeft.Operand.Type, rightConstant.Value), unaryLeft.Operand.Type);
+                    right = Expression.Constant(Enum.ToObject(unaryLeft.Operand.Type, rightConstant.Value),
+                        unaryLeft.Operand.Type);
                     return;
                 }
             }
@@ -536,7 +582,10 @@ namespace Pomona.Common
                 TryDetectAndConvertEnumComparison(ref right, ref left, false);
         }
 
-        private void TryDetectAndConvertNullableEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
+
+        private void TryDetectAndConvertNullableEnumComparison(ref Expression left,
+            ref Expression right,
+            bool tryAgainSwapped)
         {
             if (left.Type != right.Type || !left.Type.IsNullable())
                 return;
@@ -556,18 +605,11 @@ namespace Pomona.Common
                 TryDetectAndConvertNullableEnumComparison(ref right, ref left, false);
         }
 
-        private static Type GetFuncInExpression(Type t)
-        {
-            Type[] typeArgs;
-            if (t.TryExtractTypeArguments(typeof (IQueryable<>), out typeArgs))
-            {
-                return typeof (IEnumerable<>).MakeGenericType(typeArgs[0]);
-            }
-            return t.TryExtractTypeArguments(typeof (Expression<>), out typeArgs) ? typeArgs[0] : t;
-        }
 
         private bool TryMapKnownOdataFunction(
-            MemberInfo member, IEnumerable<Expression> arguments, out string odataExpression)
+            MemberInfo member,
+            IEnumerable<Expression> arguments,
+            out Expression odataExpression)
         {
             ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref member, ref arguments);
 
@@ -578,58 +620,13 @@ namespace Pomona.Common
                 return false;
             }
 
-            var odataArguments = arguments.Select(Build).Cast<object>().ToArray();
+            var odataArguments = arguments.Select(Visit).Cast<object>().ToArray();
             var callFormat = memberMapping.PreferredCallStyle == OdataFunctionMapping.MethodCallStyle.Chained
-                                 ? memberMapping.ChainedCallFormat
-                                 : memberMapping.StaticCallFormat;
+                ? memberMapping.ChainedCallFormat
+                : memberMapping.StaticCallFormat;
 
-            odataExpression = string.Format(callFormat, odataArguments);
+            odataExpression = Format(callFormat, odataArguments);
             return true;
-        }
-
-        private static void ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref MemberInfo member,
-                                                                                    ref IEnumerable<Expression>
-                                                                                        arguments)
-        {
-            var firstArg = arguments.First();
-            Type[] queryableTypeArgs;
-            var method = member as MethodInfo;
-            if (method != null && method.IsStatic &&
-                firstArg.Type.TryExtractTypeArguments(typeof (IQueryable<>), out queryableTypeArgs))
-            {
-                // Try to find matching method taking IEnumerable instead
-                var wantedArgs =
-                    method.GetGenericMethodDefinition()
-                          .GetParameters()
-                          .Select(x => GetFuncInExpression(x.ParameterType))
-                          .ToArray();
-
-                var enumerableMethod =
-                    typeof (Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
-                                        .Where(x => x.Name == method.Name)
-                                        .Select(x => new {parameters = x.GetParameters(), mi = x})
-                                        .Where(x => x.parameters.Length == wantedArgs.Length &&
-                                                            x.parameters
-                                                             .Select(y => y.ParameterType)
-                                                             .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
-                                                             .All(y => y))
-                                        .Select(x => x.mi)
-                                        .FirstOrDefault();
-
-                if (enumerableMethod != null)
-                {
-                    arguments =
-                        arguments.Select(x => x.NodeType == ExpressionType.Quote ? ((UnaryExpression)x).Operand : x);
-                    if (enumerableMethod.IsGenericMethodDefinition)
-                    {
-                        member = enumerableMethod.MakeGenericMethod(((MethodInfo)member).GetGenericArguments());
-                    }
-                    else
-                    {
-                        member = enumerableMethod;
-                    }
-                }
-            }
         }
 
         #region Nested type: PreBuildVisitor
@@ -641,15 +638,34 @@ namespace Pomona.Common
 
             static PreBuildVisitor()
             {
-                concatMethod = typeof (string).GetMethod("Concat", new[] { typeof (string), typeof (string) });
+                concatMethod = typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) });
             }
 
 
+            private bool IsFoldedType(Type type)
+            {
+                return type == typeof(int) || type == typeof(decimal);
+            }
+
             protected override Expression VisitBinary(BinaryExpression node)
             {
-                if (node.NodeType == ExpressionType.Add && node.Left.Type == typeof (string)
-                    && node.Right.Type == typeof (string))
-                    return Expression.Call(concatMethod, Visit(node.Left), Visit(node.Right));
+                // Constant folding
+                var left = Visit(node.Left);
+                var right = Visit(node.Right);
+                if (left.NodeType == ExpressionType.Constant && right.NodeType == ExpressionType.Constant
+                    && left.Type == right.Type && IsFoldedType(left.Type) && (node.Method == null || node.Method.DeclaringType == left.Type))
+                {
+                    return
+                        Expression.Constant(
+                            Expression.Lambda(node, Enumerable.Empty<ParameterExpression>()).Compile().DynamicInvoke(
+                                null),
+                            node.Type);
+                }
+
+
+                if (node.NodeType == ExpressionType.Add && left.Type == typeof(string)
+                    && right.Type == typeof(string))
+                    return Expression.Call(concatMethod, left, right);
                 return base.VisitBinary(node);
             }
 

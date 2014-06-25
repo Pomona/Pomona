@@ -102,10 +102,13 @@
     <Compile Include="IRequestDispatcher.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\IRestQueryRoot.cs" />
+    <Compile Include="Linq\NotSupportedByProviderExpression.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />
+    <Compile Include="Linq\PomonaExtendedExpression.cs" />
     <Compile Include="Linq\QueryableBase.cs" />
     <Compile Include="Linq\QueryProviderBase.cs" />
+    <Compile Include="Linq\QuerySegmentExpression.cs" />
     <Compile Include="Linq\RestQuery.cs" />
     <Compile Include="Linq\RestQueryableTreeParser.cs" />
     <Compile Include="Linq\RestQueryExtensions.cs" />
