@@ -158,18 +158,18 @@ namespace Pomona.Common.Linq
                 var orderExpressions =
                     string.Join(",", parser.OrderKeySelectors.Select(
                         x =>
-                            new QueryPredicateBuilder(x.Item1).ToString()
+                            QueryPredicateBuilder.Create(x.Item1).ToString()
                             + (x.Item2 == SortOrder.Descending ? " desc" : string.Empty)));
                 builder.AppendParameter("$orderby", orderExpressions);
             }
             if (parser.GroupByKeySelector != null)
             {
-                var selectBuilder = new QuerySelectBuilder(parser.GroupByKeySelector);
+                var selectBuilder = QuerySelectBuilder.Create(parser.GroupByKeySelector);
                 builder.AppendParameter("$groupby", selectBuilder);
             }
             if (parser.SelectExpression != null)
             {
-                var selectBuilder = new QuerySelectBuilder(parser.SelectExpression);
+                var selectBuilder = QuerySelectBuilder.Create(parser.SelectExpression);
                 builder.AppendParameter("$select", selectBuilder);
             }
             if (parser.SkipCount.HasValue)

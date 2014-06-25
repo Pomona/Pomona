@@ -23,56 +23,109 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
+using Pomona.Common.Linq;
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Common
 {
-    public class QuerySelectBuilder
+    public class QuerySelectBuilder : QueryPredicateBuilder
     {
-        private readonly LambdaExpression lambda;
-
-        public QuerySelectBuilder(LambdaExpression lambda)
+        public QuerySelectBuilder(ParameterExpression thisParameter = null)
+            : base(thisParameter)
         {
-            if (lambda == null) throw new ArgumentNullException("lambda");
-            this.lambda = lambda;
+        }
+
+        new public static string Create(LambdaExpression lambda)
+        {
+            return new QuerySelectBuilder().Visit(lambda).ToString();
         }
 
 
-        public override string ToString()
+        new public static string Create<T>(Expression<Func<T, bool>> lambda)
         {
-            var sb = new StringBuilder();
+            return Create((LambdaExpression)lambda);
+        }
 
-            var newExprBody = lambda.Body as NewExpression;
 
-            if (newExprBody != null)
+        new public static string Create<T, TResult>(Expression<Func<T, TResult>> lambda)
+        {
+            return Create((LambdaExpression)lambda);
+        }
+
+
+        protected override Expression VisitRootLambda<T>(Expression<T> node)
+        {
+            if (node.Body.NodeType == ExpressionType.New)
             {
-                var readOnlyCollection = newExprBody.Members != null
-                    ? newExprBody.Members.Select(x => x.Name)
-                    : newExprBody.Arguments.Select((x, i) => string.Format("Item{0}", i + 1));
-                foreach (
-                    var arg in
-                        newExprBody.Arguments.Zip(
-                            readOnlyCollection, (e, p) => new {Name = p, Expr = e}))
-                {
-                    if (sb.Length > 0)
-                        sb.Append(',');
-                    var argLambda = Expression.Lambda(arg.Expr, lambda.Parameters);
-                    var predicateBuilder = new QueryPredicateBuilder(argLambda);
-                    sb.Append(predicateBuilder);
-                    sb.Append(" as ");
-                    sb.Append(arg.Name);
-                }
+                return VisitRootNew((NewExpression)node.Body);
             }
-            else
+            if (node.Body.NodeType == ExpressionType.ListInit)
             {
-                var predicateBuilder = new QueryPredicateBuilder(lambda);
-                sb.Append(predicateBuilder);
-                sb.Append(" as this");
+                return VisitRootListInit((ListInitExpression)node.Body);
+            }
+            return Nodes(base.VisitRootLambda(node), " as this");
+        }
+
+
+        private Expression VisitRootListInit(ListInitExpression body)
+        {
+            if (body.Type != typeof(Dictionary<string, object>))
+                return Visit(body);
+
+            var pairs = body.Initializers.Select(
+                x =>
+                    new
+                    {
+                        Key =
+                            x.Arguments.ElementAtOrDefault(0).Maybe().Where(y => y.Type == typeof(string))
+                                .OfType<ConstantExpression>().Select(y => (string)y.Value).OrDefault(),
+                        Value = x.Arguments.ElementAtOrDefault(1)
+                    }).ToList();
+
+            if (pairs.Any(x => x.Key == null || x.Value == null))
+                return Visit(body);
+
+            var children = new List<object>();
+            foreach (var kvp in pairs)
+            {
+                if (children.Count > 0)
+                    children.Add(",");
+
+                children.Add(Visit(kvp.Value));
+                children.Add(" as ");
+                children.Add(kvp.Key);
             }
 
-            return sb.ToString();
+            return Nodes(children);
+        }
+
+
+        private Expression VisitRootNew(NewExpression node)
+        {
+            var children = new List<object>();
+
+            var readOnlyCollection = node.Members != null
+                ? node.Members.Select(x => x.Name)
+                : node.Arguments.Select((x, i) => string.Format("Item{0}", i + 1));
+            foreach (
+                var arg in
+                    node.Arguments.Zip(
+                        readOnlyCollection, (e, p) => new { Name = p, Expr = e }))
+            {
+                if (children.Count > 0)
+                    children.Add(",");
+
+                children.Add(Visit(arg.Expr));
+                children.Add(" as ");
+                children.Add(arg.Name);
+            }
+
+            return Nodes(children);
         }
     }
 }

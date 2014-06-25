@@ -46,7 +46,7 @@ namespace Pomona.Common
         public void AppendExpressionParameter(string queryKey, LambdaExpression predicate,
                                               Func<string, string> transform = null)
         {
-            var filterString = new QueryPredicateBuilder(predicate).ToString();
+            var filterString = QueryPredicateBuilder.Create(predicate);
 
             if (transform != null)
                 filterString = transform(filterString);

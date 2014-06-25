@@ -29,30 +29,49 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq.Expressions;
 
 namespace Pomona.Common.Linq
 {
-    internal abstract class QuerySegmentExpression : PomonaExtendedExpression
+    internal class QuerySegmentParenScopeExpression : QuerySegmentExpression
     {
-        public abstract ReadOnlyCollection<object> Children { get; }
+        private readonly QuerySegmentExpression value;
 
-        public override ExpressionType NodeType
+
+        public QuerySegmentParenScopeExpression(QuerySegmentExpression value)
         {
-            get { return ExpressionType.Extension; }
+            if (value == null)
+                throw new ArgumentNullException("value");
+            this.value = value;
         }
 
-        public override Type Type
+
+        public override ReadOnlyCollection<object> Children
         {
-            get { return typeof(string); }
+            get { return new ReadOnlyCollection<object>(new object[] { this.value }); }
         }
 
-        public abstract IEnumerable<string> ToStringSegments();
-
-
-        public override string ToString()
+        public QuerySegmentExpression Value
         {
-            return string.Concat(ToStringSegments());
+            get { return this.value; }
+        }
+
+
+        public override IEnumerable<string> ToStringSegments()
+        {
+            // Remove redundant parenthesis
+            var valueAsParenScope = this.value as QuerySegmentParenScopeExpression;
+            if (valueAsParenScope != null)
+                return valueAsParenScope.ToStringSegments();
+            return ToStringSegmentsInner();
+        }
+
+
+        private IEnumerable<string> ToStringSegmentsInner()
+        {
+            yield return "(";
+            foreach (var child in this.value.ToStringSegments())
+                yield return child;
+            yield return ")";
         }
     }
 }

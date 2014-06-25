@@ -143,7 +143,6 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => (int)x.Precise, "cast(precise,t'Int32')");
         }
 
-
         [Test]
         public void BuildComparisonWithEnum_ReturnsCorrectString()
         {

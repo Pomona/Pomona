@@ -50,8 +50,8 @@ namespace Pomona.Common
         private static readonly HashSet<char> validSymbolCharacters =
             new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 
-        private readonly LambdaExpression lambda;
         private readonly ParameterExpression thisParameter;
+        private LambdaExpression rootLambda;
 
 
         static QueryPredicateBuilder()
@@ -77,37 +77,42 @@ namespace Pomona.Common
         }
 
 
-        public QueryPredicateBuilder(LambdaExpression lambda, ParameterExpression thisParameter = null)
+        public QueryPredicateBuilder(ParameterExpression thisParameter = null)
         {
-            if (lambda == null)
-                throw new ArgumentNullException("expr");
-            this.thisParameter = thisParameter ?? lambda.Parameters[0];
-            this.lambda = lambda;
+            this.thisParameter = thisParameter;
         }
 
 
-        public static QueryPredicateBuilder Create<T>(Expression<Func<T, bool>> lambda)
+        protected LambdaExpression RootLambda
         {
-            return new QueryPredicateBuilder(lambda);
+            get { return this.rootLambda; }
+        }
+
+        protected ParameterExpression ThisParameter
+        {
+            get
+            {
+                return this.thisParameter
+                       ?? (this.rootLambda != null ? this.rootLambda.Parameters.FirstOrDefault() : null);
+            }
         }
 
 
-        public static QueryPredicateBuilder Create<T, TResult>(Expression<Func<T, TResult>> lambda)
+        public static string Create(LambdaExpression lambda)
         {
-            return new QueryPredicateBuilder(lambda);
+            return new QueryPredicateBuilder().Visit(lambda).ToString();
         }
 
 
-        public override string ToString()
+        public static string Create<T>(Expression<Func<T, bool>> lambda)
         {
-            // Strip away redundant parens around query
-            var visitor = new PreBuildVisitor();
-            var preprocessedBody = visitor.Visit(this.lambda.Body);
-            var queryFilterString = Visit(preprocessedBody).ToString();
-            if (queryFilterString.Length > 1 && queryFilterString[0] == '('
-                && queryFilterString[queryFilterString.Length - 1] == ')')
-                queryFilterString = queryFilterString.Substring(1, queryFilterString.Length - 2);
-            return queryFilterString;
+            return Create((LambdaExpression)lambda);
+        }
+
+
+        public static string Create<T, TResult>(Expression<Func<T, TResult>> lambda)
+        {
+            return Create((LambdaExpression)lambda);
         }
 
 
@@ -117,9 +122,18 @@ namespace Pomona.Common
                 return null;
             var visitedNode = base.Visit(node) as PomonaExtendedExpression;
             if (visitedNode == null)
-                throw new InvalidOperationException("Visit method not implemented for " + node.NodeType);
+                return NotSupported(node, node.NodeType + " not supported server side.");
 
             return visitedNode;
+        }
+
+
+        protected virtual Expression VisitRootLambda<T>(Expression<T> node)
+        {
+            var visitedBody = Visit(node.Body);
+            while (visitedBody is QuerySegmentParenScopeExpression)
+                visitedBody = ((QuerySegmentParenScopeExpression)visitedBody).Value;
+            return visitedBody;
         }
 
 
@@ -140,7 +154,7 @@ namespace Pomona.Common
             TryDetectAndConvertEnumComparison(ref left, ref right, true);
             TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
 
-            return Format("({0} {1} {2})", Visit(left), opString, Visit(right));
+            return Scope(Nodes(Visit(left), " ", opString, " ", Visit(right)));
         }
 
 
@@ -166,9 +180,30 @@ namespace Pomona.Common
             if (node.Parameters.Count != 1)
                 return NotSupported(node, "Only supports one parameter in lambda expression for now.");
 
-            var param = node.Parameters[0];
-            var predicateBuilder = new QueryPredicateBuilder(node, this.thisParameter);
-            return Format("{0}:{1}", param.Name, predicateBuilder);
+            if (this.rootLambda == null)
+            {
+                try
+                {
+                    this.rootLambda = (Expression<T>)(new PreBuildVisitor().Visit(node));
+                    return VisitRootLambda((Expression<T>)this.rootLambda);
+                }
+                finally
+                {
+                    this.rootLambda = null;
+                }
+            }
+            else
+            {
+                var param = node.Parameters[0];
+                var predicateBuilder = new QueryPredicateBuilder(ThisParameter);
+                return Format("{0}:{1}", param.Name, predicateBuilder.Visit(node));
+            }
+        }
+
+
+        protected override Expression VisitListInit(ListInitExpression node)
+        {
+            return NotSupported(node, "ListInitExpression not supported by Linq provider.");
         }
 
 
@@ -181,9 +216,15 @@ namespace Pomona.Common
                 out odataExpression))
                 return odataExpression;
 
-            if (node.Expression != this.thisParameter)
+            if (node.Expression != ThisParameter)
                 return Format("{0}.{1}", Visit(node.Expression), GetMemberName(node.Member));
-            return new QuerySegmentExpression(GetMemberName(node.Member));
+            return Terminal(GetMemberName(node.Member));
+        }
+
+
+        protected override Expression VisitMemberInit(MemberInitExpression node)
+        {
+            return NotSupported(node, node.NodeType + " not supported server side.");
         }
 
 
@@ -243,7 +284,7 @@ namespace Pomona.Common
 
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            if (node == this.thisParameter)
+            if (node == ThisParameter)
                 return Terminal("this");
             return Terminal(node.Name);
         }
@@ -262,7 +303,7 @@ namespace Pomona.Common
                     //        + " is not an interface and/or does not implement type IClientResource.");
                     //}
                     var jsonTypeName = GetExternalTypeName(typeOperand);
-                    if (node.Expression == this.thisParameter)
+                    if (node.Expression == ThisParameter)
                         return Format("isof({0})", jsonTypeName);
                     else
                     {
@@ -288,15 +329,15 @@ namespace Pomona.Common
                     return Format("not ({0})", Visit(unaryExpression.Operand));
 
                 case ExpressionType.TypeAs:
-                    return Format("({0} as {1})",
+                    return Scope(Format("{0} as {1}",
                         Visit(unaryExpression.Operand),
-                        GetExternalTypeName(unaryExpression.Type));
+                        GetExternalTypeName(unaryExpression.Type)));
 
                 case ExpressionType.Convert:
                     if (unaryExpression.Operand.Type.IsEnum)
                         return Visit(unaryExpression.Operand);
 
-                    if (unaryExpression.Operand == this.thisParameter)
+                    if (unaryExpression.Operand == ThisParameter)
                     {
                         return Format("cast({0})", GetExternalTypeName(unaryExpression.Type));
                         // throw new NotImplementedException("Only know how to cast `this` to something else");
@@ -312,6 +353,36 @@ namespace Pomona.Common
                     return NotSupported(unaryExpression,
                         "NodeType " + unaryExpression.NodeType + " in UnaryExpression not yet handled.");
             }
+        }
+
+
+        internal static QuerySegmentExpression Format(string format, params object[] args)
+        {
+            return new QueryFormattedSegmentExpression(format, args);
+        }
+
+
+        internal static QuerySegmentListExpression Nodes(params object[] args)
+        {
+            return new QuerySegmentListExpression(args);
+        }
+
+
+        internal static QuerySegmentListExpression Nodes(IEnumerable<object> args)
+        {
+            return new QuerySegmentListExpression(args);
+        }
+
+
+        internal static QuerySegmentExpression Scope(QuerySegmentExpression value)
+        {
+            return new QuerySegmentParenScopeExpression(value);
+        }
+
+
+        internal static QuerySegmentExpression Terminal(string value)
+        {
+            return new QueryTerminalSegmentExpression(value);
         }
 
 
@@ -346,12 +417,6 @@ namespace Pomona.Common
             return value != (long)value
                 ? value.ToString("R", CultureInfo.InvariantCulture)
                 : string.Format(CultureInfo.InvariantCulture, "{0}.0", (long)value);
-        }
-
-
-        private static QuerySegmentExpression Format(string format, params object[] args)
-        {
-            return new QuerySegmentExpression(format, args);
         }
 
 
@@ -441,12 +506,6 @@ namespace Pomona.Common
                         member = enumerableMethod;
                 }
             }
-        }
-
-
-        private static QuerySegmentExpression Terminal(string value)
-        {
-            return new QuerySegmentExpression(value);
         }
 
 
@@ -642,18 +701,14 @@ namespace Pomona.Common
             }
 
 
-            private bool IsFoldedType(Type type)
-            {
-                return type == typeof(int) || type == typeof(decimal);
-            }
-
             protected override Expression VisitBinary(BinaryExpression node)
             {
                 // Constant folding
                 var left = Visit(node.Left);
                 var right = Visit(node.Right);
                 if (left.NodeType == ExpressionType.Constant && right.NodeType == ExpressionType.Constant
-                    && left.Type == right.Type && IsFoldedType(left.Type) && (node.Method == null || node.Method.DeclaringType == left.Type))
+                    && left.Type == right.Type && IsFoldedType(left.Type)
+                    && (node.Method == null || node.Method.DeclaringType == left.Type))
                 {
                     return
                         Expression.Constant(
@@ -661,7 +716,6 @@ namespace Pomona.Common
                                 null),
                             node.Type);
                 }
-
 
                 if (node.NodeType == ExpressionType.Add && left.Type == typeof(string)
                     && right.Type == typeof(string))
@@ -695,6 +749,12 @@ namespace Pomona.Common
                 }
 
                 return baseNode;
+            }
+
+
+            private bool IsFoldedType(Type type)
+            {
+                return type == typeof(int) || type == typeof(decimal);
             }
         }
 

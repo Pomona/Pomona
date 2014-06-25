@@ -391,6 +391,51 @@ namespace Pomona.SystemTests.Linq
         }
 
 
+        [Category("TODO")]
+        [Test(Description = "Need to fix deserialization for resource types when part of string to object dictionary.")]
+        public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
+        {
+            var expected = CritterEntities
+                .Select(
+                    x =>
+                        new Dictionary<string, object>
+                        {
+                            { "critterId", x.Id },
+                            { "critterName", x.Name },
+                            { "theCritter", x }
+                        })
+                .ToList();
+            var actual =
+                Client.Query<ICritter>()
+                    .Select(
+                        x =>
+                            new Dictionary<string, object>
+                            {
+                                { "critterId", x.Id },
+                                { "critterName", x.Name },
+                                { "theCritter", x }
+                            })
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_SelectToTuple_ReturnsCorrectValues()
+        {
+            var expected = CritterEntities
+                .Select(x => new Tuple<int, string>(x.Id, x.Name))
+                .ToList();
+            var actual =
+                Client.Query<ICritter>()
+                    .Select(x => new Tuple<int, string>(x.Id, x.Name))
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
         [Test]
         public void QueryCritter_SelectWriteOnlyProperty_ThrowsBadRequestException()
         {
@@ -523,36 +568,6 @@ namespace Pomona.SystemTests.Linq
             var actual =
                 Client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
             Assert.That(actual, Is.EqualTo(expected));
-        }
-
-
-        [Test]
-        public void QueryCritter_SelectToTuple_ReturnsCorrectValues()
-        {
-            var expected = CritterEntities
-                .Select(x => new Tuple<int, string>(x.Id, x.Name))
-                .ToList();
-            var actual =
-                Client.Query<ICritter>()
-                    .Select(x => new Tuple<int, string>(x.Id, x.Name))
-                    .ToList();
-
-            Assert.That(actual.SequenceEqual(expected));
-        }
-
-
-        [Test]
-        public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
-        {
-            var expected = CritterEntities
-                .Select(x => new Dictionary<string, object> { { "critterId", x.Id }, { "critterName", x.Name } })
-                .ToList();
-            var actual =
-                Client.Query<ICritter>()
-                .Select(x => new Dictionary<string, object> { { "critterId", x.Id }, { "critterName", x.Name } })
-                .ToList();
-
-            Assert.That(actual.SequenceEqual(expected));
         }
 
 

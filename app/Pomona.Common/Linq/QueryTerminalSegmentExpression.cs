@@ -29,30 +29,37 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq.Expressions;
 
 namespace Pomona.Common.Linq
 {
-    internal abstract class QuerySegmentExpression : PomonaExtendedExpression
+    internal class QueryTerminalSegmentExpression : QuerySegmentExpression
     {
-        public abstract ReadOnlyCollection<object> Children { get; }
+        private readonly string value;
 
-        public override ExpressionType NodeType
+
+        public QueryTerminalSegmentExpression(string value)
         {
-            get { return ExpressionType.Extension; }
+            if (value == null)
+                throw new ArgumentNullException("value");
+            this.value = value;
         }
 
-        public override Type Type
-        {
-            get { return typeof(string); }
-        }
 
-        public abstract IEnumerable<string> ToStringSegments();
+        public override ReadOnlyCollection<object> Children
+        {
+            get { return new ReadOnlyCollection<object>(new object[] { this.value }); }
+        }
 
 
         public override string ToString()
         {
-            return string.Concat(ToStringSegments());
+            return this.value;
+        }
+
+
+        public override IEnumerable<string> ToStringSegments()
+        {
+            yield return this.value;
         }
     }
 }
