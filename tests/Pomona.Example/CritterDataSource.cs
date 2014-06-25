@@ -82,6 +82,9 @@ namespace Pomona.Example
         {
             if (typeof(T) == typeof(FailingThing))
                 throw new Exception("Stupid exception from failing thing;");
+            if (typeof(T) == typeof(HandledThing) || typeof(T) == typeof(HandledChild))
+                throw new InvalidOperationException(
+                    "HandledThing and HandledChild should not be handled by DataSource because they have custom handlers.");
 
             var newCritter = newObject as Critter;
             if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)

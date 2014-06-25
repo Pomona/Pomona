@@ -35,8 +35,21 @@ namespace Pomona.RequestProcessing
             if (request.Method != HttpMethod.Get)
                 return null;
 
-            if (!request.Node.Exists)
-                throw new ResourceNotFoundException("Resource not found.");
+            var resourceNode = request.Node as ResourceNode;
+            if (resourceNode != null)
+            {
+                var parentCollectionNode = resourceNode.Parent as ResourceCollectionNode;
+                object value = null;
+                if (parentCollectionNode != null)
+                {
+                    value = parentCollectionNode.GetItemFromQueryableById(resourceNode.Name);
+                }
+                if (value == null)
+                {
+                    throw new ResourceNotFoundException("Resource not found.");
+                }
+                return new PomonaResponse(value, expandedPaths : request.ExpandedPaths);
+            }
 
             var collectionNode = request.Node as ResourceCollectionNode;
             if (collectionNode != null)
@@ -51,9 +64,6 @@ namespace Pomona.RequestProcessing
                 }
                 return new PomonaResponse(collectionNode.GetAsQueryable());
             }
-            var resourceNode = request.Node as ResourceNode;
-            if (resourceNode != null)
-                return new PomonaResponse(resourceNode.Value, expandedPaths: request.ExpandedPaths);
             return null;
         }
     }

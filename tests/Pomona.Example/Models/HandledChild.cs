@@ -28,31 +28,29 @@
 
 using System;
 
-namespace Pomona.RequestProcessing
+namespace Pomona.Example.Models
 {
-    public abstract class HandlerMethodInvoker
+    public class HandledChild : EntityBase
     {
-        private readonly HandlerMethod method;
+        private readonly HandledThing parent;
 
 
-        protected HandlerMethodInvoker(HandlerMethod method)
+        public HandledChild(HandledThing parent)
         {
-            if (method == null)
-                throw new ArgumentNullException("method");
-            this.method = method;
+            if (parent == null)
+                throw new ArgumentNullException("parent");
+            this.parent = parent;
+            this.parent.Children.Add(this);
         }
 
 
-        public HandlerMethod Method
+        public bool HandlerWasCalled { get; set; }
+
+        public HandledThing Parent
         {
-            get { return this.method; }
+            get { return this.parent; }
         }
 
-        public Type ReturnType
-        {
-            get { return Method.ReturnType; }
-        }
-
-        public abstract object Invoke(object target, PomonaRequest request);
+        public string Toy { get; set; }
     }
 }

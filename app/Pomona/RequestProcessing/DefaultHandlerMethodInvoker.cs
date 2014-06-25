@@ -38,7 +38,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.RequestProcessing
 {
-    public class DefaultHandlerMethodInvoker : HandlerMethodInvoker
+    public class DefaultHandlerMethodInvoker : HandlerMethodInvoker<object>
     {
         public DefaultHandlerMethodInvoker(HandlerMethod method)
             : base(method)
@@ -46,15 +46,9 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public IList<HandlerParameter> Parameters
-        {
-            get { return Method.Parameters; }
-        }
 
-
-        public override object Invoke(object target, PomonaRequest request)
+        protected override object OnInvoke(object target, PomonaRequest request, object state)
         {
-            var args = new object[Parameters.Count];
             object resourceArg = null;
             object resourceIdArg = null;
             var httpMethod = request.Method;
@@ -135,33 +129,7 @@ namespace Pomona.RequestProcessing
                     resourceArg = request.Node.Parent.Value;
                 }
             }
-
-            for (var i = 0; i < Parameters.Count; i++)
-            {
-                var p = Parameters[i];
-
-                if (p.IsResource && p.Type.IsInstanceOfType(resourceArg))
-                    args[i] = resourceArg;
-                else if (p.Type == typeof(PomonaRequest))
-                    args[i] = request;
-                else if (p.Type == typeof(NancyContext))
-                    args[i] = request.Context.NancyContext;
-                else if (p.Type == typeof(TypeMapper))
-                    args[i] = request.TypeMapper;
-                else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
-                    args[i] = resourceIdArg;
-                else
-                {
-                    throw new InvalidOperationException(
-                        string.Format(
-                            "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
-                            Method.MethodInfo.ReflectedType,
-                            Method.Name,
-                            p.Name));
-                }
-            }
-
-            return Method.MethodInfo.Invoke(target, args);
+            return base.OnInvoke(target, request, state);
         }
     }
 }

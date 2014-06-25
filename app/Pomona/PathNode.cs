@@ -133,7 +133,7 @@ namespace Pomona
         protected static PathNode CreateNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            Func<object> valueFetcher,
+            Func<PathNode, object> valueFetcher,
             TypeSpec expectedType)
         {
             if (typeMapper == null)

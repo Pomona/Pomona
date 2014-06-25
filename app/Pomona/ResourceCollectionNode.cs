@@ -43,7 +43,7 @@ namespace Pomona
         public ResourceCollectionNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            Func<object> valueFetcher,
+            Func<PathNode, object> valueFetcher,
             TypeSpec collectionType)
             : base(typeMapper, parent, name, valueFetcher, collectionType)
         {
@@ -60,10 +60,23 @@ namespace Pomona
         {
             if (ItemResourceType.PrimaryId == null)
                 throw new ArgumentException("Resource in collection needs to have a primary id.");
-
-            return CreateNode(TypeMapper, this, name, () => GetChildNodeFromQueryableById(name, context, pipeline), ItemResourceType);
+            return CreateNode(TypeMapper, this, name, x => pipeline.Process(context.CreateNestedRequest(x, HttpMethod.Get)).Entity, ItemResourceType);
         }
 
+
+        internal override object GetItemFromQueryableById(string name)
+        {
+            var id = (TId)ParseId(name);
+            var predicateParam = Expression.Parameter(typeof(TItem));
+            var predicate = Expression.Lambda<Func<TItem, bool>>(
+                Expression.Equal(ItemResourceType.PrimaryId.CreateGetterExpression(predicateParam),
+                    Expression.Constant(id)),
+                predicateParam);
+            var queryable = ((IQueryable<TItem>)GetAsQueryable()).EmptyIfNull().Where(predicate);
+
+            var result = queryable.FirstOrDefault();
+            return result;
+        }
 
         private TItem GetChildNodeFromQueryableById(string name, IPomonaContext context, IRequestProcessorPipeline pipeline)
         {
@@ -85,11 +98,13 @@ namespace Pomona
         protected ResourceCollectionNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            Func<object> valueFetcher,
+            Func<PathNode, object> valueFetcher,
             TypeSpec collectionType)
             : base(typeMapper, parent, name, valueFetcher, collectionType)
         {
         }
+
+
     }
 
     /// <summary>
@@ -105,7 +120,7 @@ namespace Pomona
         protected ResourceCollectionNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            Func<object> valueFetcher,
+            Func<PathNode, object> valueFetcher,
             TypeSpec collectionType)
             : base(typeMapper, parent, name, PathNodeType.Collection)
         {
@@ -117,10 +132,11 @@ namespace Pomona
             if (!collectionType.IsCollection || !(collectionType.ElementType is ResourceType))
                 throw new ArgumentException("Need to be collection of resources.", "collectionType");
 
-            this.valueLazy = new System.Lazy<object>(valueFetcher);
+            this.valueLazy = new System.Lazy<object>(() => valueFetcher(this));
             this.collectionType = collectionType;
         }
 
+        internal abstract object GetItemFromQueryableById(string name);
 
         public override HttpMethod AllowedMethods
         {

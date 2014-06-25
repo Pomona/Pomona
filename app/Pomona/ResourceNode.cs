@@ -39,6 +39,12 @@ namespace Pomona
     public class ResourceNode : PathNode
     {
         private readonly ResourceType expectedType;
+
+        public ResourceType ExpectedType
+        {
+            get { return this.expectedType; }
+        }
+
         private readonly System.Lazy<ResourceType> type;
         private readonly System.Lazy<object> value;
 
@@ -46,11 +52,11 @@ namespace Pomona
         public ResourceNode(ITypeMapper typeMapper,
             PathNode parent,
             string name,
-            Func<object> valueFetcher,
+            Func<PathNode, object> valueFetcher,
             ResourceType expectedType)
             : base(typeMapper, parent, name, PathNodeType.Resource)
         {
-            this.value = new System.Lazy<object>(valueFetcher);
+            this.value = new System.Lazy<object>(() => valueFetcher(this));
             this.expectedType = expectedType;
 
             this.type = new System.Lazy<ResourceType>(() =>
@@ -105,7 +111,7 @@ namespace Pomona
                   || Type.TryGetPropertyByUriName(name, out property)))
                 throw new ResourceNotFoundException("Resource not found");
 
-            return CreateNode(TypeMapper, this, name, () => property.GetValue(Value), property.PropertyType);
+            return CreateNode(TypeMapper, this, name, x => property.GetValue(Value), property.PropertyType);
         }
 
 
@@ -117,7 +123,7 @@ namespace Pomona
 
         protected override IPomonaRequestProcessor OnGetRequestProcessor(PomonaRequest request)
         {
-            return Type.ResourceHandlers.EmptyIfNull().Select(HandlerRequestProcessor.Create).FirstOrDefault();
+            return expectedType.ResourceHandlers.EmptyIfNull().Select(HandlerRequestProcessor.Create).FirstOrDefault();
         }
     }
 }

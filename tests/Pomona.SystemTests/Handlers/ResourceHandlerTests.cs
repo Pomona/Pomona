@@ -67,6 +67,16 @@ namespace Pomona.SystemTests.Handlers
         }
 
 
+        [Test]
+        public void PostChildToHandledThing_CallsPostHandlerMethodWithParent()
+        {
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            var thingResource = Client.HandledThings.Get(thingEntity.Id);
+            var childResource = thingResource.Children.Post(new HandledChildForm() { Toy = "rattle snake" });
+            Assert.That(childResource.HandlerWasCalled, Is.True, "It doesn't seem like handler has been called.");
+        }
+
+
 
         [Test]
         public void GetHandledThing_CallsHandlerGetMethod()

@@ -51,7 +51,14 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<HandledThing> map)
         {
-            map.DeleteAllowed().HandledBy<HandledThingsHandler>();
+            map
+                .HasChildren(x => x.Children,
+                    x => x.Parent,
+                    t => t.ConstructedUsing(c => new HandledChild(c.Parent<HandledThing>())),
+                    o => o.ExposedAsRepository())
+                .Include(x => x.ETag, o => o.AsEtag())
+                .AsUriBaseType()
+                .DeleteAllowed().HandledBy<HandledThingsHandler>();
         }
 
 

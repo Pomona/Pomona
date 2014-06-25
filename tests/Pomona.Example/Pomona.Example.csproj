@@ -97,6 +97,7 @@
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\Blob.cs" />
     <Compile Include="Models\GuidThing.cs" />
+    <Compile Include="Models\HandledChild.cs" />
     <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\IEntityWithId.cs" />

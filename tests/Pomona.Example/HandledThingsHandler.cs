@@ -29,6 +29,8 @@
 using System;
 using System.Linq;
 
+using Nancy;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -51,8 +53,10 @@ namespace Pomona.Example
             this.repository.Delete(handledThing);
         }
 
-        public IQueryable<HandledThing> QueryHandledThings()
+        public IQueryable<HandledThing> QueryHandledThings(NancyContext nancyContext)
         {
+            if (nancyContext.Request.Url.Path != "/handled-things")
+                throw new InvalidOperationException("Should not be used for getting resource by id..");
             return this.repository.Query<HandledThing>().ToList().Select(x =>
             {
                 x.QueryCounter++;
@@ -74,6 +78,16 @@ namespace Pomona.Example
             return this.repository.Save(handledThing);
         }
 
+
+        public HandledChild Post(HandledThing parent, HandledChild postedChild)
+        {
+            if (parent != postedChild.Parent)
+                throw new InvalidOperationException("Parent was not set correctly for posted child.");
+
+            postedChild.HandlerWasCalled = true;
+            this.repository.Post(postedChild);
+            return postedChild;
+        }
 
         public HandledThing Post(HandledThing handledThing, PomonaRequest request)
         {

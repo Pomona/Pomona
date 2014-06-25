@@ -91,10 +91,10 @@ namespace Pomona.SystemTests
                 TypeMapper);
             var invoker = new DefaultHandlerMethodInvoker(methodObject);
 
-            var parentNode = new ResourceNode(TypeMapper, null, "Test", delegate() { return new Galaxy(); },
+            var parentNode = new ResourceNode(TypeMapper, null, "Test", x =>  new Galaxy(),
                 TypeMapper.FromType(typeof (Galaxy)) as ResourceType);
             var pathNode = new ResourceNode(TypeMapper, parentNode, "Test",
-                delegate() { return null; }, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
+                x => null, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
 
             var pomonaRequest = CreateOuterPomonaRequest(pathNode, nancyContext, serializerFactory);
 
@@ -109,7 +109,7 @@ namespace Pomona.SystemTests
             var invoker = new DefaultHandlerMethodInvoker(methodObject);
 
             var pathNode = new ResourceNode(TypeMapper, null, "Test",
-                delegate() { return null; }, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
+                x => null, TypeMapper.FromType(typeof (PlanetarySystem)) as ResourceType);
 
             PomonaRequest pomonaRequest = CreateOuterPomonaRequest(pathNode, nancyContext, serializerFactory);
 
@@ -133,7 +133,7 @@ namespace Pomona.SystemTests
             var invoker = new DefaultHandlerMethodInvoker(methodObject);
 
             var pathNode = new ResourceNode(TypeMapper, null, "Test",
-                delegate() { return null; }, TypeMapper.FromType(typeof (Critter)) as ResourceType);
+                x => null, TypeMapper.FromType(typeof (Critter)) as ResourceType);
 
             var pomonaRequest = CreateOuterPomonaRequest(pathNode, nancyContext, serializerFactory);
 

@@ -434,13 +434,6 @@ namespace Pomona
         }
 
 
-        private void Log(string logMessage)
-        {
-            // TODO: Get proper system implemented for logging, do not use Common.Logging.
-            Console.WriteLine(logMessage);
-        }
-
-
         private static bool TypeIsAnonymousOrGrouping(Type type)
         {
             return type.IsAnonymous() || TypeIsIGrouping(type);

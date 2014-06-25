@@ -47,8 +47,8 @@ namespace Pomona.RequestProcessing
 
     public class HandlerRequestProcessor<THandler> : HandlerRequestProcessor
     {
-        private static readonly ConcurrentDictionary<string, HandlerMethodInvoker> handlerMethodCache =
-            new ConcurrentDictionary<string, HandlerMethodInvoker>();
+        private static readonly ConcurrentDictionary<string, IHandlerMethodInvoker> handlerMethodCache =
+            new ConcurrentDictionary<string, IHandlerMethodInvoker>();
 
 
         public override PomonaResponse Process(PomonaRequest request)
@@ -80,7 +80,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethodInvoker GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType,
+        private IHandlerMethodInvoker GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType,
             TypeMapper mapper)
         {
             var cacheKey = string.Format("{0}:{1}:{2}", method, resourceType.FullName, nodeType);
@@ -91,22 +91,22 @@ namespace Pomona.RequestProcessing
 
         private PomonaResponse GetResource(PomonaRequest request, ResourceNode resourceNode)
         {
-            var method = GetHandlerMethod(request.Method, resourceNode.Type, resourceNode.NodeType, request.TypeMapper);
+            var method = GetHandlerMethod(request.Method, resourceNode.ExpectedType, resourceNode.NodeType, request.TypeMapper);
 
             return InvokeAndWrap(request, method);
         }
 
 
         private PomonaResponse InvokeAndWrap(PomonaRequest request,
-            HandlerMethodInvoker method,
+            IHandlerMethodInvoker invoker,
             HttpStatusCode? statusCode = null)
         {
             // Continue to next request processor if method was not found.
-            if (method == null)
+            if (invoker == null)
                 return null;
 
             var handler = request.Context.Resolve(typeof (THandler));
-            var result = method.Invoke(handler, request);
+            var result = invoker.Invoke(handler, request);
             var resultAsResponse = result as PomonaResponse;
             if (resultAsResponse != null)
                 return resultAsResponse;
@@ -118,7 +118,7 @@ namespace Pomona.RequestProcessing
             }
 
             var responseBody = result;
-            if (method.ReturnType == typeof (void))
+            if (invoker.ReturnType == typeof (void))
                 responseBody = PomonaResponse.NoBodyEntity;
 
             if (responseBody == PomonaResponse.NoBodyEntity)
@@ -188,7 +188,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethodInvoker ResolveHandlerMethod(HttpMethod method,
+        private IHandlerMethodInvoker ResolveHandlerMethod(HttpMethod method,
             Type resourceType,
             PathNodeType nodeType,
             TypeMapper mapper)

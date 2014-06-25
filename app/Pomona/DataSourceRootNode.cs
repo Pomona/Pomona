@@ -89,7 +89,7 @@ namespace Pomona
             return CreateNode(TypeMapper,
                 this,
                 name,
-                () => queryMethodInvoker(type, this.dataSource),
+                x => queryMethodInvoker(type, this.dataSource),
                 TypeMapper.GetClassMapping(typeof(ICollection<>).MakeGenericType(type.Type)));
         }
 

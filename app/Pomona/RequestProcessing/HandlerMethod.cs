@@ -92,7 +92,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public HandlerMethodInvoker Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
+        public IHandlerMethodInvoker Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
         {
             switch (nodeType)
             {
@@ -119,12 +119,12 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethodInvoker MatchCollectionNodeRequest(HttpMethod method, ResourceType resourceType)
+        private IHandlerMethodInvoker MatchCollectionNodeRequest(HttpMethod method, ResourceType resourceType)
         {
             switch (method)
             {
                 case HttpMethod.Post:
-                    return NameStartsWith(method) ? MatchMethodTakingResourceObject(resourceType) : null;
+                    return NameStartsWith(method) ? MatchMethodTakingForm(resourceType) : null;
                 case HttpMethod.Get:
                     return MatchMethodReturningQueryable(resourceType);
             }
@@ -132,7 +132,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethodInvoker MatchMethodReturningQueryable(ResourceType resourceType)
+        private IHandlerMethodInvoker MatchMethodReturningQueryable(ResourceType resourceType)
         {
             // Check that the method is called "Get", "Query", "Get<TypeName>s" or "Query<TypeName>s".
             if (!this.methodInfo.Name.Equals("Get") && !this.methodInfo.Name.Equals("Query") &&
@@ -157,26 +157,32 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private HandlerMethodInvoker MatchMethodTakingResourceId(ResourceType resourceType)
+        private IHandlerMethodInvoker MatchMethodTakingResourceId(ResourceType resourceType)
         {
             if (this.methodInfo.ReturnType != resourceType.Type)
                 return null;
 
             var idParam = Parameters.SingleOrDefault(x => x.Type == resourceType.PrimaryId.PropertyType.Type);
             if (idParam != null)
-                return new DefaultHandlerMethodInvoker(this);
+                return new HandlerMethodTakingResourceId(this);
             return null;
         }
 
 
-        private HandlerMethodInvoker MatchMethodTakingResourceObject(ResourceType resourceType)
+        private IHandlerMethodInvoker MatchMethodTakingForm(ResourceType resourceType)
         {
             var resourceTypeParam = Parameters.Where(x => x.IsResource && x.Type.IsAssignableFrom(resourceType));
-            return resourceTypeParam.Any() ? new DefaultHandlerMethodInvoker(this) : null;
+            return resourceTypeParam.Any() ? new HandlerMethodTakingFormInvoker(this) : null;
+        }
+
+        private IHandlerMethodInvoker MatchMethodTakingExistingResource(ResourceType resourceType)
+        {
+            var resourceTypeParam = Parameters.Where(x => x.IsResource && x.Type.IsAssignableFrom(resourceType));
+            return resourceTypeParam.Any() ? new HandlerMethodTakingExistingResource(this) : null;
         }
 
 
-        private HandlerMethodInvoker MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
+        private IHandlerMethodInvoker MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
         {
             if (!NameStartsWith(httpMethod))
                 return null;
@@ -184,9 +190,9 @@ namespace Pomona.RequestProcessing
             switch (httpMethod)
             {
                 case HttpMethod.Delete:
-                    return MatchMethodTakingResourceObject(resourceType);
+                    return MatchMethodTakingExistingResource(resourceType);
                 case HttpMethod.Patch:
-                    return MatchMethodTakingResourceObject(resourceType);
+                    return MatchMethodTakingForm(resourceType);
                 case HttpMethod.Get:
                     return MatchMethodTakingResourceId(resourceType);
             }

@@ -26,21 +26,42 @@
 
 #endregion
 
+using System;
+using System.Collections.Generic;
+
 namespace Pomona.Example.Models
 {
-    public class HandledThing : EntityBase
+    public class InheritedHandledThing : HandledThing
     {
-        private string marker;
+    }
+
+    public class HandledThing : EntityBase, ISetEtaggedEntity
+    {
+        private readonly HashSet<HandledChild> children = new HashSet<HandledChild>();
+
+        public ISet<HandledChild> Children
+        {
+            get { return this.children; }
+        }
+
         public int FetchedCounter { get; set; }
         public string Foo { get; set; }
 
-        public string Marker
-        {
-            get { return this.marker; }
-            set { this.marker = value; }
-        }
+        public string Marker { get; set; }
 
         public int PatchCounter { get; set; }
         public int QueryCounter { get; set; }
+
+        private string eTag = Guid.NewGuid().ToString();
+
+        public string ETag
+        {
+            get { return eTag; }
+        }
+
+        public void SetEtag(string newEtagValue)
+        {
+            eTag = newEtagValue;
+        }
     }
 }
