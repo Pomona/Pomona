@@ -184,7 +184,7 @@ namespace Pomona.Common
 
         public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
         {
-            if (exportedType.IsAnonymous())
+            if (IsAnonType(exportedType))
             {
                 return new ExportedTypeDetails(exportedType,
                     HttpMethod.Get,
@@ -243,6 +243,14 @@ namespace Pomona.Common
                 null,
                 null,
                 Enumerable.Empty<Type>());
+        }
+
+
+        public override RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec)
+        {
+            if (IsAnonType(typeSpec))
+                return new RuntimeTypeDetails(TypeSerializationMode.Complex);
+            return base.LoadRuntimeTypeDetails(typeSpec);
         }
 
 
@@ -334,9 +342,15 @@ namespace Pomona.Common
                     return new TransformedType(this, type);
                 return new ResourceType(this, type);
             }
-            if (type.IsAnonymous())
+            if (IsAnonType(type))
                 return new TransformedType(this, type);
             return base.CreateType(type);
+        }
+
+
+        private static bool IsAnonType(Type type)
+        {
+            return type.IsAnonymous() || type.IsTuple();
         }
 
 

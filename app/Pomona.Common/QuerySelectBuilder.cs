@@ -48,10 +48,13 @@ namespace Pomona.Common
 
             if (newExprBody != null)
             {
+                var readOnlyCollection = newExprBody.Members != null
+                    ? newExprBody.Members.Select(x => x.Name)
+                    : newExprBody.Arguments.Select((x, i) => string.Format("Item{0}", i + 1));
                 foreach (
                     var arg in
                         newExprBody.Arguments.Zip(
-                            newExprBody.Members, (e, p) => new {p.Name, Expr = e}))
+                            readOnlyCollection, (e, p) => new {Name = p, Expr = e}))
                 {
                     if (sb.Length > 0)
                         sb.Append(',');

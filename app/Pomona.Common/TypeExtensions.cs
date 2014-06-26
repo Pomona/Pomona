@@ -174,6 +174,11 @@ namespace Pomona.Common
         }
 
 
+        public static bool IsTuple(this Type type)
+        {
+            return type.Namespace == "System" && type.Name.StartsWith("Tuple`");
+        }
+
         public static bool IsAnonymous(this Type type)
         {
             return type.Name.StartsWith("<>f__AnonymousType");

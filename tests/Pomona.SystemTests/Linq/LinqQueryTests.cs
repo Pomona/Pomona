@@ -133,30 +133,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual, Is.EqualTo(expected));
         }
 
-        [Test]
-        public void QueryCritter_GetSumOfNullableDecimal()
-        {
-            var expected = CritterEntities.Sum(x => (decimal?)x.Id);
-            var actual = Client.Query<ICritter>().Sum(x => (decimal?)x.Id);
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void QueryCritter_GetSumOfNullableInt()
-        {
-            var expected = CritterEntities.Sum(x => (int?)x.Id);
-            var actual = Client.Query<ICritter>().Sum(x => (int?)x.Id);
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
-        [Test]
-        public void QueryCritter_GetSumOfNullableDouble()
-        {
-            var expected = CritterEntities.Sum(x => (double?)x.Id);
-            var actual = Client.Query<ICritter>().Sum(x => (double?)x.Id);
-            Assert.That(actual, Is.EqualTo(expected));
-        }
-
 
         [Test]
         public void QueryCritter_GetSumOfDouble()
@@ -172,6 +148,33 @@ namespace Pomona.SystemTests.Linq
         {
             var expected = CritterEntities.Sum(x => x.Name.Length);
             var actual = Client.Query<ICritter>().Sum(x => x.Name.Length);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GetSumOfNullableDecimal()
+        {
+            var expected = CritterEntities.Sum(x => (decimal?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (decimal?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GetSumOfNullableDouble()
+        {
+            var expected = CritterEntities.Sum(x => (double?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (double?)x.Id);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_GetSumOfNullableInt()
+        {
+            var expected = CritterEntities.Sum(x => (int?)x.Id);
+            var actual = Client.Query<ICritter>().Sum(x => (int?)x.Id);
             Assert.That(actual, Is.EqualTo(expected));
         }
 
@@ -520,6 +523,21 @@ namespace Pomona.SystemTests.Linq
             var actual =
                 Client.Query<ICritter>().OrderBy(x => x.Name).Select(x => x.Name).Take(10000).ToList().ToList();
             Assert.That(actual, Is.EqualTo(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_SelectToTuple_ReturnsCorrectValues()
+        {
+            var expected = CritterEntities
+                .Select(x => new Tuple<int, string>(x.Id, x.Name))
+                .ToList();
+            var actual =
+                Client.Query<ICritter>()
+                    .Select(x => new Tuple<int, string>(x.Id, x.Name))
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
         }
 
 

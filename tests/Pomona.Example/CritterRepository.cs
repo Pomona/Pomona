@@ -54,7 +54,6 @@ namespace Pomona.Example
 
         private int idCounter;
 
-        private bool notificationsEnabled;
         private readonly static MethodInfo getEntityListMethod;
 
 
@@ -83,7 +82,6 @@ namespace Pomona.Example
                 throw new ArgumentNullException("typeMapper");
             this.typeMapper = typeMapper;
             ResetTestData();
-            this.notificationsEnabled = true;
         }
 
         #region IPomonaDataSource Members
@@ -308,9 +306,7 @@ namespace Pomona.Example
             {
                 this.idCounter = 1;
                 this.entityLists = new Dictionary<Type, object>();
-                this.notificationsEnabled = false;
                 CreateRandomData();
-                this.notificationsEnabled = true;
                 this.queryLog.Clear();
             }
         }
@@ -342,8 +338,6 @@ namespace Pomona.Example
             if (entityCast.Id == 0 && typeSpec is ResourceType)
             {
                 entityCast.Id = this.idCounter++;
-                if (this.notificationsEnabled)
-                    Console.WriteLine("Saving entity of type " + entity.GetType().Name + " with id " + entityCast.Id);
                 GetEntityList<T>().Add(entity);
             }
 
