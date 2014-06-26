@@ -542,6 +542,21 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
+        {
+            var expected = CritterEntities
+                .Select(x => new Dictionary<string, object> { { "critterId", x.Id }, { "critterName", x.Name } })
+                .ToList();
+            var actual =
+                Client.Query<ICritter>()
+                .Select(x => new Dictionary<string, object> { { "critterId", x.Id }, { "critterName", x.Name } })
+                .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
         public void QueryCritter_WithAttributeEquals_ReturnsCorrectCritter()
         {
             var critter =
