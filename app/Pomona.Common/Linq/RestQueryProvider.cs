@@ -42,15 +42,17 @@ namespace Pomona.Common.Linq
 {
     public class RestQueryProvider : QueryProviderBase
     {
-        private static readonly MethodInfo executeGenericMethod;
+        private static readonly Func<Type, RestQueryProvider, RestQueryableTreeParser, object> executeGenericMethod =
+            GenericInvoker.Instance<RestQueryProvider>().CreateFunc1<RestQueryableTreeParser, object>(
+                    x => x.Execute<object>(null));
+
+        private static readonly Func<Type, Type, RestQueryProvider, string, RestQueryableTreeParser.QueryProjection, LambdaExpression, object>
+            executeWithClientSelectPart =
+                GenericInvoker.Instance<RestQueryProvider>()
+                    .CreateFunc2<string, RestQueryableTreeParser.QueryProjection, LambdaExpression, object>(
+                        x => x.ExecuteWithClientSelectPart<int, bool>(null, default(RestQueryableTreeParser.QueryProjection), null));
+
         private readonly IPomonaClient client;
-
-
-        static RestQueryProvider()
-        {
-            executeGenericMethod =
-                ReflectionHelper.GetMethodDefinition<RestQueryProvider>(x => x.Execute<object>(null));
-        }
 
 
         internal RestQueryProvider(IPomonaClient client)
@@ -78,9 +80,7 @@ namespace Pomona.Common.Linq
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
 
-            return executeGenericMethod.MakeGenericMethod(queryTreeParser.SelectReturnType).InvokeDirect(
-                this,
-                queryTreeParser);
+            return executeGenericMethod(queryTreeParser.SelectReturnType, this, queryTreeParser);
         }
 
 
@@ -138,8 +138,9 @@ namespace Pomona.Common.Linq
         }
 
 
-        private string BuildUri(RestQueryableTreeParser parser)
+        private string BuildUri(RestQueryableTreeParser parser, out LambdaExpression clientSideSelectPart)
         {
+            clientSideSelectPart = null;
             var builder = new UriQueryBuilder();
 
             // TODO: Support expand
@@ -169,8 +170,14 @@ namespace Pomona.Common.Linq
             }
             if (parser.SelectExpression != null)
             {
-                var selectBuilder = QuerySelectBuilder.Create(parser.SelectExpression);
-                builder.AppendParameter("$select", selectBuilder);
+                var selectNode = QuerySelectBuilder.Create(parser.SelectExpression);
+                var splitSelect = selectNode as ClientServerSplitSelectExpression;
+                if (splitSelect != null)
+                {
+                    clientSideSelectPart = splitSelect.ClientSideExpression;
+                    selectNode = splitSelect.ServerExpression;
+                }
+                builder.AppendParameter("$select", selectNode);
             }
             if (parser.SkipCount.HasValue)
                 builder.AppendParameter("$skip", parser.SkipCount.Value);
@@ -188,17 +195,43 @@ namespace Pomona.Common.Linq
         }
 
 
+        private object ExecuteWithClientSelectPart<TServer, TClient>(string uri, RestQueryableTreeParser.QueryProjection queryProjection,
+            Expression<Func<TServer, TClient>> clientSideExpression)
+        {
+            return Execute(uri, queryProjection, clientSideExpression.Compile());
+        }
+
         private object Execute<T>(RestQueryableTreeParser parser)
         {
-            var uri = BuildUri(parser);
+            LambdaExpression clientSideSelectPart;
+            var uri = BuildUri(parser, out clientSideSelectPart);
+            var queryProjection = parser.Projection;
 
-            if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToJson)
+            if (clientSideSelectPart != null)
+            {
+                return executeWithClientSelectPart(
+                    clientSideSelectPart.Parameters[0].Type,
+                    clientSideSelectPart.ReturnType,
+                    this,
+                    uri,
+                    queryProjection,
+                    clientSideSelectPart);
+            }
+
+
+            return Execute<T, T>(uri, queryProjection);
+        }
+
+
+        private object Execute<T, TConverted>(string uri, RestQueryableTreeParser.QueryProjection queryProjection, Func<T, TConverted> clientSideSelectPart = null)
+        {
+            if (queryProjection == RestQueryableTreeParser.QueryProjection.ToJson)
                 return this.client.Get<JToken>(uri);
 
-            if (parser.Projection == RestQueryableTreeParser.QueryProjection.ToUri)
+            if (queryProjection == RestQueryableTreeParser.QueryProjection.ToUri)
                 return new Uri(uri);
 
-            if (parser.Projection == RestQueryableTreeParser.QueryProjection.FirstLazy)
+            if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
                 var resourceInfo = this.client.GetResourceInfoForType(typeof(T));
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
@@ -208,16 +241,22 @@ namespace Pomona.Common.Linq
                 return proxy;
             }
 
-            switch (parser.Projection)
+            switch (queryProjection)
             {
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
-                    return this.client.Get<IList<T>>(uri);
+                    var result = this.client.Get<IList<T>>(uri);
+                    if (clientSideSelectPart != null)
+                    {
+                        return result.Select(clientSideSelectPart).ToList();
+                    }
+                    return result;
                 case RestQueryableTreeParser.QueryProjection.First:
                     return GetFirst<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Single:
                     return GetFirst<T>(uri);
                 case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
+                    // TODO: SingleOrDefault is obviously not implemented, has been overlooked [KNS]
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
@@ -227,7 +266,7 @@ namespace Pomona.Common.Linq
                     // TODO: Implement count querying without returning any results..
                     return this.client.Get<IList<T>>(uri).Count > 0;
                 default:
-                    throw new NotImplementedException("Don't recognize projection type " + parser.Projection);
+                    throw new NotImplementedException("Don't recognize projection type " + queryProjection);
             }
         }
 

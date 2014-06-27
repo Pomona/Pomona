@@ -37,7 +37,7 @@ namespace Pomona.Common.Linq
         private readonly string value;
 
 
-        public QueryTerminalSegmentExpression(string value)
+        public QueryTerminalSegmentExpression(string value, Type type = null, bool localExecutionPreferred = false) : base(type ?? typeof(string), localExecutionPreferred)
         {
             if (value == null)
                 throw new ArgumentNullException("value");

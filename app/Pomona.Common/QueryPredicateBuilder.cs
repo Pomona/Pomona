@@ -100,7 +100,7 @@ namespace Pomona.Common
 
         public static string Create(LambdaExpression lambda)
         {
-            return new QueryPredicateBuilder().Visit(lambda).ToString();
+            return new QueryPredicateBuilder().Build(lambda).ToString();
         }
 
 
@@ -116,15 +116,53 @@ namespace Pomona.Common
         }
 
 
+        internal virtual PomonaExtendedExpression Build(LambdaExpression node)
+        {
+#if DEBUG
+            this.visitCalledCounter = 0;
+#endif
+            var result = (PomonaExtendedExpression)Visit(new PreBuildVisitor().Visit(node));
+
+            // Console.WriteLine("VISIT OF BUILD CALLED " + visitCalledCounter + " TIMES FOR " + node.EnumerateDescendants().Count() + " NODES");
+
+            return result;
+        }
+
+
+#if DEBUG
+        private int visitCalledCounter = 0;
+
+        public int VisitCalledCounter
+        {
+            get { return this.visitCalledCounter; }
+        }
+#endif
+
+        private readonly Dictionary<Expression, Expression> builderVisitedNodesCache =
+            new Dictionary<Expression, Expression>();
+
+
         public override Expression Visit(Expression node)
         {
             if (node == null)
                 return null;
-            var visitedNode = base.Visit(node) as PomonaExtendedExpression;
-            if (visitedNode == null)
-                return NotSupported(node, node.NodeType + " not supported server side.");
 
-            return visitedNode;
+            if (node is PomonaExtendedExpression)
+                return node;
+
+            Expression visited;
+            if (!this.builderVisitedNodesCache.TryGetValue(node, out visited))
+            {
+                visited = base.Visit(node);
+                if (!(visited is PomonaExtendedExpression))
+                    visited = NotSupported(node, node.NodeType + " not supported server side.");
+                this.builderVisitedNodesCache[node] = visited;
+            }
+#if DEBUG
+            this.visitCalledCounter++;
+#endif
+
+            return visited;
         }
 
 
@@ -154,13 +192,14 @@ namespace Pomona.Common
             TryDetectAndConvertEnumComparison(ref left, ref right, true);
             TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
 
-            return Scope(Nodes(Visit(left), " ", opString, " ", Visit(right)));
+            return Scope(Nodes(node, Visit(left), " ", opString, " ", Visit(right)));
         }
 
 
         protected override Expression VisitConditional(ConditionalExpression node)
         {
-            return Format("iif({0},{1},{2})",
+            return Format(node,
+                "iif({0},{1},{2})",
                 Visit(node.Test),
                 Visit(node.IfTrue),
                 Visit(node.IfFalse));
@@ -171,7 +210,10 @@ namespace Pomona.Common
         {
             var valueType = node.Type;
             var value = node.Value;
-            return Terminal(GetEncodedConstant(valueType, value));
+            var encodedConstant = GetEncodedConstant(valueType, value);
+            if (encodedConstant == null)
+                return NotSupported(node, "Constant of this type not supported.");
+            return Terminal(node, encodedConstant, true);
         }
 
 
@@ -184,7 +226,7 @@ namespace Pomona.Common
             {
                 try
                 {
-                    this.rootLambda = (Expression<T>)(new PreBuildVisitor().Visit(node));
+                    this.rootLambda = node;
                     return VisitRootLambda((Expression<T>)this.rootLambda);
                 }
                 finally
@@ -196,7 +238,7 @@ namespace Pomona.Common
             {
                 var param = node.Parameters[0];
                 var predicateBuilder = new QueryPredicateBuilder(ThisParameter);
-                return Format("{0}:{1}", param.Name, predicateBuilder.Visit(node));
+                return Format(node, "{0}:{1}", param.Name, predicateBuilder.Visit(node));
             }
         }
 
@@ -211,14 +253,15 @@ namespace Pomona.Common
         {
             Expression odataExpression;
             if (TryMapKnownOdataFunction(
+                node,
                 node.Member,
                 Enumerable.Repeat(node.Expression, 1),
                 out odataExpression))
                 return odataExpression;
 
             if (node.Expression != ThisParameter)
-                return Format("{0}.{1}", Visit(node.Expression), GetMemberName(node.Member));
-            return Terminal(GetMemberName(node.Member));
+                return Format(node, "{0}.{1}", Visit(node.Expression), GetMemberName(node.Member));
+            return Terminal(node, GetMemberName(node.Member));
         }
 
 
@@ -231,10 +274,10 @@ namespace Pomona.Common
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             if (node.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
-                return Format("{0} in {1}", Visit(node.Arguments[1]), Visit(node.Arguments[0]));
+                return Format(node, "{0} in {1}", Visit(node.Arguments[1]), Visit(node.Arguments[0]));
 
             if (node.Method.UniqueToken() == OdataFunctionMapping.ListContainsMethod.UniqueToken())
-                return Format("{0} in {1}", Visit(node.Arguments[0]), Visit(node.Object));
+                return Format(node, "{0} in {1}", Visit(node.Arguments[0]), Visit(node.Object));
 
             if (node.Method.UniqueToken() == OdataFunctionMapping.DictStringStringGetMethod.UniqueToken())
             {
@@ -243,14 +286,14 @@ namespace Pomona.Common
                 /* 
                 if (ContainsOnlyValidSymbolCharacters(key))
                     return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
-                return Format("{0}[{1}]", Visit(node.Object), quotedKey);
+                return Format(node, "{0}[{1}]", Visit(node.Object), quotedKey);
             }
             if (node.Method.UniqueToken() == OdataFunctionMapping.SafeGetMethod.UniqueToken())
             {
                 var constantKeyExpr = node.Arguments[1] as ConstantExpression;
                 if (constantKeyExpr != null && constantKeyExpr.Type == typeof(string) &&
                     IsValidSymbolString((string)constantKeyExpr.Value))
-                    return Format("{0}.{1}", Visit(node.Arguments[0]), constantKeyExpr.Value);
+                    return Format(node, "{0}.{1}", Visit(node.Arguments[0]), constantKeyExpr.Value);
             }
 
             Expression odataExpression;
@@ -261,7 +304,7 @@ namespace Pomona.Common
                 : node.Arguments;
 
             if (
-                !TryMapKnownOdataFunction(node.Method, args, out odataExpression))
+                !TryMapKnownOdataFunction(node, node.Method, args, out odataExpression))
             {
                 return NotSupported(node,
                     "Don't know what to do with method " + node.Method.Name + " declared in "
@@ -278,15 +321,15 @@ namespace Pomona.Common
             var format = "["
                          + string.Join(",", Enumerable.Range(0, elements.Length).Select(x => string.Concat("{", x, "}")))
                          + "]";
-            return Format(format, elements);
+            return Format(node, format, elements);
         }
 
 
         protected override Expression VisitParameter(ParameterExpression node)
         {
             if (node == ThisParameter)
-                return Terminal("this");
-            return Terminal(node.Name);
+                return Terminal(node, "this");
+            return Terminal(node, node.Name);
         }
 
 
@@ -304,10 +347,11 @@ namespace Pomona.Common
                     //}
                     var jsonTypeName = GetExternalTypeName(typeOperand);
                     if (node.Expression == ThisParameter)
-                        return Format("isof({0})", jsonTypeName);
+                        return Format(node, "isof({0})", jsonTypeName);
                     else
                     {
-                        return Format("isof({0},{1})",
+                        return Format(node,
+                            "isof({0},{1})",
                             Visit(node.Expression),
                             Visit(Expression.Constant(typeOperand)));
                     }
@@ -321,56 +365,67 @@ namespace Pomona.Common
         }
 
 
-        protected override Expression VisitUnary(UnaryExpression unaryExpression)
+        protected override Expression VisitUnary(UnaryExpression node)
         {
-            switch (unaryExpression.NodeType)
+            switch (node.NodeType)
             {
                 case ExpressionType.Not:
-                    return Format("not ({0})", Visit(unaryExpression.Operand));
+                    return Format(node, "not ({0})", Visit(node.Operand));
 
                 case ExpressionType.TypeAs:
-                    return Scope(Format("{0} as {1}",
-                        Visit(unaryExpression.Operand),
-                        GetExternalTypeName(unaryExpression.Type)));
+                    return Scope(Format(node,
+                        "{0} as {1}",
+                        Visit(node.Operand),
+                        GetExternalTypeName(node.Type)));
 
                 case ExpressionType.Convert:
-                    if (unaryExpression.Operand.Type.IsEnum)
-                        return Visit(unaryExpression.Operand);
+                    if (node.Operand.Type.IsEnum)
+                        return Visit(node.Operand);
 
-                    if (unaryExpression.Operand == ThisParameter)
+                    if (node.Operand == ThisParameter)
                     {
-                        return Format("cast({0})", GetExternalTypeName(unaryExpression.Type));
+                        return Format(node, "cast({0})", GetExternalTypeName(node.Type));
                         // throw new NotImplementedException("Only know how to cast `this` to something else");
                     }
                     else
                     {
-                        return Format("cast({0},{1})",
-                            Visit(unaryExpression.Operand),
-                            GetExternalTypeName(unaryExpression.Type));
+                        return Format(node,
+                            "cast({0},{1})",
+                            Visit(node.Operand),
+                            GetExternalTypeName(node.Type));
                     }
 
                 default:
-                    return NotSupported(unaryExpression,
-                        "NodeType " + unaryExpression.NodeType + " in UnaryExpression not yet handled.");
+                    return NotSupported(node,
+                        "NodeType " + node.NodeType + " in UnaryExpression not yet handled.");
             }
         }
 
 
-        internal static QuerySegmentExpression Format(string format, params object[] args)
+        internal static QuerySegmentExpression Format(Expression origNode, string format, params object[] args)
         {
-            return new QueryFormattedSegmentExpression(format, args);
+            return Format(origNode, false, format, args);
         }
 
 
-        internal static QuerySegmentListExpression Nodes(params object[] args)
+        internal static QuerySegmentExpression Format(Expression origNode,
+            bool localExecutionPreferred,
+            string format,
+            params object[] args)
         {
-            return new QuerySegmentListExpression(args);
+            return new QueryFormattedSegmentExpression(origNode.Type, format, args, localExecutionPreferred);
         }
 
 
-        internal static QuerySegmentListExpression Nodes(IEnumerable<object> args)
+        internal static QuerySegmentListExpression Nodes(Expression origNode, params object[] args)
         {
-            return new QuerySegmentListExpression(args);
+            return new QuerySegmentListExpression(args, origNode.Type);
+        }
+
+
+        internal static QuerySegmentListExpression Nodes(Expression origNode, IEnumerable<object> args)
+        {
+            return new QuerySegmentListExpression(args, origNode.Type);
         }
 
 
@@ -380,9 +435,11 @@ namespace Pomona.Common
         }
 
 
-        internal static QuerySegmentExpression Terminal(string value)
+        internal static QuerySegmentExpression Terminal(Expression origNode,
+            string value,
+            bool localExecutionPreferred = false)
         {
-            return new QueryTerminalSegmentExpression(value);
+            return new QueryTerminalSegmentExpression(value, origNode.Type, localExecutionPreferred);
         }
 
 
@@ -550,14 +607,16 @@ namespace Pomona.Common
             if (valueType != typeof(string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {
                 // This handles arrays in constant expressions
-                var elements = string
-                    .Join(
-                        ",",
-                        ((IEnumerable)value)
-                            .Cast<object>()
-                            .Select(x => GetEncodedConstant(enumerableElementType, x)));
+                var encodedElements = ((IEnumerable)value)
+                    .Cast<object>()
+                    .Select(x => GetEncodedConstant(enumerableElementType, x))
+                    .ToList();
 
-                return string.Format("[{0}]", elements);
+                if (encodedElements.Any(x => x == null))
+                    return null;
+
+                var newArrayString = string.Join(",", encodedElements);
+                return string.Format("[{0}]", newArrayString);
             }
 
             if (valueType.IsEnum)
@@ -590,8 +649,7 @@ namespace Pomona.Common
                 default:
                     break;
             }
-            throw new NotImplementedException(
-                "Don't know how to send constant of type " + valueType.FullName + " yet..");
+            return null;
         }
 
 
@@ -666,6 +724,7 @@ namespace Pomona.Common
 
 
         private bool TryMapKnownOdataFunction(
+            Expression origNode,
             MemberInfo member,
             IEnumerable<Expression> arguments,
             out Expression odataExpression)
@@ -684,7 +743,7 @@ namespace Pomona.Common
                 ? memberMapping.ChainedCallFormat
                 : memberMapping.StaticCallFormat;
 
-            odataExpression = Format(callFormat, odataArguments);
+            odataExpression = Format(origNode, memberMapping.LocalExecutionPreferred, callFormat, odataArguments);
             return true;
         }
 

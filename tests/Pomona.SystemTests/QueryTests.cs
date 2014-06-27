@@ -47,6 +47,83 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class QueryTests : ClientTestsBase
     {
+        public class ClientSideClass : IEquatable<ClientSideClass>
+        {
+            private readonly string bar;
+            private readonly int foo;
+
+
+            public ClientSideClass(int foo, string bar)
+            {
+                this.foo = foo;
+                this.bar = bar;
+            }
+
+
+            public string Bar
+            {
+                get { return this.bar; }
+            }
+
+            public int Foo
+            {
+                get { return this.foo; }
+            }
+
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                    return false;
+                if (ReferenceEquals(this, obj))
+                    return true;
+                if (obj.GetType() != GetType())
+                    return false;
+                return Equals((ClientSideClass)obj);
+            }
+
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (this.foo * 397) ^ (this.bar != null ? this.bar.GetHashCode() : 0);
+                }
+            }
+
+
+            public bool Equals(ClientSideClass other)
+            {
+                if (ReferenceEquals(null, other))
+                    return false;
+                if (ReferenceEquals(this, other))
+                    return true;
+                return this.foo == other.foo && string.Equals(this.bar, other.bar);
+            }
+
+            #region Operators
+
+            public static bool operator ==(ClientSideClass left, ClientSideClass right)
+            {
+                return Equals(left, right);
+            }
+
+
+            public static bool operator !=(ClientSideClass left, ClientSideClass right)
+            {
+                return !Equals(left, right);
+            }
+
+            #endregion
+        }
+
+
+        private string SomeCrazyMethod(string s)
+        {
+            return new string(s.ToCharArray().Reverse().ToArray());
+        }
+
+
         [Test]
         public void GetLazyById_ReturnsLazyProxy()
         {
@@ -61,6 +138,15 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetResourceById_UsingClientRepository_ReturnsResource()
+        {
+            var critterEntity = CritterEntities.First();
+            var critterResource = Client.Critters.Get(critterEntity.Id);
+            Assert.That(critterResource, Is.Not.Null);
+        }
+
+
+        [Test]
         public void GetResourceWithReferenceToSubclassedResource_CreatesSubclassedLazyProxy()
         {
             var critterEntity = Repository.CreateRandomCritter(rngSeed : 65236);
@@ -70,15 +156,6 @@ namespace Pomona.SystemTests
 
             var critterResource = Client.Critters.Get(critterEntity.Id);
             Assert.That(critterResource.ReferenceToAnotherCritter, Is.TypeOf<MusicalCritterLazyProxy>());
-        }
-
-
-        [Test]
-        public void GetResourceById_UsingClientRepository_ReturnsResource()
-        {
-            var critterEntity = CritterEntities.First();
-            var critterResource = Client.Critters.Get(critterEntity.Id);
-            Assert.That(critterResource, Is.Not.Null);
         }
 
 
@@ -128,14 +205,6 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void QueryExposedInterface_ReturnsSingleExposedInterfaceResource()
-        {
-            var entity = Save(new ExposedInterfaceInternalImplementation() { FooBar = "lalala", PropertyFromInheritedInterface = 123});
-            var resultResource = Client.ExposedInterfaces.Query(x => x.FooBar == "lalala").First();
-            Assert.That(entity.Id, Is.EqualTo(resultResource.Id));
-        }
-
-        [Test]
         public void QueryDictionaryContainer_WhereAttributeContainsValueAndKey_ReturnsCorrectResults()
         {
             var includedFirst = (DictionaryContainer)Repository.Post(
@@ -180,6 +249,20 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void QueryExposedInterface_ReturnsSingleExposedInterfaceResource()
+        {
+            var entity =
+                Save(new ExposedInterfaceInternalImplementation()
+                {
+                    FooBar = "lalala",
+                    PropertyFromInheritedInterface = 123
+                });
+            var resultResource = Client.ExposedInterfaces.Query(x => x.FooBar == "lalala").First();
+            Assert.That(entity.Id, Is.EqualTo(resultResource.Id));
+        }
+
+
+        [Test]
         public void QueryGalaxyHavingQuestionMarkInName_ReturnsCorrectResource()
         {
             // NOTE: This only works through NancyTestingWebClient. It will fail through self host or ASP.NET host.
@@ -207,9 +290,10 @@ namespace Pomona.SystemTests
             var hashSetEntity =
                 (SetCollectionContainer)Repository.Post(new SetCollectionContainer()
                 {
-                    TheSet = { (Critter)Repository.Post(Repository.CreateRandomCritter(rngSeed: 1235534)) }
+                    TheSet = { (Critter)Repository.Post(Repository.CreateRandomCritter(rngSeed : 1235534)) }
                 });
-            var theSet = Client.SetCollectionContainers.Expand(x => x.TheSet).First(x => x.Id == hashSetEntity.Id).TheSet;
+            var theSet =
+                Client.SetCollectionContainers.Expand(x => x.TheSet).First(x => x.Id == hashSetEntity.Id).TheSet;
             Assert.That(theSet, Is.TypeOf<HashSet<ICritter>>());
             Assert.That(theSet.Count, Is.EqualTo(1));
         }
@@ -221,12 +305,13 @@ namespace Pomona.SystemTests
             var hashSetEntity =
                 (SetCollectionContainer)Repository.Post(new SetCollectionContainer()
                 {
-                    TheSet = { (Critter)Repository.Post(Repository.CreateRandomCritter(rngSeed: 1235534)) }
+                    TheSet = { (Critter)Repository.Post(Repository.CreateRandomCritter(rngSeed : 1235534)) }
                 });
             var theSet = Client.SetCollectionContainers.First(x => x.Id == hashSetEntity.Id).TheSet;
             Assert.That(theSet, Is.TypeOf<LazySetProxy<ICritter>>());
             Assert.That(theSet.Count, Is.EqualTo(1));
         }
+
 
         [Test]
         public void QueryMusicalCritter_WithBandNameEquals_ReturnsCorrectResult()
@@ -341,6 +426,68 @@ namespace Pomona.SystemTests
         {
             var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
             Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] { (int?)null }));
+        }
+
+
+        [Test]
+        public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful()
+        {
+            var expected =
+                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).ToList();
+            var actual =
+                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
+
+
+        [Test]
+        public void Select_WithClientServerSplit_UsingLocallyExecutedConcatMethod_IsSuccessful()
+        {
+            var expected =
+                CritterEntities.Select(
+                    x => new ClientSideClass(x.Id, x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+            var actual =
+                Client.Critters.Select(
+                    x => new ClientSideClass(x.Id, x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
+
+
+        [Test]
+        public void Select_WithClientServerSplit_UsingServerExecutedCountMethod_IsSuccessful()
+        {
+            var expected =
+                CritterEntities.Select(
+                    x =>
+                        new ClientSideClass(x.Id + x.Subscriptions.Count,
+                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+            var actual =
+                Client.Critters.Select(
+                    x =>
+                        new ClientSideClass(x.Id + x.Subscriptions.Count,
+                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
+
+
+        [Test]
+        public void Select_WithClientServerSplit_UsingServerExecutedLambdaPart_IsSuccessful()
+        {
+            var expected =
+                CritterEntities.Select(
+                    x =>
+                        new ClientSideClass(x.Id + x.Subscriptions.Count(y => y.Sku != "xfiles"),
+                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+            var actual =
+                Client.Critters.Select(
+                    x =>
+                        new ClientSideClass(x.Id + x.Subscriptions.Count(y => y.Sku != "xfiles"),
+                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
         }
     }
 }

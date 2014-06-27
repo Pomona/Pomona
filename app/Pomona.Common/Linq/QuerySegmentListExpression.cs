@@ -38,7 +38,7 @@ namespace Pomona.Common.Linq
         private readonly object[] children;
 
 
-        public QuerySegmentListExpression(IEnumerable<object> children)
+        public QuerySegmentListExpression(IEnumerable<object> children, Type type) : base(type)
         {
             if (children == null)
                 throw new ArgumentNullException("children");
@@ -51,20 +51,9 @@ namespace Pomona.Common.Linq
             get { return new ReadOnlyCollection<object>(this.children); }
         }
 
-
         public override IEnumerable<string> ToStringSegments()
         {
-            foreach (var child in this.children)
-            {
-                var exprChild = child as QuerySegmentExpression;
-                if (exprChild != null)
-                {
-                    foreach (var grandChild in exprChild.ToStringSegments())
-                        yield return grandChild;
-                }
-                else
-                    yield return child.ToString();
-            }
+            return ToStringSegmentsRecursive(children);
         }
     }
 }

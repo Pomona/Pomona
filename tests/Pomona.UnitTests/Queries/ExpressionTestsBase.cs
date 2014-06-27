@@ -27,44 +27,25 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
+using System.Linq.Expressions;
 
-namespace Pomona.Common.Linq
+using Pomona.TestHelpers;
+
+namespace Pomona.UnitTests.Queries
 {
-    internal class QueryFormattedSegmentExpression : QuerySegmentExpression
+    public abstract class ExpressionTestsBase
     {
-        private readonly object[] children;
-        private readonly string format;
-
-
-        public QueryFormattedSegmentExpression(Type type, string format, object[] args, bool localExecutionPreferred) : base(type, localExecutionPreferred)
+        protected static void AssertExpressionEquals<T, TReturn>(
+            Expression<Func<T, TReturn>> actual,
+            Expression<Func<T, TReturn>> expected)
         {
-            if (format == null)
-                throw new ArgumentNullException("format");
-            if (args == null)
-                throw new ArgumentNullException("args");
-            this.format = format;
-            this.children = (object[])args.Clone();
+            AssertExpressionEquals(actual, (Expression)expected);
         }
 
 
-        public override ReadOnlyCollection<object> Children
+        protected static void AssertExpressionEquals(Expression actual, Expression expected)
         {
-            get { return new ReadOnlyCollection<object>(this.children); }
-        }
-
-
-        public override string ToString()
-        {
-            return string.Format(CultureInfo.InvariantCulture, this.format, this.children);
-        }
-
-
-        public override IEnumerable<string> ToStringSegments()
-        {
-            yield return ToString();
+            actual.AssertEquals(expected);
         }
     }
 }

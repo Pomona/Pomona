@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections;
@@ -74,12 +78,12 @@ namespace Pomona.Common.Internals
             Add<string>(x => x.Substring(0, 0), "substring({0},{1},{2})");
             Add<string>(x => x.Replace("", ""), "replace({0},{1},{2})");
             Add<string>(x => x.Replace('a', 'a'), "replace({0},{1},{2})");
-            Add<string>(x => x.ToLower(), "tolower({0})");
-            Add<string>(x => x.ToUpper(), "toupper({0})");
+            Add<string>(x => x.ToLower(), "tolower({0})", localExec: true);
+            Add<string>(x => x.ToUpper(), "toupper({0})", localExec: true);
             Add<string>(x => x.Trim(), "trim({0})");
             Add<string>(x => x.IndexOf("a"), "indexof({0},{1})");
             Add<string>(x => x.IndexOf('a'), "indexof({0},{1})");
-            Add<string>(x => string.Concat("", ""), "concat({0},{1})");
+            Add<string>(x => string.Concat("", ""), "concat({0},{1})", localExec: true);
             Add<string>(x => x.Trim(), "trim({0})");
 
             // TODO: Concat function, this one's static
@@ -111,24 +115,30 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Any(null), "any({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.All(null), "all({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(
-                x => x.Select(y => (WildcardType) null), "select({0},{1})", MethodCallStyle.Chained);
+                x => x.Select(y => (WildcardType)null),
+                "select({0},{1})",
+                MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Where(y => false), "where({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
-            Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>) null), "many({0},{1})",
-                                           MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Count(y => true), "count({0},{1})");
+            Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>)null),
+                "many({0},{1})",
+                MethodCallStyle.Chained);
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
 
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.First(y => true), "first({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true), "firstdefault({0},{1})",
-                                           MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true),
+                "firstdefault({0},{1})",
+                MethodCallStyle.Chained);
 
             Add<IEnumerable<WildcardType>>(x => x.Single(), "single({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(), "singledefault({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Single(y => true), "single({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(y => true), "singledefault({0},{1})",
-                                           MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(y => true),
+                "singledefault({0},{1})",
+                MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Average(), "average({0})");
             Add<IEnumerable<double>>(x => x.Average(), "average({0})");
@@ -143,13 +153,16 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Average(y => 10), "average({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => 10.0), "average({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => 10f), "average({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Average(y => (decimal?) 10m), "average({0},{1})",
-                                           MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Average(y => (int?) 10), "average({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Average(y => (double?) 10.0), "average({0},{1})",
-                                           MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Average(y => (float?) 10f), "average({0},{1})",
-                                           MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (decimal?)10m),
+                "average({0},{1})",
+                MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (int?)10), "average({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (double?)10.0),
+                "average({0},{1})",
+                MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Average(y => (float?)10f),
+                "average({0},{1})",
+                MethodCallStyle.Chained);
 
             Add<IEnumerable<string>>(x => string.Join("?", x), "join({1},{0})", MethodCallStyle.Chained);
 
@@ -166,10 +179,10 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10.0), "sum({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Sum(y => 10f), "sum({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (decimal?) 10m), "sum({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (int?) 10), "sum({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (double?) 10.0), "sum({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (float?) 10f), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (decimal?)10m), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (int?)10), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (double?)10.0), "sum({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Sum(y => (float?)10f), "sum({0},{1})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
             Add<IEnumerable<decimal>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
@@ -184,10 +197,10 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Max(y => 10), "max({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Max(y => 10.0), "max({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Max(y => 10f), "max({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Max(y => (decimal?) 10m), "max({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Max(y => (int?) 10), "max({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Max(y => (double?) 10.0), "max({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Max(y => (float?) 10f), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => (decimal?)10m), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => (int?)10), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => (double?)10.0), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => (float?)10f), "max({0},{1})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
             Add<IEnumerable<decimal>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
@@ -202,41 +215,29 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Min(y => 10), "min({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Min(y => 10.0), "min({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Min(y => 10f), "min({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Min(y => (decimal?) 10m), "min({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Min(y => (int?) 10), "min({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Min(y => (double?) 10.0), "min({0},{1})", MethodCallStyle.Chained);
-            Add<IEnumerable<WildcardType>>(x => x.Min(y => (float?) 10f), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => (decimal?)10m), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => (int?)10), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => (double?)10.0), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => (float?)10f), "min({0},{1})", MethodCallStyle.Chained);
 
             Add<IDictionary<WildcardType, WildcardType>>(
-                x => x.Contains(null, null), "contains({0},{1},{2})", MethodCallStyle.Chained);
+                x => x.Contains(null, null),
+                "contains({0},{1},{2})",
+                MethodCallStyle.Chained);
             Add<IDictionary<WildcardType, WildcardType>>(
-                x => x.SafeGet(null), "safeget({0},{1})", MethodCallStyle.Chained);
+                x => x.SafeGet(null),
+                "safeget({0},{1})",
+                MethodCallStyle.Chained);
 
-            Add<WildcardType>(x => Convert.ChangeType(x, null), "convert({0},{1})",
-                              postResolveHook: FixChangeTypeReturnValue);
-        }
-
-        /// <summary>
-        /// This function converts result value of Convert.ChangeType to if type argument is a constant.
-        /// </summary>
-        /// <param name="expr"></param>
-        /// <returns></returns>
-        private static Expression FixChangeTypeReturnValue(Expression expr)
-        {
-            var callExpr = (MethodCallExpression) expr;
-
-            var typeArgExpr = callExpr.Arguments[1] as ConstantExpression;
-            if (typeArgExpr == null || typeArgExpr.Value == null)
-                return expr;
-
-            var convertToType = (Type) typeArgExpr.Value;
-
-            return Expression.Convert(expr, convertToType);
+            Add<WildcardType>(x => Convert.ChangeType(x, null),
+                "convert({0},{1})",
+                postResolveHook : FixChangeTypeReturnValue);
         }
 
 
         public static IEnumerable<MemberMapping> GetMemberCandidates(
-            string odataFunctionName, int argCount)
+            string odataFunctionName,
+            int argCount)
         {
             return nameToMemberMappingDict.SafeGet(odataFunctionName + argCount)
                    ?? Enumerable.Empty<MemberMapping>();
@@ -253,13 +254,33 @@ namespace Pomona.Common.Internals
             Expression<Func<T, object>> expr,
             string functionFormat,
             MethodCallStyle preferredCallStyle = MethodCallStyle.Static,
-            Func<Expression, Expression> postResolveHook = null)
+            Func<Expression, Expression> postResolveHook = null,
+            bool localExec = false)
         {
             var memberInfo = ReflectionHelper.GetInstanceMemberInfo(expr);
 
-            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat, preferredCallStyle, postResolveHook);
+            var memberMapping = MemberMapping.Parse(memberInfo, functionFormat, preferredCallStyle, postResolveHook, localExec);
             nameToMemberMappingDict.GetOrCreate(memberMapping.Name + memberMapping.ArgumentCount).Add(memberMapping);
             metadataTokenToMemberMappingDict[memberMapping.Member.UniqueToken()] = memberMapping;
+        }
+
+
+        /// <summary>
+        /// This function converts result value of Convert.ChangeType to if type argument is a constant.
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        private static Expression FixChangeTypeReturnValue(Expression expr)
+        {
+            var callExpr = (MethodCallExpression)expr;
+
+            var typeArgExpr = callExpr.Arguments[1] as ConstantExpression;
+            if (typeArgExpr == null || typeArgExpr.Value == null)
+                return expr;
+
+            var convertToType = (Type)typeArgExpr.Value;
+
+            return Expression.Convert(expr, convertToType);
         }
 
 
@@ -288,6 +309,7 @@ namespace Pomona.Common.Internals
         {
             private readonly IList<int> argumentOrder;
             private readonly string chainedCallFormat;
+            private readonly bool localExecutionPreferred;
             private readonly MemberInfo member;
 
             private readonly string name;
@@ -303,7 +325,8 @@ namespace Pomona.Common.Internals
                 string staticCallFormat,
                 string chainedCallFormat,
                 MethodCallStyle preferredCallStyle,
-                Func<Expression, Expression> postResolveHookFunction)
+                Func<Expression, Expression> postResolveHookFunction,
+                bool localExecutionPreferred)
             {
                 this.member = member;
                 this.name = name;
@@ -312,6 +335,7 @@ namespace Pomona.Common.Internals
                 this.chainedCallFormat = chainedCallFormat;
                 this.preferredCallStyle = preferredCallStyle;
                 this.postResolveHookFunction = postResolveHookFunction;
+                this.localExecutionPreferred = localExecutionPreferred;
             }
 
 
@@ -322,43 +346,46 @@ namespace Pomona.Common.Internals
 
             public IList<int> ArgumentOrder
             {
-                get { return argumentOrder; }
+                get { return this.argumentOrder; }
             }
 
             public string ChainedCallFormat
             {
-                get { return chainedCallFormat; }
+                get { return this.chainedCallFormat; }
+            }
+
+            public bool LocalExecutionPreferred
+            {
+                get { return this.localExecutionPreferred; }
             }
 
             public MemberInfo Member
             {
-                get { return member; }
+                get { return this.member; }
             }
 
             public string Name
             {
-                get { return name; }
+                get { return this.name; }
             }
 
             public MethodCallStyle PreferredCallStyle
             {
-                get { return preferredCallStyle; }
+                get { return this.preferredCallStyle; }
             }
 
             public string StaticCallFormat
             {
-                get { return staticCallFormat; }
-            }
-
-            public Expression PostResolveHook(Expression expression)
-            {
-                return postResolveHookFunction != null ? postResolveHookFunction(expression) : expression;
+                get { return this.staticCallFormat; }
             }
 
 
             public static MemberMapping Parse(
-                MemberInfo member, string odataMethodFormat, MethodCallStyle preferredCallStyle,
-                Func<Expression, Expression> postResolveHookFunction)
+                MemberInfo member,
+                string odataMethodFormat,
+                MethodCallStyle preferredCallStyle,
+                Func<Expression, Expression> postResolveHookFunction,
+                bool localExecutionPreferred)
             {
                 var name = odataMethodFormat.Split('(').First();
                 var argOrder = GetArgumentOrder(odataMethodFormat);
@@ -367,7 +394,7 @@ namespace Pomona.Common.Internals
                 if (memberAsMethod != null)
                 {
                     if (memberAsMethod.IsGenericMethod
-                        && memberAsMethod.GetGenericArguments().Any(x => x == typeof (WildcardType)))
+                        && memberAsMethod.GetGenericArguments().Any(x => x == typeof(WildcardType)))
                         member = memberAsMethod.GetGenericMethodDefinition();
                 }
 
@@ -376,14 +403,26 @@ namespace Pomona.Common.Internals
                     var memberLocal = member;
                     member =
                         member.DeclaringType.GetGenericTypeDefinition().GetMembers()
-                              .First(x => x.UniqueToken() == memberLocal.UniqueToken());
+                            .First(x => x.UniqueToken() == memberLocal.UniqueToken());
                 }
 
                 var argOrderArray = argOrder.ToArray();
                 var extensionMethodFormatString = CreateChainedCallFormatString(name, argOrderArray);
                 return new MemberMapping(
-                    member, name, argOrderArray, odataMethodFormat, extensionMethodFormatString, preferredCallStyle,
-                    postResolveHookFunction);
+                    member,
+                    name,
+                    argOrderArray,
+                    odataMethodFormat,
+                    extensionMethodFormatString,
+                    preferredCallStyle,
+                    postResolveHookFunction,
+                    localExecutionPreferred);
+            }
+
+
+            public Expression PostResolveHook(Expression expression)
+            {
+                return this.postResolveHookFunction != null ? this.postResolveHookFunction(expression) : expression;
             }
 
 
@@ -428,9 +467,10 @@ namespace Pomona.Common.Internals
                     return false;
 
                 var genericArguments = type.GetGenericArguments();
-                var wildcardType = typeof (WildcardType);
-                var wildcardStructType = typeof (WildcardStructType);
-                return genericArguments.Any(x => x == wildcardType || x == wildcardStructType) || genericArguments.Any(HasWildcardArgument);
+                var wildcardType = typeof(WildcardType);
+                var wildcardStructType = typeof(WildcardStructType);
+                return genericArguments.Any(x => x == wildcardType || x == wildcardStructType)
+                       || genericArguments.Any(HasWildcardArgument);
             }
         }
 
@@ -459,14 +499,13 @@ namespace Pomona.Common.Internals
 
             public T this[int index]
             {
-                get { return targetList[order[index]]; }
+                get { return this.targetList[this.order[index]]; }
                 set { throw new NotSupportedException(); }
             }
 
-
             public int Count
             {
-                get { return targetList.Count; }
+                get { return this.targetList.Count; }
             }
 
             public bool IsReadOnly
@@ -489,7 +528,7 @@ namespace Pomona.Common.Internals
 
             public bool Contains(T item)
             {
-                return targetList.Contains(item);
+                return this.targetList.Contains(item);
             }
 
 
@@ -508,9 +547,9 @@ namespace Pomona.Common.Internals
 
             public int IndexOf(T item)
             {
-                var index = targetList.IndexOf(item);
+                var index = this.targetList.IndexOf(item);
                 if (index != -1)
-                    index = order.IndexOf(index);
+                    index = this.order.IndexOf(index);
                 return index;
             }
 
@@ -541,11 +580,15 @@ namespace Pomona.Common.Internals
 
         #endregion
 
-        #region Nested type: WildcardType
+        #region Nested type: WildcardStructType
 
         private struct WildcardStructType
         {
         }
+
+        #endregion
+
+        #region Nested type: WildcardType
 
         private class WildcardType
         {

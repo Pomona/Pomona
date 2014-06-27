@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,11 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 using Pomona.Common.Linq;
 using Pomona.Common.TypeSystem;
@@ -40,19 +43,20 @@ namespace Pomona.Common
         {
         }
 
-        new public static string Create(LambdaExpression lambda)
+
+        public new static Expression Create(LambdaExpression lambda)
         {
-            return new QuerySelectBuilder().Visit(lambda).ToString();
+            return new QuerySelectBuilder().Build(lambda);
         }
 
 
-        new public static string Create<T>(Expression<Func<T, bool>> lambda)
+        public new static Expression Create<T>(Expression<Func<T, bool>> lambda)
         {
             return Create((LambdaExpression)lambda);
         }
 
 
-        new public static string Create<T, TResult>(Expression<Func<T, TResult>> lambda)
+        public new static Expression Create<T, TResult>(Expression<Func<T, TResult>> lambda)
         {
             return Create((LambdaExpression)lambda);
         }
@@ -60,15 +64,21 @@ namespace Pomona.Common
 
         protected override Expression VisitRootLambda<T>(Expression<T> node)
         {
+            var visited = VisitRootLambdaInner(node);
+            var pomonaExpr = visited as PomonaExtendedExpression;
+            if (pomonaExpr != null && !pomonaExpr.SupportedOnServer)
+                return new SelectClientServerPartitionerVisitor(this).SplitExpression(node);
+            return visited;
+        }
+
+
+        private Expression VisitRootLambdaInner<T>(Expression<T> node)
+        {
             if (node.Body.NodeType == ExpressionType.New)
-            {
                 return VisitRootNew((NewExpression)node.Body);
-            }
             if (node.Body.NodeType == ExpressionType.ListInit)
-            {
                 return VisitRootListInit((ListInitExpression)node.Body);
-            }
-            return Nodes(base.VisitRootLambda(node), " as this");
+            return Nodes(node, base.VisitRootLambda(node), " as this");
         }
 
 
@@ -90,42 +100,30 @@ namespace Pomona.Common
             if (pairs.Any(x => x.Key == null || x.Value == null))
                 return Visit(body);
 
-            var children = new List<object>();
-            foreach (var kvp in pairs)
-            {
-                if (children.Count > 0)
-                    children.Add(",");
+            var children =
+                pairs.Select(
+                    kvp =>
+                        new KeyValuePair<string, PomonaExtendedExpression>(kvp.Key,
+                            (PomonaExtendedExpression)Visit(kvp.Value))).ToList();
 
-                children.Add(Visit(kvp.Value));
-                children.Add(" as ");
-                children.Add(kvp.Key);
-            }
-
-            return Nodes(children);
+            return Nodes(body, children);
         }
 
 
         private Expression VisitRootNew(NewExpression node)
         {
-            var children = new List<object>();
+            if (!(node.Constructor.DeclaringType.IsAnonymous() || node.Constructor.DeclaringType.IsTuple()))
+                return base.Visit(node);
 
             var readOnlyCollection = node.Members != null
                 ? node.Members.Select(x => x.Name)
                 : node.Arguments.Select((x, i) => string.Format("Item{0}", i + 1));
-            foreach (
-                var arg in
-                    node.Arguments.Zip(
-                        readOnlyCollection, (e, p) => new { Name = p, Expr = e }))
-            {
-                if (children.Count > 0)
-                    children.Add(",");
 
-                children.Add(Visit(arg.Expr));
-                children.Add(" as ");
-                children.Add(arg.Name);
-            }
-
-            return Nodes(children);
+            var selectList = node.Arguments.Zip(
+                readOnlyCollection,
+                (e, p) => new KeyValuePair<string, PomonaExtendedExpression>(p, (PomonaExtendedExpression)Visit(e)))
+                .ToList();
+            return new QuerySelectExpression(selectList, node.Type);
         }
     }
 }

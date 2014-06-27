@@ -37,7 +37,7 @@ namespace Pomona.Common.Linq
         private readonly QuerySegmentExpression value;
 
 
-        public QuerySegmentParenScopeExpression(QuerySegmentExpression value)
+        public QuerySegmentParenScopeExpression(QuerySegmentExpression value) : base(value.Type)
         {
             if (value == null)
                 throw new ArgumentNullException("value");

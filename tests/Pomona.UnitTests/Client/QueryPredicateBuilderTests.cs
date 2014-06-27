@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -38,53 +37,8 @@ using Pomona.Common;
 namespace Pomona.UnitTests.Client
 {
     [TestFixture]
-    public class QueryPredicateBuilderTests
+    public class QueryPredicateBuilderTests : QueryPredicateBuilderTestsBase
     {
-        public class FooBar : IClientResource
-        {
-            public decimal SomeDecimal { get; set; }
-            public double SomeDouble { get; set; }
-            public int SomeInt { get; set; }
-            public string SomeString { get; set; }
-            public IList<TestResource> TestResources { get; set; }
-        }
-
-        public enum TestEnum
-        {
-            Tick,
-            Tack,
-            Tock
-        }
-
-        public interface IQueryableFooBarRepo : IQueryable<FooBar>
-        {
-        }
-
-        public class TestResource : IClientResource
-        {
-            public IDictionary<string, string> Attributes { get; set; }
-            public DateTime Birthday { get; set; }
-            public string Bonga { get; set; }
-            public dynamic Boo { get; set; }
-            public decimal CashAmount { get; set; }
-            public Guid Guid { get; set; }
-            public int Id { get; set; }
-            public string Jalla { get; set; }
-            public float LessPrecise { get; set; }
-            public IList<decimal> ListOfDecimals { get; set; }
-            public IList<double> ListOfDoubles { get; set; }
-            public IList<int> ListOfInts { get; set; }
-            public bool OnOrOff { get; set; }
-            public double Precise { get; set; }
-            public TestEnum SomeEnum { get; set; }
-            public IList<FooBar> SomeList { get; set; }
-            public TestEnum? SomeNullableEnum { get; set; }
-            public IQueryableFooBarRepo SomeQueryable { get; set; }
-            public IDictionary<string, object> StringObjectAttributes { get; set; }
-            public TimeSpan TimeSpan { get; set; }
-            public object UnknownProperty { get; set; }
-        }
-
         public class Container
         {
             public string Junk { get; set; }
@@ -142,6 +96,7 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => (int)x.Precise, "cast(precise,t'Int32')");
         }
+
 
         [Test]
         public void BuildComparisonWithEnum_ReturnsCorrectString()

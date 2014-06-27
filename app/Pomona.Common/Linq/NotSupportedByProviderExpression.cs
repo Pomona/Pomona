@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace Pomona.Common.Linq
@@ -37,7 +38,7 @@ namespace Pomona.Common.Linq
         private readonly Expression expression;
 
 
-        public NotSupportedByProviderExpression(Expression expression, Exception exception = null)
+        public NotSupportedByProviderExpression(Expression expression, Exception exception = null) : base(expression.Type)
         {
             if (expression == null)
                 throw new ArgumentNullException("expression");
@@ -45,6 +46,11 @@ namespace Pomona.Common.Linq
             this.exception = exception;
         }
 
+
+        public override bool LocalExecutionPreferred
+        {
+            get { return true; }
+        }
 
         public Expression Expression
         {
@@ -56,15 +62,20 @@ namespace Pomona.Common.Linq
             get { return ExpressionType.Extension; }
         }
 
-        public override Type Type
+        public override string ToString()
         {
-            get { return this.expression.Type; }
+            return "(☹ node \"" + expression + "\" not supported. ]])";
         }
 
 
-        public override string ToString()
+        public override bool SupportedOnServer
         {
-            throw this.exception ?? new NotSupportedException("Node " + this.expression + " not supported.");
+            get { return false; }
+        }
+
+        public override ReadOnlyCollection<object> Children
+        {
+            get { return new ReadOnlyCollection<object>(new object[] { }); }
         }
     }
 }

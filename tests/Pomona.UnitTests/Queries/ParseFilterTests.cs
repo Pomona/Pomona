@@ -55,19 +55,6 @@ namespace Pomona.UnitTests.Queries
         }
 
 
-        private void AssertExpressionEquals<T, TReturn>(
-            Expression<Func<T, TReturn>> actual, Expression<Func<T, TReturn>> expected)
-        {
-            AssertExpressionEquals(actual, (Expression) expected);
-        }
-
-
-        private void AssertExpressionEquals(Expression actual, Expression expected)
-        {
-            actual.AssertEquals(expected);
-        }
-
-
         [Test]
         public void Parse_AllExpressionWithLambda_CreatesCorrectExpression()
         {

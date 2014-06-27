@@ -37,6 +37,32 @@ namespace Pomona.Common.Internals
     {
         private static readonly UniqueMemberToken[] expandMethodTokens;
 
+        private class ExpressionDescendantEnumeratorVisitor : ExpressionVisitor
+        {
+            private List<Expression> descendants = new List<Expression>();
+
+            public List<Expression> Descendants
+            {
+                get { return this.descendants; }
+            }
+
+
+            public override Expression Visit(Expression node)
+            {
+                descendants.Add(node);
+                return base.Visit(node);
+            }
+        }
+
+        public static IEnumerable<Expression> EnumerateDescendants(this Expression expression)
+        {
+            if (expression == null)
+                return Enumerable.Empty<Expression>();
+
+            ExpressionDescendantEnumeratorVisitor visitor = new ExpressionDescendantEnumeratorVisitor();
+            visitor.Visit(expression);
+            return visitor.Descendants.Distinct();
+        }
 
         static ExpressionExtensions()
         {

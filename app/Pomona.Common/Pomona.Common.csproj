@@ -100,6 +100,7 @@
     <Compile Include="IPostableRepository.cs" />
     <Compile Include="IQueryableRepository.cs" />
     <Compile Include="IRequestDispatcher.cs" />
+    <Compile Include="Linq\ClientServerSplitSelectExpression.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\IRestQueryRoot.cs" />
     <Compile Include="Linq\NotSupportedByProviderExpression.cs" />
@@ -154,6 +155,7 @@
     <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
     <Compile Include="ResourcePropertyAttribute.cs" />
+    <Compile Include="SelectClientServerPartitionerVisitor.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />

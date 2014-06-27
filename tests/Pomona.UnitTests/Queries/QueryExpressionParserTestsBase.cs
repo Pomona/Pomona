@@ -39,7 +39,7 @@ using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.Queries
 {
-    public class QueryExpressionParserTestsBase
+    public abstract class QueryExpressionParserTestsBase : ExpressionTestsBase
     {
         #region TestEnum enum
 

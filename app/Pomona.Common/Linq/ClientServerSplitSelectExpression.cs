@@ -26,45 +26,44 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
+using System.Linq.Expressions;
 
 namespace Pomona.Common.Linq
 {
-    internal class QueryFormattedSegmentExpression : QuerySegmentExpression
+    internal class ClientServerSplitSelectExpression : PomonaExtendedExpression
     {
-        private readonly object[] children;
-        private readonly string format;
+        private readonly LambdaExpression clientSideExpression;
+        private readonly PomonaExtendedExpression serverExpression;
 
 
-        public QueryFormattedSegmentExpression(Type type, string format, object[] args, bool localExecutionPreferred) : base(type, localExecutionPreferred)
+        public ClientServerSplitSelectExpression(PomonaExtendedExpression serverExpression,
+            LambdaExpression clientSideExpression)
+            : base(serverExpression.Type)
         {
-            if (format == null)
-                throw new ArgumentNullException("format");
-            if (args == null)
-                throw new ArgumentNullException("args");
-            this.format = format;
-            this.children = (object[])args.Clone();
+            this.serverExpression = serverExpression;
+            this.clientSideExpression = clientSideExpression;
         }
 
 
         public override ReadOnlyCollection<object> Children
         {
-            get { return new ReadOnlyCollection<object>(this.children); }
+            get { return new ReadOnlyCollection<object>(new object[] { this.serverExpression }); }
         }
 
-
-        public override string ToString()
+        public LambdaExpression ClientSideExpression
         {
-            return string.Format(CultureInfo.InvariantCulture, this.format, this.children);
+            get { return this.clientSideExpression; }
         }
 
-
-        public override IEnumerable<string> ToStringSegments()
+        public PomonaExtendedExpression ServerExpression
         {
-            yield return ToString();
+            get { return this.serverExpression; }
+        }
+
+        public override bool SupportedOnServer
+        {
+            get { return true; }
         }
     }
 }

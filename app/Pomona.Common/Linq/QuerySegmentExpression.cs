@@ -29,30 +29,111 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
+
+using Pomona.Common.Internals;
 
 namespace Pomona.Common.Linq
 {
+    internal class QuerySelectExpression : QuerySegmentExpression
+    {
+        private readonly IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList;
+        private ReadOnlyCollection<object> children;
+
+        public QuerySelectExpression(IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList, Type type)
+            : base(type)
+        {
+            this.selectList = selectList;
+        }
+
+
+        private IEnumerable<object> GetChildren()
+        {
+            int i = 0;
+            foreach (var kvp in selectList)
+            {
+                if (i != 0)
+                    yield return ",";
+                yield return kvp.Value;
+                yield return " as ";
+                yield return kvp.Key;
+                i++;
+            }
+        }
+
+        public override ReadOnlyCollection<object> Children
+        {
+            get
+            {
+                if (children == null)
+                    children = new ReadOnlyCollection<object>(GetChildren().ToList());
+                return children;
+            }
+        }
+
+        public override IEnumerable<string> ToStringSegments()
+        {
+            return ToStringSegmentsRecursive(GetChildren());
+        }
+    }
     internal abstract class QuerySegmentExpression : PomonaExtendedExpression
     {
-        public abstract ReadOnlyCollection<object> Children { get; }
+        private readonly bool localExecutionPreferred;
+        private bool? supportedOnServer;
+        private string cachedQueryString;
 
-        public override ExpressionType NodeType
+
+        protected static IEnumerable<string> ToStringSegmentsRecursive(IEnumerable<object> children)
         {
-            get { return ExpressionType.Extension; }
+            foreach (var child in children)
+            {
+                var exprChild = child as QuerySegmentExpression;
+                if (exprChild != null)
+                {
+                    foreach (var grandChild in exprChild.ToStringSegments())
+                        yield return grandChild;
+                }
+                else
+                    yield return child.ToString();
+            }
         }
 
-        public override Type Type
+        protected QuerySegmentExpression(Type type, bool localExecutionPreferred = false)
+            : base(type)
         {
-            get { return typeof(string); }
+            this.localExecutionPreferred = localExecutionPreferred;
         }
+
+
+        public override bool LocalExecutionPreferred
+        {
+            get { return localExecutionPreferred; }
+        }
+
+        public override bool SupportedOnServer
+        {
+            get
+            {
+                if (!supportedOnServer.HasValue)
+                {
+                    supportedOnServer =
+                        Children.OfType<PomonaExtendedExpression>().Flatten(
+                            x => x.Children.OfType<PomonaExtendedExpression>()).All(x => x.SupportedOnServer);
+                }
+                return this.supportedOnServer.Value;
+            }
+        }
+
 
         public abstract IEnumerable<string> ToStringSegments();
 
 
         public override string ToString()
         {
-            return string.Concat(ToStringSegments());
+            if (cachedQueryString == null)
+                cachedQueryString = string.Concat(ToStringSegments());
+            return cachedQueryString;
         }
     }
 }
