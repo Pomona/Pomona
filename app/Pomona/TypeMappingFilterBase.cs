@@ -387,8 +387,7 @@ namespace Pomona
             return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
                    IsNativelySupportedType(type)
                    || TypeIsMappedAsCollection(type)
-                   || type.IsAnonymous()
-                   || TypeIsIGrouping(type);
+                   || TypeIsAnonymousOrGrouping(type);
         }
 
 
@@ -419,7 +418,7 @@ namespace Pomona
                 throw new ArgumentNullException("type");
             if (type.IsEnum)
                 return false;
-            return SourceTypes.Contains(type) || type.IsAnonymous() || TypeIsIGrouping(type);
+            return SourceTypes.Contains(type) || TypeIsAnonymousOrGrouping(type);
         }
 
 
@@ -427,7 +426,7 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
-            return type.IsAnonymous();
+            return TypeIsAnonymousOrGrouping(type);
         }
 
 
@@ -444,7 +443,12 @@ namespace Pomona
         }
 
 
-        private bool TypeIsIGrouping(Type type)
+        private static bool TypeIsAnonymousOrGrouping(Type type)
+        {
+            return type.IsAnonymous() || TypeIsIGrouping(type);
+        }
+
+        private static bool TypeIsIGrouping(Type type)
         {
             if (type == null)
                 throw new ArgumentNullException("type");

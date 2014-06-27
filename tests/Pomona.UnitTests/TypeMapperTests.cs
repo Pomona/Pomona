@@ -55,10 +55,14 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        public void GetTypeForProxyTypeInheritedFromMappedType_ReturnsMappedBaseType()
+        public void AnonymousCompilerGeneratedType_IsMappedAsValueObject()
         {
-            Assert.That(typeMapper.FromType(typeof(BearProxy)).Type, Is.EqualTo(typeof(Bear)));
+            var anonObject = new { Foo = "hoohoo" };
+            var type = this.typeMapper.FromType(anonObject.GetType());
+            Assert.That(type, Is.TypeOf<TransformedType>());
+            Assert.That(((TransformedType)type).MappedAsValueObject, Is.True);
         }
+
 
         [Test]
         public void ChangePluralNameWorksCorrectly()
@@ -86,9 +90,25 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void GetTypeForProxyTypeInheritedFromMappedType_ReturnsMappedBaseType()
+        {
+            Assert.That(this.typeMapper.FromType(typeof(BearProxy)).Type, Is.EqualTo(typeof(Bear)));
+        }
+
+
+        [Test]
+        public void InterfaceIGrouping_IsMappedAsValueObject()
+        {
+            var type = this.typeMapper.FromType(typeof(IGrouping<string, string>));
+            Assert.That(type, Is.TypeOf<TransformedType>());
+            Assert.That(((TransformedType)type).MappedAsValueObject, Is.True);
+        }
+
+
+        [Test]
         public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
         {
-            var tt = typeMapper.GetClassMapping<IExposedInterface>();
+            var tt = this.typeMapper.GetClassMapping<IExposedInterface>();
             var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyFromInheritedInterface");
             Assert.That(prop, Is.Not.Null, "Unable to find property PropertyFromInheritedInterface");
             Assert.That(prop.DeclaringType, Is.EqualTo(tt));
