@@ -245,6 +245,15 @@ isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
             Assert.That(rightAddInt, Is.EqualTo(3));
         }
 
+        [Test]
+        public void Parse_StringEqualsWithComparisonType_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("text ieq parent.text");
+            AssertExpressionEquals(expr,
+                _this => string.Equals(_this.Text, _this.Parent.Text, StringComparison.InvariantCultureIgnoreCase));
+
+        }
+
 
         [Test]
         public void Parse_PropertyEqualsStringExpression_CreatesCorrectExpression()

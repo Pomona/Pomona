@@ -35,7 +35,7 @@ namespace  Pomona.Queries
 public partial class PomonaQueryParser : Antlr.Runtime.Parser
 {
 	internal static readonly string[] tokenNames = new string[] {
-		"<invalid>", "<EOR>", "<DOWN>", "<UP>", "ADD_OP", "AND_OP", "ARRAY_LITERAL", "AS_OP", "DATETIME_LITERAL", "DIV_OP", "DOT_OP", "EQ_OP", "ESC_SEQ", "GE_OP", "GT_OP", "GUID_LITERAL", "HEX_DIGIT", "ID", "INDEXER_ACCESS", "INT", "IN_OP", "LAMBDA_OP", "LE_OP", "LT_OP", "METHOD_CALL", "MOD_OP", "MUL_OP", "NE_OP", "NOT_OP", "OCTAL_ESC", "ORDERBY_ASC", "ORDERBY_DESC", "OR_OP", "PREFIXED_STRING", "ROOT", "STRING", "SUB_OP", "UNICODE_ESC", "WS", "'!'", "'!='", "'%'", "'&&'", "'('", "')'", "'*'", "'+'", "','", "'-'", "'.'", "'/'", "':'", "'<'", "'<='", "'=='", "'>'", "'>='", "'['", "']'", "'add'", "'and'", "'as'", "'asc'", "'desc'", "'div'", "'eq'", "'ge'", "'gt'", "'in'", "'le'", "'lt'", "'mod'", "'mul'", "'ne'", "'not'", "'or'", "'sub'", "'||'"
+		"<invalid>", "<EOR>", "<DOWN>", "<UP>", "ADD_OP", "AND_OP", "ARRAY_LITERAL", "AS_OP", "DATETIME_LITERAL", "DIV_OP", "DOT_OP", "EQ_OP", "ESC_SEQ", "GE_OP", "GT_OP", "GUID_LITERAL", "HEX_DIGIT", "ID", "IEQ_OP", "INDEXER_ACCESS", "INT", "IN_OP", "LAMBDA_OP", "LE_OP", "LT_OP", "METHOD_CALL", "MOD_OP", "MUL_OP", "NE_OP", "NOT_OP", "OCTAL_ESC", "ORDERBY_ASC", "ORDERBY_DESC", "OR_OP", "PREFIXED_STRING", "ROOT", "STRING", "SUB_OP", "UNICODE_ESC", "WS", "'!'", "'!='", "'%'", "'&&'", "'('", "')'", "'*'", "'+'", "','", "'-'", "'.'", "'/'", "':'", "'<'", "'<='", "'=='", "'>'", "'>='", "'['", "']'", "'add'", "'and'", "'as'", "'asc'", "'desc'", "'div'", "'eq'", "'ge'", "'gt'", "'ieq'", "'in'", "'le'", "'lt'", "'mod'", "'mul'", "'ne'", "'not'", "'or'", "'sub'", "'||'"
 	};
 	public const int EOF=-1;
 	public const int ADD_OP=4;
@@ -52,28 +52,28 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	public const int GUID_LITERAL=15;
 	public const int HEX_DIGIT=16;
 	public const int ID=17;
-	public const int INDEXER_ACCESS=18;
-	public const int INT=19;
-	public const int IN_OP=20;
-	public const int LAMBDA_OP=21;
-	public const int LE_OP=22;
-	public const int LT_OP=23;
-	public const int METHOD_CALL=24;
-	public const int MOD_OP=25;
-	public const int MUL_OP=26;
-	public const int NE_OP=27;
-	public const int NOT_OP=28;
-	public const int OCTAL_ESC=29;
-	public const int ORDERBY_ASC=30;
-	public const int ORDERBY_DESC=31;
-	public const int OR_OP=32;
-	public const int PREFIXED_STRING=33;
-	public const int ROOT=34;
-	public const int STRING=35;
-	public const int SUB_OP=36;
-	public const int UNICODE_ESC=37;
-	public const int WS=38;
-	public const int T__39=39;
+	public const int IEQ_OP=18;
+	public const int INDEXER_ACCESS=19;
+	public const int INT=20;
+	public const int IN_OP=21;
+	public const int LAMBDA_OP=22;
+	public const int LE_OP=23;
+	public const int LT_OP=24;
+	public const int METHOD_CALL=25;
+	public const int MOD_OP=26;
+	public const int MUL_OP=27;
+	public const int NE_OP=28;
+	public const int NOT_OP=29;
+	public const int OCTAL_ESC=30;
+	public const int ORDERBY_ASC=31;
+	public const int ORDERBY_DESC=32;
+	public const int OR_OP=33;
+	public const int PREFIXED_STRING=34;
+	public const int ROOT=35;
+	public const int STRING=36;
+	public const int SUB_OP=37;
+	public const int UNICODE_ESC=38;
+	public const int WS=39;
 	public const int T__40=40;
 	public const int T__41=41;
 	public const int T__42=42;
@@ -112,6 +112,8 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	public const int T__75=75;
 	public const int T__76=76;
 	public const int T__77=77;
+	public const int T__78=78;
+	public const int T__79=79;
 
 	public PomonaQueryParser(ITokenStream input)
 		: this(input, new RecognizerSharedState())
@@ -155,7 +157,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_parse();
 	partial void LeaveRule_parse();
 	// $ANTLR start "parse"
-	// Queries\\PomonaQuery.g:77:8: public parse : arglist_expr EOF -> ^( ROOT arglist_expr ) ;
+	// Queries\\PomonaQuery.g:78:8: public parse : arglist_expr EOF -> ^( ROOT arglist_expr ) ;
 	[GrammarRule("parse")]
 	public AstParserRuleReturnScope<object, IToken> parse()
 	{
@@ -174,21 +176,21 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		RewriteRuleITokenStream stream_EOF=new RewriteRuleITokenStream(adaptor,"token EOF");
 		RewriteRuleSubtreeStream stream_arglist_expr=new RewriteRuleSubtreeStream(adaptor,"rule arglist_expr");
 		try { DebugEnterRule(GrammarFileName, "parse");
-		DebugLocation(77, 1);
+		DebugLocation(78, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:78:2: ( arglist_expr EOF -> ^( ROOT arglist_expr ) )
+			// Queries\\PomonaQuery.g:79:2: ( arglist_expr EOF -> ^( ROOT arglist_expr ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:78:4: arglist_expr EOF
+			// Queries\\PomonaQuery.g:79:4: arglist_expr EOF
 			{
-			DebugLocation(78, 4);
-			PushFollow(Follow._arglist_expr_in_parse498);
+			DebugLocation(79, 4);
+			PushFollow(Follow._arglist_expr_in_parse504);
 			arglist_expr1=arglist_expr();
 			PopFollow();
 
 			stream_arglist_expr.Add(arglist_expr1.Tree);
-			DebugLocation(78, 17);
-			EOF2=(IToken)Match(input,EOF,Follow._EOF_in_parse500);  
+			DebugLocation(79, 17);
+			EOF2=(IToken)Match(input,EOF,Follow._EOF_in_parse506);  
 			stream_EOF.Add(EOF2);
 
 
@@ -205,16 +207,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 78:21: -> ^( ROOT arglist_expr )
+			// 79:21: -> ^( ROOT arglist_expr )
 			{
-				DebugLocation(78, 24);
-				// Queries\\PomonaQuery.g:78:24: ^( ROOT arglist_expr )
+				DebugLocation(79, 24);
+				// Queries\\PomonaQuery.g:79:24: ^( ROOT arglist_expr )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(78, 26);
+				DebugLocation(79, 26);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(ROOT, "ROOT"), root_1);
 
-				DebugLocation(78, 31);
+				DebugLocation(79, 31);
 				adaptor.AddChild(root_1, stream_arglist_expr.NextTree());
 
 				adaptor.AddChild(root_0, root_1);
@@ -246,7 +248,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("parse", 1);
 			LeaveRule_parse();
 		}
-		DebugLocation(79, 1);
+		DebugLocation(80, 1);
 		} finally { DebugExitRule(GrammarFileName, "parse"); }
 		return retval;
 
@@ -256,7 +258,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_exp();
 	partial void LeaveRule_exp();
 	// $ANTLR start "exp"
-	// Queries\\PomonaQuery.g:81:1: exp : as_expression ;
+	// Queries\\PomonaQuery.g:82:1: exp : as_expression ;
 	[GrammarRule("exp")]
 	private AstParserRuleReturnScope<object, IToken> exp()
 	{
@@ -271,17 +273,17 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		AstParserRuleReturnScope<object, IToken> as_expression3 = default(AstParserRuleReturnScope<object, IToken>);
 
 		try { DebugEnterRule(GrammarFileName, "exp");
-		DebugLocation(81, 1);
+		DebugLocation(82, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:82:2: ( as_expression )
+			// Queries\\PomonaQuery.g:83:2: ( as_expression )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:82:4: as_expression
+			// Queries\\PomonaQuery.g:83:4: as_expression
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(82, 4);
-			PushFollow(Follow._as_expression_in_exp519);
+			DebugLocation(83, 4);
+			PushFollow(Follow._as_expression_in_exp525);
 			as_expression3=as_expression();
 			PopFollow();
 
@@ -308,7 +310,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("exp", 2);
 			LeaveRule_exp();
 		}
-		DebugLocation(83, 1);
+		DebugLocation(84, 1);
 		} finally { DebugExitRule(GrammarFileName, "exp"); }
 		return retval;
 
@@ -318,7 +320,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_as_expression();
 	partial void LeaveRule_as_expression();
 	// $ANTLR start "as_expression"
-	// Queries\\PomonaQuery.g:85:1: as_expression : lambda_expression ( 'as' lambda_expression )? -> ^( AS_OP ( lambda_expression )+ ) ;
+	// Queries\\PomonaQuery.g:86:1: as_expression : lambda_expression ( 'as' lambda_expression )? -> ^( AS_OP ( lambda_expression )+ ) ;
 	[GrammarRule("as_expression")]
 	private AstParserRuleReturnScope<object, IToken> as_expression()
 	{
@@ -335,30 +337,30 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		AstParserRuleReturnScope<object, IToken> lambda_expression6 = default(AstParserRuleReturnScope<object, IToken>);
 
 		object string_literal5_tree = default(object);
-		RewriteRuleITokenStream stream_61=new RewriteRuleITokenStream(adaptor,"token 61");
+		RewriteRuleITokenStream stream_62=new RewriteRuleITokenStream(adaptor,"token 62");
 		RewriteRuleSubtreeStream stream_lambda_expression=new RewriteRuleSubtreeStream(adaptor,"rule lambda_expression");
 		try { DebugEnterRule(GrammarFileName, "as_expression");
-		DebugLocation(85, 1);
+		DebugLocation(86, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:86:2: ( lambda_expression ( 'as' lambda_expression )? -> ^( AS_OP ( lambda_expression )+ ) )
+			// Queries\\PomonaQuery.g:87:2: ( lambda_expression ( 'as' lambda_expression )? -> ^( AS_OP ( lambda_expression )+ ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:86:4: lambda_expression ( 'as' lambda_expression )?
+			// Queries\\PomonaQuery.g:87:4: lambda_expression ( 'as' lambda_expression )?
 			{
-			DebugLocation(86, 4);
-			PushFollow(Follow._lambda_expression_in_as_expression530);
+			DebugLocation(87, 4);
+			PushFollow(Follow._lambda_expression_in_as_expression536);
 			lambda_expression4=lambda_expression();
 			PopFollow();
 
 			stream_lambda_expression.Add(lambda_expression4.Tree);
-			DebugLocation(86, 22);
-			// Queries\\PomonaQuery.g:86:22: ( 'as' lambda_expression )?
+			DebugLocation(87, 22);
+			// Queries\\PomonaQuery.g:87:22: ( 'as' lambda_expression )?
 			int alt1=2;
 			try { DebugEnterSubRule(1);
 			try { DebugEnterDecision(1, false);
 			int LA1_1 = input.LA(1);
 
-			if ((LA1_1==61))
+			if ((LA1_1==62))
 			{
 				alt1 = 1;
 			}
@@ -367,14 +369,14 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:86:24: 'as' lambda_expression
+				// Queries\\PomonaQuery.g:87:24: 'as' lambda_expression
 				{
-				DebugLocation(86, 24);
-				string_literal5=(IToken)Match(input,61,Follow._61_in_as_expression534);  
-				stream_61.Add(string_literal5);
+				DebugLocation(87, 24);
+				string_literal5=(IToken)Match(input,62,Follow._62_in_as_expression540);  
+				stream_62.Add(string_literal5);
 
-				DebugLocation(86, 29);
-				PushFollow(Follow._lambda_expression_in_as_expression536);
+				DebugLocation(87, 29);
+				PushFollow(Follow._lambda_expression_in_as_expression542);
 				lambda_expression6=lambda_expression();
 				PopFollow();
 
@@ -400,23 +402,23 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 86:50: -> ^( AS_OP ( lambda_expression )+ )
+			// 87:50: -> ^( AS_OP ( lambda_expression )+ )
 			{
-				DebugLocation(86, 53);
-				// Queries\\PomonaQuery.g:86:53: ^( AS_OP ( lambda_expression )+ )
+				DebugLocation(87, 53);
+				// Queries\\PomonaQuery.g:87:53: ^( AS_OP ( lambda_expression )+ )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(86, 55);
+				DebugLocation(87, 55);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(AS_OP, "AS_OP"), root_1);
 
-				DebugLocation(86, 61);
+				DebugLocation(87, 61);
 				if (!(stream_lambda_expression.HasNext))
 				{
 					throw new RewriteEarlyExitException();
 				}
 				while ( stream_lambda_expression.HasNext )
 				{
-					DebugLocation(86, 61);
+					DebugLocation(87, 61);
 					adaptor.AddChild(root_1, stream_lambda_expression.NextTree());
 
 				}
@@ -451,7 +453,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("as_expression", 3);
 			LeaveRule_as_expression();
 		}
-		DebugLocation(87, 1);
+		DebugLocation(88, 1);
 		} finally { DebugExitRule(GrammarFileName, "as_expression"); }
 		return retval;
 
@@ -461,7 +463,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_lambda_expression();
 	partial void LeaveRule_lambda_expression();
 	// $ANTLR start "lambda_expression"
-	// Queries\\PomonaQuery.g:89:1: lambda_expression : or_expression ( ':' or_expression )? -> ^( LAMBDA_OP ( or_expression )+ ) ;
+	// Queries\\PomonaQuery.g:90:1: lambda_expression : or_expression ( ':' or_expression )? -> ^( LAMBDA_OP ( or_expression )+ ) ;
 	[GrammarRule("lambda_expression")]
 	private AstParserRuleReturnScope<object, IToken> lambda_expression()
 	{
@@ -478,30 +480,30 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		AstParserRuleReturnScope<object, IToken> or_expression9 = default(AstParserRuleReturnScope<object, IToken>);
 
 		object char_literal8_tree = default(object);
-		RewriteRuleITokenStream stream_51=new RewriteRuleITokenStream(adaptor,"token 51");
+		RewriteRuleITokenStream stream_52=new RewriteRuleITokenStream(adaptor,"token 52");
 		RewriteRuleSubtreeStream stream_or_expression=new RewriteRuleSubtreeStream(adaptor,"rule or_expression");
 		try { DebugEnterRule(GrammarFileName, "lambda_expression");
-		DebugLocation(89, 1);
+		DebugLocation(90, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:90:2: ( or_expression ( ':' or_expression )? -> ^( LAMBDA_OP ( or_expression )+ ) )
+			// Queries\\PomonaQuery.g:91:2: ( or_expression ( ':' or_expression )? -> ^( LAMBDA_OP ( or_expression )+ ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:90:4: or_expression ( ':' or_expression )?
+			// Queries\\PomonaQuery.g:91:4: or_expression ( ':' or_expression )?
 			{
-			DebugLocation(90, 4);
-			PushFollow(Follow._or_expression_in_lambda_expression559);
+			DebugLocation(91, 4);
+			PushFollow(Follow._or_expression_in_lambda_expression565);
 			or_expression7=or_expression();
 			PopFollow();
 
 			stream_or_expression.Add(or_expression7.Tree);
-			DebugLocation(90, 18);
-			// Queries\\PomonaQuery.g:90:18: ( ':' or_expression )?
+			DebugLocation(91, 18);
+			// Queries\\PomonaQuery.g:91:18: ( ':' or_expression )?
 			int alt2=2;
 			try { DebugEnterSubRule(2);
 			try { DebugEnterDecision(2, false);
 			int LA2_1 = input.LA(1);
 
-			if ((LA2_1==51))
+			if ((LA2_1==52))
 			{
 				alt2 = 1;
 			}
@@ -510,14 +512,14 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:90:20: ':' or_expression
+				// Queries\\PomonaQuery.g:91:20: ':' or_expression
 				{
-				DebugLocation(90, 20);
-				char_literal8=(IToken)Match(input,51,Follow._51_in_lambda_expression563);  
-				stream_51.Add(char_literal8);
+				DebugLocation(91, 20);
+				char_literal8=(IToken)Match(input,52,Follow._52_in_lambda_expression569);  
+				stream_52.Add(char_literal8);
 
-				DebugLocation(90, 24);
-				PushFollow(Follow._or_expression_in_lambda_expression565);
+				DebugLocation(91, 24);
+				PushFollow(Follow._or_expression_in_lambda_expression571);
 				or_expression9=or_expression();
 				PopFollow();
 
@@ -543,23 +545,23 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 90:41: -> ^( LAMBDA_OP ( or_expression )+ )
+			// 91:41: -> ^( LAMBDA_OP ( or_expression )+ )
 			{
-				DebugLocation(90, 44);
-				// Queries\\PomonaQuery.g:90:44: ^( LAMBDA_OP ( or_expression )+ )
+				DebugLocation(91, 44);
+				// Queries\\PomonaQuery.g:91:44: ^( LAMBDA_OP ( or_expression )+ )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(90, 46);
+				DebugLocation(91, 46);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(LAMBDA_OP, "LAMBDA_OP"), root_1);
 
-				DebugLocation(90, 56);
+				DebugLocation(91, 56);
 				if (!(stream_or_expression.HasNext))
 				{
 					throw new RewriteEarlyExitException();
 				}
 				while ( stream_or_expression.HasNext )
 				{
-					DebugLocation(90, 56);
+					DebugLocation(91, 56);
 					adaptor.AddChild(root_1, stream_or_expression.NextTree());
 
 				}
@@ -594,7 +596,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("lambda_expression", 4);
 			LeaveRule_lambda_expression();
 		}
-		DebugLocation(91, 1);
+		DebugLocation(92, 1);
 		} finally { DebugExitRule(GrammarFileName, "lambda_expression"); }
 		return retval;
 
@@ -604,7 +606,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_or_expression();
 	partial void LeaveRule_or_expression();
 	// $ANTLR start "or_expression"
-	// Queries\\PomonaQuery.g:93:1: or_expression : and_expression ( ( 'or' | '||' ) and_expression )* -> ^( OR_OP ( and_expression )+ ) ;
+	// Queries\\PomonaQuery.g:94:1: or_expression : and_expression ( ( 'or' | '||' ) and_expression )* -> ^( OR_OP ( and_expression )+ ) ;
 	[GrammarRule("or_expression")]
 	private AstParserRuleReturnScope<object, IToken> or_expression()
 	{
@@ -623,25 +625,25 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object string_literal11_tree = default(object);
 		object string_literal12_tree = default(object);
-		RewriteRuleITokenStream stream_75=new RewriteRuleITokenStream(adaptor,"token 75");
 		RewriteRuleITokenStream stream_77=new RewriteRuleITokenStream(adaptor,"token 77");
+		RewriteRuleITokenStream stream_79=new RewriteRuleITokenStream(adaptor,"token 79");
 		RewriteRuleSubtreeStream stream_and_expression=new RewriteRuleSubtreeStream(adaptor,"rule and_expression");
 		try { DebugEnterRule(GrammarFileName, "or_expression");
-		DebugLocation(93, 1);
+		DebugLocation(94, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:94:2: ( and_expression ( ( 'or' | '||' ) and_expression )* -> ^( OR_OP ( and_expression )+ ) )
+			// Queries\\PomonaQuery.g:95:2: ( and_expression ( ( 'or' | '||' ) and_expression )* -> ^( OR_OP ( and_expression )+ ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:94:4: and_expression ( ( 'or' | '||' ) and_expression )*
+			// Queries\\PomonaQuery.g:95:4: and_expression ( ( 'or' | '||' ) and_expression )*
 			{
-			DebugLocation(94, 4);
-			PushFollow(Follow._and_expression_in_or_expression588);
+			DebugLocation(95, 4);
+			PushFollow(Follow._and_expression_in_or_expression594);
 			and_expression10=and_expression();
 			PopFollow();
 
 			stream_and_expression.Add(and_expression10.Tree);
-			DebugLocation(94, 19);
-			// Queries\\PomonaQuery.g:94:19: ( ( 'or' | '||' ) and_expression )*
+			DebugLocation(95, 19);
+			// Queries\\PomonaQuery.g:95:19: ( ( 'or' | '||' ) and_expression )*
 			try { DebugEnterSubRule(4);
 			while (true)
 			{
@@ -649,7 +651,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				try { DebugEnterDecision(4, false);
 				int LA4_1 = input.LA(1);
 
-				if ((LA4_1==75||LA4_1==77))
+				if ((LA4_1==77||LA4_1==79))
 				{
 					alt4 = 1;
 				}
@@ -660,20 +662,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:94:21: ( 'or' | '||' ) and_expression
+					// Queries\\PomonaQuery.g:95:21: ( 'or' | '||' ) and_expression
 					{
-					DebugLocation(94, 21);
-					// Queries\\PomonaQuery.g:94:21: ( 'or' | '||' )
+					DebugLocation(95, 21);
+					// Queries\\PomonaQuery.g:95:21: ( 'or' | '||' )
 					int alt3=2;
 					try { DebugEnterSubRule(3);
 					try { DebugEnterDecision(3, false);
 					int LA3_1 = input.LA(1);
 
-					if ((LA3_1==75))
+					if ((LA3_1==77))
 					{
 						alt3 = 1;
 					}
-					else if ((LA3_1==77))
+					else if ((LA3_1==79))
 					{
 						alt3 = 2;
 					}
@@ -688,22 +690,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					{
 					case 1:
 						DebugEnterAlt(1);
-						// Queries\\PomonaQuery.g:94:22: 'or'
+						// Queries\\PomonaQuery.g:95:22: 'or'
 						{
-						DebugLocation(94, 22);
-						string_literal11=(IToken)Match(input,75,Follow._75_in_or_expression593);  
-						stream_75.Add(string_literal11);
+						DebugLocation(95, 22);
+						string_literal11=(IToken)Match(input,77,Follow._77_in_or_expression599);  
+						stream_77.Add(string_literal11);
 
 
 						}
 						break;
 					case 2:
 						DebugEnterAlt(2);
-						// Queries\\PomonaQuery.g:94:27: '||'
+						// Queries\\PomonaQuery.g:95:27: '||'
 						{
-						DebugLocation(94, 27);
-						string_literal12=(IToken)Match(input,77,Follow._77_in_or_expression595);  
-						stream_77.Add(string_literal12);
+						DebugLocation(95, 27);
+						string_literal12=(IToken)Match(input,79,Follow._79_in_or_expression601);  
+						stream_79.Add(string_literal12);
 
 
 						}
@@ -712,8 +714,8 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					}
 					} finally { DebugExitSubRule(3); }
 
-					DebugLocation(94, 33);
-					PushFollow(Follow._and_expression_in_or_expression598);
+					DebugLocation(95, 33);
+					PushFollow(Follow._and_expression_in_or_expression604);
 					and_expression13=and_expression();
 					PopFollow();
 
@@ -746,23 +748,23 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 94:51: -> ^( OR_OP ( and_expression )+ )
+			// 95:51: -> ^( OR_OP ( and_expression )+ )
 			{
-				DebugLocation(94, 54);
-				// Queries\\PomonaQuery.g:94:54: ^( OR_OP ( and_expression )+ )
+				DebugLocation(95, 54);
+				// Queries\\PomonaQuery.g:95:54: ^( OR_OP ( and_expression )+ )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(94, 56);
+				DebugLocation(95, 56);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(OR_OP, "OR_OP"), root_1);
 
-				DebugLocation(94, 62);
+				DebugLocation(95, 62);
 				if (!(stream_and_expression.HasNext))
 				{
 					throw new RewriteEarlyExitException();
 				}
 				while ( stream_and_expression.HasNext )
 				{
-					DebugLocation(94, 62);
+					DebugLocation(95, 62);
 					adaptor.AddChild(root_1, stream_and_expression.NextTree());
 
 				}
@@ -797,7 +799,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("or_expression", 5);
 			LeaveRule_or_expression();
 		}
-		DebugLocation(95, 1);
+		DebugLocation(96, 1);
 		} finally { DebugExitRule(GrammarFileName, "or_expression"); }
 		return retval;
 
@@ -807,7 +809,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_and_operator();
 	partial void LeaveRule_and_operator();
 	// $ANTLR start "and_operator"
-	// Queries\\PomonaQuery.g:97:1: and_operator : ( 'and' | '&&' ) ;
+	// Queries\\PomonaQuery.g:98:1: and_operator : ( 'and' | '&&' ) ;
 	[GrammarRule("and_operator")]
 	private AstParserRuleReturnScope<object, IToken> and_operator()
 	{
@@ -823,19 +825,19 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object set14_tree = default(object);
 		try { DebugEnterRule(GrammarFileName, "and_operator");
-		DebugLocation(97, 15);
+		DebugLocation(98, 15);
 		try
 		{
-			// Queries\\PomonaQuery.g:98:2: ( ( 'and' | '&&' ) )
+			// Queries\\PomonaQuery.g:99:2: ( ( 'and' | '&&' ) )
 			DebugEnterAlt(1);
 			// Queries\\PomonaQuery.g:
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(98, 2);
+			DebugLocation(99, 2);
 
 			set14=(IToken)input.LT(1);
-			if (input.LA(1)==42||input.LA(1)==60)
+			if (input.LA(1)==43||input.LA(1)==61)
 			{
 				input.Consume();
 				adaptor.AddChild(root_0, (object)adaptor.Create(set14));
@@ -870,7 +872,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("and_operator", 6);
 			LeaveRule_and_operator();
 		}
-		DebugLocation(98, 15);
+		DebugLocation(99, 15);
 		} finally { DebugExitRule(GrammarFileName, "and_operator"); }
 		return retval;
 
@@ -880,7 +882,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_and_expression();
 	partial void LeaveRule_and_expression();
 	// $ANTLR start "and_expression"
-	// Queries\\PomonaQuery.g:101:1: and_expression : relational_expr ( and_operator relational_expr )* -> ^( AND_OP ( relational_expr )+ ) ;
+	// Queries\\PomonaQuery.g:102:1: and_expression : relational_expr ( and_operator relational_expr )* -> ^( AND_OP ( relational_expr )+ ) ;
 	[GrammarRule("and_expression")]
 	private AstParserRuleReturnScope<object, IToken> and_expression()
 	{
@@ -899,21 +901,21 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		RewriteRuleSubtreeStream stream_relational_expr=new RewriteRuleSubtreeStream(adaptor,"rule relational_expr");
 		RewriteRuleSubtreeStream stream_and_operator=new RewriteRuleSubtreeStream(adaptor,"rule and_operator");
 		try { DebugEnterRule(GrammarFileName, "and_expression");
-		DebugLocation(101, 1);
+		DebugLocation(102, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:102:2: ( relational_expr ( and_operator relational_expr )* -> ^( AND_OP ( relational_expr )+ ) )
+			// Queries\\PomonaQuery.g:103:2: ( relational_expr ( and_operator relational_expr )* -> ^( AND_OP ( relational_expr )+ ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:102:4: relational_expr ( and_operator relational_expr )*
+			// Queries\\PomonaQuery.g:103:4: relational_expr ( and_operator relational_expr )*
 			{
-			DebugLocation(102, 4);
-			PushFollow(Follow._relational_expr_in_and_expression637);
+			DebugLocation(103, 4);
+			PushFollow(Follow._relational_expr_in_and_expression643);
 			relational_expr15=relational_expr();
 			PopFollow();
 
 			stream_relational_expr.Add(relational_expr15.Tree);
-			DebugLocation(102, 20);
-			// Queries\\PomonaQuery.g:102:20: ( and_operator relational_expr )*
+			DebugLocation(103, 20);
+			// Queries\\PomonaQuery.g:103:20: ( and_operator relational_expr )*
 			try { DebugEnterSubRule(5);
 			while (true)
 			{
@@ -921,7 +923,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				try { DebugEnterDecision(5, false);
 				int LA5_1 = input.LA(1);
 
-				if ((LA5_1==42||LA5_1==60))
+				if ((LA5_1==43||LA5_1==61))
 				{
 					alt5 = 1;
 				}
@@ -932,16 +934,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:102:22: and_operator relational_expr
+					// Queries\\PomonaQuery.g:103:22: and_operator relational_expr
 					{
-					DebugLocation(102, 22);
-					PushFollow(Follow._and_operator_in_and_expression641);
+					DebugLocation(103, 22);
+					PushFollow(Follow._and_operator_in_and_expression647);
 					and_operator16=and_operator();
 					PopFollow();
 
 					stream_and_operator.Add(and_operator16.Tree);
-					DebugLocation(102, 35);
-					PushFollow(Follow._relational_expr_in_and_expression643);
+					DebugLocation(103, 35);
+					PushFollow(Follow._relational_expr_in_and_expression649);
 					relational_expr17=relational_expr();
 					PopFollow();
 
@@ -974,23 +976,23 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 102:54: -> ^( AND_OP ( relational_expr )+ )
+			// 103:54: -> ^( AND_OP ( relational_expr )+ )
 			{
-				DebugLocation(102, 57);
-				// Queries\\PomonaQuery.g:102:57: ^( AND_OP ( relational_expr )+ )
+				DebugLocation(103, 57);
+				// Queries\\PomonaQuery.g:103:57: ^( AND_OP ( relational_expr )+ )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(102, 59);
+				DebugLocation(103, 59);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(AND_OP, "AND_OP"), root_1);
 
-				DebugLocation(102, 66);
+				DebugLocation(103, 66);
 				if (!(stream_relational_expr.HasNext))
 				{
 					throw new RewriteEarlyExitException();
 				}
 				while ( stream_relational_expr.HasNext )
 				{
-					DebugLocation(102, 66);
+					DebugLocation(103, 66);
 					adaptor.AddChild(root_1, stream_relational_expr.NextTree());
 
 				}
@@ -1025,7 +1027,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("and_expression", 7);
 			LeaveRule_and_expression();
 		}
-		DebugLocation(103, 1);
+		DebugLocation(104, 1);
 		} finally { DebugExitRule(GrammarFileName, "and_expression"); }
 		return retval;
 
@@ -1035,7 +1037,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_relational_operator();
 	partial void LeaveRule_relational_operator();
 	// $ANTLR start "relational_operator"
-	// Queries\\PomonaQuery.g:107:1: relational_operator : ( ( 'gt' | '>' ) -> GT_OP | ( 'lt' | '<' ) -> LT_OP | ( 'eq' | '==' ) -> EQ_OP | ( 'ge' | '>=' ) -> GE_OP | ( 'le' | '<=' ) -> LE_OP | ( 'ne' | '!=' ) -> NE_OP | 'in' -> IN_OP );
+	// Queries\\PomonaQuery.g:108:1: relational_operator : ( ( 'gt' | '>' ) -> GT_OP | ( 'lt' | '<' ) -> LT_OP | ( 'eq' | '==' ) -> EQ_OP | ( 'ge' | '>=' ) -> GE_OP | ( 'le' | '<=' ) -> LE_OP | ( 'ne' | '!=' ) -> NE_OP | 'in' -> IN_OP | 'ieq' -> IEQ_OP );
 	[GrammarRule("relational_operator")]
 	private AstParserRuleReturnScope<object, IToken> relational_operator()
 	{
@@ -1060,6 +1062,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		IToken string_literal28 = default(IToken);
 		IToken string_literal29 = default(IToken);
 		IToken string_literal30 = default(IToken);
+		IToken string_literal31 = default(IToken);
 
 		object string_literal18_tree = default(object);
 		object char_literal19_tree = default(object);
@@ -1074,67 +1077,74 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		object string_literal28_tree = default(object);
 		object string_literal29_tree = default(object);
 		object string_literal30_tree = default(object);
-		RewriteRuleITokenStream stream_67=new RewriteRuleITokenStream(adaptor,"token 67");
-		RewriteRuleITokenStream stream_55=new RewriteRuleITokenStream(adaptor,"token 55");
-		RewriteRuleITokenStream stream_70=new RewriteRuleITokenStream(adaptor,"token 70");
-		RewriteRuleITokenStream stream_52=new RewriteRuleITokenStream(adaptor,"token 52");
-		RewriteRuleITokenStream stream_65=new RewriteRuleITokenStream(adaptor,"token 65");
-		RewriteRuleITokenStream stream_54=new RewriteRuleITokenStream(adaptor,"token 54");
-		RewriteRuleITokenStream stream_66=new RewriteRuleITokenStream(adaptor,"token 66");
-		RewriteRuleITokenStream stream_56=new RewriteRuleITokenStream(adaptor,"token 56");
-		RewriteRuleITokenStream stream_69=new RewriteRuleITokenStream(adaptor,"token 69");
-		RewriteRuleITokenStream stream_53=new RewriteRuleITokenStream(adaptor,"token 53");
-		RewriteRuleITokenStream stream_73=new RewriteRuleITokenStream(adaptor,"token 73");
-		RewriteRuleITokenStream stream_40=new RewriteRuleITokenStream(adaptor,"token 40");
+		object string_literal31_tree = default(object);
 		RewriteRuleITokenStream stream_68=new RewriteRuleITokenStream(adaptor,"token 68");
+		RewriteRuleITokenStream stream_56=new RewriteRuleITokenStream(adaptor,"token 56");
+		RewriteRuleITokenStream stream_72=new RewriteRuleITokenStream(adaptor,"token 72");
+		RewriteRuleITokenStream stream_53=new RewriteRuleITokenStream(adaptor,"token 53");
+		RewriteRuleITokenStream stream_66=new RewriteRuleITokenStream(adaptor,"token 66");
+		RewriteRuleITokenStream stream_55=new RewriteRuleITokenStream(adaptor,"token 55");
+		RewriteRuleITokenStream stream_67=new RewriteRuleITokenStream(adaptor,"token 67");
+		RewriteRuleITokenStream stream_57=new RewriteRuleITokenStream(adaptor,"token 57");
+		RewriteRuleITokenStream stream_71=new RewriteRuleITokenStream(adaptor,"token 71");
+		RewriteRuleITokenStream stream_54=new RewriteRuleITokenStream(adaptor,"token 54");
+		RewriteRuleITokenStream stream_75=new RewriteRuleITokenStream(adaptor,"token 75");
+		RewriteRuleITokenStream stream_41=new RewriteRuleITokenStream(adaptor,"token 41");
+		RewriteRuleITokenStream stream_70=new RewriteRuleITokenStream(adaptor,"token 70");
+		RewriteRuleITokenStream stream_69=new RewriteRuleITokenStream(adaptor,"token 69");
 		try { DebugEnterRule(GrammarFileName, "relational_operator");
-		DebugLocation(107, 1);
+		DebugLocation(108, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:108:2: ( ( 'gt' | '>' ) -> GT_OP | ( 'lt' | '<' ) -> LT_OP | ( 'eq' | '==' ) -> EQ_OP | ( 'ge' | '>=' ) -> GE_OP | ( 'le' | '<=' ) -> LE_OP | ( 'ne' | '!=' ) -> NE_OP | 'in' -> IN_OP )
-			int alt12=7;
+			// Queries\\PomonaQuery.g:109:2: ( ( 'gt' | '>' ) -> GT_OP | ( 'lt' | '<' ) -> LT_OP | ( 'eq' | '==' ) -> EQ_OP | ( 'ge' | '>=' ) -> GE_OP | ( 'le' | '<=' ) -> LE_OP | ( 'ne' | '!=' ) -> NE_OP | 'in' -> IN_OP | 'ieq' -> IEQ_OP )
+			int alt12=8;
 			try { DebugEnterDecision(12, false);
 			switch (input.LA(1))
 			{
-			case 55:
-			case 67:
+			case 56:
+			case 68:
 				{
 				alt12 = 1;
 				}
 				break;
-			case 52:
-			case 70:
+			case 53:
+			case 72:
 				{
 				alt12 = 2;
 				}
 				break;
-			case 54:
-			case 65:
+			case 55:
+			case 66:
 				{
 				alt12 = 3;
 				}
 				break;
-			case 56:
-			case 66:
+			case 57:
+			case 67:
 				{
 				alt12 = 4;
 				}
 				break;
-			case 53:
-			case 69:
+			case 54:
+			case 71:
 				{
 				alt12 = 5;
 				}
 				break;
-			case 40:
-			case 73:
+			case 41:
+			case 75:
 				{
 				alt12 = 6;
 				}
 				break;
-			case 68:
+			case 70:
 				{
 				alt12 = 7;
+				}
+				break;
+			case 69:
+				{
+				alt12 = 8;
 				}
 				break;
 			default:
@@ -1150,20 +1160,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:108:4: ( 'gt' | '>' )
+				// Queries\\PomonaQuery.g:109:4: ( 'gt' | '>' )
 				{
-				DebugLocation(108, 4);
-				// Queries\\PomonaQuery.g:108:4: ( 'gt' | '>' )
+				DebugLocation(109, 4);
+				// Queries\\PomonaQuery.g:109:4: ( 'gt' | '>' )
 				int alt6=2;
 				try { DebugEnterSubRule(6);
 				try { DebugEnterDecision(6, false);
 				int LA6_1 = input.LA(1);
 
-				if ((LA6_1==67))
+				if ((LA6_1==68))
 				{
 					alt6 = 1;
 				}
-				else if ((LA6_1==55))
+				else if ((LA6_1==56))
 				{
 					alt6 = 2;
 				}
@@ -1178,22 +1188,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:108:5: 'gt'
+					// Queries\\PomonaQuery.g:109:5: 'gt'
 					{
-					DebugLocation(108, 5);
-					string_literal18=(IToken)Match(input,67,Follow._67_in_relational_operator670);  
-					stream_67.Add(string_literal18);
+					DebugLocation(109, 5);
+					string_literal18=(IToken)Match(input,68,Follow._68_in_relational_operator676);  
+					stream_68.Add(string_literal18);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:108:10: '>'
+					// Queries\\PomonaQuery.g:109:10: '>'
 					{
-					DebugLocation(108, 10);
-					char_literal19=(IToken)Match(input,55,Follow._55_in_relational_operator672);  
-					stream_55.Add(char_literal19);
+					DebugLocation(109, 10);
+					char_literal19=(IToken)Match(input,56,Follow._56_in_relational_operator678);  
+					stream_56.Add(char_literal19);
 
 
 					}
@@ -1216,9 +1226,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 108:15: -> GT_OP
+				// 109:15: -> GT_OP
 				{
-					DebugLocation(108, 18);
+					DebugLocation(109, 18);
 					adaptor.AddChild(root_0, (object)adaptor.Create(GT_OP, "GT_OP"));
 
 				}
@@ -1230,20 +1240,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:109:4: ( 'lt' | '<' )
+				// Queries\\PomonaQuery.g:110:4: ( 'lt' | '<' )
 				{
-				DebugLocation(109, 4);
-				// Queries\\PomonaQuery.g:109:4: ( 'lt' | '<' )
+				DebugLocation(110, 4);
+				// Queries\\PomonaQuery.g:110:4: ( 'lt' | '<' )
 				int alt7=2;
 				try { DebugEnterSubRule(7);
 				try { DebugEnterDecision(7, false);
 				int LA7_1 = input.LA(1);
 
-				if ((LA7_1==70))
+				if ((LA7_1==72))
 				{
 					alt7 = 1;
 				}
-				else if ((LA7_1==52))
+				else if ((LA7_1==53))
 				{
 					alt7 = 2;
 				}
@@ -1258,22 +1268,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:109:5: 'lt'
+					// Queries\\PomonaQuery.g:110:5: 'lt'
 					{
-					DebugLocation(109, 5);
-					string_literal20=(IToken)Match(input,70,Follow._70_in_relational_operator683);  
-					stream_70.Add(string_literal20);
+					DebugLocation(110, 5);
+					string_literal20=(IToken)Match(input,72,Follow._72_in_relational_operator689);  
+					stream_72.Add(string_literal20);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:109:10: '<'
+					// Queries\\PomonaQuery.g:110:10: '<'
 					{
-					DebugLocation(109, 10);
-					char_literal21=(IToken)Match(input,52,Follow._52_in_relational_operator685);  
-					stream_52.Add(char_literal21);
+					DebugLocation(110, 10);
+					char_literal21=(IToken)Match(input,53,Follow._53_in_relational_operator691);  
+					stream_53.Add(char_literal21);
 
 
 					}
@@ -1296,9 +1306,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 109:15: -> LT_OP
+				// 110:15: -> LT_OP
 				{
-					DebugLocation(109, 18);
+					DebugLocation(110, 18);
 					adaptor.AddChild(root_0, (object)adaptor.Create(LT_OP, "LT_OP"));
 
 				}
@@ -1310,20 +1320,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:110:4: ( 'eq' | '==' )
+				// Queries\\PomonaQuery.g:111:4: ( 'eq' | '==' )
 				{
-				DebugLocation(110, 4);
-				// Queries\\PomonaQuery.g:110:4: ( 'eq' | '==' )
+				DebugLocation(111, 4);
+				// Queries\\PomonaQuery.g:111:4: ( 'eq' | '==' )
 				int alt8=2;
 				try { DebugEnterSubRule(8);
 				try { DebugEnterDecision(8, false);
 				int LA8_1 = input.LA(1);
 
-				if ((LA8_1==65))
+				if ((LA8_1==66))
 				{
 					alt8 = 1;
 				}
-				else if ((LA8_1==54))
+				else if ((LA8_1==55))
 				{
 					alt8 = 2;
 				}
@@ -1338,22 +1348,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:110:5: 'eq'
+					// Queries\\PomonaQuery.g:111:5: 'eq'
 					{
-					DebugLocation(110, 5);
-					string_literal22=(IToken)Match(input,65,Follow._65_in_relational_operator696);  
-					stream_65.Add(string_literal22);
+					DebugLocation(111, 5);
+					string_literal22=(IToken)Match(input,66,Follow._66_in_relational_operator702);  
+					stream_66.Add(string_literal22);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:110:10: '=='
+					// Queries\\PomonaQuery.g:111:10: '=='
 					{
-					DebugLocation(110, 10);
-					string_literal23=(IToken)Match(input,54,Follow._54_in_relational_operator698);  
-					stream_54.Add(string_literal23);
+					DebugLocation(111, 10);
+					string_literal23=(IToken)Match(input,55,Follow._55_in_relational_operator704);  
+					stream_55.Add(string_literal23);
 
 
 					}
@@ -1376,9 +1386,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 110:16: -> EQ_OP
+				// 111:16: -> EQ_OP
 				{
-					DebugLocation(110, 19);
+					DebugLocation(111, 19);
 					adaptor.AddChild(root_0, (object)adaptor.Create(EQ_OP, "EQ_OP"));
 
 				}
@@ -1390,20 +1400,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 4:
 				DebugEnterAlt(4);
-				// Queries\\PomonaQuery.g:111:4: ( 'ge' | '>=' )
+				// Queries\\PomonaQuery.g:112:4: ( 'ge' | '>=' )
 				{
-				DebugLocation(111, 4);
-				// Queries\\PomonaQuery.g:111:4: ( 'ge' | '>=' )
+				DebugLocation(112, 4);
+				// Queries\\PomonaQuery.g:112:4: ( 'ge' | '>=' )
 				int alt9=2;
 				try { DebugEnterSubRule(9);
 				try { DebugEnterDecision(9, false);
 				int LA9_1 = input.LA(1);
 
-				if ((LA9_1==66))
+				if ((LA9_1==67))
 				{
 					alt9 = 1;
 				}
-				else if ((LA9_1==56))
+				else if ((LA9_1==57))
 				{
 					alt9 = 2;
 				}
@@ -1418,22 +1428,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:111:5: 'ge'
+					// Queries\\PomonaQuery.g:112:5: 'ge'
 					{
-					DebugLocation(111, 5);
-					string_literal24=(IToken)Match(input,66,Follow._66_in_relational_operator709);  
-					stream_66.Add(string_literal24);
+					DebugLocation(112, 5);
+					string_literal24=(IToken)Match(input,67,Follow._67_in_relational_operator715);  
+					stream_67.Add(string_literal24);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:111:10: '>='
+					// Queries\\PomonaQuery.g:112:10: '>='
 					{
-					DebugLocation(111, 10);
-					string_literal25=(IToken)Match(input,56,Follow._56_in_relational_operator711);  
-					stream_56.Add(string_literal25);
+					DebugLocation(112, 10);
+					string_literal25=(IToken)Match(input,57,Follow._57_in_relational_operator717);  
+					stream_57.Add(string_literal25);
 
 
 					}
@@ -1456,9 +1466,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 111:16: -> GE_OP
+				// 112:16: -> GE_OP
 				{
-					DebugLocation(111, 19);
+					DebugLocation(112, 19);
 					adaptor.AddChild(root_0, (object)adaptor.Create(GE_OP, "GE_OP"));
 
 				}
@@ -1470,20 +1480,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 5:
 				DebugEnterAlt(5);
-				// Queries\\PomonaQuery.g:112:4: ( 'le' | '<=' )
+				// Queries\\PomonaQuery.g:113:4: ( 'le' | '<=' )
 				{
-				DebugLocation(112, 4);
-				// Queries\\PomonaQuery.g:112:4: ( 'le' | '<=' )
+				DebugLocation(113, 4);
+				// Queries\\PomonaQuery.g:113:4: ( 'le' | '<=' )
 				int alt10=2;
 				try { DebugEnterSubRule(10);
 				try { DebugEnterDecision(10, false);
 				int LA10_1 = input.LA(1);
 
-				if ((LA10_1==69))
+				if ((LA10_1==71))
 				{
 					alt10 = 1;
 				}
-				else if ((LA10_1==53))
+				else if ((LA10_1==54))
 				{
 					alt10 = 2;
 				}
@@ -1498,22 +1508,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:112:5: 'le'
+					// Queries\\PomonaQuery.g:113:5: 'le'
 					{
-					DebugLocation(112, 5);
-					string_literal26=(IToken)Match(input,69,Follow._69_in_relational_operator722);  
-					stream_69.Add(string_literal26);
+					DebugLocation(113, 5);
+					string_literal26=(IToken)Match(input,71,Follow._71_in_relational_operator728);  
+					stream_71.Add(string_literal26);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:112:10: '<='
+					// Queries\\PomonaQuery.g:113:10: '<='
 					{
-					DebugLocation(112, 10);
-					string_literal27=(IToken)Match(input,53,Follow._53_in_relational_operator724);  
-					stream_53.Add(string_literal27);
+					DebugLocation(113, 10);
+					string_literal27=(IToken)Match(input,54,Follow._54_in_relational_operator730);  
+					stream_54.Add(string_literal27);
 
 
 					}
@@ -1536,9 +1546,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 112:16: -> LE_OP
+				// 113:16: -> LE_OP
 				{
-					DebugLocation(112, 19);
+					DebugLocation(113, 19);
 					adaptor.AddChild(root_0, (object)adaptor.Create(LE_OP, "LE_OP"));
 
 				}
@@ -1550,20 +1560,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 6:
 				DebugEnterAlt(6);
-				// Queries\\PomonaQuery.g:113:4: ( 'ne' | '!=' )
+				// Queries\\PomonaQuery.g:114:4: ( 'ne' | '!=' )
 				{
-				DebugLocation(113, 4);
-				// Queries\\PomonaQuery.g:113:4: ( 'ne' | '!=' )
+				DebugLocation(114, 4);
+				// Queries\\PomonaQuery.g:114:4: ( 'ne' | '!=' )
 				int alt11=2;
 				try { DebugEnterSubRule(11);
 				try { DebugEnterDecision(11, false);
 				int LA11_1 = input.LA(1);
 
-				if ((LA11_1==73))
+				if ((LA11_1==75))
 				{
 					alt11 = 1;
 				}
-				else if ((LA11_1==40))
+				else if ((LA11_1==41))
 				{
 					alt11 = 2;
 				}
@@ -1578,22 +1588,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:113:5: 'ne'
+					// Queries\\PomonaQuery.g:114:5: 'ne'
 					{
-					DebugLocation(113, 5);
-					string_literal28=(IToken)Match(input,73,Follow._73_in_relational_operator735);  
-					stream_73.Add(string_literal28);
+					DebugLocation(114, 5);
+					string_literal28=(IToken)Match(input,75,Follow._75_in_relational_operator741);  
+					stream_75.Add(string_literal28);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:113:10: '!='
+					// Queries\\PomonaQuery.g:114:10: '!='
 					{
-					DebugLocation(113, 10);
-					string_literal29=(IToken)Match(input,40,Follow._40_in_relational_operator737);  
-					stream_40.Add(string_literal29);
+					DebugLocation(114, 10);
+					string_literal29=(IToken)Match(input,41,Follow._41_in_relational_operator743);  
+					stream_41.Add(string_literal29);
 
 
 					}
@@ -1616,9 +1626,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 113:16: -> NE_OP
+				// 114:16: -> NE_OP
 				{
-					DebugLocation(113, 19);
+					DebugLocation(114, 19);
 					adaptor.AddChild(root_0, (object)adaptor.Create(NE_OP, "NE_OP"));
 
 				}
@@ -1630,11 +1640,11 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 7:
 				DebugEnterAlt(7);
-				// Queries\\PomonaQuery.g:114:4: 'in'
+				// Queries\\PomonaQuery.g:115:4: 'in'
 				{
-				DebugLocation(114, 4);
-				string_literal30=(IToken)Match(input,68,Follow._68_in_relational_operator747);  
-				stream_68.Add(string_literal30);
+				DebugLocation(115, 4);
+				string_literal30=(IToken)Match(input,70,Follow._70_in_relational_operator753);  
+				stream_70.Add(string_literal30);
 
 
 
@@ -1650,10 +1660,44 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 114:9: -> IN_OP
+				// 115:9: -> IN_OP
 				{
-					DebugLocation(114, 12);
+					DebugLocation(115, 12);
 					adaptor.AddChild(root_0, (object)adaptor.Create(IN_OP, "IN_OP"));
+
+				}
+
+				retval.Tree = root_0;
+				}
+
+				}
+				break;
+			case 8:
+				DebugEnterAlt(8);
+				// Queries\\PomonaQuery.g:116:4: 'ieq'
+				{
+				DebugLocation(116, 4);
+				string_literal31=(IToken)Match(input,69,Follow._69_in_relational_operator762);  
+				stream_69.Add(string_literal31);
+
+
+
+				{
+				// AST REWRITE
+				// elements: 
+				// token labels: 
+				// rule labels: retval
+				// token list labels: 
+				// rule list labels: 
+				// wildcard labels: 
+				retval.Tree = root_0;
+				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
+
+				root_0 = (object)adaptor.Nil();
+				// 116:10: -> IEQ_OP
+				{
+					DebugLocation(116, 13);
+					adaptor.AddChild(root_0, (object)adaptor.Create(IEQ_OP, "IEQ_OP"));
 
 				}
 
@@ -1683,7 +1727,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("relational_operator", 8);
 			LeaveRule_relational_operator();
 		}
-		DebugLocation(115, 1);
+		DebugLocation(117, 1);
 		} finally { DebugExitRule(GrammarFileName, "relational_operator"); }
 		return retval;
 
@@ -1693,7 +1737,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_relational_expr();
 	partial void LeaveRule_relational_expr();
 	// $ANTLR start "relational_expr"
-	// Queries\\PomonaQuery.g:125:1: relational_expr : additive_expr ( relational_operator ^ additive_expr )? ;
+	// Queries\\PomonaQuery.g:127:1: relational_expr : additive_expr ( relational_operator ^ additive_expr )? ;
 	[GrammarRule("relational_expr")]
 	private AstParserRuleReturnScope<object, IToken> relational_expr()
 	{
@@ -1705,34 +1749,34 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> additive_expr31 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> relational_operator32 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> additive_expr33 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> additive_expr32 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> relational_operator33 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> additive_expr34 = default(AstParserRuleReturnScope<object, IToken>);
 
 		try { DebugEnterRule(GrammarFileName, "relational_expr");
-		DebugLocation(125, 1);
+		DebugLocation(127, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:126:2: ( additive_expr ( relational_operator ^ additive_expr )? )
+			// Queries\\PomonaQuery.g:128:2: ( additive_expr ( relational_operator ^ additive_expr )? )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:126:4: additive_expr ( relational_operator ^ additive_expr )?
+			// Queries\\PomonaQuery.g:128:4: additive_expr ( relational_operator ^ additive_expr )?
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(126, 4);
-			PushFollow(Follow._additive_expr_in_relational_expr764);
-			additive_expr31=additive_expr();
+			DebugLocation(128, 4);
+			PushFollow(Follow._additive_expr_in_relational_expr779);
+			additive_expr32=additive_expr();
 			PopFollow();
 
-			adaptor.AddChild(root_0, additive_expr31.Tree);
-			DebugLocation(126, 18);
-			// Queries\\PomonaQuery.g:126:18: ( relational_operator ^ additive_expr )?
+			adaptor.AddChild(root_0, additive_expr32.Tree);
+			DebugLocation(128, 18);
+			// Queries\\PomonaQuery.g:128:18: ( relational_operator ^ additive_expr )?
 			int alt13=2;
 			try { DebugEnterSubRule(13);
 			try { DebugEnterDecision(13, false);
 			int LA13_1 = input.LA(1);
 
-			if ((LA13_1==40||(LA13_1>=52 && LA13_1<=56)||(LA13_1>=65 && LA13_1<=70)||LA13_1==73))
+			if ((LA13_1==41||(LA13_1>=53 && LA13_1<=57)||(LA13_1>=66 && LA13_1<=72)||LA13_1==75))
 			{
 				alt13 = 1;
 			}
@@ -1741,20 +1785,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:126:19: relational_operator ^ additive_expr
+				// Queries\\PomonaQuery.g:128:19: relational_operator ^ additive_expr
 				{
-				DebugLocation(126, 38);
-				PushFollow(Follow._relational_operator_in_relational_expr767);
-				relational_operator32=relational_operator();
+				DebugLocation(128, 38);
+				PushFollow(Follow._relational_operator_in_relational_expr782);
+				relational_operator33=relational_operator();
 				PopFollow();
 
-				root_0 = (object)adaptor.BecomeRoot(relational_operator32.Tree, root_0);
-				DebugLocation(126, 40);
-				PushFollow(Follow._additive_expr_in_relational_expr770);
-				additive_expr33=additive_expr();
+				root_0 = (object)adaptor.BecomeRoot(relational_operator33.Tree, root_0);
+				DebugLocation(128, 40);
+				PushFollow(Follow._additive_expr_in_relational_expr785);
+				additive_expr34=additive_expr();
 				PopFollow();
 
-				adaptor.AddChild(root_0, additive_expr33.Tree);
+				adaptor.AddChild(root_0, additive_expr34.Tree);
 
 				}
 				break;
@@ -1784,7 +1828,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("relational_expr", 9);
 			LeaveRule_relational_expr();
 		}
-		DebugLocation(127, 1);
+		DebugLocation(129, 1);
 		} finally { DebugExitRule(GrammarFileName, "relational_expr"); }
 		return retval;
 
@@ -1794,7 +1838,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_additive_operator();
 	partial void LeaveRule_additive_operator();
 	// $ANTLR start "additive_operator"
-	// Queries\\PomonaQuery.g:129:1: additive_operator : ( ( 'add' | '+' ) -> ADD_OP | ( 'sub' | '-' ) -> SUB_OP );
+	// Queries\\PomonaQuery.g:131:1: additive_operator : ( ( 'add' | '+' ) -> ADD_OP | ( 'sub' | '-' ) -> SUB_OP );
 	[GrammarRule("additive_operator")]
 	private AstParserRuleReturnScope<object, IToken> additive_operator()
 	{
@@ -1806,33 +1850,33 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken string_literal34 = default(IToken);
-		IToken char_literal35 = default(IToken);
-		IToken string_literal36 = default(IToken);
-		IToken char_literal37 = default(IToken);
+		IToken string_literal35 = default(IToken);
+		IToken char_literal36 = default(IToken);
+		IToken string_literal37 = default(IToken);
+		IToken char_literal38 = default(IToken);
 
-		object string_literal34_tree = default(object);
-		object char_literal35_tree = default(object);
-		object string_literal36_tree = default(object);
-		object char_literal37_tree = default(object);
-		RewriteRuleITokenStream stream_59=new RewriteRuleITokenStream(adaptor,"token 59");
-		RewriteRuleITokenStream stream_46=new RewriteRuleITokenStream(adaptor,"token 46");
-		RewriteRuleITokenStream stream_76=new RewriteRuleITokenStream(adaptor,"token 76");
-		RewriteRuleITokenStream stream_48=new RewriteRuleITokenStream(adaptor,"token 48");
+		object string_literal35_tree = default(object);
+		object char_literal36_tree = default(object);
+		object string_literal37_tree = default(object);
+		object char_literal38_tree = default(object);
+		RewriteRuleITokenStream stream_60=new RewriteRuleITokenStream(adaptor,"token 60");
+		RewriteRuleITokenStream stream_47=new RewriteRuleITokenStream(adaptor,"token 47");
+		RewriteRuleITokenStream stream_78=new RewriteRuleITokenStream(adaptor,"token 78");
+		RewriteRuleITokenStream stream_49=new RewriteRuleITokenStream(adaptor,"token 49");
 		try { DebugEnterRule(GrammarFileName, "additive_operator");
-		DebugLocation(129, 4);
+		DebugLocation(131, 4);
 		try
 		{
-			// Queries\\PomonaQuery.g:130:5: ( ( 'add' | '+' ) -> ADD_OP | ( 'sub' | '-' ) -> SUB_OP )
+			// Queries\\PomonaQuery.g:132:5: ( ( 'add' | '+' ) -> ADD_OP | ( 'sub' | '-' ) -> SUB_OP )
 			int alt16=2;
 			try { DebugEnterDecision(16, false);
 			int LA16_1 = input.LA(1);
 
-			if ((LA16_1==46||LA16_1==59))
+			if ((LA16_1==47||LA16_1==60))
 			{
 				alt16 = 1;
 			}
-			else if ((LA16_1==48||LA16_1==76))
+			else if ((LA16_1==49||LA16_1==78))
 			{
 				alt16 = 2;
 			}
@@ -1847,20 +1891,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:130:7: ( 'add' | '+' )
+				// Queries\\PomonaQuery.g:132:7: ( 'add' | '+' )
 				{
-				DebugLocation(130, 7);
-				// Queries\\PomonaQuery.g:130:7: ( 'add' | '+' )
+				DebugLocation(132, 7);
+				// Queries\\PomonaQuery.g:132:7: ( 'add' | '+' )
 				int alt14=2;
 				try { DebugEnterSubRule(14);
 				try { DebugEnterDecision(14, false);
 				int LA14_1 = input.LA(1);
 
-				if ((LA14_1==59))
+				if ((LA14_1==60))
 				{
 					alt14 = 1;
 				}
-				else if ((LA14_1==46))
+				else if ((LA14_1==47))
 				{
 					alt14 = 2;
 				}
@@ -1875,22 +1919,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:130:8: 'add'
+					// Queries\\PomonaQuery.g:132:8: 'add'
 					{
-					DebugLocation(130, 8);
-					string_literal34=(IToken)Match(input,59,Follow._59_in_additive_operator787);  
-					stream_59.Add(string_literal34);
+					DebugLocation(132, 8);
+					string_literal35=(IToken)Match(input,60,Follow._60_in_additive_operator802);  
+					stream_60.Add(string_literal35);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:130:14: '+'
+					// Queries\\PomonaQuery.g:132:14: '+'
 					{
-					DebugLocation(130, 14);
-					char_literal35=(IToken)Match(input,46,Follow._46_in_additive_operator789);  
-					stream_46.Add(char_literal35);
+					DebugLocation(132, 14);
+					char_literal36=(IToken)Match(input,47,Follow._47_in_additive_operator804);  
+					stream_47.Add(char_literal36);
 
 
 					}
@@ -1913,9 +1957,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 130:19: -> ADD_OP
+				// 132:19: -> ADD_OP
 				{
-					DebugLocation(130, 22);
+					DebugLocation(132, 22);
 					adaptor.AddChild(root_0, (object)adaptor.Create(ADD_OP, "ADD_OP"));
 
 				}
@@ -1927,20 +1971,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:131:7: ( 'sub' | '-' )
+				// Queries\\PomonaQuery.g:133:7: ( 'sub' | '-' )
 				{
-				DebugLocation(131, 7);
-				// Queries\\PomonaQuery.g:131:7: ( 'sub' | '-' )
+				DebugLocation(133, 7);
+				// Queries\\PomonaQuery.g:133:7: ( 'sub' | '-' )
 				int alt15=2;
 				try { DebugEnterSubRule(15);
 				try { DebugEnterDecision(15, false);
 				int LA15_1 = input.LA(1);
 
-				if ((LA15_1==76))
+				if ((LA15_1==78))
 				{
 					alt15 = 1;
 				}
-				else if ((LA15_1==48))
+				else if ((LA15_1==49))
 				{
 					alt15 = 2;
 				}
@@ -1955,22 +1999,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:131:8: 'sub'
+					// Queries\\PomonaQuery.g:133:8: 'sub'
 					{
-					DebugLocation(131, 8);
-					string_literal36=(IToken)Match(input,76,Follow._76_in_additive_operator803);  
-					stream_76.Add(string_literal36);
+					DebugLocation(133, 8);
+					string_literal37=(IToken)Match(input,78,Follow._78_in_additive_operator818);  
+					stream_78.Add(string_literal37);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:131:14: '-'
+					// Queries\\PomonaQuery.g:133:14: '-'
 					{
-					DebugLocation(131, 14);
-					char_literal37=(IToken)Match(input,48,Follow._48_in_additive_operator805);  
-					stream_48.Add(char_literal37);
+					DebugLocation(133, 14);
+					char_literal38=(IToken)Match(input,49,Follow._49_in_additive_operator820);  
+					stream_49.Add(char_literal38);
 
 
 					}
@@ -1993,9 +2037,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 131:19: -> SUB_OP
+				// 133:19: -> SUB_OP
 				{
-					DebugLocation(131, 22);
+					DebugLocation(133, 22);
 					adaptor.AddChild(root_0, (object)adaptor.Create(SUB_OP, "SUB_OP"));
 
 				}
@@ -2026,7 +2070,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("additive_operator", 10);
 			LeaveRule_additive_operator();
 		}
-		DebugLocation(132, 4);
+		DebugLocation(134, 4);
 		} finally { DebugExitRule(GrammarFileName, "additive_operator"); }
 		return retval;
 
@@ -2036,7 +2080,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_additive_expr();
 	partial void LeaveRule_additive_expr();
 	// $ANTLR start "additive_expr"
-	// Queries\\PomonaQuery.g:134:1: additive_expr : multiplicative_expr ( additive_operator ^ multiplicative_expr )* ;
+	// Queries\\PomonaQuery.g:136:1: additive_expr : multiplicative_expr ( additive_operator ^ multiplicative_expr )* ;
 	[GrammarRule("additive_expr")]
 	private AstParserRuleReturnScope<object, IToken> additive_expr()
 	{
@@ -2048,28 +2092,28 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> multiplicative_expr38 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> additive_operator39 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> multiplicative_expr40 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> multiplicative_expr39 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> additive_operator40 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> multiplicative_expr41 = default(AstParserRuleReturnScope<object, IToken>);
 
 		try { DebugEnterRule(GrammarFileName, "additive_expr");
-		DebugLocation(134, 1);
+		DebugLocation(136, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:135:2: ( multiplicative_expr ( additive_operator ^ multiplicative_expr )* )
+			// Queries\\PomonaQuery.g:137:2: ( multiplicative_expr ( additive_operator ^ multiplicative_expr )* )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:135:4: multiplicative_expr ( additive_operator ^ multiplicative_expr )*
+			// Queries\\PomonaQuery.g:137:4: multiplicative_expr ( additive_operator ^ multiplicative_expr )*
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(135, 4);
-			PushFollow(Follow._multiplicative_expr_in_additive_expr825);
-			multiplicative_expr38=multiplicative_expr();
+			DebugLocation(137, 4);
+			PushFollow(Follow._multiplicative_expr_in_additive_expr840);
+			multiplicative_expr39=multiplicative_expr();
 			PopFollow();
 
-			adaptor.AddChild(root_0, multiplicative_expr38.Tree);
-			DebugLocation(135, 24);
-			// Queries\\PomonaQuery.g:135:24: ( additive_operator ^ multiplicative_expr )*
+			adaptor.AddChild(root_0, multiplicative_expr39.Tree);
+			DebugLocation(137, 24);
+			// Queries\\PomonaQuery.g:137:24: ( additive_operator ^ multiplicative_expr )*
 			try { DebugEnterSubRule(17);
 			while (true)
 			{
@@ -2077,7 +2121,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				try { DebugEnterDecision(17, false);
 				int LA17_1 = input.LA(1);
 
-				if ((LA17_1==46||LA17_1==48||LA17_1==59||LA17_1==76))
+				if ((LA17_1==47||LA17_1==49||LA17_1==60||LA17_1==78))
 				{
 					alt17 = 1;
 				}
@@ -2088,20 +2132,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:135:26: additive_operator ^ multiplicative_expr
+					// Queries\\PomonaQuery.g:137:26: additive_operator ^ multiplicative_expr
 					{
-					DebugLocation(135, 43);
-					PushFollow(Follow._additive_operator_in_additive_expr829);
-					additive_operator39=additive_operator();
+					DebugLocation(137, 43);
+					PushFollow(Follow._additive_operator_in_additive_expr844);
+					additive_operator40=additive_operator();
 					PopFollow();
 
-					root_0 = (object)adaptor.BecomeRoot(additive_operator39.Tree, root_0);
-					DebugLocation(135, 45);
-					PushFollow(Follow._multiplicative_expr_in_additive_expr832);
-					multiplicative_expr40=multiplicative_expr();
+					root_0 = (object)adaptor.BecomeRoot(additive_operator40.Tree, root_0);
+					DebugLocation(137, 45);
+					PushFollow(Follow._multiplicative_expr_in_additive_expr847);
+					multiplicative_expr41=multiplicative_expr();
 					PopFollow();
 
-					adaptor.AddChild(root_0, multiplicative_expr40.Tree);
+					adaptor.AddChild(root_0, multiplicative_expr41.Tree);
 
 					}
 					break;
@@ -2138,7 +2182,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("additive_expr", 11);
 			LeaveRule_additive_expr();
 		}
-		DebugLocation(136, 1);
+		DebugLocation(138, 1);
 		} finally { DebugExitRule(GrammarFileName, "additive_expr"); }
 		return retval;
 
@@ -2148,7 +2192,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_multiplicative_operator();
 	partial void LeaveRule_multiplicative_operator();
 	// $ANTLR start "multiplicative_operator"
-	// Queries\\PomonaQuery.g:138:1: multiplicative_operator : ( ( 'mul' | '*' ) -> MUL_OP | ( 'div' | '/' ) -> DIV_OP | ( 'mod' | '%' ) -> MOD_OP );
+	// Queries\\PomonaQuery.g:140:1: multiplicative_operator : ( ( 'mul' | '*' ) -> MUL_OP | ( 'div' | '/' ) -> DIV_OP | ( 'mod' | '%' ) -> MOD_OP );
 	[GrammarRule("multiplicative_operator")]
 	private AstParserRuleReturnScope<object, IToken> multiplicative_operator()
 	{
@@ -2160,48 +2204,48 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken string_literal41 = default(IToken);
-		IToken char_literal42 = default(IToken);
-		IToken string_literal43 = default(IToken);
-		IToken char_literal44 = default(IToken);
-		IToken string_literal45 = default(IToken);
-		IToken char_literal46 = default(IToken);
+		IToken string_literal42 = default(IToken);
+		IToken char_literal43 = default(IToken);
+		IToken string_literal44 = default(IToken);
+		IToken char_literal45 = default(IToken);
+		IToken string_literal46 = default(IToken);
+		IToken char_literal47 = default(IToken);
 
-		object string_literal41_tree = default(object);
-		object char_literal42_tree = default(object);
-		object string_literal43_tree = default(object);
-		object char_literal44_tree = default(object);
-		object string_literal45_tree = default(object);
-		object char_literal46_tree = default(object);
-		RewriteRuleITokenStream stream_72=new RewriteRuleITokenStream(adaptor,"token 72");
-		RewriteRuleITokenStream stream_45=new RewriteRuleITokenStream(adaptor,"token 45");
-		RewriteRuleITokenStream stream_64=new RewriteRuleITokenStream(adaptor,"token 64");
-		RewriteRuleITokenStream stream_50=new RewriteRuleITokenStream(adaptor,"token 50");
-		RewriteRuleITokenStream stream_71=new RewriteRuleITokenStream(adaptor,"token 71");
-		RewriteRuleITokenStream stream_41=new RewriteRuleITokenStream(adaptor,"token 41");
+		object string_literal42_tree = default(object);
+		object char_literal43_tree = default(object);
+		object string_literal44_tree = default(object);
+		object char_literal45_tree = default(object);
+		object string_literal46_tree = default(object);
+		object char_literal47_tree = default(object);
+		RewriteRuleITokenStream stream_74=new RewriteRuleITokenStream(adaptor,"token 74");
+		RewriteRuleITokenStream stream_46=new RewriteRuleITokenStream(adaptor,"token 46");
+		RewriteRuleITokenStream stream_65=new RewriteRuleITokenStream(adaptor,"token 65");
+		RewriteRuleITokenStream stream_51=new RewriteRuleITokenStream(adaptor,"token 51");
+		RewriteRuleITokenStream stream_73=new RewriteRuleITokenStream(adaptor,"token 73");
+		RewriteRuleITokenStream stream_42=new RewriteRuleITokenStream(adaptor,"token 42");
 		try { DebugEnterRule(GrammarFileName, "multiplicative_operator");
-		DebugLocation(138, 4);
+		DebugLocation(140, 4);
 		try
 		{
-			// Queries\\PomonaQuery.g:139:5: ( ( 'mul' | '*' ) -> MUL_OP | ( 'div' | '/' ) -> DIV_OP | ( 'mod' | '%' ) -> MOD_OP )
+			// Queries\\PomonaQuery.g:141:5: ( ( 'mul' | '*' ) -> MUL_OP | ( 'div' | '/' ) -> DIV_OP | ( 'mod' | '%' ) -> MOD_OP )
 			int alt21=3;
 			try { DebugEnterDecision(21, false);
 			switch (input.LA(1))
 			{
-			case 45:
-			case 72:
+			case 46:
+			case 74:
 				{
 				alt21 = 1;
 				}
 				break;
-			case 50:
-			case 64:
+			case 51:
+			case 65:
 				{
 				alt21 = 2;
 				}
 				break;
-			case 41:
-			case 71:
+			case 42:
+			case 73:
 				{
 				alt21 = 3;
 				}
@@ -2219,20 +2263,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:139:9: ( 'mul' | '*' )
+				// Queries\\PomonaQuery.g:141:9: ( 'mul' | '*' )
 				{
-				DebugLocation(139, 9);
-				// Queries\\PomonaQuery.g:139:9: ( 'mul' | '*' )
+				DebugLocation(141, 9);
+				// Queries\\PomonaQuery.g:141:9: ( 'mul' | '*' )
 				int alt18=2;
 				try { DebugEnterSubRule(18);
 				try { DebugEnterDecision(18, false);
 				int LA18_1 = input.LA(1);
 
-				if ((LA18_1==72))
+				if ((LA18_1==74))
 				{
 					alt18 = 1;
 				}
-				else if ((LA18_1==45))
+				else if ((LA18_1==46))
 				{
 					alt18 = 2;
 				}
@@ -2247,22 +2291,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:139:10: 'mul'
+					// Queries\\PomonaQuery.g:141:10: 'mul'
 					{
-					DebugLocation(139, 10);
-					string_literal41=(IToken)Match(input,72,Follow._72_in_multiplicative_operator852);  
-					stream_72.Add(string_literal41);
+					DebugLocation(141, 10);
+					string_literal42=(IToken)Match(input,74,Follow._74_in_multiplicative_operator867);  
+					stream_74.Add(string_literal42);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:139:16: '*'
+					// Queries\\PomonaQuery.g:141:16: '*'
 					{
-					DebugLocation(139, 16);
-					char_literal42=(IToken)Match(input,45,Follow._45_in_multiplicative_operator854);  
-					stream_45.Add(char_literal42);
+					DebugLocation(141, 16);
+					char_literal43=(IToken)Match(input,46,Follow._46_in_multiplicative_operator869);  
+					stream_46.Add(char_literal43);
 
 
 					}
@@ -2285,9 +2329,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 139:21: -> MUL_OP
+				// 141:21: -> MUL_OP
 				{
-					DebugLocation(139, 24);
+					DebugLocation(141, 24);
 					adaptor.AddChild(root_0, (object)adaptor.Create(MUL_OP, "MUL_OP"));
 
 				}
@@ -2299,20 +2343,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:140:9: ( 'div' | '/' )
+				// Queries\\PomonaQuery.g:142:9: ( 'div' | '/' )
 				{
-				DebugLocation(140, 9);
-				// Queries\\PomonaQuery.g:140:9: ( 'div' | '/' )
+				DebugLocation(142, 9);
+				// Queries\\PomonaQuery.g:142:9: ( 'div' | '/' )
 				int alt19=2;
 				try { DebugEnterSubRule(19);
 				try { DebugEnterDecision(19, false);
 				int LA19_1 = input.LA(1);
 
-				if ((LA19_1==64))
+				if ((LA19_1==65))
 				{
 					alt19 = 1;
 				}
-				else if ((LA19_1==50))
+				else if ((LA19_1==51))
 				{
 					alt19 = 2;
 				}
@@ -2327,22 +2371,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:140:10: 'div'
+					// Queries\\PomonaQuery.g:142:10: 'div'
 					{
-					DebugLocation(140, 10);
-					string_literal43=(IToken)Match(input,64,Follow._64_in_multiplicative_operator870);  
-					stream_64.Add(string_literal43);
+					DebugLocation(142, 10);
+					string_literal44=(IToken)Match(input,65,Follow._65_in_multiplicative_operator885);  
+					stream_65.Add(string_literal44);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:140:16: '/'
+					// Queries\\PomonaQuery.g:142:16: '/'
 					{
-					DebugLocation(140, 16);
-					char_literal44=(IToken)Match(input,50,Follow._50_in_multiplicative_operator872);  
-					stream_50.Add(char_literal44);
+					DebugLocation(142, 16);
+					char_literal45=(IToken)Match(input,51,Follow._51_in_multiplicative_operator887);  
+					stream_51.Add(char_literal45);
 
 
 					}
@@ -2365,9 +2409,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 140:21: -> DIV_OP
+				// 142:21: -> DIV_OP
 				{
-					DebugLocation(140, 24);
+					DebugLocation(142, 24);
 					adaptor.AddChild(root_0, (object)adaptor.Create(DIV_OP, "DIV_OP"));
 
 				}
@@ -2379,20 +2423,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:141:6: ( 'mod' | '%' )
+				// Queries\\PomonaQuery.g:143:6: ( 'mod' | '%' )
 				{
-				DebugLocation(141, 6);
-				// Queries\\PomonaQuery.g:141:6: ( 'mod' | '%' )
+				DebugLocation(143, 6);
+				// Queries\\PomonaQuery.g:143:6: ( 'mod' | '%' )
 				int alt20=2;
 				try { DebugEnterSubRule(20);
 				try { DebugEnterDecision(20, false);
 				int LA20_1 = input.LA(1);
 
-				if ((LA20_1==71))
+				if ((LA20_1==73))
 				{
 					alt20 = 1;
 				}
-				else if ((LA20_1==41))
+				else if ((LA20_1==42))
 				{
 					alt20 = 2;
 				}
@@ -2407,22 +2451,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:141:7: 'mod'
+					// Queries\\PomonaQuery.g:143:7: 'mod'
 					{
-					DebugLocation(141, 7);
-					string_literal45=(IToken)Match(input,71,Follow._71_in_multiplicative_operator885);  
-					stream_71.Add(string_literal45);
+					DebugLocation(143, 7);
+					string_literal46=(IToken)Match(input,73,Follow._73_in_multiplicative_operator900);  
+					stream_73.Add(string_literal46);
 
 
 					}
 					break;
 				case 2:
 					DebugEnterAlt(2);
-					// Queries\\PomonaQuery.g:141:13: '%'
+					// Queries\\PomonaQuery.g:143:13: '%'
 					{
-					DebugLocation(141, 13);
-					char_literal46=(IToken)Match(input,41,Follow._41_in_multiplicative_operator887);  
-					stream_41.Add(char_literal46);
+					DebugLocation(143, 13);
+					char_literal47=(IToken)Match(input,42,Follow._42_in_multiplicative_operator902);  
+					stream_42.Add(char_literal47);
 
 
 					}
@@ -2445,9 +2489,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 141:18: -> MOD_OP
+				// 143:18: -> MOD_OP
 				{
-					DebugLocation(141, 21);
+					DebugLocation(143, 21);
 					adaptor.AddChild(root_0, (object)adaptor.Create(MOD_OP, "MOD_OP"));
 
 				}
@@ -2478,7 +2522,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("multiplicative_operator", 12);
 			LeaveRule_multiplicative_operator();
 		}
-		DebugLocation(142, 4);
+		DebugLocation(144, 4);
 		} finally { DebugExitRule(GrammarFileName, "multiplicative_operator"); }
 		return retval;
 
@@ -2488,7 +2532,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_multiplicative_expr();
 	partial void LeaveRule_multiplicative_expr();
 	// $ANTLR start "multiplicative_expr"
-	// Queries\\PomonaQuery.g:144:1: multiplicative_expr : unary_expr ( multiplicative_operator ^ unary_expr )* ;
+	// Queries\\PomonaQuery.g:146:1: multiplicative_expr : unary_expr ( multiplicative_operator ^ unary_expr )* ;
 	[GrammarRule("multiplicative_expr")]
 	private AstParserRuleReturnScope<object, IToken> multiplicative_expr()
 	{
@@ -2500,28 +2544,28 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> unary_expr47 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> multiplicative_operator48 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> unary_expr49 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> unary_expr48 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> multiplicative_operator49 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> unary_expr50 = default(AstParserRuleReturnScope<object, IToken>);
 
 		try { DebugEnterRule(GrammarFileName, "multiplicative_expr");
-		DebugLocation(144, 1);
+		DebugLocation(146, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:145:2: ( unary_expr ( multiplicative_operator ^ unary_expr )* )
+			// Queries\\PomonaQuery.g:147:2: ( unary_expr ( multiplicative_operator ^ unary_expr )* )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:145:4: unary_expr ( multiplicative_operator ^ unary_expr )*
+			// Queries\\PomonaQuery.g:147:4: unary_expr ( multiplicative_operator ^ unary_expr )*
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(145, 4);
-			PushFollow(Follow._unary_expr_in_multiplicative_expr907);
-			unary_expr47=unary_expr();
+			DebugLocation(147, 4);
+			PushFollow(Follow._unary_expr_in_multiplicative_expr922);
+			unary_expr48=unary_expr();
 			PopFollow();
 
-			adaptor.AddChild(root_0, unary_expr47.Tree);
-			DebugLocation(145, 15);
-			// Queries\\PomonaQuery.g:145:15: ( multiplicative_operator ^ unary_expr )*
+			adaptor.AddChild(root_0, unary_expr48.Tree);
+			DebugLocation(147, 15);
+			// Queries\\PomonaQuery.g:147:15: ( multiplicative_operator ^ unary_expr )*
 			try { DebugEnterSubRule(22);
 			while (true)
 			{
@@ -2529,7 +2573,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				try { DebugEnterDecision(22, false);
 				int LA22_1 = input.LA(1);
 
-				if ((LA22_1==41||LA22_1==45||LA22_1==50||LA22_1==64||(LA22_1>=71 && LA22_1<=72)))
+				if ((LA22_1==42||LA22_1==46||LA22_1==51||LA22_1==65||(LA22_1>=73 && LA22_1<=74)))
 				{
 					alt22 = 1;
 				}
@@ -2540,20 +2584,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:145:17: multiplicative_operator ^ unary_expr
+					// Queries\\PomonaQuery.g:147:17: multiplicative_operator ^ unary_expr
 					{
-					DebugLocation(145, 40);
-					PushFollow(Follow._multiplicative_operator_in_multiplicative_expr911);
-					multiplicative_operator48=multiplicative_operator();
+					DebugLocation(147, 40);
+					PushFollow(Follow._multiplicative_operator_in_multiplicative_expr926);
+					multiplicative_operator49=multiplicative_operator();
 					PopFollow();
 
-					root_0 = (object)adaptor.BecomeRoot(multiplicative_operator48.Tree, root_0);
-					DebugLocation(145, 42);
-					PushFollow(Follow._unary_expr_in_multiplicative_expr914);
-					unary_expr49=unary_expr();
+					root_0 = (object)adaptor.BecomeRoot(multiplicative_operator49.Tree, root_0);
+					DebugLocation(147, 42);
+					PushFollow(Follow._unary_expr_in_multiplicative_expr929);
+					unary_expr50=unary_expr();
 					PopFollow();
 
-					adaptor.AddChild(root_0, unary_expr49.Tree);
+					adaptor.AddChild(root_0, unary_expr50.Tree);
 
 					}
 					break;
@@ -2590,7 +2634,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("multiplicative_expr", 13);
 			LeaveRule_multiplicative_expr();
 		}
-		DebugLocation(146, 1);
+		DebugLocation(148, 1);
 		} finally { DebugExitRule(GrammarFileName, "multiplicative_expr"); }
 		return retval;
 
@@ -2600,7 +2644,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_unary_operator();
 	partial void LeaveRule_unary_operator();
 	// $ANTLR start "unary_operator"
-	// Queries\\PomonaQuery.g:148:1: unary_operator : ( 'not' | '!' ) -> NOT_OP ;
+	// Queries\\PomonaQuery.g:150:1: unary_operator : ( 'not' | '!' ) -> NOT_OP ;
 	[GrammarRule("unary_operator")]
 	private AstParserRuleReturnScope<object, IToken> unary_operator()
 	{
@@ -2612,33 +2656,33 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken string_literal50 = default(IToken);
-		IToken char_literal51 = default(IToken);
+		IToken string_literal51 = default(IToken);
+		IToken char_literal52 = default(IToken);
 
-		object string_literal50_tree = default(object);
-		object char_literal51_tree = default(object);
-		RewriteRuleITokenStream stream_74=new RewriteRuleITokenStream(adaptor,"token 74");
-		RewriteRuleITokenStream stream_39=new RewriteRuleITokenStream(adaptor,"token 39");
+		object string_literal51_tree = default(object);
+		object char_literal52_tree = default(object);
+		RewriteRuleITokenStream stream_76=new RewriteRuleITokenStream(adaptor,"token 76");
+		RewriteRuleITokenStream stream_40=new RewriteRuleITokenStream(adaptor,"token 40");
 		try { DebugEnterRule(GrammarFileName, "unary_operator");
-		DebugLocation(148, 1);
+		DebugLocation(150, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:149:2: ( ( 'not' | '!' ) -> NOT_OP )
+			// Queries\\PomonaQuery.g:151:2: ( ( 'not' | '!' ) -> NOT_OP )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:149:4: ( 'not' | '!' )
+			// Queries\\PomonaQuery.g:151:4: ( 'not' | '!' )
 			{
-			DebugLocation(149, 4);
-			// Queries\\PomonaQuery.g:149:4: ( 'not' | '!' )
+			DebugLocation(151, 4);
+			// Queries\\PomonaQuery.g:151:4: ( 'not' | '!' )
 			int alt23=2;
 			try { DebugEnterSubRule(23);
 			try { DebugEnterDecision(23, false);
 			int LA23_1 = input.LA(1);
 
-			if ((LA23_1==74))
+			if ((LA23_1==76))
 			{
 				alt23 = 1;
 			}
-			else if ((LA23_1==39))
+			else if ((LA23_1==40))
 			{
 				alt23 = 2;
 			}
@@ -2653,22 +2697,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:149:5: 'not'
+				// Queries\\PomonaQuery.g:151:5: 'not'
 				{
-				DebugLocation(149, 5);
-				string_literal50=(IToken)Match(input,74,Follow._74_in_unary_operator930);  
-				stream_74.Add(string_literal50);
+				DebugLocation(151, 5);
+				string_literal51=(IToken)Match(input,76,Follow._76_in_unary_operator945);  
+				stream_76.Add(string_literal51);
 
 
 				}
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:149:11: '!'
+				// Queries\\PomonaQuery.g:151:11: '!'
 				{
-				DebugLocation(149, 11);
-				char_literal51=(IToken)Match(input,39,Follow._39_in_unary_operator932);  
-				stream_39.Add(char_literal51);
+				DebugLocation(151, 11);
+				char_literal52=(IToken)Match(input,40,Follow._40_in_unary_operator947);  
+				stream_40.Add(char_literal52);
 
 
 				}
@@ -2691,9 +2735,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 149:16: -> NOT_OP
+			// 151:16: -> NOT_OP
 			{
-				DebugLocation(149, 19);
+				DebugLocation(151, 19);
 				adaptor.AddChild(root_0, (object)adaptor.Create(NOT_OP, "NOT_OP"));
 
 			}
@@ -2722,7 +2766,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("unary_operator", 14);
 			LeaveRule_unary_operator();
 		}
-		DebugLocation(150, 1);
+		DebugLocation(152, 1);
 		} finally { DebugExitRule(GrammarFileName, "unary_operator"); }
 		return retval;
 
@@ -2732,7 +2776,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_dot_operator();
 	partial void LeaveRule_dot_operator();
 	// $ANTLR start "dot_operator"
-	// Queries\\PomonaQuery.g:152:1: dot_operator : '.' -> DOT_OP ;
+	// Queries\\PomonaQuery.g:154:1: dot_operator : '.' -> DOT_OP ;
 	[GrammarRule("dot_operator")]
 	private AstParserRuleReturnScope<object, IToken> dot_operator()
 	{
@@ -2744,21 +2788,21 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken char_literal52 = default(IToken);
+		IToken char_literal53 = default(IToken);
 
-		object char_literal52_tree = default(object);
-		RewriteRuleITokenStream stream_49=new RewriteRuleITokenStream(adaptor,"token 49");
+		object char_literal53_tree = default(object);
+		RewriteRuleITokenStream stream_50=new RewriteRuleITokenStream(adaptor,"token 50");
 		try { DebugEnterRule(GrammarFileName, "dot_operator");
-		DebugLocation(152, 1);
+		DebugLocation(154, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:153:2: ( '.' -> DOT_OP )
+			// Queries\\PomonaQuery.g:155:2: ( '.' -> DOT_OP )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:153:4: '.'
+			// Queries\\PomonaQuery.g:155:4: '.'
 			{
-			DebugLocation(153, 4);
-			char_literal52=(IToken)Match(input,49,Follow._49_in_dot_operator948);  
-			stream_49.Add(char_literal52);
+			DebugLocation(155, 4);
+			char_literal53=(IToken)Match(input,50,Follow._50_in_dot_operator963);  
+			stream_50.Add(char_literal53);
 
 
 
@@ -2774,9 +2818,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 153:8: -> DOT_OP
+			// 155:8: -> DOT_OP
 			{
-				DebugLocation(153, 11);
+				DebugLocation(155, 11);
 				adaptor.AddChild(root_0, (object)adaptor.Create(DOT_OP, "DOT_OP"));
 
 			}
@@ -2805,7 +2849,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("dot_operator", 15);
 			LeaveRule_dot_operator();
 		}
-		DebugLocation(154, 1);
+		DebugLocation(156, 1);
 		} finally { DebugExitRule(GrammarFileName, "dot_operator"); }
 		return retval;
 
@@ -2815,7 +2859,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_unary_expr();
 	partial void LeaveRule_unary_expr();
 	// $ANTLR start "unary_expr"
-	// Queries\\PomonaQuery.g:157:1: unary_expr : ( unary_operator ^ unary_expr | primary_expr );
+	// Queries\\PomonaQuery.g:159:1: unary_expr : ( unary_operator ^ unary_expr | primary_expr );
 	[GrammarRule("unary_expr")]
 	private AstParserRuleReturnScope<object, IToken> unary_expr()
 	{
@@ -2827,24 +2871,24 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> unary_operator53 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> unary_expr54 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> primary_expr55 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> unary_operator54 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> unary_expr55 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> primary_expr56 = default(AstParserRuleReturnScope<object, IToken>);
 
 		try { DebugEnterRule(GrammarFileName, "unary_expr");
-		DebugLocation(157, 1);
+		DebugLocation(159, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:158:2: ( unary_operator ^ unary_expr | primary_expr )
+			// Queries\\PomonaQuery.g:160:2: ( unary_operator ^ unary_expr | primary_expr )
 			int alt24=2;
 			try { DebugEnterDecision(24, false);
 			int LA24_1 = input.LA(1);
 
-			if ((LA24_1==39||LA24_1==74))
+			if ((LA24_1==40||LA24_1==76))
 			{
 				alt24 = 1;
 			}
-			else if ((LA24_1==ID||LA24_1==INT||LA24_1==PREFIXED_STRING||LA24_1==STRING||LA24_1==43||LA24_1==57))
+			else if ((LA24_1==ID||LA24_1==INT||LA24_1==PREFIXED_STRING||LA24_1==STRING||LA24_1==44||LA24_1==58))
 			{
 				alt24 = 2;
 			}
@@ -2859,37 +2903,37 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:158:4: unary_operator ^ unary_expr
+				// Queries\\PomonaQuery.g:160:4: unary_operator ^ unary_expr
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(158, 18);
-				PushFollow(Follow._unary_operator_in_unary_expr965);
-				unary_operator53=unary_operator();
+				DebugLocation(160, 18);
+				PushFollow(Follow._unary_operator_in_unary_expr980);
+				unary_operator54=unary_operator();
 				PopFollow();
 
-				root_0 = (object)adaptor.BecomeRoot(unary_operator53.Tree, root_0);
-				DebugLocation(158, 20);
-				PushFollow(Follow._unary_expr_in_unary_expr968);
-				unary_expr54=unary_expr();
+				root_0 = (object)adaptor.BecomeRoot(unary_operator54.Tree, root_0);
+				DebugLocation(160, 20);
+				PushFollow(Follow._unary_expr_in_unary_expr983);
+				unary_expr55=unary_expr();
 				PopFollow();
 
-				adaptor.AddChild(root_0, unary_expr54.Tree);
+				adaptor.AddChild(root_0, unary_expr55.Tree);
 
 				}
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:159:4: primary_expr
+				// Queries\\PomonaQuery.g:161:4: primary_expr
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(159, 4);
-				PushFollow(Follow._primary_expr_in_unary_expr973);
-				primary_expr55=primary_expr();
+				DebugLocation(161, 4);
+				PushFollow(Follow._primary_expr_in_unary_expr988);
+				primary_expr56=primary_expr();
 				PopFollow();
 
-				adaptor.AddChild(root_0, primary_expr55.Tree);
+				adaptor.AddChild(root_0, primary_expr56.Tree);
 
 				}
 				break;
@@ -2914,7 +2958,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("unary_expr", 16);
 			LeaveRule_unary_expr();
 		}
-		DebugLocation(160, 1);
+		DebugLocation(162, 1);
 		} finally { DebugExitRule(GrammarFileName, "unary_expr"); }
 		return retval;
 
@@ -2924,7 +2968,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_primary_expr();
 	partial void LeaveRule_primary_expr();
 	// $ANTLR start "primary_expr"
-	// Queries\\PomonaQuery.g:162:1: primary_expr : postfix_expr ( dot_operator ^ postfix_expr )* ;
+	// Queries\\PomonaQuery.g:164:1: primary_expr : postfix_expr ( dot_operator ^ postfix_expr )* ;
 	[GrammarRule("primary_expr")]
 	private AstParserRuleReturnScope<object, IToken> primary_expr()
 	{
@@ -2936,28 +2980,28 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> postfix_expr56 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> dot_operator57 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> postfix_expr58 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> postfix_expr57 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> dot_operator58 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> postfix_expr59 = default(AstParserRuleReturnScope<object, IToken>);
 
 		try { DebugEnterRule(GrammarFileName, "primary_expr");
-		DebugLocation(162, 1);
+		DebugLocation(164, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:163:2: ( postfix_expr ( dot_operator ^ postfix_expr )* )
+			// Queries\\PomonaQuery.g:165:2: ( postfix_expr ( dot_operator ^ postfix_expr )* )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:163:4: postfix_expr ( dot_operator ^ postfix_expr )*
+			// Queries\\PomonaQuery.g:165:4: postfix_expr ( dot_operator ^ postfix_expr )*
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(163, 4);
-			PushFollow(Follow._postfix_expr_in_primary_expr984);
-			postfix_expr56=postfix_expr();
+			DebugLocation(165, 4);
+			PushFollow(Follow._postfix_expr_in_primary_expr999);
+			postfix_expr57=postfix_expr();
 			PopFollow();
 
-			adaptor.AddChild(root_0, postfix_expr56.Tree);
-			DebugLocation(163, 17);
-			// Queries\\PomonaQuery.g:163:17: ( dot_operator ^ postfix_expr )*
+			adaptor.AddChild(root_0, postfix_expr57.Tree);
+			DebugLocation(165, 17);
+			// Queries\\PomonaQuery.g:165:17: ( dot_operator ^ postfix_expr )*
 			try { DebugEnterSubRule(25);
 			while (true)
 			{
@@ -2965,7 +3009,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				try { DebugEnterDecision(25, false);
 				int LA25_1 = input.LA(1);
 
-				if ((LA25_1==49))
+				if ((LA25_1==50))
 				{
 					alt25 = 1;
 				}
@@ -2976,20 +3020,20 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:163:19: dot_operator ^ postfix_expr
+					// Queries\\PomonaQuery.g:165:19: dot_operator ^ postfix_expr
 					{
-					DebugLocation(163, 31);
-					PushFollow(Follow._dot_operator_in_primary_expr988);
-					dot_operator57=dot_operator();
+					DebugLocation(165, 31);
+					PushFollow(Follow._dot_operator_in_primary_expr1003);
+					dot_operator58=dot_operator();
 					PopFollow();
 
-					root_0 = (object)adaptor.BecomeRoot(dot_operator57.Tree, root_0);
-					DebugLocation(163, 33);
-					PushFollow(Follow._postfix_expr_in_primary_expr991);
-					postfix_expr58=postfix_expr();
+					root_0 = (object)adaptor.BecomeRoot(dot_operator58.Tree, root_0);
+					DebugLocation(165, 33);
+					PushFollow(Follow._postfix_expr_in_primary_expr1006);
+					postfix_expr59=postfix_expr();
 					PopFollow();
 
-					adaptor.AddChild(root_0, postfix_expr58.Tree);
+					adaptor.AddChild(root_0, postfix_expr59.Tree);
 
 					}
 					break;
@@ -3026,7 +3070,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("primary_expr", 17);
 			LeaveRule_primary_expr();
 		}
-		DebugLocation(164, 1);
+		DebugLocation(166, 1);
 		} finally { DebugExitRule(GrammarFileName, "primary_expr"); }
 		return retval;
 
@@ -3036,7 +3080,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_postfix_expr();
 	partial void LeaveRule_postfix_expr();
 	// $ANTLR start "postfix_expr"
-	// Queries\\PomonaQuery.g:166:1: postfix_expr : ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | PREFIXED_STRING );
+	// Queries\\PomonaQuery.g:168:1: postfix_expr : ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | PREFIXED_STRING );
 	[GrammarRule("postfix_expr")]
 	private AstParserRuleReturnScope<object, IToken> postfix_expr()
 	{
@@ -3048,62 +3092,62 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken ID59 = default(IToken);
-		IToken char_literal60 = default(IToken);
-		IToken char_literal62 = default(IToken);
-		IToken ID63 = default(IToken);
-		IToken char_literal64 = default(IToken);
+		IToken ID60 = default(IToken);
+		IToken char_literal61 = default(IToken);
+		IToken char_literal63 = default(IToken);
+		IToken ID64 = default(IToken);
 		IToken char_literal65 = default(IToken);
-		IToken ID66 = default(IToken);
-		IToken char_literal67 = default(IToken);
-		IToken char_literal69 = default(IToken);
-		IToken ID70 = default(IToken);
-		IToken char_literal71 = default(IToken);
+		IToken char_literal66 = default(IToken);
+		IToken ID67 = default(IToken);
+		IToken char_literal68 = default(IToken);
+		IToken char_literal70 = default(IToken);
+		IToken ID71 = default(IToken);
 		IToken char_literal72 = default(IToken);
-		IToken ID73 = default(IToken);
-		IToken STRING74 = default(IToken);
-		IToken INT75 = default(IToken);
-		IToken char_literal76 = default(IToken);
-		IToken char_literal78 = default(IToken);
+		IToken char_literal73 = default(IToken);
+		IToken ID74 = default(IToken);
+		IToken STRING75 = default(IToken);
+		IToken INT76 = default(IToken);
+		IToken char_literal77 = default(IToken);
 		IToken char_literal79 = default(IToken);
-		IToken char_literal81 = default(IToken);
-		IToken PREFIXED_STRING82 = default(IToken);
-		AstParserRuleReturnScope<object, IToken> arglist_expr61 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> arglist_expr68 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> orderby_expr77 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> arglist_expr80 = default(AstParserRuleReturnScope<object, IToken>);
+		IToken char_literal80 = default(IToken);
+		IToken char_literal82 = default(IToken);
+		IToken PREFIXED_STRING83 = default(IToken);
+		AstParserRuleReturnScope<object, IToken> arglist_expr62 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> arglist_expr69 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> orderby_expr78 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> arglist_expr81 = default(AstParserRuleReturnScope<object, IToken>);
 
-		object ID59_tree = default(object);
-		object char_literal60_tree = default(object);
-		object char_literal62_tree = default(object);
-		object ID63_tree = default(object);
-		object char_literal64_tree = default(object);
+		object ID60_tree = default(object);
+		object char_literal61_tree = default(object);
+		object char_literal63_tree = default(object);
+		object ID64_tree = default(object);
 		object char_literal65_tree = default(object);
-		object ID66_tree = default(object);
-		object char_literal67_tree = default(object);
-		object char_literal69_tree = default(object);
-		object ID70_tree = default(object);
-		object char_literal71_tree = default(object);
+		object char_literal66_tree = default(object);
+		object ID67_tree = default(object);
+		object char_literal68_tree = default(object);
+		object char_literal70_tree = default(object);
+		object ID71_tree = default(object);
 		object char_literal72_tree = default(object);
-		object ID73_tree = default(object);
-		object STRING74_tree = default(object);
-		object INT75_tree = default(object);
-		object char_literal76_tree = default(object);
-		object char_literal78_tree = default(object);
+		object char_literal73_tree = default(object);
+		object ID74_tree = default(object);
+		object STRING75_tree = default(object);
+		object INT76_tree = default(object);
+		object char_literal77_tree = default(object);
 		object char_literal79_tree = default(object);
-		object char_literal81_tree = default(object);
-		object PREFIXED_STRING82_tree = default(object);
+		object char_literal80_tree = default(object);
+		object char_literal82_tree = default(object);
+		object PREFIXED_STRING83_tree = default(object);
 		RewriteRuleITokenStream stream_ID=new RewriteRuleITokenStream(adaptor,"token ID");
-		RewriteRuleITokenStream stream_43=new RewriteRuleITokenStream(adaptor,"token 43");
 		RewriteRuleITokenStream stream_44=new RewriteRuleITokenStream(adaptor,"token 44");
-		RewriteRuleITokenStream stream_57=new RewriteRuleITokenStream(adaptor,"token 57");
+		RewriteRuleITokenStream stream_45=new RewriteRuleITokenStream(adaptor,"token 45");
 		RewriteRuleITokenStream stream_58=new RewriteRuleITokenStream(adaptor,"token 58");
+		RewriteRuleITokenStream stream_59=new RewriteRuleITokenStream(adaptor,"token 59");
 		RewriteRuleSubtreeStream stream_arglist_expr=new RewriteRuleSubtreeStream(adaptor,"rule arglist_expr");
 		try { DebugEnterRule(GrammarFileName, "postfix_expr");
-		DebugLocation(166, 1);
+		DebugLocation(168, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:167:2: ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | PREFIXED_STRING )
+			// Queries\\PomonaQuery.g:169:2: ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | PREFIXED_STRING )
 			int alt26=10;
 			try { DebugEnterDecision(26, false);
 			switch (input.LA(1))
@@ -3112,15 +3156,15 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				switch (input.LA(2))
 				{
-				case 43:
+				case 44:
 					{
 					int LA26_3 = input.LA(3);
 
-					if ((LA26_3==44))
+					if ((LA26_3==45))
 					{
 						alt26 = 2;
 					}
-					else if ((LA26_3==ID||LA26_3==INT||LA26_3==PREFIXED_STRING||LA26_3==STRING||LA26_3==39||LA26_3==43||LA26_3==57||LA26_3==74))
+					else if ((LA26_3==ID||LA26_3==INT||LA26_3==PREFIXED_STRING||LA26_3==STRING||LA26_3==40||LA26_3==44||LA26_3==58||LA26_3==76))
 					{
 						alt26 = 1;
 					}
@@ -3132,15 +3176,15 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					}
 					}
 					break;
-				case 57:
+				case 58:
 					{
 					int LA26_3 = input.LA(3);
 
-					if ((LA26_3==58))
+					if ((LA26_3==59))
 					{
 						alt26 = 4;
 					}
-					else if ((LA26_3==ID||LA26_3==INT||LA26_3==PREFIXED_STRING||LA26_3==STRING||LA26_3==39||LA26_3==43||LA26_3==57||LA26_3==74))
+					else if ((LA26_3==ID||LA26_3==INT||LA26_3==PREFIXED_STRING||LA26_3==STRING||LA26_3==40||LA26_3==44||LA26_3==58||LA26_3==76))
 					{
 						alt26 = 3;
 					}
@@ -3153,10 +3197,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					}
 					break;
 				case EOF:
-				case 40:
 				case 41:
 				case 42:
-				case 44:
+				case 43:
 				case 45:
 				case 46:
 				case 47:
@@ -3169,7 +3212,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				case 54:
 				case 55:
 				case 56:
-				case 58:
+				case 57:
 				case 59:
 				case 60:
 				case 61:
@@ -3185,9 +3228,11 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				case 71:
 				case 72:
 				case 73:
+				case 74:
 				case 75:
-				case 76:
 				case 77:
+				case 78:
+				case 79:
 					{
 					alt26 = 5;
 					}
@@ -3212,12 +3257,12 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				alt26 = 7;
 				}
 				break;
-			case 43:
+			case 44:
 				{
 				alt26 = 8;
 				}
 				break;
-			case 57:
+			case 58:
 				{
 				alt26 = 9;
 				}
@@ -3240,30 +3285,30 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:167:4: ID ( '(' arglist_expr ')' )
+				// Queries\\PomonaQuery.g:169:4: ID ( '(' arglist_expr ')' )
 				{
-				DebugLocation(167, 4);
-				ID59=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1005);  
-				stream_ID.Add(ID59);
+				DebugLocation(169, 4);
+				ID60=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1020);  
+				stream_ID.Add(ID60);
 
-				DebugLocation(167, 7);
-				// Queries\\PomonaQuery.g:167:7: ( '(' arglist_expr ')' )
+				DebugLocation(169, 7);
+				// Queries\\PomonaQuery.g:169:7: ( '(' arglist_expr ')' )
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:167:9: '(' arglist_expr ')'
+				// Queries\\PomonaQuery.g:169:9: '(' arglist_expr ')'
 				{
-				DebugLocation(167, 9);
-				char_literal60=(IToken)Match(input,43,Follow._43_in_postfix_expr1009);  
-				stream_43.Add(char_literal60);
+				DebugLocation(169, 9);
+				char_literal61=(IToken)Match(input,44,Follow._44_in_postfix_expr1024);  
+				stream_44.Add(char_literal61);
 
-				DebugLocation(167, 13);
-				PushFollow(Follow._arglist_expr_in_postfix_expr1011);
-				arglist_expr61=arglist_expr();
+				DebugLocation(169, 13);
+				PushFollow(Follow._arglist_expr_in_postfix_expr1026);
+				arglist_expr62=arglist_expr();
 				PopFollow();
 
-				stream_arglist_expr.Add(arglist_expr61.Tree);
-				DebugLocation(167, 26);
-				char_literal62=(IToken)Match(input,44,Follow._44_in_postfix_expr1013);  
-				stream_44.Add(char_literal62);
+				stream_arglist_expr.Add(arglist_expr62.Tree);
+				DebugLocation(169, 26);
+				char_literal63=(IToken)Match(input,45,Follow._45_in_postfix_expr1028);  
+				stream_45.Add(char_literal63);
 
 
 				}
@@ -3282,18 +3327,18 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 167:32: -> ^( METHOD_CALL ID arglist_expr )
+				// 169:32: -> ^( METHOD_CALL ID arglist_expr )
 				{
-					DebugLocation(167, 35);
-					// Queries\\PomonaQuery.g:167:35: ^( METHOD_CALL ID arglist_expr )
+					DebugLocation(169, 35);
+					// Queries\\PomonaQuery.g:169:35: ^( METHOD_CALL ID arglist_expr )
 					{
 					object root_1 = (object)adaptor.Nil();
-					DebugLocation(167, 37);
+					DebugLocation(169, 37);
 					root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(METHOD_CALL, "METHOD_CALL"), root_1);
 
-					DebugLocation(167, 49);
+					DebugLocation(169, 49);
 					adaptor.AddChild(root_1, stream_ID.NextNode());
-					DebugLocation(167, 52);
+					DebugLocation(169, 52);
 					adaptor.AddChild(root_1, stream_arglist_expr.NextTree());
 
 					adaptor.AddChild(root_0, root_1);
@@ -3308,24 +3353,24 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:168:4: ID ( '(' ')' )
+				// Queries\\PomonaQuery.g:170:4: ID ( '(' ')' )
 				{
-				DebugLocation(168, 4);
-				ID63=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1030);  
-				stream_ID.Add(ID63);
+				DebugLocation(170, 4);
+				ID64=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1045);  
+				stream_ID.Add(ID64);
 
-				DebugLocation(168, 7);
-				// Queries\\PomonaQuery.g:168:7: ( '(' ')' )
+				DebugLocation(170, 7);
+				// Queries\\PomonaQuery.g:170:7: ( '(' ')' )
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:168:9: '(' ')'
+				// Queries\\PomonaQuery.g:170:9: '(' ')'
 				{
-				DebugLocation(168, 9);
-				char_literal64=(IToken)Match(input,43,Follow._43_in_postfix_expr1034);  
-				stream_43.Add(char_literal64);
-
-				DebugLocation(168, 13);
-				char_literal65=(IToken)Match(input,44,Follow._44_in_postfix_expr1036);  
+				DebugLocation(170, 9);
+				char_literal65=(IToken)Match(input,44,Follow._44_in_postfix_expr1049);  
 				stream_44.Add(char_literal65);
+
+				DebugLocation(170, 13);
+				char_literal66=(IToken)Match(input,45,Follow._45_in_postfix_expr1051);  
+				stream_45.Add(char_literal66);
 
 
 				}
@@ -3344,16 +3389,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 168:19: -> ^( METHOD_CALL ID )
+				// 170:19: -> ^( METHOD_CALL ID )
 				{
-					DebugLocation(168, 22);
-					// Queries\\PomonaQuery.g:168:22: ^( METHOD_CALL ID )
+					DebugLocation(170, 22);
+					// Queries\\PomonaQuery.g:170:22: ^( METHOD_CALL ID )
 					{
 					object root_1 = (object)adaptor.Nil();
-					DebugLocation(168, 24);
+					DebugLocation(170, 24);
 					root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(METHOD_CALL, "METHOD_CALL"), root_1);
 
-					DebugLocation(168, 36);
+					DebugLocation(170, 36);
 					adaptor.AddChild(root_1, stream_ID.NextNode());
 
 					adaptor.AddChild(root_0, root_1);
@@ -3368,30 +3413,30 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:169:4: ID ( '[' arglist_expr ']' )
+				// Queries\\PomonaQuery.g:171:4: ID ( '[' arglist_expr ']' )
 				{
-				DebugLocation(169, 4);
-				ID66=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1051);  
-				stream_ID.Add(ID66);
+				DebugLocation(171, 4);
+				ID67=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1066);  
+				stream_ID.Add(ID67);
 
-				DebugLocation(169, 7);
-				// Queries\\PomonaQuery.g:169:7: ( '[' arglist_expr ']' )
+				DebugLocation(171, 7);
+				// Queries\\PomonaQuery.g:171:7: ( '[' arglist_expr ']' )
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:169:9: '[' arglist_expr ']'
+				// Queries\\PomonaQuery.g:171:9: '[' arglist_expr ']'
 				{
-				DebugLocation(169, 9);
-				char_literal67=(IToken)Match(input,57,Follow._57_in_postfix_expr1055);  
-				stream_57.Add(char_literal67);
+				DebugLocation(171, 9);
+				char_literal68=(IToken)Match(input,58,Follow._58_in_postfix_expr1070);  
+				stream_58.Add(char_literal68);
 
-				DebugLocation(169, 13);
-				PushFollow(Follow._arglist_expr_in_postfix_expr1057);
-				arglist_expr68=arglist_expr();
+				DebugLocation(171, 13);
+				PushFollow(Follow._arglist_expr_in_postfix_expr1072);
+				arglist_expr69=arglist_expr();
 				PopFollow();
 
-				stream_arglist_expr.Add(arglist_expr68.Tree);
-				DebugLocation(169, 26);
-				char_literal69=(IToken)Match(input,58,Follow._58_in_postfix_expr1059);  
-				stream_58.Add(char_literal69);
+				stream_arglist_expr.Add(arglist_expr69.Tree);
+				DebugLocation(171, 26);
+				char_literal70=(IToken)Match(input,59,Follow._59_in_postfix_expr1074);  
+				stream_59.Add(char_literal70);
 
 
 				}
@@ -3410,18 +3455,18 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 169:32: -> ^( INDEXER_ACCESS ID arglist_expr )
+				// 171:32: -> ^( INDEXER_ACCESS ID arglist_expr )
 				{
-					DebugLocation(169, 35);
-					// Queries\\PomonaQuery.g:169:35: ^( INDEXER_ACCESS ID arglist_expr )
+					DebugLocation(171, 35);
+					// Queries\\PomonaQuery.g:171:35: ^( INDEXER_ACCESS ID arglist_expr )
 					{
 					object root_1 = (object)adaptor.Nil();
-					DebugLocation(169, 37);
+					DebugLocation(171, 37);
 					root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(INDEXER_ACCESS, "INDEXER_ACCESS"), root_1);
 
-					DebugLocation(169, 52);
+					DebugLocation(171, 52);
 					adaptor.AddChild(root_1, stream_ID.NextNode());
-					DebugLocation(169, 55);
+					DebugLocation(171, 55);
 					adaptor.AddChild(root_1, stream_arglist_expr.NextTree());
 
 					adaptor.AddChild(root_0, root_1);
@@ -3436,24 +3481,24 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 4:
 				DebugEnterAlt(4);
-				// Queries\\PomonaQuery.g:170:4: ID ( '[' ']' )
+				// Queries\\PomonaQuery.g:172:4: ID ( '[' ']' )
 				{
-				DebugLocation(170, 4);
-				ID70=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1076);  
-				stream_ID.Add(ID70);
+				DebugLocation(172, 4);
+				ID71=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1091);  
+				stream_ID.Add(ID71);
 
-				DebugLocation(170, 7);
-				// Queries\\PomonaQuery.g:170:7: ( '[' ']' )
+				DebugLocation(172, 7);
+				// Queries\\PomonaQuery.g:172:7: ( '[' ']' )
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:170:9: '[' ']'
+				// Queries\\PomonaQuery.g:172:9: '[' ']'
 				{
-				DebugLocation(170, 9);
-				char_literal71=(IToken)Match(input,57,Follow._57_in_postfix_expr1080);  
-				stream_57.Add(char_literal71);
-
-				DebugLocation(170, 13);
-				char_literal72=(IToken)Match(input,58,Follow._58_in_postfix_expr1082);  
+				DebugLocation(172, 9);
+				char_literal72=(IToken)Match(input,58,Follow._58_in_postfix_expr1095);  
 				stream_58.Add(char_literal72);
+
+				DebugLocation(172, 13);
+				char_literal73=(IToken)Match(input,59,Follow._59_in_postfix_expr1097);  
+				stream_59.Add(char_literal73);
 
 
 				}
@@ -3472,16 +3517,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 170:19: -> ^( INDEXER_ACCESS ID )
+				// 172:19: -> ^( INDEXER_ACCESS ID )
 				{
-					DebugLocation(170, 22);
-					// Queries\\PomonaQuery.g:170:22: ^( INDEXER_ACCESS ID )
+					DebugLocation(172, 22);
+					// Queries\\PomonaQuery.g:172:22: ^( INDEXER_ACCESS ID )
 					{
 					object root_1 = (object)adaptor.Nil();
-					DebugLocation(170, 24);
+					DebugLocation(172, 24);
 					root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(INDEXER_ACCESS, "INDEXER_ACCESS"), root_1);
 
-					DebugLocation(170, 39);
+					DebugLocation(172, 39);
 					adaptor.AddChild(root_1, stream_ID.NextNode());
 
 					adaptor.AddChild(root_0, root_1);
@@ -3496,79 +3541,79 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 5:
 				DebugEnterAlt(5);
-				// Queries\\PomonaQuery.g:171:4: ID
+				// Queries\\PomonaQuery.g:173:4: ID
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(171, 4);
-				ID73=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1097); 
-				ID73_tree = (object)adaptor.Create(ID73);
-				adaptor.AddChild(root_0, ID73_tree);
+				DebugLocation(173, 4);
+				ID74=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1112); 
+				ID74_tree = (object)adaptor.Create(ID74);
+				adaptor.AddChild(root_0, ID74_tree);
 
 				}
 				break;
 			case 6:
 				DebugEnterAlt(6);
-				// Queries\\PomonaQuery.g:172:4: STRING
+				// Queries\\PomonaQuery.g:174:4: STRING
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(172, 4);
-				STRING74=(IToken)Match(input,STRING,Follow._STRING_in_postfix_expr1102); 
-				STRING74_tree = (object)adaptor.Create(STRING74);
-				adaptor.AddChild(root_0, STRING74_tree);
+				DebugLocation(174, 4);
+				STRING75=(IToken)Match(input,STRING,Follow._STRING_in_postfix_expr1117); 
+				STRING75_tree = (object)adaptor.Create(STRING75);
+				adaptor.AddChild(root_0, STRING75_tree);
 
 				}
 				break;
 			case 7:
 				DebugEnterAlt(7);
-				// Queries\\PomonaQuery.g:173:4: INT
+				// Queries\\PomonaQuery.g:175:4: INT
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(173, 4);
-				INT75=(IToken)Match(input,INT,Follow._INT_in_postfix_expr1107); 
-				INT75_tree = (object)adaptor.Create(INT75);
-				adaptor.AddChild(root_0, INT75_tree);
+				DebugLocation(175, 4);
+				INT76=(IToken)Match(input,INT,Follow._INT_in_postfix_expr1122); 
+				INT76_tree = (object)adaptor.Create(INT76);
+				adaptor.AddChild(root_0, INT76_tree);
 
 				}
 				break;
 			case 8:
 				DebugEnterAlt(8);
-				// Queries\\PomonaQuery.g:174:4: '(' ! orderby_expr ')' !
+				// Queries\\PomonaQuery.g:176:4: '(' ! orderby_expr ')' !
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(174, 7);
-				char_literal76=(IToken)Match(input,43,Follow._43_in_postfix_expr1112); 
-				DebugLocation(174, 9);
-				PushFollow(Follow._orderby_expr_in_postfix_expr1115);
-				orderby_expr77=orderby_expr();
+				DebugLocation(176, 7);
+				char_literal77=(IToken)Match(input,44,Follow._44_in_postfix_expr1127); 
+				DebugLocation(176, 9);
+				PushFollow(Follow._orderby_expr_in_postfix_expr1130);
+				orderby_expr78=orderby_expr();
 				PopFollow();
 
-				adaptor.AddChild(root_0, orderby_expr77.Tree);
-				DebugLocation(174, 25);
-				char_literal78=(IToken)Match(input,44,Follow._44_in_postfix_expr1117); 
+				adaptor.AddChild(root_0, orderby_expr78.Tree);
+				DebugLocation(176, 25);
+				char_literal79=(IToken)Match(input,45,Follow._45_in_postfix_expr1132); 
 
 				}
 				break;
 			case 9:
 				DebugEnterAlt(9);
-				// Queries\\PomonaQuery.g:175:4: '[' arglist_expr ']'
+				// Queries\\PomonaQuery.g:177:4: '[' arglist_expr ']'
 				{
-				DebugLocation(175, 4);
-				char_literal79=(IToken)Match(input,57,Follow._57_in_postfix_expr1123);  
-				stream_57.Add(char_literal79);
+				DebugLocation(177, 4);
+				char_literal80=(IToken)Match(input,58,Follow._58_in_postfix_expr1138);  
+				stream_58.Add(char_literal80);
 
-				DebugLocation(175, 8);
-				PushFollow(Follow._arglist_expr_in_postfix_expr1125);
-				arglist_expr80=arglist_expr();
+				DebugLocation(177, 8);
+				PushFollow(Follow._arglist_expr_in_postfix_expr1140);
+				arglist_expr81=arglist_expr();
 				PopFollow();
 
-				stream_arglist_expr.Add(arglist_expr80.Tree);
-				DebugLocation(175, 21);
-				char_literal81=(IToken)Match(input,58,Follow._58_in_postfix_expr1127);  
-				stream_58.Add(char_literal81);
+				stream_arglist_expr.Add(arglist_expr81.Tree);
+				DebugLocation(177, 21);
+				char_literal82=(IToken)Match(input,59,Follow._59_in_postfix_expr1142);  
+				stream_59.Add(char_literal82);
 
 
 
@@ -3584,16 +3629,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 				root_0 = (object)adaptor.Nil();
-				// 175:25: -> ^( ARRAY_LITERAL arglist_expr )
+				// 177:25: -> ^( ARRAY_LITERAL arglist_expr )
 				{
-					DebugLocation(175, 28);
-					// Queries\\PomonaQuery.g:175:28: ^( ARRAY_LITERAL arglist_expr )
+					DebugLocation(177, 28);
+					// Queries\\PomonaQuery.g:177:28: ^( ARRAY_LITERAL arglist_expr )
 					{
 					object root_1 = (object)adaptor.Nil();
-					DebugLocation(175, 30);
+					DebugLocation(177, 30);
 					root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(ARRAY_LITERAL, "ARRAY_LITERAL"), root_1);
 
-					DebugLocation(175, 44);
+					DebugLocation(177, 44);
 					adaptor.AddChild(root_1, stream_arglist_expr.NextTree());
 
 					adaptor.AddChild(root_0, root_1);
@@ -3608,14 +3653,14 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 10:
 				DebugEnterAlt(10);
-				// Queries\\PomonaQuery.g:176:4: PREFIXED_STRING
+				// Queries\\PomonaQuery.g:178:4: PREFIXED_STRING
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(176, 4);
-				PREFIXED_STRING82=(IToken)Match(input,PREFIXED_STRING,Follow._PREFIXED_STRING_in_postfix_expr1140); 
-				PREFIXED_STRING82_tree = (object)adaptor.Create(PREFIXED_STRING82);
-				adaptor.AddChild(root_0, PREFIXED_STRING82_tree);
+				DebugLocation(178, 4);
+				PREFIXED_STRING83=(IToken)Match(input,PREFIXED_STRING,Follow._PREFIXED_STRING_in_postfix_expr1155); 
+				PREFIXED_STRING83_tree = (object)adaptor.Create(PREFIXED_STRING83);
+				adaptor.AddChild(root_0, PREFIXED_STRING83_tree);
 
 				}
 				break;
@@ -3640,7 +3685,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("postfix_expr", 18);
 			LeaveRule_postfix_expr();
 		}
-		DebugLocation(177, 1);
+		DebugLocation(179, 1);
 		} finally { DebugExitRule(GrammarFileName, "postfix_expr"); }
 		return retval;
 
@@ -3650,7 +3695,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_sortorder_operator();
 	partial void LeaveRule_sortorder_operator();
 	// $ANTLR start "sortorder_operator"
-	// Queries\\PomonaQuery.g:179:1: sortorder_operator : ( 'asc' | 'desc' );
+	// Queries\\PomonaQuery.g:181:1: sortorder_operator : ( 'asc' | 'desc' );
 	[GrammarRule("sortorder_operator")]
 	private AstParserRuleReturnScope<object, IToken> sortorder_operator()
 	{
@@ -3662,26 +3707,26 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken set83 = default(IToken);
+		IToken set84 = default(IToken);
 
-		object set83_tree = default(object);
+		object set84_tree = default(object);
 		try { DebugEnterRule(GrammarFileName, "sortorder_operator");
-		DebugLocation(179, 1);
+		DebugLocation(181, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:180:2: ( 'asc' | 'desc' )
+			// Queries\\PomonaQuery.g:182:2: ( 'asc' | 'desc' )
 			DebugEnterAlt(1);
 			// Queries\\PomonaQuery.g:
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(180, 2);
+			DebugLocation(182, 2);
 
-			set83=(IToken)input.LT(1);
-			if ((input.LA(1)>=62 && input.LA(1)<=63))
+			set84=(IToken)input.LT(1);
+			if ((input.LA(1)>=63 && input.LA(1)<=64))
 			{
 				input.Consume();
-				adaptor.AddChild(root_0, (object)adaptor.Create(set83));
+				adaptor.AddChild(root_0, (object)adaptor.Create(set84));
 				state.errorRecovery=false;
 			}
 			else
@@ -3713,7 +3758,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("sortorder_operator", 19);
 			LeaveRule_sortorder_operator();
 		}
-		DebugLocation(182, 1);
+		DebugLocation(184, 1);
 		} finally { DebugExitRule(GrammarFileName, "sortorder_operator"); }
 		return retval;
 
@@ -3723,7 +3768,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_orderby_expr();
 	partial void LeaveRule_orderby_expr();
 	// $ANTLR start "orderby_expr"
-	// Queries\\PomonaQuery.g:184:1: orderby_expr : exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) ;
+	// Queries\\PomonaQuery.g:186:1: orderby_expr : exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) ;
 	[GrammarRule("orderby_expr")]
 	private AstParserRuleReturnScope<object, IToken> orderby_expr()
 	{
@@ -3735,33 +3780,33 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> exp84 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> sortorder_operator85 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> exp85 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> sortorder_operator86 = default(AstParserRuleReturnScope<object, IToken>);
 
 		RewriteRuleSubtreeStream stream_exp=new RewriteRuleSubtreeStream(adaptor,"rule exp");
 		RewriteRuleSubtreeStream stream_sortorder_operator=new RewriteRuleSubtreeStream(adaptor,"rule sortorder_operator");
 		try { DebugEnterRule(GrammarFileName, "orderby_expr");
-		DebugLocation(184, 1);
+		DebugLocation(186, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:185:2: ( exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) )
+			// Queries\\PomonaQuery.g:187:2: ( exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:185:4: exp ( sortorder_operator )?
+			// Queries\\PomonaQuery.g:187:4: exp ( sortorder_operator )?
 			{
-			DebugLocation(185, 4);
-			PushFollow(Follow._exp_in_orderby_expr1167);
-			exp84=exp();
+			DebugLocation(187, 4);
+			PushFollow(Follow._exp_in_orderby_expr1182);
+			exp85=exp();
 			PopFollow();
 
-			stream_exp.Add(exp84.Tree);
-			DebugLocation(185, 8);
-			// Queries\\PomonaQuery.g:185:8: ( sortorder_operator )?
+			stream_exp.Add(exp85.Tree);
+			DebugLocation(187, 8);
+			// Queries\\PomonaQuery.g:187:8: ( sortorder_operator )?
 			int alt27=2;
 			try { DebugEnterSubRule(27);
 			try { DebugEnterDecision(27, false);
 			int LA27_1 = input.LA(1);
 
-			if (((LA27_1>=62 && LA27_1<=63)))
+			if (((LA27_1>=63 && LA27_1<=64)))
 			{
 				alt27 = 1;
 			}
@@ -3770,14 +3815,14 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:185:9: sortorder_operator
+				// Queries\\PomonaQuery.g:187:9: sortorder_operator
 				{
-				DebugLocation(185, 9);
-				PushFollow(Follow._sortorder_operator_in_orderby_expr1170);
-				sortorder_operator85=sortorder_operator();
+				DebugLocation(187, 9);
+				PushFollow(Follow._sortorder_operator_in_orderby_expr1185);
+				sortorder_operator86=sortorder_operator();
 				PopFollow();
 
-				stream_sortorder_operator.Add(sortorder_operator85.Tree);
+				stream_sortorder_operator.Add(sortorder_operator86.Tree);
 
 				}
 				break;
@@ -3799,22 +3844,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 185:30: -> ^( ORDERBY_ASC exp ( sortorder_operator )? )
+			// 187:30: -> ^( ORDERBY_ASC exp ( sortorder_operator )? )
 			{
-				DebugLocation(185, 33);
-				// Queries\\PomonaQuery.g:185:33: ^( ORDERBY_ASC exp ( sortorder_operator )? )
+				DebugLocation(187, 33);
+				// Queries\\PomonaQuery.g:187:33: ^( ORDERBY_ASC exp ( sortorder_operator )? )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(185, 35);
+				DebugLocation(187, 35);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(ORDERBY_ASC, "ORDERBY_ASC"), root_1);
 
-				DebugLocation(185, 47);
+				DebugLocation(187, 47);
 				adaptor.AddChild(root_1, stream_exp.NextTree());
-				DebugLocation(185, 51);
-				// Queries\\PomonaQuery.g:185:51: ( sortorder_operator )?
+				DebugLocation(187, 51);
+				// Queries\\PomonaQuery.g:187:51: ( sortorder_operator )?
 				if (stream_sortorder_operator.HasNext)
 				{
-					DebugLocation(185, 51);
+					DebugLocation(187, 51);
 					adaptor.AddChild(root_1, stream_sortorder_operator.NextTree());
 
 				}
@@ -3849,7 +3894,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("orderby_expr", 20);
 			LeaveRule_orderby_expr();
 		}
-		DebugLocation(186, 1);
+		DebugLocation(188, 1);
 		} finally { DebugExitRule(GrammarFileName, "orderby_expr"); }
 		return retval;
 
@@ -3859,7 +3904,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_arglist_expr();
 	partial void LeaveRule_arglist_expr();
 	// $ANTLR start "arglist_expr"
-	// Queries\\PomonaQuery.g:188:1: arglist_expr : orderby_expr ( ',' ! orderby_expr )* ;
+	// Queries\\PomonaQuery.g:190:1: arglist_expr : orderby_expr ( ',' ! orderby_expr )* ;
 	[GrammarRule("arglist_expr")]
 	private AstParserRuleReturnScope<object, IToken> arglist_expr()
 	{
@@ -3871,29 +3916,29 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken char_literal87 = default(IToken);
-		AstParserRuleReturnScope<object, IToken> orderby_expr86 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> orderby_expr88 = default(AstParserRuleReturnScope<object, IToken>);
+		IToken char_literal88 = default(IToken);
+		AstParserRuleReturnScope<object, IToken> orderby_expr87 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> orderby_expr89 = default(AstParserRuleReturnScope<object, IToken>);
 
-		object char_literal87_tree = default(object);
+		object char_literal88_tree = default(object);
 		try { DebugEnterRule(GrammarFileName, "arglist_expr");
-		DebugLocation(188, 1);
+		DebugLocation(190, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:189:2: ( orderby_expr ( ',' ! orderby_expr )* )
+			// Queries\\PomonaQuery.g:191:2: ( orderby_expr ( ',' ! orderby_expr )* )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:189:4: orderby_expr ( ',' ! orderby_expr )*
+			// Queries\\PomonaQuery.g:191:4: orderby_expr ( ',' ! orderby_expr )*
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(189, 4);
-			PushFollow(Follow._orderby_expr_in_arglist_expr1195);
-			orderby_expr86=orderby_expr();
+			DebugLocation(191, 4);
+			PushFollow(Follow._orderby_expr_in_arglist_expr1210);
+			orderby_expr87=orderby_expr();
 			PopFollow();
 
-			adaptor.AddChild(root_0, orderby_expr86.Tree);
-			DebugLocation(189, 17);
-			// Queries\\PomonaQuery.g:189:17: ( ',' ! orderby_expr )*
+			adaptor.AddChild(root_0, orderby_expr87.Tree);
+			DebugLocation(191, 17);
+			// Queries\\PomonaQuery.g:191:17: ( ',' ! orderby_expr )*
 			try { DebugEnterSubRule(28);
 			while (true)
 			{
@@ -3901,7 +3946,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				try { DebugEnterDecision(28, false);
 				int LA28_1 = input.LA(1);
 
-				if ((LA28_1==47))
+				if ((LA28_1==48))
 				{
 					alt28 = 1;
 				}
@@ -3912,16 +3957,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:189:19: ',' ! orderby_expr
+					// Queries\\PomonaQuery.g:191:19: ',' ! orderby_expr
 					{
-					DebugLocation(189, 22);
-					char_literal87=(IToken)Match(input,47,Follow._47_in_arglist_expr1199); 
-					DebugLocation(189, 24);
-					PushFollow(Follow._orderby_expr_in_arglist_expr1202);
-					orderby_expr88=orderby_expr();
+					DebugLocation(191, 22);
+					char_literal88=(IToken)Match(input,48,Follow._48_in_arglist_expr1214); 
+					DebugLocation(191, 24);
+					PushFollow(Follow._orderby_expr_in_arglist_expr1217);
+					orderby_expr89=orderby_expr();
 					PopFollow();
 
-					adaptor.AddChild(root_0, orderby_expr88.Tree);
+					adaptor.AddChild(root_0, orderby_expr89.Tree);
 
 					}
 					break;
@@ -3958,7 +4003,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("arglist_expr", 21);
 			LeaveRule_arglist_expr();
 		}
-		DebugLocation(190, 1);
+		DebugLocation(192, 1);
 		} finally { DebugExitRule(GrammarFileName, "arglist_expr"); }
 		return retval;
 
@@ -3970,92 +4015,93 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	#region Follow sets
 	private static class Follow
 	{
-		public static readonly BitSet _arglist_expr_in_parse498 = new BitSet(new ulong[]{0x0UL});
-		public static readonly BitSet _EOF_in_parse500 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _as_expression_in_exp519 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _lambda_expression_in_as_expression530 = new BitSet(new ulong[]{0x2000000000000002UL});
-		public static readonly BitSet _61_in_as_expression534 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _lambda_expression_in_as_expression536 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _or_expression_in_lambda_expression559 = new BitSet(new ulong[]{0x8000000000002UL});
-		public static readonly BitSet _51_in_lambda_expression563 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _or_expression_in_lambda_expression565 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _and_expression_in_or_expression588 = new BitSet(new ulong[]{0x2UL,0x2800UL});
-		public static readonly BitSet _75_in_or_expression593 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _77_in_or_expression595 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _and_expression_in_or_expression598 = new BitSet(new ulong[]{0x2UL,0x2800UL});
-		public static readonly BitSet _relational_expr_in_and_expression637 = new BitSet(new ulong[]{0x1000040000000002UL});
-		public static readonly BitSet _and_operator_in_and_expression641 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _relational_expr_in_and_expression643 = new BitSet(new ulong[]{0x1000040000000002UL});
-		public static readonly BitSet _67_in_relational_operator670 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _55_in_relational_operator672 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _70_in_relational_operator683 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _52_in_relational_operator685 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _65_in_relational_operator696 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _54_in_relational_operator698 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _66_in_relational_operator709 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _56_in_relational_operator711 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _69_in_relational_operator722 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _53_in_relational_operator724 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _73_in_relational_operator735 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _40_in_relational_operator737 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _68_in_relational_operator747 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _additive_expr_in_relational_expr764 = new BitSet(new ulong[]{0x1F0010000000002UL,0x27EUL});
-		public static readonly BitSet _relational_operator_in_relational_expr767 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _additive_expr_in_relational_expr770 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _59_in_additive_operator787 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _46_in_additive_operator789 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _76_in_additive_operator803 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _48_in_additive_operator805 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _multiplicative_expr_in_additive_expr825 = new BitSet(new ulong[]{0x801400000000002UL,0x1000UL});
-		public static readonly BitSet _additive_operator_in_additive_expr829 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _multiplicative_expr_in_additive_expr832 = new BitSet(new ulong[]{0x801400000000002UL,0x1000UL});
-		public static readonly BitSet _72_in_multiplicative_operator852 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _45_in_multiplicative_operator854 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _64_in_multiplicative_operator870 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _50_in_multiplicative_operator872 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _71_in_multiplicative_operator885 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _41_in_multiplicative_operator887 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _unary_expr_in_multiplicative_expr907 = new BitSet(new ulong[]{0x4220000000002UL,0x181UL});
-		public static readonly BitSet _multiplicative_operator_in_multiplicative_expr911 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _unary_expr_in_multiplicative_expr914 = new BitSet(new ulong[]{0x4220000000002UL,0x181UL});
-		public static readonly BitSet _74_in_unary_operator930 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _39_in_unary_operator932 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _49_in_dot_operator948 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _unary_operator_in_unary_expr965 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _unary_expr_in_unary_expr968 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _primary_expr_in_unary_expr973 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _postfix_expr_in_primary_expr984 = new BitSet(new ulong[]{0x2000000000002UL});
-		public static readonly BitSet _dot_operator_in_primary_expr988 = new BitSet(new ulong[]{0x200080A000A0000UL});
-		public static readonly BitSet _postfix_expr_in_primary_expr991 = new BitSet(new ulong[]{0x2000000000002UL});
-		public static readonly BitSet _ID_in_postfix_expr1005 = new BitSet(new ulong[]{0x80000000000UL});
-		public static readonly BitSet _43_in_postfix_expr1009 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _arglist_expr_in_postfix_expr1011 = new BitSet(new ulong[]{0x100000000000UL});
-		public static readonly BitSet _44_in_postfix_expr1013 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1030 = new BitSet(new ulong[]{0x80000000000UL});
-		public static readonly BitSet _43_in_postfix_expr1034 = new BitSet(new ulong[]{0x100000000000UL});
-		public static readonly BitSet _44_in_postfix_expr1036 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1051 = new BitSet(new ulong[]{0x200000000000000UL});
-		public static readonly BitSet _57_in_postfix_expr1055 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _arglist_expr_in_postfix_expr1057 = new BitSet(new ulong[]{0x400000000000000UL});
-		public static readonly BitSet _58_in_postfix_expr1059 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1076 = new BitSet(new ulong[]{0x200000000000000UL});
-		public static readonly BitSet _57_in_postfix_expr1080 = new BitSet(new ulong[]{0x400000000000000UL});
-		public static readonly BitSet _58_in_postfix_expr1082 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1097 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _STRING_in_postfix_expr1102 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _INT_in_postfix_expr1107 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _43_in_postfix_expr1112 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _orderby_expr_in_postfix_expr1115 = new BitSet(new ulong[]{0x100000000000UL});
-		public static readonly BitSet _44_in_postfix_expr1117 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _57_in_postfix_expr1123 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _arglist_expr_in_postfix_expr1125 = new BitSet(new ulong[]{0x400000000000000UL});
-		public static readonly BitSet _58_in_postfix_expr1127 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _PREFIXED_STRING_in_postfix_expr1140 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _exp_in_orderby_expr1167 = new BitSet(new ulong[]{0xC000000000000002UL});
-		public static readonly BitSet _sortorder_operator_in_orderby_expr1170 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _orderby_expr_in_arglist_expr1195 = new BitSet(new ulong[]{0x800000000002UL});
-		public static readonly BitSet _47_in_arglist_expr1199 = new BitSet(new ulong[]{0x200088A000A0000UL,0x400UL});
-		public static readonly BitSet _orderby_expr_in_arglist_expr1202 = new BitSet(new ulong[]{0x800000000002UL});
+		public static readonly BitSet _arglist_expr_in_parse504 = new BitSet(new ulong[]{0x0UL});
+		public static readonly BitSet _EOF_in_parse506 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _as_expression_in_exp525 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _lambda_expression_in_as_expression536 = new BitSet(new ulong[]{0x4000000000000002UL});
+		public static readonly BitSet _62_in_as_expression540 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _lambda_expression_in_as_expression542 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _or_expression_in_lambda_expression565 = new BitSet(new ulong[]{0x10000000000002UL});
+		public static readonly BitSet _52_in_lambda_expression569 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _or_expression_in_lambda_expression571 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _and_expression_in_or_expression594 = new BitSet(new ulong[]{0x2UL,0xA000UL});
+		public static readonly BitSet _77_in_or_expression599 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _79_in_or_expression601 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _and_expression_in_or_expression604 = new BitSet(new ulong[]{0x2UL,0xA000UL});
+		public static readonly BitSet _relational_expr_in_and_expression643 = new BitSet(new ulong[]{0x2000080000000002UL});
+		public static readonly BitSet _and_operator_in_and_expression647 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _relational_expr_in_and_expression649 = new BitSet(new ulong[]{0x2000080000000002UL});
+		public static readonly BitSet _68_in_relational_operator676 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _56_in_relational_operator678 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _72_in_relational_operator689 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _53_in_relational_operator691 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _66_in_relational_operator702 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _55_in_relational_operator704 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _67_in_relational_operator715 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _57_in_relational_operator717 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _71_in_relational_operator728 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _54_in_relational_operator730 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _75_in_relational_operator741 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _41_in_relational_operator743 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _70_in_relational_operator753 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _69_in_relational_operator762 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _additive_expr_in_relational_expr779 = new BitSet(new ulong[]{0x3E0020000000002UL,0x9FCUL});
+		public static readonly BitSet _relational_operator_in_relational_expr782 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _additive_expr_in_relational_expr785 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _60_in_additive_operator802 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _47_in_additive_operator804 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _78_in_additive_operator818 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _49_in_additive_operator820 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _multiplicative_expr_in_additive_expr840 = new BitSet(new ulong[]{0x1002800000000002UL,0x4000UL});
+		public static readonly BitSet _additive_operator_in_additive_expr844 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _multiplicative_expr_in_additive_expr847 = new BitSet(new ulong[]{0x1002800000000002UL,0x4000UL});
+		public static readonly BitSet _74_in_multiplicative_operator867 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _46_in_multiplicative_operator869 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _65_in_multiplicative_operator885 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _51_in_multiplicative_operator887 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _73_in_multiplicative_operator900 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _42_in_multiplicative_operator902 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _unary_expr_in_multiplicative_expr922 = new BitSet(new ulong[]{0x8440000000002UL,0x602UL});
+		public static readonly BitSet _multiplicative_operator_in_multiplicative_expr926 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _unary_expr_in_multiplicative_expr929 = new BitSet(new ulong[]{0x8440000000002UL,0x602UL});
+		public static readonly BitSet _76_in_unary_operator945 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _40_in_unary_operator947 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _50_in_dot_operator963 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _unary_operator_in_unary_expr980 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _unary_expr_in_unary_expr983 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _primary_expr_in_unary_expr988 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _postfix_expr_in_primary_expr999 = new BitSet(new ulong[]{0x4000000000002UL});
+		public static readonly BitSet _dot_operator_in_primary_expr1003 = new BitSet(new ulong[]{0x400101400120000UL});
+		public static readonly BitSet _postfix_expr_in_primary_expr1006 = new BitSet(new ulong[]{0x4000000000002UL});
+		public static readonly BitSet _ID_in_postfix_expr1020 = new BitSet(new ulong[]{0x100000000000UL});
+		public static readonly BitSet _44_in_postfix_expr1024 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _arglist_expr_in_postfix_expr1026 = new BitSet(new ulong[]{0x200000000000UL});
+		public static readonly BitSet _45_in_postfix_expr1028 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1045 = new BitSet(new ulong[]{0x100000000000UL});
+		public static readonly BitSet _44_in_postfix_expr1049 = new BitSet(new ulong[]{0x200000000000UL});
+		public static readonly BitSet _45_in_postfix_expr1051 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1066 = new BitSet(new ulong[]{0x400000000000000UL});
+		public static readonly BitSet _58_in_postfix_expr1070 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _arglist_expr_in_postfix_expr1072 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1074 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1091 = new BitSet(new ulong[]{0x400000000000000UL});
+		public static readonly BitSet _58_in_postfix_expr1095 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1097 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1112 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _STRING_in_postfix_expr1117 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _INT_in_postfix_expr1122 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _44_in_postfix_expr1127 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _orderby_expr_in_postfix_expr1130 = new BitSet(new ulong[]{0x200000000000UL});
+		public static readonly BitSet _45_in_postfix_expr1132 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _58_in_postfix_expr1138 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _arglist_expr_in_postfix_expr1140 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1142 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _PREFIXED_STRING_in_postfix_expr1155 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _exp_in_orderby_expr1182 = new BitSet(new ulong[]{0x8000000000000002UL,0x1UL});
+		public static readonly BitSet _sortorder_operator_in_orderby_expr1185 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _orderby_expr_in_arglist_expr1210 = new BitSet(new ulong[]{0x1000000000002UL});
+		public static readonly BitSet _48_in_arglist_expr1214 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _orderby_expr_in_arglist_expr1217 = new BitSet(new ulong[]{0x1000000000002UL});
 	}
 	#endregion Follow sets
 }

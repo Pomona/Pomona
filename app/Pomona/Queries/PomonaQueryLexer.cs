@@ -45,28 +45,28 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	public const int GUID_LITERAL=15;
 	public const int HEX_DIGIT=16;
 	public const int ID=17;
-	public const int INDEXER_ACCESS=18;
-	public const int INT=19;
-	public const int IN_OP=20;
-	public const int LAMBDA_OP=21;
-	public const int LE_OP=22;
-	public const int LT_OP=23;
-	public const int METHOD_CALL=24;
-	public const int MOD_OP=25;
-	public const int MUL_OP=26;
-	public const int NE_OP=27;
-	public const int NOT_OP=28;
-	public const int OCTAL_ESC=29;
-	public const int ORDERBY_ASC=30;
-	public const int ORDERBY_DESC=31;
-	public const int OR_OP=32;
-	public const int PREFIXED_STRING=33;
-	public const int ROOT=34;
-	public const int STRING=35;
-	public const int SUB_OP=36;
-	public const int UNICODE_ESC=37;
-	public const int WS=38;
-	public const int T__39=39;
+	public const int IEQ_OP=18;
+	public const int INDEXER_ACCESS=19;
+	public const int INT=20;
+	public const int IN_OP=21;
+	public const int LAMBDA_OP=22;
+	public const int LE_OP=23;
+	public const int LT_OP=24;
+	public const int METHOD_CALL=25;
+	public const int MOD_OP=26;
+	public const int MUL_OP=27;
+	public const int NE_OP=28;
+	public const int NOT_OP=29;
+	public const int OCTAL_ESC=30;
+	public const int ORDERBY_ASC=31;
+	public const int ORDERBY_DESC=32;
+	public const int OR_OP=33;
+	public const int PREFIXED_STRING=34;
+	public const int ROOT=35;
+	public const int STRING=36;
+	public const int SUB_OP=37;
+	public const int UNICODE_ESC=38;
+	public const int WS=39;
 	public const int T__40=40;
 	public const int T__41=41;
 	public const int T__42=42;
@@ -105,6 +105,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	public const int T__75=75;
 	public const int T__76=76;
 	public const int T__77=77;
+	public const int T__78=78;
+	public const int T__79=79;
 	const int HIDDEN = Hidden;
 
 	// delegates
@@ -133,19 +135,19 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	partial void EnterRule(string ruleName, int ruleIndex);
 	partial void LeaveRule(string ruleName, int ruleIndex);
 
-	partial void EnterRule_T__39();
-	partial void LeaveRule_T__39();
+	partial void EnterRule_T__40();
+	partial void LeaveRule_T__40();
 
-	// $ANTLR start "T__39"
-	[GrammarRule("T__39")]
-	private void mT__39()
+	// $ANTLR start "T__40"
+	[GrammarRule("T__40")]
+	private void mT__40()
 	{
-		EnterRule_T__39();
-		EnterRule("T__39", 1);
-		TraceIn("T__39", 1);
+		EnterRule_T__40();
+		EnterRule("T__40", 1);
+		TraceIn("T__40", 1);
 		try
 		{
-			int _type = T__39;
+			int _type = T__40;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:10:7: ( '!' )
 			DebugEnterAlt(1);
@@ -161,26 +163,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__39", 1);
-			LeaveRule("T__39", 1);
-			LeaveRule_T__39();
+			TraceOut("T__40", 1);
+			LeaveRule("T__40", 1);
+			LeaveRule_T__40();
 		}
 	}
-	// $ANTLR end "T__39"
+	// $ANTLR end "T__40"
 
-	partial void EnterRule_T__40();
-	partial void LeaveRule_T__40();
+	partial void EnterRule_T__41();
+	partial void LeaveRule_T__41();
 
-	// $ANTLR start "T__40"
-	[GrammarRule("T__40")]
-	private void mT__40()
+	// $ANTLR start "T__41"
+	[GrammarRule("T__41")]
+	private void mT__41()
 	{
-		EnterRule_T__40();
-		EnterRule("T__40", 2);
-		TraceIn("T__40", 2);
+		EnterRule_T__41();
+		EnterRule("T__41", 2);
+		TraceIn("T__41", 2);
 		try
 		{
-			int _type = T__40;
+			int _type = T__41;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:11:7: ( '!=' )
 			DebugEnterAlt(1);
@@ -197,26 +199,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__40", 2);
-			LeaveRule("T__40", 2);
-			LeaveRule_T__40();
+			TraceOut("T__41", 2);
+			LeaveRule("T__41", 2);
+			LeaveRule_T__41();
 		}
 	}
-	// $ANTLR end "T__40"
+	// $ANTLR end "T__41"
 
-	partial void EnterRule_T__41();
-	partial void LeaveRule_T__41();
+	partial void EnterRule_T__42();
+	partial void LeaveRule_T__42();
 
-	// $ANTLR start "T__41"
-	[GrammarRule("T__41")]
-	private void mT__41()
+	// $ANTLR start "T__42"
+	[GrammarRule("T__42")]
+	private void mT__42()
 	{
-		EnterRule_T__41();
-		EnterRule("T__41", 3);
-		TraceIn("T__41", 3);
+		EnterRule_T__42();
+		EnterRule("T__42", 3);
+		TraceIn("T__42", 3);
 		try
 		{
-			int _type = T__41;
+			int _type = T__42;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:12:7: ( '%' )
 			DebugEnterAlt(1);
@@ -232,26 +234,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__41", 3);
-			LeaveRule("T__41", 3);
-			LeaveRule_T__41();
+			TraceOut("T__42", 3);
+			LeaveRule("T__42", 3);
+			LeaveRule_T__42();
 		}
 	}
-	// $ANTLR end "T__41"
+	// $ANTLR end "T__42"
 
-	partial void EnterRule_T__42();
-	partial void LeaveRule_T__42();
+	partial void EnterRule_T__43();
+	partial void LeaveRule_T__43();
 
-	// $ANTLR start "T__42"
-	[GrammarRule("T__42")]
-	private void mT__42()
+	// $ANTLR start "T__43"
+	[GrammarRule("T__43")]
+	private void mT__43()
 	{
-		EnterRule_T__42();
-		EnterRule("T__42", 4);
-		TraceIn("T__42", 4);
+		EnterRule_T__43();
+		EnterRule("T__43", 4);
+		TraceIn("T__43", 4);
 		try
 		{
-			int _type = T__42;
+			int _type = T__43;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:13:7: ( '&&' )
 			DebugEnterAlt(1);
@@ -268,26 +270,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__42", 4);
-			LeaveRule("T__42", 4);
-			LeaveRule_T__42();
+			TraceOut("T__43", 4);
+			LeaveRule("T__43", 4);
+			LeaveRule_T__43();
 		}
 	}
-	// $ANTLR end "T__42"
+	// $ANTLR end "T__43"
 
-	partial void EnterRule_T__43();
-	partial void LeaveRule_T__43();
+	partial void EnterRule_T__44();
+	partial void LeaveRule_T__44();
 
-	// $ANTLR start "T__43"
-	[GrammarRule("T__43")]
-	private void mT__43()
+	// $ANTLR start "T__44"
+	[GrammarRule("T__44")]
+	private void mT__44()
 	{
-		EnterRule_T__43();
-		EnterRule("T__43", 5);
-		TraceIn("T__43", 5);
+		EnterRule_T__44();
+		EnterRule("T__44", 5);
+		TraceIn("T__44", 5);
 		try
 		{
-			int _type = T__43;
+			int _type = T__44;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:14:7: ( '(' )
 			DebugEnterAlt(1);
@@ -303,26 +305,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__43", 5);
-			LeaveRule("T__43", 5);
-			LeaveRule_T__43();
+			TraceOut("T__44", 5);
+			LeaveRule("T__44", 5);
+			LeaveRule_T__44();
 		}
 	}
-	// $ANTLR end "T__43"
+	// $ANTLR end "T__44"
 
-	partial void EnterRule_T__44();
-	partial void LeaveRule_T__44();
+	partial void EnterRule_T__45();
+	partial void LeaveRule_T__45();
 
-	// $ANTLR start "T__44"
-	[GrammarRule("T__44")]
-	private void mT__44()
+	// $ANTLR start "T__45"
+	[GrammarRule("T__45")]
+	private void mT__45()
 	{
-		EnterRule_T__44();
-		EnterRule("T__44", 6);
-		TraceIn("T__44", 6);
+		EnterRule_T__45();
+		EnterRule("T__45", 6);
+		TraceIn("T__45", 6);
 		try
 		{
-			int _type = T__44;
+			int _type = T__45;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:15:7: ( ')' )
 			DebugEnterAlt(1);
@@ -338,26 +340,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__44", 6);
-			LeaveRule("T__44", 6);
-			LeaveRule_T__44();
+			TraceOut("T__45", 6);
+			LeaveRule("T__45", 6);
+			LeaveRule_T__45();
 		}
 	}
-	// $ANTLR end "T__44"
+	// $ANTLR end "T__45"
 
-	partial void EnterRule_T__45();
-	partial void LeaveRule_T__45();
+	partial void EnterRule_T__46();
+	partial void LeaveRule_T__46();
 
-	// $ANTLR start "T__45"
-	[GrammarRule("T__45")]
-	private void mT__45()
+	// $ANTLR start "T__46"
+	[GrammarRule("T__46")]
+	private void mT__46()
 	{
-		EnterRule_T__45();
-		EnterRule("T__45", 7);
-		TraceIn("T__45", 7);
+		EnterRule_T__46();
+		EnterRule("T__46", 7);
+		TraceIn("T__46", 7);
 		try
 		{
-			int _type = T__45;
+			int _type = T__46;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:16:7: ( '*' )
 			DebugEnterAlt(1);
@@ -373,26 +375,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__45", 7);
-			LeaveRule("T__45", 7);
-			LeaveRule_T__45();
+			TraceOut("T__46", 7);
+			LeaveRule("T__46", 7);
+			LeaveRule_T__46();
 		}
 	}
-	// $ANTLR end "T__45"
+	// $ANTLR end "T__46"
 
-	partial void EnterRule_T__46();
-	partial void LeaveRule_T__46();
+	partial void EnterRule_T__47();
+	partial void LeaveRule_T__47();
 
-	// $ANTLR start "T__46"
-	[GrammarRule("T__46")]
-	private void mT__46()
+	// $ANTLR start "T__47"
+	[GrammarRule("T__47")]
+	private void mT__47()
 	{
-		EnterRule_T__46();
-		EnterRule("T__46", 8);
-		TraceIn("T__46", 8);
+		EnterRule_T__47();
+		EnterRule("T__47", 8);
+		TraceIn("T__47", 8);
 		try
 		{
-			int _type = T__46;
+			int _type = T__47;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:17:7: ( '+' )
 			DebugEnterAlt(1);
@@ -408,26 +410,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__46", 8);
-			LeaveRule("T__46", 8);
-			LeaveRule_T__46();
+			TraceOut("T__47", 8);
+			LeaveRule("T__47", 8);
+			LeaveRule_T__47();
 		}
 	}
-	// $ANTLR end "T__46"
+	// $ANTLR end "T__47"
 
-	partial void EnterRule_T__47();
-	partial void LeaveRule_T__47();
+	partial void EnterRule_T__48();
+	partial void LeaveRule_T__48();
 
-	// $ANTLR start "T__47"
-	[GrammarRule("T__47")]
-	private void mT__47()
+	// $ANTLR start "T__48"
+	[GrammarRule("T__48")]
+	private void mT__48()
 	{
-		EnterRule_T__47();
-		EnterRule("T__47", 9);
-		TraceIn("T__47", 9);
+		EnterRule_T__48();
+		EnterRule("T__48", 9);
+		TraceIn("T__48", 9);
 		try
 		{
-			int _type = T__47;
+			int _type = T__48;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:18:7: ( ',' )
 			DebugEnterAlt(1);
@@ -443,26 +445,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__47", 9);
-			LeaveRule("T__47", 9);
-			LeaveRule_T__47();
+			TraceOut("T__48", 9);
+			LeaveRule("T__48", 9);
+			LeaveRule_T__48();
 		}
 	}
-	// $ANTLR end "T__47"
+	// $ANTLR end "T__48"
 
-	partial void EnterRule_T__48();
-	partial void LeaveRule_T__48();
+	partial void EnterRule_T__49();
+	partial void LeaveRule_T__49();
 
-	// $ANTLR start "T__48"
-	[GrammarRule("T__48")]
-	private void mT__48()
+	// $ANTLR start "T__49"
+	[GrammarRule("T__49")]
+	private void mT__49()
 	{
-		EnterRule_T__48();
-		EnterRule("T__48", 10);
-		TraceIn("T__48", 10);
+		EnterRule_T__49();
+		EnterRule("T__49", 10);
+		TraceIn("T__49", 10);
 		try
 		{
-			int _type = T__48;
+			int _type = T__49;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:19:7: ( '-' )
 			DebugEnterAlt(1);
@@ -478,26 +480,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__48", 10);
-			LeaveRule("T__48", 10);
-			LeaveRule_T__48();
+			TraceOut("T__49", 10);
+			LeaveRule("T__49", 10);
+			LeaveRule_T__49();
 		}
 	}
-	// $ANTLR end "T__48"
+	// $ANTLR end "T__49"
 
-	partial void EnterRule_T__49();
-	partial void LeaveRule_T__49();
+	partial void EnterRule_T__50();
+	partial void LeaveRule_T__50();
 
-	// $ANTLR start "T__49"
-	[GrammarRule("T__49")]
-	private void mT__49()
+	// $ANTLR start "T__50"
+	[GrammarRule("T__50")]
+	private void mT__50()
 	{
-		EnterRule_T__49();
-		EnterRule("T__49", 11);
-		TraceIn("T__49", 11);
+		EnterRule_T__50();
+		EnterRule("T__50", 11);
+		TraceIn("T__50", 11);
 		try
 		{
-			int _type = T__49;
+			int _type = T__50;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:20:7: ( '.' )
 			DebugEnterAlt(1);
@@ -513,26 +515,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__49", 11);
-			LeaveRule("T__49", 11);
-			LeaveRule_T__49();
+			TraceOut("T__50", 11);
+			LeaveRule("T__50", 11);
+			LeaveRule_T__50();
 		}
 	}
-	// $ANTLR end "T__49"
+	// $ANTLR end "T__50"
 
-	partial void EnterRule_T__50();
-	partial void LeaveRule_T__50();
+	partial void EnterRule_T__51();
+	partial void LeaveRule_T__51();
 
-	// $ANTLR start "T__50"
-	[GrammarRule("T__50")]
-	private void mT__50()
+	// $ANTLR start "T__51"
+	[GrammarRule("T__51")]
+	private void mT__51()
 	{
-		EnterRule_T__50();
-		EnterRule("T__50", 12);
-		TraceIn("T__50", 12);
+		EnterRule_T__51();
+		EnterRule("T__51", 12);
+		TraceIn("T__51", 12);
 		try
 		{
-			int _type = T__50;
+			int _type = T__51;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:21:7: ( '/' )
 			DebugEnterAlt(1);
@@ -548,26 +550,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__50", 12);
-			LeaveRule("T__50", 12);
-			LeaveRule_T__50();
+			TraceOut("T__51", 12);
+			LeaveRule("T__51", 12);
+			LeaveRule_T__51();
 		}
 	}
-	// $ANTLR end "T__50"
+	// $ANTLR end "T__51"
 
-	partial void EnterRule_T__51();
-	partial void LeaveRule_T__51();
+	partial void EnterRule_T__52();
+	partial void LeaveRule_T__52();
 
-	// $ANTLR start "T__51"
-	[GrammarRule("T__51")]
-	private void mT__51()
+	// $ANTLR start "T__52"
+	[GrammarRule("T__52")]
+	private void mT__52()
 	{
-		EnterRule_T__51();
-		EnterRule("T__51", 13);
-		TraceIn("T__51", 13);
+		EnterRule_T__52();
+		EnterRule("T__52", 13);
+		TraceIn("T__52", 13);
 		try
 		{
-			int _type = T__51;
+			int _type = T__52;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:22:7: ( ':' )
 			DebugEnterAlt(1);
@@ -583,26 +585,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__51", 13);
-			LeaveRule("T__51", 13);
-			LeaveRule_T__51();
+			TraceOut("T__52", 13);
+			LeaveRule("T__52", 13);
+			LeaveRule_T__52();
 		}
 	}
-	// $ANTLR end "T__51"
+	// $ANTLR end "T__52"
 
-	partial void EnterRule_T__52();
-	partial void LeaveRule_T__52();
+	partial void EnterRule_T__53();
+	partial void LeaveRule_T__53();
 
-	// $ANTLR start "T__52"
-	[GrammarRule("T__52")]
-	private void mT__52()
+	// $ANTLR start "T__53"
+	[GrammarRule("T__53")]
+	private void mT__53()
 	{
-		EnterRule_T__52();
-		EnterRule("T__52", 14);
-		TraceIn("T__52", 14);
+		EnterRule_T__53();
+		EnterRule("T__53", 14);
+		TraceIn("T__53", 14);
 		try
 		{
-			int _type = T__52;
+			int _type = T__53;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:23:7: ( '<' )
 			DebugEnterAlt(1);
@@ -618,26 +620,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__52", 14);
-			LeaveRule("T__52", 14);
-			LeaveRule_T__52();
+			TraceOut("T__53", 14);
+			LeaveRule("T__53", 14);
+			LeaveRule_T__53();
 		}
 	}
-	// $ANTLR end "T__52"
+	// $ANTLR end "T__53"
 
-	partial void EnterRule_T__53();
-	partial void LeaveRule_T__53();
+	partial void EnterRule_T__54();
+	partial void LeaveRule_T__54();
 
-	// $ANTLR start "T__53"
-	[GrammarRule("T__53")]
-	private void mT__53()
+	// $ANTLR start "T__54"
+	[GrammarRule("T__54")]
+	private void mT__54()
 	{
-		EnterRule_T__53();
-		EnterRule("T__53", 15);
-		TraceIn("T__53", 15);
+		EnterRule_T__54();
+		EnterRule("T__54", 15);
+		TraceIn("T__54", 15);
 		try
 		{
-			int _type = T__53;
+			int _type = T__54;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:24:7: ( '<=' )
 			DebugEnterAlt(1);
@@ -654,26 +656,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__53", 15);
-			LeaveRule("T__53", 15);
-			LeaveRule_T__53();
+			TraceOut("T__54", 15);
+			LeaveRule("T__54", 15);
+			LeaveRule_T__54();
 		}
 	}
-	// $ANTLR end "T__53"
+	// $ANTLR end "T__54"
 
-	partial void EnterRule_T__54();
-	partial void LeaveRule_T__54();
+	partial void EnterRule_T__55();
+	partial void LeaveRule_T__55();
 
-	// $ANTLR start "T__54"
-	[GrammarRule("T__54")]
-	private void mT__54()
+	// $ANTLR start "T__55"
+	[GrammarRule("T__55")]
+	private void mT__55()
 	{
-		EnterRule_T__54();
-		EnterRule("T__54", 16);
-		TraceIn("T__54", 16);
+		EnterRule_T__55();
+		EnterRule("T__55", 16);
+		TraceIn("T__55", 16);
 		try
 		{
-			int _type = T__54;
+			int _type = T__55;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:25:7: ( '==' )
 			DebugEnterAlt(1);
@@ -690,26 +692,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__54", 16);
-			LeaveRule("T__54", 16);
-			LeaveRule_T__54();
+			TraceOut("T__55", 16);
+			LeaveRule("T__55", 16);
+			LeaveRule_T__55();
 		}
 	}
-	// $ANTLR end "T__54"
+	// $ANTLR end "T__55"
 
-	partial void EnterRule_T__55();
-	partial void LeaveRule_T__55();
+	partial void EnterRule_T__56();
+	partial void LeaveRule_T__56();
 
-	// $ANTLR start "T__55"
-	[GrammarRule("T__55")]
-	private void mT__55()
+	// $ANTLR start "T__56"
+	[GrammarRule("T__56")]
+	private void mT__56()
 	{
-		EnterRule_T__55();
-		EnterRule("T__55", 17);
-		TraceIn("T__55", 17);
+		EnterRule_T__56();
+		EnterRule("T__56", 17);
+		TraceIn("T__56", 17);
 		try
 		{
-			int _type = T__55;
+			int _type = T__56;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:26:7: ( '>' )
 			DebugEnterAlt(1);
@@ -725,26 +727,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__55", 17);
-			LeaveRule("T__55", 17);
-			LeaveRule_T__55();
+			TraceOut("T__56", 17);
+			LeaveRule("T__56", 17);
+			LeaveRule_T__56();
 		}
 	}
-	// $ANTLR end "T__55"
+	// $ANTLR end "T__56"
 
-	partial void EnterRule_T__56();
-	partial void LeaveRule_T__56();
+	partial void EnterRule_T__57();
+	partial void LeaveRule_T__57();
 
-	// $ANTLR start "T__56"
-	[GrammarRule("T__56")]
-	private void mT__56()
+	// $ANTLR start "T__57"
+	[GrammarRule("T__57")]
+	private void mT__57()
 	{
-		EnterRule_T__56();
-		EnterRule("T__56", 18);
-		TraceIn("T__56", 18);
+		EnterRule_T__57();
+		EnterRule("T__57", 18);
+		TraceIn("T__57", 18);
 		try
 		{
-			int _type = T__56;
+			int _type = T__57;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:27:7: ( '>=' )
 			DebugEnterAlt(1);
@@ -761,26 +763,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__56", 18);
-			LeaveRule("T__56", 18);
-			LeaveRule_T__56();
+			TraceOut("T__57", 18);
+			LeaveRule("T__57", 18);
+			LeaveRule_T__57();
 		}
 	}
-	// $ANTLR end "T__56"
+	// $ANTLR end "T__57"
 
-	partial void EnterRule_T__57();
-	partial void LeaveRule_T__57();
+	partial void EnterRule_T__58();
+	partial void LeaveRule_T__58();
 
-	// $ANTLR start "T__57"
-	[GrammarRule("T__57")]
-	private void mT__57()
+	// $ANTLR start "T__58"
+	[GrammarRule("T__58")]
+	private void mT__58()
 	{
-		EnterRule_T__57();
-		EnterRule("T__57", 19);
-		TraceIn("T__57", 19);
+		EnterRule_T__58();
+		EnterRule("T__58", 19);
+		TraceIn("T__58", 19);
 		try
 		{
-			int _type = T__57;
+			int _type = T__58;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:28:7: ( '[' )
 			DebugEnterAlt(1);
@@ -796,26 +798,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__57", 19);
-			LeaveRule("T__57", 19);
-			LeaveRule_T__57();
+			TraceOut("T__58", 19);
+			LeaveRule("T__58", 19);
+			LeaveRule_T__58();
 		}
 	}
-	// $ANTLR end "T__57"
+	// $ANTLR end "T__58"
 
-	partial void EnterRule_T__58();
-	partial void LeaveRule_T__58();
+	partial void EnterRule_T__59();
+	partial void LeaveRule_T__59();
 
-	// $ANTLR start "T__58"
-	[GrammarRule("T__58")]
-	private void mT__58()
+	// $ANTLR start "T__59"
+	[GrammarRule("T__59")]
+	private void mT__59()
 	{
-		EnterRule_T__58();
-		EnterRule("T__58", 20);
-		TraceIn("T__58", 20);
+		EnterRule_T__59();
+		EnterRule("T__59", 20);
+		TraceIn("T__59", 20);
 		try
 		{
-			int _type = T__58;
+			int _type = T__59;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:29:7: ( ']' )
 			DebugEnterAlt(1);
@@ -831,26 +833,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__58", 20);
-			LeaveRule("T__58", 20);
-			LeaveRule_T__58();
+			TraceOut("T__59", 20);
+			LeaveRule("T__59", 20);
+			LeaveRule_T__59();
 		}
 	}
-	// $ANTLR end "T__58"
+	// $ANTLR end "T__59"
 
-	partial void EnterRule_T__59();
-	partial void LeaveRule_T__59();
+	partial void EnterRule_T__60();
+	partial void LeaveRule_T__60();
 
-	// $ANTLR start "T__59"
-	[GrammarRule("T__59")]
-	private void mT__59()
+	// $ANTLR start "T__60"
+	[GrammarRule("T__60")]
+	private void mT__60()
 	{
-		EnterRule_T__59();
-		EnterRule("T__59", 21);
-		TraceIn("T__59", 21);
+		EnterRule_T__60();
+		EnterRule("T__60", 21);
+		TraceIn("T__60", 21);
 		try
 		{
-			int _type = T__59;
+			int _type = T__60;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:30:7: ( 'add' )
 			DebugEnterAlt(1);
@@ -867,26 +869,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__59", 21);
-			LeaveRule("T__59", 21);
-			LeaveRule_T__59();
+			TraceOut("T__60", 21);
+			LeaveRule("T__60", 21);
+			LeaveRule_T__60();
 		}
 	}
-	// $ANTLR end "T__59"
+	// $ANTLR end "T__60"
 
-	partial void EnterRule_T__60();
-	partial void LeaveRule_T__60();
+	partial void EnterRule_T__61();
+	partial void LeaveRule_T__61();
 
-	// $ANTLR start "T__60"
-	[GrammarRule("T__60")]
-	private void mT__60()
+	// $ANTLR start "T__61"
+	[GrammarRule("T__61")]
+	private void mT__61()
 	{
-		EnterRule_T__60();
-		EnterRule("T__60", 22);
-		TraceIn("T__60", 22);
+		EnterRule_T__61();
+		EnterRule("T__61", 22);
+		TraceIn("T__61", 22);
 		try
 		{
-			int _type = T__60;
+			int _type = T__61;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:31:7: ( 'and' )
 			DebugEnterAlt(1);
@@ -903,26 +905,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__60", 22);
-			LeaveRule("T__60", 22);
-			LeaveRule_T__60();
+			TraceOut("T__61", 22);
+			LeaveRule("T__61", 22);
+			LeaveRule_T__61();
 		}
 	}
-	// $ANTLR end "T__60"
+	// $ANTLR end "T__61"
 
-	partial void EnterRule_T__61();
-	partial void LeaveRule_T__61();
+	partial void EnterRule_T__62();
+	partial void LeaveRule_T__62();
 
-	// $ANTLR start "T__61"
-	[GrammarRule("T__61")]
-	private void mT__61()
+	// $ANTLR start "T__62"
+	[GrammarRule("T__62")]
+	private void mT__62()
 	{
-		EnterRule_T__61();
-		EnterRule("T__61", 23);
-		TraceIn("T__61", 23);
+		EnterRule_T__62();
+		EnterRule("T__62", 23);
+		TraceIn("T__62", 23);
 		try
 		{
-			int _type = T__61;
+			int _type = T__62;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:32:7: ( 'as' )
 			DebugEnterAlt(1);
@@ -939,26 +941,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__61", 23);
-			LeaveRule("T__61", 23);
-			LeaveRule_T__61();
+			TraceOut("T__62", 23);
+			LeaveRule("T__62", 23);
+			LeaveRule_T__62();
 		}
 	}
-	// $ANTLR end "T__61"
+	// $ANTLR end "T__62"
 
-	partial void EnterRule_T__62();
-	partial void LeaveRule_T__62();
+	partial void EnterRule_T__63();
+	partial void LeaveRule_T__63();
 
-	// $ANTLR start "T__62"
-	[GrammarRule("T__62")]
-	private void mT__62()
+	// $ANTLR start "T__63"
+	[GrammarRule("T__63")]
+	private void mT__63()
 	{
-		EnterRule_T__62();
-		EnterRule("T__62", 24);
-		TraceIn("T__62", 24);
+		EnterRule_T__63();
+		EnterRule("T__63", 24);
+		TraceIn("T__63", 24);
 		try
 		{
-			int _type = T__62;
+			int _type = T__63;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:33:7: ( 'asc' )
 			DebugEnterAlt(1);
@@ -975,26 +977,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__62", 24);
-			LeaveRule("T__62", 24);
-			LeaveRule_T__62();
+			TraceOut("T__63", 24);
+			LeaveRule("T__63", 24);
+			LeaveRule_T__63();
 		}
 	}
-	// $ANTLR end "T__62"
+	// $ANTLR end "T__63"
 
-	partial void EnterRule_T__63();
-	partial void LeaveRule_T__63();
+	partial void EnterRule_T__64();
+	partial void LeaveRule_T__64();
 
-	// $ANTLR start "T__63"
-	[GrammarRule("T__63")]
-	private void mT__63()
+	// $ANTLR start "T__64"
+	[GrammarRule("T__64")]
+	private void mT__64()
 	{
-		EnterRule_T__63();
-		EnterRule("T__63", 25);
-		TraceIn("T__63", 25);
+		EnterRule_T__64();
+		EnterRule("T__64", 25);
+		TraceIn("T__64", 25);
 		try
 		{
-			int _type = T__63;
+			int _type = T__64;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:34:7: ( 'desc' )
 			DebugEnterAlt(1);
@@ -1011,26 +1013,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__63", 25);
-			LeaveRule("T__63", 25);
-			LeaveRule_T__63();
+			TraceOut("T__64", 25);
+			LeaveRule("T__64", 25);
+			LeaveRule_T__64();
 		}
 	}
-	// $ANTLR end "T__63"
+	// $ANTLR end "T__64"
 
-	partial void EnterRule_T__64();
-	partial void LeaveRule_T__64();
+	partial void EnterRule_T__65();
+	partial void LeaveRule_T__65();
 
-	// $ANTLR start "T__64"
-	[GrammarRule("T__64")]
-	private void mT__64()
+	// $ANTLR start "T__65"
+	[GrammarRule("T__65")]
+	private void mT__65()
 	{
-		EnterRule_T__64();
-		EnterRule("T__64", 26);
-		TraceIn("T__64", 26);
+		EnterRule_T__65();
+		EnterRule("T__65", 26);
+		TraceIn("T__65", 26);
 		try
 		{
-			int _type = T__64;
+			int _type = T__65;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:35:7: ( 'div' )
 			DebugEnterAlt(1);
@@ -1047,26 +1049,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__64", 26);
-			LeaveRule("T__64", 26);
-			LeaveRule_T__64();
+			TraceOut("T__65", 26);
+			LeaveRule("T__65", 26);
+			LeaveRule_T__65();
 		}
 	}
-	// $ANTLR end "T__64"
+	// $ANTLR end "T__65"
 
-	partial void EnterRule_T__65();
-	partial void LeaveRule_T__65();
+	partial void EnterRule_T__66();
+	partial void LeaveRule_T__66();
 
-	// $ANTLR start "T__65"
-	[GrammarRule("T__65")]
-	private void mT__65()
+	// $ANTLR start "T__66"
+	[GrammarRule("T__66")]
+	private void mT__66()
 	{
-		EnterRule_T__65();
-		EnterRule("T__65", 27);
-		TraceIn("T__65", 27);
+		EnterRule_T__66();
+		EnterRule("T__66", 27);
+		TraceIn("T__66", 27);
 		try
 		{
-			int _type = T__65;
+			int _type = T__66;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:36:7: ( 'eq' )
 			DebugEnterAlt(1);
@@ -1083,26 +1085,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__65", 27);
-			LeaveRule("T__65", 27);
-			LeaveRule_T__65();
+			TraceOut("T__66", 27);
+			LeaveRule("T__66", 27);
+			LeaveRule_T__66();
 		}
 	}
-	// $ANTLR end "T__65"
+	// $ANTLR end "T__66"
 
-	partial void EnterRule_T__66();
-	partial void LeaveRule_T__66();
+	partial void EnterRule_T__67();
+	partial void LeaveRule_T__67();
 
-	// $ANTLR start "T__66"
-	[GrammarRule("T__66")]
-	private void mT__66()
+	// $ANTLR start "T__67"
+	[GrammarRule("T__67")]
+	private void mT__67()
 	{
-		EnterRule_T__66();
-		EnterRule("T__66", 28);
-		TraceIn("T__66", 28);
+		EnterRule_T__67();
+		EnterRule("T__67", 28);
+		TraceIn("T__67", 28);
 		try
 		{
-			int _type = T__66;
+			int _type = T__67;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:37:7: ( 'ge' )
 			DebugEnterAlt(1);
@@ -1119,26 +1121,26 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__66", 28);
-			LeaveRule("T__66", 28);
-			LeaveRule_T__66();
+			TraceOut("T__67", 28);
+			LeaveRule("T__67", 28);
+			LeaveRule_T__67();
 		}
 	}
-	// $ANTLR end "T__66"
+	// $ANTLR end "T__67"
 
-	partial void EnterRule_T__67();
-	partial void LeaveRule_T__67();
+	partial void EnterRule_T__68();
+	partial void LeaveRule_T__68();
 
-	// $ANTLR start "T__67"
-	[GrammarRule("T__67")]
-	private void mT__67()
+	// $ANTLR start "T__68"
+	[GrammarRule("T__68")]
+	private void mT__68()
 	{
-		EnterRule_T__67();
-		EnterRule("T__67", 29);
-		TraceIn("T__67", 29);
+		EnterRule_T__68();
+		EnterRule("T__68", 29);
+		TraceIn("T__68", 29);
 		try
 		{
-			int _type = T__67;
+			int _type = T__68;
 			int _channel = DefaultTokenChannel;
 			// Queries\\PomonaQuery.g:38:7: ( 'gt' )
 			DebugEnterAlt(1);
@@ -1155,44 +1157,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__67", 29);
-			LeaveRule("T__67", 29);
-			LeaveRule_T__67();
-		}
-	}
-	// $ANTLR end "T__67"
-
-	partial void EnterRule_T__68();
-	partial void LeaveRule_T__68();
-
-	// $ANTLR start "T__68"
-	[GrammarRule("T__68")]
-	private void mT__68()
-	{
-		EnterRule_T__68();
-		EnterRule("T__68", 30);
-		TraceIn("T__68", 30);
-		try
-		{
-			int _type = T__68;
-			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:39:7: ( 'in' )
-			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:39:9: 'in'
-			{
-			DebugLocation(39, 9);
-			Match("in"); 
-
-
-			}
-
-			state.type = _type;
-			state.channel = _channel;
-		}
-		finally
-		{
-			TraceOut("T__68", 30);
-			LeaveRule("T__68", 30);
+			TraceOut("T__68", 29);
+			LeaveRule("T__68", 29);
 			LeaveRule_T__68();
 		}
 	}
@@ -1206,18 +1172,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__69()
 	{
 		EnterRule_T__69();
-		EnterRule("T__69", 31);
-		TraceIn("T__69", 31);
+		EnterRule("T__69", 30);
+		TraceIn("T__69", 30);
 		try
 		{
 			int _type = T__69;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:40:7: ( 'le' )
+			// Queries\\PomonaQuery.g:39:7: ( 'ieq' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:40:9: 'le'
+			// Queries\\PomonaQuery.g:39:9: 'ieq'
 			{
-			DebugLocation(40, 9);
-			Match("le"); 
+			DebugLocation(39, 9);
+			Match("ieq"); 
 
 
 			}
@@ -1227,8 +1193,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__69", 31);
-			LeaveRule("T__69", 31);
+			TraceOut("T__69", 30);
+			LeaveRule("T__69", 30);
 			LeaveRule_T__69();
 		}
 	}
@@ -1242,18 +1208,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__70()
 	{
 		EnterRule_T__70();
-		EnterRule("T__70", 32);
-		TraceIn("T__70", 32);
+		EnterRule("T__70", 31);
+		TraceIn("T__70", 31);
 		try
 		{
 			int _type = T__70;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:41:7: ( 'lt' )
+			// Queries\\PomonaQuery.g:40:7: ( 'in' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:41:9: 'lt'
+			// Queries\\PomonaQuery.g:40:9: 'in'
 			{
-			DebugLocation(41, 9);
-			Match("lt"); 
+			DebugLocation(40, 9);
+			Match("in"); 
 
 
 			}
@@ -1263,8 +1229,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__70", 32);
-			LeaveRule("T__70", 32);
+			TraceOut("T__70", 31);
+			LeaveRule("T__70", 31);
 			LeaveRule_T__70();
 		}
 	}
@@ -1278,18 +1244,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__71()
 	{
 		EnterRule_T__71();
-		EnterRule("T__71", 33);
-		TraceIn("T__71", 33);
+		EnterRule("T__71", 32);
+		TraceIn("T__71", 32);
 		try
 		{
 			int _type = T__71;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:42:7: ( 'mod' )
+			// Queries\\PomonaQuery.g:41:7: ( 'le' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:42:9: 'mod'
+			// Queries\\PomonaQuery.g:41:9: 'le'
 			{
-			DebugLocation(42, 9);
-			Match("mod"); 
+			DebugLocation(41, 9);
+			Match("le"); 
 
 
 			}
@@ -1299,8 +1265,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__71", 33);
-			LeaveRule("T__71", 33);
+			TraceOut("T__71", 32);
+			LeaveRule("T__71", 32);
 			LeaveRule_T__71();
 		}
 	}
@@ -1314,18 +1280,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__72()
 	{
 		EnterRule_T__72();
-		EnterRule("T__72", 34);
-		TraceIn("T__72", 34);
+		EnterRule("T__72", 33);
+		TraceIn("T__72", 33);
 		try
 		{
 			int _type = T__72;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:43:7: ( 'mul' )
+			// Queries\\PomonaQuery.g:42:7: ( 'lt' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:43:9: 'mul'
+			// Queries\\PomonaQuery.g:42:9: 'lt'
 			{
-			DebugLocation(43, 9);
-			Match("mul"); 
+			DebugLocation(42, 9);
+			Match("lt"); 
 
 
 			}
@@ -1335,8 +1301,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__72", 34);
-			LeaveRule("T__72", 34);
+			TraceOut("T__72", 33);
+			LeaveRule("T__72", 33);
 			LeaveRule_T__72();
 		}
 	}
@@ -1350,18 +1316,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__73()
 	{
 		EnterRule_T__73();
-		EnterRule("T__73", 35);
-		TraceIn("T__73", 35);
+		EnterRule("T__73", 34);
+		TraceIn("T__73", 34);
 		try
 		{
 			int _type = T__73;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:44:7: ( 'ne' )
+			// Queries\\PomonaQuery.g:43:7: ( 'mod' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:44:9: 'ne'
+			// Queries\\PomonaQuery.g:43:9: 'mod'
 			{
-			DebugLocation(44, 9);
-			Match("ne"); 
+			DebugLocation(43, 9);
+			Match("mod"); 
 
 
 			}
@@ -1371,8 +1337,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__73", 35);
-			LeaveRule("T__73", 35);
+			TraceOut("T__73", 34);
+			LeaveRule("T__73", 34);
 			LeaveRule_T__73();
 		}
 	}
@@ -1386,18 +1352,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__74()
 	{
 		EnterRule_T__74();
-		EnterRule("T__74", 36);
-		TraceIn("T__74", 36);
+		EnterRule("T__74", 35);
+		TraceIn("T__74", 35);
 		try
 		{
 			int _type = T__74;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:45:7: ( 'not' )
+			// Queries\\PomonaQuery.g:44:7: ( 'mul' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:45:9: 'not'
+			// Queries\\PomonaQuery.g:44:9: 'mul'
 			{
-			DebugLocation(45, 9);
-			Match("not"); 
+			DebugLocation(44, 9);
+			Match("mul"); 
 
 
 			}
@@ -1407,8 +1373,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__74", 36);
-			LeaveRule("T__74", 36);
+			TraceOut("T__74", 35);
+			LeaveRule("T__74", 35);
 			LeaveRule_T__74();
 		}
 	}
@@ -1422,18 +1388,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__75()
 	{
 		EnterRule_T__75();
-		EnterRule("T__75", 37);
-		TraceIn("T__75", 37);
+		EnterRule("T__75", 36);
+		TraceIn("T__75", 36);
 		try
 		{
 			int _type = T__75;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:46:7: ( 'or' )
+			// Queries\\PomonaQuery.g:45:7: ( 'ne' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:46:9: 'or'
+			// Queries\\PomonaQuery.g:45:9: 'ne'
 			{
-			DebugLocation(46, 9);
-			Match("or"); 
+			DebugLocation(45, 9);
+			Match("ne"); 
 
 
 			}
@@ -1443,8 +1409,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__75", 37);
-			LeaveRule("T__75", 37);
+			TraceOut("T__75", 36);
+			LeaveRule("T__75", 36);
 			LeaveRule_T__75();
 		}
 	}
@@ -1458,18 +1424,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__76()
 	{
 		EnterRule_T__76();
-		EnterRule("T__76", 38);
-		TraceIn("T__76", 38);
+		EnterRule("T__76", 37);
+		TraceIn("T__76", 37);
 		try
 		{
 			int _type = T__76;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:47:7: ( 'sub' )
+			// Queries\\PomonaQuery.g:46:7: ( 'not' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:47:9: 'sub'
+			// Queries\\PomonaQuery.g:46:9: 'not'
 			{
-			DebugLocation(47, 9);
-			Match("sub"); 
+			DebugLocation(46, 9);
+			Match("not"); 
 
 
 			}
@@ -1479,8 +1445,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__76", 38);
-			LeaveRule("T__76", 38);
+			TraceOut("T__76", 37);
+			LeaveRule("T__76", 37);
 			LeaveRule_T__76();
 		}
 	}
@@ -1494,17 +1460,89 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mT__77()
 	{
 		EnterRule_T__77();
-		EnterRule("T__77", 39);
-		TraceIn("T__77", 39);
+		EnterRule("T__77", 38);
+		TraceIn("T__77", 38);
 		try
 		{
 			int _type = T__77;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:48:7: ( '||' )
+			// Queries\\PomonaQuery.g:47:7: ( 'or' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:48:9: '||'
+			// Queries\\PomonaQuery.g:47:9: 'or'
+			{
+			DebugLocation(47, 9);
+			Match("or"); 
+
+
+			}
+
+			state.type = _type;
+			state.channel = _channel;
+		}
+		finally
+		{
+			TraceOut("T__77", 38);
+			LeaveRule("T__77", 38);
+			LeaveRule_T__77();
+		}
+	}
+	// $ANTLR end "T__77"
+
+	partial void EnterRule_T__78();
+	partial void LeaveRule_T__78();
+
+	// $ANTLR start "T__78"
+	[GrammarRule("T__78")]
+	private void mT__78()
+	{
+		EnterRule_T__78();
+		EnterRule("T__78", 39);
+		TraceIn("T__78", 39);
+		try
+		{
+			int _type = T__78;
+			int _channel = DefaultTokenChannel;
+			// Queries\\PomonaQuery.g:48:7: ( 'sub' )
+			DebugEnterAlt(1);
+			// Queries\\PomonaQuery.g:48:9: 'sub'
 			{
 			DebugLocation(48, 9);
+			Match("sub"); 
+
+
+			}
+
+			state.type = _type;
+			state.channel = _channel;
+		}
+		finally
+		{
+			TraceOut("T__78", 39);
+			LeaveRule("T__78", 39);
+			LeaveRule_T__78();
+		}
+	}
+	// $ANTLR end "T__78"
+
+	partial void EnterRule_T__79();
+	partial void LeaveRule_T__79();
+
+	// $ANTLR start "T__79"
+	[GrammarRule("T__79")]
+	private void mT__79()
+	{
+		EnterRule_T__79();
+		EnterRule("T__79", 40);
+		TraceIn("T__79", 40);
+		try
+		{
+			int _type = T__79;
+			int _channel = DefaultTokenChannel;
+			// Queries\\PomonaQuery.g:49:7: ( '||' )
+			DebugEnterAlt(1);
+			// Queries\\PomonaQuery.g:49:9: '||'
+			{
+			DebugLocation(49, 9);
 			Match("||"); 
 
 
@@ -1515,12 +1553,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("T__77", 39);
-			LeaveRule("T__77", 39);
-			LeaveRule_T__77();
+			TraceOut("T__79", 40);
+			LeaveRule("T__79", 40);
+			LeaveRule_T__79();
 		}
 	}
-	// $ANTLR end "T__77"
+	// $ANTLR end "T__79"
 
 	partial void EnterRule_PREFIXED_STRING();
 	partial void LeaveRule_PREFIXED_STRING();
@@ -1530,17 +1568,17 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mPREFIXED_STRING()
 	{
 		EnterRule_PREFIXED_STRING();
-		EnterRule("PREFIXED_STRING", 40);
-		TraceIn("PREFIXED_STRING", 40);
+		EnterRule("PREFIXED_STRING", 41);
+		TraceIn("PREFIXED_STRING", 41);
 		try
 		{
 			int _type = PREFIXED_STRING;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:49:2: ( ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )* '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )
+			// Queries\\PomonaQuery.g:50:2: ( ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )* '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:49:4: ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )* '\\'' (~ ( '\\\\' | '\\'' ) )* '\\''
+			// Queries\\PomonaQuery.g:50:4: ( 'a' .. 'z' | 'A' .. 'Z' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )* '\\'' (~ ( '\\\\' | '\\'' ) )* '\\''
 			{
-			DebugLocation(49, 4);
+			DebugLocation(50, 4);
 			if ((input.LA(1)>='A' && input.LA(1)<='Z')||(input.LA(1)>='a' && input.LA(1)<='z'))
 			{
 				input.Consume();
@@ -1553,8 +1591,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				throw mse;
 			}
 
-			DebugLocation(49, 24);
-			// Queries\\PomonaQuery.g:49:24: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )*
+			DebugLocation(50, 24);
+			// Queries\\PomonaQuery.g:50:24: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' )*
 			try { DebugEnterSubRule(1);
 			while (true)
 			{
@@ -1575,7 +1613,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					DebugEnterAlt(1);
 					// Queries\\PomonaQuery.g:
 					{
-					DebugLocation(49, 24);
+					DebugLocation(50, 24);
 					input.Consume();
 
 
@@ -1592,10 +1630,10 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 			} finally { DebugExitSubRule(1); }
 
-			DebugLocation(49, 55);
+			DebugLocation(50, 55);
 			Match('\''); 
-			DebugLocation(49, 60);
-			// Queries\\PomonaQuery.g:49:60: (~ ( '\\\\' | '\\'' ) )*
+			DebugLocation(50, 60);
+			// Queries\\PomonaQuery.g:50:60: (~ ( '\\\\' | '\\'' ) )*
 			try { DebugEnterSubRule(2);
 			while (true)
 			{
@@ -1616,7 +1654,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					DebugEnterAlt(1);
 					// Queries\\PomonaQuery.g:
 					{
-					DebugLocation(49, 60);
+					DebugLocation(50, 60);
 					input.Consume();
 
 
@@ -1633,7 +1671,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 			} finally { DebugExitSubRule(2); }
 
-			DebugLocation(49, 82);
+			DebugLocation(50, 82);
 			Match('\''); 
 
 			}
@@ -1643,8 +1681,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("PREFIXED_STRING", 40);
-			LeaveRule("PREFIXED_STRING", 40);
+			TraceOut("PREFIXED_STRING", 41);
+			LeaveRule("PREFIXED_STRING", 41);
 			LeaveRule_PREFIXED_STRING();
 		}
 	}
@@ -1658,17 +1696,17 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mID()
 	{
 		EnterRule_ID();
-		EnterRule("ID", 41);
-		TraceIn("ID", 41);
+		EnterRule("ID", 42);
+		TraceIn("ID", 42);
 		try
 		{
 			int _type = ID;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:52:5: ( ( '@' | 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )* )
+			// Queries\\PomonaQuery.g:53:5: ( ( '@' | 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )* )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:52:7: ( '@' | 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
+			// Queries\\PomonaQuery.g:53:7: ( '@' | 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
 			{
-			DebugLocation(52, 7);
+			DebugLocation(53, 7);
 			if ((input.LA(1)>='@' && input.LA(1)<='Z')||input.LA(1)=='_'||(input.LA(1)>='a' && input.LA(1)<='z'))
 			{
 				input.Consume();
@@ -1681,8 +1719,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				throw mse;
 			}
 
-			DebugLocation(52, 35);
-			// Queries\\PomonaQuery.g:52:35: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
+			DebugLocation(53, 35);
+			// Queries\\PomonaQuery.g:53:35: ( 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' )*
 			try { DebugEnterSubRule(3);
 			while (true)
 			{
@@ -1703,7 +1741,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					DebugEnterAlt(1);
 					// Queries\\PomonaQuery.g:
 					{
-					DebugLocation(52, 35);
+					DebugLocation(53, 35);
 					input.Consume();
 
 
@@ -1728,8 +1766,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("ID", 41);
-			LeaveRule("ID", 41);
+			TraceOut("ID", 42);
+			LeaveRule("ID", 42);
 			LeaveRule_ID();
 		}
 	}
@@ -1743,18 +1781,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mINT()
 	{
 		EnterRule_INT();
-		EnterRule("INT", 42);
-		TraceIn("INT", 42);
+		EnterRule("INT", 43);
+		TraceIn("INT", 43);
 		try
 		{
 			int _type = INT;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:55:5: ( ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )? )
+			// Queries\\PomonaQuery.g:56:5: ( ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )? )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:55:7: ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )?
+			// Queries\\PomonaQuery.g:56:7: ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )?
 			{
-			DebugLocation(55, 10);
-			// Queries\\PomonaQuery.g:55:10: ( '0' .. '9' )+
+			DebugLocation(56, 10);
+			// Queries\\PomonaQuery.g:56:10: ( '0' .. '9' )+
 			int cnt4=0;
 			try { DebugEnterSubRule(4);
 			while (true)
@@ -1776,7 +1814,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					DebugEnterAlt(1);
 					// Queries\\PomonaQuery.g:
 					{
-					DebugLocation(55, 10);
+					DebugLocation(56, 10);
 					input.Consume();
 
 
@@ -1798,8 +1836,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 			} finally { DebugExitSubRule(4); }
 
-			DebugLocation(55, 17);
-			// Queries\\PomonaQuery.g:55:17: ( '.' ( '0' .. '9' )+ )?
+			DebugLocation(56, 17);
+			// Queries\\PomonaQuery.g:56:17: ( '.' ( '0' .. '9' )+ )?
 			int alt6=2;
 			try { DebugEnterSubRule(6);
 			try { DebugEnterDecision(6, false);
@@ -1814,12 +1852,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:55:18: '.' ( '0' .. '9' )+
+				// Queries\\PomonaQuery.g:56:18: '.' ( '0' .. '9' )+
 				{
-				DebugLocation(55, 18);
+				DebugLocation(56, 18);
 				Match('.'); 
-				DebugLocation(55, 22);
-				// Queries\\PomonaQuery.g:55:22: ( '0' .. '9' )+
+				DebugLocation(56, 22);
+				// Queries\\PomonaQuery.g:56:22: ( '0' .. '9' )+
 				int cnt5=0;
 				try { DebugEnterSubRule(5);
 				while (true)
@@ -1841,7 +1879,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 						DebugEnterAlt(1);
 						// Queries\\PomonaQuery.g:
 						{
-						DebugLocation(55, 22);
+						DebugLocation(56, 22);
 						input.Consume();
 
 
@@ -1870,8 +1908,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			}
 			} finally { DebugExitSubRule(6); }
 
-			DebugLocation(55, 36);
-			// Queries\\PomonaQuery.g:55:36: ( 'm' | 'M' | 'f' | 'F' )?
+			DebugLocation(56, 36);
+			// Queries\\PomonaQuery.g:56:36: ( 'm' | 'M' | 'f' | 'F' )?
 			int alt7=2;
 			try { DebugEnterSubRule(7);
 			try { DebugEnterDecision(7, false);
@@ -1888,7 +1926,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				DebugEnterAlt(1);
 				// Queries\\PomonaQuery.g:
 				{
-				DebugLocation(55, 36);
+				DebugLocation(56, 36);
 				input.Consume();
 
 
@@ -1906,8 +1944,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("INT", 42);
-			LeaveRule("INT", 42);
+			TraceOut("INT", 43);
+			LeaveRule("INT", 43);
 			LeaveRule_INT();
 		}
 	}
@@ -1921,17 +1959,17 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mWS()
 	{
 		EnterRule_WS();
-		EnterRule("WS", 43);
-		TraceIn("WS", 43);
+		EnterRule("WS", 44);
+		TraceIn("WS", 44);
 		try
 		{
 			int _type = WS;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:60:5: ( ( ' ' | '\\t' | '\\r' | '\\n' ) )
+			// Queries\\PomonaQuery.g:61:5: ( ( ' ' | '\\t' | '\\r' | '\\n' ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:60:9: ( ' ' | '\\t' | '\\r' | '\\n' )
+			// Queries\\PomonaQuery.g:61:9: ( ' ' | '\\t' | '\\r' | '\\n' )
 			{
-			DebugLocation(60, 9);
+			DebugLocation(61, 9);
 			if ((input.LA(1)>='\t' && input.LA(1)<='\n')||input.LA(1)=='\r'||input.LA(1)==' ')
 			{
 				input.Consume();
@@ -1944,7 +1982,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				throw mse;
 			}
 
-			DebugLocation(64, 11);
+			DebugLocation(65, 11);
 			_channel=HIDDEN;
 
 			}
@@ -1954,8 +1992,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("WS", 43);
-			LeaveRule("WS", 43);
+			TraceOut("WS", 44);
+			LeaveRule("WS", 44);
 			LeaveRule_WS();
 		}
 	}
@@ -1969,18 +2007,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mSTRING()
 	{
 		EnterRule_STRING();
-		EnterRule("STRING", 44);
-		TraceIn("STRING", 44);
+		EnterRule("STRING", 45);
+		TraceIn("STRING", 45);
 		try
 		{
 			int _type = STRING;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:73:5: ( ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+ )
+			// Queries\\PomonaQuery.g:74:5: ( ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+ )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:73:8: ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+
+			// Queries\\PomonaQuery.g:74:8: ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+
 			{
-			DebugLocation(73, 8);
-			// Queries\\PomonaQuery.g:73:8: ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+
+			DebugLocation(74, 8);
+			// Queries\\PomonaQuery.g:74:8: ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+
 			int cnt9=0;
 			try { DebugEnterSubRule(9);
 			while (true)
@@ -2000,12 +2038,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:73:10: '\\'' (~ ( '\\\\' | '\\'' ) )* '\\''
+					// Queries\\PomonaQuery.g:74:10: '\\'' (~ ( '\\\\' | '\\'' ) )* '\\''
 					{
-					DebugLocation(73, 10);
+					DebugLocation(74, 10);
 					Match('\''); 
-					DebugLocation(73, 15);
-					// Queries\\PomonaQuery.g:73:15: (~ ( '\\\\' | '\\'' ) )*
+					DebugLocation(74, 15);
+					// Queries\\PomonaQuery.g:74:15: (~ ( '\\\\' | '\\'' ) )*
 					try { DebugEnterSubRule(8);
 					while (true)
 					{
@@ -2026,7 +2064,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 							DebugEnterAlt(1);
 							// Queries\\PomonaQuery.g:
 							{
-							DebugLocation(73, 15);
+							DebugLocation(74, 15);
 							input.Consume();
 
 
@@ -2043,7 +2081,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 					} finally { DebugExitSubRule(8); }
 
-					DebugLocation(73, 37);
+					DebugLocation(74, 37);
 					Match('\''); 
 
 					}
@@ -2072,8 +2110,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("STRING", 44);
-			LeaveRule("STRING", 44);
+			TraceOut("STRING", 45);
+			LeaveRule("STRING", 45);
 			LeaveRule_STRING();
 		}
 	}
@@ -2087,15 +2125,15 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mHEX_DIGIT()
 	{
 		EnterRule_HEX_DIGIT();
-		EnterRule("HEX_DIGIT", 45);
-		TraceIn("HEX_DIGIT", 45);
+		EnterRule("HEX_DIGIT", 46);
+		TraceIn("HEX_DIGIT", 46);
 		try
 		{
-			// Queries\\PomonaQuery.g:200:11: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
+			// Queries\\PomonaQuery.g:202:11: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
 			DebugEnterAlt(1);
 			// Queries\\PomonaQuery.g:
 			{
-			DebugLocation(200, 11);
+			DebugLocation(202, 11);
 			if ((input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='F')||(input.LA(1)>='a' && input.LA(1)<='f'))
 			{
 				input.Consume();
@@ -2114,8 +2152,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("HEX_DIGIT", 45);
-			LeaveRule("HEX_DIGIT", 45);
+			TraceOut("HEX_DIGIT", 46);
+			LeaveRule("HEX_DIGIT", 46);
 			LeaveRule_HEX_DIGIT();
 		}
 	}
@@ -2129,11 +2167,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mESC_SEQ()
 	{
 		EnterRule_ESC_SEQ();
-		EnterRule("ESC_SEQ", 46);
-		TraceIn("ESC_SEQ", 46);
+		EnterRule("ESC_SEQ", 47);
+		TraceIn("ESC_SEQ", 47);
 		try
 		{
-			// Queries\\PomonaQuery.g:204:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE_ESC | OCTAL_ESC )
+			// Queries\\PomonaQuery.g:206:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE_ESC | OCTAL_ESC )
 			int alt10=3;
 			try { DebugEnterDecision(10, false);
 			int LA10_1 = input.LA(1);
@@ -2191,11 +2229,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:204:9: '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
+				// Queries\\PomonaQuery.g:206:9: '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
 				{
-				DebugLocation(204, 9);
+				DebugLocation(206, 9);
 				Match('\\'); 
-				DebugLocation(204, 14);
+				DebugLocation(206, 14);
 				input.Consume();
 
 
@@ -2203,18 +2241,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:205:9: UNICODE_ESC
+				// Queries\\PomonaQuery.g:207:9: UNICODE_ESC
 				{
-				DebugLocation(205, 9);
+				DebugLocation(207, 9);
 				mUNICODE_ESC(); 
 
 				}
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:206:9: OCTAL_ESC
+				// Queries\\PomonaQuery.g:208:9: OCTAL_ESC
 				{
-				DebugLocation(206, 9);
+				DebugLocation(208, 9);
 				mOCTAL_ESC(); 
 
 				}
@@ -2224,8 +2262,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("ESC_SEQ", 46);
-			LeaveRule("ESC_SEQ", 46);
+			TraceOut("ESC_SEQ", 47);
+			LeaveRule("ESC_SEQ", 47);
 			LeaveRule_ESC_SEQ();
 		}
 	}
@@ -2239,11 +2277,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mOCTAL_ESC()
 	{
 		EnterRule_OCTAL_ESC();
-		EnterRule("OCTAL_ESC", 47);
-		TraceIn("OCTAL_ESC", 47);
+		EnterRule("OCTAL_ESC", 48);
+		TraceIn("OCTAL_ESC", 48);
 		try
 		{
-			// Queries\\PomonaQuery.g:211:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
+			// Queries\\PomonaQuery.g:213:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
 			int alt11=3;
 			try { DebugEnterDecision(11, false);
 			int LA11_1 = input.LA(1);
@@ -2305,17 +2343,17 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:211:9: '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' )
+				// Queries\\PomonaQuery.g:213:9: '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' )
 				{
-				DebugLocation(211, 9);
+				DebugLocation(213, 9);
 				Match('\\'); 
-				DebugLocation(211, 14);
+				DebugLocation(213, 14);
 				input.Consume();
 
-				DebugLocation(211, 25);
+				DebugLocation(213, 25);
 				input.Consume();
 
-				DebugLocation(211, 36);
+				DebugLocation(213, 36);
 				input.Consume();
 
 
@@ -2323,14 +2361,14 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:212:9: '\\\\' ( '0' .. '7' ) ( '0' .. '7' )
+				// Queries\\PomonaQuery.g:214:9: '\\\\' ( '0' .. '7' ) ( '0' .. '7' )
 				{
-				DebugLocation(212, 9);
+				DebugLocation(214, 9);
 				Match('\\'); 
-				DebugLocation(212, 14);
+				DebugLocation(214, 14);
 				input.Consume();
 
-				DebugLocation(212, 25);
+				DebugLocation(214, 25);
 				input.Consume();
 
 
@@ -2338,11 +2376,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:213:9: '\\\\' ( '0' .. '7' )
+				// Queries\\PomonaQuery.g:215:9: '\\\\' ( '0' .. '7' )
 				{
-				DebugLocation(213, 9);
+				DebugLocation(215, 9);
 				Match('\\'); 
-				DebugLocation(213, 14);
+				DebugLocation(215, 14);
 				input.Consume();
 
 
@@ -2353,8 +2391,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("OCTAL_ESC", 47);
-			LeaveRule("OCTAL_ESC", 47);
+			TraceOut("OCTAL_ESC", 48);
+			LeaveRule("OCTAL_ESC", 48);
 			LeaveRule_OCTAL_ESC();
 		}
 	}
@@ -2368,25 +2406,25 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	private void mUNICODE_ESC()
 	{
 		EnterRule_UNICODE_ESC();
-		EnterRule("UNICODE_ESC", 48);
-		TraceIn("UNICODE_ESC", 48);
+		EnterRule("UNICODE_ESC", 49);
+		TraceIn("UNICODE_ESC", 49);
 		try
 		{
-			// Queries\\PomonaQuery.g:218:5: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+			// Queries\\PomonaQuery.g:220:5: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:218:9: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+			// Queries\\PomonaQuery.g:220:9: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
 			{
-			DebugLocation(218, 9);
+			DebugLocation(220, 9);
 			Match('\\'); 
-			DebugLocation(218, 14);
+			DebugLocation(220, 14);
 			Match('u'); 
-			DebugLocation(218, 18);
+			DebugLocation(220, 18);
 			mHEX_DIGIT(); 
-			DebugLocation(218, 28);
+			DebugLocation(220, 28);
 			mHEX_DIGIT(); 
-			DebugLocation(218, 38);
+			DebugLocation(220, 38);
 			mHEX_DIGIT(); 
-			DebugLocation(218, 48);
+			DebugLocation(220, 48);
 			mHEX_DIGIT(); 
 
 			}
@@ -2394,8 +2432,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		}
 		finally
 		{
-			TraceOut("UNICODE_ESC", 48);
-			LeaveRule("UNICODE_ESC", 48);
+			TraceOut("UNICODE_ESC", 49);
+			LeaveRule("UNICODE_ESC", 49);
 			LeaveRule_UNICODE_ESC();
 		}
 	}
@@ -2403,8 +2441,8 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 	public override void mTokens()
 	{
-		// Queries\\PomonaQuery.g:1:8: ( T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | PREFIXED_STRING | ID | INT | WS | STRING )
-		int alt12=44;
+		// Queries\\PomonaQuery.g:1:8: ( T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | PREFIXED_STRING | ID | INT | WS | STRING )
+		int alt12=45;
 		try { DebugEnterDecision(12, false);
 		try
 		{
@@ -2420,396 +2458,405 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		{
 		case 1:
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:1:10: T__39
+			// Queries\\PomonaQuery.g:1:10: T__40
 			{
 			DebugLocation(1, 10);
-			mT__39(); 
+			mT__40(); 
 
 			}
 			break;
 		case 2:
 			DebugEnterAlt(2);
-			// Queries\\PomonaQuery.g:1:16: T__40
+			// Queries\\PomonaQuery.g:1:16: T__41
 			{
 			DebugLocation(1, 16);
-			mT__40(); 
+			mT__41(); 
 
 			}
 			break;
 		case 3:
 			DebugEnterAlt(3);
-			// Queries\\PomonaQuery.g:1:22: T__41
+			// Queries\\PomonaQuery.g:1:22: T__42
 			{
 			DebugLocation(1, 22);
-			mT__41(); 
+			mT__42(); 
 
 			}
 			break;
 		case 4:
 			DebugEnterAlt(4);
-			// Queries\\PomonaQuery.g:1:28: T__42
+			// Queries\\PomonaQuery.g:1:28: T__43
 			{
 			DebugLocation(1, 28);
-			mT__42(); 
+			mT__43(); 
 
 			}
 			break;
 		case 5:
 			DebugEnterAlt(5);
-			// Queries\\PomonaQuery.g:1:34: T__43
+			// Queries\\PomonaQuery.g:1:34: T__44
 			{
 			DebugLocation(1, 34);
-			mT__43(); 
+			mT__44(); 
 
 			}
 			break;
 		case 6:
 			DebugEnterAlt(6);
-			// Queries\\PomonaQuery.g:1:40: T__44
+			// Queries\\PomonaQuery.g:1:40: T__45
 			{
 			DebugLocation(1, 40);
-			mT__44(); 
+			mT__45(); 
 
 			}
 			break;
 		case 7:
 			DebugEnterAlt(7);
-			// Queries\\PomonaQuery.g:1:46: T__45
+			// Queries\\PomonaQuery.g:1:46: T__46
 			{
 			DebugLocation(1, 46);
-			mT__45(); 
+			mT__46(); 
 
 			}
 			break;
 		case 8:
 			DebugEnterAlt(8);
-			// Queries\\PomonaQuery.g:1:52: T__46
+			// Queries\\PomonaQuery.g:1:52: T__47
 			{
 			DebugLocation(1, 52);
-			mT__46(); 
+			mT__47(); 
 
 			}
 			break;
 		case 9:
 			DebugEnterAlt(9);
-			// Queries\\PomonaQuery.g:1:58: T__47
+			// Queries\\PomonaQuery.g:1:58: T__48
 			{
 			DebugLocation(1, 58);
-			mT__47(); 
+			mT__48(); 
 
 			}
 			break;
 		case 10:
 			DebugEnterAlt(10);
-			// Queries\\PomonaQuery.g:1:64: T__48
+			// Queries\\PomonaQuery.g:1:64: T__49
 			{
 			DebugLocation(1, 64);
-			mT__48(); 
+			mT__49(); 
 
 			}
 			break;
 		case 11:
 			DebugEnterAlt(11);
-			// Queries\\PomonaQuery.g:1:70: T__49
+			// Queries\\PomonaQuery.g:1:70: T__50
 			{
 			DebugLocation(1, 70);
-			mT__49(); 
+			mT__50(); 
 
 			}
 			break;
 		case 12:
 			DebugEnterAlt(12);
-			// Queries\\PomonaQuery.g:1:76: T__50
+			// Queries\\PomonaQuery.g:1:76: T__51
 			{
 			DebugLocation(1, 76);
-			mT__50(); 
+			mT__51(); 
 
 			}
 			break;
 		case 13:
 			DebugEnterAlt(13);
-			// Queries\\PomonaQuery.g:1:82: T__51
+			// Queries\\PomonaQuery.g:1:82: T__52
 			{
 			DebugLocation(1, 82);
-			mT__51(); 
+			mT__52(); 
 
 			}
 			break;
 		case 14:
 			DebugEnterAlt(14);
-			// Queries\\PomonaQuery.g:1:88: T__52
+			// Queries\\PomonaQuery.g:1:88: T__53
 			{
 			DebugLocation(1, 88);
-			mT__52(); 
+			mT__53(); 
 
 			}
 			break;
 		case 15:
 			DebugEnterAlt(15);
-			// Queries\\PomonaQuery.g:1:94: T__53
+			// Queries\\PomonaQuery.g:1:94: T__54
 			{
 			DebugLocation(1, 94);
-			mT__53(); 
+			mT__54(); 
 
 			}
 			break;
 		case 16:
 			DebugEnterAlt(16);
-			// Queries\\PomonaQuery.g:1:100: T__54
+			// Queries\\PomonaQuery.g:1:100: T__55
 			{
 			DebugLocation(1, 100);
-			mT__54(); 
+			mT__55(); 
 
 			}
 			break;
 		case 17:
 			DebugEnterAlt(17);
-			// Queries\\PomonaQuery.g:1:106: T__55
+			// Queries\\PomonaQuery.g:1:106: T__56
 			{
 			DebugLocation(1, 106);
-			mT__55(); 
+			mT__56(); 
 
 			}
 			break;
 		case 18:
 			DebugEnterAlt(18);
-			// Queries\\PomonaQuery.g:1:112: T__56
+			// Queries\\PomonaQuery.g:1:112: T__57
 			{
 			DebugLocation(1, 112);
-			mT__56(); 
+			mT__57(); 
 
 			}
 			break;
 		case 19:
 			DebugEnterAlt(19);
-			// Queries\\PomonaQuery.g:1:118: T__57
+			// Queries\\PomonaQuery.g:1:118: T__58
 			{
 			DebugLocation(1, 118);
-			mT__57(); 
+			mT__58(); 
 
 			}
 			break;
 		case 20:
 			DebugEnterAlt(20);
-			// Queries\\PomonaQuery.g:1:124: T__58
+			// Queries\\PomonaQuery.g:1:124: T__59
 			{
 			DebugLocation(1, 124);
-			mT__58(); 
+			mT__59(); 
 
 			}
 			break;
 		case 21:
 			DebugEnterAlt(21);
-			// Queries\\PomonaQuery.g:1:130: T__59
+			// Queries\\PomonaQuery.g:1:130: T__60
 			{
 			DebugLocation(1, 130);
-			mT__59(); 
+			mT__60(); 
 
 			}
 			break;
 		case 22:
 			DebugEnterAlt(22);
-			// Queries\\PomonaQuery.g:1:136: T__60
+			// Queries\\PomonaQuery.g:1:136: T__61
 			{
 			DebugLocation(1, 136);
-			mT__60(); 
+			mT__61(); 
 
 			}
 			break;
 		case 23:
 			DebugEnterAlt(23);
-			// Queries\\PomonaQuery.g:1:142: T__61
+			// Queries\\PomonaQuery.g:1:142: T__62
 			{
 			DebugLocation(1, 142);
-			mT__61(); 
+			mT__62(); 
 
 			}
 			break;
 		case 24:
 			DebugEnterAlt(24);
-			// Queries\\PomonaQuery.g:1:148: T__62
+			// Queries\\PomonaQuery.g:1:148: T__63
 			{
 			DebugLocation(1, 148);
-			mT__62(); 
+			mT__63(); 
 
 			}
 			break;
 		case 25:
 			DebugEnterAlt(25);
-			// Queries\\PomonaQuery.g:1:154: T__63
+			// Queries\\PomonaQuery.g:1:154: T__64
 			{
 			DebugLocation(1, 154);
-			mT__63(); 
+			mT__64(); 
 
 			}
 			break;
 		case 26:
 			DebugEnterAlt(26);
-			// Queries\\PomonaQuery.g:1:160: T__64
+			// Queries\\PomonaQuery.g:1:160: T__65
 			{
 			DebugLocation(1, 160);
-			mT__64(); 
+			mT__65(); 
 
 			}
 			break;
 		case 27:
 			DebugEnterAlt(27);
-			// Queries\\PomonaQuery.g:1:166: T__65
+			// Queries\\PomonaQuery.g:1:166: T__66
 			{
 			DebugLocation(1, 166);
-			mT__65(); 
+			mT__66(); 
 
 			}
 			break;
 		case 28:
 			DebugEnterAlt(28);
-			// Queries\\PomonaQuery.g:1:172: T__66
+			// Queries\\PomonaQuery.g:1:172: T__67
 			{
 			DebugLocation(1, 172);
-			mT__66(); 
+			mT__67(); 
 
 			}
 			break;
 		case 29:
 			DebugEnterAlt(29);
-			// Queries\\PomonaQuery.g:1:178: T__67
+			// Queries\\PomonaQuery.g:1:178: T__68
 			{
 			DebugLocation(1, 178);
-			mT__67(); 
+			mT__68(); 
 
 			}
 			break;
 		case 30:
 			DebugEnterAlt(30);
-			// Queries\\PomonaQuery.g:1:184: T__68
+			// Queries\\PomonaQuery.g:1:184: T__69
 			{
 			DebugLocation(1, 184);
-			mT__68(); 
+			mT__69(); 
 
 			}
 			break;
 		case 31:
 			DebugEnterAlt(31);
-			// Queries\\PomonaQuery.g:1:190: T__69
+			// Queries\\PomonaQuery.g:1:190: T__70
 			{
 			DebugLocation(1, 190);
-			mT__69(); 
+			mT__70(); 
 
 			}
 			break;
 		case 32:
 			DebugEnterAlt(32);
-			// Queries\\PomonaQuery.g:1:196: T__70
+			// Queries\\PomonaQuery.g:1:196: T__71
 			{
 			DebugLocation(1, 196);
-			mT__70(); 
+			mT__71(); 
 
 			}
 			break;
 		case 33:
 			DebugEnterAlt(33);
-			// Queries\\PomonaQuery.g:1:202: T__71
+			// Queries\\PomonaQuery.g:1:202: T__72
 			{
 			DebugLocation(1, 202);
-			mT__71(); 
+			mT__72(); 
 
 			}
 			break;
 		case 34:
 			DebugEnterAlt(34);
-			// Queries\\PomonaQuery.g:1:208: T__72
+			// Queries\\PomonaQuery.g:1:208: T__73
 			{
 			DebugLocation(1, 208);
-			mT__72(); 
+			mT__73(); 
 
 			}
 			break;
 		case 35:
 			DebugEnterAlt(35);
-			// Queries\\PomonaQuery.g:1:214: T__73
+			// Queries\\PomonaQuery.g:1:214: T__74
 			{
 			DebugLocation(1, 214);
-			mT__73(); 
+			mT__74(); 
 
 			}
 			break;
 		case 36:
 			DebugEnterAlt(36);
-			// Queries\\PomonaQuery.g:1:220: T__74
+			// Queries\\PomonaQuery.g:1:220: T__75
 			{
 			DebugLocation(1, 220);
-			mT__74(); 
+			mT__75(); 
 
 			}
 			break;
 		case 37:
 			DebugEnterAlt(37);
-			// Queries\\PomonaQuery.g:1:226: T__75
+			// Queries\\PomonaQuery.g:1:226: T__76
 			{
 			DebugLocation(1, 226);
-			mT__75(); 
+			mT__76(); 
 
 			}
 			break;
 		case 38:
 			DebugEnterAlt(38);
-			// Queries\\PomonaQuery.g:1:232: T__76
+			// Queries\\PomonaQuery.g:1:232: T__77
 			{
 			DebugLocation(1, 232);
-			mT__76(); 
+			mT__77(); 
 
 			}
 			break;
 		case 39:
 			DebugEnterAlt(39);
-			// Queries\\PomonaQuery.g:1:238: T__77
+			// Queries\\PomonaQuery.g:1:238: T__78
 			{
 			DebugLocation(1, 238);
-			mT__77(); 
+			mT__78(); 
 
 			}
 			break;
 		case 40:
 			DebugEnterAlt(40);
-			// Queries\\PomonaQuery.g:1:244: PREFIXED_STRING
+			// Queries\\PomonaQuery.g:1:244: T__79
 			{
 			DebugLocation(1, 244);
-			mPREFIXED_STRING(); 
+			mT__79(); 
 
 			}
 			break;
 		case 41:
 			DebugEnterAlt(41);
-			// Queries\\PomonaQuery.g:1:260: ID
+			// Queries\\PomonaQuery.g:1:250: PREFIXED_STRING
 			{
-			DebugLocation(1, 260);
-			mID(); 
+			DebugLocation(1, 250);
+			mPREFIXED_STRING(); 
 
 			}
 			break;
 		case 42:
 			DebugEnterAlt(42);
-			// Queries\\PomonaQuery.g:1:263: INT
+			// Queries\\PomonaQuery.g:1:266: ID
 			{
-			DebugLocation(1, 263);
-			mINT(); 
+			DebugLocation(1, 266);
+			mID(); 
 
 			}
 			break;
 		case 43:
 			DebugEnterAlt(43);
-			// Queries\\PomonaQuery.g:1:267: WS
+			// Queries\\PomonaQuery.g:1:269: INT
 			{
-			DebugLocation(1, 267);
-			mWS(); 
+			DebugLocation(1, 269);
+			mINT(); 
 
 			}
 			break;
 		case 44:
 			DebugEnterAlt(44);
-			// Queries\\PomonaQuery.g:1:270: STRING
+			// Queries\\PomonaQuery.g:1:273: WS
 			{
-			DebugLocation(1, 270);
+			DebugLocation(1, 273);
+			mWS(); 
+
+			}
+			break;
+		case 45:
+			DebugEnterAlt(45);
+			// Queries\\PomonaQuery.g:1:276: STRING
+			{
+			DebugLocation(1, 276);
 			mSTRING(); 
 
 			}
@@ -2833,29 +2880,32 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	{
 		private const string DFA12_eotS =
 			"\x1\xFFFF\x1\x23\xB\xFFFF\x1\x25\x1\xFFFF\x1\x27\x2\xFFFF\xA\x1E\x1\xFFFF"+
-			"\x1\x1E\xA\xFFFF\x2\x1E\x1\x3E\x1\x1E\x1\xFFFF\x2\x1E\x1\x41\x1\x42\x1"+
-			"\x43\x1\x44\x1\x45\x1\x46\x2\x1E\x1\x49\x1\x1E\x1\x4B\x1\x1E\x1\x4D\x1"+
-			"\x4E\x1\x4F\x1\xFFFF\x1\x1E\x1\x51\x6\xFFFF\x1\x52\x1\x53\x1\xFFFF\x1"+
-			"\x54\x1\xFFFF\x1\x55\x3\xFFFF\x1\x56\x6\xFFFF";
+			"\x1\x1E\xA\xFFFF\x2\x1E\x1\x3F\x1\x1E\x1\xFFFF\x2\x1E\x1\x42\x1\x43\x1"+
+			"\x44\x1\x1E\x1\x46\x1\x47\x1\x48\x2\x1E\x1\x4B\x1\x1E\x1\x4D\x1\x1E\x1"+
+			"\x4F\x1\x50\x1\x51\x1\xFFFF\x1\x1E\x1\x53\x3\xFFFF\x1\x54\x3\xFFFF\x1"+
+			"\x55\x1\x56\x1\xFFFF\x1\x57\x1\xFFFF\x1\x58\x3\xFFFF\x1\x59\x7\xFFFF";
 		private const string DFA12_eofS =
-			"\x57\xFFFF";
+			"\x5A\xFFFF";
 		private const string DFA12_minS =
 			"\x1\x9\x1\x3D\xB\xFFFF\x1\x3D\x1\xFFFF\x1\x3D\x2\xFFFF\xA\x27\x1\xFFFF"+
-			"\x1\x27\xA\xFFFF\x4\x27\x1\xFFFF\x11\x27\x1\xFFFF\x2\x27\x6\xFFFF\x2"+
-			"\x27\x1\xFFFF\x1\x27\x1\xFFFF\x1\x27\x3\xFFFF\x1\x27\x6\xFFFF";
+			"\x1\x27\xA\xFFFF\x4\x27\x1\xFFFF\x12\x27\x1\xFFFF\x2\x27\x3\xFFFF\x1"+
+			"\x27\x3\xFFFF\x2\x27\x1\xFFFF\x1\x27\x1\xFFFF\x1\x27\x3\xFFFF\x1\x27"+
+			"\x7\xFFFF";
 		private const string DFA12_maxS =
 			"\x1\x7C\x1\x3D\xB\xFFFF\x1\x3D\x1\xFFFF\x1\x3D\x2\xFFFF\xA\x7A\x1\xFFFF"+
-			"\x1\x7A\xA\xFFFF\x4\x7A\x1\xFFFF\x11\x7A\x1\xFFFF\x2\x7A\x6\xFFFF\x2"+
-			"\x7A\x1\xFFFF\x1\x7A\x1\xFFFF\x1\x7A\x3\xFFFF\x1\x7A\x6\xFFFF";
+			"\x1\x7A\xA\xFFFF\x4\x7A\x1\xFFFF\x12\x7A\x1\xFFFF\x2\x7A\x3\xFFFF\x1"+
+			"\x7A\x3\xFFFF\x2\x7A\x1\xFFFF\x1\x7A\x1\xFFFF\x1\x7A\x3\xFFFF\x1\x7A"+
+			"\x7\xFFFF";
 		private const string DFA12_acceptS =
 			"\x2\xFFFF\x1\x3\x1\x4\x1\x5\x1\x6\x1\x7\x1\x8\x1\x9\x1\xA\x1\xB\x1\xC"+
-			"\x1\xD\x1\xFFFF\x1\x10\x1\xFFFF\x1\x13\x1\x14\xA\xFFFF\x1\x27\x1\xFFFF"+
-			"\x1\x29\x1\x2A\x1\x2B\x1\x2C\x1\x2\x1\x1\x1\xF\x1\xE\x1\x12\x1\x11\x4"+
-			"\xFFFF\x1\x28\x11\xFFFF\x1\x17\x2\xFFFF\x1\x1B\x1\x1C\x1\x1D\x1\x1E\x1"+
-			"\x1F\x1\x20\x2\xFFFF\x1\x23\x1\xFFFF\x1\x25\x1\xFFFF\x1\x15\x1\x16\x1"+
-			"\x18\x1\xFFFF\x1\x1A\x1\x21\x1\x22\x1\x24\x1\x26\x1\x19";
+			"\x1\xD\x1\xFFFF\x1\x10\x1\xFFFF\x1\x13\x1\x14\xA\xFFFF\x1\x28\x1\xFFFF"+
+			"\x1\x2A\x1\x2B\x1\x2C\x1\x2D\x1\x2\x1\x1\x1\xF\x1\xE\x1\x12\x1\x11\x4"+
+			"\xFFFF\x1\x29\x12\xFFFF\x1\x17\x2\xFFFF\x1\x1B\x1\x1C\x1\x1D\x1\xFFFF"+
+			"\x1\x1F\x1\x20\x1\x21\x2\xFFFF\x1\x24\x1\xFFFF\x1\x26\x1\xFFFF\x1\x15"+
+			"\x1\x16\x1\x18\x1\xFFFF\x1\x1A\x1\x1E\x1\x22\x1\x23\x1\x25\x1\x27\x1"+
+			"\x19";
 		private const string DFA12_specialS =
-			"\x57\xFFFF}>";
+			"\x5A\xFFFF}>";
 		private static readonly string[] DFA12_transitionS =
 			{
 				"\x2\x20\x2\xFFFF\x1\x20\x12\xFFFF\x1\x20\x1\x1\x3\xFFFF\x1\x2\x1\x3"+
@@ -2889,16 +2939,17 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x30\xE\x2B"+
 				"\x1\x31\x6\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xD\x2B\x1\x32\xC\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x33\xE\x2B"+
-				"\x1\x34\x6\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xE\x2B\x1\x35\x5\x2B"+
-				"\x1\x36\x5\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x37\x9\x2B"+
-				"\x1\x38\xB\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x11\x2B\x1\x39\x8"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x32\x8\x2B"+
+				"\x1\x33\xC\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x34\xE\x2B"+
+				"\x1\x35\x6\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xE\x2B\x1\x36\x5\x2B"+
+				"\x1\x37\x5\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x38\x9\x2B"+
+				"\x1\x39\xB\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x11\x2B\x1\x3A\x8"+
 				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x14\x2B\x1\x3A\x5"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x14\x2B\x1\x3B\x5"+
 				"\x2B",
 				"",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1A\x2B",
@@ -2912,19 +2963,17 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				"",
 				"",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x3B\x16"+
-				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x3C\x16"+
 				"\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x3D\x16"+
+				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x2"+
-				"\x2B\x1\x3D\x17\x2B",
+				"\x2B\x1\x3E\x17\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1A\x2B",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x12\x2B\x1\x3F\x7"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x12\x2B\x1\x40\x7"+
 				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x15\x2B\x1\x40\x4"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x15\x2B\x1\x41\x4"+
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
@@ -2932,20 +2981,24 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x10\x2B\x1\x45\x9"+
+				"\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x47\x16"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x49\x16"+
 				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xB\x2B\x1\x48\xE\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xB\x2B\x1\x4A\xE\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x13\x2B\x1\x4A\x6"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x13\x2B\x1\x4C\x6"+
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1\x2B\x1\x4C\x18"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1\x2B\x1\x4E\x18"+
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
@@ -2954,23 +3007,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x2\x2B\x1\x50\x17"+
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x2\x2B\x1\x52\x17"+
 				"\x2B",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
 				"",
 				"",
-				"",
-				"",
-				"",
-				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
 				"",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
@@ -2979,6 +3021,20 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				"",
 				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
 				"\x2B",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2B",
+				"",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2B",
+				"",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2B",
+				"",
+				"",
+				"",
+				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2B",
+				"",
 				"",
 				"",
 				"",
@@ -3018,7 +3074,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			this.transition = DFA12_transition;
 		}
 
-		public override string Description { get { return "1:1: Tokens : ( T__39 | T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | PREFIXED_STRING | ID | INT | WS | STRING );"; } }
+		public override string Description { get { return "1:1: Tokens : ( T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | PREFIXED_STRING | ID | INT | WS | STRING );"; } }
 
 		public override void Error(NoViableAltException nvae)
 		{

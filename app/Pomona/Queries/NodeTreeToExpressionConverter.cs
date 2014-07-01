@@ -329,11 +329,26 @@ namespace Pomona.Queries
                     return Expression.LessThanOrEqual(leftChild, rightChild);
                 case NodeType.NotEqual:
                     return ParseBinaryOperator(leftChild, rightChild, ExpressionType.NotEqual);
+                case NodeType.CaseInsensitiveEqual:
+                    return ParseCaseInsensitiveEqualOperator(leftChild, rightChild);
                 default:
                     throw new NotImplementedException(
                         "Don't know how to handle node type " + binaryOperatorNode.NodeType);
             }
         }
+
+
+        private Expression ParseCaseInsensitiveEqualOperator(Expression leftChild, Expression rightChild)
+        {
+            return ParseBinaryOperator(leftChild,
+                rightChild,
+                (l, r) =>
+                    Expression.Call(OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod,
+                        l,
+                        r,
+                        Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
+        }
+
 
         private void FixBinaryOperatorConversion(ref Expression left, ref Expression right,
                                                  bool callSwappedRecursively = true)
@@ -425,9 +440,16 @@ namespace Pomona.Queries
 
         private Expression ParseBinaryOperator(Expression leftChild, Expression rightChild, ExpressionType expressionType)
         {
+            return ParseBinaryOperator(leftChild,
+                rightChild,
+                (l, r) => Expression.MakeBinary(expressionType, l, r));
+        }
+
+        private Expression ParseBinaryOperator(Expression leftChild, Expression rightChild, Func<Expression, Expression, Expression> exprCreator)
+        {
             TryDetectAndConvertEnumComparison(ref leftChild, ref rightChild, true);
             TryDetectAndConvertNullableEnumComparison(ref leftChild, ref rightChild, true);
-            return Expression.MakeBinary(expressionType, leftChild, rightChild);
+            return exprCreator(leftChild, rightChild);
         }
 
 

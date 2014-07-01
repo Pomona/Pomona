@@ -52,6 +52,7 @@ namespace Pomona.Common.Internals
         public static readonly MethodInfo EnumerableContainsMethod;
         public static readonly MethodInfo ListContainsMethod;
         public static readonly MethodInfo SafeGetMethod;
+        public static readonly MethodInfo StringEqualsTakingComparisonTypeMethod;
 
         private static readonly Dictionary<UniqueMemberToken, MemberMapping> metadataTokenToMemberMappingDict =
             new Dictionary<UniqueMemberToken, MemberMapping>();
@@ -69,6 +70,9 @@ namespace Pomona.Common.Internals
                 ReflectionHelper.GetMethodDefinition<List<object>>(x => x.Contains(null));
             SafeGetMethod =
                 ReflectionHelper.GetMethodDefinition<IDictionary<object, object>>(x => x.SafeGet(null));
+            StringEqualsTakingComparisonTypeMethod =
+                ReflectionHelper.GetMethodDefinition<String>(
+                    x => string.Equals(x, null, StringComparison.InvariantCulture));
 
             Add<string>(x => x.Length, "length({0})");
             Add<string>(x => x.StartsWith(null), "startswith({0},{1})");

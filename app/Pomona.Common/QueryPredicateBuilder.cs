@@ -273,6 +273,11 @@ namespace Pomona.Common
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
+            if (node.Method.UniqueToken() == OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod.UniqueToken())
+            {
+                return VisitStringEqualsTakingComparisonTypeCall(node);
+            }
+
             if (node.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
                 return Format(node, "{0} in {1}", Visit(node.Arguments[1]), Visit(node.Arguments[0]));
 
@@ -312,6 +317,31 @@ namespace Pomona.Common
             }
 
             return odataExpression;
+        }
+
+
+        private Expression VisitStringEqualsTakingComparisonTypeCall(MethodCallExpression node)
+        {
+            var compTypeConstant = node.Arguments[2] as ConstantExpression;
+            if (compTypeConstant == null)
+                return NotSupported(node,
+                    "String.Equals taking 3 arguments is only supported when ComparisonType is constant.");
+
+            string opString;
+
+            switch ((StringComparison)compTypeConstant.Value)
+            {
+                case StringComparison.CurrentCultureIgnoreCase:
+                case StringComparison.InvariantCultureIgnoreCase:
+                case StringComparison.OrdinalIgnoreCase:
+                    opString = "ieq";
+                    break;
+                default:
+                    opString = "eq";
+                    break;
+            }
+
+            return Format(node, "{0} {1} {2}", Visit(node.Arguments[0]), opString, Visit(node.Arguments[1]));
         }
 
 

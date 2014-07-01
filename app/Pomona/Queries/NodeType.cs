@@ -36,6 +36,7 @@ namespace Pomona.Queries
         NumberLiteral,
         LessThan,
         Equal,
+        CaseInsensitiveEqual,
         Root,
         Symbol,
         GreaterThan,

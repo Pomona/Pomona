@@ -55,7 +55,8 @@ namespace Pomona.Queries
                     NodeType.NotEqual,
                     NodeType.Dot,
                     NodeType.As,
-                    NodeType.In
+                    NodeType.In,
+                    NodeType.CaseInsensitiveEqual
                 };
             nodeTypeDict = new Dictionary<int, NodeType>
                 {
@@ -75,7 +76,8 @@ namespace Pomona.Queries
                     {PomonaQueryParser.DOT_OP, NodeType.Dot},
                     {PomonaQueryParser.AS_OP, NodeType.As},
                     {PomonaQueryParser.STRING, NodeType.StringLiteral},
-                    {PomonaQueryParser.IN_OP, NodeType.In}
+                    {PomonaQueryParser.IN_OP, NodeType.In},
+                    {PomonaQueryParser.IEQ_OP, NodeType.CaseInsensitiveEqual}
                 };
         }
 

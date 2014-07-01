@@ -35,6 +35,7 @@ tokens {
    ARRAY_LITERAL;
    ORDERBY_ASC;
    ORDERBY_DESC;
+   IEQ_OP;
 }    
 
 
@@ -112,6 +113,7 @@ relational_operator
 	| ('le'|'<=') -> LE_OP
 	| ('ne'|'!=') -> NE_OP
 	| 'in' -> IN_OP
+	| 'ieq' -> IEQ_OP
 	;
 /*
 relational_operator 

@@ -307,8 +307,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildEqualExpression_ReturnsCorrectString()
         {
-            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == "What");
-            var queryString = builder.ToString();
+            var queryString = QueryPredicateBuilder.Create<TestResource>(x => x.Jalla == "What");
             Assert.That(queryString, Is.EqualTo("jalla eq 'What'"));
         }
 
@@ -484,6 +483,22 @@ namespace Pomona.UnitTests.Client
         public void BuildPropEqFloat_ReturnsCorrectString()
         {
             AssertBuild(x => x.LessPrecise == 10.75f, "lessPrecise eq 10.75f");
+        }
+
+
+        [Test]
+        public void BuildCaseInsensitiveStringEquals_ReturnsCorrectString()
+        {
+            AssertBuild(x => string.Equals(x.Bonga, x.Jalla, StringComparison.InvariantCultureIgnoreCase),
+                "bonga ieq jalla");
+        }
+
+
+        [Test]
+        public void BuildCaseSensitiveStringEquals_ReturnsCorrectString()
+        {
+            AssertBuild(x => string.Equals(x.Bonga, x.Jalla, StringComparison.InvariantCulture),
+                "bonga eq jalla");
         }
 
 
