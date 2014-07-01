@@ -152,6 +152,18 @@ namespace Pomona.UnitTests.Client
 
         [Test]
         public void
+            Build_FromSplittableExpression_HavingSubquery_WithWhereGivenServerSupportedLambda_AndCountGivenServerUnsupportedLambda_SubQueryIsSplit
+            ()
+        {
+            BuildAndAssertSplitExpression(
+                x => x.SomeList.Where(y => y.SomeInt % 3 == 1).Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"))
+                .Expect<Tuple<IEnumerable<FooBar>>>("someList.where(y:(y.someInt mod 3) eq 1) as Item1",
+                    _this => _this.Item1.Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"));
+        }
+
+
+        [Test]
+        public void
             Build_FromSplittableExpression_ReferencingSameServerPropertyMultipleTimes_PassedToMethodOnClient_DoesNotRepeatPropertyInSelect
             ()
         {
@@ -168,6 +180,15 @@ namespace Pomona.UnitTests.Client
                 x => ClientMethod1(ClientEnumerableFilter(x.SomeList).Count(y => y.SomeDouble > 1.0)))
                 .Expect<Tuple<IList<FooBar>>>("someList as Item1",
                     _this => ClientMethod1(ClientEnumerableFilter(_this.Item1).Count(y => y.SomeDouble > 1.0)));
+        }
+
+
+        [Test]
+        public void Build_FromSplittableExpression_WithCountSubQueryGivenServerUnsupportedLambda_SubQueryIsRunOnClient()
+        {
+            BuildAndAssertSplitExpression(x => x.SomeList.Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"))
+                .Expect<Tuple<IList<FooBar>>>("someList as Item1",
+                    _this => _this.Item1.Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"));
         }
 
 
