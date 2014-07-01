@@ -256,6 +256,23 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_GroupByReferencedResource_ReturnsCorrectValues()
+        {
+            var expected =
+                CritterEntities
+                .Where(x => x.Farm != null)
+                .GroupBy(x => x.Farm)
+                .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() });
+            var actual =
+                Client.Critters
+                .Where(x => x.Farm != null)
+                .GroupBy(x => x.Farm)
+                .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() })
+                .ToList();
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+        [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
         {
             // Just take some random critter
