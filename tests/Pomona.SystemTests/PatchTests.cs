@@ -110,8 +110,7 @@ namespace Pomona.SystemTests
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "Known to not be working correctly")]
+        [Test]
         public void PatchCritter_ReplaceCollection_RemovesItemsNotInReplacingCollection()
         {
             var critter =
