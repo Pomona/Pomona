@@ -486,12 +486,12 @@ namespace Pomona.Common.Internals
 
             public ReorderedList(IList<T> targetList, IList<int> order)
             {
-                if (targetList.Count != order.Count)
-                    throw new ArgumentException();
                 if (targetList == null)
                     throw new ArgumentNullException("targetList");
                 if (order == null)
                     throw new ArgumentNullException("order");
+                if (targetList.Count != order.Count)
+                    throw new ArgumentException();
                 this.targetList = targetList;
                 this.order = order;
             }
