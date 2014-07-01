@@ -217,6 +217,24 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryCritter_GroupByReferencedResource_ReturnsCorrectValues()
+        {
+            var expected =
+                CritterEntities
+                    .Where(x => x.Farm != null)
+                    .GroupBy(x => x.Farm)
+                    .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() });
+            var actual =
+                Client.Critters
+                    .Where(x => x.Farm != null)
+                    .GroupBy(x => x.Farm)
+                    .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() })
+                    .ToList();
+            Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClassThenOrderBy_ReturnsCorrectValues()
         {
             // Just take some random critter
@@ -254,23 +272,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(actual.SequenceEqual(expected));
         }
 
-
-        [Test]
-        public void QueryCritter_GroupByReferencedResource_ReturnsCorrectValues()
-        {
-            var expected =
-                CritterEntities
-                .Where(x => x.Farm != null)
-                .GroupBy(x => x.Farm)
-                .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() });
-            var actual =
-                Client.Critters
-                .Where(x => x.Farm != null)
-                .GroupBy(x => x.Farm)
-                .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() })
-                .ToList();
-            Assert.That(actual.SequenceEqual(expected));
-        }
 
         [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
@@ -533,6 +534,28 @@ namespace Pomona.SystemTests.Linq
             var critterResource =
                 Client.Query<ICritter>().First(x => x.Name == critter.Name && x.Guid == critter.Guid);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
+        }
+
+
+        [Category("TODO")]
+        [Test(Description = "Have to find out how references should be serialized in queries.")]
+        public void QueryCritter_WhereReferencedResourceEqualsALoadedResource_ReturnsCorrectValues()
+        {
+            var farmEntity = CritterEntities.Select(x => x.Farm).First(x => x != null);
+            var farmResource = Client.Farms.Get(farmEntity.Id);
+
+            var expected =
+                CritterEntities
+                    .Where(x => x.Farm == farmEntity)
+                    .Select(x => x.Id)
+                    .ToList();
+            var actual =
+                Client.Critters
+                    .Where(x => x.Farm == farmResource)
+                    .Select(x => x.Id)
+                    .ToList();
+
+            Assert.That(actual.SequenceEqual(expected));
         }
 
 
