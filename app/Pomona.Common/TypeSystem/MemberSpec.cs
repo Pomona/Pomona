@@ -173,12 +173,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected TypeSpec FromType(Type type)
-        {
-            return typeResolver.FromType(type);
-        }
-
-
         protected internal virtual IEnumerable<Attribute> OnLoadDeclaredAttributes()
         {
             if (member == null)

@@ -198,12 +198,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public object GetId(object entity)
-        {
-            return PrimaryId.GetValue(entity);
-        }
-
-
         protected override TypeSerializationMode OnLoadSerializationMode()
         {
             return TypeSerializationMode.Complex;
