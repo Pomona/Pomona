@@ -32,7 +32,7 @@ using System.Threading;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class Lazy<T>
+    internal class Lazy<T>
     {
         [ThreadStatic]
         private static int recursiveCallCounter;
@@ -165,7 +165,7 @@ namespace Pomona.Common.TypeSystem
             return Equals((MemberSpec) obj);
         }
 
-        protected static Lazy<T> CreateLazy<T>(Func<T> valueFactory)
+        internal static Lazy<T> CreateLazy<T>(Func<T> valueFactory)
         {
             var lazy = new Lazy<T>(valueFactory, LazyThreadSafetyMode.None);
 

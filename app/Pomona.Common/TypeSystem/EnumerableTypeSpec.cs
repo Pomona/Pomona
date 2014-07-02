@@ -31,7 +31,8 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<TypeSpec> itemType;
 
-        public EnumerableTypeSpec(ITypeResolver typeResolver, Type type, Lazy<TypeSpec> itemType)
+
+        private EnumerableTypeSpec(ITypeResolver typeResolver, Type type, Lazy<TypeSpec> itemType)
             : base(typeResolver, type)
         {
             if (itemType == null) throw new ArgumentNullException("itemType");
