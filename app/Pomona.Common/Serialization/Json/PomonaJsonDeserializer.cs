@@ -427,7 +427,20 @@ namespace Pomona.Common.Serialization.Json
                 node.Value = valueToken.ToObject(node.ValueType.Type, this.jsonSerializer);
             }
             else
-                node.Value = reader.Token.ToObject(node.ValueType.Type, this.jsonSerializer);
+            {
+                var converter = node.ValueType.GetCustomJsonConverter();
+                if (converter == null)
+                {
+                    node.Value = reader.Token.ToObject(node.ValueType.Type, this.jsonSerializer);
+                }
+                else
+                {
+                    node.Value = converter.ReadJson(new JTokenReader(reader.Token),
+                        node.ValueType.Type,
+                        null,
+                        jsonSerializer);
+                }
+            }
         }
 
 

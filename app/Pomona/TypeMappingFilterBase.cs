@@ -138,8 +138,6 @@ namespace Pomona
                 throw new ArgumentNullException("type");
             //if (type == typeof(byte[]))
             //    return new BinaryConverter();
-            if (IsNullableType(type) && type.GetGenericArguments()[0].IsEnum)
-                return new StringEnumConverter();
             return null;
         }
 

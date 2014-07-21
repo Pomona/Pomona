@@ -460,6 +460,15 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PostThingWithPropertyUsingCustomJsonConverter_ReturnsSuccessfullyDeserializedResource()
+        {
+            var form = new ColorfulThingForm() { Color = "#aaffdd" };
+            var resource = Client.ColorfulThings.Post(form);
+            Assert.That(resource.Color, Is.EqualTo(form.Color));
+        }
+
+
+        [Test]
         public void PostThing_IdentifiedByGuid_IsSuccessful()
         {
             var guidThing = Client.GuidThings.Post(new GuidThingForm());
