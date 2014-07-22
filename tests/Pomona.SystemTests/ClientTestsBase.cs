@@ -95,6 +95,12 @@ namespace Pomona.SystemTests
         }
 
 
+        public override void TeardownRequestCompletedHandler()
+        {
+            Client.RequestCompleted -= ClientOnRequestCompleted;
+        }
+
+
         public IList<TResource> TestQuery<TResource, TEntity>(
             Expression<Func<TResource, bool>> resourcePredicate,
             Func<TEntity, bool> entityPredicate,

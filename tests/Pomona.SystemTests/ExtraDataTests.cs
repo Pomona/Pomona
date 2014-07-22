@@ -53,6 +53,12 @@ namespace Pomona.SystemTests
         {
         }
 
+
+        public override void TeardownRequestCompletedHandler()
+        {
+        }
+
+
         [Test]
         public void GetExtraData()
         {

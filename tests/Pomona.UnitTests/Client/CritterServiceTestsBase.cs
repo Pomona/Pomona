@@ -78,6 +78,7 @@ namespace Pomona.UnitTests.Client
         public abstract TClient CreateHttpTestingClient(string baseUri);
         public abstract TClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper);
         public abstract void SetupRequestCompletedHandler();
+        public abstract void TeardownRequestCompletedHandler();
 
 
         public void AssertIsOrderedBy<T, TOrderKey>(
@@ -133,6 +134,8 @@ namespace Pomona.UnitTests.Client
         [TestFixtureTearDown]
         public void FixtureTearDown()
         {
+            TeardownRequestCompletedHandler();
+
             if (UseSelfHostedHttpServer)
                 this.critterHost.Stop();
         }

@@ -73,6 +73,12 @@ namespace Pomona.IndependentClientTests
             Client.RequestCompleted += ClientOnRequestCompleted;
         }
 
+
+        public override void TeardownRequestCompletedHandler()
+        {
+            Client.RequestCompleted -= ClientOnRequestCompleted;
+        }
+
         #region Nested type: NancyTestingWebClient
 
         public class NancyTestingWebClient : IWebClient
