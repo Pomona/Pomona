@@ -171,8 +171,11 @@ namespace Pomona.RequestProcessing
 
         private IHandlerMethodInvoker MatchMethodTakingForm(ResourceType resourceType)
         {
-            var resourceTypeParam = Parameters.Where(x => x.IsResource && x.Type.IsAssignableFrom(resourceType));
-            return resourceTypeParam.Any() ? new HandlerMethodTakingFormInvoker(this) : null;
+            var resourceTypeParam = Parameters.LastOrDefault(x => x.IsResource);
+            
+            return (resourceTypeParam != null && resourceTypeParam.Type.IsAssignableFrom(resourceType))
+                ? new HandlerMethodTakingFormInvoker(this)
+                : null;
         }
 
         private IHandlerMethodInvoker MatchMethodTakingExistingResource(ResourceType resourceType)
