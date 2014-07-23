@@ -56,36 +56,6 @@ namespace Pomona.SystemTests.Handlers
             Assert.That(Repository.List<HandledThing>(), Is.Not.Contains(entity));
         }
 
-        [Test]
-        public void QueryHandledThing_CallsHandlerQueryMethod()
-        {
-            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
-            Assert.That(thingEntity.FetchedCounter, Is.EqualTo(0));
-            var thingResource = Client.HandledThings.Query().First(x => x.Foo == "blabla");
-            Assert.That(thingResource.Id, Is.EqualTo(thingEntity.Id));
-            Assert.That(thingResource.QueryCounter, Is.EqualTo(1));
-        }
-
-
-        [Test]
-        public void PostChildToHandledThing_CallsPostHandlerMethodWithParent()
-        {
-            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
-            var thingResource = Client.HandledThings.Get(thingEntity.Id);
-            var childResource = thingResource.Children.Post(new HandledChildForm() { Toy = "rattle snake" });
-            Assert.That(childResource.HandlerWasCalled, Is.True, "It doesn't seem like handler has been called.");
-        }
-
-
-        [Test]
-        public void PatchSingleChildOfHandledThing_CallsPatchHandlerForChild()
-        {
-            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
-            var thingResource = Client.HandledThings.Get(thingEntity.Id);
-            var patchedChild = Client.Patch(thingResource.SingleChild, c => c.Name = "Renamed");
-            Assert.That(patchedChild.Name, Is.EqualTo("Renamed"));
-            Assert.That(patchedChild.PatchHandlerCalled, Is.True);
-        }
 
         [Test]
         public void GetHandledThing_CallsHandlerGetMethod()
@@ -112,6 +82,27 @@ namespace Pomona.SystemTests.Handlers
         }
 
 
+        [Test]
+        public void PatchSingleChildOfHandledThing_CallsPatchHandlerForChild()
+        {
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            var thingResource = Client.HandledThings.Get(thingEntity.Id);
+            var patchedChild = Client.Patch(thingResource.SingleChild, c => c.Name = "Renamed");
+            Assert.That(patchedChild.Name, Is.EqualTo("Renamed"));
+            Assert.That(patchedChild.PatchHandlerCalled, Is.True);
+        }
+
+
+        [Test]
+        public void PostChildToHandledThing_CallsPostHandlerMethodWithParent()
+        {
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            var thingResource = Client.HandledThings.Get(thingEntity.Id);
+            var childResource = thingResource.Children.Post(new HandledChildForm() { Toy = "rattle snake" });
+            Assert.That(childResource.HandlerWasCalled, Is.True, "It doesn't seem like handler has been called.");
+        }
+
+
         [Category("TODO")]
         [Test]
         public void PostFormToHandledThing_CallsHandlerPostToResourceMethod()
@@ -134,6 +125,17 @@ namespace Pomona.SystemTests.Handlers
             var resource = Client.UnhandledThings.Post(new UnhandledThingForm() { Bah = "klsjklj" });
             Assert.That(resource, Is.Not.Null);
             Assert.That(resource.Id, Is.GreaterThan(0));
+        }
+
+
+        [Test]
+        public void QueryHandledThing_CallsHandlerQueryMethod()
+        {
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            Assert.That(thingEntity.FetchedCounter, Is.EqualTo(0));
+            var thingResource = Client.HandledThings.Query().First(x => x.Foo == "blabla");
+            Assert.That(thingResource.Id, Is.EqualTo(thingEntity.Id));
+            Assert.That(thingResource.QueryCounter, Is.EqualTo(1));
         }
     }
 }
