@@ -26,13 +26,6 @@
 
 #endregion
 
-using System;
-using System.Linq;
-
-using Pomona.Common;
-using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
-
 namespace Pomona.RequestProcessing
 {
     public class DefaultHandlerMethodInvoker : HandlerMethodInvoker<object>
@@ -40,92 +33,6 @@ namespace Pomona.RequestProcessing
         public DefaultHandlerMethodInvoker(HandlerMethod method)
             : base(method)
         {
-        }
-
-
-        protected override object OnInvoke(object target, PomonaRequest request, object state)
-        {
-            object resourceArg = null;
-            object resourceIdArg = null;
-            var httpMethod = request.Method;
-
-            ResourceType parentResourceType = null;
-
-            if (request.Node.NodeType == PathNodeType.Resource)
-            {
-                switch (httpMethod)
-                {
-                    case HttpMethod.Get:
-                    {
-                        var resourceNode = (ResourceNode)request.Node;
-                        object parsedId;
-                        if (!resourceNode.Name.TryParse(resourceNode.Type.PrimaryId.PropertyType, out parsedId) &&
-                            !typeof(IQueryable<object>).IsAssignableFrom(Method.ReturnType))
-                            throw new NotImplementedException("What to do when ID won't parse here??");
-
-                        resourceIdArg = parsedId;
-                    }
-                        break;
-                    case HttpMethod.Patch:
-                    case HttpMethod.Post:
-                        resourceArg = request.Bind();
-                        break;
-                    default:
-                        resourceArg = request.Node.Value;
-                        break;
-                }
-            }
-            else if (request.Node.NodeType == PathNodeType.Collection)
-            {
-                switch (httpMethod)
-                {
-                    case HttpMethod.Post:
-                        resourceArg = request.Bind();
-                        break;
-                }
-            }
-
-            // If the method returns an IQueryable<Object> and takes a parent resource parameter,
-            // check that the parameter is actually the parent resource type of the resouce type.
-            if (typeof(IQueryable<Object>).IsAssignableFrom(Method.ReturnType))
-            {
-                var resourceType = request.Node.Type as ResourceType;
-                if (resourceType != null)
-                    parentResourceType = resourceType.ParentResourceType;
-                var resourceCount = Parameters.Count(x => x.IsResource);
-                var resourceParameter = Parameters.FirstOrDefault(x => x.IsResource);
-
-                if (resourceCount == 0 && parentResourceType != null)
-                {
-                    throw new PomonaException("Type " + request.Node.Type.Name +
-                                              " has the parent resource type " +
-                                              parentResourceType.Name +
-                                              ", but no parent element was specified.");
-                }
-
-                if (resourceCount == 1)
-                {
-                    if (parentResourceType == null)
-                    {
-                        throw new PomonaException("Type " + request.Node.Type.Name +
-                                                  " has no parent resource type, but a parent element of type " +
-                                                  resourceParameter.Type.Name +
-                                                  " was specified.");
-                    }
-
-                    if (parentResourceType != resourceParameter.Type)
-                    {
-                        throw new PomonaException("Type " + request.Node.Type.Name +
-                                                  " has the parent resource type " +
-                                                  parentResourceType.Name +
-                                                  ", but a parent element of type " + resourceParameter.Type.Name +
-                                                  " was specified.");
-                    }
-
-                    resourceArg = request.Node.Parent.Value;
-                }
-            }
-            return base.OnInvoke(target, request, state);
         }
     }
 }
