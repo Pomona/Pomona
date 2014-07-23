@@ -26,13 +26,9 @@
 
 #endregion
 
-using System;
-
-namespace Pomona.RequestProcessing
+namespace Pomona.Example.Models
 {
-    public interface IHandlerMethodInvoker
+    public class InheritedHandledThing : HandledThing
     {
-        Type ReturnType { get; }
-        object Invoke(object target, PomonaRequest request);
     }
 }

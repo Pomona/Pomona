@@ -26,13 +26,23 @@
 
 #endregion
 
-using System;
-
 namespace Pomona.RequestProcessing
 {
-    public interface IHandlerMethodInvoker
+    internal class HandlerMethodTakingExistingResource : HandlerMethodInvoker<object>
     {
-        Type ReturnType { get; }
-        object Invoke(object target, PomonaRequest request);
+        public HandlerMethodTakingExistingResource(HandlerMethod method)
+            : base(method)
+        {
+        }
+
+
+        protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, object state)
+        {
+            var resourceNode = request.Node as ResourceNode;
+            if (parameter.IsResource && resourceNode != null && resourceNode.Exists
+                && parameter.Type.IsInstanceOfType(resourceNode.Value))
+                return resourceNode.Value;
+            return base.OnGetArgument(parameter, request, state);
+        }
     }
 }

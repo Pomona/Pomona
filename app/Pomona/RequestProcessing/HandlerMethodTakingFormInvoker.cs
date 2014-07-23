@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,37 @@
 
 #endregion
 
-using System;
-
 namespace Pomona.RequestProcessing
 {
-    public interface IHandlerMethodInvoker
+    internal class HandlerMethodTakingFormInvoker : HandlerMethodInvoker<HandlerMethodTakingFormInvoker.InvokeState>
     {
-        Type ReturnType { get; }
-        object Invoke(object target, PomonaRequest request);
+        public HandlerMethodTakingFormInvoker(HandlerMethod method)
+            : base(method)
+        {
+        }
+
+
+        protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, InvokeState state)
+        {
+            if (parameter.IsResource && state.Form != null && parameter.Type.IsInstanceOfType(state.Form))
+                return state.Form;
+            return base.OnGetArgument(parameter, request, state);
+        }
+
+
+        protected override object OnInvoke(object target, PomonaRequest request, InvokeState state)
+        {
+            state.Form = request.Bind();
+            return base.OnInvoke(target, request, state);
+        }
+
+        #region Nested type: InvokeState
+
+        public class InvokeState
+        {
+            public object Form { get; set; }
+        }
+
+        #endregion
     }
 }

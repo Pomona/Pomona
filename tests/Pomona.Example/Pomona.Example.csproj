@@ -101,6 +101,7 @@
     <Compile Include="Models\HandledThing.cs" />
     <Compile Include="Models\HasConstructorInitializedReadOnlyProperty.cs" />
     <Compile Include="Models\IEntityWithId.cs" />
+    <Compile Include="Models\InheritedHandledThing.cs" />
     <Compile Include="Models\ISetEtaggedEntity.cs" />
     <Compile Include="Models\INonExposedBaseInterface.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />

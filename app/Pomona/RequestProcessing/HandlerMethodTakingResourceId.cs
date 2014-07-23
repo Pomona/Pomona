@@ -28,11 +28,33 @@
 
 using System;
 
+using Pomona.Common.Internals;
+
 namespace Pomona.RequestProcessing
 {
-    public interface IHandlerMethodInvoker
+    internal class HandlerMethodTakingResourceId : HandlerMethodInvoker<object>
     {
-        Type ReturnType { get; }
-        object Invoke(object target, PomonaRequest request);
+        public HandlerMethodTakingResourceId(HandlerMethod method)
+            : base(method)
+        {
+        }
+
+
+        protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, object state)
+        {
+            var node = (ResourceNode)request.Node;
+            var primaryIdType = node.ExpectedType.PrimaryId.PropertyType;
+            if (parameter.Type == primaryIdType)
+            {
+                object parsedId;
+                if (!node.Name.TryParse(primaryIdType, out parsedId))
+                {
+                    throw new NotImplementedException(
+                        "TODO: What to do when ID won't parse here?? (probably throw 404 yes)");
+                }
+                return parsedId;
+            }
+            return base.OnGetArgument(parameter, request, state);
+        }
     }
 }

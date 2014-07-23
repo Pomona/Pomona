@@ -31,17 +31,19 @@ using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
-    public class InheritedHandledThing : HandledThing
-    {
-    }
-
     public class HandledThing : EntityBase, ISetEtaggedEntity
     {
         private readonly HashSet<HandledChild> children = new HashSet<HandledChild>();
+        private string eTag = Guid.NewGuid().ToString();
 
         public ISet<HandledChild> Children
         {
             get { return this.children; }
+        }
+
+        public string ETag
+        {
+            get { return this.eTag; }
         }
 
         public int FetchedCounter { get; set; }
@@ -52,16 +54,10 @@ namespace Pomona.Example.Models
         public int PatchCounter { get; set; }
         public int QueryCounter { get; set; }
 
-        private string eTag = Guid.NewGuid().ToString();
-
-        public string ETag
-        {
-            get { return eTag; }
-        }
 
         public void SetEtag(string newEtagValue)
         {
-            eTag = newEtagValue;
+            this.eTag = newEtagValue;
         }
     }
 }
