@@ -262,6 +262,20 @@ namespace Pomona.FluentMapping
             }
 
 
+            public override ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
+                Expression<Func<TDeclaringType, TParent>> parentProperty,
+                Expression<Func<TParent, TDeclaringType>> childProperty)
+            {
+                if (parentProperty == null)
+                    throw new ArgumentNullException("parentProperty");
+                if (childProperty == null)
+                    throw new ArgumentNullException("childProperty");
+                this.owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
+                this.owner.ParentToChildProperty = childProperty.ExtractPropertyInfo();
+                return this;
+            }
+
+
             public override ITypeMappingConfigurator<TDeclaringType> AsConcrete()
             {
                 this.owner.isAbstract = false;

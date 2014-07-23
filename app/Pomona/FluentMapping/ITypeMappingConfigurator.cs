@@ -39,12 +39,20 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreExcludedByDefault();
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault();
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping();
+        ITypeMappingConfigurator<TDeclaringType> AsAbstract();
 
 
         ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
             Expression<Func<TDeclaringType, TParent>> parentProperty,
             Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty);
 
+
+        ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
+            Expression<Func<TDeclaringType, TParent>> parentProperty,
+            Expression<Func<TParent, TDeclaringType>> childProperty);
+
+
+        ITypeMappingConfigurator<TDeclaringType> AsConcrete();
 
         ITypeMappingConfigurator<TDeclaringType> AsEntity();
         ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot();
@@ -84,6 +92,7 @@ namespace Pomona.FluentMapping
                 <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
                     IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
 
+
         ITypeMappingConfigurator<TDeclaringType> IncludeAs<TPropertyType>(
             Expression<Func<TDeclaringType, object>> property,
             Func
@@ -102,8 +111,5 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> PostReturns<TPostResponseType>();
         ITypeMappingConfigurator<TDeclaringType> PostReturns(Type postResponseType);
         ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName);
-
-        ITypeMappingConfigurator<TDeclaringType> AsAbstract();
-        ITypeMappingConfigurator<TDeclaringType> AsConcrete();
     }
 }

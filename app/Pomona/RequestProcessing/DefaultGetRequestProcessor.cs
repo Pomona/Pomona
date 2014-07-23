@@ -44,6 +44,12 @@ namespace Pomona.RequestProcessing
                 {
                     value = parentCollectionNode.GetItemFromQueryableById(resourceNode.Name);
                 }
+                var parentResourceNode = resourceNode.Parent as ResourceNode;
+                if (parentResourceNode != null)
+                {
+                    // TODO: Refactor this more, this is very confusing.
+                    value = resourceNode.Value;
+                }
                 if (value == null)
                 {
                     throw new ResourceNotFoundException("Resource not found.");

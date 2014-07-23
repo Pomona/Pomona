@@ -37,7 +37,7 @@ namespace Pomona.Example.Models.Existence
 
         public PlanetarySystem()
         {
-            Star = new Star() { Name = "Sun" };
+            Star = new Star() { Name = "Sun", PlanetarySystem = this };
         }
 
 

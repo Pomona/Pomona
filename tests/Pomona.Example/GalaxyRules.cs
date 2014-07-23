@@ -30,6 +30,12 @@ namespace Pomona.Example
                 .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository());
         }
 
+
+        public void Map(ITypeMappingConfigurator<Star> map)
+        {
+            map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Star);
+        }
+
         public void Map(ITypeMappingConfigurator<Planet> map)
         {
             map.AsUriBaseType();

@@ -464,7 +464,11 @@ namespace Pomona.Example
             if (tt.ParentToChildProperty == null)
                 throw new InvalidOperationException("Expected a parent-child assosciation.");
             var parents = (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
-            return parents.SelectMany(p => (IEnumerable<T>)tt.ParentToChildProperty.GetValue(p)).ToList();
+            if (tt.ParentToChildProperty.PropertyType.IsCollection)
+            {
+                return parents.SelectMany(p => (IEnumerable<T>)tt.ParentToChildProperty.GetValue(p)).ToList();
+            }
+            return parents.Select(p => (T)tt.ParentToChildProperty.GetValue(p)).ToList();
         }
 
 

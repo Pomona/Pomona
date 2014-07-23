@@ -62,6 +62,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> AsChildResourceOf<TParent>(Expression<Func<TDeclaring, TParent>> parentProperty, Expression<Func<TParent, TDeclaring>> childProperty)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> AsEntity()
         {
             return this;

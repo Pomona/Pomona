@@ -173,13 +173,19 @@ namespace Pomona.Common.TypeSystem
             Expression parentExpression,
             StringBuilder formatStringBuilder)
         {
-            if (rt.ParentToChildProperty != null)
+            var parentToChildProperty = rt.ParentToChildProperty;
+            if (parentToChildProperty != null)
             {
-                var nextParentExpr = rt.ChildToParentProperty.CreateGetterExpression(parentExpression);
+                var childToParentProperty = rt.ChildToParentProperty;
+                var nextParentExpr = childToParentProperty.CreateGetterExpression(parentExpression);
                 BuildUriGenerator(rt.ParentResourceType, sbFormatArgs, nextParentExpr, formatStringBuilder);
-                var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
-                formatStringBuilder.AppendFormat("/{0}/{{{1}}}", rt.ParentToChildProperty.UriName, sbFormatArgs.Count);
-                sbFormatArgs.Add(sbArgsExpr);
+                formatStringBuilder.AppendFormat("/{0}", parentToChildProperty.UriName);
+                if (parentToChildProperty.PropertyType.IsCollection)
+                {
+                    formatStringBuilder.AppendFormat("/{{{0}}}", sbFormatArgs.Count);
+                    var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
+                    sbFormatArgs.Add(sbArgsExpr);
+                }
             }
             else
             {
