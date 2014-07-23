@@ -42,6 +42,16 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class ChildResourceTests : ClientTestsBase
     {
+        #region Setup/Teardown
+
+        public override void SetUp()
+        {
+            base.SetUp();
+            CreateTestData();
+        }
+
+        #endregion
+
         public void CreateTestData()
         {
             var galaxy = new Galaxy() { Name = "milkyway" };
@@ -53,10 +63,15 @@ namespace Pomona.SystemTests
         }
 
 
+        private IPlanetarySystem GetPlanetarySystemResource()
+        {
+            return Client.Galaxies.Query().First().PlanetarySystems.First();
+        }
+
+
         [Test]
         public void ChildResourcesGetsCorrectUrl()
         {
-            CreateTestData();
             var galaxy = Client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();
             var planet = galaxy.PlanetarySystems.First().Planets.First();
             var planetUri = ((IHasResourceUri)planet).Uri;
@@ -67,10 +82,30 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetPlanetarySystem_SingleChildResourceHasCorrectUrl()
+        {
+            var planetarySystem = GetPlanetarySystemResource();
+            Assert.That(planetarySystem.Star, Is.TypeOf<StarLazyProxy>());
+            var starUrl = ((IHasResourceUri)planetarySystem.Star).Uri;
+            Assert.That(starUrl, Is.EqualTo(((IHasResourceUri)planetarySystem).Uri + "/star"));
+        }
+
+
+        [Test]
+        public void GetStarOfPlanetarySystem_IsSuccessful()
+        {
+            var planetarySystem = GetPlanetarySystemResource();
+            var starUrl = ((IHasResourceUri)planetarySystem).Uri + "/star";
+            var star = Client.Get<IStar>(starUrl);
+            Assert.That(star, Is.Not.Null);
+            Assert.That(star.Name, Is.EqualTo("Sun"));
+        }
+
+
+        [Test]
         public void PatchPlanetarySystemPostDeletePlanetFromChildRepository_IsSuccessful()
         {
-            CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = GetPlanetarySystemResource();
             var planetToDelete = planetarySystem.Planets.First();
             var patchedPlanetarySystem = Client.Patch(planetarySystem,
                 x => x.Planets.Delete(planetToDelete));
@@ -82,8 +117,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PatchPlanetarySystemPostPlanetToChildRepository_IsSuccessful()
         {
-            CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = GetPlanetarySystemResource();
             var patchedPlanetarySystem = Client.Patch(planetarySystem,
                 x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
             Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
@@ -93,8 +127,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostMoonToPlanet_UsingPatch_IsSuccessful()
         {
-            CreateTestData();
-            var planet = Client.Galaxies.First().PlanetarySystems.First().Planets.First();
+            var planet = GetPlanetarySystemResource().Planets.First();
             var patchedPlanet = Client.Patch(planet, p => p.Moons.Add(new MoonForm() { Name = "A new moon" }));
             Assert.That(patchedPlanet.Moons.Any(x => x.Name == "A new moon"), Is.True);
         }
@@ -103,8 +136,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostPlanetToPlanetarySystem_IsSuccessful()
         {
-            CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = GetPlanetarySystemResource();
             var planet =
                 planetarySystem.Planets.Post(new PlanetForm()
                 {
@@ -120,8 +152,7 @@ namespace Pomona.SystemTests
             PostPlanetToPlanetarySystem_UsingGenericPostOverloadAcceptingActionLambda_WithModifiedEtagOnParent_ThrowsPreconditionFailedException
             ()
         {
-            CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = GetPlanetarySystemResource();
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(
@@ -139,7 +170,7 @@ namespace Pomona.SystemTests
             ()
         {
             CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = GetPlanetarySystemResource();
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(
@@ -156,8 +187,7 @@ namespace Pomona.SystemTests
             PostPlanetToPlanetarySystem_UsingPostOverloadAcceptingForm_WithModifiedEtagOnParent_ThrowsPreconditionFailedException
             ()
         {
-            CreateTestData();
-            var planetarySystem = Client.Galaxies.Query().First().PlanetarySystems.First();
+            var planetarySystem = GetPlanetarySystemResource();
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(

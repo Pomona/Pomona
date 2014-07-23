@@ -26,31 +26,10 @@
 
 #endregion
 
-using System.Collections.Generic;
-
 namespace Pomona.Example.Models.Existence
 {
-    public class PlanetarySystem : CelestialObject
+    public class Star : CelestialObject
     {
-        private readonly ICollection<Planet> planets = new List<Planet>();
-
-
-        public PlanetarySystem()
-        {
-            Star = new Star() { Name = "Sun" };
-        }
-
-
-        public Galaxy Galaxy { get; set; }
-
-        // Well technically a planetary system can have multiple stars, but lets ignore that to use it as example
-        // of a single child resource.
-
-        public ICollection<Planet> Planets
-        {
-            get { return this.planets; }
-        }
-
-        public Star Star { get; set; }
+        public PlanetarySystem PlanetarySystem { get; set; }
     }
 }

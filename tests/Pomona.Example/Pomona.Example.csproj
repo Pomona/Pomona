@@ -93,6 +93,7 @@
     <Compile Include="Models\Existence\Planet.cs" />
     <Compile Include="Models\Existence\PlanetarySystem.cs" />
     <Compile Include="Models\Existence\Moon.cs" />
+    <Compile Include="Models\Existence\Star.cs" />
     <Compile Include="Models\FailingThing.cs" />
     <Compile Include="Models\Farm.cs" />
     <Compile Include="Models\Blob.cs" />
