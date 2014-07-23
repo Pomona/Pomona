@@ -27,10 +27,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-
-using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -44,7 +41,6 @@ namespace Pomona.RequestProcessing
             : base(method)
         {
         }
-
 
 
         protected override object OnInvoke(object target, PomonaRequest request, object state)
