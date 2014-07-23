@@ -99,5 +99,16 @@ namespace Pomona.Example
             handledThing.Marker = "HANDLER WAS HERE!";
             return (HandledThing)this.repository.Post(handledThing);
         }
+
+
+        public HandledSingleChild Patch(HandledThing parent, HandledSingleChild child)
+        {
+            if (parent == null)
+                throw new ArgumentNullException("parent");
+
+            child.PatchHandlerCalled = true;
+
+            return child;
+        }
     }
 }

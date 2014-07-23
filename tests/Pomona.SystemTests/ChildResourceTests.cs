@@ -101,6 +101,16 @@ namespace Pomona.SystemTests
             Assert.That(star.Name, Is.EqualTo("Sun"));
         }
 
+        [Test]
+        public void PatchStarOfPlanetarySystem_IsSuccessful()
+        {
+            var planetarySystem = GetPlanetarySystemResource();
+            var starUrl = ((IHasResourceUri)planetarySystem).Uri + "/star";
+            var star = Client.Get<IStar>(starUrl);
+            var patchedStar = Client.Patch(star, s => s.Name = "Sol");
+            Assert.That(patchedStar.Name, Is.EqualTo("Sol"));
+        }
+
 
         [Test]
         public void PatchPlanetarySystemPostDeletePlanetFromChildRepository_IsSuccessful()

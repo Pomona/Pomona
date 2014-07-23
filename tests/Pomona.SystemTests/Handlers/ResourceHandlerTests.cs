@@ -77,6 +77,15 @@ namespace Pomona.SystemTests.Handlers
         }
 
 
+        [Test]
+        public void PatchSingleChildOfHandledThing_CallsPatchHandlerForChild()
+        {
+            var thingEntity = Save(new HandledThing() { Foo = "blabla" });
+            var thingResource = Client.HandledThings.Get(thingEntity.Id);
+            var patchedChild = Client.Patch(thingResource.SingleChild, c => c.Name = "Renamed");
+            Assert.That(patchedChild.Name, Is.EqualTo("Renamed"));
+            Assert.That(patchedChild.PatchHandlerCalled, Is.True);
+        }
 
         [Test]
         public void GetHandledThing_CallsHandlerGetMethod()

@@ -49,6 +49,7 @@ namespace Pomona.Example
                 .ConstructedUsing(c => new ExposedInterfaceInternalImplementation());
         }
 
+
         public void Map(ITypeMappingConfigurator<HandledThing> map)
         {
             map
@@ -59,6 +60,12 @@ namespace Pomona.Example
                 .Include(x => x.ETag, o => o.AsEtag())
                 .AsUriBaseType()
                 .DeleteAllowed().HandledBy<HandledThingsHandler>();
+        }
+
+
+        public void Map(ITypeMappingConfigurator<HandledSingleChild> map)
+        {
+            map.AsChildResourceOf(x => x.HandledThing, x => x.SingleChild);
         }
 
 
