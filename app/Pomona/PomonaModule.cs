@@ -53,14 +53,17 @@ namespace Pomona
 
         protected PomonaModule(
             IPomonaDataSource dataSource,
-            TypeMapper typeMapper) : this(dataSource, typeMapper, "/")
+            TypeMapper typeMapper)
+            : this(dataSource, typeMapper, "/")
         {
         }
+
 
         protected PomonaModule(
             IPomonaDataSource dataSource,
             TypeMapper typeMapper,
-            string baseUrl):base(baseUrl)
+            string baseUrl)
+            : base(baseUrl)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
@@ -91,22 +94,6 @@ namespace Pomona
             RegisterClientNugetPackageRoute();
 
             RegisterSerializationProvider(typeMapper);
-        }
-
-        private void RegisterSerializationProvider(TypeMapper typeMapper)
-        {
-            Before += (ctx =>
-                {
-                    UriResolver uriResolver = new UriResolver(typeMapper, new BaseUriResolver(ctx,ModulePath));
-
-                    ctx.Items[typeof (IUriResolver).FullName] = uriResolver;
-                    ctx.Items[typeof (ISerializationContextProvider).FullName] =
-                        new ServerSerializationContextProvider(
-                            uriResolver,
-                            new ResourceResolver(typeMapper, ctx, ctx.GetRouteResolver()),
-                            ctx);
-                    return null;
-                });
         }
 
 
@@ -177,28 +164,33 @@ namespace Pomona
         }
 
 
-        private object GetJsonBrowserHtmlResponse()
+        private LinkedListNode<string> GetPathNodes()
         {
-            var resourceName = "Pomona.Content.jsonbrowser.html";
             return
-                Response.FromStream(
-                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
-                    "text/html");
+                new LinkedList<string>(
+                    Request.Url.Path.Substring(ModulePath.Length).Split(new[] { '/' },
+                        StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode)).First;
         }
 
 
-        private LinkedListNode<string> GetPathNodes()
+        private Response GetSchemas()
         {
-            return new LinkedList<string>(Request.Url.Path.Substring(ModulePath.Length).Split(new [] {'/'}, StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode)).First;
+            var res = new Response();
+
+            var schemas = new SchemaGenerator(this.typeMapper).Generate().ToJson();
+            res.ContentsFromString(schemas);
+            res.ContentType = "text/plain; charset=utf-8";
+
+            return res;
         }
 
 
         private PomonaResponse ProcessRequest()
         {
             var pathNodes = GetPathNodes();
-            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource,ModulePath);
+            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource, ModulePath);
             PathNode node = rootNode;
-            DefaultRequestProcessorPipeline pipeline = new DefaultRequestProcessorPipeline();
+            var pipeline = new DefaultRequestProcessorPipeline();
             var pomonaContext = new PomonaContext(Context, new PomonaJsonSerializerFactory());
 
             foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
@@ -213,18 +205,6 @@ namespace Pomona
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
             return response;
-        }
-
-
-        private Response GetSchemas()
-        {
-            var res = new Response();
-
-            var schemas = new SchemaGenerator(this.typeMapper).Generate().ToJson();
-            res.ContentsFromString(schemas);
-            res.ContentType = "text/plain; charset=utf-8";
-
-            return res;
         }
 
 
@@ -290,6 +270,23 @@ namespace Pomona
             Register(Patch, path + "/{remaining*}", x => ProcessRequest());
             Register(Post, path + "/{remaining*}", x => ProcessRequest());
             Register(Delete, path + "/{remaining*}", x => ProcessRequest());
+        }
+
+
+        private void RegisterSerializationProvider(TypeMapper typeMapper)
+        {
+            Before += (ctx =>
+            {
+                var uriResolver = new UriResolver(typeMapper, new BaseUriResolver(ctx, ModulePath));
+
+                ctx.Items[typeof(IUriResolver).FullName] = uriResolver;
+                ctx.Items[typeof(ISerializationContextProvider).FullName] =
+                    new ServerSerializationContextProvider(
+                        uriResolver,
+                        new ResourceResolver(typeMapper, ctx, ctx.GetRouteResolver()),
+                        ctx);
+                return null;
+            });
         }
 
 
