@@ -57,9 +57,22 @@ namespace Pomona.FluentMapping
             }
 
 
-            public override ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+            protected override ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
             {
                 Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping = x => x.AsChildResourceOf(parentProperty, collectionProperty);
+                typeConfigurationDelegates.Add(asChildResourceMapping);
+                typeConfigurationDelegates.Add(typeOptions);
+                return this;
+            }
+
+
+            protected override ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
+                Expression<Func<TItem, TDeclaring>> parentProperty,
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+                Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions)
+            {
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping =
+                    x => x.AsChildResourceOf(parentProperty, childProperty);
                 typeConfigurationDelegates.Add(asChildResourceMapping);
                 typeConfigurationDelegates.Add(typeOptions);
                 return this;

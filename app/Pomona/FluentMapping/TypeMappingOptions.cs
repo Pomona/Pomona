@@ -372,19 +372,6 @@ namespace Pomona.FluentMapping
             }
 
 
-            public override ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(
-                Expression<Func<TDeclaringType, IEnumerable<TItem>>> property,
-                Expression<Func<TItem, TDeclaringType>> parentProperty,
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> childConfig,
-                Func
-                    <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
-                        IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
-            {
-                var propInfo = property.ExtractPropertyInfo();
-                return Include(property, options);
-            }
-
-
             public override ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
                 Expression<Func<TDeclaringType, TPropertyType>> property,
                 Func
@@ -472,6 +459,29 @@ namespace Pomona.FluentMapping
             {
                 this.owner.pluralName = pluralName;
                 return this;
+            }
+
+
+            protected override ITypeMappingConfigurator<TDeclaringType> OnHasChild<TItem>(
+                Expression<Func<TDeclaringType, TItem>> childProperty,
+                Expression<Func<TItem, TDeclaringType>> parentProperty,
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+                Func<IPropertyOptionsBuilder<TDeclaringType, TItem>, IPropertyOptionsBuilder<TDeclaringType, TItem>>
+                    propertyOptions)
+            {
+                return Include(childProperty, propertyOptions);
+            }
+
+
+            protected override ITypeMappingConfigurator<TDeclaringType> OnHasChildren<TItem>(
+                Expression<Func<TDeclaringType, IEnumerable<TItem>>> property,
+                Expression<Func<TItem, TDeclaringType>> parentProperty,
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> childConfig,
+                Func
+                    <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
+                        IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
+            {
+                return Include(property, options);
             }
 
 

@@ -136,7 +136,23 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(
+        public ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(
+            Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty,
+            Expression<Func<TItem, TDeclaring>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func
+                <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
+                    IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+        {
+            if (collectionProperty == null)
+                throw new ArgumentNullException("collectionProperty");
+            if (parentProperty == null)
+                throw new ArgumentNullException("parentProperty");
+            return OnHasChildren(collectionProperty, parentProperty, typeOptions ?? (x => x), propertyOptions ?? (x => x));
+        }
+
+
+        protected virtual ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(
             Expression<Func<TDeclaring, IEnumerable<TItem>>> property,
             Expression<Func<TItem, TDeclaring>> parentProperty,
             Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
@@ -145,6 +161,26 @@ namespace Pomona.FluentMapping
                     IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
         {
             return this;
+        }
+
+        protected virtual ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
+            Expression<Func<TItem, TDeclaring>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions)
+        {
+            return this;
+        }
+
+        public ITypeMappingConfigurator<TDeclaring> HasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
+            Expression<Func<TItem, TDeclaring>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
+            Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions = null)
+        {
+            if (childProperty == null)
+                throw new ArgumentNullException("childProperty");
+            if (parentProperty == null)
+                throw new ArgumentNullException("parentProperty");
+            return OnHasChild(childProperty, parentProperty, typeOptions ?? (x => x), propertyOptions ?? (x => x));
         }
 
 

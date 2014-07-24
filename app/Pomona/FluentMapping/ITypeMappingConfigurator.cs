@@ -78,12 +78,20 @@ namespace Pomona.FluentMapping
 
 
         ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(
-            Expression<Func<TDeclaringType, IEnumerable<TItem>>> property,
+            Expression<Func<TDeclaringType, IEnumerable<TItem>>> collectionProperty,
             Expression<Func<TItem, TDeclaringType>> parentProperty,
-            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
             Func
                 <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
-                    IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> propertyOptions);
+                    IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> propertyOptions = null);
+
+        ITypeMappingConfigurator<TDeclaringType> HasChild<TItem>(
+            Expression<Func<TDeclaringType, TItem>> childProperty,
+            Expression<Func<TItem, TDeclaringType>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
+            Func
+                <IPropertyOptionsBuilder<TDeclaringType, TItem>,
+                    IPropertyOptionsBuilder<TDeclaringType, TItem>> propertyOptions = null);
 
 
         ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
