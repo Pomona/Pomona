@@ -116,16 +116,6 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.UriRelativePath; }
         }
 
-        public string UriTemplate
-        {
-            get
-            {
-                var sb = new StringBuilder();
-                BuildUriTemplate(this, sb, string.Empty);
-                return sb.ToString();
-            }
-        }
-
         protected ResourceTypeDetails ResourceTypeDetails
         {
             get { return this.resourceTypeDetails.Value; }
@@ -193,29 +183,6 @@ namespace Pomona.Common.TypeSystem
                 formatStringBuilder.AppendFormat("{0}/{{{1}}}", rt.UriRelativePath, sbFormatArgs.Count);
                 sbFormatArgs.Add(sbArgsExpr);
             }
-        }
-
-
-        private static void BuildUriTemplate(ResourceType rt,
-            StringBuilder sb,
-            string parentPath,
-            bool useJsonNameStyle = false)
-        {
-            if (rt.ParentToChildProperty != null)
-            {
-                BuildUriTemplate(rt.ParentResourceType,
-                    sb,
-                    string.Format("{0}{1}.",
-                        parentPath,
-                        useJsonNameStyle ? rt.ChildToParentProperty.JsonName : rt.ChildToParentProperty.Name));
-                sb.AppendFormat("/{0}/{{{1}{2}}}",
-                    rt.ParentToChildProperty.UriName,
-                    parentPath,
-                    rt.PrimaryId.Name);
-            }
-            else
-                sb.AppendFormat("{0}/{{{1}{2}}}", rt.UriRelativePath, parentPath,
-                    useJsonNameStyle ? rt.PrimaryId.JsonName : rt.PrimaryId.Name);
         }
 
 
