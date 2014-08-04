@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Pomona.Common.Internals
@@ -89,6 +90,82 @@ namespace Pomona.Common.Internals
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
             source.ToList().ForEach(action);
+        }
+
+
+        public static IQueryable Where(this IQueryable source, LambdaExpression predicate)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (predicate == null)
+                throw new ArgumentNullException("predicate");
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    null,
+                    (QueryableMethods.Where).MakeGenericMethod(source.ElementType),
+                    new Expression[] { source.Expression, Expression.Quote(predicate) }
+                    ));
+        }
+
+
+        public static IQueryable OfTypeIfRequired(this IQueryable source, Type resultType)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (resultType == null)
+                throw new ArgumentNullException("resultType");
+            if (source.ElementType == resultType)
+                return source;
+
+            return OfType(source, resultType);
+        }
+
+        public static IQueryable OfType(this IQueryable source, Type resultType)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (resultType == null)
+                throw new ArgumentNullException("resultType");
+
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    null,
+                    (QueryableMethods.OfType).MakeGenericMethod(resultType),
+                    new Expression[] { source.Expression }
+                    ));
+            
+        }
+
+        public static IQueryable Select(this IQueryable source, LambdaExpression selector)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (selector == null)
+                throw new ArgumentNullException("selector");
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    null,
+                    (QueryableMethods.Select).MakeGenericMethod(source.ElementType, selector.ReturnType),
+                    new Expression[] { source.Expression, Expression.Quote(selector) }
+                    ));
+        }
+
+
+        public static IQueryable SelectMany(this IQueryable source, LambdaExpression selector)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (selector == null)
+                throw new ArgumentNullException("selector");
+            Type selectorItemType;
+            if (!selector.ReturnType.TryGetEnumerableElementType(out selectorItemType))
+                throw new ArgumentException("The return type of selector is not an IEnumerable<T>", "selector");
+            return source.Provider.CreateQuery(
+                Expression.Call(
+                    null,
+                    (QueryableMethods.SelectMany).MakeGenericMethod(source.ElementType, selectorItemType),
+                    new Expression[] { source.Expression, Expression.Quote(selector) }
+                    ));
         }
 
 

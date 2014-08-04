@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -55,6 +56,7 @@ namespace Pomona.Common.Internals
         private static readonly MethodInfo orderBy;
         private static readonly MethodInfo orderByDescending;
         private static readonly MethodInfo @select;
+        private static readonly MethodInfo selectMany;
         private static readonly MethodInfo skip;
         private static readonly MethodInfo sumDecimal;
         private static readonly MethodInfo sumDecimalWithSelector;
@@ -84,6 +86,7 @@ namespace Pomona.Common.Internals
             firstOrDefaultWithPredicate = GetMethodInfo(x => x.FirstOrDefault(y => false));
             anyWithPredicate = GetMethodInfo(x => x.Any(null));
             select = GetMethodInfo(x => x.Select(y => 0));
+            selectMany = GetMethodInfo(x => x.SelectMany(y => (IEnumerable<object>)null));
             groupBy = GetMethodInfo(x => x.GroupBy(y => 0));
             count = GetMethodInfo(x => x.Count());
 
@@ -195,6 +198,11 @@ namespace Pomona.Common.Internals
         public static MethodInfo Select
         {
             get { return @select; }
+        }
+
+        public static MethodInfo SelectMany
+        {
+            get { return selectMany; }
         }
 
         public static MethodInfo Skip
