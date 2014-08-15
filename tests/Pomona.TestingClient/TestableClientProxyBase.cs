@@ -190,6 +190,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public object Get(string uri, Type type, RequestOptions requestOptions)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public object Get(string uri, Type type)
         {
             throw new NotImplementedException();

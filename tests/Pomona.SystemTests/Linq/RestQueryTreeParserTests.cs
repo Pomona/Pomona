@@ -78,6 +78,15 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryWithRequestModifications_RequestModificationDelegateIsAddedToList()
+        {
+            var parser =
+                Parse<ICritter>(x => x.WithOptions(y => y.ModifyRequest(z => z.Uri = "http://nanah")));
+            Assert.That(parser.RequestOptionActions, Has.Count.EqualTo(1));
+        }
+
+
+        [Test]
         public void QueryWithSelectAfterSelect_SelectIsCorrectlyMerged()
         {
             var parser =

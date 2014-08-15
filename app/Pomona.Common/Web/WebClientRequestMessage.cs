@@ -32,7 +32,7 @@ namespace Pomona.Common.Web
         private readonly byte[] data;
         private readonly HttpHeaders headers = new HttpHeaders();
         private readonly string method;
-        private readonly string uri;
+        private string uri;
         private readonly string protocolVersion = "1.1";
 
         public override string ToString()
@@ -73,6 +73,7 @@ namespace Pomona.Common.Web
         public string Uri
         {
             get { return uri; }
+            set { uri = value; }
         }
 
         public byte[] Data

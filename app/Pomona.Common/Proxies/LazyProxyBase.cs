@@ -24,6 +24,8 @@
 
 using System;
 
+using Pomona.Common.Linq;
+
 namespace Pomona.Common.Proxies
 {
     public class LazyProxyBase : IHasResourceUri, ILazyProxy

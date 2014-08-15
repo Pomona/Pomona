@@ -82,6 +82,13 @@ namespace Pomona.Common.Linq
         private int? takeCount;
         private LambdaExpression wherePredicate;
 
+        private readonly List<Action<IRequestOptions>> requestOptionActions = new List<Action<IRequestOptions>>();
+
+        public List<Action<IRequestOptions>> RequestOptionActions
+        {
+            get { return this.requestOptionActions; }
+        }
+
 
         static RestQueryableTreeParser()
         {
@@ -93,6 +100,7 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(x => x.ToUri());
             MapQueryableFunction(x => x.FirstLazy());
             MapQueryableFunction(x => x.ToJson());
+            MapQueryableFunction(x => x.WithOptions(null));
         }
 
 
@@ -481,6 +489,12 @@ namespace Pomona.Common.Linq
         internal void QToUri<TSource>()
         {
             this.projection = QueryProjection.ToUri;
+        }
+
+
+        internal void QWithOptions<TSource>(Action<IRequestOptions> options)
+        {
+            requestOptionActions.Add(options);
         }
 
 

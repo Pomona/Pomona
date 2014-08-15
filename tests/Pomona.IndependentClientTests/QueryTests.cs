@@ -29,6 +29,7 @@
 using System.Linq;
 
 using IndependentCritters;
+using IndependentCritters.Pomona.Common.Linq;
 
 using NUnit.Framework;
 

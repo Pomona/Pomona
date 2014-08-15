@@ -33,8 +33,7 @@ namespace Pomona.Common
 {
     public interface IPomonaClient : IClientTypeResolver
     {
-        object Get(string uri, Type type);
-        T Get<T>(string uri);
+        object Get(string uri, Type type, RequestOptions requestOptions);
         T Reload<T>(T resource);
         IQueryable<T> Query<T>();
     }

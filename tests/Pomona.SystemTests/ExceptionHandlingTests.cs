@@ -30,6 +30,7 @@ using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Common.Linq;
 using Pomona.Common.Web;
 
 namespace Pomona.SystemTests

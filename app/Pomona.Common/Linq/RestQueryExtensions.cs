@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,83 +31,120 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Linq
 {
     public static class RestQueryExtensions
     {
+        public static IQueryable<TSource> Expand<TSource, TProperty>(this IQueryable<TSource> source,
+            Expression<Func<TSource, TProperty>>
+                propertySelector)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (propertySelector == null)
+                throw new ArgumentNullException("propertySelector");
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource), typeof(TProperty)),
+                    new[] { source.Expression, Expression.Quote(propertySelector) }
+                    ));
+        }
+
+
+        public static IEnumerable<TSource> Expand<TSource, TProperty>(this IEnumerable<TSource> source,
+            Func<TSource, TProperty> propertySelector)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return source;
+        }
+
+
+        public static TSource FirstLazy<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            var methodCallExpression =
+                Expression.Call(null,
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof(TSource) }),
+                    new[] { source.Expression });
+            return source.Provider.Execute<TSource>(methodCallExpression);
+        }
+
+
+        public static TSource FirstLazy<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return source.First();
+        }
+
+
+        public static IQueryable<TSource> IncludeTotalCount<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource)),
+                    new[] { source.Expression }
+                    ));
+        }
+
+
+        public static IQueryable<TSource> WithOptions<TSource>(this IQueryable<TSource> source, Action<IRequestOptions> optionsModifier)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource)),
+                    new[] { source.Expression, Expression.Constant(optionsModifier) }
+                    ));
+        }
+
+
+        public static IEnumerable<TSource> WithOptions<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return source;
+        }
+
+
+        public static JToken ToJson<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            var methodCallExpression =
+                Expression.Call(null,
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof(TSource) }),
+                    new[] { source.Expression });
+            return source.Provider.Execute<JObject>(methodCallExpression);
+        }
+
+
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
             return (QueryResult<TSource>)source.Provider.Execute(source.Expression);
         }
 
-        public static JToken ToJson<TSource>(this IQueryable<TSource> source)
-        {
-            if (source == null) throw new ArgumentNullException("source");
-            var methodCallExpression =
-                Expression.Call(null,
-                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof (TSource) }),
-                                new[] { source.Expression });
-            return source.Provider.Execute<JObject>(methodCallExpression);
-        }
-
-        public static TSource FirstLazy<TSource>(this IQueryable<TSource> source)
-        {
-            if (source == null) throw new ArgumentNullException("source");
-            var methodCallExpression =
-                Expression.Call(null,
-                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof (TSource) }),
-                                new[] { source.Expression });
-            return source.Provider.Execute<TSource>(methodCallExpression);
-        }
-
-        public static TSource FirstLazy<TSource>(this IEnumerable<TSource> source)
-        {
-            if (source == null) throw new ArgumentNullException("source");
-            return source.First();
-        }
 
         public static Uri ToUri<TSource>(this IQueryable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null)
+                throw new ArgumentNullException("source");
             var methodCallExpression =
                 Expression.Call(null,
-                                ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof (TSource) }),
-                                new[] { source.Expression });
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof(TSource) }),
+                    new[] { source.Expression });
             return source.Provider.Execute<Uri>(methodCallExpression);
-        }
-
-        public static IQueryable<TSource> IncludeTotalCount<TSource>(this IQueryable<TSource> source)
-        {
-            if (source == null) throw new ArgumentNullException("source");
-            return source.Provider.CreateQuery<TSource>(
-                Expression.Call(
-                    null,
-                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (TSource)),
-                    new[] { source.Expression }
-                    ));
-        }
-
-        public static IQueryable<TSource> Expand<TSource, TProperty>(this IQueryable<TSource> source,
-                                                                     Expression<Func<TSource, TProperty>>
-                                                                         propertySelector)
-        {
-            if (source == null) throw new ArgumentNullException("source");
-            if (propertySelector == null) throw new ArgumentNullException("propertySelector");
-            return source.Provider.CreateQuery<TSource>(
-                Expression.Call(
-                    null,
-                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (TSource), typeof (TProperty)),
-                    new[] { source.Expression, Expression.Quote(propertySelector) }
-                    ));
-        }
-
-        public static IEnumerable<TSource> Expand<TSource, TProperty>(this IEnumerable<TSource> source,
-                                                                      Func<TSource, TProperty> propertySelector)
-        {
-            if (source == null) throw new ArgumentNullException("source");
-            return source;
         }
     }
 }

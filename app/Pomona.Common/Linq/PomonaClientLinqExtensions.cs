@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,12 +34,37 @@ namespace Pomona.Common.Linq
 {
     public static class PomonaClientLinqExtensions
     {
+        public static T Get<T>(this IPomonaClient client, string uri)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+            return (T)client.Get(uri, typeof(T), null);
+        }
+
+
+        public static T Get<T>(this IPomonaClient client, string uri, RequestOptions requestOptions)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+            return (T)client.Get(uri, typeof(T), requestOptions);
+        }
+
+        public static object Get(this IPomonaClient client, string uri, Type type)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+            return client.Get(uri, type, null);
+        }
+
+
         public static IQueryable<T> Query<T>(this IPomonaClient client, Expression<Func<T, bool>> predicate)
         {
             return client.Query<T>().Where(predicate);
         }
 
-        public static IQueryable<TResource> Query<TResource>(this IQueryableRepository<TResource> repository, Expression<Func<TResource, bool>> predicate)
+
+        public static IQueryable<TResource> Query<TResource>(this IQueryableRepository<TResource> repository,
+            Expression<Func<TResource, bool>> predicate)
             where TResource : class, IClientResource
         {
             return repository.Query().Where(predicate);

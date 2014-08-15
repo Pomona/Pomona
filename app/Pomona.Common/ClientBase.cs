@@ -56,10 +56,7 @@ namespace Pomona.Common
             where T : class, IClientResource;
 
 
-        public abstract object Get(string uri, Type type);
-
-        public abstract T Get<T>(string uri);
-
+        public abstract object Get(string uri, Type type, RequestOptions requestOptions);
 
         public abstract T GetLazy<T>(string uri)
             where T : class, IClientResource;
@@ -170,15 +167,9 @@ namespace Pomona.Common
         }
 
 
-        public override object Get(string uri, Type type)
+        public override object Get(string uri, Type type, RequestOptions requestOptions)
         {
-            return this.dispatcher.SendRequest(this.serializationContextProvider, uri, null, "GET", null, type);
-        }
-
-
-        public override T Get<T>(string uri)
-        {
-            return (T)Get(uri, typeof(T));
+            return this.dispatcher.SendRequest(this.serializationContextProvider, uri, null, "GET", requestOptions, type);
         }
 
 
@@ -249,7 +240,7 @@ namespace Pomona.Common
                 throw new ArgumentException("Type should be an interface inherited from a known resource type.");
 
             var resourceType = this.GetMostInheritedResourceInterface(typeof(T));
-            return (T)Get(resourceWithUri.Uri, resourceType);
+            return (T)this.Get(resourceWithUri.Uri, resourceType);
         }
 
 
