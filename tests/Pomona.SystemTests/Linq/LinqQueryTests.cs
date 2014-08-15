@@ -693,7 +693,7 @@ namespace Pomona.SystemTests.Linq
             // Create a query searching for a totally different url, but replace the url by using ModifyRequest
             var critterResource =
                 Client.Query<ICritter>().WithOptions(
-                    x => x.ModifyRequest(y => y.Uri = y.Uri.Replace("1234567", critter.Id.ToString()))).First(
+                    x => x.RewriteUrl(y => y.Replace("1234567", critter.Id.ToString()))).First(
                         x => x.Id == 1234567);
             // Check that the replacement in url worked as expected:
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));

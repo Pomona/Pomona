@@ -148,6 +148,7 @@
     <Compile Include="QueryResult.cs" />
     <Compile Include="QuerySelectBuilder.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
+    <Compile Include="RequestOptionsExtensions.cs" />
     <Compile Include="ResourceAttributesPropertyAttribute.cs" />
     <Compile Include="ResourceBase.cs" />
     <Compile Include="Proxies\PostResourceBase.cs" />

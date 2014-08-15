@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,20 +24,23 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Linq.Expressions;
-using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
-    public interface IRequestOptions
+    public static class RequestOptionsExtensions
     {
-        IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action);
-    }
+        public static TRequestOptions RewriteUrl<TRequestOptions>(this TRequestOptions requestOptions, Func<string, string> urlRewriter)
+            where TRequestOptions : IRequestOptions
+        {
+            if (requestOptions == null)
+                throw new ArgumentNullException("requestOptions");
+            if (urlRewriter == null)
+                throw new ArgumentNullException("urlRewriter");
 
-    public interface IRequestOptions<T> : IRequestOptions
-    {
-        new IRequestOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
-        IRequestOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
+            return (TRequestOptions)requestOptions.ModifyRequest(x => x.Uri = urlRewriter(x.Uri));
+        }
     }
 }

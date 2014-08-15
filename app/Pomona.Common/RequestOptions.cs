@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,26 +24,22 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+
 using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
     public class RequestOptions : IRequestOptions
     {
-        private readonly Type expectedResponseType;
-
-        public Type ExpectedResponseType
-        {
-            get { return this.expectedResponseType; }
-        }
-
         private readonly StringBuilder expandedPaths = new StringBuilder();
+        private readonly Type expectedResponseType;
 
         private readonly List<Action<WebClientRequestMessage>> requestModifyActions =
             new List<Action<WebClientRequestMessage>>();
@@ -55,41 +53,46 @@ namespace Pomona.Common
 
         public string ExpandedPaths
         {
-            get { return expandedPaths.ToString(); }
+            get { return this.expandedPaths.ToString(); }
         }
+
+        public Type ExpectedResponseType
+        {
+            get { return this.expectedResponseType; }
+        }
+
+
+        public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions,
+            Type expectedResponseType = null)
+        {
+            var requestOptions = new RequestOptions<T>(expectedResponseType);
+            if (optionActions != null)
+                optionActions(requestOptions);
+            return requestOptions;
+        }
+
 
         public void ApplyRequestModifications(WebClientRequestMessage request)
         {
-            foreach (var action in requestModifyActions)
-            {
+            foreach (var action in this.requestModifyActions)
                 action(request);
-            }
             if (!string.IsNullOrEmpty(ExpandedPaths))
-            {
                 request.Headers.Add("X-Pomona-Expand", ExpandedPaths);
-            }
         }
+
 
         public IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action)
         {
-            requestModifyActions.Add(action);
+            this.requestModifyActions.Add(action);
             return this;
         }
 
 
         protected void Expand(LambdaExpression expression)
         {
-            if (expandedPaths.Length > 0)
-                expandedPaths.Append(',');
-            expandedPaths.Append(expression.GetPropertyPath(true));
-        }
-
-        public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions, Type expectedResponseType = null)
-        {
-            var requestOptions = new RequestOptions<T>(expectedResponseType);
-            if (optionActions != null)
-                optionActions(requestOptions);
-            return requestOptions;
+            if (this.expandedPaths.Length > 0)
+                this.expandedPaths.Append(',');
+            this.expandedPaths.Append(expression.GetPropertyPath(true));
         }
     }
 
@@ -101,17 +104,17 @@ namespace Pomona.Common
         }
 
 
-        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
-        {
-            ModifyRequest(action);
-            return this;
-        }
-
         IRequestOptions<T> IRequestOptions<T>.Expand<TRetValue>(Expression<Func<T, TRetValue>> expression)
         {
             Expand(expression);
             return this;
         }
 
+
+        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
+        {
+            ModifyRequest(action);
+            return this;
+        }
     }
 }
