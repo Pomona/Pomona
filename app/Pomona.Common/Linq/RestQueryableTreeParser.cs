@@ -68,6 +68,8 @@ namespace Pomona.Common.Linq
         private readonly List<Tuple<LambdaExpression, SortOrder>> orderKeySelectors =
             new List<Tuple<LambdaExpression, SortOrder>>();
 
+        private readonly List<Action<IRequestOptions>> requestOptionActions = new List<Action<IRequestOptions>>();
+
         private readonly IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
         private Type aggregateReturnType;
         private Type elementType;
@@ -81,13 +83,6 @@ namespace Pomona.Common.Linq
         private int? skipCount;
         private int? takeCount;
         private LambdaExpression wherePredicate;
-
-        private readonly List<Action<IRequestOptions>> requestOptionActions = new List<Action<IRequestOptions>>();
-
-        public List<Action<IRequestOptions>> RequestOptionActions
-        {
-            get { return this.requestOptionActions; }
-        }
 
 
         static RestQueryableTreeParser()
@@ -137,6 +132,11 @@ namespace Pomona.Common.Linq
         public string RepositoryUri
         {
             get { return this.queryRoot.Uri; }
+        }
+
+        public List<Action<IRequestOptions>> RequestOptionActions
+        {
+            get { return this.requestOptionActions; }
         }
 
         public LambdaExpression SelectExpression
@@ -368,6 +368,7 @@ namespace Pomona.Common.Linq
             QSelect((LambdaExpression)selector);
         }
 
+
         internal void QSelect(LambdaExpression selector)
         {
             if (this.expandedPaths.Length > 0)
@@ -429,6 +430,7 @@ namespace Pomona.Common.Linq
             Sum(propertySelector);
         }
 
+
         internal void QSum<TSource>(Expression<Func<TSource, int?>> propertySelector)
         {
             Sum(propertySelector);
@@ -450,13 +452,6 @@ namespace Pomona.Common.Linq
         internal void QSum()
         {
             Sum();
-        }
-
-        private void Sum(LambdaExpression propertySelector = null)
-        {
-            if (propertySelector != null)
-                QSelect(propertySelector);
-            this.projection = QueryProjection.Sum;
         }
 
 
@@ -492,12 +487,6 @@ namespace Pomona.Common.Linq
         }
 
 
-        internal void QWithOptions<TSource>(Action<IRequestOptions> options)
-        {
-            requestOptionActions.Add(options);
-        }
-
-
         internal void QWhere<TSource>(Expression<Func<TSource, bool>> predicate)
         {
             LambdaExpression fixedPredicate = predicate;
@@ -520,6 +509,12 @@ namespace Pomona.Common.Linq
                     Expression.AndAlso(this.wherePredicate.Body, rewrittenPredicateBody),
                     this.wherePredicate.Parameters);
             }
+        }
+
+
+        internal void QWithOptions<TSource>(Action<IRequestOptions> options)
+        {
+            this.requestOptionActions.Add(options);
         }
 
 
@@ -619,6 +614,14 @@ namespace Pomona.Common.Linq
             }
             else
                 this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));
+        }
+
+
+        private void Sum(LambdaExpression propertySelector = null)
+        {
+            if (propertySelector != null)
+                QSelect(propertySelector);
+            this.projection = QueryProjection.Sum;
         }
 
         #region Nested type: CollapseDisplayObjectsVisitor

@@ -536,20 +536,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
 
-        [Test]
-        public void QueryCritter_WithOptionsThatModifiesRequestUrl_ModificationAreAppliedToRequest()
-        {
-            // Just take some random critter
-            var critter = CritterEntities.Skip(1).Take(1).First();
-            // Create a query searching for a totally different url, but replace the url by using ModifyRequest
-            var critterResource =
-                Client.Query<ICritter>().WithOptions(
-                    x => x.ModifyRequest(y => y.Uri = y.Uri.Replace("1234567", critter.Id.ToString()))).First(
-                        x => x.Id == 1234567);
-            // Check that the replacement in url worked as expected:
-            Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
-        }
-
 
         [Category("TODO")]
         [Test(Description = "Have to find out how references should be serialized in queries.")]
@@ -696,6 +682,21 @@ namespace Pomona.SystemTests.Linq
         {
             var ex = Assert.Throws<InvalidOperationException>(() => Client.Query<ICritter>().First(x => false));
             Assert.That(ex.Message, Is.EqualTo("Sequence contains no matching element"));
+        }
+
+
+        [Test]
+        public void QueryCritter_WithOptionsThatModifiesRequestUrl_ModificationAreAppliedToRequest()
+        {
+            // Just take some random critter
+            var critter = CritterEntities.Skip(1).Take(1).First();
+            // Create a query searching for a totally different url, but replace the url by using ModifyRequest
+            var critterResource =
+                Client.Query<ICritter>().WithOptions(
+                    x => x.ModifyRequest(y => y.Uri = y.Uri.Replace("1234567", critter.Id.ToString()))).First(
+                        x => x.Id == 1234567);
+            // Check that the replacement in url worked as expected:
+            Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
 
 
