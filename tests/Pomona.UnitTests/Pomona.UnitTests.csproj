@@ -97,6 +97,7 @@
     <Compile Include="Queries\ParseFilterTests.cs" />
     <Compile Include="Queries\ParseSelectTests.cs" />
     <Compile Include="Queries\QueryExpressionParserTestsBase.cs" />
+    <Compile Include="RequestOptionsTests.cs" />
     <Compile Include="Scheduler\LinqBasedJobStoreTests.cs" />
     <Compile Include="Schemas\ApiChangeVerifierTests.cs" />
     <Compile Include="Schemas\SchemaTests.cs" />

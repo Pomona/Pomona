@@ -27,15 +27,38 @@
 #endregion
 
 using System;
+using System.Globalization;
 
 namespace Pomona.Common
 {
     public static class RequestOptionsExtensions
     {
-        public static TRequestOptions RewriteUrl<TRequestOptions>(this TRequestOptions requestOptions, Func<string, string> urlRewriter)
+        public static TRequestOptions AppendQueryParameter<TRequestOptions>(this TRequestOptions requestOptions,
+            string key,
+            string value)
             where TRequestOptions : IRequestOptions
         {
-            if (requestOptions == null)
+            if ((object)requestOptions == null)
+                throw new ArgumentNullException("requestOptions");
+            if (key == null)
+                throw new ArgumentNullException("key");
+            if (value == null)
+                throw new ArgumentNullException("value");
+
+            return requestOptions.RewriteUrl(u => string.Format(CultureInfo.InvariantCulture,
+                "{0}{1}{2}={3}",
+                u,
+                u.Contains("?") ? "&" : "?",
+                HttpUtility.UrlEncode(key),
+                HttpUtility.UrlEncode(value)));
+        }
+
+
+        public static TRequestOptions RewriteUrl<TRequestOptions>(this TRequestOptions requestOptions,
+            Func<string, string> urlRewriter)
+            where TRequestOptions : IRequestOptions
+        {
+            if ((object)requestOptions == null)
                 throw new ArgumentNullException("requestOptions");
             if (urlRewriter == null)
                 throw new ArgumentNullException("urlRewriter");
