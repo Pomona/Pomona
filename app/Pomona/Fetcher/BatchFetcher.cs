@@ -50,8 +50,8 @@ namespace Pomona.Fetcher
             ReflectionHelper.GetMethodDefinition<BatchFetcher>(
                 x => x.ExpandManyToOne<object, object>(null, null, null));
 
-        private static readonly MethodInfo expandMethod =
-            ReflectionHelper.GetMethodDefinition<BatchFetcher>(x => x.Expand<object>(null, null));
+        private static readonly Action<Type, BatchFetcher, object, string> expandMethod =
+            GenericInvoker.Instance<BatchFetcher>().CreateAction1<object, string>(x => x.Expand<object>(null, null));
 
         private readonly int batchFetchCount;
         private readonly IBatchFetchDriver driver;
@@ -84,24 +84,35 @@ namespace Pomona.Fetcher
         }
 
 
-        public void Expand(object entity, Type entityType)
+        public void Expand(object entitiesUncast, Type entityType)
         {
-            expandMethod.MakeGenericMethod(entityType).Invoke(this, new[] { entity, "" });
+            var entities = entitiesUncast as IEnumerable;
+            if (entities == null)
+            {
+                if (entitiesUncast == null)
+                    throw new InvalidOperationException("Unexpected entity type sent to Expand method.");
+                entities = new[] { entitiesUncast };
+            }
+
+            Expand(entities);
         }
 
 
-        public void Expand<TEntity>(object entitiesUncast, string path = "")
+        private void Expand(IEnumerable entitiesUncast, string path = "")
+        {
+            var entitiesGroupedByType =
+                entitiesUncast
+                    .Cast<object>()
+                    .Where(x => x != null)
+                    .GroupBy(x => x.GetType())
+                    .ToList();
+
+            entitiesGroupedByType.ForEach(x => expandMethod(x.Key, this, x.Cast(x.Key), path));
+        }
+
+        public void Expand<TEntity>(IEnumerable<TEntity> entities, string path = "")
             where TEntity : class
         {
-            var entities = entitiesUncast as IEnumerable<TEntity>;
-            if (entities == null)
-            {
-                var singleEntity = entitiesUncast as TEntity;
-                if (singleEntity == null)
-                    throw new InvalidOperationException("Unexpected entity type sent to Expand method.");
-                entities = singleEntity.WrapAsEnumerable();
-            }
-
             foreach (var prop in this.driver.GetProperties(typeof(TEntity)))
             {
                 var subPath = string.IsNullOrEmpty(path) ? prop.Name : path + "." + prop.Name;
@@ -277,7 +288,7 @@ namespace Pomona.Fetcher
                             (a, b.Select(y => fetched[y.ChildId])));
             this.driver.PopulateCollections(bindings, prop, typeof(TCollectionElement));
 
-            Expand<TCollectionElement>(parentEntities.SelectMany(x => getChildLambda(x.Parent)), path);
+            Expand(parentEntities.SelectMany(x => getChildLambda(x.Parent)), path);
         }
 
 
@@ -317,7 +328,7 @@ namespace Pomona.Fetcher
                         .Join(objectsToExpand, idGetter, x => x.RefId, (a, b) => new { Child = a, b.Parent }))
                 prop.SetValue(item.Parent, item.Child, null);
 
-            Expand<TReferencedEntity>(objectsToWalk.Select(x => x.Reference), path);
+            Expand(objectsToWalk.Select(x => x.Reference), path);
         }
 
 
