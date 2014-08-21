@@ -53,6 +53,11 @@ namespace Pomona.Common
         }
 
 
+        public override Type ItemType
+        {
+            get { return typeof(T); }
+        }
+
         public override Type ListType
         {
             get { return typeof(TCollection); }

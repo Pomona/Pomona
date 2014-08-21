@@ -57,6 +57,7 @@ namespace Pomona.Common
             get { return this.debugInfo; }
         }
 
+        public abstract Type ItemType { get; }
         public abstract Type ListType { get; }
         public abstract int Skip { get; }
         public abstract int TotalCount { get; }
