@@ -81,6 +81,7 @@ namespace Pomona.Example.Models
         }
 
         public Hat Hat { get; set; }
+        public int IntExposedAsString { get; set; }
         public bool IsCaptured { get; internal set; }
 
         public string IsNotAllowedInFilters
@@ -95,12 +96,11 @@ namespace Pomona.Example.Models
 
         public string OnlyWritableByInheritedResource { get; protected set; }
         public string Password { get; set; }
+        public string PropertyWithAttributeAddedFluently { get; set; }
         public string Protected { get; protected set; }
         public bool PublicAndReadOnlyThroughApi { get; set; }
 
         public Critter ReferenceToAnotherCritter { get; set; }
-
-        public int IntExposedAsString { get; set; }
 
         public string RelativeImageUrl { get; set; }
 

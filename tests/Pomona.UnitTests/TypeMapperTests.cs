@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using NUnit.Framework;
@@ -123,6 +124,16 @@ namespace Pomona.UnitTests
                     this.typeMapper.GetClassMapping<Critter>().Properties.First(
                         x => x.Name == "PublicAndReadOnlyThroughApi");
             Assert.That(!tt.AccessMode.HasFlag(HttpMethod.Post));
+        }
+
+
+        [Test]
+        public void Property_WithFluentlyAddedAttribute_GotAttributeAddedToPropertySpec()
+        {
+            var tt = this.typeMapper.GetClassMapping<Critter>();
+            var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyWithAttributeAddedFluently");
+            Assert.That(prop, Is.Not.Null, "Unable to find property PropertyWithAttributeAddedFluently");
+            Assert.That(prop.DeclaredAttributes.OfType<ObsoleteAttribute>().Any(), Is.True);
         }
 
 

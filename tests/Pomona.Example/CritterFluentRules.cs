@@ -192,6 +192,7 @@ namespace Pomona.Example
                 .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                 .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
                 .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
+                .Include(x => x.PropertyWithAttributeAddedFluently, o => o.HasAttribute(new ObsoleteAttribute()))
                 .IncludeAs<string>(x => x.IntExposedAsString,
                     o =>
                         o.OnGet(x => x.IntExposedAsString.ToString()).OnQuery(x => x.IntExposedAsString.ToString())

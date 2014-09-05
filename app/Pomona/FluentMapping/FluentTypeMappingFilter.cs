@@ -331,6 +331,16 @@ namespace TestNs
                 () => wrappedFilter.GetPropertyType(type, propertyInfo));
         }
 
+
+        public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(type,
+                propertyInfo,
+                o => wrappedFilter.GetPropertyAttributes(type, propertyInfo).EmptyIfNull().Concat(o.AddedAttributes),
+                () => wrappedFilter.GetPropertyAttributes(type, propertyInfo));
+        }
+
+
         public ConstructorSpec GetTypeConstructor(Type type)
         {
             return FromMappingOrDefault(type, x => x.Constructor, () => this.wrappedFilter.GetTypeConstructor(type));

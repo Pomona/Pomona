@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -48,6 +49,7 @@ namespace Pomona.FluentMapping
             InclusionMode = PropertyInclusionMode.Default;
 
             Name = propertyInfo.Name;
+            AddedAttributes = new List<Attribute>();
         }
 
 
@@ -63,6 +65,7 @@ namespace Pomona.FluentMapping
         public PropertyInclusionMode InclusionMode { get; internal set; }
         public bool? IsAttributesProperty { get; set; }
         public bool? IsEtagProperty { get; set; }
+        public List<Attribute> AddedAttributes { get; set; }
 
         public bool? IsPrimaryKey { get; set; }
         public HttpMethod ItemMethod { get; internal set; }

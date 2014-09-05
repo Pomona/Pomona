@@ -222,6 +222,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.GetPropertyAttributes(type, propertyInfo);
+        }
+
+
         public virtual ConstructorSpec GetTypeConstructor(Type type)
         {
             return this.wrappedFilter.GetTypeConstructor(type);

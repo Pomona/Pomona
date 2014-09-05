@@ -123,6 +123,8 @@ namespace Pomona
         Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo);
         string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
         Type GetPropertyType(Type type, PropertyInfo propertyInfo);
+        IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo);
+
         #endregion
     }
 }

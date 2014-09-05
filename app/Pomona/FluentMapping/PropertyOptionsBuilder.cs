@@ -29,7 +29,6 @@
 using System;
 using System.Linq.Expressions;
 
-using Nancy;
 using Nancy.Extensions;
 
 using Pomona.Common;
@@ -97,6 +96,13 @@ namespace Pomona.FluentMapping
         public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
         {
             this.options.ExposedAsRepository = true;
+            return this;
+        }
+
+
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> HasAttribute(Attribute attribute)
+        {
+            this.options.AddedAttributes.Add(attribute);
             return this;
         }
 

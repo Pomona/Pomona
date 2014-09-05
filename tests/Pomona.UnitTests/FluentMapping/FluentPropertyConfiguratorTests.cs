@@ -26,6 +26,9 @@
 
 #endregion
 
+using System;
+using System.Linq;
+
 using NUnit.Framework;
 
 using Pomona.Common;
@@ -59,6 +62,20 @@ namespace Pomona.UnitTests.FluentMapping
                 {
                     Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
                     Assert.That(changedValue, Is.EqualTo(origValue & ~HttpMethod.Get));
+                });
+        }
+
+
+        [Test]
+        public void HasAttribute_AddsSpecifiedAttributeToDeclaredAttributesOfProperty()
+        {
+            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
+                x => x.HasAttribute(new ObsoleteAttribute()),
+                (f, p) => f.GetPropertyAttributes(p.ReflectedType, p),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(origValue.OfType<ObsoleteAttribute>().Any(), Is.False);
+                    Assert.That(changedValue.OfType<ObsoleteAttribute>().Any(), Is.True);
                 });
         }
 

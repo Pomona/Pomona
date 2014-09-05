@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,15 +29,20 @@
 using System;
 using System.Linq.Expressions;
 
-using Nancy;
-
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
 {
-    internal abstract class PropertyOptionsBuilderBase<TDeclaring, TProperty> : IPropertyOptionsBuilder<TDeclaring, TProperty>
+    internal abstract class PropertyOptionsBuilderBase<TDeclaring, TProperty>
+        : IPropertyOptionsBuilder<TDeclaring, TProperty>
     {
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Allow(HttpMethod method)
+        {
+            return this;
+        }
+
+
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> AlwaysExpanded()
         {
             return this;
@@ -62,43 +67,19 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Deny(HttpMethod method)
+        {
+            return this;
+        }
+
+
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ExposedAsRepository()
         {
             return this;
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Named(string name)
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ReadOnly()
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingDecompiledFormula()
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> WithItemAccessMode(HttpMethod method)
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Allow(HttpMethod method)
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Deny(HttpMethod method)
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> HasAttribute(Attribute attribute)
         {
             return this;
         }
@@ -116,26 +97,14 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingFormula(
-            Expression<Func<TDeclaring, TProperty>> formula)
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Named(string name)
         {
             return this;
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnSet<TContext>(Action<TDeclaring, TProperty, TContext> setter)
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnSet(Action<TDeclaring, TProperty> setter)
-        {
-            return this;
-        }
-
-
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnGet<TContext>(Func<TDeclaring, TContext, TProperty> getter)
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnGet<TContext>(
+            Func<TDeclaring, TContext, TProperty> getter)
         {
             return this;
         }
@@ -147,9 +116,35 @@ namespace Pomona.FluentMapping
         }
 
 
-        IPropertyOptionsBuilder<TDeclaring, TProperty> IPropertyOptionsBuilder<TDeclaring, TProperty>.OnQuery(Expression<Func<TDeclaring, TProperty>> getter)
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnSet<TContext>(
+            Action<TDeclaring, TProperty, TContext> setter)
         {
-            return UsingFormula(getter);
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> OnSet(Action<TDeclaring, TProperty> setter)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ReadOnly()
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingDecompiledFormula()
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingFormula(
+            Expression<Func<TDeclaring, TProperty>> formula)
+        {
+            return this;
         }
 
 
@@ -165,9 +160,22 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> WithItemAccessMode(HttpMethod method)
+        {
+            return this;
+        }
+
+
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Writable()
         {
             return this;
+        }
+
+
+        IPropertyOptionsBuilder<TDeclaring, TProperty> IPropertyOptionsBuilder<TDeclaring, TProperty>.OnQuery(
+            Expression<Func<TDeclaring, TProperty>> getter)
+        {
+            return UsingFormula(getter);
         }
     }
 }

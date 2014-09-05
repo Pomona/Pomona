@@ -253,6 +253,12 @@ namespace Pomona
         }
 
 
+        public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return Enumerable.Empty<Attribute>();
+        }
+
+
         public virtual IEnumerable<Type> GetResourceHandlers(Type type)
         {
             return null;

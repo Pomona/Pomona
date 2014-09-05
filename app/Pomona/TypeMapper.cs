@@ -193,6 +193,8 @@ namespace Pomona
                 {
                     attrs = attrs.Concat(new PropertyFormulaAttribute(formulaExpr));
                 }
+
+                attrs = attrs.Concat(filter.GetPropertyAttributes(propSpec.ReflectedType, propSpec.PropertyInfo).EmptyIfNull());
             }
             return attrs;
         }
