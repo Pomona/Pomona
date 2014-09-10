@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,14 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
+
 using Nancy;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Linq.NonGeneric;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -39,6 +45,8 @@ namespace Pomona
     /// </summary>
     public class PomonaQuery
     {
+        #region ProjectionType enum
+
         public enum ProjectionType
         {
             Default,
@@ -52,24 +60,25 @@ namespace Pomona
             Count
         }
 
-        private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
-        private readonly TransformedType sourceType;
+        #endregion
 
-        public TransformedType SourceType
-        {
-            get { return this.sourceType; }
-        }
+        private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
 
         private readonly TransformedType ofType;
+        private readonly TransformedType sourceType;
+
+        private List<Tuple<LambdaExpression, SortOrder>> orderByExpressions =
+            new List<Tuple<LambdaExpression, SortOrder>>();
 
 
         static PomonaQuery()
         {
             applyAndExecuteMethod =
-                GenericInvoker.Instance<PomonaQuery>().CreateFunc1<IQueryable, bool, PomonaResponse>(x => x.ApplyAndExecute<object>(null, false));
+                GenericInvoker.Instance<PomonaQuery>().CreateFunc1<IQueryable, bool, PomonaResponse>(
+                    x => x.ApplyAndExecute<object>(null, false));
         }
 
-        
+
         public PomonaQuery(TransformedType sourceType, TransformedType ofType = null)
         {
             if (sourceType == null)
@@ -79,30 +88,32 @@ namespace Pomona
             DebugInfoKeys = new HashSet<string>();
         }
 
+
         public HashSet<string> DebugInfoKeys { get; set; }
 
         public LambdaExpression FilterExpression { get; set; }
         public LambdaExpression GroupByExpression { get; set; }
-
-        private List<Tuple<LambdaExpression, SortOrder>> orderByExpressions = new List<Tuple<LambdaExpression, SortOrder>>();
+        public bool IncludeTotalCount { get; set; }
 
         public List<Tuple<LambdaExpression, SortOrder>> OrderByExpressions
         {
-            get { return orderByExpressions; }
-            set { orderByExpressions = value; }
+            get { return this.orderByExpressions; }
+            set { this.orderByExpressions = value; }
         }
 
-        public LambdaExpression SelectExpression { get; set; }
-
         public ProjectionType Projection { get; set; }
+        public LambdaExpression SelectExpression { get; set; }
         public int Skip { get; set; }
-        public int Top { get; set; }
 
-        public bool IncludeTotalCount { get; set; }
+        public TransformedType SourceType
+        {
+            get { return this.sourceType; }
+        }
+
+        public int Top { get; set; }
 
         #region PomonaQuery Members
 
-        public TypeSpec ResultType { get; internal set; }
         public string ExpandedPaths { get; set; }
 
         public TransformedType OfType
@@ -110,14 +121,11 @@ namespace Pomona
             get { return this.ofType; }
         }
 
+        public TypeSpec ResultType { get; internal set; }
+
         public string Url { get; set; }
 
         #endregion
-
-        public bool DebugEnabled(string debugKey)
-        {
-            return DebugInfoKeys.Contains(debugKey.ToLower());
-        }
 
         public PomonaResponse ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
@@ -129,17 +137,9 @@ namespace Pomona
         public IQueryable ApplyExpressions(IQueryable queryable)
         {
             if (queryable.ElementType != OfType.Type)
-            {
-                queryable =
-                    (IQueryable)
-                        QueryableMethods.OfType.MakeGenericMethod(ofType.Type).Invoke(null,
-                            new object[] { queryable });
-            }
+                queryable = queryable.OfType(this.ofType.Type);
 
-            queryable =
-                (IQueryable)
-                QueryableMethods.Where.MakeGenericMethod(queryable.ElementType).Invoke(
-                    null, new object[] {queryable, FilterExpression});
+            queryable = queryable.Where(FilterExpression);
 
             if (GroupByExpression == null)
             {
@@ -147,19 +147,11 @@ namespace Pomona
                 queryable = ApplyOrderByExpression(queryable);
             }
             else
-            {
-                queryable = (IQueryable) QueryableMethods.GroupBy
-                                                         .MakeGenericMethod(queryable.ElementType,
-                                                                            GroupByExpression.ReturnType)
-                                                         .Invoke(null, new object[] {queryable, GroupByExpression});
-            }
+                queryable = queryable.GroupBy(GroupByExpression);
 
             if (SelectExpression != null)
             {
-                queryable = (IQueryable) QueryableMethods.Select
-                                                         .MakeGenericMethod(queryable.ElementType,
-                                                                            SelectExpression.ReturnType)
-                                                         .Invoke(null, new object[] {queryable, SelectExpression});
+                queryable = queryable.Select(SelectExpression);
 
                 // OrderBy is applied AFTER select if GroupBy has been specified.
                 if (GroupByExpression != null)
@@ -178,16 +170,16 @@ namespace Pomona
         public IQueryable ApplySkipAndTake(IQueryable queryable)
         {
             if (Skip > 0)
-            {
-                queryable = (IQueryable)
-                            QueryableMethods.Skip.MakeGenericMethod(queryable.ElementType).Invoke(
-                                null, new object[] {queryable, Skip});
-            }
+                queryable = queryable.Skip(Skip);
 
-            queryable = (IQueryable)
-                        QueryableMethods.Take.MakeGenericMethod(queryable.ElementType)
-                                        .Invoke(null, new object[] {queryable, Top});
+            queryable = queryable.Take(Top);
             return queryable;
+        }
+
+
+        public bool DebugEnabled(string debugKey)
+        {
+            return DebugInfoKeys.Contains(debugKey.ToLower());
         }
 
 
@@ -197,21 +189,22 @@ namespace Pomona
             {
                 case ProjectionType.Single:
                 case ProjectionType.First:
+                {
+                    object result;
+                    try
                     {
-                        object result;
-                        try
-                        {
-                            result = this.Projection == ProjectionType.First ? totalQueryable.First() : totalQueryable.Single();
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // We assume that this means no matching element.
-                            // Don't know another way to check this in a non-ambigious way, since null might be a valid return value.
-                            return new PomonaResponse(this, PomonaResponse.NoBodyEntity,
-                                                      HttpStatusCode.NotFound);
-                        }
-                        return new PomonaResponse(this, result);
+                        result = Projection == ProjectionType.First ? totalQueryable.First() : totalQueryable.Single();
                     }
+                    catch (InvalidOperationException)
+                    {
+                        // We assume that this means no matching element.
+                        // Don't know another way to check this in a non-ambigious way, since null might be a valid return value.
+                        return new PomonaResponse(this,
+                            PomonaResponse.NoBodyEntity,
+                            HttpStatusCode.NotFound);
+                    }
+                    return new PomonaResponse(this, result);
+                }
                 case ProjectionType.FirstOrDefault:
                     return new PomonaResponse(this, totalQueryable.FirstOrDefault());
                 case ProjectionType.SingleOrDefault:
@@ -225,71 +218,41 @@ namespace Pomona
                 case ProjectionType.Sum:
                     return ApplySum(totalQueryable);
                 default:
-                    {
-                        IList<T> limitedQueryable;
-                        var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
-                        if (skipAndTakeAfterExecute)
-                        {
-                            limitedQueryable = ((IEnumerable<T>) (totalQueryable)).Skip(Skip).Take(Top).ToList();
-                        }
-                        else
-                            limitedQueryable = ((IQueryable<T>) ApplySkipAndTake(totalQueryable)).ToList();
+                {
+                    IList<T> limitedQueryable;
+                    var totalCount = IncludeTotalCount ? totalQueryable.Count() : -1;
+                    if (skipAndTakeAfterExecute)
+                        limitedQueryable = ((IEnumerable<T>)(totalQueryable)).Skip(Skip).Take(Top).ToList();
+                    else
+                        limitedQueryable = ((IQueryable<T>)ApplySkipAndTake(totalQueryable)).ToList();
 
-                        var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
-                        return new PomonaResponse(this, qr);
-                    }
+                    var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+                    return new PomonaResponse(this, qr);
+                }
             }
-        }
-
-        private PomonaResponse ApplySum<T>(IQueryable<T> totalQueryable)
-        {
-            var intQueryable = totalQueryable as IQueryable<int>;
-            if (intQueryable != null)
-                return new PomonaResponse(this, intQueryable.Sum());
-            var nullableIntQueryable = totalQueryable as IQueryable<int?>;
-            if (nullableIntQueryable != null)
-                return new PomonaResponse(this, nullableIntQueryable.Sum());
-            var decimalQueryable = totalQueryable as IQueryable<decimal>;
-            if (decimalQueryable != null)
-                return new PomonaResponse(this, decimalQueryable.Sum());
-            var nullableDecimalQueryable = totalQueryable as IQueryable<decimal?>;
-            if (nullableDecimalQueryable != null)
-                return new PomonaResponse(this, nullableDecimalQueryable.Sum());
-            var doubleQueryable = totalQueryable as IQueryable<double>;
-            if (doubleQueryable != null)
-                return new PomonaResponse(this, doubleQueryable.Sum());
-            var nullableDoubleQueryable = totalQueryable as IQueryable<double?>;
-            if (nullableDoubleQueryable != null)
-                return new PomonaResponse(this, nullableDoubleQueryable.Sum());
-
-            throw new NotSupportedException("Unable to calculate sum of type " + typeof (T).Name);
         }
 
 
         private IQueryable ApplyOrderByExpression(IQueryable queryable)
         {
-            bool first = true;
+            var first = true;
             foreach (var tuple in OrderByExpressions)
             {
-                MethodInfo orderMethod = null;
                 if (first)
                 {
-                    orderMethod = tuple.Item2 == SortOrder.Descending
-                        ? QueryableMethods.OrderByDescending
-                        : QueryableMethods.OrderBy;
+                    queryable = queryable.OrderBy(tuple.Item1, tuple.Item2);
                     first = false;
                 }
                 else
-                {
-                    orderMethod = tuple.Item2 == SortOrder.Descending
-                        ? QueryableMethods.ThenByDescending
-                        : QueryableMethods.ThenBy;
-                }
-                queryable = (IQueryable)orderMethod
-                                             .MakeGenericMethod(queryable.ElementType, tuple.Item1.ReturnType)
-                                             .Invoke(null, new object[] { queryable, tuple.Item1 });
+                    queryable = ((IOrderedQueryable)queryable).ThenBy(tuple.Item1, tuple.Item2);
             }
             return queryable;
+        }
+
+
+        private PomonaResponse ApplySum<T>(IQueryable<T> totalQueryable)
+        {
+            return new PomonaResponse(this, totalQueryable.Sum());
         }
     }
 }

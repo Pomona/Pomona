@@ -38,6 +38,7 @@ using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Example.Models;
+using Pomona.Common.Internals;
 
 namespace Pomona.SystemTests
 {

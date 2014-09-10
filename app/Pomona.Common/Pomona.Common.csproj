@@ -103,6 +103,7 @@
     <Compile Include="Linq\ClientServerSplitSelectExpression.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\IRestQueryRoot.cs" />
+    <Compile Include="Linq\NonGeneric\QueryableNonGenericExtensions.cs" />
     <Compile Include="Linq\NotSupportedByProviderExpression.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />

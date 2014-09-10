@@ -73,8 +73,8 @@ namespace Pomona.Common.Internals
 
         static QueryableMethods()
         {
-            take = GetMethodInfo(x => x.Take(0));
-            skip = GetMethodInfo(x => x.Skip(0));
+            take = GetMethodInfo(x => Queryable.Take(x, 0));
+            skip = GetMethodInfo(x => Queryable.Skip(x, 0));
             where = GetMethodInfo(x => x.Where(y => false));
             orderBy = GetMethodInfo(x => x.OrderBy(y => y));
             orderByDescending = GetMethodInfo(x => x.OrderByDescending(y => y));
