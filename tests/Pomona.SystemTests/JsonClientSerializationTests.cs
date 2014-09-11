@@ -65,12 +65,23 @@ namespace Pomona.SystemTests
             var serializerFactory =
                 new PomonaJsonSerializerFactory();
             var serializer = serializerFactory.GetSerializer(new ClientSerializationContextProvider(this.typeMapper,
-                    Substitute.For<IPomonaClient>()));
+                Substitute.For<IPomonaClient>()));
             Console.WriteLine("Serialized object to json:");
             var jsonString = serializer.SerializeToString(value);
             Console.WriteLine(jsonString);
 
             return (JObject)JToken.Parse(jsonString);
+        }
+
+
+        [Test]
+        public void SerializeClassWithObjectProperty_PropertyGotBoolValue_ReturnsCorrectJson()
+        {
+            var obj = new HasObjectPropertyForm();
+            obj.FooBar = true;
+            var jobject = SerializeAndGetJsonObject(obj);
+
+            Assert.That(jobject.AssertHasPropertyWithBool("fooBar"), Is.True);
         }
 
 
@@ -84,6 +95,17 @@ namespace Pomona.SystemTests
             var fooBarBox = jobject.AssertHasPropertyWithObject("fooBar");
             Assert.That(fooBarBox.AssertHasPropertyWithString("_type"), Is.EqualTo("Int32"));
             Assert.That(fooBarBox.AssertHasPropertyWithInteger("value"), Is.EqualTo(1337));
+        }
+
+
+        [Test]
+        public void SerializeClassWithObjectProperty_PropertyGotNull_ReturnsCorrectJson()
+        {
+            var obj = new HasObjectPropertyForm();
+            obj.FooBar = null;
+            var jobject = SerializeAndGetJsonObject(obj);
+
+            jobject.AssertHasPropertyWithNull("fooBar");
         }
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,12 @@
 
 #endregion
 
-using System.IO;
 using Critters.Client;
+
 using NSubstitute;
+
 using NUnit.Framework;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
@@ -40,19 +42,48 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class JsonClientDeserializationTests
     {
+        #region Setup/Teardown
+
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new ClientTypeMapper(typeof(Client).Assembly);
+            this.typeMapper = new ClientTypeMapper(typeof(Client).Assembly);
         }
+
+        #endregion
 
         private ClientTypeMapper typeMapper;
 
+
         private T Deserialize<T>(string jsonString)
         {
-            var jsonDeserializer = new PomonaJsonDeserializer(new ClientSerializationContextProvider(typeMapper, Substitute.For<IPomonaClient>()));
+            var jsonDeserializer =
+                new PomonaJsonDeserializer(new ClientSerializationContextProvider(this.typeMapper,
+                    Substitute.For<IPomonaClient>()));
             return jsonDeserializer.DeserializeFromString<T>(jsonString);
         }
+
+
+        [Test]
+        public void DeserializeBoolToObject_ReturnsDeserializedValue()
+        {
+            var jsonString = @"true";
+            var deserialized = Deserialize<object>(jsonString);
+            Assert.That(deserialized, Is.True);
+        }
+
+
+        [Test]
+        public void DeserializeBoxedBoolToObject_ReturnsDeserializedValue()
+        {
+            var jsonString = @"{
+      ""_type"": ""Boolean"",
+      ""value"": true
+    }";
+            var deserialized = Deserialize<object>(jsonString);
+            Assert.That(deserialized, Is.True);
+        }
+
 
         [Test]
         public void DeserializeClassWithObjectProperty_PropertyGotBoxedIntValue_ReturnsDeserializedObject()
@@ -65,10 +96,10 @@ namespace Pomona.SystemTests
 }
 ";
 
-
             var deserialized = Deserialize<IHasObjectProperty>(jsonString);
             Assert.That(deserialized.FooBar, Is.EqualTo(1337));
         }
+
 
         [Test]
         public void DeserializeClassWithObjectProperty_PropertyGotBoxedStringValue_ReturnsDeserializedObject()
@@ -81,20 +112,20 @@ namespace Pomona.SystemTests
 }
 ";
 
-
             var deserialized = Deserialize<IHasObjectProperty>(jsonString);
             Assert.That(deserialized.FooBar, Is.EqualTo("blabla"));
         }
+
 
         [Test]
         public void DeserializeClassWithObjectProperty_PropertyGotStringValue_ReturnsDeserializedObject()
         {
             var jsonString = @"{ ""fooBar"": ""blabla"" }";
 
-
             var deserialized = Deserialize<IHasObjectProperty>(jsonString);
             Assert.That(deserialized.FooBar, Is.EqualTo("blabla"));
         }
+
 
         [Test]
         public void DeserializeCritter_AndCheckSomeProperties()
@@ -133,6 +164,16 @@ namespace Pomona.SystemTests
             var critter = Deserialize<ICritter>(jsonString);
             Assert.That(critter.Name, Is.EqualTo("Excellent Bear"));
         }
+
+
+        [Test]
+        public void DeserializeNullToObject_ReturnsDeserializedValue()
+        {
+            var jsonString = @"null";
+            var deserialized = Deserialize<object>(jsonString);
+            Assert.That(deserialized, Is.Null);
+        }
+
 
         [Test]
         public void DeserializeStringToObjectDictionary_ReturnsDeserializedObject()

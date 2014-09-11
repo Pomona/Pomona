@@ -166,13 +166,19 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
+        private static bool ValueBoxingRequired(Type type)
+        {
+            // string and bool does not require boxing of value;
+            return !(type == typeof(string) || type == typeof(bool));
+        }
+
         private static void SerializeValue(ISerializerNode node, Writer writer)
         {
             var value = node.Value;
 
             var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
                                        node.ExpectedBaseType.Type == typeof (object) &&
-                                       (!(node.Value is string));
+                                       ValueBoxingRequired(node.Value.GetType());
 
             if (boxValueWithTypeSpec)
             {
