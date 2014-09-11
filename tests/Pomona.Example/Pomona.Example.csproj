@@ -77,6 +77,7 @@
     <Compile Include="ModelProxies\BearProxy.cs" />
     <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
+    <Compile Include="Models\ArgNullThrowingThing.cs" />
     <Compile Include="Models\CaptureCommand.cs" />
     <Compile Include="Models\Bear.cs" />
     <Compile Include="Models\ColorfulThing.cs" />

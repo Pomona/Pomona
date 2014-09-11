@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,25 +28,24 @@
 
 using System;
 
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.Common.Serialization
+namespace Pomona.Example.Models
 {
-    public interface IDeserializationContext : IContextResolver
+    public class ArgNullThrowingThing : EntityBase
     {
-        IResourceNode TargetNode { get; }
-        void CheckAccessRights(PropertySpec property, HttpMethod method);
-        void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method);
-        object CreateReference(IDeserializerNode node);
-        object CreateResource<T>(TransformedType type, IConstructorPropertySource<T> args);
+        private readonly string incoming;
 
-        void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction);
 
-        TypeSpec GetClassMapping(Type type);
+        public ArgNullThrowingThing(string incoming)
+        {
+            if (incoming == null)
+                throw new ArgumentNullException("incoming");
+            this.incoming = incoming;
+        }
 
-        TypeSpec GetTypeByName(string typeName);
-        void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp);
 
-        void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue);
+        public string Incoming
+        {
+            get { return this.incoming; }
+        }
     }
 }

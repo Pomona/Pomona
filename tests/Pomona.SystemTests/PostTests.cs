@@ -86,6 +86,16 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PostArgNullThrowingThing_WithArgumentSetToNull_ThrowsValidationExceptionError()
+        {
+            var ex =
+                Assert.Throws<BadRequestException<IErrorStatus>>(
+                    () => Client.ArgNullThrowingThings.Post(new ArgNullThrowingThingForm()));
+            Assert.That(ex.Body.Member, Is.EqualTo("Incoming"));
+        }
+
+
+        [Test]
         public void PostBlob_HavingByteArray()
         {
             var dataBytes = Encoding.ASCII.GetBytes("Lalalala");

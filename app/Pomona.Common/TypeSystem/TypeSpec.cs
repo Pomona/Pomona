@@ -81,8 +81,6 @@ namespace Pomona.Common.TypeSystem
             get { return true; }
         }
 
-        public abstract bool IsAbstract { get; }
-
         public virtual bool IsArray
         {
             get { return Type.IsArray; }
@@ -126,6 +124,7 @@ namespace Pomona.Common.TypeSystem
         public abstract ConstructorSpec Constructor { get; }
 
         public abstract IEnumerable<TypeSpec> Interfaces { get; }
+        public abstract bool IsAbstract { get; }
         public abstract bool IsNullable { get; }
 
         public abstract IEnumerable<PropertySpec> Properties { get; }
@@ -144,17 +143,6 @@ namespace Pomona.Common.TypeSystem
         public virtual object Create(IDictionary<PropertySpec, object> args)
         {
             throw new NotImplementedException();
-        }
-
-
-        public virtual PropertySpec GetPropertyByName(string propertyName, bool ignoreCase)
-        {
-            var stringComparison = ignoreCase
-                ? StringComparison.InvariantCultureIgnoreCase
-                : StringComparison.InvariantCulture;
-
-            // TODO: Possible to optimize here by putting property names in a dictionary
-            return Properties.First(x => string.Equals(x.Name, propertyName, stringComparison));
         }
 
 
@@ -179,6 +167,27 @@ namespace Pomona.Common.TypeSystem
         public override string ToString()
         {
             return Name;
+        }
+
+
+        public PropertySpec GetPropertyByName(string propertyName, bool ignoreCase)
+        {
+            PropertySpec propertySpec;
+            if (!TryGetPropertyByName(propertyName, ignoreCase, out propertySpec))
+                throw new KeyNotFoundException("Property with name not found");
+            return propertySpec;
+        }
+
+
+        public bool TryGetPropertyByName(string propertyName, bool ignoreCase, out PropertySpec propertySpec)
+        {
+            var stringComparison = ignoreCase
+                ? StringComparison.InvariantCultureIgnoreCase
+                : StringComparison.InvariantCulture;
+
+            // TODO: Possible to optimize here by putting property names in a dictionary
+            propertySpec = Properties.FirstOrDefault(x => string.Equals(x.Name, propertyName, stringComparison));
+            return propertySpec != null;
         }
 
 

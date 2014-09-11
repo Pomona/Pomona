@@ -81,6 +81,27 @@ namespace Pomona
         }
 
 
+        public object CreateResource<T>(TransformedType type, IConstructorPropertySource<T> args)
+        {
+            try
+            {
+                return type.Create(args);
+            }
+            catch (ArgumentException argumentException)
+            {
+                PropertySpec propertySpec;
+                if (type.TryGetPropertyByName(argumentException.ParamName, true, out propertySpec))
+                {
+                    throw new ResourceValidationException(argumentException.Message,
+                        propertySpec.Name,
+                        propertySpec.ReflectedType.Name,
+                        argumentException);
+                }
+                throw;
+            }
+        }
+
+
         public void Deserialize(IDeserializerNode node, Action<IDeserializerNode> nodeDeserializeAction)
         {
             nodeDeserializeAction(node);

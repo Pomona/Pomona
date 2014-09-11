@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,10 @@ namespace Pomona.Common.Serialization
         private readonly IPomonaClient client;
         private readonly ITypeMapper typeMapper;
 
+
         [Obsolete("Solely here for testing purposes")]
-        public ClientDeserializationContext(ITypeMapper typeMapper) : this(typeMapper, null)
+        public ClientDeserializationContext(ITypeMapper typeMapper)
+            : this(typeMapper, null)
         {
         }
 
@@ -56,18 +58,8 @@ namespace Pomona.Common.Serialization
 
         #region Implementation of IDeserializationContext
 
-        public void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction)
-        {
-            deserializeNodeAction(node);
-            if (node.Uri != null)
-            {
-                var uriResource = node.Value as IHasResourceUri;
-                if (uriResource != null)
-                {
-                    uriResource.Uri = node.Uri;
-                }
-            }
-        }
+        private readonly ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap =
+            new ConcurrentDictionary<Type, Type>();
 
         public IResourceNode TargetNode
         {
@@ -75,52 +67,8 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public TypeSpec GetTypeByName(string typeName)
+        public void CheckAccessRights(PropertySpec property, HttpMethod method)
         {
-            return typeMapper.GetClassMapping(typeName);
-        }
-
-
-        public T GetContext<T>()
-        {
-            throw new NotSupportedException();
-        }
-
-
-        private ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap = new ConcurrentDictionary<Type, Type>();
-
-        public void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue)
-        {
-            if (!property.IsWritable)
-                throw new InvalidOperationException("Unable to set property.");
-
-            if (typeof(IClientRepository).IsAssignableFrom(property.PropertyType))
-            {
-                Type repoImplementationType = clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
-                    t => t.Assembly.GetTypes().First(x => !x.IsInterface && x.IsClass && t.IsAssignableFrom(x)));
-
-                var listProxyValue = propertyValue as LazyCollectionProxy;
-                object repo;
-                if (listProxyValue != null)
-                {
-                    repo = Activator.CreateInstance(repoImplementationType,
-                        this.client,
-                        listProxyValue.Uri,
-                        null, target.Value);
-                }
-                else
-                {
-                    repo = Activator.CreateInstance(repoImplementationType,
-                        client,
-                        target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
-                        propertyValue,
-                        target.Value);
-                }
-                property.SetValue(target.Value, repo);
-                return;
-            }
-
-            property.SetValue(target.Value, propertyValue);
         }
 
 
@@ -130,20 +78,6 @@ namespace Pomona.Common.Serialization
                 throw new PomonaSerializationException("Patch format not accepted from server to client.");
         }
 
-        public void CheckAccessRights(PropertySpec property, HttpMethod method)
-        {
-        }
-
-
-        public void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp)
-        {
-        }
-
-
-        public TypeSpec GetClassMapping(Type type)
-        {
-            return typeMapper.GetClassMapping(type);
-        }
 
         public object CreateReference(IDeserializerNode node)
         {
@@ -161,20 +95,95 @@ namespace Pomona.Common.Serialization
                 return Activator.CreateInstance(type.Type, client, uri, null);
             }*/
             if (type.SerializationMode == TypeSerializationMode.Array)
-            {
-                return LazyCollectionProxy.CreateForType(type, uri, client);
-            }
+                return LazyCollectionProxy.CreateForType(type, uri, this.client);
             if (type is TransformedType && type.SerializationMode == TypeSerializationMode.Complex)
             {
-                var clientType = (TransformedType) type;
+                var clientType = (TransformedType)type;
                 var proxyType = clientType.ResourceInfo.LazyProxyType;
-                var refobj = (LazyProxyBase) Activator.CreateInstance(proxyType);
-                refobj.Client = client;
+                var refobj = (LazyProxyBase)Activator.CreateInstance(proxyType);
+                refobj.Client = this.client;
                 refobj.ProxyTargetType = clientType.ResourceInfo.PocoType;
-                ((IHasResourceUri) refobj).Uri = uri;
+                ((IHasResourceUri)refobj).Uri = uri;
                 return refobj;
             }
             throw new NotImplementedException("Don't know how to make reference to type " + type.Name + " yet!");
+        }
+
+
+        public object CreateResource<T>(TransformedType type, IConstructorPropertySource<T> args)
+        {
+            return type.Create(args);
+        }
+
+
+        public void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction)
+        {
+            deserializeNodeAction(node);
+            if (node.Uri != null)
+            {
+                var uriResource = node.Value as IHasResourceUri;
+                if (uriResource != null)
+                    uriResource.Uri = node.Uri;
+            }
+        }
+
+
+        public TypeSpec GetClassMapping(Type type)
+        {
+            return this.typeMapper.GetClassMapping(type);
+        }
+
+
+        public T GetContext<T>()
+        {
+            throw new NotSupportedException();
+        }
+
+
+        public TypeSpec GetTypeByName(string typeName)
+        {
+            return this.typeMapper.GetClassMapping(typeName);
+        }
+
+
+        public void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp)
+        {
+        }
+
+
+        public void SetProperty(IDeserializerNode target, PropertySpec property, object propertyValue)
+        {
+            if (!property.IsWritable)
+                throw new InvalidOperationException("Unable to set property.");
+
+            if (typeof(IClientRepository).IsAssignableFrom(property.PropertyType))
+            {
+                var repoImplementationType = this.clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
+                    t => t.Assembly.GetTypes().First(x => !x.IsInterface && x.IsClass && t.IsAssignableFrom(x)));
+
+                var listProxyValue = propertyValue as LazyCollectionProxy;
+                object repo;
+                if (listProxyValue != null)
+                {
+                    repo = Activator.CreateInstance(repoImplementationType,
+                        this.client,
+                        listProxyValue.Uri,
+                        null,
+                        target.Value);
+                }
+                else
+                {
+                    repo = Activator.CreateInstance(repoImplementationType,
+                        this.client,
+                        target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
+                        propertyValue,
+                        target.Value);
+                }
+                property.SetValue(target.Value, repo);
+                return;
+            }
+
+            property.SetValue(target.Value, propertyValue);
         }
 
         #endregion

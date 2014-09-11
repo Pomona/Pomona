@@ -152,6 +152,13 @@ namespace Pomona.Example
         }
 
 
+        public void Map(ITypeMappingConfigurator<ArgNullThrowingThing> map)
+        {
+            // This should throw ArgumentNullException on creation if Incoming property is null,
+            // for testing that this turns into a ValidationException.
+            map.ConstructedUsing(x => new ArgNullThrowingThing(x.Optional().Incoming));
+        }
+
         public void Map(ITypeMappingConfigurator<OrderResponse> map)
         {
             map.AsValueObject();
