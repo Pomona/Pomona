@@ -114,6 +114,14 @@ namespace Pomona
         }
 
 
+        protected virtual PomonaResponse InvokeRequestPipeline(DefaultRequestProcessorPipeline pipeline,
+            PomonaRequest pomonaRequest)
+        {
+            var response = pipeline.Process(pomonaRequest);
+            return response;
+        }
+
+
         protected virtual PomonaError OnException(Exception exception)
         {
             if (exception is PomonaSerializationException)
@@ -122,6 +130,29 @@ namespace Pomona
             if (pomonaException != null)
                 return new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message);
             return new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
+        }
+
+
+        protected virtual PomonaResponse ProcessRequest()
+        {
+            var pathNodes = GetPathNodes();
+            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource, ModulePath);
+            PathNode node = rootNode;
+            var pipeline = new DefaultRequestProcessorPipeline();
+            var pomonaContext = new PomonaContext(Context, new PomonaJsonSerializerFactory());
+
+            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
+                node = node.GetChildNode(pathPart, pomonaContext, pipeline);
+
+            var pomonaRequest = pomonaContext.CreateOuterRequest(node);
+
+            if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
+                ThrowMethodNotAllowedForType(node.AllowedMethods);
+
+            var response = InvokeRequestPipeline(pipeline, pomonaRequest);
+            if (response == null)
+                throw new PomonaException("Unable to find RequestProcessor able to handle request.");
+            return response;
         }
 
 
@@ -182,36 +213,6 @@ namespace Pomona
             res.ContentType = "text/plain; charset=utf-8";
 
             return res;
-        }
-
-
-        protected virtual PomonaResponse ProcessRequest()
-        {
-            var pathNodes = GetPathNodes();
-            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource, ModulePath);
-            PathNode node = rootNode;
-            var pipeline = new DefaultRequestProcessorPipeline();
-            var pomonaContext = new PomonaContext(Context, new PomonaJsonSerializerFactory());
-
-            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
-                node = node.GetChildNode(pathPart, pomonaContext, pipeline);
-
-            var pomonaRequest = pomonaContext.CreateOuterRequest(node);
-
-            if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
-                ThrowMethodNotAllowedForType(node.AllowedMethods);
-
-            var response = InvokeRequestPipeline(pipeline, pomonaRequest);
-            if (response == null)
-                throw new PomonaException("Unable to find RequestProcessor able to handle request.");
-            return response;
-        }
-
-
-        protected virtual PomonaResponse InvokeRequestPipeline(DefaultRequestProcessorPipeline pipeline, PomonaRequest pomonaRequest)
-        {
-            var response = pipeline.Process(pomonaRequest);
-            return response;
         }
 
 
