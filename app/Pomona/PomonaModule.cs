@@ -185,7 +185,7 @@ namespace Pomona
         }
 
 
-        private PomonaResponse ProcessRequest()
+        protected virtual PomonaResponse ProcessRequest()
         {
             var pathNodes = GetPathNodes();
             var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource, ModulePath);
@@ -201,9 +201,16 @@ namespace Pomona
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
 
-            var response = pipeline.Process(pomonaRequest);
+            var response = InvokeRequestPipeline(pipeline, pomonaRequest);
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
+            return response;
+        }
+
+
+        protected virtual PomonaResponse InvokeRequestPipeline(DefaultRequestProcessorPipeline pipeline, PomonaRequest pomonaRequest)
+        {
+            var response = pipeline.Process(pomonaRequest);
             return response;
         }
 
