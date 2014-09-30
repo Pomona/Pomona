@@ -223,12 +223,12 @@ namespace Pomona.Fetcher
                         typeof(IEnumerable<TCollectionElement>)),
                     getChildLambdaParam).Compile();
 
-            var parentEntities = entities.Select(x => new { Parent = x, Collection = getChildLambda(x) }).ToList();
+            var parentEntities = entities.Select(x => new { Parent = x, Collection = getChildLambda(x), ParentId = getParentIdExpr(x) }).ToList();
 
             var parentIdsToFetch =
                 parentEntities
                     .Where(x => x.Collection != null && !this.driver.IsLoaded(x.Collection))
-                    .Select(x => getParentIdExpr(x.Parent))
+                    .Select(x => x.ParentId)
                     .Distinct()
                     .ToArray();
 
@@ -278,14 +278,15 @@ namespace Pomona.Fetcher
                 FetchEntitiesByIdInBatches<TCollectionElement>(childIdsToFetch, childIdProp)
                     .ToDictionary(getChildIdExpr, x => x);
 
-            var bindings = parentEntities
-                .Select(x => x.Parent)
+            var bindings =
+                parentEntities
+                .Join(parentIdsToFetch, x => x.ParentId, x => x, (a,b) => a) // Only bind collections in parentIdsToFetch
                 .GroupJoin(relations,
-                    getParentIdExpr,
+                    x => x.ParentId,
                     x => x.ParentId,
                     (a, b) =>
                         new KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>
-                            (a, b.Select(y => fetched[y.ChildId])));
+                            (a.Parent, b.Select(y => fetched[y.ChildId])));
             this.driver.PopulateCollections(bindings, prop, typeof(TCollectionElement));
 
             Expand(parentEntities.SelectMany(x => getChildLambda(x.Parent)), path);
