@@ -208,7 +208,7 @@ namespace Pomona.Common
 
                 request.Headers.Add("Accept", "application/json");
                 
-                using (Profiler.Step("Pomona.RequestDispatcher: " + request.Method + " " + request.Uri))
+                using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
                     response = this.webClient.Send(request);
                 }
