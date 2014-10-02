@@ -184,13 +184,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:79:4: arglist_expr EOF
 			{
 			DebugLocation(79, 4);
-			PushFollow(Follow._arglist_expr_in_parse504);
+			PushFollow(Follow._arglist_expr_in_parse507);
 			arglist_expr1=arglist_expr();
 			PopFollow();
 
 			stream_arglist_expr.Add(arglist_expr1.Tree);
 			DebugLocation(79, 17);
-			EOF2=(IToken)Match(input,EOF,Follow._EOF_in_parse506);  
+			EOF2=(IToken)Match(input,EOF,Follow._EOF_in_parse509);  
 			stream_EOF.Add(EOF2);
 
 
@@ -283,7 +283,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			root_0 = (object)adaptor.Nil();
 
 			DebugLocation(83, 4);
-			PushFollow(Follow._as_expression_in_exp525);
+			PushFollow(Follow._as_expression_in_exp528);
 			as_expression3=as_expression();
 			PopFollow();
 
@@ -348,7 +348,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:87:4: lambda_expression ( 'as' lambda_expression )?
 			{
 			DebugLocation(87, 4);
-			PushFollow(Follow._lambda_expression_in_as_expression536);
+			PushFollow(Follow._lambda_expression_in_as_expression539);
 			lambda_expression4=lambda_expression();
 			PopFollow();
 
@@ -372,11 +372,11 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:87:24: 'as' lambda_expression
 				{
 				DebugLocation(87, 24);
-				string_literal5=(IToken)Match(input,62,Follow._62_in_as_expression540);  
+				string_literal5=(IToken)Match(input,62,Follow._62_in_as_expression543);  
 				stream_62.Add(string_literal5);
 
 				DebugLocation(87, 29);
-				PushFollow(Follow._lambda_expression_in_as_expression542);
+				PushFollow(Follow._lambda_expression_in_as_expression545);
 				lambda_expression6=lambda_expression();
 				PopFollow();
 
@@ -491,7 +491,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:91:4: or_expression ( ':' or_expression )?
 			{
 			DebugLocation(91, 4);
-			PushFollow(Follow._or_expression_in_lambda_expression565);
+			PushFollow(Follow._or_expression_in_lambda_expression568);
 			or_expression7=or_expression();
 			PopFollow();
 
@@ -515,11 +515,11 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:91:20: ':' or_expression
 				{
 				DebugLocation(91, 20);
-				char_literal8=(IToken)Match(input,52,Follow._52_in_lambda_expression569);  
+				char_literal8=(IToken)Match(input,52,Follow._52_in_lambda_expression572);  
 				stream_52.Add(char_literal8);
 
 				DebugLocation(91, 24);
-				PushFollow(Follow._or_expression_in_lambda_expression571);
+				PushFollow(Follow._or_expression_in_lambda_expression574);
 				or_expression9=or_expression();
 				PopFollow();
 
@@ -637,7 +637,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:95:4: and_expression ( ( 'or' | '||' ) and_expression )*
 			{
 			DebugLocation(95, 4);
-			PushFollow(Follow._and_expression_in_or_expression594);
+			PushFollow(Follow._and_expression_in_or_expression597);
 			and_expression10=and_expression();
 			PopFollow();
 
@@ -693,7 +693,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 						// Queries\\PomonaQuery.g:95:22: 'or'
 						{
 						DebugLocation(95, 22);
-						string_literal11=(IToken)Match(input,77,Follow._77_in_or_expression599);  
+						string_literal11=(IToken)Match(input,77,Follow._77_in_or_expression602);  
 						stream_77.Add(string_literal11);
 
 
@@ -704,7 +704,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 						// Queries\\PomonaQuery.g:95:27: '||'
 						{
 						DebugLocation(95, 27);
-						string_literal12=(IToken)Match(input,79,Follow._79_in_or_expression601);  
+						string_literal12=(IToken)Match(input,79,Follow._79_in_or_expression604);  
 						stream_79.Add(string_literal12);
 
 
@@ -715,7 +715,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					} finally { DebugExitSubRule(3); }
 
 					DebugLocation(95, 33);
-					PushFollow(Follow._and_expression_in_or_expression604);
+					PushFollow(Follow._and_expression_in_or_expression607);
 					and_expression13=and_expression();
 					PopFollow();
 
@@ -909,7 +909,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:103:4: relational_expr ( and_operator relational_expr )*
 			{
 			DebugLocation(103, 4);
-			PushFollow(Follow._relational_expr_in_and_expression643);
+			PushFollow(Follow._relational_expr_in_and_expression646);
 			relational_expr15=relational_expr();
 			PopFollow();
 
@@ -937,13 +937,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:103:22: and_operator relational_expr
 					{
 					DebugLocation(103, 22);
-					PushFollow(Follow._and_operator_in_and_expression647);
+					PushFollow(Follow._and_operator_in_and_expression650);
 					and_operator16=and_operator();
 					PopFollow();
 
 					stream_and_operator.Add(and_operator16.Tree);
 					DebugLocation(103, 35);
-					PushFollow(Follow._relational_expr_in_and_expression649);
+					PushFollow(Follow._relational_expr_in_and_expression652);
 					relational_expr17=relational_expr();
 					PopFollow();
 
@@ -1191,7 +1191,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:109:5: 'gt'
 					{
 					DebugLocation(109, 5);
-					string_literal18=(IToken)Match(input,68,Follow._68_in_relational_operator676);  
+					string_literal18=(IToken)Match(input,68,Follow._68_in_relational_operator679);  
 					stream_68.Add(string_literal18);
 
 
@@ -1202,7 +1202,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:109:10: '>'
 					{
 					DebugLocation(109, 10);
-					char_literal19=(IToken)Match(input,56,Follow._56_in_relational_operator678);  
+					char_literal19=(IToken)Match(input,56,Follow._56_in_relational_operator681);  
 					stream_56.Add(char_literal19);
 
 
@@ -1271,7 +1271,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:110:5: 'lt'
 					{
 					DebugLocation(110, 5);
-					string_literal20=(IToken)Match(input,72,Follow._72_in_relational_operator689);  
+					string_literal20=(IToken)Match(input,72,Follow._72_in_relational_operator692);  
 					stream_72.Add(string_literal20);
 
 
@@ -1282,7 +1282,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:110:10: '<'
 					{
 					DebugLocation(110, 10);
-					char_literal21=(IToken)Match(input,53,Follow._53_in_relational_operator691);  
+					char_literal21=(IToken)Match(input,53,Follow._53_in_relational_operator694);  
 					stream_53.Add(char_literal21);
 
 
@@ -1351,7 +1351,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:111:5: 'eq'
 					{
 					DebugLocation(111, 5);
-					string_literal22=(IToken)Match(input,66,Follow._66_in_relational_operator702);  
+					string_literal22=(IToken)Match(input,66,Follow._66_in_relational_operator705);  
 					stream_66.Add(string_literal22);
 
 
@@ -1362,7 +1362,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:111:10: '=='
 					{
 					DebugLocation(111, 10);
-					string_literal23=(IToken)Match(input,55,Follow._55_in_relational_operator704);  
+					string_literal23=(IToken)Match(input,55,Follow._55_in_relational_operator707);  
 					stream_55.Add(string_literal23);
 
 
@@ -1431,7 +1431,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:112:5: 'ge'
 					{
 					DebugLocation(112, 5);
-					string_literal24=(IToken)Match(input,67,Follow._67_in_relational_operator715);  
+					string_literal24=(IToken)Match(input,67,Follow._67_in_relational_operator718);  
 					stream_67.Add(string_literal24);
 
 
@@ -1442,7 +1442,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:112:10: '>='
 					{
 					DebugLocation(112, 10);
-					string_literal25=(IToken)Match(input,57,Follow._57_in_relational_operator717);  
+					string_literal25=(IToken)Match(input,57,Follow._57_in_relational_operator720);  
 					stream_57.Add(string_literal25);
 
 
@@ -1511,7 +1511,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:113:5: 'le'
 					{
 					DebugLocation(113, 5);
-					string_literal26=(IToken)Match(input,71,Follow._71_in_relational_operator728);  
+					string_literal26=(IToken)Match(input,71,Follow._71_in_relational_operator731);  
 					stream_71.Add(string_literal26);
 
 
@@ -1522,7 +1522,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:113:10: '<='
 					{
 					DebugLocation(113, 10);
-					string_literal27=(IToken)Match(input,54,Follow._54_in_relational_operator730);  
+					string_literal27=(IToken)Match(input,54,Follow._54_in_relational_operator733);  
 					stream_54.Add(string_literal27);
 
 
@@ -1591,7 +1591,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:114:5: 'ne'
 					{
 					DebugLocation(114, 5);
-					string_literal28=(IToken)Match(input,75,Follow._75_in_relational_operator741);  
+					string_literal28=(IToken)Match(input,75,Follow._75_in_relational_operator744);  
 					stream_75.Add(string_literal28);
 
 
@@ -1602,7 +1602,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:114:10: '!='
 					{
 					DebugLocation(114, 10);
-					string_literal29=(IToken)Match(input,41,Follow._41_in_relational_operator743);  
+					string_literal29=(IToken)Match(input,41,Follow._41_in_relational_operator746);  
 					stream_41.Add(string_literal29);
 
 
@@ -1643,7 +1643,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:115:4: 'in'
 				{
 				DebugLocation(115, 4);
-				string_literal30=(IToken)Match(input,70,Follow._70_in_relational_operator753);  
+				string_literal30=(IToken)Match(input,70,Follow._70_in_relational_operator756);  
 				stream_70.Add(string_literal30);
 
 
@@ -1677,7 +1677,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:116:4: 'ieq'
 				{
 				DebugLocation(116, 4);
-				string_literal31=(IToken)Match(input,69,Follow._69_in_relational_operator762);  
+				string_literal31=(IToken)Match(input,69,Follow._69_in_relational_operator765);  
 				stream_69.Add(string_literal31);
 
 
@@ -1764,7 +1764,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			root_0 = (object)adaptor.Nil();
 
 			DebugLocation(128, 4);
-			PushFollow(Follow._additive_expr_in_relational_expr779);
+			PushFollow(Follow._additive_expr_in_relational_expr782);
 			additive_expr32=additive_expr();
 			PopFollow();
 
@@ -1788,13 +1788,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:128:19: relational_operator ^ additive_expr
 				{
 				DebugLocation(128, 38);
-				PushFollow(Follow._relational_operator_in_relational_expr782);
+				PushFollow(Follow._relational_operator_in_relational_expr785);
 				relational_operator33=relational_operator();
 				PopFollow();
 
 				root_0 = (object)adaptor.BecomeRoot(relational_operator33.Tree, root_0);
 				DebugLocation(128, 40);
-				PushFollow(Follow._additive_expr_in_relational_expr785);
+				PushFollow(Follow._additive_expr_in_relational_expr788);
 				additive_expr34=additive_expr();
 				PopFollow();
 
@@ -1922,7 +1922,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:132:8: 'add'
 					{
 					DebugLocation(132, 8);
-					string_literal35=(IToken)Match(input,60,Follow._60_in_additive_operator802);  
+					string_literal35=(IToken)Match(input,60,Follow._60_in_additive_operator805);  
 					stream_60.Add(string_literal35);
 
 
@@ -1933,7 +1933,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:132:14: '+'
 					{
 					DebugLocation(132, 14);
-					char_literal36=(IToken)Match(input,47,Follow._47_in_additive_operator804);  
+					char_literal36=(IToken)Match(input,47,Follow._47_in_additive_operator807);  
 					stream_47.Add(char_literal36);
 
 
@@ -2002,7 +2002,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:133:8: 'sub'
 					{
 					DebugLocation(133, 8);
-					string_literal37=(IToken)Match(input,78,Follow._78_in_additive_operator818);  
+					string_literal37=(IToken)Match(input,78,Follow._78_in_additive_operator821);  
 					stream_78.Add(string_literal37);
 
 
@@ -2013,7 +2013,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:133:14: '-'
 					{
 					DebugLocation(133, 14);
-					char_literal38=(IToken)Match(input,49,Follow._49_in_additive_operator820);  
+					char_literal38=(IToken)Match(input,49,Follow._49_in_additive_operator823);  
 					stream_49.Add(char_literal38);
 
 
@@ -2107,7 +2107,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			root_0 = (object)adaptor.Nil();
 
 			DebugLocation(137, 4);
-			PushFollow(Follow._multiplicative_expr_in_additive_expr840);
+			PushFollow(Follow._multiplicative_expr_in_additive_expr843);
 			multiplicative_expr39=multiplicative_expr();
 			PopFollow();
 
@@ -2135,13 +2135,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:137:26: additive_operator ^ multiplicative_expr
 					{
 					DebugLocation(137, 43);
-					PushFollow(Follow._additive_operator_in_additive_expr844);
+					PushFollow(Follow._additive_operator_in_additive_expr847);
 					additive_operator40=additive_operator();
 					PopFollow();
 
 					root_0 = (object)adaptor.BecomeRoot(additive_operator40.Tree, root_0);
 					DebugLocation(137, 45);
-					PushFollow(Follow._multiplicative_expr_in_additive_expr847);
+					PushFollow(Follow._multiplicative_expr_in_additive_expr850);
 					multiplicative_expr41=multiplicative_expr();
 					PopFollow();
 
@@ -2294,7 +2294,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:141:10: 'mul'
 					{
 					DebugLocation(141, 10);
-					string_literal42=(IToken)Match(input,74,Follow._74_in_multiplicative_operator867);  
+					string_literal42=(IToken)Match(input,74,Follow._74_in_multiplicative_operator870);  
 					stream_74.Add(string_literal42);
 
 
@@ -2305,7 +2305,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:141:16: '*'
 					{
 					DebugLocation(141, 16);
-					char_literal43=(IToken)Match(input,46,Follow._46_in_multiplicative_operator869);  
+					char_literal43=(IToken)Match(input,46,Follow._46_in_multiplicative_operator872);  
 					stream_46.Add(char_literal43);
 
 
@@ -2374,7 +2374,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:142:10: 'div'
 					{
 					DebugLocation(142, 10);
-					string_literal44=(IToken)Match(input,65,Follow._65_in_multiplicative_operator885);  
+					string_literal44=(IToken)Match(input,65,Follow._65_in_multiplicative_operator888);  
 					stream_65.Add(string_literal44);
 
 
@@ -2385,7 +2385,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:142:16: '/'
 					{
 					DebugLocation(142, 16);
-					char_literal45=(IToken)Match(input,51,Follow._51_in_multiplicative_operator887);  
+					char_literal45=(IToken)Match(input,51,Follow._51_in_multiplicative_operator890);  
 					stream_51.Add(char_literal45);
 
 
@@ -2454,7 +2454,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:143:7: 'mod'
 					{
 					DebugLocation(143, 7);
-					string_literal46=(IToken)Match(input,73,Follow._73_in_multiplicative_operator900);  
+					string_literal46=(IToken)Match(input,73,Follow._73_in_multiplicative_operator903);  
 					stream_73.Add(string_literal46);
 
 
@@ -2465,7 +2465,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:143:13: '%'
 					{
 					DebugLocation(143, 13);
-					char_literal47=(IToken)Match(input,42,Follow._42_in_multiplicative_operator902);  
+					char_literal47=(IToken)Match(input,42,Follow._42_in_multiplicative_operator905);  
 					stream_42.Add(char_literal47);
 
 
@@ -2559,7 +2559,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			root_0 = (object)adaptor.Nil();
 
 			DebugLocation(147, 4);
-			PushFollow(Follow._unary_expr_in_multiplicative_expr922);
+			PushFollow(Follow._unary_expr_in_multiplicative_expr925);
 			unary_expr48=unary_expr();
 			PopFollow();
 
@@ -2587,13 +2587,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:147:17: multiplicative_operator ^ unary_expr
 					{
 					DebugLocation(147, 40);
-					PushFollow(Follow._multiplicative_operator_in_multiplicative_expr926);
+					PushFollow(Follow._multiplicative_operator_in_multiplicative_expr929);
 					multiplicative_operator49=multiplicative_operator();
 					PopFollow();
 
 					root_0 = (object)adaptor.BecomeRoot(multiplicative_operator49.Tree, root_0);
 					DebugLocation(147, 42);
-					PushFollow(Follow._unary_expr_in_multiplicative_expr929);
+					PushFollow(Follow._unary_expr_in_multiplicative_expr932);
 					unary_expr50=unary_expr();
 					PopFollow();
 
@@ -2700,7 +2700,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:151:5: 'not'
 				{
 				DebugLocation(151, 5);
-				string_literal51=(IToken)Match(input,76,Follow._76_in_unary_operator945);  
+				string_literal51=(IToken)Match(input,76,Follow._76_in_unary_operator948);  
 				stream_76.Add(string_literal51);
 
 
@@ -2711,7 +2711,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:151:11: '!'
 				{
 				DebugLocation(151, 11);
-				char_literal52=(IToken)Match(input,40,Follow._40_in_unary_operator947);  
+				char_literal52=(IToken)Match(input,40,Follow._40_in_unary_operator950);  
 				stream_40.Add(char_literal52);
 
 
@@ -2801,7 +2801,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:155:4: '.'
 			{
 			DebugLocation(155, 4);
-			char_literal53=(IToken)Match(input,50,Follow._50_in_dot_operator963);  
+			char_literal53=(IToken)Match(input,50,Follow._50_in_dot_operator966);  
 			stream_50.Add(char_literal53);
 
 
@@ -2908,13 +2908,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(160, 18);
-				PushFollow(Follow._unary_operator_in_unary_expr980);
+				PushFollow(Follow._unary_operator_in_unary_expr983);
 				unary_operator54=unary_operator();
 				PopFollow();
 
 				root_0 = (object)adaptor.BecomeRoot(unary_operator54.Tree, root_0);
 				DebugLocation(160, 20);
-				PushFollow(Follow._unary_expr_in_unary_expr983);
+				PushFollow(Follow._unary_expr_in_unary_expr986);
 				unary_expr55=unary_expr();
 				PopFollow();
 
@@ -2929,7 +2929,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(161, 4);
-				PushFollow(Follow._primary_expr_in_unary_expr988);
+				PushFollow(Follow._primary_expr_in_unary_expr991);
 				primary_expr56=primary_expr();
 				PopFollow();
 
@@ -2995,7 +2995,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			root_0 = (object)adaptor.Nil();
 
 			DebugLocation(165, 4);
-			PushFollow(Follow._postfix_expr_in_primary_expr999);
+			PushFollow(Follow._postfix_expr_in_primary_expr1002);
 			postfix_expr57=postfix_expr();
 			PopFollow();
 
@@ -3023,13 +3023,13 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:165:19: dot_operator ^ postfix_expr
 					{
 					DebugLocation(165, 31);
-					PushFollow(Follow._dot_operator_in_primary_expr1003);
+					PushFollow(Follow._dot_operator_in_primary_expr1006);
 					dot_operator58=dot_operator();
 					PopFollow();
 
 					root_0 = (object)adaptor.BecomeRoot(dot_operator58.Tree, root_0);
 					DebugLocation(165, 33);
-					PushFollow(Follow._postfix_expr_in_primary_expr1006);
+					PushFollow(Follow._postfix_expr_in_primary_expr1009);
 					postfix_expr59=postfix_expr();
 					PopFollow();
 
@@ -3288,7 +3288,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:169:4: ID ( '(' arglist_expr ')' )
 				{
 				DebugLocation(169, 4);
-				ID60=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1020);  
+				ID60=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1023);  
 				stream_ID.Add(ID60);
 
 				DebugLocation(169, 7);
@@ -3297,17 +3297,17 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:169:9: '(' arglist_expr ')'
 				{
 				DebugLocation(169, 9);
-				char_literal61=(IToken)Match(input,44,Follow._44_in_postfix_expr1024);  
+				char_literal61=(IToken)Match(input,44,Follow._44_in_postfix_expr1027);  
 				stream_44.Add(char_literal61);
 
 				DebugLocation(169, 13);
-				PushFollow(Follow._arglist_expr_in_postfix_expr1026);
+				PushFollow(Follow._arglist_expr_in_postfix_expr1029);
 				arglist_expr62=arglist_expr();
 				PopFollow();
 
 				stream_arglist_expr.Add(arglist_expr62.Tree);
 				DebugLocation(169, 26);
-				char_literal63=(IToken)Match(input,45,Follow._45_in_postfix_expr1028);  
+				char_literal63=(IToken)Match(input,45,Follow._45_in_postfix_expr1031);  
 				stream_45.Add(char_literal63);
 
 
@@ -3356,7 +3356,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:170:4: ID ( '(' ')' )
 				{
 				DebugLocation(170, 4);
-				ID64=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1045);  
+				ID64=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1048);  
 				stream_ID.Add(ID64);
 
 				DebugLocation(170, 7);
@@ -3365,11 +3365,11 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:170:9: '(' ')'
 				{
 				DebugLocation(170, 9);
-				char_literal65=(IToken)Match(input,44,Follow._44_in_postfix_expr1049);  
+				char_literal65=(IToken)Match(input,44,Follow._44_in_postfix_expr1052);  
 				stream_44.Add(char_literal65);
 
 				DebugLocation(170, 13);
-				char_literal66=(IToken)Match(input,45,Follow._45_in_postfix_expr1051);  
+				char_literal66=(IToken)Match(input,45,Follow._45_in_postfix_expr1054);  
 				stream_45.Add(char_literal66);
 
 
@@ -3416,7 +3416,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:171:4: ID ( '[' arglist_expr ']' )
 				{
 				DebugLocation(171, 4);
-				ID67=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1066);  
+				ID67=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1069);  
 				stream_ID.Add(ID67);
 
 				DebugLocation(171, 7);
@@ -3425,17 +3425,17 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:171:9: '[' arglist_expr ']'
 				{
 				DebugLocation(171, 9);
-				char_literal68=(IToken)Match(input,58,Follow._58_in_postfix_expr1070);  
+				char_literal68=(IToken)Match(input,58,Follow._58_in_postfix_expr1073);  
 				stream_58.Add(char_literal68);
 
 				DebugLocation(171, 13);
-				PushFollow(Follow._arglist_expr_in_postfix_expr1072);
+				PushFollow(Follow._arglist_expr_in_postfix_expr1075);
 				arglist_expr69=arglist_expr();
 				PopFollow();
 
 				stream_arglist_expr.Add(arglist_expr69.Tree);
 				DebugLocation(171, 26);
-				char_literal70=(IToken)Match(input,59,Follow._59_in_postfix_expr1074);  
+				char_literal70=(IToken)Match(input,59,Follow._59_in_postfix_expr1077);  
 				stream_59.Add(char_literal70);
 
 
@@ -3484,7 +3484,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:172:4: ID ( '[' ']' )
 				{
 				DebugLocation(172, 4);
-				ID71=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1091);  
+				ID71=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1094);  
 				stream_ID.Add(ID71);
 
 				DebugLocation(172, 7);
@@ -3493,11 +3493,11 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:172:9: '[' ']'
 				{
 				DebugLocation(172, 9);
-				char_literal72=(IToken)Match(input,58,Follow._58_in_postfix_expr1095);  
+				char_literal72=(IToken)Match(input,58,Follow._58_in_postfix_expr1098);  
 				stream_58.Add(char_literal72);
 
 				DebugLocation(172, 13);
-				char_literal73=(IToken)Match(input,59,Follow._59_in_postfix_expr1097);  
+				char_literal73=(IToken)Match(input,59,Follow._59_in_postfix_expr1100);  
 				stream_59.Add(char_literal73);
 
 
@@ -3546,7 +3546,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(173, 4);
-				ID74=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1112); 
+				ID74=(IToken)Match(input,ID,Follow._ID_in_postfix_expr1115); 
 				ID74_tree = (object)adaptor.Create(ID74);
 				adaptor.AddChild(root_0, ID74_tree);
 
@@ -3559,7 +3559,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(174, 4);
-				STRING75=(IToken)Match(input,STRING,Follow._STRING_in_postfix_expr1117); 
+				STRING75=(IToken)Match(input,STRING,Follow._STRING_in_postfix_expr1120); 
 				STRING75_tree = (object)adaptor.Create(STRING75);
 				adaptor.AddChild(root_0, STRING75_tree);
 
@@ -3572,7 +3572,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(175, 4);
-				INT76=(IToken)Match(input,INT,Follow._INT_in_postfix_expr1122); 
+				INT76=(IToken)Match(input,INT,Follow._INT_in_postfix_expr1125); 
 				INT76_tree = (object)adaptor.Create(INT76);
 				adaptor.AddChild(root_0, INT76_tree);
 
@@ -3585,15 +3585,15 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(176, 7);
-				char_literal77=(IToken)Match(input,44,Follow._44_in_postfix_expr1127); 
+				char_literal77=(IToken)Match(input,44,Follow._44_in_postfix_expr1130); 
 				DebugLocation(176, 9);
-				PushFollow(Follow._orderby_expr_in_postfix_expr1130);
+				PushFollow(Follow._orderby_expr_in_postfix_expr1133);
 				orderby_expr78=orderby_expr();
 				PopFollow();
 
 				adaptor.AddChild(root_0, orderby_expr78.Tree);
 				DebugLocation(176, 25);
-				char_literal79=(IToken)Match(input,45,Follow._45_in_postfix_expr1132); 
+				char_literal79=(IToken)Match(input,45,Follow._45_in_postfix_expr1135); 
 
 				}
 				break;
@@ -3602,17 +3602,17 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:177:4: '[' arglist_expr ']'
 				{
 				DebugLocation(177, 4);
-				char_literal80=(IToken)Match(input,58,Follow._58_in_postfix_expr1138);  
+				char_literal80=(IToken)Match(input,58,Follow._58_in_postfix_expr1141);  
 				stream_58.Add(char_literal80);
 
 				DebugLocation(177, 8);
-				PushFollow(Follow._arglist_expr_in_postfix_expr1140);
+				PushFollow(Follow._arglist_expr_in_postfix_expr1143);
 				arglist_expr81=arglist_expr();
 				PopFollow();
 
 				stream_arglist_expr.Add(arglist_expr81.Tree);
 				DebugLocation(177, 21);
-				char_literal82=(IToken)Match(input,59,Follow._59_in_postfix_expr1142);  
+				char_literal82=(IToken)Match(input,59,Follow._59_in_postfix_expr1145);  
 				stream_59.Add(char_literal82);
 
 
@@ -3658,7 +3658,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				root_0 = (object)adaptor.Nil();
 
 				DebugLocation(178, 4);
-				PREFIXED_STRING83=(IToken)Match(input,PREFIXED_STRING,Follow._PREFIXED_STRING_in_postfix_expr1155); 
+				PREFIXED_STRING83=(IToken)Match(input,PREFIXED_STRING,Follow._PREFIXED_STRING_in_postfix_expr1158); 
 				PREFIXED_STRING83_tree = (object)adaptor.Create(PREFIXED_STRING83);
 				adaptor.AddChild(root_0, PREFIXED_STRING83_tree);
 
@@ -3794,7 +3794,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			// Queries\\PomonaQuery.g:187:4: exp ( sortorder_operator )?
 			{
 			DebugLocation(187, 4);
-			PushFollow(Follow._exp_in_orderby_expr1182);
+			PushFollow(Follow._exp_in_orderby_expr1185);
 			exp85=exp();
 			PopFollow();
 
@@ -3818,7 +3818,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				// Queries\\PomonaQuery.g:187:9: sortorder_operator
 				{
 				DebugLocation(187, 9);
-				PushFollow(Follow._sortorder_operator_in_orderby_expr1185);
+				PushFollow(Follow._sortorder_operator_in_orderby_expr1188);
 				sortorder_operator86=sortorder_operator();
 				PopFollow();
 
@@ -3932,7 +3932,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			root_0 = (object)adaptor.Nil();
 
 			DebugLocation(191, 4);
-			PushFollow(Follow._orderby_expr_in_arglist_expr1210);
+			PushFollow(Follow._orderby_expr_in_arglist_expr1213);
 			orderby_expr87=orderby_expr();
 			PopFollow();
 
@@ -3960,9 +3960,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 					// Queries\\PomonaQuery.g:191:19: ',' ! orderby_expr
 					{
 					DebugLocation(191, 22);
-					char_literal88=(IToken)Match(input,48,Follow._48_in_arglist_expr1214); 
+					char_literal88=(IToken)Match(input,48,Follow._48_in_arglist_expr1217); 
 					DebugLocation(191, 24);
-					PushFollow(Follow._orderby_expr_in_arglist_expr1217);
+					PushFollow(Follow._orderby_expr_in_arglist_expr1220);
 					orderby_expr89=orderby_expr();
 					PopFollow();
 
@@ -4015,93 +4015,93 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	#region Follow sets
 	private static class Follow
 	{
-		public static readonly BitSet _arglist_expr_in_parse504 = new BitSet(new ulong[]{0x0UL});
-		public static readonly BitSet _EOF_in_parse506 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _as_expression_in_exp525 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _lambda_expression_in_as_expression536 = new BitSet(new ulong[]{0x4000000000000002UL});
-		public static readonly BitSet _62_in_as_expression540 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _lambda_expression_in_as_expression542 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _or_expression_in_lambda_expression565 = new BitSet(new ulong[]{0x10000000000002UL});
-		public static readonly BitSet _52_in_lambda_expression569 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _or_expression_in_lambda_expression571 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _and_expression_in_or_expression594 = new BitSet(new ulong[]{0x2UL,0xA000UL});
-		public static readonly BitSet _77_in_or_expression599 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _79_in_or_expression601 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _and_expression_in_or_expression604 = new BitSet(new ulong[]{0x2UL,0xA000UL});
-		public static readonly BitSet _relational_expr_in_and_expression643 = new BitSet(new ulong[]{0x2000080000000002UL});
-		public static readonly BitSet _and_operator_in_and_expression647 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _relational_expr_in_and_expression649 = new BitSet(new ulong[]{0x2000080000000002UL});
-		public static readonly BitSet _68_in_relational_operator676 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _56_in_relational_operator678 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _72_in_relational_operator689 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _53_in_relational_operator691 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _66_in_relational_operator702 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _55_in_relational_operator704 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _67_in_relational_operator715 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _57_in_relational_operator717 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _71_in_relational_operator728 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _54_in_relational_operator730 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _75_in_relational_operator741 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _41_in_relational_operator743 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _70_in_relational_operator753 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _69_in_relational_operator762 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _additive_expr_in_relational_expr779 = new BitSet(new ulong[]{0x3E0020000000002UL,0x9FCUL});
-		public static readonly BitSet _relational_operator_in_relational_expr782 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _additive_expr_in_relational_expr785 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _60_in_additive_operator802 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _47_in_additive_operator804 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _78_in_additive_operator818 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _49_in_additive_operator820 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _multiplicative_expr_in_additive_expr840 = new BitSet(new ulong[]{0x1002800000000002UL,0x4000UL});
-		public static readonly BitSet _additive_operator_in_additive_expr844 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _multiplicative_expr_in_additive_expr847 = new BitSet(new ulong[]{0x1002800000000002UL,0x4000UL});
-		public static readonly BitSet _74_in_multiplicative_operator867 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _46_in_multiplicative_operator869 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _65_in_multiplicative_operator885 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _51_in_multiplicative_operator887 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _73_in_multiplicative_operator900 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _42_in_multiplicative_operator902 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _unary_expr_in_multiplicative_expr922 = new BitSet(new ulong[]{0x8440000000002UL,0x602UL});
-		public static readonly BitSet _multiplicative_operator_in_multiplicative_expr926 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _unary_expr_in_multiplicative_expr929 = new BitSet(new ulong[]{0x8440000000002UL,0x602UL});
-		public static readonly BitSet _76_in_unary_operator945 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _40_in_unary_operator947 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _50_in_dot_operator963 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _unary_operator_in_unary_expr980 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _unary_expr_in_unary_expr983 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _primary_expr_in_unary_expr988 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _postfix_expr_in_primary_expr999 = new BitSet(new ulong[]{0x4000000000002UL});
-		public static readonly BitSet _dot_operator_in_primary_expr1003 = new BitSet(new ulong[]{0x400101400120000UL});
-		public static readonly BitSet _postfix_expr_in_primary_expr1006 = new BitSet(new ulong[]{0x4000000000002UL});
-		public static readonly BitSet _ID_in_postfix_expr1020 = new BitSet(new ulong[]{0x100000000000UL});
-		public static readonly BitSet _44_in_postfix_expr1024 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _arglist_expr_in_postfix_expr1026 = new BitSet(new ulong[]{0x200000000000UL});
-		public static readonly BitSet _45_in_postfix_expr1028 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1045 = new BitSet(new ulong[]{0x100000000000UL});
-		public static readonly BitSet _44_in_postfix_expr1049 = new BitSet(new ulong[]{0x200000000000UL});
-		public static readonly BitSet _45_in_postfix_expr1051 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1066 = new BitSet(new ulong[]{0x400000000000000UL});
-		public static readonly BitSet _58_in_postfix_expr1070 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _arglist_expr_in_postfix_expr1072 = new BitSet(new ulong[]{0x800000000000000UL});
-		public static readonly BitSet _59_in_postfix_expr1074 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1091 = new BitSet(new ulong[]{0x400000000000000UL});
-		public static readonly BitSet _58_in_postfix_expr1095 = new BitSet(new ulong[]{0x800000000000000UL});
-		public static readonly BitSet _59_in_postfix_expr1097 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _ID_in_postfix_expr1112 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _STRING_in_postfix_expr1117 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _INT_in_postfix_expr1122 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _44_in_postfix_expr1127 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _orderby_expr_in_postfix_expr1130 = new BitSet(new ulong[]{0x200000000000UL});
-		public static readonly BitSet _45_in_postfix_expr1132 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _58_in_postfix_expr1138 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _arglist_expr_in_postfix_expr1140 = new BitSet(new ulong[]{0x800000000000000UL});
-		public static readonly BitSet _59_in_postfix_expr1142 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _PREFIXED_STRING_in_postfix_expr1155 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _exp_in_orderby_expr1182 = new BitSet(new ulong[]{0x8000000000000002UL,0x1UL});
-		public static readonly BitSet _sortorder_operator_in_orderby_expr1185 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _orderby_expr_in_arglist_expr1210 = new BitSet(new ulong[]{0x1000000000002UL});
-		public static readonly BitSet _48_in_arglist_expr1214 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _orderby_expr_in_arglist_expr1217 = new BitSet(new ulong[]{0x1000000000002UL});
+		public static readonly BitSet _arglist_expr_in_parse507 = new BitSet(new ulong[]{0x0UL});
+		public static readonly BitSet _EOF_in_parse509 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _as_expression_in_exp528 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _lambda_expression_in_as_expression539 = new BitSet(new ulong[]{0x4000000000000002UL});
+		public static readonly BitSet _62_in_as_expression543 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _lambda_expression_in_as_expression545 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _or_expression_in_lambda_expression568 = new BitSet(new ulong[]{0x10000000000002UL});
+		public static readonly BitSet _52_in_lambda_expression572 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _or_expression_in_lambda_expression574 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _and_expression_in_or_expression597 = new BitSet(new ulong[]{0x2UL,0xA000UL});
+		public static readonly BitSet _77_in_or_expression602 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _79_in_or_expression604 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _and_expression_in_or_expression607 = new BitSet(new ulong[]{0x2UL,0xA000UL});
+		public static readonly BitSet _relational_expr_in_and_expression646 = new BitSet(new ulong[]{0x2000080000000002UL});
+		public static readonly BitSet _and_operator_in_and_expression650 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _relational_expr_in_and_expression652 = new BitSet(new ulong[]{0x2000080000000002UL});
+		public static readonly BitSet _68_in_relational_operator679 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _56_in_relational_operator681 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _72_in_relational_operator692 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _53_in_relational_operator694 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _66_in_relational_operator705 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _55_in_relational_operator707 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _67_in_relational_operator718 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _57_in_relational_operator720 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _71_in_relational_operator731 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _54_in_relational_operator733 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _75_in_relational_operator744 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _41_in_relational_operator746 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _70_in_relational_operator756 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _69_in_relational_operator765 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _additive_expr_in_relational_expr782 = new BitSet(new ulong[]{0x3E0020000000002UL,0x9FCUL});
+		public static readonly BitSet _relational_operator_in_relational_expr785 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _additive_expr_in_relational_expr788 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _60_in_additive_operator805 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _47_in_additive_operator807 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _78_in_additive_operator821 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _49_in_additive_operator823 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _multiplicative_expr_in_additive_expr843 = new BitSet(new ulong[]{0x1002800000000002UL,0x4000UL});
+		public static readonly BitSet _additive_operator_in_additive_expr847 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _multiplicative_expr_in_additive_expr850 = new BitSet(new ulong[]{0x1002800000000002UL,0x4000UL});
+		public static readonly BitSet _74_in_multiplicative_operator870 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _46_in_multiplicative_operator872 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _65_in_multiplicative_operator888 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _51_in_multiplicative_operator890 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _73_in_multiplicative_operator903 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _42_in_multiplicative_operator905 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _unary_expr_in_multiplicative_expr925 = new BitSet(new ulong[]{0x8440000000002UL,0x602UL});
+		public static readonly BitSet _multiplicative_operator_in_multiplicative_expr929 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _unary_expr_in_multiplicative_expr932 = new BitSet(new ulong[]{0x8440000000002UL,0x602UL});
+		public static readonly BitSet _76_in_unary_operator948 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _40_in_unary_operator950 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _50_in_dot_operator966 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _unary_operator_in_unary_expr983 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _unary_expr_in_unary_expr986 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _primary_expr_in_unary_expr991 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _postfix_expr_in_primary_expr1002 = new BitSet(new ulong[]{0x4000000000002UL});
+		public static readonly BitSet _dot_operator_in_primary_expr1006 = new BitSet(new ulong[]{0x400101400120000UL});
+		public static readonly BitSet _postfix_expr_in_primary_expr1009 = new BitSet(new ulong[]{0x4000000000002UL});
+		public static readonly BitSet _ID_in_postfix_expr1023 = new BitSet(new ulong[]{0x100000000000UL});
+		public static readonly BitSet _44_in_postfix_expr1027 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _arglist_expr_in_postfix_expr1029 = new BitSet(new ulong[]{0x200000000000UL});
+		public static readonly BitSet _45_in_postfix_expr1031 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1048 = new BitSet(new ulong[]{0x100000000000UL});
+		public static readonly BitSet _44_in_postfix_expr1052 = new BitSet(new ulong[]{0x200000000000UL});
+		public static readonly BitSet _45_in_postfix_expr1054 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1069 = new BitSet(new ulong[]{0x400000000000000UL});
+		public static readonly BitSet _58_in_postfix_expr1073 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _arglist_expr_in_postfix_expr1075 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1077 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1094 = new BitSet(new ulong[]{0x400000000000000UL});
+		public static readonly BitSet _58_in_postfix_expr1098 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1100 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _ID_in_postfix_expr1115 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _STRING_in_postfix_expr1120 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _INT_in_postfix_expr1125 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _44_in_postfix_expr1130 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _orderby_expr_in_postfix_expr1133 = new BitSet(new ulong[]{0x200000000000UL});
+		public static readonly BitSet _45_in_postfix_expr1135 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _58_in_postfix_expr1141 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _arglist_expr_in_postfix_expr1143 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1145 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _PREFIXED_STRING_in_postfix_expr1158 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _exp_in_orderby_expr1185 = new BitSet(new ulong[]{0x8000000000000002UL,0x1UL});
+		public static readonly BitSet _sortorder_operator_in_orderby_expr1188 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _orderby_expr_in_arglist_expr1213 = new BitSet(new ulong[]{0x1000000000002UL});
+		public static readonly BitSet _48_in_arglist_expr1217 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _orderby_expr_in_arglist_expr1220 = new BitSet(new ulong[]{0x1000000000002UL});
 	}
 	#endregion Follow sets
 }

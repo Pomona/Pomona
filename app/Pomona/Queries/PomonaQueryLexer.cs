@@ -1787,34 +1787,61 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		{
 			int _type = INT;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:56:5: ( ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )? )
+			// Queries\\PomonaQuery.g:56:5: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )? )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:56:7: ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )?
+			// Queries\\PomonaQuery.g:56:7: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )?
 			{
-			DebugLocation(56, 10);
-			// Queries\\PomonaQuery.g:56:10: ( '0' .. '9' )+
-			int cnt4=0;
+			DebugLocation(56, 7);
+			// Queries\\PomonaQuery.g:56:7: ( '-' )?
+			int alt4=2;
 			try { DebugEnterSubRule(4);
+			try { DebugEnterDecision(4, false);
+			int LA4_1 = input.LA(1);
+
+			if ((LA4_1=='-'))
+			{
+				alt4 = 1;
+			}
+			} finally { DebugExitDecision(4); }
+			switch (alt4)
+			{
+			case 1:
+				DebugEnterAlt(1);
+				// Queries\\PomonaQuery.g:56:7: '-'
+				{
+				DebugLocation(56, 7);
+				Match('-'); 
+
+				}
+				break;
+
+			}
+			} finally { DebugExitSubRule(4); }
+
+			DebugLocation(56, 15);
+			// Queries\\PomonaQuery.g:56:15: ( '0' .. '9' )+
+			int cnt5=0;
+			try { DebugEnterSubRule(5);
 			while (true)
 			{
-				int alt4=2;
-				try { DebugEnterDecision(4, false);
-				int LA4_1 = input.LA(1);
+				int alt5=2;
+				try { DebugEnterDecision(5, false);
+				int LA5_1 = input.LA(1);
 
-				if (((LA4_1>='0' && LA4_1<='9')))
+				if (((LA5_1>='0' && LA5_1<='9')))
 				{
-					alt4 = 1;
+					alt5 = 1;
 				}
 
 
-				} finally { DebugExitDecision(4); }
-				switch (alt4)
+				} finally { DebugExitDecision(5); }
+				switch (alt5)
 				{
 				case 1:
 					DebugEnterAlt(1);
 					// Queries\\PomonaQuery.g:
 					{
-					DebugLocation(56, 10);
+					DebugLocation(56, 15);
 					input.Consume();
 
 
@@ -1822,100 +1849,28 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					break;
 
 				default:
-					if (cnt4 >= 1)
-						goto loop4;
+					if (cnt5 >= 1)
+						goto loop5;
 
-					EarlyExitException eee4 = new EarlyExitException( 4, input );
-					DebugRecognitionException(eee4);
-					throw eee4;
+					EarlyExitException eee5 = new EarlyExitException( 5, input );
+					DebugRecognitionException(eee5);
+					throw eee5;
 				}
-				cnt4++;
+				cnt5++;
 			}
-			loop4:
+			loop5:
 				;
 
-			} finally { DebugExitSubRule(4); }
+			} finally { DebugExitSubRule(5); }
 
-			DebugLocation(56, 17);
-			// Queries\\PomonaQuery.g:56:17: ( '.' ( '0' .. '9' )+ )?
-			int alt6=2;
-			try { DebugEnterSubRule(6);
-			try { DebugEnterDecision(6, false);
-			int LA6_1 = input.LA(1);
-
-			if ((LA6_1=='.'))
-			{
-				alt6 = 1;
-			}
-			} finally { DebugExitDecision(6); }
-			switch (alt6)
-			{
-			case 1:
-				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:56:18: '.' ( '0' .. '9' )+
-				{
-				DebugLocation(56, 18);
-				Match('.'); 
-				DebugLocation(56, 22);
-				// Queries\\PomonaQuery.g:56:22: ( '0' .. '9' )+
-				int cnt5=0;
-				try { DebugEnterSubRule(5);
-				while (true)
-				{
-					int alt5=2;
-					try { DebugEnterDecision(5, false);
-					int LA5_1 = input.LA(1);
-
-					if (((LA5_1>='0' && LA5_1<='9')))
-					{
-						alt5 = 1;
-					}
-
-
-					} finally { DebugExitDecision(5); }
-					switch (alt5)
-					{
-					case 1:
-						DebugEnterAlt(1);
-						// Queries\\PomonaQuery.g:
-						{
-						DebugLocation(56, 22);
-						input.Consume();
-
-
-						}
-						break;
-
-					default:
-						if (cnt5 >= 1)
-							goto loop5;
-
-						EarlyExitException eee5 = new EarlyExitException( 5, input );
-						DebugRecognitionException(eee5);
-						throw eee5;
-					}
-					cnt5++;
-				}
-				loop5:
-					;
-
-				} finally { DebugExitSubRule(5); }
-
-
-				}
-				break;
-
-			}
-			} finally { DebugExitSubRule(6); }
-
-			DebugLocation(56, 36);
-			// Queries\\PomonaQuery.g:56:36: ( 'm' | 'M' | 'f' | 'F' )?
+			DebugLocation(56, 22);
+			// Queries\\PomonaQuery.g:56:22: ( '.' ( '0' .. '9' )+ )?
 			int alt7=2;
 			try { DebugEnterSubRule(7);
 			try { DebugEnterDecision(7, false);
 			int LA7_1 = input.LA(1);
 
-			if ((LA7_1=='F'||LA7_1=='M'||LA7_1=='f'||LA7_1=='m'))
+			if ((LA7_1=='.'))
 			{
 				alt7 = 1;
 			}
@@ -1924,10 +1879,54 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:
+				// Queries\\PomonaQuery.g:56:23: '.' ( '0' .. '9' )+
 				{
-				DebugLocation(56, 36);
-				input.Consume();
+				DebugLocation(56, 23);
+				Match('.'); 
+				DebugLocation(56, 27);
+				// Queries\\PomonaQuery.g:56:27: ( '0' .. '9' )+
+				int cnt6=0;
+				try { DebugEnterSubRule(6);
+				while (true)
+				{
+					int alt6=2;
+					try { DebugEnterDecision(6, false);
+					int LA6_1 = input.LA(1);
+
+					if (((LA6_1>='0' && LA6_1<='9')))
+					{
+						alt6 = 1;
+					}
+
+
+					} finally { DebugExitDecision(6); }
+					switch (alt6)
+					{
+					case 1:
+						DebugEnterAlt(1);
+						// Queries\\PomonaQuery.g:
+						{
+						DebugLocation(56, 27);
+						input.Consume();
+
+
+						}
+						break;
+
+					default:
+						if (cnt6 >= 1)
+							goto loop6;
+
+						EarlyExitException eee6 = new EarlyExitException( 6, input );
+						DebugRecognitionException(eee6);
+						throw eee6;
+					}
+					cnt6++;
+				}
+				loop6:
+					;
+
+				} finally { DebugExitSubRule(6); }
 
 
 				}
@@ -1935,6 +1934,34 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 			}
 			} finally { DebugExitSubRule(7); }
+
+			DebugLocation(56, 41);
+			// Queries\\PomonaQuery.g:56:41: ( 'm' | 'M' | 'f' | 'F' )?
+			int alt8=2;
+			try { DebugEnterSubRule(8);
+			try { DebugEnterDecision(8, false);
+			int LA8_1 = input.LA(1);
+
+			if ((LA8_1=='F'||LA8_1=='M'||LA8_1=='f'||LA8_1=='m'))
+			{
+				alt8 = 1;
+			}
+			} finally { DebugExitDecision(8); }
+			switch (alt8)
+			{
+			case 1:
+				DebugEnterAlt(1);
+				// Queries\\PomonaQuery.g:
+				{
+				DebugLocation(56, 41);
+				input.Consume();
+
+
+				}
+				break;
+
+			}
+			} finally { DebugExitSubRule(8); }
 
 
 			}
@@ -2019,22 +2046,22 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			DebugLocation(74, 8);
 			// Queries\\PomonaQuery.g:74:8: ( '\\'' (~ ( '\\\\' | '\\'' ) )* '\\'' )+
-			int cnt9=0;
-			try { DebugEnterSubRule(9);
+			int cnt10=0;
+			try { DebugEnterSubRule(10);
 			while (true)
 			{
-				int alt9=2;
-				try { DebugEnterDecision(9, false);
-				int LA9_1 = input.LA(1);
+				int alt10=2;
+				try { DebugEnterDecision(10, false);
+				int LA10_1 = input.LA(1);
 
-				if ((LA9_1=='\''))
+				if ((LA10_1=='\''))
 				{
-					alt9 = 1;
+					alt10 = 1;
 				}
 
 
-				} finally { DebugExitDecision(9); }
-				switch (alt9)
+				} finally { DebugExitDecision(10); }
+				switch (alt10)
 				{
 				case 1:
 					DebugEnterAlt(1);
@@ -2044,21 +2071,21 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					Match('\''); 
 					DebugLocation(74, 15);
 					// Queries\\PomonaQuery.g:74:15: (~ ( '\\\\' | '\\'' ) )*
-					try { DebugEnterSubRule(8);
+					try { DebugEnterSubRule(9);
 					while (true)
 					{
-						int alt8=2;
-						try { DebugEnterDecision(8, false);
-						int LA8_1 = input.LA(1);
+						int alt9=2;
+						try { DebugEnterDecision(9, false);
+						int LA9_1 = input.LA(1);
 
-						if (((LA8_1>='\u0000' && LA8_1<='&')||(LA8_1>='(' && LA8_1<='[')||(LA8_1>=']' && LA8_1<='\uFFFF')))
+						if (((LA9_1>='\u0000' && LA9_1<='&')||(LA9_1>='(' && LA9_1<='[')||(LA9_1>=']' && LA9_1<='\uFFFF')))
 						{
-							alt8 = 1;
+							alt9 = 1;
 						}
 
 
-						} finally { DebugExitDecision(8); }
-						switch ( alt8 )
+						} finally { DebugExitDecision(9); }
+						switch ( alt9 )
 						{
 						case 1:
 							DebugEnterAlt(1);
@@ -2072,14 +2099,14 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 							break;
 
 						default:
-							goto loop8;
+							goto loop9;
 						}
 					}
 
-					loop8:
+					loop9:
 						;
 
-					} finally { DebugExitSubRule(8); }
+					} finally { DebugExitSubRule(9); }
 
 					DebugLocation(74, 37);
 					Match('\''); 
@@ -2088,19 +2115,19 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 					break;
 
 				default:
-					if (cnt9 >= 1)
-						goto loop9;
+					if (cnt10 >= 1)
+						goto loop10;
 
-					EarlyExitException eee9 = new EarlyExitException( 9, input );
-					DebugRecognitionException(eee9);
-					throw eee9;
+					EarlyExitException eee10 = new EarlyExitException( 10, input );
+					DebugRecognitionException(eee10);
+					throw eee10;
 				}
-				cnt9++;
+				cnt10++;
 			}
-			loop9:
+			loop10:
 				;
 
-			} finally { DebugExitSubRule(9); }
+			} finally { DebugExitSubRule(10); }
 
 
 			}
@@ -2172,11 +2199,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		try
 		{
 			// Queries\\PomonaQuery.g:206:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE_ESC | OCTAL_ESC )
-			int alt10=3;
-			try { DebugEnterDecision(10, false);
-			int LA10_1 = input.LA(1);
+			int alt11=3;
+			try { DebugEnterDecision(11, false);
+			int LA11_1 = input.LA(1);
 
-			if ((LA10_1=='\\'))
+			if ((LA11_1=='\\'))
 			{
 				switch (input.LA(2))
 				{
@@ -2189,12 +2216,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				case 'r':
 				case 't':
 					{
-					alt10 = 1;
+					alt11 = 1;
 					}
 					break;
 				case 'u':
 					{
-					alt10 = 2;
+					alt11 = 2;
 					}
 					break;
 				case '0':
@@ -2206,12 +2233,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				case '6':
 				case '7':
 					{
-					alt10 = 3;
+					alt11 = 3;
 					}
 					break;
 				default:
 					{
-						NoViableAltException nvae = new NoViableAltException("", 10, 1, input, 2);
+						NoViableAltException nvae = new NoViableAltException("", 11, 1, input, 2);
 						DebugRecognitionException(nvae);
 						throw nvae;
 					}
@@ -2220,12 +2247,12 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			}
 			else
 			{
-				NoViableAltException nvae = new NoViableAltException("", 10, 0, input, 1);
+				NoViableAltException nvae = new NoViableAltException("", 11, 0, input, 1);
 				DebugRecognitionException(nvae);
 				throw nvae;
 			}
-			} finally { DebugExitDecision(10); }
-			switch (alt10)
+			} finally { DebugExitDecision(11); }
+			switch (alt11)
 			{
 			case 1:
 				DebugEnterAlt(1);
@@ -2282,64 +2309,64 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		try
 		{
 			// Queries\\PomonaQuery.g:213:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
-			int alt11=3;
-			try { DebugEnterDecision(11, false);
-			int LA11_1 = input.LA(1);
+			int alt12=3;
+			try { DebugEnterDecision(12, false);
+			int LA12_1 = input.LA(1);
 
-			if ((LA11_1=='\\'))
+			if ((LA12_1=='\\'))
 			{
-				int LA11_2 = input.LA(2);
+				int LA12_2 = input.LA(2);
 
-				if (((LA11_2>='0' && LA11_2<='3')))
+				if (((LA12_2>='0' && LA12_2<='3')))
 				{
-					int LA11_3 = input.LA(3);
+					int LA12_3 = input.LA(3);
 
-					if (((LA11_3>='0' && LA11_3<='7')))
+					if (((LA12_3>='0' && LA12_3<='7')))
 					{
-						int LA11_4 = input.LA(4);
+						int LA12_4 = input.LA(4);
 
-						if (((LA11_4>='0' && LA11_4<='7')))
+						if (((LA12_4>='0' && LA12_4<='7')))
 						{
-							alt11 = 1;
+							alt12 = 1;
 						}
 						else
 						{
-							alt11 = 2;
+							alt12 = 2;
 						}
 					}
 					else
 					{
-						alt11 = 3;
+						alt12 = 3;
 					}
 				}
-				else if (((LA11_2>='4' && LA11_2<='7')))
+				else if (((LA12_2>='4' && LA12_2<='7')))
 				{
-					int LA11_3 = input.LA(3);
+					int LA12_3 = input.LA(3);
 
-					if (((LA11_3>='0' && LA11_3<='7')))
+					if (((LA12_3>='0' && LA12_3<='7')))
 					{
-						alt11 = 2;
+						alt12 = 2;
 					}
 					else
 					{
-						alt11 = 3;
+						alt12 = 3;
 					}
 				}
 				else
 				{
-					NoViableAltException nvae = new NoViableAltException("", 11, 1, input, 2);
+					NoViableAltException nvae = new NoViableAltException("", 12, 1, input, 2);
 					DebugRecognitionException(nvae);
 					throw nvae;
 				}
 			}
 			else
 			{
-				NoViableAltException nvae = new NoViableAltException("", 11, 0, input, 1);
+				NoViableAltException nvae = new NoViableAltException("", 12, 0, input, 1);
 				DebugRecognitionException(nvae);
 				throw nvae;
 			}
-			} finally { DebugExitDecision(11); }
-			switch (alt11)
+			} finally { DebugExitDecision(12); }
+			switch (alt12)
 			{
 			case 1:
 				DebugEnterAlt(1);
@@ -2442,19 +2469,19 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 	public override void mTokens()
 	{
 		// Queries\\PomonaQuery.g:1:8: ( T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | PREFIXED_STRING | ID | INT | WS | STRING )
-		int alt12=45;
-		try { DebugEnterDecision(12, false);
+		int alt13=45;
+		try { DebugEnterDecision(13, false);
 		try
 		{
-			alt12 = dfa12.Predict(input);
+			alt13 = dfa13.Predict(input);
 		}
 		catch (NoViableAltException nvae)
 		{
 			DebugRecognitionException(nvae);
 			throw;
 		}
-		} finally { DebugExitDecision(12); }
-		switch (alt12)
+		} finally { DebugExitDecision(13); }
+		switch (alt13)
 		{
 		case 1:
 			DebugEnterAlt(1);
@@ -2868,45 +2895,46 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 
 
 	#region DFA
-	DFA12 dfa12;
+	DFA13 dfa13;
 
 	protected override void InitDFAs()
 	{
 		base.InitDFAs();
-		dfa12 = new DFA12(this);
+		dfa13 = new DFA13(this);
 	}
 
-	private class DFA12 : DFA
+	private class DFA13 : DFA
 	{
-		private const string DFA12_eotS =
-			"\x1\xFFFF\x1\x23\xB\xFFFF\x1\x25\x1\xFFFF\x1\x27\x2\xFFFF\xA\x1E\x1\xFFFF"+
-			"\x1\x1E\xA\xFFFF\x2\x1E\x1\x3F\x1\x1E\x1\xFFFF\x2\x1E\x1\x42\x1\x43\x1"+
-			"\x44\x1\x1E\x1\x46\x1\x47\x1\x48\x2\x1E\x1\x4B\x1\x1E\x1\x4D\x1\x1E\x1"+
-			"\x4F\x1\x50\x1\x51\x1\xFFFF\x1\x1E\x1\x53\x3\xFFFF\x1\x54\x3\xFFFF\x1"+
-			"\x55\x1\x56\x1\xFFFF\x1\x57\x1\xFFFF\x1\x58\x3\xFFFF\x1\x59\x7\xFFFF";
-		private const string DFA12_eofS =
-			"\x5A\xFFFF";
-		private const string DFA12_minS =
-			"\x1\x9\x1\x3D\xB\xFFFF\x1\x3D\x1\xFFFF\x1\x3D\x2\xFFFF\xA\x27\x1\xFFFF"+
-			"\x1\x27\xA\xFFFF\x4\x27\x1\xFFFF\x12\x27\x1\xFFFF\x2\x27\x3\xFFFF\x1"+
-			"\x27\x3\xFFFF\x2\x27\x1\xFFFF\x1\x27\x1\xFFFF\x1\x27\x3\xFFFF\x1\x27"+
-			"\x7\xFFFF";
-		private const string DFA12_maxS =
-			"\x1\x7C\x1\x3D\xB\xFFFF\x1\x3D\x1\xFFFF\x1\x3D\x2\xFFFF\xA\x7A\x1\xFFFF"+
-			"\x1\x7A\xA\xFFFF\x4\x7A\x1\xFFFF\x12\x7A\x1\xFFFF\x2\x7A\x3\xFFFF\x1"+
-			"\x7A\x3\xFFFF\x2\x7A\x1\xFFFF\x1\x7A\x1\xFFFF\x1\x7A\x3\xFFFF\x1\x7A"+
-			"\x7\xFFFF";
-		private const string DFA12_acceptS =
-			"\x2\xFFFF\x1\x3\x1\x4\x1\x5\x1\x6\x1\x7\x1\x8\x1\x9\x1\xA\x1\xB\x1\xC"+
-			"\x1\xD\x1\xFFFF\x1\x10\x1\xFFFF\x1\x13\x1\x14\xA\xFFFF\x1\x28\x1\xFFFF"+
-			"\x1\x2A\x1\x2B\x1\x2C\x1\x2D\x1\x2\x1\x1\x1\xF\x1\xE\x1\x12\x1\x11\x4"+
-			"\xFFFF\x1\x29\x12\xFFFF\x1\x17\x2\xFFFF\x1\x1B\x1\x1C\x1\x1D\x1\xFFFF"+
-			"\x1\x1F\x1\x20\x1\x21\x2\xFFFF\x1\x24\x1\xFFFF\x1\x26\x1\xFFFF\x1\x15"+
-			"\x1\x16\x1\x18\x1\xFFFF\x1\x1A\x1\x1E\x1\x22\x1\x23\x1\x25\x1\x27\x1"+
-			"\x19";
-		private const string DFA12_specialS =
-			"\x5A\xFFFF}>";
-		private static readonly string[] DFA12_transitionS =
+		private const string DFA13_eotS =
+			"\x1\xFFFF\x1\x23\x7\xFFFF\x1\x24\x3\xFFFF\x1\x26\x1\xFFFF\x1\x28\x2\xFFFF"+
+			"\xA\x1E\x1\xFFFF\x1\x1E\xB\xFFFF\x2\x1E\x1\x40\x1\x1E\x1\xFFFF\x2\x1E"+
+			"\x1\x43\x1\x44\x1\x45\x1\x1E\x1\x47\x1\x48\x1\x49\x2\x1E\x1\x4C\x1\x1E"+
+			"\x1\x4E\x1\x1E\x1\x50\x1\x51\x1\x52\x1\xFFFF\x1\x1E\x1\x54\x3\xFFFF\x1"+
+			"\x55\x3\xFFFF\x1\x56\x1\x57\x1\xFFFF\x1\x58\x1\xFFFF\x1\x59\x3\xFFFF"+
+			"\x1\x5A\x7\xFFFF";
+		private const string DFA13_eofS =
+			"\x5B\xFFFF";
+		private const string DFA13_minS =
+			"\x1\x9\x1\x3D\x7\xFFFF\x1\x30\x3\xFFFF\x1\x3D\x1\xFFFF\x1\x3D\x2\xFFFF"+
+			"\xA\x27\x1\xFFFF\x1\x27\xB\xFFFF\x4\x27\x1\xFFFF\x12\x27\x1\xFFFF\x2"+
+			"\x27\x3\xFFFF\x1\x27\x3\xFFFF\x2\x27\x1\xFFFF\x1\x27\x1\xFFFF\x1\x27"+
+			"\x3\xFFFF\x1\x27\x7\xFFFF";
+		private const string DFA13_maxS =
+			"\x1\x7C\x1\x3D\x7\xFFFF\x1\x39\x3\xFFFF\x1\x3D\x1\xFFFF\x1\x3D\x2\xFFFF"+
+			"\xA\x7A\x1\xFFFF\x1\x7A\xB\xFFFF\x4\x7A\x1\xFFFF\x12\x7A\x1\xFFFF\x2"+
+			"\x7A\x3\xFFFF\x1\x7A\x3\xFFFF\x2\x7A\x1\xFFFF\x1\x7A\x1\xFFFF\x1\x7A"+
+			"\x3\xFFFF\x1\x7A\x7\xFFFF";
+		private const string DFA13_acceptS =
+			"\x2\xFFFF\x1\x3\x1\x4\x1\x5\x1\x6\x1\x7\x1\x8\x1\x9\x1\xFFFF\x1\xB\x1"+
+			"\xC\x1\xD\x1\xFFFF\x1\x10\x1\xFFFF\x1\x13\x1\x14\xA\xFFFF\x1\x28\x1\xFFFF"+
+			"\x1\x2A\x1\x2B\x1\x2C\x1\x2D\x1\x2\x1\x1\x1\xA\x1\xF\x1\xE\x1\x12\x1"+
+			"\x11\x4\xFFFF\x1\x29\x12\xFFFF\x1\x17\x2\xFFFF\x1\x1B\x1\x1C\x1\x1D\x1"+
+			"\xFFFF\x1\x1F\x1\x20\x1\x21\x2\xFFFF\x1\x24\x1\xFFFF\x1\x26\x1\xFFFF"+
+			"\x1\x15\x1\x16\x1\x18\x1\xFFFF\x1\x1A\x1\x1E\x1\x22\x1\x23\x1\x25\x1"+
+			"\x27\x1\x19";
+		private const string DFA13_specialS =
+			"\x5B\xFFFF}>";
+		private static readonly string[] DFA13_transitionS =
 			{
 				"\x2\x20\x2\xFFFF\x1\x20\x12\xFFFF\x1\x20\x1\x1\x3\xFFFF\x1\x2\x1\x3"+
 				"\x1\x21\x1\x4\x1\x5\x1\x6\x1\x7\x1\x8\x1\x9\x1\xA\x1\xB\xA\x1F\x1\xC"+
@@ -2922,118 +2950,119 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				"",
 				"",
 				"",
+				"\xA\x1F",
 				"",
 				"",
 				"",
+				"\x1\x25",
 				"",
-				"\x1\x24",
-				"",
-				"\x1\x26",
-				"",
-				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x28\x9\x2B"+
-				"\x1\x29\x4\x2B\x1\x2A\x7\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x2D\x3\x2B"+
-				"\x1\x2E\x11\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x10\x2B\x1\x2F\x9"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x30\xE\x2B"+
-				"\x1\x31\x6\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x32\x8\x2B"+
-				"\x1\x33\xC\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x34\xE\x2B"+
-				"\x1\x35\x6\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xE\x2B\x1\x36\x5\x2B"+
-				"\x1\x37\x5\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x4\x2B\x1\x38\x9\x2B"+
-				"\x1\x39\xB\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x11\x2B\x1\x3A\x8"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x14\x2B\x1\x3B\x5"+
-				"\x2B",
-				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1A\x2B",
+				"\x1\x27",
 				"",
 				"",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x3\x2C\x1\x29\x9\x2C"+
+				"\x1\x2A\x4\x2C\x1\x2B\x7\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x4\x2C\x1\x2E\x3\x2C"+
+				"\x1\x2F\x11\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x10\x2C\x1\x30\x9"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x4\x2C\x1\x31\xE\x2C"+
+				"\x1\x32\x6\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x4\x2C\x1\x33\x8\x2C"+
+				"\x1\x34\xC\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x4\x2C\x1\x35\xE\x2C"+
+				"\x1\x36\x6\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\xE\x2C\x1\x37\x5\x2C"+
+				"\x1\x38\x5\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x4\x2C\x1\x39\x9\x2C"+
+				"\x1\x3A\xB\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x11\x2C\x1\x3B\x8"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x14\x2C\x1\x3C\x5"+
+				"\x2C",
 				"",
-				"",
-				"",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x1A\x2C",
 				"",
 				"",
 				"",
 				"",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x3C\x16"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x3D\x16"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x2"+
-				"\x2B\x1\x3E\x17\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1A\x2B",
-				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x12\x2B\x1\x40\x7"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x15\x2B\x1\x41\x4"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x10\x2B\x1\x45\x9"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x3\x2B\x1\x49\x16"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\xB\x2B\x1\x4A\xE\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x13\x2B\x1\x4C\x6"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x1\x2B\x1\x4E\x18"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x6\xFFFF\x2\x2B\x1\x52\x17"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
 				"",
 				"",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
 				"",
 				"",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x3\x2C\x1\x3D\x16"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x3\x2C\x1\x3E\x16"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x2"+
+				"\x2C\x1\x3F\x17\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x1A\x2C",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x12\x2C\x1\x41\x7"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x15\x2C\x1\x42\x4"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x10\x2C\x1\x46\x9"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x3\x2C\x1\x4A\x16"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\xB\x2C\x1\x4B\xE\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x13\x2C\x1\x4D\x6"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x1\x2C\x1\x4F\x18"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x6\xFFFF\x2\x2C\x1\x53\x17"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
 				"",
 				"",
 				"",
-				"\x1\x2C\x8\xFFFF\xA\x2B\x7\xFFFF\x1A\x2B\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
-				"\x2B",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"",
+				"",
+				"",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
+				"",
+				"",
+				"",
+				"\x1\x2D\x8\xFFFF\xA\x2C\x7\xFFFF\x1A\x2C\x4\xFFFF\x1\x1E\x1\xFFFF\x1A"+
+				"\x2C",
 				"",
 				"",
 				"",
@@ -3043,35 +3072,35 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				""
 			};
 
-		private static readonly short[] DFA12_eot = DFA.UnpackEncodedString(DFA12_eotS);
-		private static readonly short[] DFA12_eof = DFA.UnpackEncodedString(DFA12_eofS);
-		private static readonly char[] DFA12_min = DFA.UnpackEncodedStringToUnsignedChars(DFA12_minS);
-		private static readonly char[] DFA12_max = DFA.UnpackEncodedStringToUnsignedChars(DFA12_maxS);
-		private static readonly short[] DFA12_accept = DFA.UnpackEncodedString(DFA12_acceptS);
-		private static readonly short[] DFA12_special = DFA.UnpackEncodedString(DFA12_specialS);
-		private static readonly short[][] DFA12_transition;
+		private static readonly short[] DFA13_eot = DFA.UnpackEncodedString(DFA13_eotS);
+		private static readonly short[] DFA13_eof = DFA.UnpackEncodedString(DFA13_eofS);
+		private static readonly char[] DFA13_min = DFA.UnpackEncodedStringToUnsignedChars(DFA13_minS);
+		private static readonly char[] DFA13_max = DFA.UnpackEncodedStringToUnsignedChars(DFA13_maxS);
+		private static readonly short[] DFA13_accept = DFA.UnpackEncodedString(DFA13_acceptS);
+		private static readonly short[] DFA13_special = DFA.UnpackEncodedString(DFA13_specialS);
+		private static readonly short[][] DFA13_transition;
 
-		static DFA12()
+		static DFA13()
 		{
-			int numStates = DFA12_transitionS.Length;
-			DFA12_transition = new short[numStates][];
+			int numStates = DFA13_transitionS.Length;
+			DFA13_transition = new short[numStates][];
 			for ( int i=0; i < numStates; i++ )
 			{
-				DFA12_transition[i] = DFA.UnpackEncodedString(DFA12_transitionS[i]);
+				DFA13_transition[i] = DFA.UnpackEncodedString(DFA13_transitionS[i]);
 			}
 		}
 
-		public DFA12( BaseRecognizer recognizer )
+		public DFA13( BaseRecognizer recognizer )
 		{
 			this.recognizer = recognizer;
-			this.decisionNumber = 12;
-			this.eot = DFA12_eot;
-			this.eof = DFA12_eof;
-			this.min = DFA12_min;
-			this.max = DFA12_max;
-			this.accept = DFA12_accept;
-			this.special = DFA12_special;
-			this.transition = DFA12_transition;
+			this.decisionNumber = 13;
+			this.eot = DFA13_eot;
+			this.eof = DFA13_eof;
+			this.min = DFA13_min;
+			this.max = DFA13_max;
+			this.accept = DFA13_accept;
+			this.special = DFA13_special;
+			this.transition = DFA13_transition;
 		}
 
 		public override string Description { get { return "1:1: Tokens : ( T__40 | T__41 | T__42 | T__43 | T__44 | T__45 | T__46 | T__47 | T__48 | T__49 | T__50 | T__51 | T__52 | T__53 | T__54 | T__55 | T__56 | T__57 | T__58 | T__59 | T__60 | T__61 | T__62 | T__63 | T__64 | T__65 | T__66 | T__67 | T__68 | T__69 | T__70 | T__71 | T__72 | T__73 | T__74 | T__75 | T__76 | T__77 | T__78 | T__79 | PREFIXED_STRING | ID | INT | WS | STRING );"; } }
