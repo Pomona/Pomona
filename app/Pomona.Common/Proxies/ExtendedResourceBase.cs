@@ -31,7 +31,11 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
 {
-    public class ExtendedResourceBase : IHasResourceUri, IExtendedResourceProxy
+    public class ExtendedResourceBase<TWrappedResource> : ExtendedResourceBase, IExtendedResourceProxy<TWrappedResource>
+    {
+    }
+
+    public abstract class ExtendedResourceBase : IHasResourceUri, IExtendedResourceProxy
     {
         public object WrappedResource { get; private set; }
         public ExtendedResourceInfo UserTypeInfo { get; private set; }

@@ -63,7 +63,7 @@ namespace Pomona.Common.ExtendedResources
 
             var userPostForm =
                 (ExtendedFormBase)
-                    RuntimeProxyFactory.Create(typeof(ExtendedFormBase), info.ExtendedType);
+                    RuntimeProxyFactory.Create(typeof(ExtendedFormBase<>).MakeGenericType(info.ServerType), info.ExtendedType);
             userPostForm.Initialize(this.clientTypeResolver, info, serverPatchForm);
             return userPostForm;
 #endif
@@ -85,7 +85,7 @@ namespace Pomona.Common.ExtendedResources
 
             var proxy =
                 (ExtendedResourceBase)
-                    RuntimeProxyFactory.Create(typeof(ExtendedResourceBase), userTypeInfo.ExtendedType);
+                    RuntimeProxyFactory.Create(typeof(ExtendedResourceBase<>).MakeGenericType(userTypeInfo.ServerType), userTypeInfo.ExtendedType);
             proxy.Initialize(this.clientTypeResolver, userTypeInfo, wrappedResource);
             return proxy;
 #endif

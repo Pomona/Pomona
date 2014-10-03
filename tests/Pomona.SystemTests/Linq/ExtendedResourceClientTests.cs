@@ -204,6 +204,17 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void PostNonExtendedResourceHavingReferenceToAnotherExtendedResource_IsSuccessful()
+        {
+            var extendedFarm =
+                (IDecoratedMusicalFarm)Client.Post<IDecoratedMusicalFarm>(x => x.Name = "The music farm");
+            var musicalCritter =
+                (IMusicalCritter)Client.Post<IMusicalCritter>(x => x.Farm = extendedFarm);
+            Assert.That(musicalCritter.Farm.Id, Is.EqualTo(extendedFarm.Id));
+        }
+
+
+        [Test]
         public void QueryExtendedResource2_WhereDictIsOnBaseInterface_ReturnsExtendedResource2()
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));

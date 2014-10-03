@@ -30,7 +30,11 @@ using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Proxies
 {
-    public class ExtendedFormBase : ExtendedResourceBase, IPostForm
+    public abstract class ExtendedFormBase<TWrappedResource> : ExtendedFormBase, IExtendedResourceProxy<TWrappedResource>
+    {
+    }
+
+    public abstract class ExtendedFormBase : ExtendedResourceBase, IPostForm
     {
         bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
         {

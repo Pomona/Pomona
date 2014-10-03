@@ -61,6 +61,12 @@ namespace Pomona.Common
 
         protected override sealed Type MapExposedClrType(Type type)
         {
+            Type[] proxyTypeArgs;
+            if (typeof(IExtendedResourceProxy).IsAssignableFrom(type) && type.TryExtractTypeArguments(typeof(IExtendedResourceProxy<>), out proxyTypeArgs))
+            {
+                type = proxyTypeArgs[0];
+            }
+
             if (!type.IsInterface)
             {
                 if (typeof(IClientResource).IsAssignableFrom(type))
