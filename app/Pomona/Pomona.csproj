@@ -171,6 +171,7 @@
     <Compile Include="PomonaResponse.cs" />
     <Compile Include="PomonaJsonResponseProcessor.cs" />
     <Compile Include="PomonaResponseProcessorBase.cs" />
+    <Compile Include="PomonaTinyIoCBootstrapper.cs" />
     <Compile Include="Queries\DataSourceQueryableResolver.cs" />
     <Compile Include="Queries\DefaultQueryableResolver.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />
@@ -229,6 +230,8 @@
     <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="ResourcePreconditionFailedException.cs" />
     <Compile Include="ResourceValidationException.cs" />
+    <Compile Include="Routing\PomonaRouteMetadata.cs" />
+    <Compile Include="Routing\PomonaRouteMetadataProvider.cs" />
     <Compile Include="Schemas\SchemaGenerator.cs" />
     <Compile Include="Schemas\Schema.cs" />
     <Compile Include="Schemas\SchemaArrayItem.cs" />

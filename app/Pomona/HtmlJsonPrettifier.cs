@@ -35,12 +35,12 @@ namespace Pomona
     /// </summary>
     internal static class HtmlJsonPrettifier
     {
-        public static void CreatePrettifiedHtmlJsonResponse(Response res, string htmlLinks, string json, string baseUri)
+        public static void CreatePrettifiedHtmlJsonResponse(Response response, string htmlHeaderLinks, string json, string baseUri)
         {
-            var htmlPageTemplate =
-                @"<!DOCTYPE HTML>
+            const string htmlPageTemplate = @"<!DOCTYPE HTML>
 <head>
-  <meta charset='utf-8'> 
+  <meta charset='utf-8'>
+  {0}
   <style type=""text/css"">
 ul
 {{
@@ -56,20 +56,13 @@ ul li
 {{
 padding-left: 14px; 
 display: inline;
-}}  </style>
+}}
+</style>
 </head>
 <html>
-<div><ul>{1}</ul></div>
-<div>
-  <form action=""{2}"" method=""get"">
-    <div>Query <input type=""text"" class=""search"" name=""$filter"" /></div>
-    <div>Expand <input type=""text"" class=""search"" name=""$expand"" /></div>
-    <input type=""submit"" value=""Submit"" />
-  </form>
-</div>
 <div>
 <pre class=""prettyprint"">
-{0}
+{1}
 </pre>
 </div>
 </body>
@@ -103,9 +96,9 @@ display: inline;
                 }
             }
 
-            var prettifiedJsonHtml = string.Format(htmlPageTemplate, sb, htmlLinks, baseUri);
-            res.ContentsFromString(prettifiedJsonHtml);
-            res.ContentType = "text/html; charset=utf-8";
+            var prettifiedJsonHtml = String.Format(htmlPageTemplate, htmlHeaderLinks, sb, baseUri);
+            response.ContentsFromString(prettifiedJsonHtml);
+            response.ContentType = "text/html; charset=utf-8";
         }
     }
 }

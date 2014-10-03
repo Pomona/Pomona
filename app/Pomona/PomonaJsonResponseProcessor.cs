@@ -31,6 +31,7 @@ using System.Collections.Generic;
 
 using Nancy;
 using Nancy.Responses.Negotiation;
+using Nancy.Routing;
 
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
@@ -41,6 +42,13 @@ namespace Pomona
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
             new[] { new Tuple<string, MediaRange>("json", MediaRange.FromString("application/json")) };
+
+
+        public PomonaJsonResponseProcessor(IRouteCacheProvider routeCacheProvider)
+            : base(routeCacheProvider)
+        {
+        }
+
 
         /// <summary>
         /// Gets a set of mappings that map a given extension (such as .json)

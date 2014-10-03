@@ -26,31 +26,28 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
+using Nancy;
+using Nancy.Routing;
+using Nancy.TinyIoc;
 
-namespace Pomona.RequestProcessing
+using Pomona.Routing;
+
+namespace Pomona
 {
-    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline
+    /// <summary>
+    /// Pomona bootstrapper for <see cref="TinyIoCContainer"/>.
+    /// </summary>
+    public class PomonaTinyIoCBootstrapper : DefaultNancyBootstrapper
     {
-        public virtual IEnumerable<IPomonaRequestProcessor> Before
+        /// <summary>
+        /// Configures the container using AutoRegister followed by registration
+        /// of default INancyModuleCatalog and IRouteResolver.
+        /// </summary>
+        /// <param name="container">Container instance</param>
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
-            get { yield return new ValidateEtagProcessor(); }
-        }
-
-        public IEnumerable<IPomonaRequestProcessor> After
-        {
-            get { yield return new DefaultGetRequestProcessor(); }
-        }
-
-
-        public PomonaResponse Process(PomonaRequest request)
-        {
-            return Before
-                .Concat(request.Node.GetRequestProcessors(request))
-                .Concat(After)
-                .Select(x => x.Process(request))
-                .FirstOrDefault(response => response != null);
+            base.ConfigureApplicationContainer(container);
+            container.Register<IRouteMetadataProvider>(new PomonaRouteMetadataProvider());
         }
     }
 }

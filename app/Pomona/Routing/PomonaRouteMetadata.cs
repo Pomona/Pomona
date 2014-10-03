@@ -26,31 +26,37 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
+using Pomona.Common;
 
-namespace Pomona.RequestProcessing
+namespace Pomona.Routing
 {
-    public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline
+    /// <summary>
+    /// Metadata object for routes defined by Pomona.
+    /// </summary>
+    public class PomonaRouteMetadata
     {
-        public virtual IEnumerable<IPomonaRequestProcessor> Before
-        {
-            get { yield return new ValidateEtagProcessor(); }
-        }
+        /// <summary>
+        /// Gets or sets the type of the content.
+        /// </summary>
+        /// <value>
+        /// The type of the content.
+        /// </value>
+        public string ContentType { get; set; }
 
-        public IEnumerable<IPomonaRequestProcessor> After
-        {
-            get { yield return new DefaultGetRequestProcessor(); }
-        }
+        /// <summary>
+        /// Gets or sets the method.
+        /// </summary>
+        /// <value>
+        /// The method.
+        /// </value>
+        public HttpMethod Method { get; set; }
 
-
-        public PomonaResponse Process(PomonaRequest request)
-        {
-            return Before
-                .Concat(request.Node.GetRequestProcessors(request))
-                .Concat(After)
-                .Select(x => x.Process(request))
-                .FirstOrDefault(response => response != null);
-        }
+        /// <summary>
+        /// Gets or sets the relation.
+        /// </summary>
+        /// <value>
+        /// The relation.
+        /// </value>
+        public string Relation { get; set; }
     }
 }
