@@ -83,7 +83,8 @@ namespace Pomona
 
             Get["/schemas"] = x => GetSchemas();
 
-            Get[String.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName())] = x => GetClientLibrary();
+            var clientAssemblyFileName = String.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName());
+            Get[clientAssemblyFileName] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
 
@@ -105,14 +106,6 @@ namespace Pomona
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
             ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, embedPomonaClient);
-        }
-
-
-        protected virtual PomonaResponse InvokeRequestPipeline(DefaultRequestProcessorPipeline pipeline,
-                                                               PomonaRequest pomonaRequest)
-        {
-            var response = pipeline.Process(pomonaRequest);
-            return response;
         }
 
 
@@ -146,9 +139,10 @@ namespace Pomona
             if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
                 ThrowMethodNotAllowedForType(node.AllowedMethods);
 
-            var response = InvokeRequestPipeline(pipeline, pomonaRequest);
+            var response = pipeline.Process(pomonaRequest);
             if (response == null)
                 throw new PomonaException("Unable to find RequestProcessor able to handle request.");
+
             return response;
         }
 
@@ -286,14 +280,14 @@ namespace Pomona
 
         private void RegisterSerializationProvider(ITypeMapper typeMapper)
         {
-            Before += ctx =>
+            Before += context =>
             {
-                var uriResolver = new UriResolver(typeMapper, new BaseUriResolver(ctx, ModulePath));
-                var resourceResolver = new ResourceResolver(typeMapper, ctx, ctx.GetRouteResolver());
-                var contextProvider = new ServerSerializationContextProvider(uriResolver, resourceResolver, ctx);
+                var uriResolver = new UriResolver(typeMapper, new BaseUriResolver(context, ModulePath));
+                var resourceResolver = new ResourceResolver(typeMapper, context, context.GetRouteResolver());
+                var contextProvider = new ServerSerializationContextProvider(uriResolver, resourceResolver, context);
 
-                ctx.Items[typeof(IUriResolver).FullName] = uriResolver;
-                ctx.Items[typeof(ISerializationContextProvider).FullName] = contextProvider;
+                context.Items[typeof(IUriResolver).FullName] = uriResolver;
+                context.Items[typeof(ISerializationContextProvider).FullName] = contextProvider;
                 return null;
             };
         }
