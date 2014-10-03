@@ -208,13 +208,13 @@ namespace Pomona
 
         private Response GetSchemas()
         {
-            var res = new Response();
+            var response = new Response();
 
             var schemas = new SchemaGenerator(this.typeMapper).Generate().ToJson();
-            res.ContentsFromString(schemas);
-            res.ContentType = "text/plain; charset=utf-8";
+            response.ContentsFromString(schemas);
+            response.ContentType = "application/json; charset=utf-8";
 
-            return res;
+            return response;
         }
 
 
