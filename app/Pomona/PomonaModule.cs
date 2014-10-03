@@ -188,7 +188,7 @@ namespace Pomona
                         stream.Write(bytes, 0, bytes.Length);
                     }
                 },
-                ContentType = "binary/octet-stream"
+                ContentType = "application/zip",
             };
 
             return response;
