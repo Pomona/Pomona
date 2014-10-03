@@ -41,6 +41,7 @@ using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.RequestProcessing;
+using Pomona.Routing;
 using Pomona.Schemas;
 
 namespace Pomona
@@ -81,10 +82,10 @@ namespace Pomona
             // For root resource links!
             Register(Get, "/", x => ProcessRequest());
 
-            Get["/schemas"] = x => GetSchemas();
+            Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
 
             var clientAssemblyFileName = String.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName());
-            Get[clientAssemblyFileName] = x => GetClientLibrary();
+            Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
 
@@ -245,8 +246,8 @@ namespace Pomona
             var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
             var packageFileName = packageBuilder.PackageFileName;
 
-            Get["/client.nupkg"] = x => Response.AsRedirect(packageFileName);
-            Get["/" + packageFileName] = x => GetClientNugetPackage();
+            Get[PomonaRouteMetadataProvider.ClientNugetPackage, "/Client.nupkg"] = x => Response.AsRedirect(packageFileName);
+            Get[PomonaRouteMetadataProvider.ClientNugetPackageVersioned, "/" + packageFileName] = x => GetClientNugetPackage();
         }
 
 

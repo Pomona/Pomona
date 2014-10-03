@@ -31,7 +31,7 @@ using Nancy.TinyIoc;
 
 namespace Pomona.Example
 {
-    public class CritterBootstrapper : DefaultNancyBootstrapper
+    public class CritterBootstrapper : PomonaTinyIoCBootstrapper
     {
         private readonly CritterRepository repository;
 
