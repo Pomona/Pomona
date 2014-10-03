@@ -35,11 +35,12 @@ namespace Pomona
     /// </summary>
     internal static class HtmlJsonPrettifier
     {
-        public static void CreatePrettifiedHtmlJsonResponse(Response response, string htmlLinks, string json, string baseUri)
+        public static void CreatePrettifiedHtmlJsonResponse(Response response, string htmlHeaderLinks, string json, string baseUri)
         {
             const string htmlPageTemplate = @"<!DOCTYPE HTML>
 <head>
   <meta charset='utf-8'>
+  {0}
   <style type=""text/css"">
 ul
 {{
@@ -55,13 +56,13 @@ ul li
 {{
 padding-left: 14px; 
 display: inline;
-}}  </style>
+}}
+</style>
 </head>
 <html>
-<div><ul>{1}</ul></div>
 <div>
 <pre class=""prettyprint"">
-{0}
+{1}
 </pre>
 </div>
 </body>
@@ -95,7 +96,7 @@ display: inline;
                 }
             }
 
-            var prettifiedJsonHtml = String.Format(htmlPageTemplate, sb, htmlLinks, baseUri);
+            var prettifiedJsonHtml = String.Format(htmlPageTemplate, htmlHeaderLinks, sb, baseUri);
             response.ContentsFromString(prettifiedJsonHtml);
             response.ContentType = "text/html; charset=utf-8";
         }
