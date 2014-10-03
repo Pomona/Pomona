@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -51,18 +51,13 @@ namespace Pomona
         private readonly TypeMapper typeMapper;
 
 
-        protected PomonaModule(
-            IPomonaDataSource dataSource,
-            TypeMapper typeMapper)
+        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
             : this(dataSource, typeMapper, "/")
         {
         }
 
 
-        protected PomonaModule(
-            IPomonaDataSource dataSource,
-            TypeMapper typeMapper,
-            string baseUrl)
+        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, string baseUrl)
             : base(baseUrl)
         {
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
@@ -74,7 +69,6 @@ namespace Pomona
             };
 
             this.dataSource = dataSource;
-
             this.typeMapper = typeMapper;
 
             foreach (var transformedType in this.typeMapper
@@ -115,7 +109,7 @@ namespace Pomona
 
 
         protected virtual PomonaResponse InvokeRequestPipeline(DefaultRequestProcessorPipeline pipeline,
-            PomonaRequest pomonaRequest)
+                                                               PomonaRequest pomonaRequest)
         {
             var response = pipeline.Process(pomonaRequest);
             return response;
@@ -127,9 +121,10 @@ namespace Pomona
             if (exception is PomonaSerializationException)
                 return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
             var pomonaException = exception as PomonaException;
-            if (pomonaException != null)
-                return new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message);
-            return new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
+
+            return pomonaException != null
+                ? new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message)
+                : new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
         }
 
 
@@ -141,8 +136,10 @@ namespace Pomona
             var pipeline = new DefaultRequestProcessorPipeline();
             var pomonaContext = new PomonaContext(Context, new PomonaJsonSerializerFactory());
 
-            foreach (var pathPart in pathNodes.WalkTree(x => x.Next).Select(x => x.Value))
-                node = node.GetChildNode(pathPart, pomonaContext, pipeline);
+            node = pathNodes
+                .WalkTree(x => x.Next)
+                .Select(x => x.Value)
+                .Aggregate(node, (current, pathPart) => current.GetChildNode(pathPart, pomonaContext, pipeline));
 
             var pomonaRequest = pomonaContext.CreateOuterRequest(node);
 
@@ -160,16 +157,18 @@ namespace Pomona
         {
             if (exception is TargetInvocationException || exception is RequestExecutionException)
                 return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
+
             return exception;
         }
 
 
         private Response GetClientLibrary()
         {
-            var response = new Response();
-
-            response.Contents = stream => WriteClientLibrary(stream);
-            response.ContentType = "binary/octet-stream";
+            var response = new Response
+            {
+                Contents = stream => WriteClientLibrary(stream),
+                ContentType = "binary/octet-stream"
+            };
 
             return response;
         }
@@ -177,19 +176,20 @@ namespace Pomona
 
         private Response GetClientNugetPackage()
         {
-            var response = new Response();
-
             var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
-            response.Contents = stream =>
+            var response = new Response
             {
-                using (var memstream = new MemoryStream())
+                Contents = stream =>
                 {
-                    packageBuilder.BuildPackage(memstream);
-                    var bytes = memstream.ToArray();
-                    stream.Write(bytes, 0, bytes.Length);
-                }
+                    using (var memstream = new MemoryStream())
+                    {
+                        packageBuilder.BuildPackage(memstream);
+                        var bytes = memstream.ToArray();
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                },
+                ContentType = "binary/octet-stream"
             };
-            response.ContentType = "binary/octet-stream";
 
             return response;
         }
@@ -197,10 +197,12 @@ namespace Pomona
 
         private LinkedListNode<string> GetPathNodes()
         {
-            return
-                new LinkedList<string>(
-                    Request.Url.Path.Substring(ModulePath.Length).Split(new[] { '/' },
-                        StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode)).First;
+            var pathSegments = Request.Url.Path
+                .Substring(ModulePath.Length)
+                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(HttpUtility.UrlDecode);
+
+            return new LinkedList<string>(pathSegments).First;
         }
 
 
@@ -237,8 +239,8 @@ namespace Pomona
 
                     SetErrorHandled();
                     return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
-                        error.StatusCode,
-                        responseHeaders : error.ResponseHeaders);
+                                              error.StatusCode,
+                                              responseHeaders : error.ResponseHeaders);
                 }
             };
         }
@@ -247,8 +249,10 @@ namespace Pomona
         private void RegisterClientNugetPackageRoute()
         {
             var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
-            Get["/client.nupkg"] = x => Response.AsRedirect(packageBuilder.PackageFileName);
-            Get["/" + packageBuilder.PackageFileName] = x => GetClientNugetPackage();
+            var packageFileName = packageBuilder.PackageFileName;
+
+            Get["/client.nupkg"] = x => Response.AsRedirect(packageFileName);
+            Get["/" + packageFileName] = x => GetClientNugetPackage();
         }
 
 
@@ -262,9 +266,8 @@ namespace Pomona
 
             var resourceName = "Pomona.Content." + name;
             Get["/" + name] = x =>
-                Response.FromStream(
-                    () => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
-                    mediaType);
+                Response.FromStream(() => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
+                                    mediaType);
         }
 
 
@@ -281,20 +284,18 @@ namespace Pomona
         }
 
 
-        private void RegisterSerializationProvider(TypeMapper typeMapper)
+        private void RegisterSerializationProvider(ITypeMapper typeMapper)
         {
-            Before += (ctx =>
+            Before += ctx =>
             {
                 var uriResolver = new UriResolver(typeMapper, new BaseUriResolver(ctx, ModulePath));
+                var resourceResolver = new ResourceResolver(typeMapper, ctx, ctx.GetRouteResolver());
+                var contextProvider = new ServerSerializationContextProvider(uriResolver, resourceResolver, ctx);
 
                 ctx.Items[typeof(IUriResolver).FullName] = uriResolver;
-                ctx.Items[typeof(ISerializationContextProvider).FullName] =
-                    new ServerSerializationContextProvider(
-                        uriResolver,
-                        new ResourceResolver(typeMapper, ctx, ctx.GetRouteResolver()),
-                        ctx);
+                ctx.Items[typeof(ISerializationContextProvider).FullName] = contextProvider;
                 return null;
-            });
+            };
         }
 
 
@@ -306,16 +307,19 @@ namespace Pomona
 
         private void ThrowMethodNotAllowedForType(HttpMethod allowedMethods)
         {
-            var allowedMethodsString = string.Join(", ",
-                Enum.GetValues(typeof(HttpMethod)).Cast<HttpMethod>().Where(x => allowedMethods.HasFlag(x)).Select(
-                    x => x.ToString().ToUpper()));
+            var httpMethods = Enum.GetValues(typeof(HttpMethod))
+                .Cast<HttpMethod>()
+                .Where(x => allowedMethods.HasFlag(x))
+                .Select(x => x.ToString().ToUpper());
+
+            var allowedMethodsString = String.Join(", ", httpMethods);
 
             var allowHeader = new KeyValuePair<string, string>("Allow", allowedMethodsString);
 
             throw new PomonaException("Method " + Context.Request.Method + " not allowed!",
-                null,
-                HttpStatusCode.MethodNotAllowed,
-                allowHeader.WrapAsEnumerable());
+                                      null,
+                                      HttpStatusCode.MethodNotAllowed,
+                                      allowHeader.WrapAsEnumerable());
         }
     }
 }
