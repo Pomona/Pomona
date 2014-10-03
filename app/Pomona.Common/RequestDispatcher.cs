@@ -38,6 +38,7 @@ using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
+using Pomona.Profiling;
 
 namespace Pomona.Common
 {
@@ -206,7 +207,12 @@ namespace Pomona.Common
                 AddDefaultHeaders(request);
 
                 request.Headers.Add("Accept", "application/json");
-                response = this.webClient.Send(request);
+                
+                using (Profiler.Step("client: " + request.Method + " " + request.Uri))
+                {
+                    response = this.webClient.Send(request);
+                }
+
                 responseString = (response.Data != null && response.Data.Length > 0)
                     ? Encoding.UTF8.GetString(response.Data)
                     : null;

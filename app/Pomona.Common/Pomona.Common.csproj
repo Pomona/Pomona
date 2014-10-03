@@ -121,6 +121,10 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\RestQueryRoot.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="Profiling\IProfiler.cs" />
+    <Compile Include="Profiling\IProfilerImplementation.cs" />
+    <Compile Include="Profiling\Profiler.cs" />
+    <Compile Include="Profiling\ProfilerExtensions.cs" />
     <Compile Include="Proxies\EmitHelpers.cs" />
     <Compile Include="Proxies\IExtendedResourceProxy.cs" />
     <Compile Include="Proxies\IPostForm.cs" />

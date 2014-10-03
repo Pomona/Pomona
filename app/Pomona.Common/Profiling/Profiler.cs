@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,25 +24,40 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+#endregion
 
-[assembly: AssemblyCompany("Karsten N. Strand")]
-[assembly: AssemblyProduct("Pomona")]
-[assembly: AssemblyCopyright("Copyright © Karsten N. Strand 2013")]
+using System;
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+namespace Pomona.Profiling
+{
+    public abstract class Profiler : IProfilerImplementation
+    {
+        static Profiler()
+        {
+            ProfilerFactory = null;
+        }
 
-[assembly: AssemblyVersion("0.9.3.1")]
-[assembly: AssemblyFileVersion("0.9.6.1")]
-[assembly: AssemblyInformationalVersion("0.9.6")]
-[assembly: ComVisible(false)]
+
+        public static IProfiler Current
+        {
+            get { return ProfilerFactory != null ? ProfilerFactory() : null; }
+        }
+
+        public static Func<IProfiler> ProfilerFactory { get; set; }
+
+
+        public static IDisposable Step(string name = null)
+        {
+            return Current.Step(name);
+        }
+
+
+        protected abstract IDisposable OnStep(string name);
+
+
+        IDisposable IProfilerImplementation.Step(string name)
+        {
+            return OnStep(name);
+        }
+    }
+}

@@ -111,6 +111,20 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void ParseLiteralNegativeInt_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("-1234'", _this => -1234);
+        }
+
+
+        [Test]
+        public void ParseLiteralPositiveInt_ReturnsCorrectExpression()
+        {
+            ParseAndAssert("1234'", _this => 1234);
+        }
+
+
+        [Test]
         public void ParseMaxOfEnumerable_ReturnsCorrectExpression()
         {
             ParseAndAssert("listOfInts.max()", _this => _this.ListOfInts.Max());

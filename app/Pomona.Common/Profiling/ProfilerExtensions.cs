@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,25 +24,40 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+#endregion
 
-[assembly: AssemblyCompany("Karsten N. Strand")]
-[assembly: AssemblyProduct("Pomona")]
-[assembly: AssemblyCopyright("Copyright © Karsten N. Strand 2013")]
+using System;
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+namespace Pomona.Profiling
+{
+    public static class ProfilerExtensions
+    {
+#if false
+        public static IDisposable Profile(this object profiled,
+            string subSectionName = null,
+            [CallerMemberName] string methodName = "")
+        {
+            if (profiled == null)
+                throw new ArgumentNullException("profiled");
+            var profiler = Profiler.Current;
+            if (profiler == null)
+                return null;
 
-[assembly: AssemblyVersion("0.9.3.1")]
-[assembly: AssemblyFileVersion("0.9.6.1")]
-[assembly: AssemblyInformationalVersion("0.9.6")]
-[assembly: ComVisible(false)]
+            var profiledType = profiled.GetType();
+            var name = subSectionName != null
+                           ? string.Format("{0}:{1}.{2}", profiledType.Name, methodName, subSectionName)
+                           : string.Format("{0}:{1}", profiledType.Name, methodName);
+            return profiler.Step(name);
+        }
+#endif
+
+
+        public static IDisposable Step(this IProfiler profiler, string methodName = "")
+        {
+            var profImpl = profiler as IProfilerImplementation;
+            if (profImpl == null)
+                return null;
+            return profImpl.Step(methodName);
+        }
+    }
+}

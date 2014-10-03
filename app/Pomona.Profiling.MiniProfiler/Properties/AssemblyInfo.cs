@@ -1,7 +1,9 @@
+ï»¿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright Â© 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,25 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyCompany("Karsten N. Strand")]
-[assembly: AssemblyProduct("Pomona")]
-[assembly: AssemblyCopyright("Copyright © Karsten N. Strand 2013")]
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
+[assembly : AssemblyTitle("Pomona.Profiling.MiniProfiler")]
+[assembly : AssemblyDescription("Support for integration with MiniProfiler")]
 
-[assembly: AssemblyVersion("0.9.3.1")]
-[assembly: AssemblyFileVersion("0.9.6.1")]
-[assembly: AssemblyInformationalVersion("0.9.6")]
-[assembly: ComVisible(false)]
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+
+[assembly : Guid("4b6fa8b0-5826-413b-b6fd-e38e61a6244d")]
