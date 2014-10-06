@@ -27,6 +27,9 @@
 #endregion
 
 using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Pomona
@@ -65,7 +68,7 @@ namespace Pomona
 
             if (String.IsNullOrWhiteSpace(name))
                 name = assemblyName.Split('.').Last();
-
+            
             if (String.IsNullOrWhiteSpace(interfaceName))
                 interfaceName = String.Concat('I', name);
 
@@ -74,6 +77,13 @@ namespace Pomona
 
             if (String.IsNullOrWhiteSpace(informationalVersion))
                 informationalVersion = "1.0.0.0";
+
+            ValidateIdentifiers(new Dictionary<string, CodeObject>
+            {
+                { "name", new CodeTypeDeclaration(name) },
+                { "interfaceName", new CodeTypeDeclaration(interfaceName) },
+                { "namespace", new CodeNamespace(@namespace) },
+            });
 
             this.assemblyName = assemblyName;
             this.name = name;
@@ -191,6 +201,32 @@ namespace Pomona
                 informationalVersion = this.informationalVersion;
 
             return new ClientMetadata(assemblyName, name, interfaceName, @namespace, informationalVersion);
+        }
+
+
+        private static void ValidateIdentifiers(IEnumerable<KeyValuePair<string, CodeObject>> codeObjects)
+        {
+            foreach (var kvp in codeObjects)
+            {
+                var codeObject = kvp.Value;
+
+                try
+                {
+                    CodeGenerator.ValidateIdentifiers(codeObject);
+                }
+                catch (Exception exception)
+                {
+                    var typeMember = codeObject as CodeTypeMember;
+                    if (typeMember != null)
+                        throw new ArgumentException(String.Format("'{0}' is not a valid type name.", typeMember.Name), kvp.Key);
+
+                    var ns = codeObject as CodeNamespace;
+                    if (ns != null)
+                        throw new ArgumentException(String.Format("'{0}' is not a valid namespace.", ns.Name), kvp.Key);
+
+                    throw new ArgumentException(exception.Message, kvp.Key);
+                }
+            }
         }
     }
 }

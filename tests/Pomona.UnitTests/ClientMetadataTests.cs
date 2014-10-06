@@ -49,7 +49,7 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        public void Constructor_AssemblyName_AllValuesAreBasedOnAssemblyName()
+        public void Constructor_AssemblyName()
         {
             ClientMetadata clientMetadata = new TestableClientMetadata("My.Client");
 
@@ -57,6 +57,20 @@ namespace Pomona.UnitTests
             Assert.That(clientMetadata.Name, Is.EqualTo("Client"), "Name");
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IClient"), "InterfaceName");
             Assert.That(clientMetadata.Namespace, Is.EqualTo("My.Client"), "Namespace");
+            Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
+        }
+
+
+        [Test]
+        public void Constructor_AssemblyNameAndClientName()
+        {
+            ClientMetadata clientMetadata = new TestableClientMetadata("My.Client", "MyClient");
+
+            Assert.That(clientMetadata.AssemblyName, Is.EqualTo("My.Client"), "AssemblyName");
+            Assert.That(clientMetadata.Name, Is.EqualTo("MyClient"), "Name");
+            Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IMyClient"), "InterfaceName");
+            Assert.That(clientMetadata.Namespace, Is.EqualTo("My.Client"), "Namespace");
+            Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
         }
 
 
@@ -69,6 +83,7 @@ namespace Pomona.UnitTests
             Assert.That(clientMetadata.Name, Is.EqualTo("Client"), "Name");
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IClient"), "InterfaceName");
             Assert.That(clientMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
+            Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
         }
 
 
@@ -84,6 +99,46 @@ namespace Pomona.UnitTests
             Assert.That(clientMetadata.Name, Is.EqualTo("Client"), "Name");
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IClient"), "InterfaceName");
             Assert.That(clientMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
+            Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
+        }
+
+
+        [Test]
+        public void Constructor_InvalidClientInterfaceName_ThrowsArgumentException()
+        {
+            TestDelegate throwing = () => new TestableClientMetadata(interfaceName : "My.Awesome.Client");
+
+            var exception = Assert.Throws<ArgumentException>(throwing);
+
+            Console.WriteLine(exception);
+
+            Assert.That(exception.ParamName, Is.EqualTo("interfaceName"));
+        }
+
+
+        [Test]
+        public void Constructor_InvalidClientName_ThrowsArgumentException()
+        {
+            TestDelegate throwing = () => new TestableClientMetadata(name : "My.Awesome.Client");
+
+            var exception = Assert.Throws<ArgumentException>(throwing);
+
+            Console.WriteLine(exception);
+
+            Assert.That(exception.ParamName, Is.EqualTo("name"));
+        }
+
+
+        [Test]
+        public void Constructor_InvalidClientNamespace_ThrowsArgumentException()
+        {
+            TestDelegate throwing = () => new TestableClientMetadata(@namespace : "My#Awesome#Client");
+
+            var exception = Assert.Throws<ArgumentException>(throwing);
+
+            Console.WriteLine(exception);
+
+            Assert.That(exception.ParamName, Is.EqualTo("namespace"));
         }
 
 
@@ -96,6 +151,7 @@ namespace Pomona.UnitTests
             Assert.That(clientMetadata.Name, Is.EqualTo("Client"), "Name");
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IClient"), "InterfaceName");
             Assert.That(clientMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
+            Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
         }
 
 
@@ -109,6 +165,7 @@ namespace Pomona.UnitTests
             Assert.That(clientMetadata.Name, Is.EqualTo("Client"), "Name");
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IClient"), "InterfaceName");
             Assert.That(clientMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
+            Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
         }
     }
 }
