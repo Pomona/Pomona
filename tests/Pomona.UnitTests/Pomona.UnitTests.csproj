@@ -76,6 +76,7 @@
     <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="Client\QueryPredicateBuilderTestsBase.cs" />
     <Compile Include="Client\QuerySelectBuilderTests.cs" />
+    <Compile Include="ClientMetadataTests.cs" />
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="ExpressionTreeMatcherTests.cs" />

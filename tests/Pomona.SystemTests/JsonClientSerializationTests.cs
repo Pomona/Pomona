@@ -52,7 +52,7 @@ namespace Pomona.SystemTests
         [SetUp]
         public void SetUp()
         {
-            this.typeMapper = new ClientTypeMapper(typeof(Client).Assembly);
+            this.typeMapper = new ClientTypeMapper(typeof(CritterClient).Assembly);
         }
 
         #endregion

@@ -32,9 +32,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 
-using IndependentCritters;
-using IndependentCritters.Pomona.Common;
-using IndependentCritters.Pomona.Common.Web;
+using Critters.Client;
+using Critters.Client.Pomona.Common;
+using Critters.Client.Pomona.Common.Web;
 
 using Nancy.Testing;
 
@@ -42,29 +42,30 @@ using Pomona.Common.Internals;
 using Pomona.Example;
 using Pomona.UnitTests.Client;
 
-using HttpStatusCode = IndependentCritters.Pomona.Common.Web.HttpStatusCode;
+using HttpStatusCode = Critters.Client.Pomona.Common.Web.HttpStatusCode;
 
 namespace Pomona.IndependentClientTests
 {
-    public abstract class IndependentClientTestsBase : CritterServiceTestsBase<Client>
+    public abstract class IndependentClientTestsBase : CritterServiceTestsBase<CritterClient>
     {
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
             Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                e.Request,
-                (object)e.Response ?? "(nothing received)");
+                              e.Request,
+                              (object)e.Response ?? "(nothing received)");
         }
 
 
-        public override Client CreateHttpTestingClient(string baseUri)
+        public override CritterClient CreateHttpTestingClient(string baseUri)
         {
             throw new NotImplementedException();
         }
 
 
-        public override Client CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
+        public override CritterClient CreateInMemoryTestingClient(string baseUri,
+                                                                  CritterBootstrapper critterBootstrapper)
         {
-            return new Client(baseUri, new NancyTestingWebClient(new Browser(critterBootstrapper)));
+            return new CritterClient(baseUri, new NancyTestingWebClient(new Browser(critterBootstrapper)));
         }
 
 
@@ -125,21 +126,20 @@ namespace Pomona.IndependentClientTests
                 var uri = new Uri(request.Uri);
                 var creds = Credentials;
 
-                var browserResponse = browserMethod(uri.LocalPath,
-                    bc =>
-                    {
-                        bc.HttpRequest();
-                        if (creds != null)
-                            bc.BasicAuth(creds.UserName, creds.Password);
-                        ((IBrowserContextValues)bc).QueryString = uri.Query;
-                        foreach (var kvp in this.headers.Concat(request.Headers))
-                        {
-                            foreach (var v in kvp.Value)
-                                bc.Header(kvp.Key, v);
-                        }
-                        if (request.Data != null)
-                            bc.Body(new MemoryStream(request.Data));
-                    });
+                var browserResponse = browserMethod(uri.LocalPath, bc =>
+                                                    {
+                                                        bc.HttpRequest();
+                                                        if (creds != null)
+                                                            bc.BasicAuth(creds.UserName, creds.Password);
+                                                        ((IBrowserContextValues)bc).QueryString = uri.Query;
+                                                        foreach (var kvp in this.headers.Concat(request.Headers))
+                                                        {
+                                                            foreach (var v in kvp.Value)
+                                                                bc.Header(kvp.Key, v);
+                                                        }
+                                                        if (request.Data != null)
+                                                            bc.Body(new MemoryStream(request.Data));
+                                                    });
 
                 var responseHeaders = new HttpHeaders(
                     browserResponse
@@ -151,10 +151,10 @@ namespace Pomona.IndependentClientTests
                     responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
 
                 return new WebClientResponseMessage(request.Uri,
-                    browserResponse.Body.ToArray(),
-                    (HttpStatusCode)browserResponse.StatusCode,
-                    responseHeaders,
-                    "1.1");
+                                                    browserResponse.Body.ToArray(),
+                                                    (HttpStatusCode)browserResponse.StatusCode,
+                                                    responseHeaders,
+                                                    "1.1");
             }
         }
 

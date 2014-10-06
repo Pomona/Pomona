@@ -65,16 +65,12 @@ namespace Pomona.Example
         }
 
 
-        public override string GetClientAssemblyName()
+        public override ClientMetadata ClientMetadata
         {
-            return "Critters.Client";
+            get { return base.ClientMetadata.With("Critters.Client", "CritterClient", "ICritterClient", "Critters.Client"); }
         }
 
 
-        public override string GetClientInformationalVersion()
-        {
-            return "0.1.0-alpha1";
-        }
 
 
         public override Type GetClientLibraryType(Type type)

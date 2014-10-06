@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,14 +24,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Mono.Cecil;
+
 using Newtonsoft.Json;
+
 using NuGet;
+
 using Pomona.Common;
 
 namespace Pomona.CodeGen
@@ -49,7 +54,7 @@ namespace Pomona.CodeGen
 
         public string PackageFileName
         {
-            get { return typeMapper.Filter.GetClientAssemblyName() + "." + GetVersionString() + ".nupkg"; }
+            get { return this.typeMapper.Filter.ClientMetadata.AssemblyName + "." + GetVersionString() + ".nupkg"; }
         }
 
 
@@ -58,7 +63,7 @@ namespace Pomona.CodeGen
             var tempPath = Path.GetTempPath() + Guid.NewGuid().ToString("N");
             try
             {
-                WritePackageContents(tempPath, typeMapper.Filter.GenerateIndependentClient());
+                WritePackageContents(tempPath, this.typeMapper.Filter.GenerateIndependentClient());
                 CreateNugetPackage(tempPath, stream);
             }
             finally
@@ -68,38 +73,9 @@ namespace Pomona.CodeGen
         }
 
 
-        private string GetVersionString()
+        private static PackageDependency CreatePackageDependency<TInAssembly>(int versionPartCount)
         {
-            return typeMapper.Filter.GetClientInformationalVersion();
-        }
-
-
-        private void CreateNugetPackage(string tempPath, Stream stream)
-        {
-            var metadata = GetManifestMetadata();
-
-            var packageBuilder = new PackageBuilder();
-
-            // Have no idea what this means, copy paste from http://stackoverflow.com/questions/6808868/howto-create-a-nuget-package-using-nuget-core
-            packageBuilder.PopulateFiles(tempPath, new[] {new ManifestFile {Source = "**"}});
-
-            packageBuilder.Populate(metadata);
-
-            packageBuilder.DependencySets.Add(
-                new PackageDependencySet(
-                    null,
-                    new[]
-                        {
-                            // CreatePackageDependency<TypeDefinition>(4), <-- Dependency on Cecil no longer needed.
-                            CreatePackageDependency<JsonSerializer>(2)
-                        }));
-
-            packageBuilder.Save(stream);
-        }
-
-        private PackageDependency CreatePackageDependency<TInAssembly>(int versionPartCount)
-        {
-            var assembly = typeof (TInAssembly).Assembly;
+            var assembly = typeof(TInAssembly).Assembly;
             var packageName = assembly.GetName().Name;
             var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             var versionParts = fvi.FileVersion.Split('.').Take(versionPartCount).Select(int.Parse).ToList();
@@ -114,45 +90,70 @@ namespace Pomona.CodeGen
                 MaxVersion = new SemanticVersion(endVersion)
             };
             return new PackageDependency(packageName,
-                versionSpec);
+                                         versionSpec);
+        }
+
+
+        private void CreateNugetPackage(string tempPath, Stream stream)
+        {
+            var metadata = GetManifestMetadata();
+
+            var packageBuilder = new PackageBuilder();
+
+            // Have no idea what this means, copy paste from http://stackoverflow.com/questions/6808868/howto-create-a-nuget-package-using-nuget-core
+            packageBuilder.PopulateFiles(tempPath, new[] { new ManifestFile { Source = "**" } });
+
+            packageBuilder.Populate(metadata);
+            packageBuilder.DependencySets.Add(new PackageDependencySet(null, new[]
+            {
+                // CreatePackageDependency<TypeDefinition>(4), <-- Dependency on Cecil no longer needed.
+                CreatePackageDependency<JsonSerializer>(2)
+            }));
+
+            packageBuilder.Save(stream);
         }
 
 
         private ManifestMetadata GetManifestMetadata()
         {
             return new ManifestMetadata
-                {
-                    Authors = "nobody@example.com", // TODO: find a way to configure author in nuget file
-                    Version = GetVersionString(), // TODO: API versioning
-                    Id = typeMapper.Filter.GetClientAssemblyName(),
-                    Description = "TODO: Make it possible to set description for nuget file"
-                };
+            {
+                Authors = "nobody@example.com", // TODO: find a way to configure author in nuget file
+                Version = GetVersionString(), // TODO: API versioning
+                Id = this.typeMapper.Filter.ClientMetadata.AssemblyName,
+                Description = "TODO: Make it possible to set description for nuget file"
+            };
+        }
+
+
+        private string GetVersionString()
+        {
+            return this.typeMapper.Filter.ClientMetadata.InformationalVersion;
         }
 
 
         private void WritePackageContents(string tempPath, bool pomonaClientEmbeddingEnabled)
         {
-            var clientLibGen = new ClientLibGenerator(typeMapper);
+            var clientLibGen = new ClientLibGenerator(this.typeMapper);
 
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(Path.Combine(tempPath, "lib"));
             var dllDir = Path.Combine(tempPath, "lib", "net40");
             Directory.CreateDirectory(dllDir);
-            var dllPath = Path.Combine(dllDir, typeMapper.Filter.GetClientAssemblyName() + ".dll");
+            var dllPath = Path.Combine(dllDir, this.typeMapper.Filter.ClientMetadata.AssemblyName + ".dll");
 
             using (var stream = File.Create(dllPath))
             {
-                clientLibGen.PomonaClientEmbeddingEnabled =  pomonaClientEmbeddingEnabled;
+                clientLibGen.PomonaClientEmbeddingEnabled = pomonaClientEmbeddingEnabled;
                 clientLibGen.CreateClientDll(stream);
             }
-            if(!pomonaClientEmbeddingEnabled)
-            {
-                var pomonaClientAssemblySourcePath = typeof (ClientBase<>).Assembly.Location;
 
-                var pomonaClientAssemblyDestPath = Path.Combine(dllDir, Path.GetFileName(pomonaClientAssemblySourcePath));
+            if (pomonaClientEmbeddingEnabled)
+                return;
 
-                File.Copy(pomonaClientAssemblySourcePath, pomonaClientAssemblyDestPath);
-            }
+            var pomonaClientAssemblySourcePath = typeof(ClientBase<>).Assembly.Location;
+            var pomonaClientAssemblyDestPath = Path.Combine(dllDir, Path.GetFileName(pomonaClientAssemblySourcePath));
+            File.Copy(pomonaClientAssemblySourcePath, pomonaClientAssemblyDestPath);
         }
     }
 }

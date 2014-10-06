@@ -83,6 +83,15 @@ namespace Pomona
         #region GeneratedClientConfiguration
 
         /// <summary>
+        /// Gets the metadata about the generated REST client.
+        /// </summary>
+        /// <returns>
+        /// The the metadata about the generated REST client.
+        /// </returns>
+        ClientMetadata ClientMetadata { get; }
+
+
+        /// <summary>
         /// This will make sure we generate a client dll with no dependency on Pomona.Common.
         /// </summary>
         bool GenerateIndependentClient();
@@ -94,18 +103,11 @@ namespace Pomona
         /// <returns>
         /// The name of the generated client assembly.
         /// </returns>
+        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
         string GetClientAssemblyName(); // Maybe expose as property ClientAssemblyName instead
+
+        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
         string GetClientInformationalVersion();
-
-
-        /// <summary>
-        /// Gets the full name (including namespace) of the client type.
-        /// </summary>
-        /// <returns>
-        /// The full name (including namespace) of the client type.
-        /// </returns>
-        string GetClientTypeFullName();
-
 
         // Expose as property ClientInformationalVersion instead
 

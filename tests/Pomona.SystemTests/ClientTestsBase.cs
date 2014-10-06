@@ -48,7 +48,7 @@ using Pomona.UnitTests.Client;
 
 namespace Pomona.SystemTests
 {
-    public class ClientTestsBase : CritterServiceTestsBase<Client>
+    public class ClientTestsBase : CritterServiceTestsBase<CritterClient>
     {
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
@@ -63,9 +63,9 @@ namespace Pomona.SystemTests
 
         private readonly List<ClientRequestLogEventArgs> requestLog = new List<ClientRequestLogEventArgs>();
 
-        public override Client CreateHttpTestingClient(string baseUri)
+        public override CritterClient CreateHttpTestingClient(string baseUri)
         {
-            return new Client(baseUri, new HttpWebRequestClient(new HttpHeaders() {{"MongoHeader", "lalaal"}}));
+            return new CritterClient(baseUri, new HttpWebRequestClient(new HttpHeaders() { { "MongoHeader", "lalaal" } }));
         }
 
 
@@ -82,10 +82,10 @@ namespace Pomona.SystemTests
         }
 
 
-        public override Client CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
+        public override CritterClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
             var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-            return new Client(baseUri, nancyTestingWebClient);
+            return new CritterClient(baseUri, nancyTestingWebClient);
         }
 
 

@@ -84,7 +84,7 @@ namespace Pomona
 
             Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
 
-            var clientAssemblyFileName = String.Format("/{0}.dll", this.typeMapper.Filter.GetClientAssemblyName());
+            var clientAssemblyFileName = String.Format("/{0}.dll", this.typeMapper.Filter.ClientMetadata.AssemblyName);
             Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();

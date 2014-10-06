@@ -60,11 +60,11 @@ namespace Pomona.CodeGen
         private readonly IEnumerable<Assembly> allowedReferencedAssemblies;
         private readonly TypeMapper typeMapper;
         private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
-        private string assemblyName;
         private TypeDefinition clientInterface;
         private Dictionary<TypeSpec, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumTypeSpec, TypeReference> enumClientTypeDict;
         private ModuleDefinition module;
+        private string @namespace;
 
 
         public ClientLibGenerator(TypeMapper typeMapper)
@@ -113,7 +113,8 @@ namespace Pomona.CodeGen
             // Use Pomona.Client lib as starting point!
             AssemblyDefinition assembly;
 
-            this.assemblyName = this.typeMapper.Filter.GetClientAssemblyName();
+            this.@namespace = this.typeMapper.Filter.ClientMetadata.Namespace;
+            var assemblyName = this.typeMapper.Filter.ClientMetadata.AssemblyName;
 
             var assemblyResolver = GetAssemblyResolver();
 
@@ -132,19 +133,19 @@ namespace Pomona.CodeGen
                     AssemblyResolver = assemblyResolver
                 };
                 assembly = AssemblyDefinition.CreateAssembly(
-                    new AssemblyNameDefinition(this.assemblyName, version),
-                    this.assemblyName,
+                    new AssemblyNameDefinition(assemblyName, version),
+                    assemblyName,
                     moduleParameters);
             }
 
-            assembly.Name = new AssemblyNameDefinition(this.assemblyName, version);
+            assembly.Name = new AssemblyNameDefinition(assemblyName, version);
 
             //var assembly =
             //    AssemblyDefinition.CreateAssembly(
             //        new AssemblyNameDefinition("Critter", new Version(1, 0, 0, 134)), "Critter", ModuleKind.Dll);
 
             this.module = assembly.MainModule;
-            this.module.Name = this.assemblyName + ".dll";
+            this.module.Name = assemblyName + ".dll";
             this.module.Mvid = Guid.NewGuid();
 
             this.clientTypeInfoDict = new Dictionary<TypeSpec, TypeCodeGenInfo>();
@@ -157,10 +158,16 @@ namespace Pomona.CodeGen
             CreateProxies(new WrappedPropertyProxyBuilder(this.module,
                                                           GetProxyType("LazyProxyBase"),
                                                           Import(typeof(PropertyWrapper<,>)).Resolve()),
-                          (info, def) => { info.LazyProxyType = def; });
+                          (info, def) =>
+                          {
+                              info.LazyProxyType = def;
+                          });
 
             CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic),
-                          (info, def) => { info.PatchFormType = def; },
+                          (info, def) =>
+                          {
+                              info.PatchFormType = def;
+                          },
                           typeIsGeneratedPredicate : x => x.TransformedType.PatchAllowed);
 
             CreateProxies(new PostFormProxyBuilder(this), (info, def) =>
@@ -170,10 +177,10 @@ namespace Pomona.CodeGen
             },
                           typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
 
-            var clientInterfaceTypeFullName = GetClientInterfaceTypeFullName();
-            // var clientInterfaceTypeFullName = "IClient";
-            CreateClientInterface(clientInterfaceTypeFullName);
-            CreateClientType(this.typeMapper.Filter.GetClientTypeFullName());
+            CreateClientInterface(this.typeMapper.Filter.ClientMetadata.InterfaceName);
+            CreateClientType(this.typeMapper.Filter.ClientMetadata.Name);
+            //CreateClientInterface(clientName.InterfaceTypeName);
+            //CreateClientType(clientName.ClientTypeName);
 
             foreach (var typeInfo in this.clientTypeInfoDict.Values)
                 AddResourceInfoAttribute(typeInfo);
@@ -189,9 +196,9 @@ namespace Pomona.CodeGen
             {
                 foreach (var clientHelperType in this.module.Types
                     .Where(methodDefinition =>
-                               !methodDefinition.Namespace.StartsWith(this.assemblyName)
+                               !methodDefinition.Namespace.StartsWith(this.@namespace)
                                && !string.IsNullOrEmpty(methodDefinition.Namespace)))
-                    clientHelperType.Namespace = this.assemblyName + "." + clientHelperType.Namespace;
+                    clientHelperType.Namespace = this.@namespace + "." + clientHelperType.Namespace;
             }
 
             AddAssemblyAttributes();
@@ -217,9 +224,9 @@ namespace Pomona.CodeGen
         private void AddAssemblyAttributes()
         {
             var ivAttr = AddAttribute(this.module.Assembly, typeof(AssemblyInformationalVersionAttribute));
-            ivAttr.ConstructorArguments.Add(new CustomAttributeArgument(StringTypeRef,
-                                                                        this.typeMapper.Filter
-                                                                            .GetClientInformationalVersion()));
+            var informationalVersion = this.typeMapper.Filter.ClientMetadata.InformationalVersion;
+            var customAttributeArgument = new CustomAttributeArgument(StringTypeRef, informationalVersion);
+            ivAttr.ConstructorArguments.Add(customAttributeArgument);
         }
 
 
@@ -305,21 +312,27 @@ namespace Pomona.CodeGen
                                                         bool readOnly = false)
         {
             var interfacePropDef = new PropertyDefinition(propName, PropertyAttributes.None, propTypeRef);
-            var interfaceGetMethod = new MethodDefinition(
-                "get_" + propName,
-                MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
-                propTypeRef);
+            var interfaceGetMethod = new MethodDefinition("get_" + propName,
+                                                          MethodAttributes.Abstract
+                                                          | MethodAttributes.SpecialName
+                                                          | MethodAttributes.HideBySig
+                                                          | MethodAttributes.NewSlot
+                                                          | MethodAttributes.Virtual
+                                                          | MethodAttributes.Public,
+                                                          propTypeRef);
             interfacePropDef.GetMethod = interfaceGetMethod;
             interfaceDef.Methods.Add(interfaceGetMethod);
 
             if (!readOnly)
             {
-                var interfaceSetMethod = new MethodDefinition(
-                    "set_" + propName,
-                    MethodAttributes.Abstract | MethodAttributes.SpecialName | MethodAttributes.HideBySig |
-                    MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Public,
-                    this.module.TypeSystem.Void);
+                var interfaceSetMethod = new MethodDefinition("set_" + propName,
+                                                              MethodAttributes.Abstract
+                                                              | MethodAttributes.SpecialName
+                                                              | MethodAttributes.HideBySig
+                                                              | MethodAttributes.NewSlot
+                                                              | MethodAttributes.Virtual
+                                                              | MethodAttributes.Public,
+                                                              this.module.TypeSystem.Void);
 
                 interfaceSetMethod.Parameters.Add(
                     new ParameterDefinition(
@@ -550,7 +563,7 @@ namespace Pomona.CodeGen
         {
             foreach (var enumType in this.typeMapper.EnumTypes)
             {
-                var typeDef = new TypeDefinition(this.assemblyName,
+                var typeDef = new TypeDefinition(this.@namespace,
                                                  enumType.Name,
                                                  TypeAttributes.AutoClass
                                                  | TypeAttributes.AnsiClass
@@ -603,10 +616,10 @@ namespace Pomona.CodeGen
                 var typeInfo = new TypeCodeGenInfo(this, transformedType);
                 this.clientTypeInfoDict[transformedType] = typeInfo;
 
-                typeInfo.InterfaceType.Namespace = this.assemblyName;
+                typeInfo.InterfaceType.Namespace = this.@namespace;
 
                 var pocoDef = new TypeDefinition(
-                    this.assemblyName,
+                    this.@namespace,
                     transformedType.Name + "Resource",
                     TypeAttributes.Public);
 
@@ -742,7 +755,7 @@ namespace Pomona.CodeGen
 
         private void CreateClientInterface(string interfaceName)
         {
-            this.clientInterface = new TypeDefinition(this.assemblyName,
+            this.clientInterface = new TypeDefinition(this.@namespace,
                                                       interfaceName,
                                                       TypeAttributes.Interface
                                                       | TypeAttributes.Public
@@ -760,7 +773,7 @@ namespace Pomona.CodeGen
         {
             var clientBaseTypeRef = Import(typeof(ClientBase<>));
 
-            var clientTypeDefinition = new TypeDefinition(this.assemblyName,
+            var clientTypeDefinition = new TypeDefinition(this.@namespace,
                                                           clientTypeName,
                                                           TypeAttributes.Public);
 
@@ -782,10 +795,9 @@ namespace Pomona.CodeGen
         }
 
 
-        private void CreateProxies(
-            ProxyBuilder proxyBuilder,
-            Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
-            Func<TypeCodeGenInfo, bool> typeIsGeneratedPredicate = null)
+        private void CreateProxies(ProxyBuilder proxyBuilder,
+                                   Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
+                                   Func<TypeCodeGenInfo, bool> typeIsGeneratedPredicate = null)
         {
             typeIsGeneratedPredicate = typeIsGeneratedPredicate ?? (x => true);
             var generatedTypeDict = new Dictionary<TypeCodeGenInfo, TypeDefinition>();
@@ -914,7 +926,7 @@ namespace Pomona.CodeGen
         {
             var tt = (ResourceType)rti.TransformedType;
 
-            repoTypeDef.Namespace = this.assemblyName;
+            repoTypeDef.Namespace = this.@namespace;
             repoTypeDef.Name = string.Format(repoTypeNameFormat, rti.TransformedType.Name);
             repoTypeDef.Attributes = typeAttributes;
 
@@ -986,27 +998,6 @@ namespace Pomona.CodeGen
             var extraSearchDir = Path.GetDirectoryName(new Uri(GetType().Assembly.CodeBase).AbsolutePath);
             assemblyResolver.AddSearchDirectory(extraSearchDir);
             return assemblyResolver;
-        }
-
-
-        private string GetClientInterfaceTypeFullName()
-        {
-            var clientTypeFullName = this.typeMapper.Filter.GetClientTypeFullName();
-
-            var segments = clientTypeFullName.Split('.');
-            var clientTypeName = clientTypeFullName;
-            var namespaceSegments = Enumerable.Empty<string>();
-
-            if (segments.Length == 1)
-                clientTypeName = segments[0];
-            else if (segments.Length > 1)
-            {
-                clientTypeName = segments.Last();
-                namespaceSegments = segments.Take(segments.Length - 2);
-            }
-
-            var interfaceTypeName = String.Concat('I', clientTypeName);
-            return String.Join(".", namespaceSegments.Concat(interfaceTypeName));
         }
 
 
@@ -1118,8 +1109,8 @@ namespace Pomona.CodeGen
             {
                 return
                     this.module.GetType(methodBase.DeclaringType.FullName)
-                        .Methods.First(x =>x.Name == methodBase.Name &&
-                                ParametersAreEqual(methodBase, x));
+                        .Methods.First(x => x.Name == methodBase.Name &&
+                                            ParametersAreEqual(methodBase, x));
             }
             return this.module.Import(methodBase);
         }
@@ -1326,7 +1317,7 @@ namespace Pomona.CodeGen
                         || (resourceType.ParentToChildProperty != null
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
-                        this.customRepositoryInterface = new TypeDefinition(parent.assemblyName,
+                        this.customRepositoryInterface = new TypeDefinition(parent.@namespace,
                                                                             string.Format("I{0}Repository",
                                                                                           transformedType.Name),
                                                                             TypeAttributes.Interface
@@ -1388,7 +1379,7 @@ namespace Pomona.CodeGen
                 // Add I in front of name if resource is class type, do not for interfaces to avoid IIWhatever name.
                 var name = "I" + transformedType.Name;
 
-                this.interfaceType = new TypeDefinition(parent.assemblyName,
+                this.interfaceType = new TypeDefinition(parent.@namespace,
                                                         name,
                                                         TypeAttributes.Interface
                                                         | TypeAttributes.Public

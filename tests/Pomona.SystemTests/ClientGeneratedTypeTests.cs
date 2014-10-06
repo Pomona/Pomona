@@ -87,7 +87,7 @@ namespace Pomona.SystemTests
         [Test]
         public void AllInterfacesArePrefixedByLetterI()
         {
-            foreach (var t in typeof(Client).Assembly.GetTypes().Where(x => x.IsInterface))
+            foreach (var t in typeof(CritterClient).Assembly.GetTypes().Where(x => x.IsInterface))
             {
                 try
                 {
@@ -142,7 +142,7 @@ namespace Pomona.SystemTests
         [Test]
         public void AssemblyVersionSetToApiVersionFromTypeMappingFilter()
         {
-            Assert.That(typeof(Client).Assembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
+            Assert.That(typeof(CritterClient).Assembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
         }
 
 
@@ -214,7 +214,7 @@ namespace Pomona.SystemTests
         public void MiddleBaseClassExcludedFromMapping_WillBeExcludedInGeneratedClient()
         {
             Assert.That(typeof(IInheritsFromHiddenBase).GetInterfaces(), Has.Member(typeof(IEntityBase)));
-            Assert.That(typeof(Client).Assembly.GetTypes().Count(x => x.Name == "IHiddenBaseInMiddle"), Is.EqualTo(0));
+            Assert.That(typeof(CritterClient).Assembly.GetTypes().Count(x => x.Name == "IHiddenBaseInMiddle"), Is.EqualTo(0));
             Assert.That(typeof(IInheritsFromHiddenBase).GetProperty("ExposedFromDerivedResource"), Is.Not.Null);
         }
 
@@ -230,7 +230,7 @@ namespace Pomona.SystemTests
         [Test]
         public void NoClassesArePrefixedWithTheLetterI()
         {
-            foreach (var t in typeof(Client).Assembly.GetTypes().Where(x => !x.IsInterface))
+            foreach (var t in typeof(CritterClient).Assembly.GetTypes().Where(x => !x.IsInterface))
             {
                 try
                 {

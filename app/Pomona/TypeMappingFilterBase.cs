@@ -68,6 +68,11 @@ namespace Pomona
             get { return "0.1.0"; }
         }
 
+        public virtual ClientMetadata ClientMetadata
+        {
+            get { return new ClientMetadata(informationalVersion : ApiVersion); }
+        }
+
         private HashSet<Type> SourceTypes
         {
             get { return this.sourceTypesCached; }
@@ -95,21 +100,17 @@ namespace Pomona
         }
 
 
-        /// <summary>
-        /// Gets the name of the generated client assembly.
-        /// </summary>
-        /// <returns>
-        /// The name of the generated client assembly.
-        /// </returns>
+        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
         public virtual string GetClientAssemblyName()
         {
-            return "Client";
+            throw new NotImplementedException("Use the ClientMetadata.AssemblyName property instead.");
         }
 
 
+        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
         public virtual string GetClientInformationalVersion()
         {
-            return ApiVersion;
+            throw new NotImplementedException("Use the ClientMetadata.InformationalVersion property instead.");
         }
 
 
@@ -123,19 +124,8 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
+
             return null;
-        }
-
-
-        /// <summary>
-        /// Gets the full name (including namespace) of the client type.
-        /// </summary>
-        /// <returns>
-        /// The full name (including namespace) of the client type.
-        /// </returns>
-        public virtual string GetClientTypeFullName()
-        {
-            return "Client";
         }
 
 

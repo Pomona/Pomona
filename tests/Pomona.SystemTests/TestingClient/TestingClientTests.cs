@@ -28,6 +28,7 @@
 
 using System.Linq;
 
+using Critters;
 using Critters.Client;
 
 using NUnit.Framework;
@@ -45,13 +46,13 @@ namespace Pomona.SystemTests.TestingClient
         [SetUp]
         public void SetUp()
         {
-            this.testClient = TestableClientGenerator.CreateClient<IClient>();
+            this.testClient = TestableClientGenerator.CreateClient<ICritterClient>();
             this.mockControl = (TestableClientProxyBase)this.testClient;
         }
 
         #endregion
 
-        private IClient testClient;
+        private ICritterClient testClient;
         private TestableClientProxyBase mockControl;
 
         public interface ICustomCritter : ICritter

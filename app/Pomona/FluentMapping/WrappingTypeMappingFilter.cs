@@ -54,6 +54,11 @@ namespace Pomona.FluentMapping
             get { return this.wrappedFilter.ApiVersion; }
         }
 
+        public ClientMetadata ClientMetadata
+        {
+            get { return this.wrappedFilter.ClientMetadata; }
+        }
+
         protected virtual ITypeMappingFilter WrappedFilter
         {
             get { return this.wrappedFilter; }
@@ -84,27 +89,23 @@ namespace Pomona.FluentMapping
         }
 
 
+        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
         public virtual string GetClientAssemblyName()
         {
-            return this.wrappedFilter.GetClientAssemblyName();
+            throw new NotImplementedException("Use the ClientMetadata.AssemblyName property instead.");
         }
 
 
+        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
         public virtual string GetClientInformationalVersion()
         {
-            return this.wrappedFilter.GetClientInformationalVersion();
+            throw new NotImplementedException("Use the ClientMetadata.InformationalVersion property instead.");
         }
 
 
         public virtual Type GetClientLibraryType(Type type)
         {
             return this.wrappedFilter.GetClientLibraryType(type);
-        }
-
-
-        public virtual string GetClientTypeFullName()
-        {
-            return this.wrappedFilter.GetClientTypeFullName();
         }
 
 

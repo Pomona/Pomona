@@ -36,17 +36,17 @@ using Pomona.UnitTests.Client;
 namespace Pomona.SystemTests
 {
     [TestFixture]
-    public class ExtraDataTests : CritterServiceTestsBase<Client>
+    public class ExtraDataTests : CritterServiceTestsBase<ExtraClient>
     {
-        public override Client CreateHttpTestingClient(string baseUri)
+        public override ExtraClient CreateHttpTestingClient(string baseUri)
         {
-            return new Client(baseUri + "/Extra/");
+            return new ExtraClient(baseUri + "/Extra/");
         }
 
-        public override Client CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
+        public override ExtraClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
             var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-            return new Client(baseUri + "Extra/", nancyTestingWebClient);
+            return new ExtraClient(baseUri + "Extra/", nancyTestingWebClient);
         }
 
         public override void SetupRequestCompletedHandler()

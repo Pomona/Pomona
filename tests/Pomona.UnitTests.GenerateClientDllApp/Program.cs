@@ -84,9 +84,9 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                 }
 
 
-                public override string GetClientAssemblyName()
+                public override ClientMetadata ClientMetadata
                 {
-                    return "IndependentCritters";
+                    get { return base.ClientMetadata.With("IndependentCritters"); }
                 }
             }
 

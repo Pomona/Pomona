@@ -74,6 +74,11 @@ namespace Pomona.FluentMapping
             get { return this.wrappedFilter.ApiVersion; }
         }
 
+        public ClientMetadata ClientMetadata
+        {
+            get { return this.wrappedFilter.ClientMetadata; }
+        }
+
 
         public static string BuildPropertyMappingTemplate(IEnumerable<Type> types)
         {
@@ -134,9 +139,10 @@ namespace TestNs
         }
 
 
+        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
         public string GetClientAssemblyName()
         {
-            return this.wrappedFilter.GetClientAssemblyName();
+            throw new NotImplementedException("Use the ClientMetadata.AssemblyName property instead.");
         }
 
 
@@ -149,12 +155,6 @@ namespace TestNs
         public Type GetClientLibraryType(Type type)
         {
             return this.wrappedFilter.GetClientLibraryType(type);
-        }
-
-
-        public string GetClientTypeFullName()
-        {
-            return this.wrappedFilter.GetClientTypeFullName();
         }
 
 
@@ -611,6 +611,7 @@ namespace TestNs
         }
 
 
+        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
         string ITypeMappingFilter.GetClientInformationalVersion()
         {
             return this.wrappedFilter.GetClientInformationalVersion();

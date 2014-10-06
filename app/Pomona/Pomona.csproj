@@ -117,6 +117,7 @@
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
     <Compile Include="CodeGen\ClientLibraryTypeAttribute.cs" />
+    <Compile Include="ClientMetadata.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="CodeGen\ClientTypeExtensions.cs" />
     <Compile Include="CodeGen\ProxyBuilder.cs" />
