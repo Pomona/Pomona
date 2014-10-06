@@ -34,7 +34,6 @@ using System.Reflection;
 using Newtonsoft.Json;
 
 using Pomona.Common;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -67,9 +66,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        public virtual bool DeleteOfTypeIsAllowed(Type type)
         {
-            return this.wrappedFilter.GetClientLibraryAttributes(member);
+            return this.wrappedFilter.DeleteOfTypeIsAllowed(type);
         }
 
 
@@ -103,6 +102,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual string GetClientTypeFullName()
+        {
+            return this.wrappedFilter.GetClientTypeFullName();
+        }
+
+
         public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetDecompiledPropertyFormula(type, propertyInfo);
@@ -121,12 +126,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual bool DeleteOfTypeIsAllowed(Type type)
-        {
-            return this.wrappedFilter.DeleteOfTypeIsAllowed(type);
-        }
-
-
         public virtual Action<object> GetOnDeserializedHook(Type type)
         {
             return this.wrappedFilter.GetOnDeserializedHook(type);
@@ -136,12 +135,6 @@ namespace Pomona.FluentMapping
         public virtual PropertyInfo GetParentToChildProperty(Type type)
         {
             return this.wrappedFilter.GetParentToChildProperty(type);
-        }
-
-
-        public virtual string GetTypeMappedName(Type type)
-        {
-            return this.wrappedFilter.GetTypeMappedName(type);
         }
 
 
@@ -163,7 +156,15 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
+        public virtual IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.GetPropertyAttributes(type, propertyInfo);
+        }
+
+
+        public virtual PropertyCreateMode GetPropertyCreateMode(Type type,
+                                                                PropertyInfo propertyInfo,
+                                                                ParameterInfo ctorParameterInfo)
         {
             return this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo, ctorParameterInfo);
         }
@@ -172,17 +173,6 @@ namespace Pomona.FluentMapping
         public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertyFlags(propertyInfo);
-        }
-
-
-        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
-        {
-            return this.wrappedFilter.GetResourceHandlers(type);
-        }
-
-        public virtual bool GetTypeIsAbstract(Type type)
-        {
-            return this.wrappedFilter.GetTypeIsAbstract(type);
         }
 
 
@@ -222,15 +212,27 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        public virtual IEnumerable<Type> GetResourceHandlers(Type type)
         {
-            return this.wrappedFilter.GetPropertyAttributes(type, propertyInfo);
+            return this.wrappedFilter.GetResourceHandlers(type);
         }
 
 
         public virtual ConstructorSpec GetTypeConstructor(Type type)
         {
             return this.wrappedFilter.GetTypeConstructor(type);
+        }
+
+
+        public virtual bool GetTypeIsAbstract(Type type)
+        {
+            return this.wrappedFilter.GetTypeIsAbstract(type);
+        }
+
+
+        public virtual string GetTypeMappedName(Type type)
+        {
+            return this.wrappedFilter.GetTypeMappedName(type);
         }
 
 
@@ -333,6 +335,12 @@ namespace Pomona.FluentMapping
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
             return this.wrappedFilter.TypeIsMappedAsValueObject(type);
+        }
+
+
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
         }
     }
 }

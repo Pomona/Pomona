@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -43,7 +42,6 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
-using Pomona.Common.Web;
 
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
@@ -100,8 +98,10 @@ namespace Pomona.CodeGen
 
         public static void WriteClientLibrary(TypeMapper typeMapper, Stream stream, bool embedPomonaClient = true)
         {
-            var clientLibGenerator = new ClientLibGenerator(typeMapper);
-            clientLibGenerator.PomonaClientEmbeddingEnabled = embedPomonaClient;
+            var clientLibGenerator = new ClientLibGenerator(typeMapper)
+            {
+                PomonaClientEmbeddingEnabled = embedPomonaClient
+            };
             clientLibGenerator.CreateClientDll(stream);
         }
 
@@ -117,7 +117,7 @@ namespace Pomona.CodeGen
 
             var assemblyResolver = GetAssemblyResolver();
 
-            var version = new Version(string.Join(".", this.typeMapper.Filter.ApiVersion.Split('.').Pad(4, "0").Take(4)));
+            var version = new Version(String.Join(".", this.typeMapper.Filter.ApiVersion.Split('.').Pad(4, "0").Take(4)));
             if (PomonaClientEmbeddingEnabled)
             {
                 var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };
@@ -131,11 +131,10 @@ namespace Pomona.CodeGen
                     Kind = ModuleKind.Dll,
                     AssemblyResolver = assemblyResolver
                 };
-                assembly =
-                    AssemblyDefinition.CreateAssembly(
-                        new AssemblyNameDefinition(this.assemblyName, version),
-                        this.assemblyName,
-                        moduleParameters);
+                assembly = AssemblyDefinition.CreateAssembly(
+                    new AssemblyNameDefinition(this.assemblyName, version),
+                    this.assemblyName,
+                    moduleParameters);
             }
 
             assembly.Name = new AssemblyNameDefinition(this.assemblyName, version);
@@ -155,29 +154,26 @@ namespace Pomona.CodeGen
 
             BuildInterfacesAndPocoTypes(transformedTypes);
 
-            CreateProxies(
-                new WrappedPropertyProxyBuilder(
-                    this.module,
-                    GetProxyType("LazyProxyBase"),
-                    Import(typeof(PropertyWrapper<,>)).Resolve()),
-                (info, def) => { info.LazyProxyType = def; });
+            CreateProxies(new WrappedPropertyProxyBuilder(this.module,
+                                                          GetProxyType("LazyProxyBase"),
+                                                          Import(typeof(PropertyWrapper<,>)).Resolve()),
+                          (info, def) => { info.LazyProxyType = def; });
 
-            CreateProxies(
-                new PatchFormProxyBuilder(this, MakeProxyTypesPublic),
-                (info, def) => { info.PatchFormType = def; },
-                typeIsGeneratedPredicate : x => x.TransformedType.PatchAllowed);
+            CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic),
+                          (info, def) => { info.PatchFormType = def; },
+                          typeIsGeneratedPredicate : x => x.TransformedType.PatchAllowed);
 
-            CreateProxies(
-                new PostFormProxyBuilder(this),
-                (info, def) =>
-                {
-                    info.PostFormType = def;
-                    def.IsAbstract = info.TransformedType.IsAbstract;
-                },
-                typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
+            CreateProxies(new PostFormProxyBuilder(this), (info, def) =>
+            {
+                info.PostFormType = def;
+                def.IsAbstract = info.TransformedType.IsAbstract;
+            },
+                          typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
 
-            CreateClientInterface("IClient");
-            CreateClientType("Client");
+            var clientInterfaceTypeFullName = GetClientInterfaceTypeFullName();
+            // var clientInterfaceTypeFullName = "IClient";
+            CreateClientInterface(clientInterfaceTypeFullName);
+            CreateClientType(this.typeMapper.Filter.GetClientTypeFullName());
 
             foreach (var typeInfo in this.clientTypeInfoDict.Values)
                 AddResourceInfoAttribute(typeInfo);
@@ -191,12 +187,10 @@ namespace Pomona.CodeGen
 
             if (PomonaClientEmbeddingEnabled)
             {
-                foreach (
-                    var clientHelperType in
-                        this.module.Types.Where(
-                            methodDefinition =>
-                                !methodDefinition.Namespace.StartsWith(this.assemblyName)
-                                && !string.IsNullOrEmpty(methodDefinition.Namespace)))
+                foreach (var clientHelperType in this.module.Types
+                    .Where(methodDefinition =>
+                               !methodDefinition.Namespace.StartsWith(this.assemblyName)
+                               && !string.IsNullOrEmpty(methodDefinition.Namespace)))
                     clientHelperType.Namespace = this.assemblyName + "." + clientHelperType.Namespace;
             }
 
@@ -224,7 +218,8 @@ namespace Pomona.CodeGen
         {
             var ivAttr = AddAttribute(this.module.Assembly, typeof(AssemblyInformationalVersionAttribute));
             ivAttr.ConstructorArguments.Add(new CustomAttributeArgument(StringTypeRef,
-                this.typeMapper.Filter.GetClientInformationalVersion()));
+                                                                        this.typeMapper.Filter
+                                                                            .GetClientInformationalVersion()));
         }
 
 
@@ -242,47 +237,46 @@ namespace Pomona.CodeGen
 
 
         private void AddAttribute(ICustomAttributeProvider customAttributeProvider,
-            CustomAttributeData customAttributeData)
+                                  CustomAttributeData customAttributeData)
         {
             var ctor = Import(customAttributeData.Constructor);
             var custAttr = new CustomAttribute(ctor);
             foreach (var ctorArg in customAttributeData.ConstructorArguments.EmptyIfNull())
             {
                 custAttr.ConstructorArguments.Add(new CustomAttributeArgument(Import(ctorArg.ArgumentType),
-                    ctorArg.Value));
+                                                                              ctorArg.Value));
             }
             foreach (var ctorParam in customAttributeData.NamedArguments.EmptyIfNull())
             {
                 var typedValue = ctorParam.TypedValue;
                 custAttr.Properties.Add(new CustomAttributeNamedArgument(ctorParam.MemberInfo.Name,
-                    new CustomAttributeArgument(Import(typedValue.ArgumentType), typedValue.Value)));
+                                                                         new CustomAttributeArgument(
+                                                                             Import(typedValue.ArgumentType),
+                                                                             typedValue.Value)));
             }
             customAttributeProvider.CustomAttributes.Add(custAttr);
         }
 
 
         private PropertyDefinition AddAutomaticProperty(TypeDefinition declaringType,
-            string name,
-            TypeReference propertyType)
+                                                        string name,
+                                                        TypeReference propertyType)
         {
             FieldDefinition _;
             return AddAutomaticProperty(declaringType, name, propertyType, out _);
         }
 
 
-        private PropertyDefinition AddAutomaticProperty(
-            TypeDefinition declaringType,
-            string name,
-            TypeReference propertyType,
-            out FieldDefinition propField)
+        private PropertyDefinition AddAutomaticProperty(TypeDefinition declaringType,
+                                                        string name,
+                                                        TypeReference propertyType,
+                                                        out FieldDefinition propField)
         {
             var propertyDefinition = AddProperty(declaringType, name, propertyType);
 
-            propField =
-                new FieldDefinition(
-                    "_" + name.LowercaseFirstLetter(),
-                    FieldAttributes.Private,
-                    propertyType);
+            propField = new FieldDefinition("_" + name.LowercaseFirstLetter(),
+                                            FieldAttributes.Private,
+                                            propertyType);
 
             declaringType.Fields.Add(propField);
 
@@ -306,9 +300,9 @@ namespace Pomona.CodeGen
 
 
         private PropertyDefinition AddInterfaceProperty(TypeDefinition interfaceDef,
-            string propName,
-            TypeReference propTypeRef,
-            bool readOnly = false)
+                                                        string propName,
+                                                        TypeReference propTypeRef,
+                                                        bool readOnly = false)
         {
             var interfacePropDef = new PropertyDefinition(propName, PropertyAttributes.None, propTypeRef);
             var interfaceGetMethod = new MethodDefinition(
@@ -347,20 +341,22 @@ namespace Pomona.CodeGen
         private PropertyDefinition AddProperty(TypeDefinition declaringType, string name, TypeReference propertyType)
         {
             var proxyPropDef = new PropertyDefinition(name, PropertyAttributes.None, propertyType);
-            var proxyPropGetter = new MethodDefinition(
-                "get_" + name,
-                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual | MethodAttributes.Public,
-                propertyType);
+            var proxyPropGetter = new MethodDefinition("get_" + name,
+                                                       MethodAttributes.NewSlot
+                                                       | MethodAttributes.SpecialName
+                                                       | MethodAttributes.HideBySig
+                                                       | MethodAttributes.Virtual
+                                                       | MethodAttributes.Public,
+                                                       propertyType);
             proxyPropDef.GetMethod = proxyPropGetter;
 
-            var proxyPropSetter = new MethodDefinition(
-                "set_" + name,
-                MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual | MethodAttributes.Public,
-                VoidTypeRef);
+            var proxyPropSetter = new MethodDefinition("set_" + name,
+                                                       MethodAttributes.NewSlot
+                                                       | MethodAttributes.SpecialName
+                                                       | MethodAttributes.HideBySig
+                                                       | MethodAttributes.Virtual
+                                                       | MethodAttributes.Public,
+                                                       VoidTypeRef);
             proxyPropSetter.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, propertyType));
             proxyPropDef.SetMethod = proxyPropSetter;
 
@@ -372,8 +368,8 @@ namespace Pomona.CodeGen
 
 
         private void AddPropertyFieldInitialization(FieldDefinition backingField,
-            TypeSpec propertyType,
-            List<Action<ILProcessor>> ctorIlActions)
+                                                    TypeSpec propertyType,
+                                                    List<Action<ILProcessor>> ctorIlActions)
         {
             if (propertyType.Maybe().OfType<TransformedType>().Select(x => x.MappedAsValueObject).OrDefault())
             {
@@ -389,7 +385,9 @@ namespace Pomona.CodeGen
             else if (propertyType.IsCollection && !propertyType.IsArray)
             {
                 var genericInstanceFieldType = (GenericInstanceType)backingField.FieldType;
-                var implementationType = propertyType.Type.IsGenericInstanceOf(typeof(ISet<>)) ? typeof(HashSet<>) : typeof(List<>);
+                var implementationType = propertyType.Type.IsGenericInstanceOf(typeof(ISet<>))
+                    ? typeof(HashSet<>)
+                    : typeof(List<>);
                 var listReference = Import(implementationType);
                 var listCtor = listReference.Resolve().GetConstructors().First(x => x.Parameters.Count == 0);
                 var listCtorInstance =
@@ -419,16 +417,16 @@ namespace Pomona.CodeGen
 
 
         private void AddRepositoryFormPostMethod(MethodAttributes methodAttributes,
-            bool isImplementation,
-            ResourceType subType,
-            TypeDefinition repoTypeDef,
-            TypeDefinition baseTypeGenericDef,
-            TypeReference[] baseTypeGenericArgs)
+                                                 bool isImplementation,
+                                                 ResourceType subType,
+                                                 TypeDefinition repoTypeDef,
+                                                 TypeDefinition baseTypeGenericDef,
+                                                 TypeReference[] baseTypeGenericArgs)
         {
             var postReturnTypeRef = this.clientTypeInfoDict[subType.PostReturnType].InterfaceType;
             var method = new MethodDefinition("Post",
-                methodAttributes,
-                postReturnTypeRef);
+                                              methodAttributes,
+                                              postReturnTypeRef);
             method.Parameters.Add(new ParameterDefinition("form", 0, this.clientTypeInfoDict[subType].PostFormType));
             repoTypeDef.Methods.Add(method);
 
@@ -487,65 +485,61 @@ namespace Pomona.CodeGen
                 new CustomAttribute(methodDefinition);
             var stringTypeReference = this.module.TypeSystem.String;
             custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "UrlRelativePath",
-                    new CustomAttributeArgument(stringTypeReference,
-                        type.Maybe().OfType<ResourceType>().Select(x => x.UriRelativePath).OrDefault())));
+                new CustomAttributeNamedArgument("UrlRelativePath",
+                                                 new CustomAttributeArgument(stringTypeReference,
+                                                                             type
+                                                                                 .Maybe()
+                                                                                 .OfType<ResourceType>()
+                                                                                 .Select(x => x.UriRelativePath)
+                                                                                 .OrDefault())));
 
             var typeTypeReference = Import(typeof(Type));
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "PocoType",
-                    new CustomAttributeArgument(typeTypeReference, typeInfo.PocoType)));
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "InterfaceType",
-                    new CustomAttributeArgument(typeTypeReference, typeInfo.InterfaceType)));
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "LazyProxyType",
-                    new CustomAttributeArgument(typeTypeReference, typeInfo.LazyProxyType)));
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "PostFormType",
-                    new CustomAttributeArgument(typeTypeReference, typeInfo.PostFormType)));
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "PatchFormType",
-                    new CustomAttributeArgument(typeTypeReference, typeInfo.PatchFormType)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("PocoType",
+                                                                     new CustomAttributeArgument(typeTypeReference,
+                                                                                                 typeInfo.PocoType)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("InterfaceType",
+                                                                     new CustomAttributeArgument(typeTypeReference,
+                                                                                                 typeInfo.InterfaceType)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("LazyProxyType",
+                                                                     new CustomAttributeArgument(typeTypeReference,
+                                                                                                 typeInfo.LazyProxyType)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("PostFormType",
+                                                                     new CustomAttributeArgument(typeTypeReference,
+                                                                                                 typeInfo.PostFormType)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("PatchFormType",
+                                                                     new CustomAttributeArgument(typeTypeReference,
+                                                                                                 typeInfo.PatchFormType)));
 
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "JsonTypeName",
-                    new CustomAttributeArgument(stringTypeReference, type.Name)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("JsonTypeName",
+                                                                     new CustomAttributeArgument(stringTypeReference,
+                                                                                                 type.Name)));
 
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "UriBaseType",
-                    new CustomAttributeArgument(typeTypeReference, typeInfo.UriBaseType)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("UriBaseType",
+                                                                     new CustomAttributeArgument(typeTypeReference,
+                                                                                                 typeInfo.UriBaseType)));
 
             var resourceType = typeInfo.TransformedType as ResourceType;
             if (resourceType != null && resourceType.ParentResourceType != null)
             {
                 var parentResourceTypeInfo = this.clientTypeInfoDict[resourceType.ParentResourceType];
-                custAttr.Properties.Add(
-                    new CustomAttributeNamedArgument("ParentResourceType",
-                        new CustomAttributeArgument(typeTypeReference, parentResourceTypeInfo.InterfaceType)));
+                custAttr.Properties.Add(new CustomAttributeNamedArgument("ParentResourceType",
+                                                                         new CustomAttributeArgument(typeTypeReference,
+                                                                                                     parentResourceTypeInfo
+                                                                                                         .InterfaceType)));
             }
 
             if (typeInfo.BaseType != null)
             {
-                custAttr.Properties.Add(
-                    new CustomAttributeNamedArgument(
-                        "BaseType",
-                        new CustomAttributeArgument(typeTypeReference, typeInfo.BaseType)));
+                custAttr.Properties.Add(new CustomAttributeNamedArgument("BaseType",
+                                                                         new CustomAttributeArgument(typeTypeReference,
+                                                                                                     typeInfo.BaseType)));
             }
 
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "IsValueObject",
-                    new CustomAttributeArgument(this.module.TypeSystem.Boolean,
-                        typeInfo.TransformedType.MappedAsValueObject)));
+            custAttr.Properties.Add(new CustomAttributeNamedArgument("IsValueObject",
+                                                                     new CustomAttributeArgument(
+                                                                         this.module.TypeSystem.Boolean,
+                                                                         typeInfo.TransformedType
+                                                                             .MappedAsValueObject)));
 
             interfaceDef.CustomAttributes.Add(custAttr);
             //var attrConstructor = attr.Resolve().GetConstructors();
@@ -556,17 +550,18 @@ namespace Pomona.CodeGen
         {
             foreach (var enumType in this.typeMapper.EnumTypes)
             {
-                var typeDef = new TypeDefinition(
-                    this.assemblyName,
-                    enumType.Name,
-                    TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.Sealed | TypeAttributes.Public,
-                    Import(typeof(Enum)));
+                var typeDef = new TypeDefinition(this.assemblyName,
+                                                 enumType.Name,
+                                                 TypeAttributes.AutoClass
+                                                 | TypeAttributes.AnsiClass
+                                                 | TypeAttributes.Sealed
+                                                 | TypeAttributes.Public,
+                                                 Import(typeof(Enum)));
 
-                var fieldDef = new FieldDefinition(
-                    "value__",
-                    FieldAttributes.FamANDAssem | FieldAttributes.Family
-                    | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName,
-                    Import(this.module.TypeSystem.Int32));
+                var fieldDef = new FieldDefinition("value__",
+                                                   FieldAttributes.FamANDAssem | FieldAttributes.Family
+                                                   | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName,
+                                                   Import(this.module.TypeSystem.Int32));
 
                 typeDef.Fields.Add(fieldDef);
 
@@ -575,14 +570,16 @@ namespace Pomona.CodeGen
                     var name = kvp.Key;
                     var value = kvp.Value;
 
-                    var memberFieldDef = new FieldDefinition(
-                        name,
-                        FieldAttributes.FamANDAssem | FieldAttributes.Family
-                        | FieldAttributes.Static | FieldAttributes.Literal
-                        | FieldAttributes.HasDefault,
-                        typeDef);
-
-                    memberFieldDef.Constant =(int)value;
+                    var memberFieldDef = new FieldDefinition(name,
+                                                             FieldAttributes.FamANDAssem
+                                                             | FieldAttributes.Family
+                                                             | FieldAttributes.Static
+                                                             | FieldAttributes.Literal
+                                                             | FieldAttributes.HasDefault,
+                                                             typeDef)
+                    {
+                        Constant = (int)value
+                    };
 
                     typeDef.Fields.Add(memberFieldDef);
                 }
@@ -598,10 +595,9 @@ namespace Pomona.CodeGen
         {
             var resourceBaseRef = Import(typeof(ResourceBase));
             var resourceInterfaceRef = Import(typeof(IClientResource));
+            var resourceBaseCtor = Import(
+                resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
 
-            var resourceBaseCtor =
-                Import(
-                    resourceBaseRef.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
             foreach (var transformedType in transformedTypes)
             {
                 var typeInfo = new TypeCodeGenInfo(this, transformedType);
@@ -664,12 +660,12 @@ namespace Pomona.CodeGen
                     typeInfo.BaseType = null;
                 }
 
-                typeInfo.UriBaseType =
-                    type.Maybe()
-                        .OfType<ResourceType>()
-                        .Select(x => x.UriBaseType)
-                        .Select(x => this.clientTypeInfoDict[x].InterfaceType)
-                        .OrDefault();
+                typeInfo.UriBaseType = type
+                    .Maybe()
+                    .OfType<ResourceType>()
+                    .Select(x => x.UriBaseType)
+                    .Select(x => this.clientTypeInfoDict[x].InterfaceType)
+                    .OrDefault();
 
                 var ctorIlActions = new List<Action<ILProcessor>>();
 
@@ -690,8 +686,8 @@ namespace Pomona.CodeGen
                         AddAttribute(interfacePropDef, typeof(ResourceIdPropertyAttribute));
                     AddAttribute(interfacePropDef, typeof(ResourcePropertyAttribute)).Properties.Add(
                         new CustomAttributeNamedArgument("AccessMode",
-                            new CustomAttributeArgument(Import(typeof(HttpMethod)),
-                                prop.AccessMode)));
+                                                         new CustomAttributeArgument(Import(typeof(HttpMethod)),
+                                                                                     prop.AccessMode)));
 
                     var attributes = this.typeMapper.Filter.GetClientLibraryAttributes(prop.PropertyInfo);
                     foreach (var attr in attributes)
@@ -719,25 +715,23 @@ namespace Pomona.CodeGen
             MethodReference clientBaseTypeCtor,
             TypeDefinition clientTypeDefinition)
         {
-            var ctor = new MethodDefinition(
-                ".ctor",
-                MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
-                | MethodAttributes.Public,
-                VoidTypeRef);
+            var ctor = new MethodDefinition(".ctor",
+                                            MethodAttributes.HideBySig
+                                            | MethodAttributes.SpecialName
+                                            | MethodAttributes.RTSpecialName
+                                            | MethodAttributes.Public,
+                                            VoidTypeRef);
 
             clientBaseTypeCtor
                 .Parameters
                 .Select(x => new ParameterDefinition(x.Name, x.Attributes, x.ParameterType))
                 .AddTo(ctor.Parameters);
 
-
             ctor.Body.MaxStackSize = 8;
             var ctorIlProcessor = ctor.Body.GetILProcessor();
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
             foreach (var param in ctor.Parameters)
-            {
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg, param));
-            }
 
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, clientBaseTypeCtor));
             ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
@@ -745,13 +739,14 @@ namespace Pomona.CodeGen
             clientTypeDefinition.Methods.Add(ctor);
         }
 
+
         private void CreateClientInterface(string interfaceName)
         {
-            this.clientInterface = new TypeDefinition(
-                this.assemblyName,
-                interfaceName,
-                TypeAttributes.Interface | TypeAttributes.Public |
-                TypeAttributes.Abstract);
+            this.clientInterface = new TypeDefinition(this.assemblyName,
+                                                      interfaceName,
+                                                      TypeAttributes.Interface
+                                                      | TypeAttributes.Public
+                                                      | TypeAttributes.Abstract);
 
             this.clientInterface.Interfaces.Add(Import(typeof(IPomonaClient)));
 
@@ -765,10 +760,9 @@ namespace Pomona.CodeGen
         {
             var clientBaseTypeRef = Import(typeof(ClientBase<>));
 
-            var clientTypeDefinition = new TypeDefinition(
-                this.assemblyName,
-                clientTypeName,
-                TypeAttributes.Public);
+            var clientTypeDefinition = new TypeDefinition(this.assemblyName,
+                                                          clientTypeName,
+                                                          TypeAttributes.Public);
 
             clientTypeDefinition.Interfaces.Add(this.clientInterface);
 
@@ -798,17 +792,18 @@ namespace Pomona.CodeGen
 
             foreach (var typeInfo in this.clientTypeInfoDict.Values.Where(typeIsGeneratedPredicate))
             {
-                generatedTypeDict.GetOrCreate(typeInfo,
-                    () =>
-                        CreateProxy(proxyBuilder, onTypeGenerated, typeInfo, generatedTypeDict));
+                generatedTypeDict.GetOrCreate(typeInfo, () => CreateProxy(proxyBuilder,
+                                                                          onTypeGenerated,
+                                                                          typeInfo,
+                                                                          generatedTypeDict));
             }
         }
 
 
         private TypeDefinition CreateProxy(ProxyBuilder proxyBuilder,
-            Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
-            TypeCodeGenInfo typeInfo,
-            Dictionary<TypeCodeGenInfo, TypeDefinition> generatedTypeDict)
+                                           Action<TypeCodeGenInfo, TypeDefinition> onTypeGenerated,
+                                           TypeCodeGenInfo typeInfo,
+                                           Dictionary<TypeCodeGenInfo, TypeDefinition> generatedTypeDict)
         {
             var targetType = typeInfo.TransformedType;
             var name = targetType.Name;
@@ -820,11 +815,11 @@ namespace Pomona.CodeGen
             {
                 var baseTypeInfo = this.clientTypeInfoDict[tt.BaseType];
                 baseTypeDef = generatedTypeDict.GetOrCreate(baseTypeInfo,
-                    () =>
-                        CreateProxy(proxyBuilder,
-                            onTypeGenerated,
-                            baseTypeInfo,
-                            generatedTypeDict));
+                                                            () =>
+                                                                CreateProxy(proxyBuilder,
+                                                                            onTypeGenerated,
+                                                                            baseTypeInfo,
+                                                                            generatedTypeDict));
             }
             var proxyType = proxyBuilder.CreateProxyType(name, typeInfo.InterfaceType.WrapAsEnumerable(), baseTypeDef);
 
@@ -849,7 +844,8 @@ namespace Pomona.CodeGen
             {
                 interfacesToImplement.Add(
                     Import(typeof(IGettableRepository<,>)).MakeGenericInstanceType(resourceTypeInfo.InterfaceType,
-                        resourceTypeInfo.PrimaryIdTypeReference));
+                                                                                   resourceTypeInfo
+                                                                                       .PrimaryIdTypeReference));
             }
 
             if (tt.PatchAllowed || tt.MergedTypes.Any(x => x.PatchAllowed))
@@ -865,8 +861,8 @@ namespace Pomona.CodeGen
                 interfacesToImplement.Add(
                     Import(typeof(IPostableRepository<,>))
                         .MakeGenericInstanceType(resourceTypeInfo.InterfaceType,
-                            this.clientTypeInfoDict[tt.PostReturnType]
-                                .InterfaceType));
+                                                 this.clientTypeInfoDict[tt.PostReturnType]
+                                                     .InterfaceType));
             }
 
             if (tt.DeleteAllowed || tt.MergedTypes.Any(x => x.DeleteAllowed))
@@ -883,38 +879,38 @@ namespace Pomona.CodeGen
             }
 
             var repoInterface = CreateRepositoryType(resourceTypeInfo.CustomRepositoryInterface,
-                resourceTypeInfo,
-                MethodAttributes.Abstract |
-                MethodAttributes.HideBySig |
-                MethodAttributes.NewSlot |
-                MethodAttributes.Virtual |
-                MethodAttributes.Public,
-                "I{0}Repository",
-                TypeAttributes.Interface | TypeAttributes.Public |
-                TypeAttributes.Abstract,
-                false,
-                interfacesToImplement);
+                                                     resourceTypeInfo,
+                                                     MethodAttributes.Abstract |
+                                                     MethodAttributes.HideBySig |
+                                                     MethodAttributes.NewSlot |
+                                                     MethodAttributes.Virtual |
+                                                     MethodAttributes.Public,
+                                                     "I{0}Repository",
+                                                     TypeAttributes.Interface | TypeAttributes.Public |
+                                                     TypeAttributes.Abstract,
+                                                     false,
+                                                     interfacesToImplement);
 
             var repoImplementation = CreateRepositoryType(new TypeDefinition(null, null, 0),
-                resourceTypeInfo,
-                MethodAttributes.NewSlot |
-                MethodAttributes.HideBySig
-                | MethodAttributes.Virtual |
-                MethodAttributes.Public,
-                "{0}Repository",
-                TypeAttributes.Public,
-                true,
-                repoInterface.WrapAsEnumerable());
+                                                          resourceTypeInfo,
+                                                          MethodAttributes.NewSlot |
+                                                          MethodAttributes.HideBySig
+                                                          | MethodAttributes.Virtual |
+                                                          MethodAttributes.Public,
+                                                          "{0}Repository",
+                                                          TypeAttributes.Public,
+                                                          true,
+                                                          repoInterface.WrapAsEnumerable());
         }
 
 
         private TypeDefinition CreateRepositoryType(TypeDefinition repoTypeDef,
-            TypeCodeGenInfo rti,
-            MethodAttributes methodAttributes,
-            string repoTypeNameFormat,
-            TypeAttributes typeAttributes,
-            bool isImplementation,
-            IEnumerable<TypeReference> interfacesToImplement = null)
+                                                    TypeCodeGenInfo rti,
+                                                    MethodAttributes methodAttributes,
+                                                    string repoTypeNameFormat,
+                                                    TypeAttributes typeAttributes,
+                                                    bool isImplementation,
+                                                    IEnumerable<TypeReference> interfacesToImplement = null)
         {
             var tt = (ResourceType)rti.TransformedType;
 
@@ -929,17 +925,14 @@ namespace Pomona.CodeGen
             var baseTypeGenericDef = rti.CustomRepositoryBaseTypeDefinition;
             var baseTypeGenericArgs = rti.CustomRepositoryBaseTypeReference.GenericArguments.ToArray();
 
-            foreach (var subType in tt.MergedTypes.Concat(tt))
+            foreach (var subType in tt.MergedTypes.Concat(tt).Where(subType => subType.PostAllowed))
             {
-                if (subType.PostAllowed)
-                {
-                    AddRepositoryFormPostMethod(methodAttributes,
-                        isImplementation,
-                        subType,
-                        repoTypeDef,
-                        baseTypeGenericDef,
-                        baseTypeGenericArgs);
-                }
+                AddRepositoryFormPostMethod(methodAttributes,
+                                            isImplementation,
+                                            subType,
+                                            repoTypeDef,
+                                            baseTypeGenericDef,
+                                            baseTypeGenericArgs);
             }
 
             // Constructor
@@ -949,11 +942,12 @@ namespace Pomona.CodeGen
                 var baseCtorRef =
                     Import(baseCtor).MakeHostInstanceGeneric(baseTypeGenericArgs);
 
-                var ctor = new MethodDefinition(
-                    ".ctor",
-                    MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
-                    | MethodAttributes.Public,
-                    VoidTypeRef);
+                var ctor = new MethodDefinition(".ctor",
+                                                MethodAttributes.HideBySig
+                                                | MethodAttributes.SpecialName
+                                                | MethodAttributes.RTSpecialName
+                                                | MethodAttributes.Public,
+                                                VoidTypeRef);
 
                 baseCtor.Parameters.Select(x => new ParameterDefinition(x.Name, x.Attributes, Import(x.ParameterType)))
                     .AddTo(ctor.Parameters);
@@ -995,9 +989,29 @@ namespace Pomona.CodeGen
         }
 
 
-        private PropertyMapping GetPropertyMapping(
-            PropertyDefinition propertyDefinition,
-            TypeReference reflectedInterface = null)
+        private string GetClientInterfaceTypeFullName()
+        {
+            var clientTypeFullName = this.typeMapper.Filter.GetClientTypeFullName();
+
+            var segments = clientTypeFullName.Split('.');
+            var clientTypeName = clientTypeFullName;
+            var namespaceSegments = Enumerable.Empty<string>();
+
+            if (segments.Length == 1)
+                clientTypeName = segments[0];
+            else if (segments.Length > 1)
+            {
+                clientTypeName = segments.Last();
+                namespaceSegments = segments.Take(segments.Length - 2);
+            }
+
+            var interfaceTypeName = String.Concat('I', clientTypeName);
+            return String.Join(".", namespaceSegments.Concat(interfaceTypeName));
+        }
+
+
+        private PropertyMapping GetPropertyMapping(PropertyDefinition propertyDefinition,
+                                                   TypeReference reflectedInterface = null)
         {
             reflectedInterface = reflectedInterface ?? propertyDefinition.DeclaringType;
 
@@ -1049,7 +1063,7 @@ namespace Pomona.CodeGen
                 if (!this.enumClientTypeDict.TryGetValue(enumType, out typeRef))
                 {
                     throw new InvalidOperationException(
-                        string.Format(
+                        String.Format(
                             "Generated property has a reference to {0}, but has probably not been included in SourceTypes.",
                             enumType.Type.FullName));
                 }
@@ -1058,10 +1072,9 @@ namespace Pomona.CodeGen
                 typeRef = this.clientTypeInfoDict[transformedType].InterfaceType;
             else if (sharedType != null)
             {
-                if (sharedType.Type.IsGenericType)
-                    typeRef = Import(sharedType.Type.GetGenericTypeDefinition());
-                else
-                    typeRef = Import(sharedType.Type);
+                typeRef = Import(sharedType.Type.IsGenericType
+                    ? sharedType.Type.GetGenericTypeDefinition()
+                    : sharedType.Type);
 
                 if (sharedType.IsGenericType)
                 {
@@ -1105,9 +1118,7 @@ namespace Pomona.CodeGen
             {
                 return
                     this.module.GetType(methodBase.DeclaringType.FullName)
-                        .Methods.First(
-                            x =>
-                                x.Name == methodBase.Name &&
+                        .Methods.First(x =>x.Name == methodBase.Name &&
                                 ParametersAreEqual(methodBase, x));
             }
             return this.module.Import(methodBase);
@@ -1116,32 +1127,38 @@ namespace Pomona.CodeGen
 
         private TypeReference Import(Type type)
         {
-            TypeReference typeReference;
+            return this.typeReferenceCache.GetOrCreate(type, () =>
+            {
+                TypeReference typeReference;
 
-            return this.typeReferenceCache.GetOrCreate(type,
-                () =>
+                if (PomonaClientEmbeddingEnabled
+                    && type.Assembly == typeof(IPomonaClient).Assembly)
                 {
-                    if (PomonaClientEmbeddingEnabled && type.Assembly == typeof(IPomonaClient).Assembly)
+                    // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
+                    typeReference = this.module.GetType(type.FullName);
+                }
+                else
+                {
+                    if (
+                        !this.allowedReferencedAssemblies.Contains(
+                            type.Assembly))
                     {
-                        // clientBaseTypeRef = this.module.GetType("Pomona.Client.ClientBase`1");
-                        typeReference = this.module.GetType(type.FullName);
+                        throw new InvalidOperationException(
+                            "Generated dll contains a reference to "
+                            + type.AssemblyQualifiedName
+                            + ", which is not allowed for references.");
                     }
-                    else
-                    {
-                        if (!this.allowedReferencedAssemblies.Contains(type.Assembly))
-                        {
-                            throw new InvalidOperationException("Generated dll contains a reference to "
-                                                                + type.AssemblyQualifiedName
-                                                                + ", which is not allowed for references.");
-                        }
-                        typeReference = this.module.Import(type);
-                    }
+                    typeReference = this.module.Import(type);
+                }
 
-                    if (typeReference == null)
-                        throw new InvalidOperationException("Did not expect to get null when resolving type.");
+                if (typeReference == null)
+                {
+                    throw new InvalidOperationException(
+                        "Did not expect to get null when resolving type.");
+                }
 
-                    return typeReference;
-                });
+                return typeReference;
+            });
         }
 
         #region Nested type: PatchFormProxyBuilder
@@ -1163,47 +1180,45 @@ namespace Pomona.CodeGen
             }
 
 
-            protected override void OnGeneratePropertyMethods(
-                PropertyDefinition targetProp,
-                PropertyDefinition proxyProp,
-                TypeReference proxyBaseType,
-                TypeReference proxyTargetType,
-                TypeReference rootProxyTargetType)
+            protected override void OnGeneratePropertyMethods(PropertyDefinition targetProp,
+                                                              PropertyDefinition proxyProp,
+                                                              TypeReference proxyBaseType,
+                                                              TypeReference proxyTargetType,
+                                                              TypeReference rootProxyTargetType)
             {
                 var propertyMapping = this.owner.GetPropertyMapping(targetProp);
-                base.OnGeneratePropertyMethods(
-                    targetProp,
-                    proxyProp,
-                    proxyBaseType,
-                    proxyTargetType,
-                    rootProxyTargetType);
-                if ((propertyMapping.AccessMode & (HttpMethod.Patch | HttpMethod.Put | HttpMethod.Post)) == 0)
+                base.OnGeneratePropertyMethods(targetProp,
+                                               proxyProp,
+                                               proxyBaseType,
+                                               proxyTargetType,
+                                               rootProxyTargetType);
+                if ((propertyMapping.AccessMode & (HttpMethod.Patch | HttpMethod.Put | HttpMethod.Post)) != 0)
+                    return;
+
+                var invalidOperationStrCtor =
+                    typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
+                var invalidOperationStrCtorRef = this.owner.Import(invalidOperationStrCtor);
+
+                // Do not disable GETTING of collection types in update proxy, we might want to change
+                // the collection itself.
+
+                var allowReadingOfProperty = propertyMapping.PropertyType is EnumerableTypeSpec ||
+                                             propertyMapping.PropertyType is DictionaryTypeSpec;
+
+                var methodsToRestrict = allowReadingOfProperty
+                    ? new[] { proxyProp.SetMethod }
+                    : new[] { proxyProp.SetMethod, proxyProp.GetMethod };
+
+                foreach (var method in methodsToRestrict)
                 {
-                    var invalidOperationStrCtor =
-                        typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
-                    var invalidOperationStrCtorRef = this.owner.Import(invalidOperationStrCtor);
-
-                    // Do not disable GETTING of collection types in update proxy, we might want to change
-                    // the collection itself.
-
-                    var allowReadingOfProperty = propertyMapping.PropertyType is EnumerableTypeSpec ||
-                                                 propertyMapping.PropertyType is DictionaryTypeSpec;
-
-                    var methodsToRestrict = allowReadingOfProperty
-                        ? new[] { proxyProp.SetMethod }
-                        : new[] { proxyProp.SetMethod, proxyProp.GetMethod };
-
-                    foreach (var method in methodsToRestrict)
-                    {
-                        method.Body.Instructions.Clear();
-                        var ilproc = method.Body.GetILProcessor();
-                        ilproc.Append(
-                            Instruction.Create(
-                                OpCodes.Ldstr,
-                                "Illegal to update remote property " + propertyMapping.Name));
-                        ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
-                        ilproc.Append(Instruction.Create(OpCodes.Throw));
-                    }
+                    method.Body.Instructions.Clear();
+                    var ilproc = method.Body.GetILProcessor();
+                    ilproc.Append(
+                        Instruction.Create(
+                            OpCodes.Ldstr,
+                            "Illegal to update remote property " + propertyMapping.Name));
+                    ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
+                    ilproc.Append(Instruction.Create(OpCodes.Throw));
                 }
             }
         }
@@ -1218,34 +1233,29 @@ namespace Pomona.CodeGen
 
 
             public PostFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
-                : base(
-                    owner.module,
-                    owner.GetProxyType("PostResourceBase"),
-                    owner.Import(typeof(PropertyWrapper<,>)).Resolve(),
-                    isPublic)
+                : base(owner.module,
+                       owner.GetProxyType("PostResourceBase"),
+                       owner.Import(typeof(PropertyWrapper<,>)).Resolve(),
+                       isPublic)
             {
                 this.owner = owner;
                 ProxyNameFormat = "{0}Form";
             }
 
 
-            protected override void OnGeneratePropertyMethods(
-                PropertyDefinition targetProp,
-                PropertyDefinition proxyProp,
-                TypeReference proxyBaseType,
-                TypeReference proxyTargetType,
-                TypeReference rootProxyTargetType)
+            protected override void OnGeneratePropertyMethods(PropertyDefinition targetProp,
+                                                              PropertyDefinition proxyProp,
+                                                              TypeReference proxyBaseType,
+                                                              TypeReference proxyTargetType,
+                                                              TypeReference rootProxyTargetType)
             {
                 var propertyMapping = this.owner.GetPropertyMapping(targetProp, rootProxyTargetType);
-                var mergedProperties =
-                    propertyMapping.WrapAsEnumerable()
-                        .Concat(
-                            propertyMapping.ReflectedType.SubTypes.Select(
-                                x => x.Properties.First(y => y.Name == propertyMapping.Name)));
+                var mergedProperties = propertyMapping
+                    .WrapAsEnumerable()
+                    .Concat(propertyMapping.ReflectedType.SubTypes.Select(
+                        x => x.Properties.First(y => y.Name == propertyMapping.Name)));
 
-                if (
-                    mergedProperties.Any(
-                        x => x.AccessMode.HasFlag(HttpMethod.Post)))
+                if (mergedProperties.Any(x => x.AccessMode.HasFlag(HttpMethod.Post)))
                 {
                     base.OnGeneratePropertyMethods(
                         targetProp,
@@ -1263,13 +1273,11 @@ namespace Pomona.CodeGen
                     var getMethod = proxyProp.GetMethod;
                     var setMethod = proxyProp.SetMethod;
 
-                    foreach (var method in new[] { getMethod, setMethod })
+                    foreach (var ilproc in new[] { getMethod, setMethod }.Select(method => method.Body.GetILProcessor())
+                        )
                     {
-                        var ilproc = method.Body.GetILProcessor();
-                        ilproc.Append(
-                            Instruction.Create(
-                                OpCodes.Ldstr,
-                                propertyMapping.Name + " can't be set during initialization."));
+                        ilproc.Append(Instruction.Create(OpCodes.Ldstr,
+                                                         propertyMapping.Name + " can't be set during initialization."));
                         ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
                         ilproc.Append(Instruction.Create(OpCodes.Throw));
                     }
@@ -1278,9 +1286,12 @@ namespace Pomona.CodeGen
                     proxyProp.Name = explicitPropNamePrefix + targetProp.Name;
                     getMethod.Name = explicitPropNamePrefix + getMethod.Name;
                     setMethod.Name = explicitPropNamePrefix + setMethod.Name;
-                    var exlicitMethodAttrs = MethodAttributes.Private | MethodAttributes.Final
-                                             | MethodAttributes.HideBySig | MethodAttributes.SpecialName
-                                             | MethodAttributes.NewSlot | MethodAttributes.Virtual;
+                    const MethodAttributes exlicitMethodAttrs = MethodAttributes.Private
+                                                                | MethodAttributes.Final
+                                                                | MethodAttributes.HideBySig
+                                                                | MethodAttributes.SpecialName
+                                                                | MethodAttributes.NewSlot
+                                                                | MethodAttributes.Virtual;
                     getMethod.Attributes = exlicitMethodAttrs;
                     setMethod.Attributes = exlicitMethodAttrs;
                     getMethod.Overrides.Add(this.owner.Import(targetProp.GetMethod));
@@ -1296,13 +1307,13 @@ namespace Pomona.CodeGen
 
         private class TypeCodeGenInfo
         {
-            private readonly System.Lazy<Type> customRepositoryBaseType;
-            private readonly System.Lazy<TypeDefinition> customRepositoryBaseTypeDefinition;
-            private readonly System.Lazy<TypeReference> customRepositoryBaseTypeReference;
+            private readonly Lazy<Type> customRepositoryBaseType;
+            private readonly Lazy<TypeDefinition> customRepositoryBaseTypeDefinition;
+            private readonly Lazy<TypeReference> customRepositoryBaseTypeReference;
             private readonly TypeDefinition customRepositoryInterface;
             private readonly TypeDefinition interfaceType;
             private readonly ClientLibGenerator parent;
-            private readonly System.Lazy<TypeReference> postReturnTypeReference;
+            private readonly Lazy<TypeReference> postReturnTypeReference;
             private readonly TransformedType transformedType;
 
 
@@ -1316,9 +1327,11 @@ namespace Pomona.CodeGen
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
                         this.customRepositoryInterface = new TypeDefinition(parent.assemblyName,
-                            string.Format("I{0}Repository", transformedType.Name),
-                            TypeAttributes.Interface | TypeAttributes.Public |
-                            TypeAttributes.Abstract);
+                                                                            string.Format("I{0}Repository",
+                                                                                          transformedType.Name),
+                                                                            TypeAttributes.Interface
+                                                                            | TypeAttributes.Public
+                                                                            | TypeAttributes.Abstract);
                         parent.module.Types.Add(this.customRepositoryInterface);
                     }
                 }
@@ -1328,14 +1341,14 @@ namespace Pomona.CodeGen
                 this.parent = parent;
                 this.transformedType = transformedType;
 
-                this.postReturnTypeReference = new System.Lazy<TypeReference>(() =>
+                this.postReturnTypeReference = new Lazy<TypeReference>(() =>
                 {
                     if (resourceType == null || resourceType.PostReturnType == null)
                         return InterfaceType;
                     return parent.clientTypeInfoDict[resourceType.PostReturnType].InterfaceType;
                 });
 
-                this.customRepositoryBaseType = new System.Lazy<Type>(() =>
+                this.customRepositoryBaseType = new Lazy<Type>(() =>
                 {
                     if (resourceType != null)
                     {
@@ -1351,7 +1364,7 @@ namespace Pomona.CodeGen
                     return null;
                 });
 
-                this.customRepositoryBaseTypeDefinition = new System.Lazy<TypeDefinition>(() =>
+                this.customRepositoryBaseTypeDefinition = new Lazy<TypeDefinition>(() =>
                 {
                     if (this.customRepositoryBaseType.Value == null)
                         return null;
@@ -1360,26 +1373,26 @@ namespace Pomona.CodeGen
                     return typeRef as TypeDefinition ?? typeRef.Resolve();
                 });
 
-                this.customRepositoryBaseTypeReference = new System.Lazy<TypeReference>(() =>
+                this.customRepositoryBaseTypeReference = new Lazy<TypeReference>(() =>
                 {
                     if (this.customRepositoryBaseType.Value == null)
                         return null;
 
-                    return
-                        parent.Import(this.customRepositoryBaseType.Value).MakeGenericInstanceType(
-                            InterfaceType,
-                            PostReturnTypeReference,
-                            PrimaryIdTypeReference);
+                    return parent
+                        .Import(this.customRepositoryBaseType.Value)
+                        .MakeGenericInstanceType(InterfaceType,
+                                                 PostReturnTypeReference,
+                                                 PrimaryIdTypeReference);
                 });
 
                 // Add I in front of name if resource is class type, do not for interfaces to avoid IIWhatever name.
                 var name = "I" + transformedType.Name;
 
-                this.interfaceType = new TypeDefinition(
-                    parent.assemblyName,
-                    name,
-                    TypeAttributes.Interface | TypeAttributes.Public |
-                    TypeAttributes.Abstract);
+                this.interfaceType = new TypeDefinition(parent.assemblyName,
+                                                        name,
+                                                        TypeAttributes.Interface
+                                                        | TypeAttributes.Public
+                                                        | TypeAttributes.Abstract);
             }
 
 

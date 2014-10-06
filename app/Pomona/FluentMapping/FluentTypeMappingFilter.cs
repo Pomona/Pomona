@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,6 @@ using Newtonsoft.Json;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.TypeSystem;
 
@@ -46,47 +45,18 @@ namespace Pomona.FluentMapping
 {
     public sealed class FluentTypeMappingFilter : ITypeMappingFilter
     {
-        private class NestedTypeMappingConfigurator<TDeclaring> : TypeMappingConfiguratorBase<TDeclaring>
-        {
-            readonly List<Delegate> typeConfigurationDelegates = new List<Delegate>();
-
-
-            public NestedTypeMappingConfigurator(List<Delegate> typeConfigurationDelegates)
-            {
-                this.typeConfigurationDelegates = typeConfigurationDelegates;
-            }
-
-
-            protected override ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty, Expression<Func<TItem, TDeclaring>> parentProperty, Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions, Func<IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>, IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
-            {
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping = x => x.AsChildResourceOf(parentProperty, collectionProperty);
-                typeConfigurationDelegates.Add(asChildResourceMapping);
-                typeConfigurationDelegates.Add(typeOptions);
-                return this;
-            }
-
-
-            protected override ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
-                Expression<Func<TItem, TDeclaring>> parentProperty,
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
-                Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions)
-            {
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping =
-                    x => x.AsChildResourceOf(parentProperty, childProperty);
-                typeConfigurationDelegates.Add(asChildResourceMapping);
-                typeConfigurationDelegates.Add(typeOptions);
-                return this;
-            }
-        }
+        private readonly IEnumerable<Type> sourceTypes;
 
         private readonly ConcurrentDictionary<string, TypeMappingOptions> typeMappingDict =
             new ConcurrentDictionary<string, TypeMappingOptions>();
 
         private readonly ITypeMappingFilter wrappedFilter;
-        private readonly IEnumerable<Type> sourceTypes;
 
 
-        public FluentTypeMappingFilter(ITypeMappingFilter wrappedFilter, IEnumerable<object> fluentRuleObjects, IEnumerable<Delegate> mapDelegates, IEnumerable<Type> sourceTypes)
+        public FluentTypeMappingFilter(ITypeMappingFilter wrappedFilter,
+                                       IEnumerable<object> fluentRuleObjects,
+                                       IEnumerable<Delegate> mapDelegates,
+                                       IEnumerable<Type> sourceTypes)
         {
             this.wrappedFilter = wrappedFilter;
             this.sourceTypes = sourceTypes ?? Enumerable.Empty<Type>();
@@ -96,14 +66,6 @@ namespace Pomona.FluentMapping
                     (x => x.GetChildRules());
 
             ApplyRules(ruleMethods);
-        }
-
-        private IEnumerable<RuleMethod> GetMappingRulesFromDelegates(IEnumerable<Delegate> mapDelegates)
-        {
-            if (mapDelegates == null)
-                return Enumerable.Empty<RuleMethod>();
-
-            return mapDelegates.Where(x => IsRuleMethod(x.Method)).Select(x => new RuleMethod(x.Method, x.Target));
         }
 
 
@@ -117,8 +79,7 @@ namespace Pomona.FluentMapping
         {
             var typesSet = new HashSet<Type>(types);
             var sb = new StringBuilder();
-            sb.Append(
-                @"using Pomona.Example.Models;
+            sb.Append(@"using Pomona.Example.Models;
 using Pomona.FluentMapping;
 
 namespace TestNs
@@ -129,9 +90,8 @@ namespace TestNs
 
             foreach (var t in typesSet)
             {
-                sb.AppendFormat(
-                    "        public void Map(ITypeMappingConfigurator<{0}> map)\r\n        {{\r\n",
-                    t.FullName);
+                sb.AppendFormat("        public void Map(ITypeMappingConfigurator<{0}> map)\r\n        {{\r\n",
+                                t.FullName);
                 foreach (var p in t.GetProperties())
                 {
                     if (p.DeclaringType == t || !typesSet.Contains(p.DeclaringType))
@@ -149,8 +109,28 @@ namespace TestNs
         public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(propertyInfo.ReflectedType, propertyInfo,
-                x => x.ExposedAsRepository,
-                () => wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo));
+                                        x => x.ExposedAsRepository,
+                                        () => this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo));
+        }
+
+
+        public bool DeleteOfTypeIsAllowed(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.DeleteAllowed, () => this.wrappedFilter.DeleteOfTypeIsAllowed(type));
+        }
+
+
+        public bool GenerateIndependentClient()
+        {
+            return this.wrappedFilter.GenerateIndependentClient();
+        }
+
+
+        public PropertyInfo GetChildToParentProperty(Type type)
+        {
+            return FromMappingOrDefault(type,
+                                        x => x.ChildToParentProperty,
+                                        () => this.wrappedFilter.GetChildToParentProperty(type));
         }
 
 
@@ -160,9 +140,9 @@ namespace TestNs
         }
 
 
-        string ITypeMappingFilter.GetClientInformationalVersion()
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
         {
-            return this.wrappedFilter.GetClientInformationalVersion();
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
         }
 
 
@@ -172,15 +152,9 @@ namespace TestNs
         }
 
 
-        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        public string GetClientTypeFullName()
         {
-            return this.wrappedFilter.GetClientLibraryAttributes(member);
-        }
-
-
-        public bool GenerateIndependentClient()
-        {
-            return this.wrappedFilter.GenerateIndependentClient();
+            return this.wrappedFilter.GetClientTypeFullName();
         }
 
 
@@ -195,58 +169,26 @@ namespace TestNs
             return this.wrappedFilter.GetDefaultPropertyInclusionMode();
         }
 
+
         public JsonConverter GetJsonConverterForType(Type type)
         {
             return this.wrappedFilter.GetJsonConverterForType(type);
         }
 
 
-        public bool DeleteOfTypeIsAllowed(Type type)
-        {
-            return FromMappingOrDefault(type, x => x.DeleteAllowed, () => wrappedFilter.DeleteOfTypeIsAllowed(type));
-        }
-
-
         public Action<object> GetOnDeserializedHook(Type type)
         {
             return FromMappingOrDefault(type,
-                x => x.OnDeserialized,
-                () => this.wrappedFilter.GetOnDeserializedHook(type));
+                                        x => x.OnDeserialized,
+                                        () => this.wrappedFilter.GetOnDeserializedHook(type));
         }
 
 
-        public HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo)
+        public PropertyInfo GetParentToChildProperty(Type type)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x =>
-                    (x.ItemMethod & x.ItemMethodMask)
-                    | (this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo) & ~(x.ItemMethodMask)),
-                () => this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo));
-        }
-
-
-        public PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
-        {
-            return wrappedFilter.GetPropertyFlags(propertyInfo);
-        }
-
-
-        public IEnumerable<Type> GetResourceHandlers(Type type)
-        {
-            return FromMappingOrDefault(type, x => x.HandlerTypes, () => wrappedFilter.GetResourceHandlers(type));
-        }
-
-        public bool GetTypeIsAbstract(Type type)
-        {
-            return FromMappingOrDefault(type, x => x.IsAbstract, () => wrappedFilter.GetTypeIsAbstract(type));
-        }
-
-
-        public string GetTypeMappedName(Type type)
-        {
-            return FromMappingOrDefault(type, x => x.Name, () => wrappedFilter.GetTypeMappedName(type));
+            return FromMappingOrDefault(type,
+                                        x => x.ParentToChildProperty,
+                                        () => this.wrappedFilter.GetParentToChildProperty(type));
         }
 
 
@@ -277,73 +219,112 @@ namespace TestNs
         }
 
 
-        public PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
+        public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        o =>
+                                            this.wrappedFilter.GetPropertyAttributes(type, propertyInfo).EmptyIfNull()
+                                            .Concat(o.AddedAttributes),
+                                        () => this.wrappedFilter.GetPropertyAttributes(type, propertyInfo));
+        }
+
+
+        public PropertyCreateMode GetPropertyCreateMode(Type type,
+                                                        PropertyInfo propertyInfo,
+                                                        ParameterInfo ctorParameterInfo)
         {
             return FromMappingOrDefault(type, propertyInfo,
-                x => x.CreateMode,
-                () => this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo, ctorParameterInfo));
+                                        x => x.CreateMode,
+                                        () =>
+                                            this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo,
+                                                                                     ctorParameterInfo));
+        }
+
+
+        public PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.GetPropertyFlags(propertyInfo);
         }
 
 
         public LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type, propertyInfo,
-                x => x.Formula,
-                () => this.wrappedFilter.GetPropertyFormula(type, propertyInfo));
+                                        x => x.Formula,
+                                        () => this.wrappedFilter.GetPropertyFormula(type, propertyInfo));
         }
 
 
         public Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.OnGetDelegate,
-                () => this.wrappedFilter.GetPropertyGetter(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.OnGetDelegate,
+                                        () => this.wrappedFilter.GetPropertyGetter(type, propertyInfo));
+        }
+
+
+        public HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x =>
+                                            (x.ItemMethod & x.ItemMethodMask)
+                                            | (this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo)
+                                               & ~(x.ItemMethodMask)),
+                                        () => this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo));
         }
 
 
         public string GetPropertyMappedName(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.Name,
-                () => this.wrappedFilter.GetPropertyMappedName(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.Name,
+                                        () => this.wrappedFilter.GetPropertyMappedName(type, propertyInfo));
         }
 
 
         public Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.OnSetDelegate,
-                () => wrappedFilter.GetPropertySetter(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.OnSetDelegate,
+                                        () => this.wrappedFilter.GetPropertySetter(type, propertyInfo));
         }
 
 
         public Type GetPropertyType(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
-                propertyInfo,
-                o => o.PropertyType,
-                () => wrappedFilter.GetPropertyType(type, propertyInfo));
+                                        propertyInfo,
+                                        o => o.PropertyType,
+                                        () => this.wrappedFilter.GetPropertyType(type, propertyInfo));
         }
 
 
-        public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        public IEnumerable<Type> GetResourceHandlers(Type type)
         {
-            return FromMappingOrDefault(type,
-                propertyInfo,
-                o => wrappedFilter.GetPropertyAttributes(type, propertyInfo).EmptyIfNull().Concat(o.AddedAttributes),
-                () => wrappedFilter.GetPropertyAttributes(type, propertyInfo));
+            return FromMappingOrDefault(type, x => x.HandlerTypes, () => this.wrappedFilter.GetResourceHandlers(type));
         }
 
 
         public ConstructorSpec GetTypeConstructor(Type type)
         {
             return FromMappingOrDefault(type, x => x.Constructor, () => this.wrappedFilter.GetTypeConstructor(type));
+        }
+
+
+        public bool GetTypeIsAbstract(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.IsAbstract, () => this.wrappedFilter.GetTypeIsAbstract(type));
+        }
+
+
+        public string GetTypeMappedName(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.Name, () => this.wrappedFilter.GetTypeMappedName(type));
         }
 
 
@@ -354,27 +335,11 @@ namespace TestNs
         }
 
 
-        public PropertyInfo GetParentToChildProperty(Type type)
-        {
-            return FromMappingOrDefault(type,
-                x => x.ParentToChildProperty,
-                () => wrappedFilter.GetParentToChildProperty(type));
-        }
-
-
-        public PropertyInfo GetChildToParentProperty(Type type)
-        {
-            return FromMappingOrDefault(type,
-                x => x.ChildToParentProperty,
-                () => wrappedFilter.GetChildToParentProperty(type));
-        }
-
-
         public bool IsIndependentTypeRoot(Type type)
         {
             return FromMappingOrDefault(type,
-                tmo => tmo.IsIndependentTypeRoot,
-                () => this.wrappedFilter.IsIndependentTypeRoot(type));
+                                        tmo => tmo.IsIndependentTypeRoot,
+                                        () => this.wrappedFilter.IsIndependentTypeRoot(type));
         }
 
 
@@ -392,41 +357,37 @@ namespace TestNs
 
         public bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.PropertyFormulaIsDecompiled,
-                () => this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.PropertyFormulaIsDecompiled,
+                                        () => this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo));
         }
 
 
         public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.AlwaysExpanded,
-                () => this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.AlwaysExpanded,
+                                        () => this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo));
         }
 
 
         public bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.IsAttributesProperty,
-                () => this.wrappedFilter.PropertyIsAttributes(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.IsAttributesProperty,
+                                        () => this.wrappedFilter.PropertyIsAttributes(type, propertyInfo));
         }
 
 
         public bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.IsEtagProperty,
-                () => this.wrappedFilter.PropertyIsEtag(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.IsEtagProperty,
+                                        () => this.wrappedFilter.PropertyIsEtag(type, propertyInfo));
         }
 
 
@@ -466,11 +427,10 @@ namespace TestNs
 
         public bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(
-                type,
-                propertyInfo,
-                x => x.IsPrimaryKey,
-                () => this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo));
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        x => x.IsPrimaryKey,
+                                        () => this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo));
         }
 
 
@@ -483,8 +443,8 @@ namespace TestNs
         public bool TypeIsExposedAsRepository(Type type)
         {
             return FromMappingOrDefault(type,
-                x => x.IsExposedAsRepository,
-                () => this.wrappedFilter.TypeIsExposedAsRepository(type));
+                                        x => x.IsExposedAsRepository,
+                                        () => this.wrappedFilter.TypeIsExposedAsRepository(type));
         }
 
 
@@ -514,24 +474,41 @@ namespace TestNs
 
         public bool TypeIsMappedAsValueObject(Type type)
         {
-            return FromMappingOrDefault(
-                type,
-                x => x.IsValueObject,
-                () => this.wrappedFilter.TypeIsMappedAsValueObject(type));
+            return FromMappingOrDefault(type,
+                                        x => x.IsValueObject,
+                                        () => this.wrappedFilter.TypeIsMappedAsValueObject(type));
         }
 
 
         internal TypeMappingOptions GetTypeMapping(Type type)
         {
-            TypeMappingOptions typeMapping;
+            return this.typeMappingDict.GetOrAdd(type.FullName, k =>
+            {
+                TypeMappingOptions typeMapping = new TypeMappingOptions(type);
+                typeMapping.DefaultPropertyInclusionMode =
+                    GetDefaultPropertyInclusionMode();
+                return typeMapping;
+            });
+        }
 
-            return this.typeMappingDict.GetOrAdd(type.FullName,
-                k =>
-                {
-                    typeMapping = new TypeMappingOptions(type);
-                    typeMapping.DefaultPropertyInclusionMode = GetDefaultPropertyInclusionMode();
-                    return typeMapping;
-                });
+
+        private static IEnumerable<RuleMethod> GetMappingRulesFromDelegates(IEnumerable<Delegate> mapDelegates)
+        {
+            return mapDelegates == null
+                ? Enumerable.Empty<RuleMethod>()
+                : mapDelegates.Where(x => IsRuleMethod(x.Method)).Select(x => new RuleMethod(x.Method, x.Target));
+        }
+
+
+        private static IEnumerable<RuleMethod> GetMappingRulesFromObjects(IEnumerable<object> ruleContainers)
+        {
+            if (ruleContainers == null)
+                return Enumerable.Empty<RuleMethod>();
+            return ruleContainers
+                .SelectMany(x => x.GetType()
+                                .GetMethods()
+                                .Where(IsRuleMethod)
+                                .Select(m => new RuleMethod(m, x)));
         }
 
 
@@ -546,57 +523,10 @@ namespace TestNs
             return paramType.UniqueToken() == typeof(ITypeMappingConfigurator<>).UniqueToken();
         }
 
-        private class RuleMethod
-        {
-            private readonly Type appliesToType;
-
-            public Type AppliesToType
-            {
-                get { return appliesToType; }
-            }
-
-            public MethodInfo Method
-            {
-                get { return method; }
-            }
-
-            public object Instance
-            {
-                get { return instance; }
-            }
-
-            private readonly MethodInfo method;
-            private readonly object instance;
-
-            public RuleMethod(MethodInfo method, object instance)
-            {
-                this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
-                this.method = method;
-                this.instance = instance;
-            }
-
-
-            public static MethodInfo getChildRulesMethod =
-                ReflectionHelper.GetMethodDefinition<RuleMethod>(x => x.GetChildRules<object>());
-
-            private IEnumerable<RuleMethod> GetChildRules<T>()
-            {
-                var typeConfigDelegates = new List<Delegate>();
-                var nestedScanner = new NestedTypeMappingConfigurator<T>(typeConfigDelegates);
-                Method.Invoke(Instance, new object[] { nestedScanner });
-                return typeConfigDelegates.Select(x => new RuleMethod(x.Method, x.Target)).ToList();
-            }
-
-            public IEnumerable<RuleMethod> GetChildRules()
-            {
-                return (IEnumerable<RuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
-            }
-        }
-
 
         private void ApplyRules(IEnumerable<RuleMethod> ruleMethods)
         {
-            var allTransformedTypes = sourceTypes.Where(TypeIsMappedAsTransformedType).ToList();
+            var allTransformedTypes = this.sourceTypes.Where(TypeIsMappedAsTransformedType).ToList();
 
             // NOTE: We need to order the properties in ascending order by how
             //       specific their declaring types are so we get the most
@@ -615,24 +545,10 @@ namespace TestNs
             }
         }
 
-        private static IEnumerable<RuleMethod> GetMappingRulesFromObjects(IEnumerable<object> ruleContainers)
-        {
-            if (ruleContainers == null)
-                return Enumerable.Empty<RuleMethod>();
-            return ruleContainers
-                .SelectMany(
-                    x => x.GetType()
-                        .GetMethods()
-                        .Where(IsRuleMethod)
-                        .Select(
-                            m => new RuleMethod(m, x)));
-        }
 
-
-        private T FromMappingOrDefault<T>(
-            Type type,
-            Func<TypeMappingOptions, T?> ifMappingExist,
-            Func<T> ifMappingMissing)
+        private T FromMappingOrDefault<T>(Type type,
+                                          Func<TypeMappingOptions, T?> ifMappingExist,
+                                          Func<T> ifMappingMissing)
             where T : struct
         {
             var result = FromMappingOrDefault(type, ifMappingExist, () => (T?)ifMappingMissing());
@@ -642,10 +558,9 @@ namespace TestNs
         }
 
 
-        private T FromMappingOrDefault<T>(
-            Type type,
-            Func<TypeMappingOptions, T> ifMappingExist,
-            Func<T> ifMappingMissing)
+        private T FromMappingOrDefault<T>(Type type,
+                                          Func<TypeMappingOptions, T> ifMappingExist,
+                                          Func<T> ifMappingMissing)
         {
             TypeMappingOptions typeMappingOptions;
             object result = null;
@@ -657,11 +572,10 @@ namespace TestNs
         }
 
 
-        private T FromMappingOrDefault<T>(
-            Type type,
-            PropertyInfo propertyInfo,
-            Func<PropertyMappingOptions, T> ifMappingExist,
-            Func<T> ifMappingMissing)
+        private T FromMappingOrDefault<T>(Type type,
+                                          PropertyInfo propertyInfo,
+                                          Func<PropertyMappingOptions, T> ifMappingExist,
+                                          Func<T> ifMappingMissing)
         {
             TypeMappingOptions typeMappingOptions;
             PropertyMappingOptions propertyOptions;
@@ -677,11 +591,10 @@ namespace TestNs
         }
 
 
-        private T FromMappingOrDefault<T>(
-            Type type,
-            PropertyInfo propertyInfo,
-            Func<PropertyMappingOptions, T?> ifMappingExist,
-            Func<T> ifMappingMissing)
+        private T FromMappingOrDefault<T>(Type type,
+                                          PropertyInfo propertyInfo,
+                                          Func<PropertyMappingOptions, T?> ifMappingExist,
+                                          Func<T> ifMappingMissing)
             where T : struct
         {
             TypeMappingOptions typeMappingOptions;
@@ -698,15 +611,120 @@ namespace TestNs
         }
 
 
-        private bool TryGetTypeMappingAndPropertyOptions(
-            Type reflectedType,
-            PropertyInfo propertyInfo,
-            out TypeMappingOptions typeMapping,
-            out PropertyMappingOptions propertyOptions)
+        string ITypeMappingFilter.GetClientInformationalVersion()
+        {
+            return this.wrappedFilter.GetClientInformationalVersion();
+        }
+
+
+        private bool TryGetTypeMappingAndPropertyOptions(Type reflectedType,
+                                                         PropertyInfo propertyInfo,
+                                                         out TypeMappingOptions typeMapping,
+                                                         out PropertyMappingOptions propertyOptions)
         {
             typeMapping = GetTypeMapping(reflectedType);
             propertyOptions = typeMapping.GetPropertyOptions(propertyInfo);
             return true;
         }
+
+        #region Nested type: NestedTypeMappingConfigurator
+
+        private class NestedTypeMappingConfigurator<TDeclaring> : TypeMappingConfiguratorBase<TDeclaring>
+        {
+            private readonly List<Delegate> typeConfigurationDelegates = new List<Delegate>();
+
+
+            public NestedTypeMappingConfigurator(List<Delegate> typeConfigurationDelegates)
+            {
+                this.typeConfigurationDelegates = typeConfigurationDelegates;
+            }
+
+
+            protected override ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(
+                Expression<Func<TDeclaring, TItem>> childProperty,
+                Expression<Func<TItem, TDeclaring>> parentProperty,
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+                Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>>
+                    propertyOptions)
+            {
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping =
+                    x => x.AsChildResourceOf(parentProperty, childProperty);
+                this.typeConfigurationDelegates.Add(asChildResourceMapping);
+                this.typeConfigurationDelegates.Add(typeOptions);
+                return this;
+            }
+
+
+            protected override ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(
+                Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty,
+                Expression<Func<TItem, TDeclaring>> parentProperty,
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+                Func
+                    <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
+                    IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+            {
+                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping =
+                    x => x.AsChildResourceOf(parentProperty, collectionProperty);
+                this.typeConfigurationDelegates.Add(asChildResourceMapping);
+                this.typeConfigurationDelegates.Add(typeOptions);
+                return this;
+            }
+        }
+
+        #endregion
+
+        #region Nested type: RuleMethod
+
+        private class RuleMethod
+        {
+            public static readonly MethodInfo getChildRulesMethod =
+                ReflectionHelper.GetMethodDefinition<RuleMethod>(x => x.GetChildRules<object>());
+
+            private readonly Type appliesToType;
+
+            private readonly object instance;
+            private readonly MethodInfo method;
+
+
+            public RuleMethod(MethodInfo method, object instance)
+            {
+                this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
+                this.method = method;
+                this.instance = instance;
+            }
+
+
+            public Type AppliesToType
+            {
+                get { return this.appliesToType; }
+            }
+
+            public object Instance
+            {
+                get { return this.instance; }
+            }
+
+            public MethodInfo Method
+            {
+                get { return this.method; }
+            }
+
+
+            public IEnumerable<RuleMethod> GetChildRules()
+            {
+                return (IEnumerable<RuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
+            }
+
+
+            private IEnumerable<RuleMethod> GetChildRules<T>()
+            {
+                var typeConfigDelegates = new List<Delegate>();
+                var nestedScanner = new NestedTypeMappingConfigurator<T>(typeConfigDelegates);
+                Method.Invoke(Instance, new object[] { nestedScanner });
+                return typeConfigDelegates.Select(x => new RuleMethod(x.Method, x.Target)).ToList();
+            }
+        }
+
+        #endregion
     }
 }

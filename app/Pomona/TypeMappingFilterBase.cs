@@ -37,7 +37,6 @@ using DelegateDecompiler;
 using Nancy.Extensions;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -96,6 +95,12 @@ namespace Pomona
         }
 
 
+        /// <summary>
+        /// Gets the name of the generated client assembly.
+        /// </summary>
+        /// <returns>
+        /// The name of the generated client assembly.
+        /// </returns>
         public virtual string GetClientAssemblyName()
         {
             return "Client";
@@ -119,6 +124,18 @@ namespace Pomona
             if (type == null)
                 throw new ArgumentNullException("type");
             return null;
+        }
+
+
+        /// <summary>
+        /// Gets the full name (including namespace) of the client type.
+        /// </summary>
+        /// <returns>
+        /// The full name (including namespace) of the client type.
+        /// </returns>
+        public virtual string GetClientTypeFullName()
+        {
+            return "Client";
         }
 
 
@@ -159,11 +176,6 @@ namespace Pomona
             return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
         }
 
-        public virtual bool GetTypeIsAbstract(Type type)
-        {
-            return type.IsAbstract;
-        }
-
 
         public virtual Type GetPostReturnType(Type type)
         {
@@ -188,7 +200,9 @@ namespace Pomona
         }
 
 
-        public virtual PropertyCreateMode GetPropertyCreateMode(Type type, PropertyInfo propertyInfo, ParameterInfo ctorParameterInfo)
+        public virtual PropertyCreateMode GetPropertyCreateMode(Type type,
+                                                                PropertyInfo propertyInfo,
+                                                                ParameterInfo ctorParameterInfo)
         {
             if (ctorParameterInfo != null)
                 return PropertyCreateMode.Required;
@@ -253,12 +267,6 @@ namespace Pomona
         }
 
 
-        public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
-        {
-            return Enumerable.Empty<Attribute>();
-        }
-
-
         public virtual IEnumerable<Type> GetResourceHandlers(Type type)
         {
             return null;
@@ -271,6 +279,12 @@ namespace Pomona
                 type.GetConstructors().OrderByDescending(x => x.GetParameters().Length).Select(
                     x => ConstructorSpec.FromConstructorInfo(x, defaultFactory : () => null)).FirstOrDefault(
                         x => x != null);
+        }
+
+
+        public virtual bool GetTypeIsAbstract(Type type)
+        {
+            return type.IsAbstract;
         }
 
 
@@ -434,6 +448,12 @@ namespace Pomona
         }
 
 
+        public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
+        {
+            return Enumerable.Empty<Attribute>();
+        }
+
+
         public string GetTypeMappedName(Type type)
         {
             return type.Name;
@@ -444,6 +464,7 @@ namespace Pomona
         {
             return type.IsAnonymous() || TypeIsIGrouping(type);
         }
+
 
         private static bool TypeIsIGrouping(Type type)
         {
@@ -471,7 +492,7 @@ namespace Pomona
             if (type == null)
                 throw new ArgumentNullException("type");
             return type.IsGenericType &&
-                   type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
+                   type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
 
 
