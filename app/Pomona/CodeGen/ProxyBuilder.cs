@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,41 +29,41 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+
 using Pomona.Common.Internals;
 
 namespace Pomona.CodeGen
 {
+    public delegate void GeneratePropertyMethods(PropertyDefinition targetProperty,
+                                                 PropertyDefinition proxyProperty,
+                                                 TypeReference proxyBaseType,
+                                                 TypeReference proxyTargetType);
+
     public class ProxyBuilder
     {
         private readonly bool isPublic;
-
         private readonly ModuleDefinition module;
-
-        private readonly Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference>
-            onGeneratePropertyMethodsFunc;
-
-        private readonly TypeReference proxySuperBaseTypeDef;
-
+        private readonly GeneratePropertyMethods onGeneratePropertyMethods;
         private readonly string proxyNamespace;
+        private readonly TypeReference proxySuperBaseTypeDef;
         private string proxyNameFormat;
 
 
-        public ProxyBuilder(
-            ModuleDefinition module,
-            string proxyNameFormat,
-            TypeReference proxySuperBaseTypeDef,
-            bool isPublic,
-            Action<PropertyDefinition, PropertyDefinition, TypeReference, TypeReference> onGeneratePropertyMethodsFunc =
-                null,
-            string proxyNamespace = null)
+        public ProxyBuilder(ModuleDefinition module,
+                            string proxyNameFormat,
+                            TypeReference proxySuperBaseTypeDef,
+                            bool isPublic,
+                            GeneratePropertyMethods onGeneratePropertyMethods = null,
+                            string proxyNamespace = null)
         {
             this.proxyNamespace = proxyNamespace ?? module.Assembly.Name.Name;
             this.module = module;
             this.proxySuperBaseTypeDef = proxySuperBaseTypeDef;
-            this.onGeneratePropertyMethodsFunc = onGeneratePropertyMethodsFunc;
+            this.onGeneratePropertyMethods = onGeneratePropertyMethods;
             this.proxyNameFormat = proxyNameFormat;
             this.isPublic = isPublic;
         }
@@ -71,41 +71,38 @@ namespace Pomona.CodeGen
 
         public virtual ModuleDefinition Module
         {
-            get { return module; }
+            get { return this.module; }
         }
 
         public virtual string ProxyNameFormat
         {
-            get { return proxyNameFormat; }
-            protected set { proxyNameFormat = value; }
+            get { return this.proxyNameFormat; }
+            protected set { this.proxyNameFormat = value; }
         }
 
 
-        public TypeDefinition CreateProxyType(
-            string nameBase,
-            IEnumerable<TypeDefinition> interfacesToImplement,
-            TypeDefinition proxyBase)
+        public TypeDefinition CreateProxyType(string nameBase,
+                                              IEnumerable<TypeDefinition> interfacesToImplement,
+                                              TypeDefinition proxyBase)
         {
-            proxyBase = proxyBase ?? proxySuperBaseTypeDef.Resolve();
+            proxyBase = proxyBase ?? this.proxySuperBaseTypeDef.Resolve();
             MethodReference proxyBaseCtor = proxyBase.GetConstructors().First(x => x.Parameters.Count == 0);
             proxyBaseCtor = Module.Import(proxyBaseCtor);
 
-            var proxyTypeName = string.Format(proxyNameFormat, nameBase);
+            var proxyTypeName = string.Format(this.proxyNameFormat, nameBase);
 
-            var typeAttributes = isPublic
-                                     ? TypeAttributes.Public
-                                     : TypeAttributes.NotPublic;
+            var typeAttributes = this.isPublic
+                ? TypeAttributes.Public
+                : TypeAttributes.NotPublic;
 
-            var proxyType =
-                new TypeDefinition(
-                    proxyNamespace,
-                    proxyTypeName,
-                    typeAttributes,
-                    module.Import(proxyBase));
+            var proxyType = new TypeDefinition(this.proxyNamespace,
+                                               proxyTypeName,
+                                               typeAttributes,
+                                               this.module.Import(proxyBase));
             Module.Types.Add(proxyType);
 
             foreach (var interfaceDef in interfacesToImplement)
-                proxyType.Interfaces.Add(module.Import(interfaceDef));
+                proxyType.Interfaces.Add(this.module.Import(interfaceDef));
 
             // Empty public constructor
             var ctor = new MethodDefinition(
@@ -124,19 +121,19 @@ namespace Pomona.CodeGen
 
             var interfaces =
                 interfacesToImplement.SelectMany(GetAllInterfacesRecursive)
-                                     .Except(proxyBase.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())))
-                                     .Distinct()
-                                     .ToList();
+                    .Except(proxyBase.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())))
+                    .Distinct()
+                    .ToList();
 
             var propertiesToCreate = interfaces.SelectMany(x => x.Properties).ToList();
             foreach (var targetProp in propertiesToCreate)
             {
-                var proxyPropDef = AddProperty(proxyType, targetProp.Name, module.Import(targetProp.PropertyType));
+                var proxyPropDef = AddProperty(proxyType, targetProp.Name, this.module.Import(targetProp.PropertyType));
                 OnGeneratePropertyMethods(
                     targetProp,
                     proxyPropDef,
-                    proxySuperBaseTypeDef,
-                    module.Import(targetProp.DeclaringType),
+                    this.proxySuperBaseTypeDef,
+                    this.module.Import(targetProp.DeclaringType),
                     interfacesToImplement.First());
             }
 
@@ -144,20 +141,19 @@ namespace Pomona.CodeGen
         }
 
 
-        protected virtual void OnGeneratePropertyMethods(
-            PropertyDefinition targetProp,
-            PropertyDefinition proxyProp,
-            TypeReference proxyBaseType,
-            TypeReference proxyTargetType,
-            TypeReference rootProxyTargetType)
+        protected virtual void OnGeneratePropertyMethods(PropertyDefinition targetProp,
+                                                         PropertyDefinition proxyProp,
+                                                         TypeReference proxyBaseType,
+                                                         TypeReference proxyTargetType,
+                                                         TypeReference rootProxyTargetType)
         {
-            if (onGeneratePropertyMethodsFunc == null)
+            if (this.onGeneratePropertyMethods == null)
             {
                 throw new InvalidOperationException(
                     "Either onGenerateMethodsFunc must be provided in argument, or OnGenerateMethods must be overrided");
             }
 
-            onGeneratePropertyMethodsFunc(targetProp, proxyProp, proxyBaseType, proxyTargetType);
+            this.onGeneratePropertyMethods(targetProp, proxyProp, proxyBaseType, proxyTargetType);
         }
 
 

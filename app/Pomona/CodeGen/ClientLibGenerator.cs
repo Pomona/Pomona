@@ -157,25 +157,23 @@ namespace Pomona.CodeGen
 
             CreateProxies(new WrappedPropertyProxyBuilder(this.module,
                                                           GetProxyType("LazyProxyBase"),
-                                                          Import(typeof(PropertyWrapper<,>)).Resolve()),
+                                                          Import(typeof(PropertyWrapper<,>)).Resolve(),
+                                                          proxyNamespace : this.@namespace),
                           (info, def) =>
                           {
                               info.LazyProxyType = def;
                           });
 
-            CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic),
-                          (info, def) =>
-                          {
-                              info.PatchFormType = def;
-                          },
-                          typeIsGeneratedPredicate : x => x.TransformedType.PatchAllowed);
+            CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic), (info, def) =>
+            {
+                info.PatchFormType = def;
+            }, typeIsGeneratedPredicate : x => x.TransformedType.PatchAllowed);
 
             CreateProxies(new PostFormProxyBuilder(this), (info, def) =>
             {
                 info.PostFormType = def;
                 def.IsAbstract = info.TransformedType.IsAbstract;
-            },
-                          typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
+            }, typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
 
             CreateClientInterface(this.typeMapper.Filter.ClientMetadata.InterfaceName);
             CreateClientType(this.typeMapper.Filter.ClientMetadata.Name);
@@ -197,7 +195,7 @@ namespace Pomona.CodeGen
                 foreach (var clientHelperType in this.module.Types
                     .Where(methodDefinition =>
                                !methodDefinition.Namespace.StartsWith(this.@namespace)
-                               && !string.IsNullOrEmpty(methodDefinition.Namespace)))
+                               && !String.IsNullOrEmpty(methodDefinition.Namespace)))
                     clientHelperType.Namespace = this.@namespace + "." + clientHelperType.Namespace;
             }
 
@@ -927,7 +925,7 @@ namespace Pomona.CodeGen
             var tt = (ResourceType)rti.TransformedType;
 
             repoTypeDef.Namespace = this.@namespace;
-            repoTypeDef.Name = string.Format(repoTypeNameFormat, rti.TransformedType.Name);
+            repoTypeDef.Name = String.Format(repoTypeNameFormat, rti.TransformedType.Name);
             repoTypeDef.Attributes = typeAttributes;
 
             if (isImplementation)
@@ -976,17 +974,17 @@ namespace Pomona.CodeGen
 
             if (!this.module.Types.Contains(repoTypeDef))
                 this.module.Types.Add(repoTypeDef);
+
             return repoTypeDef;
         }
 
 
         private IEnumerable<TypeCodeGenInfo> GetAllUriBaseTypesExposedAsRepositories()
         {
-            return this.clientTypeInfoDict.Values.Where(
-                x =>
-                    x.UriBaseType == x.InterfaceType
-                    && x.TransformedType.Maybe().OfType<ResourceType>().Select(
-                        y => y.IsRootResource && y.IsExposedAsRepository).OrDefault());
+            return this.clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType
+                                                             && x.TransformedType.Maybe().OfType<ResourceType>().Select(
+                                                                 y => y.IsRootResource && y.IsExposedAsRepository)
+                                                            .OrDefault());
         }
 
 
@@ -1006,18 +1004,16 @@ namespace Pomona.CodeGen
         {
             reflectedInterface = reflectedInterface ?? propertyDefinition.DeclaringType;
 
-            return
-                this.clientTypeInfoDict
-                    .Values
-                    .First(x => x.InterfaceType == reflectedInterface)
-                    .TransformedType.Properties.Cast<PropertyMapping>()
-                    .First(x => x.Name == propertyDefinition.Name);
+            return this.clientTypeInfoDict
+                .Values
+                .First(x => x.InterfaceType == reflectedInterface)
+                .TransformedType.Properties.Cast<PropertyMapping>()
+                .First(x => x.Name == propertyDefinition.Name);
         }
 
 
         private TypeReference GetPropertyTypeReference(PropertyMapping prop)
         {
-            TypeReference propTypeRef;
             if (prop.ExposedAsRepository)
             {
                 var propType = prop.PropertyType as EnumerableTypeSpec;
@@ -1026,8 +1022,8 @@ namespace Pomona.CodeGen
                 var resourceInfo = this.clientTypeInfoDict[propType.ItemType];
                 return resourceInfo.CustomRepositoryInterface;
             }
-            else
-                propTypeRef = GetTypeReference(prop.PropertyType);
+
+            TypeReference propTypeRef = GetTypeReference(prop.PropertyType);
             return propTypeRef;
         }
 
@@ -1160,11 +1156,11 @@ namespace Pomona.CodeGen
 
 
             public PatchFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
-                : base(
-                    owner.module,
-                    owner.GetProxyType("PostResourceBase"),
-                    owner.Import(typeof(PropertyWrapper<,>)).Resolve(),
-                    isPublic)
+                : base(owner.module,
+                       owner.GetProxyType("PostResourceBase"),
+                       owner.Import(typeof(PropertyWrapper<,>)).Resolve(),
+                       isPublic,
+                       proxyNamespace : owner.@namespace)
             {
                 this.owner = owner;
                 ProxyNameFormat = "{0}PatchForm";
@@ -1204,10 +1200,8 @@ namespace Pomona.CodeGen
                 {
                     method.Body.Instructions.Clear();
                     var ilproc = method.Body.GetILProcessor();
-                    ilproc.Append(
-                        Instruction.Create(
-                            OpCodes.Ldstr,
-                            "Illegal to update remote property " + propertyMapping.Name));
+                    ilproc.Append(Instruction.Create(OpCodes.Ldstr,
+                                                     "Illegal to update remote property " + propertyMapping.Name));
                     ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
                     ilproc.Append(Instruction.Create(OpCodes.Throw));
                 }
@@ -1227,7 +1221,8 @@ namespace Pomona.CodeGen
                 : base(owner.module,
                        owner.GetProxyType("PostResourceBase"),
                        owner.Import(typeof(PropertyWrapper<,>)).Resolve(),
-                       isPublic)
+                       isPublic,
+                       proxyNamespace : owner.@namespace)
             {
                 this.owner = owner;
                 ProxyNameFormat = "{0}Form";
@@ -1248,12 +1243,11 @@ namespace Pomona.CodeGen
 
                 if (mergedProperties.Any(x => x.AccessMode.HasFlag(HttpMethod.Post)))
                 {
-                    base.OnGeneratePropertyMethods(
-                        targetProp,
-                        proxyProp,
-                        proxyBaseType,
-                        proxyTargetType,
-                        rootProxyTargetType);
+                    base.OnGeneratePropertyMethods(targetProp,
+                                                   proxyProp,
+                                                   proxyBaseType,
+                                                   proxyTargetType,
+                                                   rootProxyTargetType);
                 }
                 else
                 {
@@ -1264,8 +1258,8 @@ namespace Pomona.CodeGen
                     var getMethod = proxyProp.GetMethod;
                     var setMethod = proxyProp.SetMethod;
 
-                    foreach (var ilproc in new[] { getMethod, setMethod }.Select(method => method.Body.GetILProcessor())
-                        )
+                    foreach (var ilproc in new[] { getMethod, setMethod }
+                        .Select(method => method.Body.GetILProcessor()))
                     {
                         ilproc.Append(Instruction.Create(OpCodes.Ldstr,
                                                          propertyMapping.Name + " can't be set during initialization."));
@@ -1286,6 +1280,7 @@ namespace Pomona.CodeGen
                     getMethod.Attributes = exlicitMethodAttrs;
                     setMethod.Attributes = exlicitMethodAttrs;
                     getMethod.Overrides.Add(this.owner.Import(targetProp.GetMethod));
+
                     if (targetProp.SetMethod != null)
                         setMethod.Overrides.Add(this.owner.Import(targetProp.SetMethod));
                 }
@@ -1318,7 +1313,7 @@ namespace Pomona.CodeGen
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
                         this.customRepositoryInterface = new TypeDefinition(parent.@namespace,
-                                                                            string.Format("I{0}Repository",
+                                                                            String.Format("I{0}Repository",
                                                                                           transformedType.Name),
                                                                             TypeAttributes.Interface
                                                                             | TypeAttributes.Public
@@ -1329,6 +1324,7 @@ namespace Pomona.CodeGen
 
                 if (parent == null)
                     throw new ArgumentNullException("parent");
+
                 this.parent = parent;
                 this.transformedType = transformedType;
 

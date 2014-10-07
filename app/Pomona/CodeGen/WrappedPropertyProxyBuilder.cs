@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
+
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -35,24 +40,25 @@ namespace Pomona.CodeGen
         private readonly TypeDefinition propertyWrapperType;
 
 
-        public WrappedPropertyProxyBuilder(
-            ModuleDefinition module,
-            TypeReference proxySuperBaseTypeDef,
-            TypeDefinition propertyWrapperType,
-            bool isPublic = true) : base(module, "{0}LazyProxy", proxySuperBaseTypeDef, isPublic)
+        public WrappedPropertyProxyBuilder(ModuleDefinition module,
+                                           TypeReference proxySuperBaseTypeDef,
+                                           TypeDefinition propertyWrapperType,
+                                           bool isPublic = true,
+                                           GeneratePropertyMethods onGeneratePropertyMethods = null,
+                                           string proxyNamespace = null)
+            : base(module, "{0}LazyProxy", proxySuperBaseTypeDef, isPublic, onGeneratePropertyMethods, proxyNamespace)
         {
             this.propertyWrapperType = propertyWrapperType;
         }
 
 
-        protected override void OnGeneratePropertyMethods(
-            PropertyDefinition targetProp,
-            PropertyDefinition proxyProp,
-            TypeReference proxyBaseType,
-            TypeReference proxyTargetType,
-            TypeReference rootProxyTargetType)
+        protected override void OnGeneratePropertyMethods(PropertyDefinition targetProp,
+                                                          PropertyDefinition proxyProp,
+                                                          TypeReference proxyBaseType,
+                                                          TypeReference proxyTargetType,
+                                                          TypeReference rootProxyTargetType)
         {
-            var propWrapperTypeDef = propertyWrapperType;
+            var propWrapperTypeDef = this.propertyWrapperType;
             var propWrapperTypeRef =
                 Module.Import(
                     propWrapperTypeDef).MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType);
@@ -62,7 +68,7 @@ namespace Pomona.CodeGen
                     x => !x.IsStatic &&
                          x.Parameters.Count == 1 &&
                          x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName)).
-                                   MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType);
+                MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType);
 
             var propertyWrapperField = new FieldDefinition(
                 "_pwrap_" + targetProp.Name,
@@ -103,7 +109,6 @@ namespace Pomona.CodeGen
             var proxyOnSetMethodInstance = new GenericInstanceMethod(proxyOnSetMethod);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyTargetType);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
-
 
             var getIl = proxyProp.GetMethod.Body.GetILProcessor();
             getIl.Emit(OpCodes.Ldarg_0);
