@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-  <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <licenseUrl>https://github.com/okb/Pomona</licenseUrl>
-    <projectUrl>https://github.com/okb/Pomona</projectUrl>
-    <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
-    <releaseNotes>First development pre-release.</releaseNotes>
-    <copyright>Copyright Karsten N. Strand 2012</copyright>
-    <tags>REST linq mapping</tags>
-    <dependencies>
-      <dependency id="Pomona" version="$version$" />
-      <dependency id="Pomona.Common" version="$version$" />
-    </dependencies>
-  </metadata>
+    <metadata>
+        <id>$id$</id>
+        <version>$version$</version>
+        <title>$title$</title>
+        <authors>$author$</authors>
+        <owners>$author$</owners>
+        <licenseUrl>http://pomona.io/license.txt</licenseUrl>
+        <projectUrl>https://github.com/okb/Pomona</projectUrl>
+        <iconUrl>http://pomona.io/images/pomona-icon-100.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>$description$</description>
+        <releaseNotes></releaseNotes>
+        <copyright>Copyright Karsten N. Strand 2012</copyright>
+        <tags>rest linq mapping dto odata query</tags>
+        <dependencies>
+            <dependency id="Pomona" version="$version$" />
+            <dependency id="Pomona.Common" version="$version$" />
+        </dependencies>
+    </metadata>
 </package>
