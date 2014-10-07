@@ -64,12 +64,12 @@ namespace Pomona.UnitTests
         [Test]
         public void Constructor_AssemblyNameAndClientName()
         {
-            ClientMetadata clientMetadata = new TestableClientMetadata("My.Client", "MyClient");
+            ClientMetadata clientMetadata = new TestableClientMetadata("My.Awesome.Client", "MyClient");
 
-            Assert.That(clientMetadata.AssemblyName, Is.EqualTo("My.Client"), "AssemblyName");
+            Assert.That(clientMetadata.AssemblyName, Is.EqualTo("My.Awesome.Client"), "AssemblyName");
             Assert.That(clientMetadata.Name, Is.EqualTo("MyClient"), "Name");
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IMyClient"), "InterfaceName");
-            Assert.That(clientMetadata.Namespace, Is.EqualTo("My.Client"), "Namespace");
+            Assert.That(clientMetadata.Namespace, Is.EqualTo("My.Awesome.Client"), "Namespace");
             Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
         }
 
@@ -166,6 +166,20 @@ namespace Pomona.UnitTests
             Assert.That(clientMetadata.InterfaceName, Is.EqualTo("IClient"), "InterfaceName");
             Assert.That(clientMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
             Assert.That(clientMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
+        }
+
+
+        [Test]
+        public void With_ClientName()
+        {
+            var clientMetadata = new TestableClientMetadata();
+            var overriddenMetadata = clientMetadata.With(name : "MyAwesomeClient");
+
+            Assert.That(overriddenMetadata.AssemblyName, Is.EqualTo("Client"), "AssemblyName");
+            Assert.That(overriddenMetadata.Name, Is.EqualTo("MyAwesomeClient"), "Name");
+            Assert.That(overriddenMetadata.InterfaceName, Is.EqualTo("IMyAwesomeClient"), "InterfaceName");
+            Assert.That(overriddenMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
+            Assert.That(overriddenMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
         }
     }
 }

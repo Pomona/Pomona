@@ -192,7 +192,7 @@ namespace Pomona
                 name = this.name;
 
             if (String.IsNullOrWhiteSpace(interfaceName))
-                interfaceName = this.interfaceName;
+                interfaceName = String.Concat('I', name);
 
             if (String.IsNullOrWhiteSpace(@namespace))
                 @namespace = this.@namespace;
