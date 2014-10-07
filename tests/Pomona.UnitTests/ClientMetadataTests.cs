@@ -170,6 +170,24 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void With_AllValuesAreSet()
+        {
+            var clientMetadata = new TestableClientMetadata();
+            var overriddenMetadata = clientMetadata.With("My.Awesome.Client",
+                                                         "MyClient",
+                                                         "IMyClientInterace",
+                                                         "My.Awesome.Client.Namespace",
+                                                         "1.2.3.4");
+
+            Assert.That(overriddenMetadata.AssemblyName, Is.EqualTo("My.Awesome.Client"), "AssemblyName");
+            Assert.That(overriddenMetadata.Name, Is.EqualTo("MyClient"), "Name");
+            Assert.That(overriddenMetadata.InterfaceName, Is.EqualTo("IMyClientInterace"), "InterfaceName");
+            Assert.That(overriddenMetadata.Namespace, Is.EqualTo("My.Awesome.Client.Namespace"), "Namespace");
+            Assert.That(overriddenMetadata.InformationalVersion, Is.EqualTo("1.2.3.4"), "InformationalVersion");
+        }
+
+
+        [Test]
         public void With_ClientName()
         {
             var clientMetadata = new TestableClientMetadata();
