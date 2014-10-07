@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2014 Karsten Nikolai Strand
@@ -22,9 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using Pomona.CodeGen;
 using Pomona.Common.Internals;
 using Pomona.Example;
@@ -45,11 +50,12 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient: false);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
             }
             using (var file = new FileStream(@"..\..\..\..\lib\Extra.Client.dll", FileMode.OpenOrCreate))
             {
-                ClientLibGenerator.WriteClientLibrary(new TypeMapper(new SimplePomonaConfiguration()), file,embedPomonaClient:false);
+                ClientLibGenerator.WriteClientLibrary(new TypeMapper(new SimplePomonaConfiguration()), file,
+                                                      embedPomonaClient : false);
             }
 
             using (
@@ -58,8 +64,8 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                     FileMode.OpenOrCreate))
             {
                 ClientLibGenerator.WriteClientLibrary(new TypeMapper(new IndependentClientDllConfiguration()),
-                    file,
-                    embedPomonaClient: true);
+                                                      file,
+                                                      embedPomonaClient : true);
             }
 
             Console.WriteLine("Wrote client dll.");
@@ -95,32 +101,18 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
         #endregion
 
-        private class ModifiedTypeMappingFilter : CritterTypeMappingFilter
-        {
-            public ModifiedTypeMappingFilter(IEnumerable<Type> sourceTypes)
-                : base(sourceTypes)
-            {
-            }
-
-
-            public override bool GetTypeIsAbstract(Type type)
-            {
-                if (type == typeof (AbstractOnServerAnimal))
-                    return false;
-                return base.GetTypeIsAbstract(type);
-            }
-        }
-
         #region Nested type: ModifiedCritterPomonaConfiguration
 
         private class ModifiedCritterPomonaConfiguration : CritterPomonaConfiguration
         {
             private readonly ITypeMappingFilter typeMappingFilter;
 
+
             public ModifiedCritterPomonaConfiguration()
             {
-                typeMappingFilter = new ModifiedTypeMappingFilter(SourceTypes);
+                this.typeMappingFilter = new ModifiedTypeMappingFilter(SourceTypes);
             }
+
 
             public override IEnumerable<object> FluentRuleObjects
             {
@@ -129,7 +121,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             public override ITypeMappingFilter TypeMappingFilter
             {
-                get { return typeMappingFilter; }
+                get { return this.typeMappingFilter; }
             }
         }
 
@@ -148,6 +140,26 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             public void Map(ITypeMappingConfigurator<Critter> map)
             {
                 map.Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly());
+            }
+        }
+
+        #endregion
+
+        #region Nested type: ModifiedTypeMappingFilter
+
+        private class ModifiedTypeMappingFilter : CritterTypeMappingFilter
+        {
+            public ModifiedTypeMappingFilter(IEnumerable<Type> sourceTypes)
+                : base(sourceTypes)
+            {
+            }
+
+
+            public override bool GetTypeIsAbstract(Type type)
+            {
+                if (type == typeof(AbstractOnServerAnimal))
+                    return false;
+                return base.GetTypeIsAbstract(type);
             }
         }
 
