@@ -118,7 +118,7 @@ namespace Pomona.CodeGen
 
             var assemblyResolver = GetAssemblyResolver();
 
-            var version = new Version(String.Join(".", this.typeMapper.Filter.ApiVersion.Split('.').Pad(4, "0").Take(4)));
+            var version = new Version(this.typeMapper.Filter.ApiVersion.PadTo(4));
             if (PomonaClientEmbeddingEnabled)
             {
                 var readerParameters = new ReaderParameters { AssemblyResolver = assemblyResolver };

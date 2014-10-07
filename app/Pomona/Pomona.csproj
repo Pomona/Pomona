@@ -120,6 +120,7 @@
     <Compile Include="ClientMetadata.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="CodeGen\ClientTypeExtensions.cs" />
+    <Compile Include="CodeGen\StringExtensions.cs" />
     <Compile Include="CodeGen\ProxyBuilder.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="DataSourceRootNode.cs" />

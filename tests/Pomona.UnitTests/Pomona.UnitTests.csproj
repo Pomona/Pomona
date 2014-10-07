@@ -77,12 +77,14 @@
     <Compile Include="Client\QueryPredicateBuilderTestsBase.cs" />
     <Compile Include="Client\QuerySelectBuilderTests.cs" />
     <Compile Include="ClientMetadataTests.cs" />
+    <Compile Include="CodeGen\StringExtensionTests.cs" />
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="ExpressionTreeMatcherTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTestsBase.cs" />
     <Compile Include="FluentMapping\FluentPropertyConfiguratorTests.cs" />
     <Compile Include="FluentMapping\FluentTypeConfiguratorTests.cs" />
+    <Compile Include="Internals\EnumerableExtensionsTests.cs" />
     <Compile Include="Ioc\DummyImplementation.cs" />
     <Compile Include="Ioc\IDummyContract.cs" />
     <Compile Include="Ioc\IocTestsBase.cs" />
