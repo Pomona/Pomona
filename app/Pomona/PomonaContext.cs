@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Nancy;
 
@@ -41,15 +43,24 @@ namespace Pomona
     {
         private readonly ITextSerializerFactory serializerFactory;
         private NancyContext nancyContext;
+        private readonly IPomonaModule module;
+
+        public IPomonaModule Module
+        {
+            get { return this.module; }
+        }
 
 
-        public PomonaContext(NancyContext nancyContext, ITextSerializerFactory serializerFactory)
+        public PomonaContext(NancyContext nancyContext, IPomonaModule module, ITextSerializerFactory serializerFactory)
         {
             if (nancyContext == null)
                 throw new ArgumentNullException("nancyContext");
+            if (module == null)
+                throw new ArgumentNullException("module");
             if (serializerFactory == null)
                 throw new ArgumentNullException("serializerFactory");
             this.nancyContext = nancyContext;
+            this.module = module;
             this.serializerFactory = serializerFactory;
         }
 
@@ -58,6 +69,29 @@ namespace Pomona
         {
             get { return this.nancyContext; }
         }
+
+        public PathNode ResolvePath(string path)
+        {
+            // TODO: Fix for absolute urls, now only works for paths
+            var node = module.RootNode;
+            node = GetPathSegments(path)
+                .WalkTree(x => x.Next)
+                .Select(x => x.Value)
+                .Aggregate(node, (current, pathPart) => current.GetChildNode(pathPart, this, module.Pipeline));
+            return node;
+        }
+
+        private LinkedListNode<string> GetPathSegments(string uri)
+        {
+            var pathSegments = uri
+                 .Substring(module.ModulePath.Length)
+                 .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                 .Select(HttpUtility.UrlDecode);
+
+            return new LinkedList<string>(pathSegments).First;
+        }
+
+
 
 
         public PomonaRequest CreateNestedRequest(PathNode node, HttpMethod httpMethod)

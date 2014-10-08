@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,31 +26,10 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-
-using Nancy;
-
-using Pomona.Common;
-using Pomona.Common.Serialization;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona
+namespace Pomona.Routing
 {
-    public interface IPomonaContext : IContextResolver
+    public interface IRequestDispatcher
     {
-        NancyContext NancyContext { get; }
-        PathNode ResolvePath(string path);
-        PomonaRequest CreateNestedRequest(PathNode node, HttpMethod httpMethod);
-        PomonaRequest CreateOuterRequest(PathNode pathNode);
-        ITextDeserializer GetDeserializer();
-        IPomonaModule Module { get; }
-
-        /// <summary>
-        /// Get object from IOC container
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        object Resolve(Type type); // TODO: Rename or refactor this
+        PomonaResponse Dispatch(IPomonaContext context);
     }
 }

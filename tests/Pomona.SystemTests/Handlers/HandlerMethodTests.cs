@@ -32,6 +32,8 @@ using System.Reflection;
 
 using Nancy;
 
+using NSubstitute;
+
 using NUnit.Framework;
 
 using Pomona.Common;
@@ -98,11 +100,14 @@ namespace Pomona.SystemTests
         }
 
 
+
         private static PomonaRequest CreateOuterPomonaRequest(ResourceNode pathNode,
             NancyContext nancyContext,
             ITextSerializerFactory textSerializerFactory)
         {
-            return new PomonaContext(nancyContext, textSerializerFactory).CreateOuterRequest(pathNode);
+            IPomonaModule pomonaModule = Substitute.For<IPomonaModule>();
+            pomonaModule.ModulePath.Returns("/");
+            return new PomonaContext(nancyContext, pomonaModule, textSerializerFactory).CreateOuterRequest(pathNode);
         }
 
 

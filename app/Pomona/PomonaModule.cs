@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -36,7 +35,6 @@ using Nancy;
 
 using Pomona.CodeGen;
 using Pomona.Common;
-using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
@@ -46,7 +44,7 @@ using Pomona.Schemas;
 
 namespace Pomona
 {
-    public abstract class PomonaModule : NancyModule
+    public abstract class PomonaModule : NancyModule, IPomonaModule
     {
         private readonly IPomonaDataSource dataSource;
         private readonly TypeMapper typeMapper;
@@ -98,9 +96,14 @@ namespace Pomona
             get { return this.dataSource; }
         }
 
-        public ITypeMapper TypeMapper
+        public IRequestProcessorPipeline Pipeline
         {
-            get { return this.typeMapper; }
+            get { return new DefaultRequestProcessorPipeline(); }
+        }
+
+        public PathNode RootNode
+        {
+            get { return new DataSourceRootNode(this.typeMapper, this.dataSource, ModulePath); }
         }
 
 
@@ -124,27 +127,11 @@ namespace Pomona
 
         protected virtual PomonaResponse ProcessRequest()
         {
-            var pathNodes = GetPathNodes();
-            var rootNode = new DataSourceRootNode(TypeMapper, this.dataSource, ModulePath);
-            PathNode node = rootNode;
-            var pipeline = new DefaultRequestProcessorPipeline();
-            var pomonaContext = new PomonaContext(Context, new PomonaJsonSerializerFactory());
+            var module = this;
 
-            node = pathNodes
-                .WalkTree(x => x.Next)
-                .Select(x => x.Value)
-                .Aggregate(node, (current, pathPart) => current.GetChildNode(pathPart, pomonaContext, pipeline));
+            var pomonaContext = new PomonaContext(Context, module, new PomonaJsonSerializerFactory());
 
-            var pomonaRequest = pomonaContext.CreateOuterRequest(node);
-
-            if (!node.AllowedMethods.HasFlag(pomonaRequest.Method))
-                ThrowMethodNotAllowedForType(node.AllowedMethods);
-
-            var response = pipeline.Process(pomonaRequest);
-            if (response == null)
-                throw new PomonaException("Unable to find RequestProcessor able to handle request.");
-
-            return response;
+            return new DefaultRequestDispatcher().Dispatch(pomonaContext);
         }
 
 
@@ -187,17 +174,6 @@ namespace Pomona
             };
 
             return response;
-        }
-
-
-        private LinkedListNode<string> GetPathNodes()
-        {
-            var pathSegments = Request.Url.Path
-                .Substring(ModulePath.Length)
-                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(HttpUtility.UrlDecode);
-
-            return new LinkedList<string>(pathSegments).First;
         }
 
 
@@ -246,23 +222,10 @@ namespace Pomona
             var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
             var packageFileName = packageBuilder.PackageFileName;
 
-            Get[PomonaRouteMetadataProvider.ClientNugetPackage, "/Client.nupkg"] = x => Response.AsRedirect(packageFileName);
-            Get[PomonaRouteMetadataProvider.ClientNugetPackageVersioned, "/" + packageFileName] = x => GetClientNugetPackage();
-        }
-
-
-        private void RegisterResourceContent(string name)
-        {
-            var mediaType = "text/html";
-            if (name.EndsWith(".js"))
-                mediaType = "text/javascript";
-            if (name.EndsWith(".css"))
-                mediaType = "text/css";
-
-            var resourceName = "Pomona.Content." + name;
-            Get["/" + name] = x =>
-                Response.FromStream(() => Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName),
-                                    mediaType);
+            Get[PomonaRouteMetadataProvider.ClientNugetPackage, "/Client.nupkg"] =
+                x => Response.AsRedirect(packageFileName);
+            Get[PomonaRouteMetadataProvider.ClientNugetPackageVersioned, "/" + packageFileName] =
+                x => GetClientNugetPackage();
         }
 
 
@@ -297,24 +260,6 @@ namespace Pomona
         private void SetErrorHandled()
         {
             Context.Items["ERROR_HANDLED"] = true;
-        }
-
-
-        private void ThrowMethodNotAllowedForType(HttpMethod allowedMethods)
-        {
-            var httpMethods = Enum.GetValues(typeof(HttpMethod))
-                .Cast<HttpMethod>()
-                .Where(x => allowedMethods.HasFlag(x))
-                .Select(x => x.ToString().ToUpper());
-
-            var allowedMethodsString = String.Join(", ", httpMethods);
-
-            var allowHeader = new KeyValuePair<string, string>("Allow", allowedMethodsString);
-
-            throw new PomonaException("Method " + Context.Request.Method + " not allowed!",
-                                      null,
-                                      HttpStatusCode.MethodNotAllowed,
-                                      allowHeader.WrapAsEnumerable());
         }
     }
 }

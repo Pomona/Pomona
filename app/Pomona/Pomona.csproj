@@ -151,6 +151,7 @@
     <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
     <Compile Include="IPomonaContext.cs" />
     <Compile Include="IPomonaDataSource.cs" />
+    <Compile Include="IPomonaModule.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
     <Compile Include="IResourceResolver.cs" />
@@ -232,6 +233,8 @@
     <Compile Include="Queries\UnhandledNode.cs" />
     <Compile Include="ResourcePreconditionFailedException.cs" />
     <Compile Include="ResourceValidationException.cs" />
+    <Compile Include="Routing\DefaultRequestDispatcher.cs" />
+    <Compile Include="Routing\IRequestDispatcher.cs" />
     <Compile Include="Routing\PomonaRouteMetadata.cs" />
     <Compile Include="Routing\PomonaRouteMetadataProvider.cs" />
     <Compile Include="Schemas\SchemaGenerator.cs" />

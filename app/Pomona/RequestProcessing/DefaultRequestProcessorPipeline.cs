@@ -38,13 +38,13 @@ namespace Pomona.RequestProcessing
             get { yield return new ValidateEtagProcessor(); }
         }
 
-        public IEnumerable<IPomonaRequestProcessor> After
+        public virtual IEnumerable<IPomonaRequestProcessor> After
         {
             get { yield return new DefaultGetRequestProcessor(); }
         }
 
 
-        public PomonaResponse Process(PomonaRequest request)
+        public virtual PomonaResponse Process(PomonaRequest request)
         {
             return Before
                 .Concat(request.Node.GetRequestProcessors(request))

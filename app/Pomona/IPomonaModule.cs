@@ -26,31 +26,14 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
-
-using Nancy;
-
-using Pomona.Common;
-using Pomona.Common.Serialization;
-using Pomona.Common.TypeSystem;
+using Pomona.RequestProcessing;
 
 namespace Pomona
 {
-    public interface IPomonaContext : IContextResolver
+    public interface IPomonaModule
     {
-        NancyContext NancyContext { get; }
-        PathNode ResolvePath(string path);
-        PomonaRequest CreateNestedRequest(PathNode node, HttpMethod httpMethod);
-        PomonaRequest CreateOuterRequest(PathNode pathNode);
-        ITextDeserializer GetDeserializer();
-        IPomonaModule Module { get; }
-
-        /// <summary>
-        /// Get object from IOC container
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        object Resolve(Type type); // TODO: Rename or refactor this
+        string ModulePath { get; }
+        IRequestProcessorPipeline Pipeline { get; }
+        PathNode RootNode { get; }
     }
 }
