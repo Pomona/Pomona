@@ -39,12 +39,12 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<PropertySpec> baseDefinition;
         private readonly Lazy<TypeSpec> declaringType;
-        private readonly Lazy<Func<object, IContextResolver, object>> getter;
+        private readonly Lazy<Func<object, IContainer, object>> getter;
         private readonly Lazy<bool> isRequiredForConstructor;
         private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
         private readonly Lazy<TypeSpec> reflectedType;
-        private readonly Lazy<Action<object, object, IContextResolver>> setter;
+        private readonly Lazy<Action<object, object, IContainer>> setter;
 
 
         protected PropertySpec(ITypeResolver typeResolver,
@@ -73,7 +73,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.declaringType.Value; }
         }
 
-        public virtual Func<object, IContextResolver, object> GetterFunc
+        public virtual Func<object, IContainer, object> GetterFunc
         {
             get { return this.getter.Value; }
         }
@@ -98,7 +98,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.reflectedType.Value; }
         }
 
-        public virtual Action<object, object, IContextResolver> SetterDelegate
+        public virtual Action<object, object, IContainer> SetterDelegate
         {
             get { return this.setter.Value; }
         }
@@ -162,10 +162,10 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual object GetValue(object target, IContextResolver contextResolver)
+        public virtual object GetValue(object target, IContainer container)
         {
-            contextResolver = contextResolver ?? new NoContextResolver();
-            return GetterFunc(target, contextResolver);
+            container = container ?? new NoContainer();
+            return GetterFunc(target, container);
         }
 
 
@@ -175,10 +175,10 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual void SetValue(object target, object value, IContextResolver contextResolver)
+        public virtual void SetValue(object target, object value, IContainer container)
         {
-            contextResolver = contextResolver ?? new NoContextResolver();
-            SetterDelegate(target, value, contextResolver);
+            container = container ?? new NoContainer();
+            SetterDelegate(target, value, container);
         }
 
 
@@ -222,18 +222,18 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual Func<object, IContextResolver, object> OnLoadGetter()
+        protected internal virtual Func<object, IContainer, object> OnLoadGetter()
         {
             if (!PropertyInfo.CanRead)
                 return null;
             var param = Expression.Parameter(typeof(object));
             return
-                Expression.Lambda<Func<object, IContextResolver, object>>(
+                Expression.Lambda<Func<object, IContainer, object>>(
                     Expression.Convert(
                         Expression.Property(Expression.Convert(param, PropertyInfo.DeclaringType), PropertyInfo),
                         typeof(object)),
                     param,
-                    Expression.Parameter(typeof(IContextResolver))).Compile();
+                    Expression.Parameter(typeof(IContainer))).Compile();
         }
 
 
@@ -265,14 +265,14 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual Action<object, object, IContextResolver> OnLoadSetter()
+        protected internal virtual Action<object, object, IContainer> OnLoadSetter()
         {
             if (!PropertyInfo.CanWrite)
                 return null;
 
             var selfParam = Expression.Parameter(typeof(object), "x");
             var valueParam = Expression.Parameter(typeof(object), "value");
-            var expr = Expression.Lambda<Action<object, object, IContextResolver>>(
+            var expr = Expression.Lambda<Action<object, object, IContainer>>(
                 Expression.Assign(
                     Expression.Property(
                         Expression.Convert(selfParam, PropertyInfo.DeclaringType),
@@ -282,7 +282,7 @@ namespace Pomona.Common.TypeSystem
                     ),
                 selfParam,
                 valueParam,
-                Expression.Parameter(typeof(IContextResolver), "ctx"));
+                Expression.Parameter(typeof(IContainer), "ctx"));
 
             return expr.Compile();
         }

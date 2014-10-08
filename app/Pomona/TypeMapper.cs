@@ -233,13 +233,13 @@ namespace Pomona
         }
 
 
-        public override Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec)
+        public override Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
         {
             return filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
         }
 
 
-        public override Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec)
+        public override Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
         {
             return filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadSetter(propertySpec);
         }

@@ -105,7 +105,7 @@ namespace Pomona.RequestProcessing
             if (invoker == null)
                 return null;
 
-            var handler = request.Context.Resolve(typeof (THandler));
+            var handler = request.Context.GetInstance<THandler>();
             var result = invoker.Invoke(handler, request);
             var resultAsResponse = result as PomonaResponse;
             if (resultAsResponse != null)

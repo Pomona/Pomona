@@ -164,13 +164,13 @@ namespace Pomona.Common.TypeSystem
             return typeSpec.OnWrapProperty(propertyInfo);
         }
 
-        public virtual Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec)
+        public virtual Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
         {
             if (propertySpec == null) throw new ArgumentNullException("propertySpec");
             return propertySpec.OnLoadGetter();
         }
 
-        public virtual Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec)
+        public virtual Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
         {
             if (propertySpec == null) throw new ArgumentNullException("propertySpec");
             return propertySpec.OnLoadSetter();

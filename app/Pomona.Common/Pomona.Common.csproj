@@ -220,7 +220,7 @@
     <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
     <Compile Include="TypeSystem\IClientTypeFactory.cs" />
     <Compile Include="TypeSystem\IConstructorControl.cs" />
-    <Compile Include="TypeSystem\IContextResolver.cs" />
+    <Compile Include="TypeSystem\IContainer.cs" />
     <Compile Include="TypeSystem\IExportedTypeResolver.cs" />
     <Compile Include="TypeSystem\ITypeFactory.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
@@ -228,7 +228,7 @@
     <Compile Include="TypeSystem\Maybe.cs" />
     <Compile Include="TypeSystem\MaybeExtensions.cs" />
     <Compile Include="TypeSystem\MemberSpec.cs" />
-    <Compile Include="TypeSystem\NoContextResolver.cs" />
+    <Compile Include="TypeSystem\NoContainer.cs" />
     <Compile Include="TypeSystem\PropertyCreateMode.cs" />
     <Compile Include="TypeSystem\PropertyFlags.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttribute.cs" />

@@ -37,7 +37,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public interface IPomonaContext : IContextResolver
+    public interface IPomonaContext : IContainer
     {
         NancyContext NancyContext { get; }
         PathNode ResolvePath(string path);
@@ -45,12 +45,5 @@ namespace Pomona
         PomonaRequest CreateOuterRequest(PathNode pathNode);
         ITextDeserializer GetDeserializer();
         IPomonaModule Module { get; }
-
-        /// <summary>
-        /// Get object from IOC container
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        object Resolve(Type type); // TODO: Rename or refactor this
     }
 }

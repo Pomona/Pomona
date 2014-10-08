@@ -256,7 +256,7 @@ namespace TestNs
         }
 
 
-        public Func<object, IContextResolver, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
+        public Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
                                         propertyInfo,
@@ -286,7 +286,7 @@ namespace TestNs
         }
 
 
-        public Action<object, object, IContextResolver> GetPropertySetter(Type type, PropertyInfo propertyInfo)
+        public Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
                                         propertyInfo,

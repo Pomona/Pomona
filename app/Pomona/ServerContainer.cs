@@ -26,10 +26,36 @@
 
 #endregion
 
-namespace Pomona.Common.TypeSystem
+using System;
+
+using Nancy;
+
+using Pomona.Common.TypeSystem;
+
+namespace Pomona
 {
-    public interface IContextResolver
+    public class ServerContainer : IContainer
     {
-        T GetContext<T>();
+        private readonly NancyContext nancyContext;
+
+
+        public ServerContainer(NancyContext nancyContext)
+        {
+            if (nancyContext == null)
+                throw new ArgumentNullException("nancyContext");
+            this.nancyContext = nancyContext;
+        }
+
+
+        public NancyContext NancyContext
+        {
+            get { return this.nancyContext; }
+        }
+
+
+        public T GetInstance<T>()
+        {
+            return (T)this.nancyContext.Resolve(typeof(T));
+        }
     }
 }

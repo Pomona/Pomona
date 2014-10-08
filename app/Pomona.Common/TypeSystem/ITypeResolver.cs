@@ -52,8 +52,8 @@ namespace Pomona.Common.TypeSystem
         ResourceType LoadUriBaseType(ResourceType resourceType);
         PropertySpec LoadBaseDefinition(PropertySpec propertySpec);
         PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);
-        Func<object, IContextResolver, object> LoadGetter(PropertySpec propertySpec);
-        Action<object, object, IContextResolver> LoadSetter(PropertySpec propertySpec);
+        Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec);
+        Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec);
         RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
         IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec);
         ConstructorSpec LoadConstructor(TypeSpec typeSpec);

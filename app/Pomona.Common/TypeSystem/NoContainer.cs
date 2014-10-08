@@ -30,9 +30,9 @@ using System;
 
 namespace Pomona.Common.TypeSystem
 {
-    internal class NoContextResolver : IContextResolver
+    internal class NoContainer : IContainer
     {
-        public T GetContext<T>()
+        public T GetInstance<T>()
         {
             throw new InvalidOperationException("No context available.");
         }

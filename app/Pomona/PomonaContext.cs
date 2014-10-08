@@ -117,10 +117,10 @@ namespace Pomona
         }
 
 
-        public T GetContext<T>()
+        public T GetInstance<T>()
         {
             if (typeof(T) == typeof(IPomonaContext) || typeof(T) == typeof(PomonaContext)
-                || typeof(T) == typeof(IContextResolver))
+                || typeof(T) == typeof(IContainer))
                 return (T)((object)this);
 
             return (T)this.nancyContext.Resolve(typeof(T));
@@ -130,12 +130,6 @@ namespace Pomona
         public ITextDeserializer GetDeserializer()
         {
             return this.serializerFactory.GetDeserializer(NancyContext.GetSerializationContextProvider());
-        }
-
-
-        public object Resolve(Type type)
-        {
-            return NancyContext.Resolve(type);
         }
 
 

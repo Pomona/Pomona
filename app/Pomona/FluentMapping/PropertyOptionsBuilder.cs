@@ -140,7 +140,7 @@ namespace Pomona.FluentMapping
             Func<TDeclaringType, TContext, TPropertyType> getter)
         {
             this.options.OnGetDelegate =
-                (target, contextResolver) => getter((TDeclaringType)target, contextResolver.GetContext<TContext>());
+                (target, contextResolver) => getter((TDeclaringType)target, contextResolver.GetInstance<TContext>());
             return this;
         }
 
@@ -160,7 +160,7 @@ namespace Pomona.FluentMapping
         {
             this.options.OnSetDelegate =
                 (target, value, contextResolver) =>
-                    setter((TDeclaringType)target, (TPropertyType)value, contextResolver.GetContext<TContext>());
+                    setter((TDeclaringType)target, (TPropertyType)value, contextResolver.GetInstance<TContext>());
             return this;
         }
 

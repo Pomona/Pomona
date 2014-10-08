@@ -510,7 +510,7 @@ namespace Pomona.Common.Serialization.Json
             {
                 // This is a bit confusing. node.Context refers to the deserializationContext, ResolveContext
                 // actually resolves context of type TContext, which for now is limited to mean NancyContext.
-                return this.node.Context.GetContext<TContext>();
+                return this.node.Context.GetInstance<TContext>();
             }
 
 

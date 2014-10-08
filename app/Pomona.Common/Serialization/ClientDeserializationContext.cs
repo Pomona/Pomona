@@ -134,7 +134,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public T GetContext<T>()
+        public T GetInstance<T>()
         {
             throw new NotSupportedException();
         }

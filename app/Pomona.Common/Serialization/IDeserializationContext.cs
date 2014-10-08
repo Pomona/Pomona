@@ -32,7 +32,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
-    public interface IDeserializationContext : IContextResolver
+    public interface IDeserializationContext : IContainer
     {
         IResourceNode TargetNode { get; }
         void CheckAccessRights(PropertySpec property, HttpMethod method);

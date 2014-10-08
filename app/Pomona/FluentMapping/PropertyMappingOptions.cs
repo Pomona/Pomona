@@ -80,9 +80,9 @@ namespace Pomona.FluentMapping
 
         public bool? ExposedAsRepository { get; internal set; }
 
-        public Func<object, IContextResolver, object> OnGetDelegate { get; set; }
+        public Func<object, IContainer, object> OnGetDelegate { get; set; }
 
-        public Action<object, object, IContextResolver> OnSetDelegate { get; set; }
+        public Action<object, object, IContainer> OnSetDelegate { get; set; }
 
         public Type PropertyType { get; set; }
 
