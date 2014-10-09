@@ -60,8 +60,8 @@ namespace Pomona.Common
             if (method == baseMethod)
                 return propertyInfo.NormalizeReflectedType();
             return baseMethod.DeclaringType.GetProperty(propertyInfo.Name,
-                BindingFlags.Instance | BindingFlags.NonPublic |
-                BindingFlags.Public);
+                                                        BindingFlags.Instance | BindingFlags.NonPublic |
+                                                        BindingFlags.Public);
         }
 
 
@@ -81,6 +81,51 @@ namespace Pomona.Common
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
             return type.WalkTree(x => x.BaseType);
+        }
+
+
+        /// <summary>
+        /// Gets a public or non-public generic instance method named <paramref name="methodName"/> on the
+        /// specified <paramref name="type"/> with generic arguments matching those
+        /// specified in <paramref name="genericArgumentTypes"/>.
+        /// </summary>
+        /// <param name="type">The type on which to find the method named <paramref name="methodName"/>.</param>
+        /// <param name="methodName">The name of the method to find on <paramref name="type"/>.</param>
+        /// <param name="genericArgumentTypes">The generic argument types as they occur on the method.</param>
+        /// <returns>
+        /// A public or non-public generic instance method named <paramref name="methodName"/> on the
+        /// specified <paramref name="type"/> with generic arguments matching those
+        /// specified in <paramref name="genericArgumentTypes"/>.
+        /// </returns>
+        public static MethodInfo GetGenericInstanceMethod(this Type type,
+                                                          string methodName,
+                                                          params Type[] genericArgumentTypes)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+
+            if (String.IsNullOrWhiteSpace(methodName))
+                throw new ArgumentNullException("methodName");
+
+            if (genericArgumentTypes == null || genericArgumentTypes.Length == 0)
+                throw new ArgumentNullException("genericArgumentTypes");
+
+            var method = type
+                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .FirstOrDefault(x => x.Name == methodName);
+
+            if (method != null
+                && method.IsGenericMethod
+                && method.GetGenericArguments().Length == genericArgumentTypes.Length)
+                return method;
+
+            string argumentString = String.Join(", ", genericArgumentTypes.Select(x => x.FullName));
+            var message = String.Format("Could not find the method {0}.{1}<{2}>().",
+                                        type,
+                                        methodName,
+                                        argumentString);
+
+            throw new MissingMethodException(message);
         }
 
 
@@ -164,7 +209,7 @@ namespace Pomona.Common
             var exprs = parameters.Zip(args, (p, a) => (Expression)Expression.Constant(a, p.ParameterType));
             return
                 Expression.Lambda<Func<object>>(Expression.Convert(Expression.Call(target, method, exprs),
-                    typeof(object))).Compile()();
+                                                                   typeof(object))).Compile()();
         }
 
 
@@ -173,11 +218,6 @@ namespace Pomona.Common
             return type.Name.StartsWith("<>f__AnonymousType");
         }
 
-
-        public static bool IsTuple(this Type type)
-        {
-            return type.Namespace == "System" && type.Name.StartsWith("Tuple`");
-        }
 
         public static bool IsAnonymous(this Type type)
         {
@@ -253,6 +293,12 @@ namespace Pomona.Common
         }
 
 
+        public static bool IsTuple(this Type type)
+        {
+            return type.Namespace == "System" && type.Name.StartsWith("Tuple`");
+        }
+
+
         /// <summary>
         /// Gets version of member where reflected type is same as declaring type.
         /// </summary>
@@ -265,8 +311,8 @@ namespace Pomona.Common
 
             return
                 (TMemberInfo)memberInfo.DeclaringType.GetMember(memberInfo.Name,
-                    BindingFlags.Instance | BindingFlags.NonPublic |
-                    BindingFlags.Public)
+                                                                BindingFlags.Instance | BindingFlags.NonPublic |
+                                                                BindingFlags.Public)
                     .First(x => x.MetadataToken == memberInfo.MetadataToken);
         }
 
@@ -364,9 +410,7 @@ namespace Pomona.Common
                                       || (wantedType.GenericParameterAttributes
                                           & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
                     if (!isValueType && actualType.GetConstructor(Type.EmptyTypes) == null)
-                    {
                         return false;
-                    }
                 }
 
                 typeArgsWasResolved = true;
@@ -395,9 +439,9 @@ namespace Pomona.Common
                     bool innerTypeArgsWasResolved;
                     if (
                         !TryFillGenericTypeParameters(wantedTypeArg,
-                            actualTypeArg,
-                            methodTypeArgs,
-                            out innerTypeArgsWasResolved))
+                                                      actualTypeArg,
+                                                      methodTypeArgs,
+                                                      out innerTypeArgsWasResolved))
                         return false;
 
                     if (innerTypeArgsWasResolved)
@@ -422,9 +466,9 @@ namespace Pomona.Common
 
 
         public static bool TryGetPropertyByName(this TypeSpec type,
-            string name,
-            StringComparison stringComparison,
-            out PropertySpec property)
+                                                string name,
+                                                StringComparison stringComparison,
+                                                out PropertySpec property)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -447,16 +491,16 @@ namespace Pomona.Common
                 type.Properties.FirstOrDefault(
                     x => (x.PropertyType is ResourceType || x.PropertyType is EnumerableTypeSpec) &&
                          String.Equals(name,
-                             NameUtils.ConvertCamelCaseToUri(x.Name),
-                             StringComparison.InvariantCultureIgnoreCase));
+                                       NameUtils.ConvertCamelCaseToUri(x.Name),
+                                       StringComparison.InvariantCultureIgnoreCase));
 
             return property != null;
         }
 
 
         public static bool TryResolveGenericMethod(this MethodInfo methodDefinition,
-            Type[] argumentTypes,
-            out MethodInfo method)
+                                                   Type[] argumentTypes,
+                                                   out MethodInfo method)
         {
             if (methodDefinition == null)
                 throw new ArgumentNullException("methodDefinition");
@@ -479,9 +523,9 @@ namespace Pomona.Common
                 bool innerTypeArgsWasResolved;
                 if (
                     !TryFillGenericTypeParameters(param.ParameterType,
-                        argType,
-                        methodTypeArgs,
-                        out innerTypeArgsWasResolved))
+                                                  argType,
+                                                  methodTypeArgs,
+                                                  out innerTypeArgsWasResolved))
                     return false;
 
                 typeArgsWasResolved = typeArgsWasResolved || innerTypeArgsWasResolved;

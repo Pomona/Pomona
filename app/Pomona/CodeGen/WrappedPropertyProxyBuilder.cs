@@ -71,7 +71,7 @@ namespace Pomona.CodeGen
 
             if (constructor == null)
             {
-                var message = String.Format("Could not find the constructor {0}({1})",
+                var message = String.Format("Could not find the constructor {0}({1}).",
                                             propWrapperTypeDef,
                                             Module.TypeSystem.String.FullName);
                 throw new InvalidOperationException(message);
@@ -99,23 +99,26 @@ namespace Pomona.CodeGen
             initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Stsfld, propertyWrapperField));
 
             var baseDef = proxyBaseType.Resolve();
-            var proxyOnGetMethod = Module.Import(baseDef.Methods.First(x => x.Name == "OnGet"));
-            if (proxyOnGetMethod.GenericParameters.Count != 2)
+            var onGetMethod = baseDef.Methods.FirstOrDefault(x => x.Name == "OnGet");
+            if (onGetMethod == null || onGetMethod.GenericParameters.Count != 2)
             {
-                throw new InvalidOperationException(
-                    "OnGet method of base class is required to have two generic parameters.");
+                var message = String.Format("Could not find the method {0}.OnGet<{1}, {2}>().", baseDef, proxyTargetType, proxyProp.PropertyType);
+                throw new InvalidOperationException(message);
             }
+            
+            var proxyOnGetMethod = Module.Import(onGetMethod);
             var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
             proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);
             proxyOnGetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
 
-            var proxyOnSetMethod =
-                Module.Import(baseDef.Methods.First(x => x.Name == "OnSet"));
-            if (proxyOnSetMethod.GenericParameters.Count != 2)
+            var onSetMethod = baseDef.Methods.FirstOrDefault(x => x.Name == "OnSet");
+            if (onSetMethod == null || onSetMethod.GenericParameters.Count != 2)
             {
-                throw new InvalidOperationException(
-                    "OnSet method of base class is required to have two generic parameters.");
+                var message = String.Format("Could not find the method {0}.OnSet<{1}, {2}>().", baseDef, proxyTargetType, proxyProp.PropertyType);
+                throw new InvalidOperationException(message);
             }
+
+            var proxyOnSetMethod = Module.Import(onSetMethod);
             var proxyOnSetMethodInstance = new GenericInstanceMethod(proxyOnSetMethod);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyTargetType);
             proxyOnSetMethodInstance.GenericArguments.Add(proxyProp.PropertyType);
