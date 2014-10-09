@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 #if !DISABLE_PROXY_GENERATION
 
 using System;
@@ -29,6 +33,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+
 using TypeDefinition = System.Reflection.Emit.TypeBuilder;
 using TypeReference = System.Type;
 using ModuleDefinition = System.Reflection.Emit.ModuleBuilder;
@@ -44,42 +49,57 @@ namespace Pomona.Common.Proxies
         private readonly TypeReference propertyWrapperType;
 
 
-        public WrappedPropertyProxyBuilder(
-            ModuleDefinition module,
-            TypeReference proxyBaseTypeDef,
-            TypeReference propertyWrapperType,
-            bool isPublic = true,
-            string typeNameFormat = "Fast{0}Proxy",
-            string proxyNamespace = null) : base(module, typeNameFormat , proxyBaseTypeDef, isPublic, proxyNamespace : proxyNamespace)
+        public WrappedPropertyProxyBuilder(ModuleDefinition module,
+                                           TypeReference proxyBaseTypeDef,
+                                           TypeReference propertyWrapperType,
+                                           bool isPublic = true,
+                                           string typeNameFormat = "Fast{0}Proxy",
+                                           string proxyNamespace = null)
+            : base(module, typeNameFormat, proxyBaseTypeDef, isPublic, proxyNamespace : proxyNamespace)
         {
             this.propertyWrapperType = propertyWrapperType;
         }
 
 
-        protected override void OnGeneratePropertyMethods(
-            PropertyInfo targetProp,
-            PropertyDefinition proxyProp,
-            TypeReference proxyBaseType,
-            TypeReference proxyTargetType,
-            TypeReference rootProxyTargetType)
+        protected override void OnGeneratePropertyMethods(PropertyInfo targetProp,
+                                                          PropertyDefinition proxyProp,
+                                                          TypeReference proxyBaseType,
+                                                          TypeReference proxyTargetType,
+                                                          TypeReference rootProxyTargetType)
         {
-            var propWrapperTypeDef = propertyWrapperType;
-            var propWrapperTypeRef = propertyWrapperType.MakeGenericType(proxyTargetType, proxyProp.PropertyType);
-            var proxyType = (TypeDefinition) proxyProp.DeclaringType;
+            var propWrapperTypeRef = this.propertyWrapperType.MakeGenericType(proxyTargetType, proxyProp.PropertyType);
+            var proxyType = (TypeDefinition)proxyProp.DeclaringType;
 
-            var propWrapperCtor =
-                propWrapperTypeRef.GetConstructors().First(x => x.GetParameters().Length == 1 &&
-                                                                x.GetParameters()[0].ParameterType == typeof (string));
+            if (proxyType == null)
+            {
+                var message = String.Format("{0} has no declaring type.", proxyProp);
+                throw new InvalidOperationException(message);
+            }
 
-            var propertyWrapperField = proxyType.DefineField(
-                "_pwrap_" + targetProp.Name, propWrapperTypeRef, FieldAttributes.Private | FieldAttributes.Static);
+            var propWrapperCtor = propWrapperTypeRef
+                .GetConstructors()
+                .FirstOrDefault(x => x.GetParameters().Length == 1
+                                     && x.GetParameters()[0].ParameterType == typeof(string));
 
-            initPropertyWrapperIlAction.Add(il =>
-                {
-                    il.Emit(OpCodes.Ldstr, targetProp.Name);
-                    il.Emit(OpCodes.Newobj, propWrapperCtor);
-                    il.Emit(OpCodes.Stsfld, propertyWrapperField);
-                });
+            if (propWrapperCtor == null)
+            {
+                var message = String.Format("Could not find the constructor {0}({1})",
+                                            propWrapperTypeRef,
+                                            typeof(string));
+                throw new InvalidOperationException(message);
+            }
+
+
+            var propertyWrapperField = proxyType.DefineField("_pwrap_" + targetProp.Name,
+                                                             propWrapperTypeRef,
+                                                             FieldAttributes.Private | FieldAttributes.Static);
+
+            this.initPropertyWrapperIlAction.Add(il =>
+            {
+                il.Emit(OpCodes.Ldstr, targetProp.Name);
+                il.Emit(OpCodes.Newobj, propWrapperCtor);
+                il.Emit(OpCodes.Stsfld, propertyWrapperField);
+            });
 
             /*
             var initPropertyWrappersMethod = GetInitPropertyWrappersMethod(proxyProp);
@@ -94,11 +114,17 @@ namespace Pomona.Common.Proxies
             initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Stsfld, propertyWrapperField));
             */
 
-
             var baseDef = proxyBaseType;
-            var proxyOnGetMethod =
-                baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                       .First(x => x.Name == "OnGet");
+            var proxyOnGetMethod = baseDef
+                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .FirstOrDefault(x => x.Name == "OnGet");
+
+            if (proxyOnGetMethod == null)
+            {
+                var message = String.Format("The method {0}.OnGet() does not exist.", baseDef);
+                throw new InvalidOperationException(message);
+            }
+
             if (proxyOnGetMethod.GetGenericArguments().Length != 2)
             {
                 throw new InvalidOperationException(
@@ -109,7 +135,7 @@ namespace Pomona.Common.Proxies
 
             var proxyOnSetMethod =
                 baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                       .First(x => x.Name == "OnSet");
+                    .First(x => x.Name == "OnSet");
             ;
             if (proxyOnGetMethod.GetGenericArguments().Length != 2)
             {
@@ -119,7 +145,7 @@ namespace Pomona.Common.Proxies
 
             var proxyOnSetMethodInstance = proxyOnSetMethod.MakeGenericMethod(proxyTargetType, proxyProp.PropertyType);
 
-            var getMethod = (MethodDefinition) proxyProp.GetGetMethod(true);
+            var getMethod = (MethodDefinition)proxyProp.GetGetMethod(true);
             if (getMethod != null)
             {
                 var getIl = getMethod.GetILGenerator();
@@ -130,7 +156,7 @@ namespace Pomona.Common.Proxies
                 getIl.Emit(OpCodes.Ret);
             }
 
-            var setMethod = (MethodDefinition) proxyProp.GetSetMethod(true);
+            var setMethod = (MethodDefinition)proxyProp.GetSetMethod(true);
             if (setMethod != null)
             {
                 var setIl = setMethod.GetILGenerator();
@@ -142,6 +168,7 @@ namespace Pomona.Common.Proxies
             }
         }
 
+
         protected override void OnPropertyGenerationComplete(TypeDefinition proxyType)
         {
             const string initPropertyWrappersMethodName = "InitPropertyWrappers";
@@ -152,7 +179,7 @@ namespace Pomona.Common.Proxies
                 null, Type.EmptyTypes);
 
             var il = initPropertyWrappersMethod.GetILGenerator();
-            initPropertyWrapperIlAction.ForEach(m => m(il));
+            this.initPropertyWrapperIlAction.ForEach(m => m(il));
             il.Emit(OpCodes.Ret);
 
             var cctor = proxyType.DefineTypeInitializer();

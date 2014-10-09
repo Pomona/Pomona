@@ -59,16 +59,27 @@ namespace Pomona.CodeGen
                                                           TypeReference rootProxyTargetType)
         {
             var propWrapperTypeDef = this.propertyWrapperType;
-            var propWrapperTypeRef =
-                Module.Import(
-                    propWrapperTypeDef).MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType);
+            var propWrapperTypeRef = Module
+                .Import(propWrapperTypeDef)
+                .MakeGenericInstanceType(proxyTargetType, proxyProp.PropertyType);
 
-            var propWrapperCtor = Module.Import(
-                propWrapperTypeDef.GetConstructors().First(
-                    x => !x.IsStatic &&
-                         x.Parameters.Count == 1 &&
-                         x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName)).
-                MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType);
+            var constructor = propWrapperTypeDef
+                .GetConstructors()
+                .FirstOrDefault(x => !x.IsStatic
+                                     && x.Parameters.Count == 1
+                                     && x.Parameters[0].ParameterType.FullName == Module.TypeSystem.String.FullName);
+
+            if (constructor == null)
+            {
+                var message = String.Format("Could not find the constructor {0}({1})",
+                                            propWrapperTypeDef,
+                                            Module.TypeSystem.String.FullName);
+                throw new InvalidOperationException(message);
+            }
+
+            var propWrapperCtor = Module
+                .Import(constructor)
+                .MakeHostInstanceGeneric(proxyTargetType, proxyProp.PropertyType);
 
             var propertyWrapperField = new FieldDefinition(
                 "_pwrap_" + targetProp.Name,
@@ -88,8 +99,7 @@ namespace Pomona.CodeGen
             initIl.InsertBefore(lastInstruction, Instruction.Create(OpCodes.Stsfld, propertyWrapperField));
 
             var baseDef = proxyBaseType.Resolve();
-            var proxyOnGetMethod =
-                Module.Import(baseDef.Methods.First(x => x.Name == "OnGet"));
+            var proxyOnGetMethod = Module.Import(baseDef.Methods.First(x => x.Name == "OnGet"));
             if (proxyOnGetMethod.GenericParameters.Count != 2)
             {
                 throw new InvalidOperationException(
