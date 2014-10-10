@@ -123,6 +123,32 @@ namespace Pomona.Common
 
         /// <summary>
         /// Gets a public or non-public generic instance method named <paramref name="methodName" /> on the
+        /// specified <paramref name="type" /> with a number of generic arguments matching <paramref name="genericArgumentCount"/>.
+        /// </summary>
+        /// <param name="type">The type on which to find the method named <paramref name="methodName" />.</param>
+        /// <param name="methodName">The name of the method to find on <paramref name="type" />.</param>
+        /// <param name="genericArgumentCount">The generic argument count.</param>
+        /// <returns>
+        /// A public or non-public generic instance method named <paramref name="methodName" /> on the
+        /// specified <paramref name="type" /> with generic arguments matching <paramref name="genericArgumentCount"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">type
+        /// or
+        /// methodName
+        /// or
+        /// genericArgumentTypes</exception>
+        /// <exception cref="System.MissingMethodException"></exception>
+        public static MethodInfo GetGenericInstanceMethod(this Type type,
+                                                          string methodName,
+                                                          int genericArgumentCount)
+        {
+            var genericArgumentTypes = Enumerable.Repeat(typeof(object), genericArgumentCount).ToArray();
+            return GenericInstanceMethodInternal(type, methodName, genericArgumentTypes, false);
+        }
+
+
+        /// <summary>
+        /// Gets a public or non-public generic instance method named <paramref name="methodName" /> on the
         /// specified <paramref name="type" /> with generic arguments matching those
         /// specified in <paramref name="genericArgumentTypes" />.
         /// </summary>
@@ -146,31 +172,7 @@ namespace Pomona.Common
                                                           string methodName,
                                                           params Type[] genericArgumentTypes)
         {
-            if (type == null)
-                throw new ArgumentNullException("type");
-
-            if (String.IsNullOrWhiteSpace(methodName))
-                throw new ArgumentNullException("methodName");
-
-            if (genericArgumentTypes == null || genericArgumentTypes.Length == 0)
-                throw new ArgumentNullException("genericArgumentTypes");
-
-            var method = type
-                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .FirstOrDefault(x => x.Name == methodName);
-
-            if (method != null
-                && method.IsGenericMethod
-                && method.GetGenericArguments().Length == genericArgumentTypes.Length)
-                return method;
-
-            string argumentString = String.Join(", ", genericArgumentTypes.Select(x => x.FullName));
-            var message = String.Format("Could not find the method {0}.{1}<{2}>().",
-                                        type,
-                                        methodName,
-                                        argumentString);
-
-            throw new MissingMethodException(message);
+            return GenericInstanceMethodInternal(type, methodName, genericArgumentTypes, true);
         }
 
 
@@ -612,6 +614,42 @@ namespace Pomona.Common
             }
 
             return true;
+        }
+
+
+        private static MethodInfo GenericInstanceMethodInternal(Type type,
+                                                                string methodName,
+                                                                Type[] genericArgumentTypes,
+                                                                bool validateArgumentTypes)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+
+            if (String.IsNullOrWhiteSpace(methodName))
+                throw new ArgumentNullException("methodName");
+
+            if (genericArgumentTypes == null || genericArgumentTypes.Length == 0)
+                throw new ArgumentNullException("genericArgumentTypes");
+
+            var method = type
+                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .FirstOrDefault(x => x.Name == methodName);
+
+            if (method != null
+                && method.IsGenericMethod
+                && method.GetGenericArguments().Length == genericArgumentTypes.Length)
+            {
+                // TODO: If validateArgumentTypes is true, verify each argument's generic type constraint to see if it is compatible with the specified generic argument type. @asbjornu
+                return method;
+            }
+
+            string argumentString = String.Join(", ", genericArgumentTypes.Select(x => x.FullName));
+            var message = String.Format("Could not find the method {0}.{1}<{2}>().",
+                                        type,
+                                        methodName,
+                                        argumentString);
+
+            throw new MissingMethodException(message);
         }
 
 
