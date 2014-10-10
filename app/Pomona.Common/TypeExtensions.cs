@@ -65,6 +65,43 @@ namespace Pomona.Common
         }
 
 
+        /// <summary>
+        /// Gets the public constructor on the specified <paramref name="type" /> that has a
+        /// parameter list matching that of <paramref name="parameterTypes" />.
+        /// </summary>
+        /// <param name="type">The type on which to find a constructor.</param>
+        /// <param name="parameterTypes">The parameter types.</param>
+        /// <returns>
+        /// The public constructor on the specified <paramref name="type" /> that has a
+        /// parameter list matching that of <paramref name="parameterTypes" />.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">type
+        /// or
+        /// parameterTypes</exception>
+        /// <exception cref="System.MissingMethodException"></exception>
+        public static ConstructorInfo GetConstructor(this Type type, params Type[] parameterTypes)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+
+            if (parameterTypes == null || parameterTypes.Length == 0)
+                throw new ArgumentNullException("parameterTypes");
+
+            var constructor = type
+                .GetConstructors()
+                .FirstOrDefault(x => ConstructorMatchesArguments(x, parameterTypes));
+
+            if (constructor != null)
+                return constructor;
+
+            string argumentString = String.Join(", ", parameterTypes.Select(x => x.FullName));
+            var message = String.Format("Could not find the constructor {0}({1})",
+                                        type,
+                                        argumentString);
+            throw new MissingMethodException(message);
+        }
+
+
         public static MethodInfo GetDelegateInvokeMethod(this Type delegateType)
         {
             return delegateType.GetMethod("Invoke");
@@ -85,18 +122,26 @@ namespace Pomona.Common
 
 
         /// <summary>
-        /// Gets a public or non-public generic instance method named <paramref name="methodName"/> on the
-        /// specified <paramref name="type"/> with generic arguments matching those
-        /// specified in <paramref name="genericArgumentTypes"/>.
+        /// Gets a public or non-public generic instance method named <paramref name="methodName" /> on the
+        /// specified <paramref name="type" /> with generic arguments matching those
+        /// specified in <paramref name="genericArgumentTypes" />.
         /// </summary>
-        /// <param name="type">The type on which to find the method named <paramref name="methodName"/>.</param>
-        /// <param name="methodName">The name of the method to find on <paramref name="type"/>.</param>
+        /// <param name="type">The type on which to find the method named <paramref name="methodName" />.</param>
+        /// <param name="methodName">The name of the method to find on <paramref name="type" />.</param>
         /// <param name="genericArgumentTypes">The generic argument types as they occur on the method.</param>
         /// <returns>
-        /// A public or non-public generic instance method named <paramref name="methodName"/> on the
-        /// specified <paramref name="type"/> with generic arguments matching those
-        /// specified in <paramref name="genericArgumentTypes"/>.
+        /// A public or non-public generic instance method named <paramref name="methodName" /> on the
+        /// specified <paramref name="type" /> with generic arguments matching those
+        /// specified in <paramref name="genericArgumentTypes" />.
         /// </returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// type
+        /// or
+        /// methodName
+        /// or
+        /// genericArgumentTypes
+        /// </exception>
+        /// <exception cref="System.MissingMethodException"></exception>
         public static MethodInfo GetGenericInstanceMethod(this Type type,
                                                           string methodName,
                                                           params Type[] genericArgumentTypes)
@@ -548,6 +593,25 @@ namespace Pomona.Common
         public static UniqueMemberToken UniqueToken(this MemberInfo member)
         {
             return UniqueMemberToken.FromMemberInfo(member);
+        }
+
+
+        private static bool ConstructorMatchesArguments(ConstructorInfo constructor, Type[] parameterTypes)
+        {
+            var parameters = constructor.GetParameters();
+            if (parameters.Length != parameterTypes.Length)
+                return false;
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var expectedParameterType = parameterTypes[i];
+                var actualParameter = parameters[i];
+
+                if (actualParameter.ParameterType != expectedParameterType)
+                    return false;
+            }
+
+            return true;
         }
 
 

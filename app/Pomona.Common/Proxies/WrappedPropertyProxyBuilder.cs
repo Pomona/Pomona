@@ -69,27 +69,10 @@ namespace Pomona.Common.Proxies
         {
             var propWrapperTypeRef = this.propertyWrapperType.MakeGenericType(proxyTargetType, proxyProp.PropertyType);
             var proxyType = (TypeDefinition)proxyProp.DeclaringType;
-
             if (proxyType == null)
-            {
-                var message = String.Format("{0} has no declaring type.", proxyProp);
-                throw new InvalidOperationException(message);
-            }
+                throw new InvalidOperationException(String.Format("{0} has no declaring type.", proxyProp));
 
-            var propWrapperCtor = propWrapperTypeRef
-                .GetConstructors()
-                .FirstOrDefault(x => x.GetParameters().Length == 1
-                                     && x.GetParameters()[0].ParameterType == typeof(string));
-
-            if (propWrapperCtor == null)
-            {
-                var message = String.Format("Could not find the constructor {0}({1})",
-                                            propWrapperTypeRef,
-                                            typeof(string));
-                throw new InvalidOperationException(message);
-            }
-
-
+            var propWrapperCtor = propWrapperTypeRef.GetConstructor(typeof(string));
             var propertyWrapperField = proxyType.DefineField("_pwrap_" + targetProp.Name,
                                                              propWrapperTypeRef,
                                                              FieldAttributes.Private | FieldAttributes.Static);

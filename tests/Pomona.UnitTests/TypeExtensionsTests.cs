@@ -51,6 +51,11 @@ namespace Pomona.UnitTests
 
         public class TheInheritedClass : TheBaseClass<double>
         {
+            public TheInheritedClass(string s, int i, decimal d)
+            {
+            }
+
+
             public void GenericMethod<T1, T2, T3>()
             {
             }
@@ -111,6 +116,54 @@ namespace Pomona.UnitTests
                 Assert.That(method.IsGenericMethodDefinition, Is.True);
                 return method;
             }
+        }
+
+
+        [Test]
+        public void GetConstructor_ParameterCountMismatch_ThrowsMissingMethodException()
+        {
+            var type = typeof(TheInheritedClass);
+            var exception =
+                Assert.Throws<MissingMethodException>(
+                    () => type.GetConstructor(typeof(string), typeof(int)));
+            Assert.That(exception.Message,
+                        Is.StringContaining("TheInheritedClass(System.String, System.Int32)"));
+        }
+
+
+        [Test]
+        public void GetConstructor_ParameterTypesIsNotGiven_ThrowsArgumentNullException()
+        {
+            var type = GetType();
+            var exception = Assert.Throws<ArgumentNullException>(() => type.GetConstructor());
+            Assert.That(exception.ParamName, Is.EqualTo("parameterTypes"));
+        }
+
+
+        [Test]
+        public void GetConstructor_ParameterTypesIsNull_ThrowsArgumentNullException()
+        {
+            var type = GetType();
+            var exception = Assert.Throws<ArgumentNullException>(() => TypeExtensions.GetConstructor(type, null));
+            Assert.That(exception.ParamName, Is.EqualTo("parameterTypes"));
+        }
+
+
+        [Test]
+        public void GetConstructor_ReturnsConstructor()
+        {
+            var type = typeof(TheInheritedClass);
+            var method = type.GetConstructor(typeof(string), typeof(int), typeof(decimal));
+            Assert.That(method, Is.Not.Null);
+        }
+
+
+        [Test]
+        public void GetConstructor_TypeIsNull_ThrowsArgumentNullException()
+        {
+            Type type = null;
+            var exception = Assert.Throws<ArgumentNullException>(() => type.GetConstructor());
+            Assert.That(exception.ParamName, Is.EqualTo("type"));
         }
 
 
