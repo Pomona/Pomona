@@ -61,7 +61,22 @@ namespace Pomona.UnitTests
             }
 
 
-            protected virtual void ProtectedVirtualMethod<T1, T2, T3>()
+            public void GenericMethodWithParameters<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
+            {
+            }
+
+
+            public void PlainMethod()
+            {
+            }
+
+
+            public void PlainMethodWithParameters(string s, int i)
+            {
+            }
+
+
+            protected virtual void ProtectedVirtualMethod<T1, T2, T3>(string s, int i)
             {
             }
         }
@@ -164,6 +179,65 @@ namespace Pomona.UnitTests
             Type type = null;
             var exception = Assert.Throws<ArgumentNullException>(() => type.GetConstructor());
             Assert.That(exception.ParamName, Is.EqualTo("type"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodHasGenericArgumentsAndGenericParameters_ReturnsExpectedString()
+        {
+            var result = typeof(TheInheritedClass).GetMethod("GenericMethodWithParameters").GetFullNameWithSignature();
+
+            Assert.That(result, Is.EqualTo(
+                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.GenericMethodWithParameters<T1, T2, T3>(T1, T2, T3)"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodHasGenericArgumentsAndParameters_ReturnsExpectedString()
+        {
+            var result = typeof(TheInheritedClass).GetGenericInstanceMethod("ProtectedVirtualMethod", 3).GetFullNameWithSignature();
+
+            Assert.That(result, Is.EqualTo(
+                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.ProtectedVirtualMethod<T1, T2, T3>(System.String, System.Int32)"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodHasGenericArgumentsButNoParameters_ReturnsExpectedString()
+        {
+            var result = typeof(TheInheritedClass).GetMethod("GenericMethod").GetFullNameWithSignature();
+
+            Assert.That(result, Is.EqualTo(
+                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.GenericMethod<T1, T2, T3>()"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodHasParameters_ReturnsExpectedString()
+        {
+            var result = typeof(TheInheritedClass).GetMethod("PlainMethodWithParameters").GetFullNameWithSignature();
+
+            Assert.That(result, Is.EqualTo(
+                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.PlainMethodWithParameters(System.String, System.Int32)"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodIsNull_ThrowsArgumentNullException()
+        {
+            MethodInfo method = null;
+            var exception = Assert.Throws<ArgumentNullException>(() => method.GetFullNameWithSignature());
+            Assert.That(exception.ParamName, Is.EqualTo("method"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodIsPlain_ReturnsExpectedString()
+        {
+            var result = typeof(TheInheritedClass).GetMethod("PlainMethod").GetFullNameWithSignature();
+
+            Assert.That(result, Is.EqualTo(
+                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.PlainMethod()"));
         }
 
 

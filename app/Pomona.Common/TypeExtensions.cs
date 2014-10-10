@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -112,6 +113,57 @@ namespace Pomona.Common
             where TAttribute : Attribute
         {
             return member.GetCustomAttributes(typeof(TAttribute), inherit).OfType<TAttribute>().FirstOrDefault();
+        }
+
+
+        /// <summary>
+        /// Returns a <see cref="String"/> representation of the specified <paramref name="method"/>
+        /// that is fully qualified (not including <see cref="Assembly.FullName"/>) and contains all
+        /// generic and regular parameters, if they exist.
+        /// </summary>
+        /// <param name="method">The method to return a <see cref="String"/> representation of.</param>
+        /// <returns>
+        /// </returns>
+        /// A <see cref="String"/> representation of the specified <paramref name="method"/>
+        /// that is fully qualified (not including <see cref="Assembly.FullName"/>) and contains all
+        /// generic and regular parameters, if they exist.
+        /// <exception cref="System.ArgumentNullException">method</exception>
+        public static string GetFullNameWithSignature(this MethodInfo method)
+        {
+            if (method == null)
+                throw new ArgumentNullException("method");
+
+            string genericParametersString = null;
+            if (method.DeclaringType != null && method.IsGenericMethod)
+            {
+                var genericArguments = method
+                    .GetGenericArguments()
+                    .Zip(method.GetGenericMethodDefinition().GetGenericArguments(), (a, p) => a ?? p)
+                    .ToArray();
+
+                var genericParameterBuilder = new StringBuilder("<");
+                for (int i = 0; i < genericArguments.Length; i++)
+                {
+                    var genericArgument = genericArguments[i];
+                    genericParameterBuilder.Append(genericArgument);
+
+                    if (i < genericArguments.Length - 1)
+                        genericParameterBuilder.Append(", ");
+                }
+
+                genericParameterBuilder.Append(">");
+                genericParametersString = genericParameterBuilder.ToString();
+            }
+
+            var parameters = method.GetParameters().Select(x => x.ParameterType.FullName ?? x.ParameterType.Name);
+            string parameterString = String.Join(", ", parameters);
+
+            return String.Format("{0} {1}.{2}{3}({4})",
+                                 method.ReturnType,
+                                 method.DeclaringType,
+                                 method.Name,
+                                 genericParametersString,
+                                 parameterString);
         }
 
 
