@@ -27,7 +27,6 @@
 #endregion
 
 #if !DISABLE_PROXY_GENERATION
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -115,8 +114,8 @@ namespace Pomona.Common.Proxies
                 proxyType.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.SpecialName |
                                             MethodAttributes.RTSpecialName
                                             | MethodAttributes.Public,
-                    CallingConventions.Standard,
-                    Type.EmptyTypes);
+                                            CallingConventions.Standard,
+                                            Type.EmptyTypes);
 
             var ctorIlProcessor = ctor.GetILGenerator();
             ctorIlProcessor.Emit(OpCodes.Ldarg_0);
@@ -128,10 +127,10 @@ namespace Pomona.Common.Proxies
             foreach (var targetProp in interfaces.SelectMany(x => x.GetProperties()))
             {
                 var proxyPropDef = AddProperty(proxyType,
-                    targetProp.Name,
-                    targetProp.PropertyType,
-                    targetProp.DeclaringType.FullName + ".",
-                    targetProp);
+                                               targetProp.Name,
+                                               targetProp.PropertyType,
+                                               targetProp.DeclaringType.FullName + ".",
+                                               targetProp);
                 OnGeneratePropertyMethods(
                     targetProp,
                     proxyPropDef,
@@ -171,8 +170,8 @@ namespace Pomona.Common.Proxies
 
 
         private static void AdjustParameterTypes(ParameterInfo[] parameters,
-            Func<Type, Type> typeReplacer,
-            MethodDefinition method)
+                                                 Func<Type, Type> typeReplacer,
+                                                 MethodDefinition method)
         {
             var fixedParams = new Type[parameters.Length];
             foreach (var parameter in parameters)
@@ -197,15 +196,15 @@ namespace Pomona.Common.Proxies
                         x.Name == targetMethod.Name &&
                         x.ReturnType == targetMethod.ReturnType &&
                         x.GetParameters()
-                            .Select(y => y.ParameterType)
-                            .SequenceEqual(targetMethod.GetParameters().Select(y => y.ParameterType)));
+                        .Select(y => y.ParameterType)
+                        .SequenceEqual(targetMethod.GetParameters().Select(y => y.ParameterType)));
         }
 
 
         private static void CopyGenericMethodParameters(MethodInfo targetMethod,
-            MethodDefinition method,
-            Dictionary<Type, Type> genArgMapping,
-            Func<Type, Type> typeReplacer)
+                                                        MethodDefinition method,
+                                                        Dictionary<Type, Type> genArgMapping,
+                                                        Func<Type, Type> typeReplacer)
         {
             if (targetMethod.IsGenericMethodDefinition)
             {
@@ -213,7 +212,14 @@ namespace Pomona.Common.Proxies
 
                 var items =
                     method.DefineGenericParameters(targetGenArgs.Select(x => x.Name).ToArray()).Zip(targetGenArgs,
-                        (paramBuilder, target) => new { paramBuilder, target }).ToList();
+                                                                                                    (paramBuilder,
+                                                                                                     target) =>
+                                                                                                        new
+                                                                                                        {
+                                                                                                            paramBuilder,
+                                                                                                            target
+                                                                                                        })
+                        .ToList();
                 foreach (var arg in items)
                 {
                     arg.paramBuilder.SetGenericParameterAttributes(arg.target.GenericParameterAttributes);
@@ -245,9 +251,9 @@ namespace Pomona.Common.Proxies
 
 
         private static void GenerateInvokeMethodIl(MethodDefinition method,
-            Type[] paramTypes,
-            ParameterInfo[] parameters,
-            MethodInfo proxyOnGetMethod)
+                                                   Type[] paramTypes,
+                                                   ParameterInfo[] parameters,
+                                                   MethodInfo proxyOnGetMethod)
         {
             var il = method.GetILGenerator();
             var argsLocal = il.DeclareLocal(typeof(object[]));
@@ -286,9 +292,9 @@ namespace Pomona.Common.Proxies
 
         private static IEnumerable<TypeReference> GetAllInterfacesRecursive(TypeReference typeDefinition)
         {
-            return
-                typeDefinition.WrapAsEnumerable().Concat(
-                    typeDefinition.GetInterfaces().SelectMany(x => GetAllInterfacesRecursive(x)));
+            return typeDefinition
+                .WrapAsEnumerable()
+                .Concat(typeDefinition.GetInterfaces().SelectMany(GetAllInterfacesRecursive));
         }
 
 
@@ -308,18 +314,21 @@ namespace Pomona.Common.Proxies
         /// Create property with explicit implementation of getter and setter, with no method defined.
         /// </summary>
         private PropertyDefinition AddProperty(TypeDefinition declaringType,
-            string name,
-            TypeReference propertyType,
-            string explicitPrefix,
-            PropertyInfo overridedProp)
+                                               string name,
+                                               TypeReference propertyType,
+                                               string explicitPrefix,
+                                               PropertyInfo overridedProp)
         {
             var proxyPropDef = declaringType.DefineProperty(explicitPrefix + name,
-                PropertyAttributes.None | PropertyAttributes.SpecialName,
-                propertyType,
-                null);
-            var methodAttributes = MethodAttributes.Private | MethodAttributes.HideBySig |
-                                   MethodAttributes.NewSlot | MethodAttributes.Virtual |
-                                   MethodAttributes.Final | MethodAttributes.SpecialName;
+                                                            PropertyAttributes.None | PropertyAttributes.SpecialName,
+                                                            propertyType,
+                                                            null);
+            const MethodAttributes methodAttributes = MethodAttributes.Private
+                                                      | MethodAttributes.HideBySig
+                                                      | MethodAttributes.NewSlot
+                                                      | MethodAttributes.Virtual
+                                                      | MethodAttributes.Final
+                                                      | MethodAttributes.SpecialName;
 
             var overridedGetMethod = overridedProp.GetGetMethod();
             if (overridedGetMethod != null)
@@ -353,37 +362,30 @@ namespace Pomona.Common.Proxies
         }
 
 
-        private void GenerateProxyMethods(List<Type> interfaces, TypeDefinition proxyType)
+        private void GenerateProxyMethods(IEnumerable<Type> interfaces, TypeDefinition proxyType)
         {
-            foreach (
-                var targetMethod in
-                    interfaces.SelectMany(x => x.GetMethods().Except(x.GetProperties().SelectMany(GetPropertyMethods))))
+            var methodsExcludingGetters = interfaces
+                .SelectMany(x => x.GetMethods().Except(x.GetProperties().SelectMany(GetPropertyMethods)));
+
+            foreach (var targetMethod in methodsExcludingGetters)
             {
                 var baseDef = this.proxyBaseTypeDef;
                 if (BaseTypeHasMatchingPublicMethod(baseDef, targetMethod))
                     continue;
 
-                var proxyOnGetMethod =
-                    baseDef.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                        .FirstOrDefault(x => x.Name == "OnInvokeMethod");
-
-                if (proxyOnGetMethod == null)
-                {
-                    throw new InvalidOperationException("Unable to generate proxy for " +
-                                                        targetMethod.DeclaringType + ":" + targetMethod.Name + " using "
-                                                        +
-                                                        baseDef.FullName + " as base: base is missing OnInvokeMethod.");
-                }
-
                 var genArgMapping = new Dictionary<Type, Type>();
+
+                if (targetMethod.DeclaringType == null)
+                    throw new InvalidOperationException(String.Format("{0} has no declaring type.", targetMethod));
 
                 if (targetMethod.DeclaringType.IsGenericType)
                 {
-                    foreach (
-                        var declTypeGenArg in
-                            targetMethod.DeclaringType.GetGenericArguments().Zip(
-                                targetMethod.DeclaringType.GetGenericTypeDefinition().GetGenericArguments(),
-                                (a, p) => new { a, p }))
+                    var declTypeGenArgs = targetMethod.DeclaringType
+                        .GetGenericArguments()
+                        .Zip(targetMethod.DeclaringType.GetGenericTypeDefinition().GetGenericArguments(),
+                             (a, p) => new { a, p });
+
+                    foreach (var declTypeGenArg in declTypeGenArgs)
                         genArgMapping.Add(declTypeGenArg.p, declTypeGenArg.a);
                 }
 
@@ -391,16 +393,30 @@ namespace Pomona.Common.Proxies
                     t => TypeUtils.ReplaceInGenericArguments(t, x => genArgMapping.SafeGet(x, x));
                 var parameters = targetMethod.GetParameters();
                 var paramTypes = parameters.Select(x => x.ParameterType).ToArray();
-                var method = proxyType.DefineMethod(
-                    targetMethod.Name,
-                    MethodAttributes.NewSlot | MethodAttributes.HideBySig | MethodAttributes.Virtual |
-                    MethodAttributes.Public,
-                    targetMethod.ReturnType,
-                    paramTypes);
+                var method = proxyType.DefineMethod(targetMethod.Name,
+                                                    MethodAttributes.NewSlot
+                                                    | MethodAttributes.HideBySig
+                                                    | MethodAttributes.Virtual
+                                                    | MethodAttributes.Public,
+                                                    targetMethod.ReturnType,
+                                                    paramTypes);
 
                 CopyGenericMethodParameters(targetMethod, method, genArgMapping, typeReplacer);
 
                 AdjustParameterTypes(parameters, typeReplacer, method);
+
+                var proxyOnGetMethod = baseDef
+                    .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                    .FirstOrDefault(x => x.Name == "OnInvokeMethod");
+
+                if (proxyOnGetMethod == null)
+                {
+                    var message =
+                        String.Format("Unable to generate proxy for {0} because {1}.OnInvokeMethod() is missing.",
+                                      targetMethod.GetFullNameWithSignature(),
+                                      baseDef.FullName);
+                    throw new MissingMethodException(message);
+                }
 
                 GenerateInvokeMethodIl(method, paramTypes, parameters, proxyOnGetMethod);
             }
