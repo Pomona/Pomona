@@ -136,8 +136,8 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void Build_FromExpression_ReferencingOneServerProperty_PassedToMethodOnClient_SplitsServerAndClientPart()
         {
-            BuildAndAssertSplitExpression(x => ClientMethod1(x.Id)).Expect<Tuple<int>>("id as Item1",
-                _this => ClientMethod1(_this.Item1));
+            BuildAndAssertSplitExpression(x => ClientMethod1(x.Id)).Expect<object[]>("[id] as this",
+                _this => ClientMethod1((int)_this[0]));
         }
 
 
@@ -157,8 +157,8 @@ namespace Pomona.UnitTests.Client
         {
             BuildAndAssertSplitExpression(
                 x => x.SomeList.Where(y => y.SomeInt % 3 == 1).Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"))
-                .Expect<Tuple<IEnumerable<FooBar>>>("someList.where(y:(y.someInt mod 3) eq 1) as Item1",
-                    _this => _this.Item1.Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"));
+                .Expect<object[]>("[someList.where(y:(y.someInt mod 3) eq 1)] as this",
+                    _this => ((IEnumerable<FooBar>)_this[0]).Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"));
         }
 
 
@@ -167,9 +167,9 @@ namespace Pomona.UnitTests.Client
             Build_FromSplittableExpression_ReferencingSameServerPropertyMultipleTimes_PassedToMethodOnClient_DoesNotRepeatPropertyInSelect
             ()
         {
-            BuildAndAssertSplitExpression(x => ClientMethod2(x.Id, x.Bonga, x.Bonga)).Expect<Tuple<int, string>>(
-                "id as Item1,bonga as Item2",
-                _this => ClientMethod2(_this.Item1, _this.Item2, _this.Item2));
+            BuildAndAssertSplitExpression(x => ClientMethod2(x.Id, x.Bonga, x.Bonga)).Expect<object[]>(
+                "[id,bonga] as this",
+                _this => ClientMethod2((int)_this[0], (string)_this[1], (string)_this[1]));
         }
 
 
@@ -178,8 +178,8 @@ namespace Pomona.UnitTests.Client
         {
             BuildAndAssertSplitExpression(
                 x => ClientMethod1(ClientEnumerableFilter(x.SomeList).Count(y => y.SomeDouble > 1.0)))
-                .Expect<Tuple<IList<FooBar>>>("someList as Item1",
-                    _this => ClientMethod1(ClientEnumerableFilter(_this.Item1).Count(y => y.SomeDouble > 1.0)));
+                .Expect<object[]>("[someList] as this",
+                    _this => ClientMethod1(ClientEnumerableFilter((IList<FooBar>)_this[0]).Count(y => y.SomeDouble > 1.0)));
         }
 
 
@@ -187,8 +187,8 @@ namespace Pomona.UnitTests.Client
         public void Build_FromSplittableExpression_WithCountSubQueryGivenServerUnsupportedLambda_SubQueryIsRunOnClient()
         {
             BuildAndAssertSplitExpression(x => x.SomeList.Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"))
-                .Expect<Tuple<IList<FooBar>>>("someList as Item1",
-                    _this => _this.Item1.Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"));
+                .Expect<object[]>("[someList] as this",
+                    _this => ((IList<FooBar>)_this[0]).Any(y => ClientMethod1(y.SomeInt).Bar == "JallaTralla"));
         }
 
 
@@ -196,8 +196,8 @@ namespace Pomona.UnitTests.Client
         public void Build_FromSplittableExpression_WithCountSubQuery_PassedToMethodOnClient_RunsQueryOnServer()
         {
             BuildAndAssertSplitExpression(x => ClientMethod1(x.SomeList.Count()))
-                .Expect<Tuple<int>>("count(someList) as Item1",
-                    _this => ClientMethod1(_this.Item1));
+                .Expect<object[]>("[count(someList)] as this",
+                    _this => ClientMethod1((int)_this[0]));
         }
 
 
@@ -205,8 +205,8 @@ namespace Pomona.UnitTests.Client
         public void Build_FromSplittableExpression_WithPredicatedCountSubQuery_PassedToMethodOnClient_RunsQueryOnServer()
         {
             BuildAndAssertSplitExpression(x => ClientMethod1(x.SomeList.Count(y => y.SomeDouble > 1.0)))
-                .Expect<Tuple<int>>("count(someList,y:y.someDouble gt 1.0) as Item1",
-                    _this => ClientMethod1(_this.Item1));
+                .Expect<object[]>("[count(someList,y:y.someDouble gt 1.0)] as this",
+                    _this => ClientMethod1((int)_this[0]));
         }
 
 
@@ -214,8 +214,8 @@ namespace Pomona.UnitTests.Client
         public void Build_FromSplittableExpression_WithStringConcat_PassedToMethodOnClient_ConcatsOnClient()
         {
             BuildAndAssertSplitExpression(x => ClientMethod2(x.Id, x.Bonga, x.Bonga + x.Jalla))
-                .Expect<Tuple<int, string, string>>("id as Item1,bonga as Item2,jalla as Item3",
-                    _this => ClientMethod2(_this.Item1, _this.Item2, string.Concat(_this.Item2, _this.Item3)));
+                .Expect<object[]>("[id,bonga,jalla] as this",
+                    _this => ClientMethod2((int)_this[0], (string)_this[1], string.Concat((string)_this[1], (string)_this[2])));
         }
     }
 }
