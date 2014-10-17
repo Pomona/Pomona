@@ -142,7 +142,11 @@ namespace Pomona.SystemTests.Linq
             var resource = Client.Query<IExtendedResource3>().First(x => x.Id == entity.Id);
 
             var patchedResource =
-                Client.Patch(resource, x => { x.Text = "UPDATED!"; });
+                Client.Patch(resource,
+                             x =>
+                             {
+                                 x.Text = "UPDATED!";
+                             });
 
             Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
         }
@@ -331,6 +335,17 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void QueryExtendedResource_SelectExtendedResourceToAnonymousType()
+        {
+            Repository.Save(new StringToObjectDictionaryContainer() { Map = { { "Text", "Lolo" } } });
+            var results = Client.Query<IExtendedResource3>().Select(x => new { x, x.Text }).ToList();
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Text, Is.EqualTo("Lolo"));
+        }
+
+
+        [Test]
         public void QueryExtendedResource_UsingFirstOrDefault_ReturnsExtendedResource()
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
@@ -438,7 +453,7 @@ namespace Pomona.SystemTests.Linq
         public void Query_ClientSideResourceReturningNoResults_FirstOrDefaultReturnsNull()
         {
             Assert.That(Client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
-                Is.Null);
+                        Is.Null);
         }
 
 

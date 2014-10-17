@@ -65,7 +65,7 @@ namespace Pomona.Common.ExtendedResources
             if (visitor.Root == null)
                 throw new Exception("Unable to find queryable source in expression.");
 
-            var transformedReturnType = visitor.ReplaceInGenericArguments(returnType);
+            var transformedReturnType = visitor.VisitType(returnType);
             var result =
                 queryableExecuteGenericMethod.MakeGenericMethod(transformedReturnType).Invoke(
                     visitor.Root.WrappedSource.Provider,

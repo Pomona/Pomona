@@ -197,6 +197,12 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
+        public override Type VisitType(Type typeToSearch)
+        {
+            return base.VisitType(ReplaceType(typeToSearch));
+        }
+
+
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var modifiedMethod = TypeUtils.ReplaceInGenericMethod(node.Method, ReplaceType);
