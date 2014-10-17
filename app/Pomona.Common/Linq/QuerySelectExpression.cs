@@ -27,39 +27,54 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq.Expressions;
+using System.Linq;
 
 namespace Pomona.Common.Linq
 {
-    internal abstract class PomonaExtendedExpression : Expression
+    internal class QuerySelectExpression : QuerySegmentExpression
     {
-        private readonly Type type;
+        private readonly IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList;
+        private ReadOnlyCollection<object> children;
 
 
-        protected PomonaExtendedExpression(Type type)
+        public QuerySelectExpression(IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList, Type type)
+            : base(type)
         {
-            this.type = type;
+            this.selectList = selectList;
         }
 
 
-        public virtual bool LocalExecutionPreferred
+        public override ReadOnlyCollection<object> Children
         {
-            get { return false; }
+            get
+            {
+                if (this.children == null)
+                    this.children = new ReadOnlyCollection<object>(GetChildren().ToList());
+                return this.children;
+            }
         }
 
-        public abstract ReadOnlyCollection<object> Children { get; }
 
-        public override ExpressionType NodeType
+        public override IEnumerable<string> ToStringSegments()
         {
-            get { return ExpressionType.Extension; }
+            return ToStringSegmentsRecursive(GetChildren());
         }
 
-        public abstract bool SupportedOnServer { get; }
 
-        public override Type Type
+        private IEnumerable<object> GetChildren()
         {
-            get { return this.type; }
+            int i = 0;
+            foreach (var kvp in this.selectList)
+            {
+                if (i != 0)
+                    yield return ",";
+                yield return kvp.Value;
+                yield return " as ";
+                yield return kvp.Key;
+                i++;
+            }
         }
     }
 }

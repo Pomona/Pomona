@@ -28,60 +28,54 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Linq.Expressions;
 
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Linq
 {
-    internal class QuerySelectExpression : QuerySegmentExpression
-    {
-        private readonly IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList;
-        private ReadOnlyCollection<object> children;
-
-        public QuerySelectExpression(IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList, Type type)
-            : base(type)
-        {
-            this.selectList = selectList;
-        }
-
-
-        private IEnumerable<object> GetChildren()
-        {
-            int i = 0;
-            foreach (var kvp in selectList)
-            {
-                if (i != 0)
-                    yield return ",";
-                yield return kvp.Value;
-                yield return " as ";
-                yield return kvp.Key;
-                i++;
-            }
-        }
-
-        public override ReadOnlyCollection<object> Children
-        {
-            get
-            {
-                if (children == null)
-                    children = new ReadOnlyCollection<object>(GetChildren().ToList());
-                return children;
-            }
-        }
-
-        public override IEnumerable<string> ToStringSegments()
-        {
-            return ToStringSegmentsRecursive(GetChildren());
-        }
-    }
     internal abstract class QuerySegmentExpression : PomonaExtendedExpression
     {
         private readonly bool localExecutionPreferred;
-        private bool? supportedOnServer;
         private string cachedQueryString;
+        private bool? supportedOnServer;
+
+
+        protected QuerySegmentExpression(Type type, bool localExecutionPreferred = false)
+            : base(type)
+        {
+            this.localExecutionPreferred = localExecutionPreferred;
+        }
+
+
+        public override bool LocalExecutionPreferred
+        {
+            get { return this.localExecutionPreferred; }
+        }
+
+        public override bool SupportedOnServer
+        {
+            get
+            {
+                if (!this.supportedOnServer.HasValue)
+                {
+                    this.supportedOnServer =
+                        Children.OfType<PomonaExtendedExpression>().Flatten(
+                            x => x.Children.OfType<PomonaExtendedExpression>()).All(x => x.SupportedOnServer);
+                }
+                return this.supportedOnServer.Value;
+            }
+        }
+
+        public abstract IEnumerable<string> ToStringSegments();
+
+
+        public override string ToString()
+        {
+            if (this.cachedQueryString == null)
+                this.cachedQueryString = string.Concat(ToStringSegments());
+            return this.cachedQueryString;
+        }
 
 
         protected static IEnumerable<string> ToStringSegmentsRecursive(IEnumerable<object> children)
@@ -97,43 +91,6 @@ namespace Pomona.Common.Linq
                 else
                     yield return child.ToString();
             }
-        }
-
-        protected QuerySegmentExpression(Type type, bool localExecutionPreferred = false)
-            : base(type)
-        {
-            this.localExecutionPreferred = localExecutionPreferred;
-        }
-
-
-        public override bool LocalExecutionPreferred
-        {
-            get { return localExecutionPreferred; }
-        }
-
-        public override bool SupportedOnServer
-        {
-            get
-            {
-                if (!supportedOnServer.HasValue)
-                {
-                    supportedOnServer =
-                        Children.OfType<PomonaExtendedExpression>().Flatten(
-                            x => x.Children.OfType<PomonaExtendedExpression>()).All(x => x.SupportedOnServer);
-                }
-                return this.supportedOnServer.Value;
-            }
-        }
-
-
-        public abstract IEnumerable<string> ToStringSegments();
-
-
-        public override string ToString()
-        {
-            if (cachedQueryString == null)
-                cachedQueryString = string.Concat(ToStringSegments());
-            return cachedQueryString;
         }
     }
 }

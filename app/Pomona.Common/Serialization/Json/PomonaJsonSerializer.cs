@@ -97,6 +97,9 @@ namespace Pomona.Common.Serialization.Json
             }
 
             var mappedType = node.ExpectedBaseType ?? node.ValueType;
+            if (mappedType == typeof(object))
+                mappedType = node.ValueType;
+
             switch (mappedType.SerializationMode)
             {
                 case TypeSerializationMode.Dictionary:

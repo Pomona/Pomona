@@ -26,6 +26,9 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
+using Newtonsoft.Json;
+
 using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -318,8 +321,8 @@ isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
             var expr = parser.Parse<Dummy>("objectAttributes.jalla in [5,4,number,3]");
             AssertExpressionEquals(expr,
                                    _this =>
-                                   (new int?[] {5, 4, _this.Number, 3}).Contains(
-                                       _this.ObjectAttributes.SafeGet("jalla") as int?));
+                                   (new object[] {5, 4, _this.Number, 3}).Contains(
+                                       _this.ObjectAttributes.SafeGet("jalla")));
         }
 
         [Test]
@@ -328,10 +331,19 @@ isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
             var expr = parser.Parse<Dummy>("objectAttributes.jalla in ['a','b',text]");
             AssertExpressionEquals(expr,
                                    _this =>
-                                   (new[] {"a", "b", _this.Text}).Contains(
-                                       _this.ObjectAttributes.SafeGet("jalla") as string));
+                                   (new object[] {"a", "b", _this.Text}).Contains(
+                                       _this.ObjectAttributes.SafeGet("jalla")));
         }
 
+        [Test]
+        public void Parse_AttributeAsStringInArray_CreatesCorrectExpression()
+        {
+            var expr = parser.Parse<Dummy>("(objectAttributes.jalla as t'String') in ['a','b',text]");
+            AssertExpressionEquals(expr,
+                                   _this =>
+                                   (new [] { "a", "b", _this.Text }).Contains(
+                                       _this.ObjectAttributes.SafeGet("jalla") as string));
+        }
 
         [Test]
         public void Parse_SubSelectExpressionChained_CreatesCorrectExpression()

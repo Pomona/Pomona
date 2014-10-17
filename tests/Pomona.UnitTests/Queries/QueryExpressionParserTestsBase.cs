@@ -33,6 +33,7 @@ using System.Reflection;
 
 using NUnit.Framework;
 
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 using Pomona.TestHelpers;
@@ -68,6 +69,8 @@ namespace Pomona.UnitTests.Queries
         {
             var actual = this.parser.Parse(typeof(Dummy), expr);
             Console.WriteLine("{0} => {1}", expr, actual);
+            var evaluateClosureMemberVisitor = new EvaluateClosureMemberVisitor();
+            expected = (Expression<Func<Dummy, TRet>>)evaluateClosureMemberVisitor.Visit(expected);
             actual.AssertEquals(expected);
         }
 
