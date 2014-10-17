@@ -44,7 +44,7 @@ namespace Pomona.Fetcher
 
         private static readonly MethodInfo expandCollectionBatchedMethod =
             ReflectionHelper.GetMethodDefinition<BatchFetcher>(
-                x => x.ExpandCollectionBatched<object, object>(null, null, null));
+                x => x.ExpandCollectionBatched<object, object, object>(null, null, null));
 
         private static readonly MethodInfo expandManyToOneMethod =
             ReflectionHelper.GetMethodDefinition<BatchFetcher>(
@@ -128,7 +128,7 @@ namespace Pomona.Fetcher
                         Type elementType;
                         if (IsCollection(prop, out elementType))
                         {
-                            expandCollectionBatchedMethod.MakeGenericMethod(typeof(TEntity), elementType)
+                            expandCollectionBatchedMethod.MakeGenericMethod(typeof(TEntity), elementType, driver.GetIdProperty(typeof(TEntity)).PropertyType)
                                 .Invoke(this, new object[] { entities, subPath, prop });
                         }
                     }
@@ -187,32 +187,31 @@ namespace Pomona.Fetcher
         }
 
 
-        private Expression<Func<TEntity, object>> CreateIdGetExpression<TEntity>()
+        private Expression<Func<TEntity, object>> CreateIdGetExpression<TEntity>(out PropertyInfo idProp)
         {
-            PropertyInfo tmp;
-            return CreateIdGetExpression<TEntity>(out tmp);
+            return CreateIdGetExpression<TEntity, object>(out idProp);
         }
 
 
-        private Expression<Func<TEntity, object>> CreateIdGetExpression<TEntity>(out PropertyInfo idProp)
+        private Expression<Func<TEntity, TId>> CreateIdGetExpression<TEntity, TId>(out PropertyInfo idProp)
         {
             idProp = this.driver.GetIdProperty(typeof(TEntity));
             var refParam = Expression.Parameter(typeof(TEntity), "ref");
+            Expression propExpr = Expression.Property(refParam, idProp);
+            if (propExpr.Type != typeof(TId))
+                propExpr = Expression.Convert(propExpr, typeof(TId));
             var idGetter =
-                Expression.Lambda<Func<TEntity, object>>(
-                    Expression.Convert(Expression.Property(refParam, idProp), typeof(object)),
+                Expression.Lambda<Func<TEntity, TId>>(
+                    propExpr,
                     refParam);
             return idGetter;
         }
 
-
-        private void ExpandCollection<TParentEntity, TCollectionElement>(IEnumerable<TParentEntity> entities,
+        protected virtual void ExpandCollection<TParentEntity, TCollectionElement, TParentId>(IEnumerable<TParentEntity> entities,
             string path,
-            PropertyInfo prop)
+            PropertyInfo prop, PropertyInfo parentIdProp, Func<TParentEntity, TParentId> getParentIdExpr)
             where TCollectionElement : class
         {
-            PropertyInfo parentIdProp;
-            var getParentIdExpr = CreateIdGetExpression<TParentEntity>(out parentIdProp).Compile();
             PropertyInfo childIdProp;
             var getChildIdExpr = CreateIdGetExpression<TCollectionElement>(out childIdProp).Compile();
 
@@ -238,11 +237,9 @@ namespace Pomona.Fetcher
             var containsExprParam = Expression.Parameter(typeof(TParentEntity), "tp");
             var containsExpr =
                 Expression.Lambda<Func<TParentEntity, bool>>(
-                    Expression.Call(containsMethod.MakeGenericMethod(typeof(object)),
+                    Expression.Call(containsMethod.MakeGenericMethod(typeof(TParentId)),
                         Expression.Constant(parentIdsToFetch),
-                        Expression.Convert(Expression.Property(containsExprParam,
-                            parentIdProp),
-                            typeof(object))),
+                        Expression.Property(containsExprParam, parentIdProp)),
                     containsExprParam);
             //var lineOrderIdMap =
             //    db.Orders
@@ -280,7 +277,7 @@ namespace Pomona.Fetcher
 
             var bindings =
                 parentEntities
-                .Join(parentIdsToFetch, x => x.ParentId, x => x, (a,b) => a) // Only bind collections in parentIdsToFetch
+                .Join(parentIdsToFetch, x => x.ParentId, x => x, (a, b) => a) // Only bind collections in parentIdsToFetch
                 .GroupJoin(relations,
                     x => x.ParentId,
                     x => x.ParentId,
@@ -293,13 +290,17 @@ namespace Pomona.Fetcher
         }
 
 
-        private void ExpandCollectionBatched<TParentEntity, TCollectionElement>(IEnumerable<TParentEntity> entities,
+        protected virtual void ExpandCollectionBatched<TParentEntity, TCollectionElement, TParentId>(IEnumerable<TParentEntity> entities,
             string path,
             PropertyInfo prop)
             where TCollectionElement : class
         {
-            Partition(entities, this.batchFetchCount).ForEach(
-                x => ExpandCollection<TParentEntity, TCollectionElement>(x, path, prop));
+            PropertyInfo parentIdProp;
+            var getParentIdExpr = CreateIdGetExpression<TParentEntity, TParentId>(out parentIdProp).Compile();
+            Partition(entities.Distinct().OrderBy(getParentIdExpr), this.batchFetchCount).ToList().ForEach(
+                x =>
+                ExpandCollection<TParentEntity, TCollectionElement, TParentId>(x, path, prop, parentIdProp,
+                                                                                   getParentIdExpr));
         }
 
 
