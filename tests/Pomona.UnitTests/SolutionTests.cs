@@ -115,6 +115,7 @@ namespace Pomona.UnitTests
         public void AllClassesAreContainedInFilesWithCorrectName()
         {
             var p = new CSharpParser();
+            var errorCount = 0;
 
             foreach (var csFile in FindCSharpSourceFiles().Select(x => p.Parse(File.ReadAllText(x), x)))
             {
@@ -127,7 +128,11 @@ namespace Pomona.UnitTests
 
                 foreach (var td in topLevelTypes)
                     Console.WriteLine("Type " + td.Name + " does not match filename " + td.FileName);
+
+                errorCount += topLevelTypes.Count;
             }
+
+            Assert.That(errorCount, Is.EqualTo(0));
         }
 
 
