@@ -96,6 +96,7 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(x => x.FirstLazy());
             MapQueryableFunction(x => x.ToJson());
             MapQueryableFunction(x => x.WithOptions(null));
+            MapQueryableFunction(x => x.ToQueryResult());
         }
 
 
@@ -481,6 +482,12 @@ namespace Pomona.Common.Linq
         }
 
 
+        internal void QToQueryResult<TSource>()
+        {
+            this.projection = QueryProjection.Enumerable;
+        }
+
+
         internal void QToUri<TSource>()
         {
             this.projection = QueryProjection.ToUri;
@@ -502,7 +509,7 @@ namespace Pomona.Common.Linq
             else
             {
                 var replacer = new LamdbaParameterReplacer(fixedPredicate.Parameters[0],
-                    this.wherePredicate.Parameters[0]);
+                                                           this.wherePredicate.Parameters[0]);
                 var rewrittenPredicateBody = replacer.Visit(fixedPredicate.Body);
                 this.wherePredicate = Expression.Lambda(
                     this.wherePredicate.Type,
@@ -578,10 +585,10 @@ namespace Pomona.Common.Linq
         private LambdaExpression MergeWhereAfterSelect(LambdaExpression predicate)
         {
             var parameter = Expression.Parameter(this.selectExpression.Parameters[0].Type,
-                this.selectExpression.Parameters[0].Name);
+                                                 this.selectExpression.Parameters[0].Name);
             var fixedSelectExpr = LamdbaParameterReplacer.Replace(this.selectExpression.Body,
-                this.selectExpression.Parameters[0],
-                parameter);
+                                                                  this.selectExpression.Parameters[0],
+                                                                  parameter);
             var expandedBody = LamdbaParameterReplacer.Replace(predicate.Body, predicate.Parameters[0], fixedSelectExpr);
             var newBody = new CollapseDisplayObjectsVisitor().Visit(expandedBody);
             return Expression.Lambda(newBody, parameter);
@@ -589,8 +596,8 @@ namespace Pomona.Common.Linq
 
 
         private void OrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector,
-            SortOrder sortOrder,
-            bool thenBy = false)
+                                            SortOrder sortOrder,
+                                            bool thenBy = false)
         {
             if (SkipCount.HasValue)
             {
@@ -610,7 +617,7 @@ namespace Pomona.Common.Linq
             {
                 // Support order by after select (not when using GroupBy)
                 this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(MergeWhereAfterSelect(keySelector),
-                    sortOrder));
+                                                                                  sortOrder));
             }
             else
                 this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));

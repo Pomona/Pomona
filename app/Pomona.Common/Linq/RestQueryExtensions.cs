@@ -140,7 +140,14 @@ namespace Pomona.Common.Linq
 
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
-            return (QueryResult<TSource>)source.Provider.Execute(source.Expression);
+
+            if (source == null)
+                throw new ArgumentNullException("source");
+            var methodCallExpression =
+                Expression.Call(null,
+                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof(TSource) }),
+                    new[] { source.Expression });
+            return source.Provider.Execute<QueryResult<TSource>>(methodCallExpression);
         }
 
         public static QueryResult<TSource> ToQueryResult<TSource>(this IEnumerable<TSource> source)
