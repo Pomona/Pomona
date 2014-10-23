@@ -1,3 +1,5 @@
+![Pōmōna](https://raw.githubusercontent.com/okb/Pomona/gh-pages/images/pomona-icon-512.png)
+
 # Pōmōna. The DTO-free way to REST for lazy people!
 
 Pōmōna is all about exposing your domain model as a REST API. With less pain.
