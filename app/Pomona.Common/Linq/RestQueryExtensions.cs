@@ -97,6 +97,14 @@ namespace Pomona.Common.Linq
         }
 
 
+        public static IEnumerable<TSource> IncludeTotalCount<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return source;
+        }
+
+
         public static IQueryable<TSource> WithOptions<TSource>(this IQueryable<TSource> source, Action<IRequestOptions> optionsModifier)
         {
             if (source == null)
@@ -135,6 +143,10 @@ namespace Pomona.Common.Linq
             return (QueryResult<TSource>)source.Provider.Execute(source.Expression);
         }
 
+        public static QueryResult<TSource> ToQueryResult<TSource>(this IEnumerable<TSource> source)
+        {
+            return new QueryResult<TSource>(source,0,source.Count(),null);
+        }
 
         public static Uri ToUri<TSource>(this IQueryable<TSource> source)
         {
