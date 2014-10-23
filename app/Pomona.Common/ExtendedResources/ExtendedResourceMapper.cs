@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 using Pomona.Common.Internals;
@@ -72,7 +73,7 @@ namespace Pomona.Common.ExtendedResources
 
         public object WrapResource(object serverResource, Type serverType, Type extendedType)
         {
-            return MapToCustomUserTypeResult(serverResource, serverType, extendedType);
+            return MapResult(serverResource, serverType, extendedType);
         }
 
 
@@ -92,11 +93,14 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        private object MapToCustomUserTypeResult(
+        private object MapResult(
             object result,
             Type serverType,
             Type extendedType)
         {
+            if (serverType == extendedType)
+                return result;
+
             ExtendedResourceInfo extendedTypeInfo;
             if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType,
                 this.clientTypeResolver,
@@ -108,36 +112,72 @@ namespace Pomona.Common.ExtendedResources
                     ? CreateClientSideResourceProxy(extendedTypeInfo, result)
                     : null;
             }
+
             Type extendedElementType;
-            if (extendedType.TryGetEnumerableElementType(out extendedElementType)
-                && ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedElementType,
-                    this.clientTypeResolver,
-                    out extendedTypeInfo))
+            Type serverElementType;
+            var isEnumerable = extendedType.TryGetEnumerableElementType(out extendedElementType) & serverType.TryGetEnumerableElementType(out serverElementType);
+            if (extendedType.IsAnonymous())
             {
-                Type serverElementType;
-                if (!serverType.TryGetEnumerableElementType(out serverElementType)
-                    || extendedTypeInfo.ServerType != serverElementType)
+                return MapAnonymousResult(result, serverType, extendedType);
+            }
+
+            if (isEnumerable)
+            {
+                return MapCollectionResult(((IEnumerable)result).Cast<object>(), serverElementType, extendedElementType);
+            }
+            return result;
+        }
+
+
+        private object MapAnonymousResult(object result, Type serverType, Type extendedType)
+        {
+            var serverProps = serverType.GetProperties();
+            var extCtor = extendedType.GetConstructors().First(x => x.GetParameters().Length == serverProps.Length);
+            var args =
+                (from serverProp in serverProps
+                join extProp in extendedType.GetProperties() on serverProp.Name equals extProp.Name
+                join extCtorParam in extCtor.GetParameters() on extProp.Name equals extCtorParam.Name
+                orderby extCtorParam.Position
+                select MapResult(serverProp.GetValue(result, null), serverProp.PropertyType, extProp.PropertyType)).ToArray();
+            return extCtor.Invoke(args);
+        }
+
+
+        private object MapCollectionResult(IEnumerable<object> result, Type serverElementType, Type extendedElementType)
+        {
+
+            ExtendedResourceInfo extendedTypeInfo;
+            IEnumerable<object> wrappedResults;
+
+            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedElementType,
+                                                                this.clientTypeResolver,
+                                                                out extendedTypeInfo))
+
+            {
+                if (extendedTypeInfo.ServerType != serverElementType)
                 {
                     throw new InvalidOperationException(
                         "Unable to map list of extended type to correct list of server type.");
                 }
-                var wrappedResults =
-                    ((IEnumerable)result).Cast<object>()
-                        .Select(
-                            x => CreateClientSideResourceProxy(extendedTypeInfo, x));
-                // Map back to customClientType
-                if (result is QueryResult)
-                {
-                    var resultAsQueryResult = (QueryResult)result;
-                    return QueryResult.Create(wrappedResults,
-                        resultAsQueryResult.Skip,
-                        resultAsQueryResult.TotalCount,
-                        resultAsQueryResult.Url,
-                        extendedElementType);
-                }
-                return wrappedResults.Cast(extendedElementType).ToListDetectType();
+                wrappedResults = result.Select(
+                        x => CreateClientSideResourceProxy(extendedTypeInfo, x));
             }
-            return result;
+            else
+            {
+                wrappedResults = result.Select(x => MapResult(x, serverElementType, extendedElementType));
+            }
+
+            // Map back to customClientType
+            if (result is QueryResult)
+            {
+                var resultAsQueryResult = (QueryResult)result;
+                return QueryResult.Create(wrappedResults,
+                                          resultAsQueryResult.Skip,
+                                          resultAsQueryResult.TotalCount,
+                                          resultAsQueryResult.Url,
+                                          extendedElementType);
+            }
+            return wrappedResults.Cast(extendedElementType).ToListDetectType();
         }
     }
 }

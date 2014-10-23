@@ -31,8 +31,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using ICSharpCode.NRefactory.CSharp;
+
 using NUnit.Framework;
 
+using Pomona.Common.Internals;
 using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests
@@ -42,11 +45,9 @@ namespace Pomona.UnitTests
     {
         private static void NoSourceCodeContains(string shouldNotCountainString)
         {
-            var path = Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>());
+            var path = SolutionDirectory;
 
-            Console.WriteLine("Searching path " + path);
-
-            var sourceCodeFiles = Directory.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories);
+            var sourceCodeFiles = FindCSharpSourceFiles(path);
 
             var foundFilesWithNoCommitMessage = false;
 
@@ -62,7 +63,7 @@ namespace Pomona.UnitTests
                     var line = lines[i];
                     var lineNumber = i + 1;
                     var index = line.IndexOf(String.Concat(' ', shouldNotCountainString),
-                        StringComparison.InvariantCulture);
+                                             StringComparison.InvariantCulture);
                     if (index == -1)
                         continue;
 
@@ -87,6 +88,51 @@ namespace Pomona.UnitTests
             }
 
             Assert.That(foundFilesWithNoCommitMessage, Is.False, "Found files with '{0}'.", shouldNotCountainString);
+        }
+
+
+        private static string SolutionDirectory
+        {
+            get { return Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>()); }
+        }
+
+
+        private static IEnumerable<string> FindCSharpSourceFiles(string path = null)
+        {
+            path = path ?? SolutionDirectory;
+            Console.WriteLine("Searching path " + path);
+
+            var sourceCodeFiles = Directory.EnumerateFiles(path,
+                                                           "*.cs",
+                                                           SearchOption.AllDirectories)
+                .Where(x => !Path.GetDirectoryName(x).Contains("\\obj\\"));
+            return sourceCodeFiles;
+        }
+
+
+        [Ignore]
+        [Test]
+        public void AllClassesAreContainedInFilesWithCorrectName()
+        {
+            var p = new CSharpParser();
+            var errorCount = 0;
+
+            foreach (var csFile in FindCSharpSourceFiles().Select(x => p.Parse(File.ReadAllText(x), x)))
+            {
+                var topLevelTypes =
+                    csFile.Children.Flatten(x => x is TypeDeclaration ? Enumerable.Empty<AstNode>() : x.Children)
+                        .OfType<TypeDeclaration>()
+                        .Where(x => x.Name != Path.GetFileNameWithoutExtension(csFile.FileName))
+                        .Select(x => new { x.Name, csFile.FileName })
+                        .ToList();
+
+                foreach (var td in topLevelTypes)
+                    Console.WriteLine("Type " + td.Name + " does not match filename " + td.FileName);
+
+                errorCount += topLevelTypes.Count;
+            }
+
+            Assert.That(errorCount, Is.EqualTo(0));
         }
 
 

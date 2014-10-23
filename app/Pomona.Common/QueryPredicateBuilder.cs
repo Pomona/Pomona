@@ -211,9 +211,13 @@ namespace Pomona.Common
             var valueType = node.Type;
             var value = node.Value;
             var encodedConstant = GetEncodedConstant(valueType, value);
-            if (encodedConstant == null)
-                return NotSupported(node, "Constant of this type not supported.");
-            return Terminal(node, encodedConstant, true);
+            
+            if (encodedConstant != null)
+            {
+                return Terminal(node, encodedConstant, true);
+            }
+
+            return NotSupported(node, "Constant of this type not supported.");
         }
 
 
@@ -347,7 +351,20 @@ namespace Pomona.Common
 
         protected override Expression VisitNewArray(NewArrayExpression node)
         {
-            var elements = node.Expressions.Select(Visit).Cast<object>().ToArray();
+            IEnumerable<Expression> arrayElements = node.Expressions;
+
+            if (node.Type == typeof(object[]))
+            {
+                // Remove redundant boxing converts
+                arrayElements =
+                    arrayElements.Select(
+                        x =>
+                            x.NodeType == ExpressionType.Convert && x.Type == typeof(object)
+                                ? ((UnaryExpression)x).Operand
+                                : x);
+            }
+
+            var elements = arrayElements.Select(Visit).Cast<object>().ToArray();
             var format = "["
                          + string.Join(",", Enumerable.Range(0, elements.Length).Select(x => string.Concat("{", x, "}")))
                          + "]";
@@ -451,7 +468,6 @@ namespace Pomona.Common
         {
             return new QuerySegmentListExpression(args, origNode.Type);
         }
-
 
         internal static QuerySegmentListExpression Nodes(Expression origNode, IEnumerable<object> args)
         {
@@ -633,6 +649,10 @@ namespace Pomona.Common
         {
             if (value == null)
                 return "null";
+            var underlyingType = Nullable.GetUnderlyingType(valueType);
+            if (underlyingType != null)
+                return GetEncodedConstant(underlyingType, value);
+
             Type enumerableElementType;
             if (valueType != typeof(string) && valueType.TryGetEnumerableElementType(out enumerableElementType))
             {

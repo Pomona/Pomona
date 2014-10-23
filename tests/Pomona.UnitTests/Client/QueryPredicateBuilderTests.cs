@@ -33,6 +33,7 @@ using System.Linq.Expressions;
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 
 namespace Pomona.UnitTests.Client
 {
@@ -48,7 +49,7 @@ namespace Pomona.UnitTests.Client
         private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
         {
             var queryString = BuildQueryString(predicate);
-            Console.WriteLine("Transformed \"" + predicate + "\" TO \"" + queryString + "\"");
+            Console.WriteLine("Transformed \"" + new EvaluateClosureMemberVisitor().Visit(predicate) + "\" TO \"" + queryString + "\"");
             Assert.That(queryString, Is.EqualTo(expected));
         }
 
@@ -146,6 +147,12 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => array.Contains(x.Id), "id in [3,2,4]");
         }
 
+        [Test]
+        public void BuildAttributeAsStringIn_ReturnsCorrectString()
+        {
+            var array = new int?[] { 3, 2, 4 };
+            AssertBuild(x => array.Contains(x.StringObjectAttributes.SafeGet("nana") as int?), "(stringObjectAttributes.nana as t'Int32?') in [3,2,4]");
+        }
 
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()

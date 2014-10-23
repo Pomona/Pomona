@@ -44,6 +44,19 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDecimals.average()", _this => _this.ListOfDecimals.Average());
         }
 
+        [Test]
+        public void ParseObjectAttributesMemberSafeGet_CreatesCorrectExpression()
+        {
+            ParseAndAssert("objectAttributes.jalla", _this => _this.ObjectAttributes.SafeGet("jalla"));
+        }
+
+        [Test]
+        public void ParseObjectAttributesIn_CreatesCorrectExpression()
+        {
+            object[] objects = new object[] { 12, 43, 66 };
+            ParseAndAssert("objectAttributes.jalla in [12,43,66]", _this => objects.Contains( _this.ObjectAttributes.SafeGet("jalla")));
+        }
+
 
         [Test]
         public void ParseAverageOfDecimalsWithSelector_ReturnsCorrectExpression()

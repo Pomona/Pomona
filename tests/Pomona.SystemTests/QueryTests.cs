@@ -422,6 +422,15 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void Query_SelectObjectArray_IsSuccessful()
+        {
+            var results = Client.Critters.Query().Select(x => new object[] { x.Id, x.Guid, x.Hat }).ToList();
+            var comparableResults = results.Select(x => new { Id = (int)x[0], Guid = (Guid)x[1], HatId = ((IHat)x[2]).Id }).ToList();
+            var expected = CritterEntities.Select(x => new { x.Id, x.Guid, HatId = x.Hat.Id });
+            CollectionAssert.AreEqual(expected, comparableResults);
+        }
+
+        [Test]
         public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
         {
             var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();

@@ -26,6 +26,8 @@
 
 #endregion
 
+using System;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -43,7 +45,7 @@ namespace Pomona.Common.Serialization
         TypeSpec ValueType { get; }
         void SetProperty(PropertySpec property, object propertyValue);
         void SetValueType(string typeName);
-        void SetValueType(TypeSpec type);
+        void SetValueType(Type type);
         void CheckAccessRights(HttpMethod method);
     }
 }

@@ -186,7 +186,7 @@ namespace Pomona.Queries
             if (arrayElements.Count == 0 && expectedElementType == null)
                 throw new NotSupportedException("Does not support empty arrays.");
 
-            var elementType = arrayElements[0].Type;
+            var elementType = expectedElementType ?? typeof(object);
 
             // TODO: Check that all array members are of same type
 
@@ -199,6 +199,13 @@ namespace Pomona.Queries
                     array.SetValue(elementValue, index++);
                 }
                 return Expression.Constant(array);
+            }
+            
+            // Box value elements
+            if (elementType == typeof(object))
+            {
+                arrayElements =
+                    arrayElements.Select(x => x.Type.IsValueType ? Expression.Convert(x, elementType) : x).ToList();
             }
 
             return Expression.NewArrayInit(elementType, arrayElements);

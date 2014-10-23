@@ -39,12 +39,12 @@ namespace Pomona.Common
     {
         private readonly QueryPredicateBuilder builder;
 
-        private readonly List<KeyValuePair<TupleItemPlaceholderExpression, PomonaExtendedExpression>> serverSelectParts
+        private readonly List<KeyValuePair<ArrayItemPlaceholderExpression, PomonaExtendedExpression>> serverSelectParts
             =
-            new List<KeyValuePair<TupleItemPlaceholderExpression, PomonaExtendedExpression>>();
+            new List<KeyValuePair<ArrayItemPlaceholderExpression, PomonaExtendedExpression>>();
 
-        private readonly Dictionary<string, TupleItemPlaceholderExpression> serverSelectReuseLookup =
-            new Dictionary<string, TupleItemPlaceholderExpression>();
+        private readonly Dictionary<string, ArrayItemPlaceholderExpression> serverSelectReuseLookup =
+            new Dictionary<string, ArrayItemPlaceholderExpression>();
 
         private LambdaExpression rootLambda;
 
@@ -86,19 +86,20 @@ namespace Pomona.Common
             {
                 var visited = (LambdaExpression)Visit(node);
 
-                var tupleType =
-                    Type.GetType("System.Tuple`" + this.serverSelectParts.Count, true)
-                        .MakeGenericType(this.serverSelectParts.Select(x => x.Key.Type).ToArray());
-
                 var serverExpr =
                     new QuerySelectBuilder().Visit(
-                        Expression.Lambda(Expression.New(tupleType.GetConstructors().Single(),
-                            this.serverSelectParts.Select(x => x.Value)),
-                            node.Parameters));
+                        Expression.Lambda(Expression.NewArrayInit(typeof(object),
+                                                                  this.serverSelectParts.Select(
+                                                                      x =>
+                                                                          x.Value.Type.IsValueType
+                                                                              ? (Expression)
+                                                                          Expression.Convert(x.Value, typeof(object))
+                                                                              : x.Value)),
+                                          node.Parameters));
 
-                var clientExprParam = Expression.Parameter(tupleType, "_this");
+                var clientExprParam = Expression.Parameter(typeof(object[]), "_this");
                 var clientExprBody =
-                    new ReplaceWithTuplePropertyVisitor(this, clientExprParam, tupleType).Visit(visited.Body);
+                    new ReplaceWithArrayAccessFromServerResultVisitor(clientExprParam).Visit(visited.Body);
                 var clientExpr = Expression.Lambda(clientExprBody, clientExprParam);
 
                 return new ClientServerSplitSelectExpression((PomonaExtendedExpression)serverExpr, clientExpr);
@@ -132,70 +133,37 @@ namespace Pomona.Common
             if (!pomonaExtendedExpression.SupportedOnServer || pomonaExtendedExpression.LocalExecutionPreferred)
                 return base.Visit(node);
 
-            TupleItemPlaceholderExpression p;
+            ArrayItemPlaceholderExpression p;
             var exprSegment = pomonaExtendedExpression.ToString();
             if (!this.serverSelectReuseLookup.TryGetValue(exprSegment, out p))
             {
-                p = new TupleItemPlaceholderExpression(node.Type, this.serverSelectParts.Count + 1);
-                this.serverSelectParts.Add(new KeyValuePair<TupleItemPlaceholderExpression, PomonaExtendedExpression>(p,
-                    pomonaExtendedExpression));
+                p = new ArrayItemPlaceholderExpression(node.Type, this.serverSelectParts.Count);
+                this.serverSelectParts.Add(new KeyValuePair<ArrayItemPlaceholderExpression, PomonaExtendedExpression>(p,
+                                                                                                                      pomonaExtendedExpression));
                 this.serverSelectReuseLookup[exprSegment] = p;
             }
 
             return p;
         }
 
-        #region Nested type: ReplaceWithTuplePropertyVisitor
+        #region Nested type: ArrayItemPlaceholderExpression
 
-        private class ReplaceWithTuplePropertyVisitor : ExpressionVisitor
+        private class ArrayItemPlaceholderExpression : Expression
         {
-            private readonly SelectClientServerPartitionerVisitor owner;
-            private readonly ParameterExpression tupleParameter;
-            private readonly Type tupleType;
-
-
-            public ReplaceWithTuplePropertyVisitor(SelectClientServerPartitionerVisitor owner,
-                ParameterExpression tupleParameter,
-                Type tupleType)
-            {
-                this.owner = owner;
-                this.tupleParameter = tupleParameter;
-                this.tupleType = tupleType;
-            }
-
-
-            protected override Expression VisitExtension(Expression node)
-            {
-                var nodeExt = node as TupleItemPlaceholderExpression;
-                if (node is TupleItemPlaceholderExpression)
-                {
-                    var prop = this.tupleType.GetProperty("Item" + nodeExt.ItemNumber);
-                    return Expression.Property(this.tupleParameter, prop);
-                }
-                return base.VisitExtension(node);
-            }
-        }
-
-        #endregion
-
-        #region Nested type: TupleItemPlaceholderExpression
-
-        private class TupleItemPlaceholderExpression : Expression
-        {
-            private readonly int itemNumber;
+            private readonly int index;
             private readonly Type type;
 
 
-            public TupleItemPlaceholderExpression(Type type, int itemNumber)
+            public ArrayItemPlaceholderExpression(Type type, int index)
             {
                 this.type = type;
-                this.itemNumber = itemNumber;
+                this.index = index;
             }
 
 
-            public int ItemNumber
+            public int Index
             {
-                get { return this.itemNumber; }
+                get { return this.index; }
             }
 
             public override ExpressionType NodeType
@@ -206,6 +174,36 @@ namespace Pomona.Common
             public override Type Type
             {
                 get { return this.type; }
+            }
+        }
+
+        #endregion
+
+        #region Nested type: ReplaceWithArrayAccessFromServerResultVisitor
+
+        private class ReplaceWithArrayAccessFromServerResultVisitor : ExpressionVisitor
+        {
+            private readonly ParameterExpression arrayParameter;
+
+
+            public ReplaceWithArrayAccessFromServerResultVisitor(
+                ParameterExpression arrayParameter)
+            {
+                this.arrayParameter = arrayParameter;
+            }
+
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                var nodeExt = node as ArrayItemPlaceholderExpression;
+                if (node is ArrayItemPlaceholderExpression)
+                {
+                    return
+                        Expression.Convert(
+                            Expression.ArrayIndex(this.arrayParameter, Expression.Constant(nodeExt.Index)),
+                            nodeExt.Type);
+                }
+                return base.VisitExtension(node);
             }
         }
 

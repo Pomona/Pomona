@@ -87,21 +87,41 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private static bool SetNodeValueType(IDeserializerNode node, JObject jobj)
+        private static bool SetNodeValueType(IDeserializerNode node, JToken jtoken)
         {
-            JToken explicitTypeSpec;
-            if (jobj.TryGetValue("_type", out explicitTypeSpec))
+            var jobj = jtoken as JObject;
+            if (jobj != null)
             {
-                if (explicitTypeSpec.Type != JTokenType.String)
+                JToken explicitTypeSpec;
+                if (jobj.TryGetValue("_type", out explicitTypeSpec))
                 {
-                    throw new PomonaSerializationException(
-                        "Found _type property on JSON object and expected this to be string, but got " +
-                        explicitTypeSpec.Type);
-                }
+                    if (explicitTypeSpec.Type != JTokenType.String)
+                    {
+                        throw new PomonaSerializationException(
+                            "Found _type property on JSON object and expected this to be string, but got " +
+                            explicitTypeSpec.Type);
+                    }
 
-                node.SetValueType(explicitTypeSpec.Value<string>());
-                return true;
+                    node.SetValueType(explicitTypeSpec.Value<string>());
+                    return true;
+                }
             }
+            var jval = jtoken as JValue;
+            if (jval != null)
+            {
+                switch (jval.Type)
+                {
+                    case JTokenType.String:
+                        node.SetValueType(typeof(string));
+                        return true;
+                    case JTokenType.Boolean:
+                        node.SetValueType(typeof(bool));
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
             return false;
         }
 
@@ -277,7 +297,16 @@ namespace Pomona.Common.Serialization.Json
             }
 
             if (node.Value == null)
-                node.Value = collection;
+            {
+                if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsArray)
+                {
+                    node.Value = collection.ToArray();
+                }
+                else
+                {
+                    node.Value = collection;
+                }
+            }
         }
 
 
@@ -386,7 +415,7 @@ namespace Pomona.Common.Serialization.Json
             }
 
             TypeSpec mappedType;
-            if (node.ExpectedBaseType != null)
+            if (node.ExpectedBaseType != null && node.ExpectedBaseType != typeof(object))
                 mappedType = node.ExpectedBaseType;
             else if (reader.Token.Type == JTokenType.String)
             {
@@ -395,7 +424,7 @@ namespace Pomona.Common.Serialization.Json
             }
             else
             {
-                if (!SetNodeValueType(node, reader.Token as JObject))
+                if (!SetNodeValueType(node, reader.Token))
                 {
                     throw new PomonaSerializationException(
                         "No expected type to deserialize to provided, and unable to get type from incoming JSON.");

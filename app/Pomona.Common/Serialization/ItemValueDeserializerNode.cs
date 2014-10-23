@@ -22,6 +22,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using System;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
@@ -95,7 +97,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public void SetValueType(TypeSpec type)
+        public void SetValueType(Type type)
         {
             valueType = context.GetClassMapping(type);
         }

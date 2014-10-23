@@ -40,19 +40,96 @@ namespace Pomona.Common.Linq
             new Dictionary<ParameterExpression, ParameterExpression>();
 
 
+        public virtual Type VisitType(Type typeToSearch)
+        {
+            if (typeToSearch.IsGenericType)
+            {
+                var genArgs = typeToSearch.GetGenericArguments();
+                var newGenArgs =
+                    genArgs.Select(VisitType).ToArray();
+
+                if (newGenArgs.SequenceEqual(genArgs))
+                    return typeToSearch;
+
+                return typeToSearch.GetGenericTypeDefinition().MakeGenericType(newGenArgs);
+            }
+
+            return typeToSearch;
+        }
+
+
+        protected virtual ConstructorInfo VisitConstructor(ConstructorInfo methodToSearch)
+        {
+            var newReflectedType = VisitType(methodToSearch.ReflectedType);
+            if (newReflectedType != methodToSearch.ReflectedType)
+            {
+                methodToSearch = newReflectedType.GetConstructor(
+                    (methodToSearch.IsStatic ? BindingFlags.Static : BindingFlags.Instance)
+                    | (methodToSearch.IsPublic
+                        ? BindingFlags.Public
+                        : BindingFlags.NonPublic),
+                    null,
+                    methodToSearch.GetParameters().Select(x => VisitType(x.ParameterType)).ToArray(),
+                    null);
+            }
+
+            return methodToSearch;
+        }
+
+
+        protected virtual FieldInfo VisitField(FieldInfo field)
+        {
+            var origType = field.DeclaringType;
+            var replacedType = VisitType(origType);
+            if (replacedType != origType)
+            {
+                return field.IsStatic
+                    ? replacedType.GetField(field.Name,
+                                            BindingFlags.Static | BindingFlags.NonPublic
+                                            | BindingFlags.Public)
+                    : replacedType.GetField(field.Name,
+                                            BindingFlags.Instance | BindingFlags.NonPublic
+                                            | BindingFlags.Public);
+            }
+            return field;
+        }
+
+
+        protected virtual MemberInfo VisitMemberInfo(MemberInfo member)
+        {
+            var methodBase = member as MethodBase;
+            if (methodBase != null)
+                return VisitMethodBase(methodBase);
+
+            var prop = member as PropertyInfo;
+            if (prop != null)
+                return VisitProperty(prop);
+            var field = member as FieldInfo;
+            if (field != null)
+                return VisitField(field);
+            var type = member as Type;
+            if (type != null)
+                return VisitType(type);
+            return member;
+        }
+
+
         protected virtual MethodInfo VisitMethod(MethodInfo methodToSearch)
         {
             var newReflectedType = VisitType(methodToSearch.ReflectedType);
             if (newReflectedType != methodToSearch.ReflectedType)
             {
                 methodToSearch = newReflectedType.GetMethod(methodToSearch.Name,
-                    (methodToSearch.IsStatic ? BindingFlags.Static : BindingFlags.Instance)
-                    | (methodToSearch.IsPublic
-                        ? BindingFlags.Public
-                        : BindingFlags.NonPublic),
-                    null,
-                    methodToSearch.GetParameters().Select(x => x.ParameterType).ToArray(),
-                    null);
+                                                            (methodToSearch.IsStatic
+                                                                ? BindingFlags.Static
+                                                                : BindingFlags.Instance)
+                                                            | (methodToSearch.IsPublic
+                                                                ? BindingFlags.Public
+                                                                : BindingFlags.NonPublic),
+                                                            null,
+                                                            methodToSearch.GetParameters().Select(
+                                                                x => VisitType(x.ParameterType)).ToArray(),
+                                                            null);
             }
 
             if (!methodToSearch.IsGenericMethod)
@@ -67,21 +144,33 @@ namespace Pomona.Common.Linq
         }
 
 
-        protected virtual Type VisitType(Type typeToSearch)
+        protected virtual MethodBase VisitMethodBase(MethodBase methodBase)
         {
-            if (typeToSearch.IsGenericType)
+            var methodInfo = methodBase as MethodInfo;
+            if (methodInfo != null)
+                return VisitMethod(methodInfo);
+            var ctorInfo = methodBase as ConstructorInfo;
+            if (ctorInfo != null)
+                return VisitConstructor(ctorInfo);
+            return methodBase;
+        }
+
+
+        protected virtual PropertyInfo VisitProperty(PropertyInfo prop)
+        {
+            var origType = prop.DeclaringType;
+            var replacedType = VisitType(origType);
+            if (replacedType != origType)
             {
-                var genArgs = typeToSearch.GetGenericArguments();
-                var newGenArgs =
-                    genArgs.Select(x => VisitType(typeToSearch)).ToArray();
-
-                if (newGenArgs.SequenceEqual(genArgs))
-                    return typeToSearch;
-
-                return typeToSearch.GetGenericTypeDefinition().MakeGenericType(newGenArgs);
+                return prop.IsStatic()
+                    ? replacedType.GetProperty(prop.Name,
+                                               BindingFlags.Static | BindingFlags.NonPublic
+                                               | BindingFlags.Public)
+                    : replacedType.GetProperty(prop.Name,
+                                               BindingFlags.Instance | BindingFlags.NonPublic
+                                               | BindingFlags.Public);
             }
-
-            return typeToSearch;
+            return prop;
         }
 
 
@@ -96,6 +185,18 @@ namespace Pomona.Common.Linq
                 return Expression.Call(replacementMethod, visitedArguments);
             }
             return base.VisitMethodCall(node);
+        }
+
+
+        protected override Expression VisitNew(NewExpression node)
+        {
+            var replacementCtor = VisitConstructor(node.Constructor);
+            if (replacementCtor != node.Constructor)
+            {
+                var visitedArguments = Visit(node.Arguments);
+                return Expression.New(replacementCtor, visitedArguments, node.Members.Select(VisitMemberInfo));
+            }
+            return base.VisitNew(node);
         }
 
 
