@@ -1,9 +1,8 @@
-#region License
-
+ï»¿#region License
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright Â© 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -23,16 +22,27 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
 #endregion
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Linq;
 
-[assembly : AssemblyCompany("Karsten N. Strand")]
-[assembly : AssemblyProduct("Pomona")]
-[assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2014")]
-[assembly : AssemblyVersion("0.9.3.1")]
-[assembly : AssemblyFileVersion("0.11.3.0")]
-[assembly : AssemblyInformationalVersion("0.11.3")]
-[assembly : ComVisible(false)]
+using NUnit.Framework;
+
+using Pomona.Common;
+using Pomona.Common.Linq;
+
+namespace Pomona.UnitTests.Linq
+{
+    [TestFixture]
+    public class RestQueryExtensionsTests
+    {
+        [Test]
+        public void ToQueryResult_OnEnumerableAsQueryable_IsSuccessful()
+        {
+            var results = new int[] { 1, 2, 3, 4 }.AsQueryable().ToQueryResult();
+            Assert.That(results, Is.Not.Null);
+            Assert.That(results, Has.Count.EqualTo(4));
+            Assert.That(results, Is.TypeOf<QueryResult<int>>());
+        }
+    }
+}
