@@ -115,7 +115,7 @@ namespace Pomona
             {
                 // Wrap in html
                 var response = new Response();
-                var htmlLinks = GetHtmlLinks();
+                var htmlLinks = GetHtmlLinks(context);
 
                 HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(response,
                                                                     htmlLinks,
@@ -170,7 +170,7 @@ namespace Pomona
         }
 
 
-        private string GetHtmlLinks()
+        private string GetHtmlLinks(NancyContext context)
         {
             var routeCache = this.routeCacheProvider.GetCache();
             if (routeCache == null)
@@ -178,20 +178,18 @@ namespace Pomona
 
             StringBuilder linkBuilder = new StringBuilder();
 
-            var routes = routeCache
+            var routesWithMetadata = routeCache
                 .Select(r => r.Value)
-                .SelectMany(r => r.Select(t => t.Item2));
+                .SelectMany(r => r.Select(t => t.Item2))
+                .Where(r => r.Metadata != null && r.Metadata.Has<PomonaRouteMetadata>());
 
-            foreach (var route in routes)
+            foreach (var route in routesWithMetadata)
             {
-                if (!route.Metadata.Has<PomonaRouteMetadata>())
-                    continue;
-
                 var metadata = route.Metadata.Retrieve<PomonaRouteMetadata>();
                 var rel = String.Concat("http://pomona.io/rel/", metadata.Relation);
                 var contentType = metadata.ContentType;
                 var methods = metadata.Method.ToString().ToUpperInvariant();
-                var href = route.Path;
+                var href = context.Request.Url.BasePath + route.Path;
 
                 linkBuilder.AppendFormat("<link rel=\"{0}\" type=\"{1}\" methods=\"{2}\" href=\"{3}\">{4}",
                                          rel,
