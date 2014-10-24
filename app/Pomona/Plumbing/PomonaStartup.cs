@@ -29,8 +29,6 @@
 using Nancy.Bootstrapper;
 using Nancy.Routing;
 
-using Pomona.Common.Serialization;
-
 namespace Pomona.Plumbing
 {
     public class PomonaStartup : IApplicationStartup

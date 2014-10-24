@@ -31,11 +31,17 @@ using Nancy.TinyIoc;
 
 namespace Pomona.Example
 {
-    public class CritterBootstrapper : PomonaTinyIoCBootstrapper
+    public class CritterBootstrapper : DefaultNancyBootstrapper
     {
         private readonly CritterRepository repository;
 
         private readonly TypeMapper typeMapper;
+
+
+        public CritterBootstrapper()
+            : this(null)
+        {
+        }
 
 
         public CritterBootstrapper(CritterRepository repository = null)

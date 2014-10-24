@@ -161,6 +161,7 @@
     <Compile Include="NoCloseStreamWriter.cs" />
     <Compile Include="PathNode.cs" />
     <Compile Include="PathNodeType.cs" />
+    <Compile Include="Plumbing\PomonaRegistrations.cs" />
     <Compile Include="Plumbing\PomonaStartup.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
@@ -174,7 +175,6 @@
     <Compile Include="PomonaResponse.cs" />
     <Compile Include="PomonaJsonResponseProcessor.cs" />
     <Compile Include="PomonaResponseProcessorBase.cs" />
-    <Compile Include="PomonaTinyIoCBootstrapper.cs" />
     <Compile Include="Queries\DataSourceQueryableResolver.cs" />
     <Compile Include="Queries\DefaultQueryableResolver.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />

@@ -26,28 +26,34 @@
 
 #endregion
 
-using Nancy;
+using System.Collections.Generic;
+using System.Linq;
+
+using Nancy.Bootstrapper;
 using Nancy.Routing;
-using Nancy.TinyIoc;
 
 using Pomona.Routing;
 
-namespace Pomona
+namespace Pomona.Plumbing
 {
-    /// <summary>
-    /// Pomona bootstrapper for <see cref="TinyIoCContainer"/>.
-    /// </summary>
-    public class PomonaTinyIoCBootstrapper : DefaultNancyBootstrapper
+    public class PomonaRegistrations : IRegistrations
     {
-        /// <summary>
-        /// Configures the container using AutoRegister followed by registration
-        /// of default INancyModuleCatalog and IRouteResolver.
-        /// </summary>
-        /// <param name="container">Container instance</param>
-        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        public IEnumerable<CollectionTypeRegistration> CollectionTypeRegistrations
         {
-            base.ConfigureApplicationContainer(container);
-            container.Register<IRouteMetadataProvider>(new PomonaRouteMetadataProvider());
+            get { return Enumerable.Empty<CollectionTypeRegistration>(); }
+        }
+
+        public IEnumerable<InstanceRegistration> InstanceRegistrations
+        {
+            get
+            {
+                yield return new InstanceRegistration(typeof(IRouteMetadataProvider), new PomonaRouteMetadataProvider());
+            }
+        }
+
+        public IEnumerable<TypeRegistration> TypeRegistrations
+        {
+            get { return Enumerable.Empty<TypeRegistration>(); }
         }
     }
 }
