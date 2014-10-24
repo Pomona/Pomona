@@ -58,8 +58,7 @@ namespace Pomona
 
             this.filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
-            if (fluentRuleObjects.Length > 0)
-                this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects, null, configuration.SourceTypes);
+            this.filter = new FluentTypeMappingFilter(filter, fluentRuleObjects, null, configuration.SourceTypes);
 
             if (this.filter == null)
                 throw new ArgumentNullException("filter");
