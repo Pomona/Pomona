@@ -38,7 +38,7 @@ namespace Pomona.Routing
     /// <summary>
     /// The default route metadata provider for Pomona.
     /// </summary>
-    public class PomonaRouteMetadataProvider : IRouteMetadataProvider
+    internal class PomonaRouteMetadataProvider : IRouteMetadataProvider
     {
         public const string ClientAssembly = Prefix + "ClientAssembly";
         public const string ClientNugetPackage = Prefix + "ClientNugetPackage";

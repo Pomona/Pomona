@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -40,15 +41,17 @@ namespace Pomona.Plumbing
     {
         public IEnumerable<CollectionTypeRegistration> CollectionTypeRegistrations
         {
-            get { return Enumerable.Empty<CollectionTypeRegistration>(); }
+            get
+            {
+                yield return
+                    new CollectionTypeRegistration(typeof(IRouteMetadataProvider),
+                                                   new Type[] { typeof(PomonaRouteMetadataProvider) });
+            }
         }
 
         public IEnumerable<InstanceRegistration> InstanceRegistrations
         {
-            get
-            {
-                yield return new InstanceRegistration(typeof(IRouteMetadataProvider), new PomonaRouteMetadataProvider());
-            }
+            get { yield break; }
         }
 
         public IEnumerable<TypeRegistration> TypeRegistrations
