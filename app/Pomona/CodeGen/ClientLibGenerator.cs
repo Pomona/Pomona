@@ -1095,7 +1095,21 @@ namespace Pomona.CodeGen
         {
             if (methodReference is MethodDefinition && methodReference.Module == this.module)
                 return methodReference;
-            return this.module.Import(methodReference);
+
+            var importedMethodReference = this.module.Import(methodReference);
+
+            // NOTE: Workaround to preserve the parameter names since Cecil's MetadataImporter.ImportMethod strips them away. @asbjornu
+            //       See <https://github.com/jbevain/cecil/pull/184>.
+            importedMethodReference
+                .Parameters
+                .Zip(methodReference.Parameters, (importedParameter, sourceParameter) =>
+                {
+                    importedParameter.Attributes = sourceParameter.Attributes;
+                    return importedParameter.Name = sourceParameter.Name;
+                })
+                .ToArray();
+
+            return importedMethodReference;
         }
 
 

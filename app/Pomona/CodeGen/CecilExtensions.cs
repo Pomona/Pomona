@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 
@@ -29,19 +33,25 @@ namespace Pomona.CodeGen
 {
     public static class CecilExtensions
     {
-        internal static MethodReference MakeHostInstanceGeneric(
-            this MethodReference self, params TypeReference[] arguments)
+        internal static MethodReference MakeHostInstanceGeneric(this MethodReference self,
+                                                                params TypeReference[] arguments)
         {
-            var reference = new MethodReference(
-                self.Name, self.ReturnType, self.DeclaringType.MakeGenericInstanceType(arguments))
-                {
-                    HasThis = self.HasThis,
-                    ExplicitThis = self.ExplicitThis,
-                    CallingConvention = self.CallingConvention
-                };
+            var genericInstanceType = self.DeclaringType.MakeGenericInstanceType(arguments);
+            var reference = new MethodReference(self.Name, self.ReturnType, genericInstanceType)
+            {
+                HasThis = self.HasThis,
+                ExplicitThis = self.ExplicitThis,
+                CallingConvention = self.CallingConvention
+            };
 
             foreach (var parameter in self.Parameters)
-                reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
+            {
+                // TODO: This won't work with methods that has generic arguments, since the ParameterType needs to be replaced. @asbjornu
+                var parameterDefinition = new ParameterDefinition(parameter.Name,
+                                                                  parameter.Attributes,
+                                                                  parameter.ParameterType);
+                reference.Parameters.Add(parameterDefinition);
+            }
 
             foreach (var genericParameter in self.GenericParameters)
                 reference.GenericParameters.Add(new GenericParameter(genericParameter.Name, reference));
