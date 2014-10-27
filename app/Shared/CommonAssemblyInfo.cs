@@ -33,6 +33,6 @@ using System.Runtime.InteropServices;
 [assembly : AssemblyProduct("Pomona")]
 [assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2014")]
 [assembly : AssemblyVersion("0.9.3.1")]
-[assembly : AssemblyFileVersion("0.11.4.0")]
-[assembly : AssemblyInformationalVersion("0.11.4")]
+[assembly : AssemblyFileVersion("0.11.5.0")]
+[assembly : AssemblyInformationalVersion("0.11.5")]
 [assembly : ComVisible(false)]
