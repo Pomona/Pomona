@@ -30,6 +30,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Pomona.Common.Linq;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Internals
 {
@@ -312,19 +313,59 @@ namespace Pomona.Common.Internals
             return sb.ToString();
         }
 
+        public static bool TryExtractProperty(this Expression expression, out PropertyInfo property)
+        {
+            while (expression.NodeType == ExpressionType.Convert || expression.NodeType == ExpressionType.Quote)
+            {
+                expression = ((UnaryExpression)expression).Operand;
+            }
+            if (expression.NodeType == ExpressionType.Lambda)
+            {
+                return TryExtractProperty(((LambdaExpression)expression).Body, out property);
+            }
+            property = null;
+            return (expression.NodeType == ExpressionType.MemberAccess
+                    && ((property) = ((MemberExpression)expression).Member as PropertyInfo) != null);
+        }
+
+
         public static PropertyInfo ExtractPropertyInfo(this Expression expr)
         {
-            if (expr.NodeType == ExpressionType.Lambda)
-                expr = ((LambdaExpression) expr).Body;
-
-            while (expr.NodeType == ExpressionType.Convert)
-                expr = ((UnaryExpression) expr).Operand;
-
-            var memberExpr = expr as MemberExpression;
-            if (memberExpr == null || memberExpr.Member.MemberType != MemberTypes.Property)
+            PropertyInfo property;
+            if (!expr.TryExtractProperty(out property))
                 throw new ArgumentException("Requires a expression that has a property member access");
 
-            return (PropertyInfo) memberExpr.Member;
+            return property;
         }
+
+        public static Expression MergePredicateWith(this Expression left, Expression right)
+        {
+            if (left.NodeType == ExpressionType.Quote && right.NodeType == ExpressionType.Quote)
+            {
+                return
+                    Expression.Quote(MergePredicateWith(((UnaryExpression)left).Operand,
+                        ((UnaryExpression)right).Operand));
+            }
+            if (left.NodeType == ExpressionType.Lambda && right.NodeType == ExpressionType.Lambda)
+                return MergePredicateWith((LambdaExpression)left, (LambdaExpression)right);
+            throw new NotImplementedException();
+        }
+
+
+        public static LambdaExpression MergePredicateWith(this LambdaExpression left, LambdaExpression right)
+        {
+            var param = Expression.Parameter(left.Parameters[0].Type, left.Parameters[0].Name);
+            var leftBody = left.Body.Replace(left.Parameters[0], param);
+            var rightBody = right.Body.Replace(right.Parameters[0], param);
+            return Expression.Lambda(Expression.AndAlso(leftBody, rightBody), param);
+        }
+
+
+        public static Expression Replace(this Expression expr, Expression find, Expression replace)
+        {
+            return new FindAndReplaceVisitor(find, replace).Visit(expr);
+        }
+
+
     }
 }

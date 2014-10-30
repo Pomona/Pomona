@@ -103,6 +103,7 @@
     <Compile Include="CodeGen\StringExtensionTests.cs" />
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
+    <Compile Include="Expressions\RecursiveRewriteVisitorTests.cs" />
     <Compile Include="ExpressionTreeMatcherTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTestsBase.cs" />
     <Compile Include="FluentMapping\FluentPropertyConfiguratorTests.cs" />
@@ -112,6 +113,10 @@
     <Compile Include="Ioc\IDummyContract.cs" />
     <Compile Include="Ioc\IocTestsBase.cs" />
     <Compile Include="Ioc\TinyIocTests.cs" />
+    <Compile Include="Linq\Queries\QueryExpressionTests.cs" />
+    <Compile Include="Linq\Queries\Rewriters\MergeWhereRewriterTests.cs" />
+    <Compile Include="Linq\Queries\Rewriters\MoveOfTypeTowardsSourceRewriterTests.cs" />
+    <Compile Include="Linq\Queries\Rewriters\RewriterTestBase.cs" />
     <Compile Include="Linq\RestQueryExtensionsTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="Patch\DeltaTests.cs" />
