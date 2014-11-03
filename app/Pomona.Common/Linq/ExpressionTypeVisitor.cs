@@ -194,7 +194,7 @@ namespace Pomona.Common.Linq
             if (replacementCtor != node.Constructor)
             {
                 var visitedArguments = Visit(node.Arguments);
-                return Expression.New(replacementCtor, visitedArguments, node.Members.Select(VisitMemberInfo));
+                return Expression.New(replacementCtor, visitedArguments, node.Members != null ? node.Members.Select(VisitMemberInfo) : null);
             }
             return base.VisitNew(node);
         }
