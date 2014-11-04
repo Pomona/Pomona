@@ -38,7 +38,6 @@ using Pomona.Common;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Example.Models;
-using Pomona.Common.Internals;
 
 namespace Pomona.SystemTests
 {
@@ -101,7 +100,10 @@ namespace Pomona.SystemTests
         public void QueryCritter_NameEqualsStringWithEncodedSingleQuote_ReturnsCorrectCritters()
         {
             var name = "bah'bah''" + Guid.NewGuid();
-            Client.Critters.Post(x => { x.Name = name; });
+            Client.Critters.Post(x =>
+            {
+                x.Name = name;
+            });
             var results = TestQuery<ICritter, Critter>(
                 x => x.Name == name,
                 x => x.Name == name);
@@ -113,7 +115,10 @@ namespace Pomona.SystemTests
         public void QueryCritter_NameEqualsStringWithNonAsciiCharacter_ReturnsCorrectCritters()
         {
             var name = "MøllÆÅØΔδ" + Guid.NewGuid();
-            Client.Critters.Post(x => { x.Name = name; });
+            Client.Critters.Post(x =>
+            {
+                x.Name = name;
+            });
             var results = TestQuery<ICritter, Critter>(x => x.Name == name, x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
         }
