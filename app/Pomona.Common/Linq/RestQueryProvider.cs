@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 using Newtonsoft.Json.Linq;
 
@@ -40,25 +39,40 @@ using Pomona.Common.Web;
 
 namespace Pomona.Common.Linq
 {
+    using ExecuteWithClientSelectPartDelegate =
+        Func<Type, Type, RestQueryProvider, string, RestQueryableTreeParser.QueryProjection, LambdaExpression,
+            RequestOptions, object>;
+    using ExecuteGenericMethodDelegate = Func<Type, RestQueryProvider, RestQueryableTreeParser, object>;
+
     public class RestQueryProvider : QueryProviderBase
     {
-        private static readonly Func<Type, RestQueryProvider, RestQueryableTreeParser, object> executeGenericMethod =
-            GenericInvoker.Instance<RestQueryProvider>().CreateFunc1<RestQueryableTreeParser, object>(
-                    x => x.Execute<object>(null));
-
-        private static readonly Func<Type, Type, RestQueryProvider, string, RestQueryableTreeParser.QueryProjection, LambdaExpression, RequestOptions, object>
-            executeWithClientSelectPart =
-                GenericInvoker.Instance<RestQueryProvider>()
-                    .CreateFunc2<string, RestQueryableTreeParser.QueryProjection, LambdaExpression, RequestOptions, object>(
-                        x => x.ExecuteWithClientSelectPart<int, bool>(null, default(RestQueryableTreeParser.QueryProjection), null, null));
+        private static readonly ExecuteGenericMethodDelegate executeGenericMethod;
+        private static readonly ExecuteWithClientSelectPartDelegate executeWithClientSelectPart;
 
         private readonly IPomonaClient client;
+
+
+        static RestQueryProvider()
+        {
+            executeGenericMethod = GenericInvoker
+                .Instance<RestQueryProvider>()
+                .CreateFunc1<RestQueryableTreeParser, object>(x => x.Execute<object>(null));
+
+            executeWithClientSelectPart = GenericInvoker
+                .Instance<RestQueryProvider>()
+                .CreateFunc2<string, RestQueryableTreeParser.QueryProjection, LambdaExpression, RequestOptions, object>(
+                    x => x.ExecuteWithClientSelectPart<int, bool>(null,
+                                                                  default(RestQueryableTreeParser.QueryProjection),
+                                                                  null,
+                                                                  null));
+        }
 
 
         internal RestQueryProvider(IPomonaClient client)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
+
             this.client = client;
         }
 
@@ -80,7 +94,7 @@ namespace Pomona.Common.Linq
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
 
-            return executeGenericMethod(queryTreeParser.SelectReturnType, this, queryTreeParser);
+            return executeGenericMethod.Invoke(queryTreeParser.SelectReturnType, this, queryTreeParser);
         }
 
 
@@ -195,12 +209,6 @@ namespace Pomona.Common.Linq
         }
 
 
-        private object ExecuteWithClientSelectPart<TServer, TClient>(string uri, RestQueryableTreeParser.QueryProjection queryProjection,
-            Expression<Func<TServer, TClient>> clientSideExpression, RequestOptions requestOptions)
-        {
-            return Execute(uri, queryProjection, clientSideExpression.Compile(), requestOptions);
-        }
-
         private object Execute<T>(RestQueryableTreeParser parser)
         {
             LambdaExpression clientSideSelectPart;
@@ -210,21 +218,23 @@ namespace Pomona.Common.Linq
             var requestOptions = RequestOptions.Create<T>(x => parser.RequestOptionActions.ForEach(y => y(x)));
             if (clientSideSelectPart != null)
             {
-                return executeWithClientSelectPart(
-                    clientSideSelectPart.Parameters[0].Type,
-                    clientSideSelectPart.ReturnType,
-                    this,
-                    uri,
-                    queryProjection,
-                    clientSideSelectPart,
-                    requestOptions);
+                return executeWithClientSelectPart.Invoke(clientSideSelectPart.Parameters[0].Type,
+                                                          clientSideSelectPart.ReturnType,
+                                                          this,
+                                                          uri,
+                                                          queryProjection,
+                                                          clientSideSelectPart,
+                                                          requestOptions);
             }
 
             return Execute<T, T>(uri, queryProjection, null, requestOptions);
         }
 
 
-        private object Execute<T, TConverted>(string uri, RestQueryableTreeParser.QueryProjection queryProjection, Func<T, TConverted> clientSideSelectPart, RequestOptions requestOptions)
+        private object Execute<T, TConverted>(string uri,
+                                              RestQueryableTreeParser.QueryProjection queryProjection,
+                                              Func<T, TConverted> clientSideSelectPart,
+                                              RequestOptions requestOptions)
         {
             if (queryProjection == RestQueryableTreeParser.QueryProjection.ToJson)
                 return this.client.Get<JToken>(uri, requestOptions);
@@ -247,9 +257,7 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
                     var result = this.client.Get<IList<T>>(uri, requestOptions);
                     if (clientSideSelectPart != null)
-                    {
                         return result.Select(clientSideSelectPart).ToList();
-                    }
                     return result;
                 case RestQueryableTreeParser.QueryProjection.First:
                     return GetFirst<T>(uri, requestOptions);
@@ -269,6 +277,17 @@ namespace Pomona.Common.Linq
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + queryProjection);
             }
+        }
+
+
+        private object ExecuteWithClientSelectPart<TServer, TClient>(string uri,
+                                                                     RestQueryableTreeParser.QueryProjection
+                                                                         queryProjection,
+                                                                     Expression<Func<TServer, TClient>>
+                                                                         clientSideExpression,
+                                                                     RequestOptions requestOptions)
+        {
+            return Execute(uri, queryProjection, clientSideExpression.Compile(), requestOptions);
         }
 
 
