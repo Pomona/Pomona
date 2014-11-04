@@ -116,6 +116,14 @@
     <Compile Include="Linq\Queries\DefaultIfEmptyExpression.cs" />
     <Compile Include="Linq\Queries\DistinctExpression.cs" />
     <Compile Include="Linq\Queries\GroupByExpression.cs" />
+    <Compile Include="Linq\Queries\Interception\ILazyInterceptedQueryableSource.cs" />
+    <Compile Include="Linq\Queries\Interception\InterceptedQueryProvider.cs" />
+    <Compile Include="Linq\Queries\Interception\IInterceptedQueryableSource.cs" />
+    <Compile Include="Linq\Queries\Interception\InterceptedQueryable.cs" />
+    <Compile Include="Linq\Queries\Interception\InterceptedQueryableExtensions.cs" />
+    <Compile Include="Linq\Queries\Interception\InterceptedQueryableSource.cs" />
+    <Compile Include="Linq\Queries\Interception\LazyInterceptedQueryableSource.cs" />
+    <Compile Include="Linq\Queries\Interception\QueryExecutingEventArgs.cs" />
     <Compile Include="Linq\Queries\QueryableVisitor.cs" />
     <Compile Include="Linq\Queries\OfTypeExpression.cs" />
     <Compile Include="Linq\Queries\QueryChainedExpression.cs" />
