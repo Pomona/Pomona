@@ -60,26 +60,18 @@ namespace Pomona.Common.Linq
 
         #endregion
 
-        private static readonly Dictionary<UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary =
-            new Dictionary<UniqueMemberToken, MethodInfo>();
-
-        private readonly StringBuilder expandedPaths = new StringBuilder();
-
-        private readonly List<Tuple<LambdaExpression, SortOrder>> orderKeySelectors =
-            new List<Tuple<LambdaExpression, SortOrder>>();
-
-        private readonly List<Action<IRequestOptions>> requestOptionActions = new List<Action<IRequestOptions>>();
-
-        private readonly IList<LambdaExpression> whereExpressions = new List<LambdaExpression>();
+        private static readonly Dictionary<UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary;
+        private readonly StringBuilder expandedPaths;
+        private readonly List<Tuple<LambdaExpression, SortOrder>> orderKeySelectors;
+        private readonly List<Action<IRequestOptions>> requestOptionActions;
+        private readonly IList<LambdaExpression> whereExpressions;
         private Type aggregateReturnType;
         private Type elementType;
         private LambdaExpression groupByKeySelector;
         private bool includeTotalCount;
-
-        private QueryProjection projection = QueryProjection.Enumerable;
+        private QueryProjection projection;
         private IRestQueryRoot queryRoot;
         private LambdaExpression selectExpression;
-
         private int? skipCount;
         private int? takeCount;
         private LambdaExpression wherePredicate;
@@ -87,6 +79,8 @@ namespace Pomona.Common.Linq
 
         static RestQueryableTreeParser()
         {
+            queryableMethodToVisitMethodDictionary = new Dictionary<UniqueMemberToken, MethodInfo>();
+
             foreach (var method in typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static))
                 TryMapQueryableFunction(method);
 
@@ -97,6 +91,16 @@ namespace Pomona.Common.Linq
             MapQueryableFunction(x => x.ToJson());
             MapQueryableFunction(x => x.WithOptions(null));
             MapQueryableFunction(x => x.ToQueryResult());
+        }
+
+
+        public RestQueryableTreeParser()
+        {
+            this.expandedPaths = new StringBuilder();
+            this.orderKeySelectors = new List<Tuple<LambdaExpression, SortOrder>>();
+            this.requestOptionActions = new List<Action<IRequestOptions>>();
+            this.whereExpressions = new List<LambdaExpression>();
+            this.projection = QueryProjection.Enumerable;
         }
 
 
