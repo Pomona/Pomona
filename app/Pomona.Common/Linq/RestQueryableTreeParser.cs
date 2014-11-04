@@ -508,6 +508,8 @@ namespace Pomona.Common.Linq
             if (SelectExpression != null)
                 fixedPredicate = MergeWhereAfterSelect(fixedPredicate);
 
+            // TODO: Check whether the left and right nodes of the operand are entities that have a ResourceIdPropertyAttribute and if so, replace the left and right nodes with the property decorated with ResourceIdPropertyAttribute. @asbjornu
+
             this.whereExpressions.Add(fixedPredicate);
             if (this.wherePredicate == null)
                 this.wherePredicate = fixedPredicate;
