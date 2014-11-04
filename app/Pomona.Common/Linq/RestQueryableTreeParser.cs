@@ -210,11 +210,12 @@ namespace Pomona.Common.Linq
 
             try
             {
-                visitMethodInstance.Invoke(
-                    this,
-                    node.Arguments.Skip(1)
-                        .Select(ExtractArgumentFromExpression)
-                        .ToArray());
+                var parameters = node.Arguments
+                    .Skip(1)
+                    .Select(ExtractArgumentFromExpression)
+                    .ToArray();
+
+                visitMethodInstance.Invoke(this, parameters);
             }
             catch (TargetInvocationException tie)
             {
