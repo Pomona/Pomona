@@ -311,6 +311,22 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        [Category("TODO")]
+        public void QueryCritter_WithReferenceToAnotherCritterEqualToOtherCritter_ReturnsCorrectResult()
+        {
+            var anotherCritterId = CritterEntities.First().Id;
+            var anotherCritter = Client.Query<ICritter>(x => x.Id == anotherCritterId).First();
+
+            // TODO: It should be possible to do equal comparison on entities, since Pomona knows that ICritter.Id is an identificator based on ResourceIdPropertyAttribute. @asbjornu
+            var critter = Client.Query<ICritter>(x => x.ReferenceToAnotherCritter == anotherCritter).First();
+
+            Assert.That(critter, Is.Not.Null);
+            Assert.That(critter.ReferenceToAnotherCritter, Is.Not.Null);
+            Assert.That(critter.ReferenceToAnotherCritter.Id, Is.EqualTo(anotherCritterId));
+        }
+
+
+        [Test]
         public void QueryCritter_WithSelectLambda_ReturnsCorrectResults()
         {
             TestQuery<ICritter, Critter>(
