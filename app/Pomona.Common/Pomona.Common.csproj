@@ -60,6 +60,7 @@
     <Compile Include="Expressions\IMatchContext.cs" />
     <Compile Include="Expressions\IRewriteContext.cs" />
     <Compile Include="Expressions\LambdaRewriter.cs" />
+    <Compile Include="Expressions\QueryExpressionRewriter.cs" />
     <Compile Include="Expressions\RecursiveRewriteVisitor.cs" />
     <Compile Include="Expressions\SearchReplaceVisitor.cs" />
     <Compile Include="Expressions\TreePatternMatcher.cs" />

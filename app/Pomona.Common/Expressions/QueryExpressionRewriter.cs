@@ -31,68 +31,43 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
+using Pomona.Common.Linq.Queries;
+
 namespace Pomona.Common.Expressions
 {
-    public abstract class ExpressionRewriter : IExpressionRewriter
-    {
-        public abstract IEnumerable<Type> VisitedTypes { get; }
-
-
-        public static ExpressionRewriter Create<TExpression>(Func<IRewriteContext, TExpression, Expression> func)
-            where TExpression : Expression
-        {
-            return new LambdaRewriter<TExpression>(func);
-        }
-
-
-        public static ExpressionRewriter Create(Func<IRewriteContext, Expression, Expression> func)
-        {
-            return Create<Expression>(func);
-        }
-
-
-        public static ExpressionRewriter Create(Func<Expression, Expression> func)
-        {
-            return Create<Expression>(func);
-        }
-
-
-        public static ExpressionRewriter Create<TExpression>(Func<TExpression, Expression> func)
-            where TExpression : Expression
-        {
-            return new LambdaRewriter<TExpression>(func);
-        }
-
-
-        internal abstract Expression OnVisit(IRewriteContext context, Expression node);
-
-
-        Expression IExpressionRewriter.Visit(IRewriteContext context, Expression node)
-        {
-            return OnVisit(context, node);
-        }
-    }
-
-    public abstract class ExpressionRewriter<TExpression> : ExpressionRewriter
-        where TExpression : Expression
+    public abstract class QueryExpressionRewriter<TExpression> : ExpressionRewriter<TExpression>
+        where TExpression : QueryChainedExpression
     {
         private static readonly IEnumerable<Type> visitedTypes =
-            new ReadOnlyCollection<Type>(new[] { typeof(TExpression) });
+            new ReadOnlyCollection<Type>(new[] { typeof(TExpression), typeof(MethodCallExpression) });
 
         public override IEnumerable<Type> VisitedTypes
         {
             get { return visitedTypes; }
         }
 
-        public abstract Expression Visit(IRewriteContext context, TExpression node);
-
 
         internal override Expression OnVisit(IRewriteContext context, Expression node)
         {
-            if (context == null)
-                throw new ArgumentNullException("context");
-            var castExpression = node as TExpression;
-            return castExpression != null ? Visit(context, castExpression) : node;
+            if (node == null)
+                return null;
+
+            TExpression queryExpression = node as TExpression;
+            if (queryExpression != null)
+                return Visit(context, queryExpression);
+
+            if (!(node is QueryExpression) && QueryExpression.TryWrap(node, out queryExpression))
+            {
+                var visited = Visit(context, queryExpression);
+                var visitedAsQueryExpression = visited as QueryExpression;
+                if (visitedAsQueryExpression != null)
+                {
+                    // Unwrap
+                    return visitedAsQueryExpression.Node;
+                }
+                return visited;
+            }
+            return node;
         }
     }
 }
