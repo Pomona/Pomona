@@ -91,6 +91,8 @@
     <Compile Include="Internals\ExpressionExtensions.cs" />
     <Compile Include="Internals\GenericInvoker.cs" />
     <Compile Include="Internals\GenericInvokerBase.cs" />
+    <Compile Include="Internals\ITreeNode.cs" />
+    <Compile Include="Internals\ITreeNodeWithRoot.cs" />
     <Compile Include="Internals\MappedReadOnlyCollection.cs" />
     <Compile Include="Internals\MappedReadOnlyList.cs" />
     <Compile Include="Internals\MappedReadOnlyListExtensions.cs" />
@@ -100,6 +102,7 @@
     <Compile Include="Internals\ReflectionHelper.cs" />
     <Compile Include="Internals\StreamExtensions.cs" />
     <Compile Include="Internals\StringConversion.cs" />
+    <Compile Include="Internals\TreeNodeExtensions.cs" />
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPatchableRepository.cs" />
