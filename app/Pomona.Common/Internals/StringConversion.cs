@@ -53,6 +53,19 @@ namespace Pomona.Common.Internals
             new ConcurrentDictionary<Type, IStringConverter>();
 
 
+        public static object Parse(this string s, Type toType, IFormatProvider provider = null)
+        {
+            if (s == null)
+                throw new ArgumentNullException("s");
+            if (toType == null)
+                throw new ArgumentNullException("toType");
+            object result;
+            if (!s.TryParse(toType, provider, out result))
+                throw new FormatException("Unable to parse string to type");
+            return result;
+        }
+
+
         public static bool TryParse(this string s, Type toType, IFormatProvider provider, out object result)
         {
             if (toType == null)
