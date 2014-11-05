@@ -195,7 +195,7 @@ namespace Pomona.Example
                 .Include(x => x.CrazyValue)
                 .Include(x => x.CreatedOn)
                 .Include(x => x.Subscriptions, o => o.AlwaysExpanded().Writable())
-                .Include(x => x.HandledGeneratedProperty, o => o.UsingFormula(x => x.Id % 6))
+                .Include(x => x.HandledGeneratedProperty, o => o.OnQuery(x => x.Id % 6))
                 .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                 .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
                 .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())

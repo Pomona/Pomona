@@ -33,9 +33,6 @@ namespace Pomona.Example.Models
 {
     public class Critter : EntityBase, IHiddenInterface
     {
-        private string relativeImageUrl;
-
-
         public Critter()
         {
             Guid = Guid.NewGuid();

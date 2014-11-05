@@ -37,7 +37,7 @@ namespace Pomona
     public class PomonaCsvResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
-            new[] {new Tuple<string, MediaRange>("csv", MediaRange.FromString("text/plain"))};
+            new[] {new Tuple<string, MediaRange>("csv", new MediaRange("text/plain"))};
 
 
         public PomonaCsvResponseProcessor(IRouteCacheProvider routeCacheProvider)

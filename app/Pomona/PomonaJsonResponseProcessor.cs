@@ -41,7 +41,7 @@ namespace Pomona
     public class PomonaJsonResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
-            new[] { new Tuple<string, MediaRange>("json", MediaRange.FromString("application/json")) };
+            new[] { new Tuple<string, MediaRange>("json", new MediaRange("application/json")) };
 
 
         public PomonaJsonResponseProcessor(IRouteCacheProvider routeCacheProvider)

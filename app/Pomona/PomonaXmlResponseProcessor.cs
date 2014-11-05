@@ -38,7 +38,7 @@ namespace Pomona
     public class PomonaXmlResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
-            new[] {new Tuple<string, MediaRange>("xml", MediaRange.FromString("application/xml"))};
+            new[] {new Tuple<string, MediaRange>("xml", new MediaRange("application/xml"))};
 
 
         public PomonaXmlResponseProcessor(IRouteCacheProvider routeCacheProvider)

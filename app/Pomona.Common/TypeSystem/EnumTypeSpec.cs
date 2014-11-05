@@ -80,8 +80,6 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-
-        [Obsolete]
         public IDictionary<string, long> EnumValues
         {
             get { return enumValues.Value; }
