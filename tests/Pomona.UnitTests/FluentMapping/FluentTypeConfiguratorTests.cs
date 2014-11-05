@@ -40,6 +40,20 @@ namespace Pomona.UnitTests.FluentMapping
     public class FluentTypeConfiguratorTests : FluentMappingTestsBase
     {
         [Test]
+        public void HasChildren_TypeMappingOptionsAreApplied()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<TestEntityBase, string>(
+                x => x.HasChildren(y => y.Children, y => y.Parent, y =>
+                {
+                    Console.WriteLine(y.GetType());
+                    return y.Named("SuperChild");
+                }),
+                (y, t) => y.GetTypeMappedName(typeof(ChildEntity)),
+                "ChildEntity",
+                "SuperChild");
+        }
+
+        [Test]
         public void AsAbstract_GivenTypeThatWouldBeConcreteByConvention_MakesTypeAbstract()
         {
             CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(

@@ -206,7 +206,7 @@ namespace Pomona.SystemTests
             var prop = typeof(ICritter).GetProperty("Name");
             Assert.That(prop, Is.Not.Null);
             var attr = prop.GetCustomAttributes(true).OfType<ResourcePropertyAttribute>().First();
-            Assert.That(attr.AccessMode, Is.EqualTo(HttpMethod.Post | HttpMethod.Put | HttpMethod.Get));
+            Assert.That(attr.AccessMode, Is.EqualTo(HttpMethod.Post | HttpMethod.Put | HttpMethod.Get | HttpMethod.Patch));
         }
 
 
