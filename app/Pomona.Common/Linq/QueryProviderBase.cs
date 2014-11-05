@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 using Pomona.Common.Internals;
 
@@ -38,15 +37,9 @@ namespace Pomona.Common.Linq
 {
     public abstract class QueryProviderBase : IQueryProvider
     {
-        private static readonly MethodInfo createQueryGenericMethod;
-
-
-        static QueryProviderBase()
-        {
-            createQueryGenericMethod =
-                ReflectionHelper.GetMethodDefinition<IQueryProvider>(x => x.CreateQuery<object>(null));
-        }
-
+        private static readonly Func<Type, QueryProviderBase, Expression, IQueryable> createQueryGeneric =
+            GenericInvoker.Instance<QueryProviderBase>().CreateFunc1<Expression, IQueryable>(
+                x => x.CreateQuery<object>(null));
 
         public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
         public abstract object Execute(Expression expression, Type returnType);
@@ -64,10 +57,7 @@ namespace Pomona.Common.Linq
 
         IQueryable IQueryProvider.CreateQuery(Expression expression)
         {
-            return
-                (IQueryable)
-                    createQueryGenericMethod.MakeGenericMethod(GetElementType(expression.Type)).Invoke(this,
-                        new object[] { expression });
+            return createQueryGeneric(GetElementType(expression.Type), this, expression);
         }
 
 
