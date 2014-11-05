@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2014 Karsten Nikolai Strand
@@ -22,18 +24,19 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Reflection;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.RequestProcessing
 {
-
-    #region Nested type: Parameter
-
     public class HandlerParameter
     {
         private readonly HandlerMethod method;
+
         private readonly ParameterInfo parameterInfo;
         private TypeSpec typeSpec;
 
@@ -50,25 +53,38 @@ namespace Pomona.RequestProcessing
             get { return TypeSpec is ResourceType; }
         }
 
+        public bool IsTransformedType
+        {
+            get { return TypeSpec is TransformedType; }
+        }
+
+        public HandlerMethod Method
+        {
+            get { return this.method; }
+        }
+
         public string Name
         {
-            get { return parameterInfo.Name; }
+            get { return this.parameterInfo.Name; }
+        }
+
+        public int Position
+        {
+            get { return this.parameterInfo.Position; }
         }
 
         public Type Type
         {
-            get { return parameterInfo.ParameterType; }
+            get { return this.parameterInfo.ParameterType; }
         }
 
         public TypeSpec TypeSpec
         {
             get
             {
-                method.TypeMapper.TryGetTypeSpec(parameterInfo.ParameterType, out typeSpec);
-                return typeSpec;
+                this.method.TypeMapper.TryGetTypeSpec(this.parameterInfo.ParameterType, out this.typeSpec);
+                return this.typeSpec;
             }
         }
     }
-
-    #endregion
 }

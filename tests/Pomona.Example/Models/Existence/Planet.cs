@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,28 +26,30 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 
 namespace Pomona.Example.Models.Existence
 {
-    public class Planet : CelestialObject
+    public class Planet : Planemo
     {
-        public Planet() {}
+        private readonly ICollection<Moon> moons = new List<Moon>();
 
-        public Planet(string name, PlanetarySystem planetarySystem) : base(name)
+
+        public Planet()
         {
-            PlanetarySystem = planetarySystem;
-            planetarySystem.Planets.Add(this);
         }
 
-        private ICollection<Moon> moons = new List<Moon>();
+
+        public Planet(string name, PlanetarySystem planetarySystem)
+            : base(name, planetarySystem)
+        {
+        }
+
 
         public ICollection<Moon> Moons
         {
             get { return this.moons; }
         }
 
-        public PlanetarySystem PlanetarySystem { get; set; }
     }
 }

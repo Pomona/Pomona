@@ -26,27 +26,51 @@
 
 #endregion
 
+using System;
+using System.Linq;
+
 namespace Pomona.RequestProcessing
 {
     internal class HandlerMethodTakingFormInvoker : HandlerMethodInvoker<HandlerMethodTakingFormInvoker.InvokeState>
     {
-        public HandlerMethodTakingFormInvoker(HandlerMethod method)
+        private readonly HandlerParameter formParameter;
+        private readonly HandlerParameter targetResourceParameter;
+
+
+        public HandlerMethodTakingFormInvoker(HandlerMethod method, HandlerParameter formParameter, HandlerParameter targetResourceParameter = null)
             : base(method)
         {
+            if (formParameter == null)
+                throw new ArgumentNullException("formParameter");
+            if (formParameter.Method != method)
+                throw new ArgumentException("Parameter provided does not belong to method.", "formParameter");
+            if (targetResourceParameter != null && targetResourceParameter.Method != method)
+                throw new ArgumentException("Parameter provided does not belong to method.", "targetResourceParameter");
+            this.formParameter = formParameter;
+            this.targetResourceParameter = targetResourceParameter;
         }
 
 
         protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, InvokeState state)
         {
-            if (parameter.IsResource && state.Form != null && parameter.Type.IsInstanceOfType(state.Form))
+            if (parameter == targetResourceParameter)
+                return request.Node.Value;
+            if (parameter == formParameter)
                 return state.Form;
             return base.OnGetArgument(parameter, request, state);
         }
 
 
+        public override bool CanProcess(PomonaRequest request)
+        {
+            object form;
+            return request.TryBindAsType(formParameter.TypeSpec, out form);
+        }
+
+
         protected override object OnInvoke(object target, PomonaRequest request, InvokeState state)
         {
-            state.Form = request.Bind();
+            state.Form = request.Bind(formParameter.TypeSpec);
             return base.OnInvoke(target, request, state);
         }
 

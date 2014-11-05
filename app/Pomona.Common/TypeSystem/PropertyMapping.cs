@@ -50,6 +50,15 @@ namespace Pomona.Common.TypeSystem
             get { return Details.AccessMode; }
         }
 
+        public virtual bool ExposedOnUrl
+        {
+            get
+            {
+                // TODO: Make this configurable
+                return PropertyType is ResourceType || PropertyType is EnumerableTypeSpec;
+            }
+        }
+
         public virtual bool ExposedAsRepository
         {
             get { return Details.ExposedAsRepository; }

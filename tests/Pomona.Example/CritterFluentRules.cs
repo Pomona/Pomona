@@ -31,6 +31,7 @@ using System;
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Example.Handlers;
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
 
@@ -55,7 +56,12 @@ namespace Pomona.Example
             map
                 .HasChildren(x => x.Children,
                     x => x.Parent,
-                    t => t.ConstructedUsing(c => new HandledChild(c.Parent<HandledThing>())),
+                    t =>
+                    {
+                        return
+                            t.ConstructedUsing(c => new HandledChild(c.Parent<HandledThing>()))
+                                .HandledBy<HandledThingsHandler>();
+                    },
                     o => o.ExposedAsRepository())
                 .Include(x => x.ETag, o => o.AsEtag())
                 .AsUriBaseType()
@@ -220,6 +226,7 @@ namespace Pomona.Example
                                 critter.RelativeImageUrl =
                                     new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
                             }))
+                .HandledBy<CritterHandler>()
                 .OnDeserialized(c => c.FixParentReferences());
         }
 
@@ -238,7 +245,7 @@ namespace Pomona.Example
         }
 
 
-        public void Map(ITypeMappingConfigurator<CaptureCommand> map)
+        public void Map(ITypeMappingConfigurator<CritterCaptureCommand> map)
         {
             map.AsValueObject();
         }

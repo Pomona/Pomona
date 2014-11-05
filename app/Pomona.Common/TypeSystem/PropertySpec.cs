@@ -62,7 +62,6 @@ namespace Pomona.Common.TypeSystem
             this.isRequiredForConstructor = CreateLazy(() => ReflectedType.RequiredProperties.Contains(this));
         }
 
-
         public virtual PropertySpec BaseDefinition
         {
             get { return this.baseDefinition.Value; }

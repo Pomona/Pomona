@@ -229,7 +229,7 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void PostCritter_WithPatchOptionExpandWeapons_ExpandsWeapons()
+        public void PostCritter_WithPostOptionExpandWeapons_ExpandsWeapons()
         {
             var critter = Client.Critters.Post<IMusicalCritter>(x =>
             {

@@ -75,12 +75,6 @@ namespace Pomona.Common.Internals
         }
 
 
-        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, params T[] value)
-        {
-            return source.Concat((IEnumerable<T>)value);
-        }
-
-
         public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> source)
         {
             return source ?? Enumerable.Empty<T>();

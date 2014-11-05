@@ -45,7 +45,7 @@ namespace Pomona.Common
             return
                 sourceType
                     .WrapAsEnumerable()
-                    .Concat(sourceType.GetInterfaces())
+                    .Append(sourceType.GetInterfaces())
                     .SelectMany(x => x.GetProperties())
                     .Distinct();
         }
@@ -167,6 +167,17 @@ namespace Pomona.Common
         }
 
 
+        public static TypeSpec GetItemType(this TypeSpec typeSpec)
+        {
+            if (typeSpec == null)
+                throw new ArgumentNullException("typeSpec");
+            var enumerableTypeSpec = typeSpec as EnumerableTypeSpec;
+            if (enumerableTypeSpec != null)
+                return enumerableTypeSpec.ItemType;
+            return typeSpec;
+        }
+
+
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
             return type.WalkTree(x => x.BaseType);
@@ -268,7 +279,7 @@ namespace Pomona.Common
             return
                 sourceType
                     .WrapAsEnumerable()
-                    .Concat(sourceType.GetInterfaces())
+                    .Append(sourceType.GetInterfaces())
                     .Select(x => x.GetProperty(propertyName)).FirstOrDefault(x => x != null);
         }
 

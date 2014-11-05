@@ -53,7 +53,7 @@ namespace Pomona
         }
 
 
-        public T GetInstance<T>()
+        public virtual T GetInstance<T>()
         {
             return (T)this.nancyContext.Resolve(typeof(T));
         }

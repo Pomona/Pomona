@@ -34,6 +34,5 @@ namespace Pomona
     {
         string ModulePath { get; }
         IRequestProcessorPipeline Pipeline { get; }
-        PathNode RootNode { get; }
     }
 }

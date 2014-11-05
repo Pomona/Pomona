@@ -26,22 +26,36 @@
 
 #endregion
 
+using System;
+using System.Linq;
+
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.RequestProcessing
 {
     internal class HandlerMethodTakingExistingResource : HandlerMethodInvoker<object>
     {
-        public HandlerMethodTakingExistingResource(HandlerMethod method)
+        private readonly HandlerParameter resourceParameter;
+
+
+        public HandlerMethodTakingExistingResource(HandlerMethod method, ResourceType resourceType)
             : base(method)
         {
+            if (resourceType == null)
+                throw new ArgumentNullException("resourceType");
+            this.resourceParameter =
+                method.Parameters.LastOrDefault(x => x.Type == resourceType) ??
+                method.Parameters.LastOrDefault(x => x.IsResource && x.Type.IsAssignableFrom(resourceType));
+
+            if (this.resourceParameter == null)
+                throw new ArgumentException("Method has no argument accepting resource type.", "method");
         }
 
 
         protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, object state)
         {
-            var resourceNode = request.Node as ResourceNode;
-            if (parameter.IsResource && resourceNode != null && resourceNode.Exists
-                && parameter.Type.IsInstanceOfType(resourceNode.Value))
-                return resourceNode.Value;
+            if (parameter == this.resourceParameter)
+                return request.Node.Value;
             return base.OnGetArgument(parameter, request, state);
         }
     }

@@ -32,7 +32,7 @@ namespace Pomona.Example.Models.Existence
 {
     public class PlanetarySystem : CelestialObject
     {
-        private readonly ICollection<Planet> planets = new List<Planet>();
+        private readonly ICollection<Planemo> planets = new List<Planemo>();
 
 
         public PlanetarySystem()
@@ -46,7 +46,7 @@ namespace Pomona.Example.Models.Existence
         // Well technically a planetary system can have multiple stars, but lets ignore that to use it as example
         // of a single child resource.
 
-        public ICollection<Planet> Planets
+        public ICollection<Planemo> Planets
         {
             get { return this.planets; }
         }

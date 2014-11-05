@@ -935,7 +935,7 @@ namespace Pomona.CodeGen
             var baseTypeGenericDef = rti.CustomRepositoryBaseTypeDefinition;
             var baseTypeGenericArgs = rti.CustomRepositoryBaseTypeReference.GenericArguments.ToArray();
 
-            foreach (var subType in tt.MergedTypes.Concat(tt).Where(subType => subType.PostAllowed))
+            foreach (var subType in tt.MergedTypes.Append(tt).Where(subType => subType.PostAllowed))
             {
                 AddRepositoryFormPostMethod(methodAttributes,
                                             isImplementation,

@@ -93,6 +93,11 @@ namespace Pomona.Common.Serialization
 
         public object Value { get; set; }
 
+        TypeSpec IResourceNode.ResultType
+        {
+            get { return ExpectedBaseType; }
+        }
+
         public TypeSpec ValueType
         {
             get { return this.valueType; }

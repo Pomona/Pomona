@@ -30,6 +30,8 @@ using System;
 using System.Linq;
 
 using Pomona.Common;
+using Pomona.Common.TypeSystem;
+using Pomona.Routing;
 
 namespace Pomona.RequestProcessing
 {
@@ -41,23 +43,22 @@ namespace Pomona.RequestProcessing
             if ((ifMatch = GetIfMatchFromRequest(request)) == null)
                 return null;
 
-            if (ProcessPatch(request, ifMatch))
-                return null;
-            ProcessPostToChildResourceRepository(request, ifMatch);
-            return null;
+            return ProcessPatch(request, ifMatch) ?? ProcessPostToChildResourceRepository(request, ifMatch);
         }
 
 
-        private static bool ValidateResourceEtag(string ifMatch, ResourceNode resourceNode)
+        private static PomonaResponse ValidateResourceEtag(string ifMatch, UrlSegment node)
         {
-            var resourceType = resourceNode.Type;
+            var resourceType = node.ResultType as ResourceType;
+            if (resourceType == null)
+                return null;
             var etagProp = resourceType.ETagProperty;
             if (etagProp == null)
                 throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
 
-            if ((string)etagProp.GetValue(resourceNode.Value) != ifMatch)
+            if ((string)etagProp.GetValue(node.Value) != ifMatch)
                 throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
-            return true;
+            return null;
         }
 
 
@@ -79,24 +80,25 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private bool ProcessPatch(PomonaRequest request, string ifMatch)
+        private PomonaResponse ProcessPatch(PomonaRequest request, string ifMatch)
         {
-            var resourceNode = request.Node as ResourceNode;
-            if (resourceNode == null || request.Method != HttpMethod.Patch)
-                return false;
-            return ValidateResourceEtag(ifMatch, resourceNode);
+            if (request.Method != HttpMethod.Patch)
+                return null;
+            return ValidateResourceEtag(ifMatch, request.Node);
         }
 
 
-        private void ProcessPostToChildResourceRepository(PomonaRequest request, string ifMatch)
+        private PomonaResponse ProcessPostToChildResourceRepository(PomonaRequest request, string ifMatch)
         {
-            var collectionNode = request.Node as ResourceCollectionNode;
-            if (request.Method != HttpMethod.Post || collectionNode == null)
-                return;
+            var node = request.Node;
+            var collectionType = node.ResultType as EnumerableTypeSpec;
+            if (request.Method != HttpMethod.Post || collectionType == null)
+                return null;
 
-            var parentNode = collectionNode.Parent as ResourceNode;
+            var parentNode = node.Parent;
             if (parentNode != null)
-                ValidateResourceEtag(ifMatch, parentNode);
+                return ValidateResourceEtag(ifMatch, parentNode);
+            return null;
         }
     }
 }

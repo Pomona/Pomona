@@ -26,10 +26,57 @@
 
 #endregion
 
-namespace Pomona.Routing
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace Pomona.Common.Linq
 {
-    public interface IRequestDispatcher
+    public abstract class WrappedQueryableBase<TElement> : IOrderedQueryable<TElement>
     {
-        PomonaResponse Dispatch(IPomonaContext context);
+        private readonly IQueryable<TElement> innerQueryable;
+
+
+        public WrappedQueryableBase(IQueryable<TElement> innerQueryable)
+        {
+            if (innerQueryable == null)
+                throw new ArgumentNullException("innerQueryable");
+            this.innerQueryable = innerQueryable;
+        }
+
+
+        public Type ElementType
+        {
+            get { return this.innerQueryable.ElementType; }
+        }
+
+        public Expression Expression
+        {
+            get { return this.innerQueryable.Expression; }
+        }
+
+        public IQueryProvider Provider
+        {
+            get { return this.innerQueryable.Provider; }
+        }
+
+        protected IQueryable<TElement> InnerQueryable
+        {
+            get { return this.innerQueryable; }
+        }
+
+
+        public IEnumerator<TElement> GetEnumerator()
+        {
+            return this.innerQueryable.GetEnumerator();
+        }
+
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.innerQueryable.GetEnumerator();
+        }
     }
 }

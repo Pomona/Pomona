@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,19 +26,43 @@
 
 #endregion
 
-using System.Collections;
+using System;
 using System.Linq;
 
-namespace Pomona.Queries
+using Pomona.Common;
+using Pomona.Routing;
+
+namespace Pomona
 {
-    public class DefaultQueryableResolver : QueryableResolverBase
+    public static class PomonaSessionExtensions
     {
-        protected override IQueryable<TResource> Resolve<TResource, TBaseResource>(ResourceCollectionNode<TBaseResource> node)
+        public static object Get(this IPomonaSession session,
+                                 UrlSegment urlSegment)
         {
-            var queryable = ((IEnumerable)node.Value).AsQueryable();
-            if (queryable is IQueryable<TResource>)
-                return (IQueryable<TResource>)queryable;
-            return queryable.OfType<TResource>();
+            if (session == null)
+                throw new ArgumentNullException("session");
+            if (urlSegment == null)
+                throw new ArgumentNullException("urlSegment");
+
+            var request = new PomonaRequest(urlSegment,
+                                            HttpMethod.Get,
+                                            executeQueryable : true);
+            return session.Dispatch(request).Entity;
+        }
+
+
+        public static IQueryable Query(this IPomonaSession session,
+                                       UrlSegment urlSegment)
+        {
+            if (session == null)
+                throw new ArgumentNullException("session");
+            if (urlSegment == null)
+                throw new ArgumentNullException("urlSegment");
+
+            var request = new PomonaRequest(urlSegment,
+                                            HttpMethod.Get,
+                                            acceptType : typeof(IQueryable));
+            return (IQueryable)session.Dispatch(request).Entity;
         }
     }
 }

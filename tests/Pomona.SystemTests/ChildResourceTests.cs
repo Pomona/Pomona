@@ -137,7 +137,7 @@ namespace Pomona.SystemTests
         [Test]
         public void PostMoonToPlanet_UsingPatch_IsSuccessful()
         {
-            var planet = GetPlanetarySystemResource().Planets.First();
+            var planet = GetPlanetarySystemResource().Planets.OfType<IPlanet>().First();
             var patchedPlanet = Client.Patch(planet, p => p.Moons.Add(new MoonForm() { Name = "A new moon" }));
             Assert.That(patchedPlanet.Moons.Any(x => x.Name == "A new moon"), Is.True);
         }
@@ -184,7 +184,7 @@ namespace Pomona.SystemTests
             var planetarySystemEntity = Repository.Query<PlanetarySystem>().First(x => x.Id == planetarySystem.Id);
             planetarySystemEntity.ETag = "MODIFIED_SINCE_LAST_QUERY";
             Assert.Throws<PreconditionFailedException>(
-                () => planetarySystem.Planets.Post(planetForm =>
+                () => planetarySystem.Planets.Post<IPlanet>(planetForm =>
                 {
                     planetForm.Moons.Add(new MoonForm() { Name = "jalla" });
                     planetForm.Name = "Jupiter";

@@ -94,8 +94,14 @@ namespace Pomona
 
         internal static object Resolve(this NancyContext context, Type type)
         {
+            if (context == null)
+                throw new ArgumentNullException("context");
             if (type == typeof(NancyContext))
                 return context;
+            if (type == typeof(ISerializationContextProvider))
+                return context.GetSerializationContextProvider();
+            if (type == typeof(IUriResolver))
+                return context.GetUriResolver();
 
             return context.GetIocContainerWrapper().GetInstance(type);
         }

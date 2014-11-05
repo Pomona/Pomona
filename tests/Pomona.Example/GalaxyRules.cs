@@ -46,7 +46,7 @@ namespace Pomona.Example
         {
             map.AsUriBaseType()
                 .Include(x => x.Planets,
-                    o => o.ExposedAsRepository().Allow(HttpMethod.Post).ItemsAllow(HttpMethod.Delete))
+                         o => o.ExposedAsRepository().Allow(HttpMethod.Post).ItemsAllow(HttpMethod.Delete))
                 .HasChild(x => x.Star, x => x.PlanetarySystem)
                 .AsChildResourceOf(x => x.Galaxy, x => x.PlanetarySystems);
         }
@@ -67,14 +67,19 @@ namespace Pomona.Example
 
         public void Map(ITypeMappingConfigurator<Planet> map)
         {
-            map.AsUriBaseType();
             map.HasChildren(x => x.Moons,
-                x => x.Planet,
-                x => x.AsUriBaseType()
-                    .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())),
-                x => x.Writable());
-            map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets)
-                .ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()));
+                            x => x.Planet,
+                            x => x.AsUriBaseType()
+                                .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())),
+                            x => x.Writable());
+            map.ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()));
+        }
+
+
+        public void Map(ITypeMappingConfigurator<Planemo> map)
+        {
+            map.AsUriBaseType();
+            map.AsChildResourceOf(x => x.PlanetarySystem, x => x.Planets);
             map.PostAllowed();
             map.DeleteAllowed();
         }

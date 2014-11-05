@@ -51,7 +51,7 @@ namespace Pomona.Common.TypeSystem
         {
             this.subTypes = CreateLazy(() => (IEnumerable<TransformedType>)typeResolver.GetAllTransformedTypes()
                 .Where(x => x.BaseType == this)
-                .SelectMany(x => x.SubTypes.Concat(x)).ToList());
+                .SelectMany(x => x.SubTypes.Append(x)).ToList());
             this.exportedTypeDetails = CreateLazy(() => typeResolver.LoadExportedTypeDetails(this));
         }
 

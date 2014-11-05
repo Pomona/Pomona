@@ -31,6 +31,7 @@ using System;
 using Nancy;
 using Nancy.Validation;
 
+using Pomona.Common;
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -42,13 +43,6 @@ namespace Pomona.Example
         {
         }
 
-
-        public CritterDataSource CritterDataSource
-        {
-            get { return (CritterDataSource)DataSource; }
-        }
-
-
         protected override PomonaError OnException(Exception exception)
         {
             if (exception is ModelValidationException)
@@ -58,12 +52,17 @@ namespace Pomona.Example
             {
                 var validationException = (ResourceValidationException)exception;
                 return new PomonaError(HttpStatusCode.BadRequest,
-                    new ErrorStatus(validationException.Message,
-                        0xdead,
-                        validationException.MemberName));
+                                       new ErrorStatus(validationException.Message,
+                                                       0xdead,
+                                                       validationException.MemberName));
             }
 
-            return base.OnException(exception);
+            if (exception is PomonaException)
+            {
+                return base.OnException(exception);
+            }
+            return new PomonaError(HttpStatusCode.InternalServerError,
+                                   new ErrorStatus(exception.Message, -1, exception : exception.ToString()));
         }
     }
 }

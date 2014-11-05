@@ -33,28 +33,55 @@ using System.IO;
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
-using Pomona.Queries;
+using Pomona.Routing;
 
 namespace Pomona
 {
     public class PomonaRequest
     {
-        private readonly Stream body;
-        private readonly IPomonaContext context;
-        private readonly string expandedPaths;
-
-        private readonly HttpMethod method;
-        private readonly PathNode node;
-        private object deserializedBody;
-        private RequestHeaders headers;
+        private readonly Type acceptType;
         private readonly bool executeQueryable;
+        private readonly string expandedPaths;
         private readonly bool hasQuery;
 
-        public bool HasQuery
+        private readonly HttpMethod method;
+        private readonly UrlSegment node;
+        private readonly string url;
+        private Stream body;
+        private object deserializedBody;
+        private RequestHeaders headers;
+
+
+        public PomonaRequest(UrlSegment node,
+                             HttpMethod method,
+                             Stream body = null,
+                             string expandedPaths = null,
+                             string url = null,
+                             RequestHeaders headers = null,
+                             DynamicDictionary query = null,
+                             bool executeQueryable = false,
+                             bool hasQuery = false,
+                             Type acceptType = null)
         {
-            get { return this.hasQuery; }
+            Query = query ?? new DynamicDictionary();
+            this.node = node;
+            this.body = body;
+            this.headers = headers ?? new RequestHeaders(new Dictionary<string, IEnumerable<string>>());
+            this.expandedPaths = expandedPaths ?? GetExpandedPathsFromRequest(this.headers, Query);
+            this.url = url;
+            this.method = method;
+            this.executeQueryable = executeQueryable;
+            this.hasQuery = hasQuery;
+            this.acceptType = acceptType;
+        }
+
+
+        public Type AcceptType
+        {
+            get { return this.acceptType; }
         }
 
         public bool ExecuteQueryable
@@ -62,34 +89,16 @@ namespace Pomona
             get { return this.executeQueryable; }
         }
 
-
-        public PomonaRequest(PathNode node,
-            IPomonaContext context,
-            HttpMethod method,
-            Stream body = null,
-            string expandedPaths = null,
-            RequestHeaders headers = null,
-            bool executeQueryable = false,
-            bool hasQuery = false)
-        {
-            if (node == null)
-                throw new ArgumentNullException("node");
-            if (context == null)
-                throw new ArgumentNullException("context");
-            this.node = node;
-            this.context = context;
-            this.body = body;
-            this.expandedPaths = expandedPaths;
-            this.method = method;
-            this.headers = headers;
-            this.executeQueryable = executeQueryable;
-            this.hasQuery = hasQuery;
-        }
-
+        // TODO: Clean up this constructor!!
 
         public string ExpandedPaths
         {
             get { return this.expandedPaths; }
+        }
+
+        public bool HasQuery
+        {
+            get { return this.hasQuery; }
         }
 
         public RequestHeaders Headers
@@ -105,19 +114,31 @@ namespace Pomona
             get { return this.method; }
         }
 
-        public PathNode Node
+        public UrlSegment Node
         {
             get { return this.node; }
         }
 
-        public TypeMapper TypeMapper
+        public dynamic Query { get; set; }
+
+        public Route Route
         {
-            get { return (TypeMapper)this.node.TypeMapper; }
+            get { return this.node.Route; }
         }
 
-        internal IPomonaContext Context
+        public IPomonaSession Session
         {
-            get { return this.context; }
+            get { return this.node.Session; }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return this.node.Session.TypeMapper; }
+        }
+
+        public string Url
+        {
+            get { return this.url; }
         }
 
 
@@ -127,50 +148,68 @@ namespace Pomona
             {
                 if (this.body == null)
                     throw new InvalidOperationException("No http body to deserialize.");
-                if (Method == HttpMethod.Post)
-                    type = type ?? Node.ExpectedPostType;
 
                 if (Method == HttpMethod.Patch)
                 {
-                    patchedObject = patchedObject ?? Node.Value;
+                    patchedObject = patchedObject
+                                    ?? Node.Session.Dispatch(new PomonaRequest(this.node,
+                                                                               HttpMethod.Get,
+                                                                               executeQueryable : true)).Entity;
                     if (patchedObject != null)
                         type = TypeMapper.GetClassMapping(patchedObject.GetType());
                 }
 
-                this.deserializedBody = Deserialize(type as TransformedType, this.body, patchedObject);
+                this.deserializedBody = Deserialize(type as TransformedType, patchedObject);
             }
             return this.deserializedBody;
         }
 
 
-        public PomonaQuery ParseQuery()
+        public bool TryBindAsType(TypeSpec type, out object form)
         {
-            if (!HasQuery)
-                throw new InvalidOperationException("Unable to parse non-existing query.");
-
-            var collectionNode = this.node as ResourceCollectionNode;
-            if (collectionNode == null)
-                throw new InvalidOperationException("Queries are only valid for Queryable nodes.");
-
-            return
-                new PomonaHttpQueryTransformer(this.node.TypeMapper,
-                    new QueryExpressionParser(new QueryTypeResolver(this.node.TypeMapper))).TransformRequest(
-                        this.context.NancyContext,
-                        collectionNode.ItemResourceType);
+            form = this.deserializedBody;
+            if (form == null || !type.Type.IsInstanceOfType(form))
+                form = Deserialize(type as TransformedType, null);
+            if (type.Type.IsInstanceOfType(form))
+            {
+                this.deserializedBody = form;
+                return true;
+            }
+            return false;
         }
 
 
-        private object Deserialize(TransformedType expectedBaseType, Stream body, object patchedObject = null)
+        private static string GetExpandedPathsFromRequest(RequestHeaders requestHeaders, DynamicDictionary query)
         {
-            using (var textReader = new StreamReader(body))
+            var expansions = requestHeaders["X-Pomona-Expand"];
+            if (query["$expand"].HasValue)
+                expansions = expansions.Append((string)query["$expand"]);
+            var expandedPathsTemp = string.Join(",", expansions);
+            return expandedPathsTemp;
+        }
+
+
+        private object Deserialize(TransformedType expectedBaseType, object patchedObject = null)
+        {
+            if (!this.body.CanSeek)
             {
-                return this.context.GetDeserializer().Deserialize(textReader,
-                    new DeserializeOptions()
-                    {
-                        Target = patchedObject,
-                        ExpectedBaseType = expectedBaseType,
-                        TargetNode = Node
-                    });
+                var memStream = new MemoryStream();
+                this.body.CopyTo(memStream);
+                memStream.Seek(0, SeekOrigin.Begin);
+                this.body = memStream;
+            }
+            if (this.body.Position != 0)
+                this.body.Seek(0, SeekOrigin.Begin);
+
+            using (var textReader = new StreamReader(this.body))
+            {
+                return Session.GetInstance<ITextDeserializer>().Deserialize(textReader,
+                                                                            new DeserializeOptions()
+                                                                            {
+                                                                                Target = patchedObject,
+                                                                                ExpectedBaseType = expectedBaseType,
+                                                                                TargetNode = Node
+                                                                            });
             }
         }
     }

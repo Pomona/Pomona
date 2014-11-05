@@ -28,7 +28,11 @@
 
 using System;
 
+using Nancy.Routing;
+
+using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona.RequestProcessing
 {
@@ -42,17 +46,20 @@ namespace Pomona.RequestProcessing
 
         protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, object state)
         {
-            var node = (ResourceNode)request.Node;
-            var primaryIdType = node.ExpectedType.PrimaryId.PropertyType;
-            if (parameter.Type == primaryIdType)
+            var node = request.Node;
+            var resourceResultType = node.Route.ResultItemType as ResourceType;
+            if (resourceResultType != null)
             {
-                object parsedId;
-                if (!node.Name.TryParse(primaryIdType, out parsedId))
+                var primaryIdType = resourceResultType.PrimaryId.PropertyType;
+                if (parameter.Type == primaryIdType)
                 {
-                    throw new NotImplementedException(
-                        "TODO: What to do when ID won't parse here?? (probably throw 404 yes)");
+                    object parsedId;
+                    if (!node.PathSegment.TryParse(primaryIdType, out parsedId))
+                    {
+                        throw new HandlerMethodInvocationException(request, this, "Unable to parse id from url segment");
+                    }
+                    return parsedId;
                 }
-                return parsedId;
             }
             return base.OnGetArgument(parameter, request, state);
         }

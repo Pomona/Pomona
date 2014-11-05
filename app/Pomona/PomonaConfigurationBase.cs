@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.Routing;
+
 namespace Pomona
 {
     public abstract class PomonaConfigurationBase
@@ -49,9 +51,32 @@ namespace Pomona
             get { return Enumerable.Empty<Type>(); }
         }
 
+        public virtual IEnumerable<IRouteActionResolver> RouteActionResolvers
+        {
+            get
+            {
+                return new[]
+                {
+                    new RequestHandlerActionResolver(),
+                    DataSourceRootActionResolver,
+                    QueryGetActionResolver
+                }.Where(x => x != null);
+            }
+        }
+
         public abstract IEnumerable<Type> SourceTypes { get; }
 
         public abstract ITypeMappingFilter TypeMappingFilter { get; }
+
+        protected virtual IRouteActionResolver DataSourceRootActionResolver
+        {
+            get { return new DataSourceRootActionResolver(); }
+        }
+
+        protected virtual IRouteActionResolver QueryGetActionResolver
+        {
+            get { return new QueryGetActionResolver(new DefaultQueryProviderCapabilityResolver()); }
+        }
 
 
         public virtual void OnMappingComplete(TypeMapper typeMapper)

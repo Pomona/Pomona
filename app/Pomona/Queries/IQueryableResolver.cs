@@ -29,6 +29,7 @@
 using System.Linq;
 
 using Pomona.Common.TypeSystem;
+using Pomona.Routing;
 
 namespace Pomona.Queries
 {
@@ -40,6 +41,6 @@ namespace Pomona.Queries
         /// <param name="node">The node to get corresponding IQueryable for.</param>
         /// <param name="ofType">Optional: The subclass to get.</param>
         /// <returns>The resulting IQueryable if success, null if not.</returns>
-        IQueryable Resolve(ResourceCollectionNode node, TypeSpec ofType = null);
+        IQueryable Resolve(UrlSegment node, TypeSpec ofType = null);
     }
 }

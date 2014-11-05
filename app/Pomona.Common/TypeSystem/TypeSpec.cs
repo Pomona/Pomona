@@ -199,5 +199,11 @@ namespace Pomona.Common.TypeSystem
         protected internal abstract IEnumerable<PropertySpec> OnLoadRequiredProperties();
         protected internal abstract RuntimeTypeDetails OnLoadRuntimeTypeDetails();
         protected internal abstract PropertySpec OnWrapProperty(PropertyInfo property);
+
+
+        public bool IsAssignableFrom(TypeSpec t)
+        {
+            return Type.IsAssignableFrom(t);
+        }
     }
 }

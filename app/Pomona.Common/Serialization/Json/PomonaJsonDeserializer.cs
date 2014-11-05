@@ -589,7 +589,9 @@ namespace Pomona.Common.Serialization.Json
                 var resourceNode = (IResourceNode)this.node;
                 return
                     (TParentType)
-                        resourceNode.Parent.WalkTree(x => x.Parent).Select(x => x.Value).OfType<TParentType>().First();
+                        resourceNode.Parent.WalkTree(x => x.Parent).Where(
+                            x => x.ResultType == null || x.ResultType.Type.IsAssignableFrom(typeof(TParentType))).Select
+                            (x => x.Value).OfType<TParentType>().First();
             }
 
 

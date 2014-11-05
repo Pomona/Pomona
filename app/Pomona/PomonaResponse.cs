@@ -34,6 +34,27 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
+    public class PomonaResponse<T> : PomonaResponse
+    {
+        public PomonaResponse(T entity, HttpStatusCode statusCode = HttpStatusCode.OK, string expandedPaths = "", TypeSpec resultType = null, IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+            : base(entity, statusCode, expandedPaths, resultType, responseHeaders)
+        {
+        }
+
+        new public T Entity { get { return (T)base.Entity; } }
+
+        public PomonaResponse(PomonaQuery query, T entity)
+            : base(query, entity)
+        {
+        }
+
+
+        public PomonaResponse(PomonaQuery query, T entity, HttpStatusCode statusCode)
+            : base(query, entity, statusCode)
+        {
+        }
+    }
+
     public class PomonaResponse
     {
         internal static readonly object NoBodyEntity = new object();
@@ -43,6 +64,7 @@ namespace Pomona
         private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly TypeSpec resultType;
         private readonly HttpStatusCode statusCode;
+
 
         public PomonaResponse(object entity, HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
@@ -56,6 +78,15 @@ namespace Pomona
 
             if (responseHeaders != null)
                 this.responseHeaders = responseHeaders.ToList();
+        }
+
+
+        public PomonaResponse(PomonaRequest request, object entity, HttpStatusCode statusCode = HttpStatusCode.OK,
+                              string expandedPaths = "",
+                              TypeSpec resultType = null,
+                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+            :this(entity, statusCode, (string.IsNullOrEmpty(expandedPaths) && request != null) ? request.ExpandedPaths : expandedPaths, resultType, responseHeaders)
+        {
         }
 
         public PomonaResponse(PomonaQuery query, object entity)

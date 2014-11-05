@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@ namespace Pomona
 {
     public interface IPomonaDataSource
     {
-        IQueryable<T> Query<T>() where T : class;
-        object Post<T>(T newObject) where T : class;
         object Patch<T>(T updatedObject) where T : class;
+        object Post<T>(T newObject) where T : class;
+        IQueryable<T> Query<T>() where T : class;
     }
 }

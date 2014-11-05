@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,22 @@
 
 #endregion
 
-namespace Pomona.Example.Models
+namespace Pomona.Example.Models.Existence
 {
-    public class CaptureCommand
+    public abstract class Planemo : CelestialObject
     {
-        public string FooBar { get; set; }
+        public PlanetarySystem PlanetarySystem { get; set; }
+
+        public Planemo(string name, PlanetarySystem planetarySystem)
+            : base(name)
+        {
+            PlanetarySystem = planetarySystem;
+            planetarySystem.Planets.Add(this);
+
+        }
+
+        public Planemo()
+        {
+        }
     }
 }

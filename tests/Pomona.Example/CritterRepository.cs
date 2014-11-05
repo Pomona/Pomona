@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -466,7 +467,7 @@ namespace Pomona.Example
             var parents = (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
             if (tt.ParentToChildProperty.PropertyType.IsCollection)
             {
-                return parents.SelectMany(p => (IEnumerable<T>)tt.ParentToChildProperty.GetValue(p)).ToList();
+                return parents.SelectMany(p => ((IEnumerable)tt.ParentToChildProperty.GetValue(p)).OfType<T>()).ToList();
             }
             return parents.Select(p => (T)tt.ParentToChildProperty.GetValue(p)).ToList();
         }

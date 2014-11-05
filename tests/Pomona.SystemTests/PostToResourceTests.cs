@@ -39,8 +39,18 @@ namespace Pomona.SystemTests
         public void PostCaptureCommandToCritter_IsSuccessful()
         {
             var critterResource = Client.Critters.Query().First();
-            critterResource = (ICritter)Client.Critters.Post(critterResource, new CaptureCommandForm() {FooBar = "lalala"});
+            critterResource = (ICritter)Client.Critters.Post(critterResource, new CritterCaptureCommandForm() {FooBar = "lalala"});
             Assert.That(critterResource.IsCaptured, Is.True);
+        }
+
+
+        [Test]
+        public void PostExplodeCommandToCritter_IsSuccessful()
+        {
+            var critterResource = Client.Critters.Query().First();
+            critterResource =
+                (ICritter)Client.Critters.Post(critterResource, new CritterExplodeCommandForm() { Noops = "blabla" });
+            Assert.That(critterResource.Name, Is.EqualTo("blabla EXPLOSION!"));
         }
     }
 }

@@ -33,10 +33,12 @@ using System.Linq;
 using Nancy;
 
 using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
+using Pomona.Routing;
 
 namespace Pomona.RequestProcessing
 {
-    public abstract class HandlerMethodInvoker<TInvokeState> : IHandlerMethodInvoker
+    public abstract class HandlerMethodInvoker<TInvokeState> : RouteAction, IHandlerMethodInvoker
         where TInvokeState : class, new()
     {
         private readonly HandlerMethod method;
@@ -72,29 +74,52 @@ namespace Pomona.RequestProcessing
         }
 
 
+        public override bool CanProcess(PomonaRequest request)
+        {
+            return true;
+        }
+
+
+        public override PomonaResponse Process(PomonaRequest request)
+        {
+            return InvokeAndWrap(request);
+        }
+
+
         protected virtual object OnGetArgument(HandlerParameter parameter, PomonaRequest request, TInvokeState state)
         {
             if (parameter.IsResource)
             {
-                var parentNode = request.Node.WalkTree(x => x.Parent)
-                    .Skip(1).OfType<ResourceNode>()
-                    .FirstOrDefault(x => x.Type == parameter.TypeSpec);
+                var parentNode = request
+                    .Node
+                    .Ascendants()
+                    .FirstOrDefault(x => x.ResultType == parameter.TypeSpec);
                 if (parentNode != null)
                     return parentNode.Value;
             }
 
             if (parameter.Type == typeof(PomonaRequest))
                 return request;
-            else if (parameter.Type == typeof(NancyContext))
-                return request.Context.NancyContext;
-            else if (parameter.Type == typeof(TypeMapper))
-                return request.TypeMapper;
-            throw new InvalidOperationException(
-                string.Format(
-                    "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
-                    Method.MethodInfo.ReflectedType,
-                    Method.Name,
-                    parameter.Name));
+
+            Exception innerEx = null;
+            try
+            {
+                // Never get value of transformed type parameter from IOC container
+                if (!parameter.Type.IsValueType && !parameter.IsTransformedType)
+                    return request.Session.GetInstance(parameter.Type);
+            }
+            catch (Exception ex)
+            {
+                innerEx = ex;
+            }
+            throw new HandlerMethodInvocationException(request,
+                                                       this,
+                                                       string.Format(
+                                                           "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
+                                                           Method.MethodInfo.ReflectedType,
+                                                           Method.Name,
+                                                           parameter.Name),
+                                                       innerEx);
         }
 
 
@@ -111,6 +136,26 @@ namespace Pomona.RequestProcessing
             }
 
             return Method.MethodInfo.Invoke(target, args);
+        }
+
+
+        private PomonaResponse InvokeAndWrap(PomonaRequest request,
+                                             HttpStatusCode? statusCode = null)
+        {
+            var handler = request.Session.GetInstance(this.method.MethodInfo.ReflectedType);
+            var result = Invoke(handler, request);
+            var resultAsResponse = result as PomonaResponse;
+            if (resultAsResponse != null)
+                return resultAsResponse;
+
+            var responseBody = result;
+            if (ReturnType == typeof(void))
+                responseBody = PomonaResponse.NoBodyEntity;
+
+            if (responseBody == PomonaResponse.NoBodyEntity)
+                statusCode = HttpStatusCode.NoContent;
+
+            return new PomonaResponse(request, responseBody, statusCode ?? HttpStatusCode.OK, request.ExpandedPaths);
         }
     }
 }

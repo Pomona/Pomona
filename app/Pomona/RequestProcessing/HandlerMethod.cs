@@ -34,6 +34,7 @@ using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
+using Pomona.Routing;
 
 namespace Pomona.RequestProcessing
 {
@@ -92,7 +93,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public IHandlerMethodInvoker Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
+        public RouteAction Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
         {
             switch (nodeType)
             {
@@ -119,7 +120,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private IHandlerMethodInvoker MatchCollectionNodeRequest(HttpMethod method, ResourceType resourceType)
+        private RouteAction MatchCollectionNodeRequest(HttpMethod method, ResourceType resourceType)
         {
             switch (method)
             {
@@ -132,7 +133,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private IHandlerMethodInvoker MatchMethodReturningQueryable(ResourceType resourceType)
+        private RouteAction MatchMethodReturningQueryable(ResourceType resourceType)
         {
             // Check that the method is called "Get", "Query", "Get<TypeName>s" or "Query<TypeName>s".
             if (!this.methodInfo.Name.Equals("Get") && !this.methodInfo.Name.Equals("Query") &&
@@ -157,7 +158,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private IHandlerMethodInvoker MatchMethodTakingResourceId(ResourceType resourceType)
+        RouteAction MatchMethodTakingResourceId(ResourceType resourceType)
         {
             if (this.methodInfo.ReturnType != resourceType.Type)
                 return null;
@@ -169,23 +170,50 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private IHandlerMethodInvoker MatchMethodTakingForm(ResourceType resourceType)
+        RouteAction MatchMethodTakingForm(ResourceType resourceType)
         {
-            var resourceTypeParam = Parameters.LastOrDefault(x => x.IsResource);
+            var resourceTypeParam = Parameters.LastOrDefault(x => x.IsTransformedType);
             
             return (resourceTypeParam != null && resourceTypeParam.Type.IsAssignableFrom(resourceType))
-                ? new HandlerMethodTakingFormInvoker(this)
+                ? new HandlerMethodTakingFormInvoker(this, resourceTypeParam)
                 : null;
         }
 
-        private IHandlerMethodInvoker MatchMethodTakingExistingResource(ResourceType resourceType)
+        RouteAction MatchMethodTakingExistingResource(ResourceType resourceType)
         {
+            var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
+            if (existingTypeParam == null || Parameters.Skip(existingTypeParam.Position + 1).Any(x => x.IsTransformedType))
+                return null;
+
+            return new HandlerMethodTakingExistingResource(this, resourceType);
+        }
+
+        RouteAction MatchMethodTakingPatchedExistingResource(ResourceType resourceType)
+        {
+            var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
+            if (existingTypeParam == null || Parameters.Skip(existingTypeParam.Position + 1).Any(x => x.IsTransformedType))
+                return null;
+
+            return new HandlerMethodTakingPatchedResource(this, resourceType);
+        }
+
+        RouteAction MatchMethodTakingExistingResourceAndForm(ResourceType resourceType)
+        {
+            var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
+            if (existingTypeParam == null)
+                return null;
+
+            // Find exactly one form parameter after resource arg:
+            var formParam = Parameters.Skip(existingTypeParam.Position + 1).SingleOrDefaultIfMultiple(x => x.IsTransformedType);
+            if (formParam == null)
+                return null;
+
             var resourceTypeParam = Parameters.Where(x => x.IsResource && x.Type.IsAssignableFrom(resourceType));
-            return resourceTypeParam.Any() ? new HandlerMethodTakingExistingResource(this) : null;
+            return resourceTypeParam.Any() ? new HandlerMethodTakingFormInvoker(this, formParam, existingTypeParam) : null;
         }
 
 
-        private IHandlerMethodInvoker MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
+        RouteAction MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
         {
             if (!NameStartsWith(httpMethod))
                 return null;
@@ -195,9 +223,11 @@ namespace Pomona.RequestProcessing
                 case HttpMethod.Delete:
                     return MatchMethodTakingExistingResource(resourceType);
                 case HttpMethod.Patch:
-                    return MatchMethodTakingForm(resourceType);
+                    return MatchMethodTakingPatchedExistingResource(resourceType);
                 case HttpMethod.Get:
                     return MatchMethodTakingResourceId(resourceType);
+                case HttpMethod.Post:
+                    return MatchMethodTakingExistingResourceAndForm(resourceType);
             }
             return null;
         }

@@ -85,7 +85,7 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_NameContainsString_ReturnsCorrectCritters()
         {
-            TestQuery<ICritter, Critter>(x => x.Name.Contains("Bear"), x => x.Name.Contains("Bear"));
+            TestQuery<ICritter, Critter>(x => x.Name.Contains("Canary"), x => x.Name.Contains("Canary"));
         }
 
 

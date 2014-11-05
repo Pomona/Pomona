@@ -103,7 +103,7 @@ namespace Pomona.SystemTests
         [Test]
         public void Post_FailingThing_ThrowsWebClientException()
         {
-            var ex = Assert.Throws<WebClientException>(() => Client.FailingThings.Post(new FailingThingForm()));
+            var ex = Assert.Throws<WebClientException<IErrorStatus>>(() => Client.FailingThings.Post(new FailingThingForm()));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 

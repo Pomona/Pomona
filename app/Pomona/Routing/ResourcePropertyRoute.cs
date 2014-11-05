@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,21 +29,64 @@
 using System;
 using System.Collections.Generic;
 
-using Nancy;
-
 using Pomona.Common;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
-namespace Pomona
+namespace Pomona.Routing
 {
-    public interface IPomonaContext : IContainer
+    public class ResourcePropertyRoute : Route, ILiteralRoute
     {
-        NancyContext NancyContext { get; }
-        PathNode ResolvePath(string path);
-        PomonaRequest CreateNestedRequest(PathNode node, HttpMethod httpMethod);
-        PomonaRequest CreateOuterRequest(PathNode pathNode);
-        ITextDeserializer GetDeserializer();
-        IPomonaModule Module { get; }
+        private readonly PropertyMapping property;
+
+
+        public ResourcePropertyRoute(PropertyMapping property, Route parent)
+            : base(0, parent)
+        {
+            this.property = property;
+        }
+
+
+        public override HttpMethod AllowedMethods
+        {
+            get { return this.property.AccessMode; }
+        }
+
+        public override TypeSpec InputType
+        {
+            get { return this.property.DeclaringType; }
+        }
+
+        public string MatchValue
+        {
+            get { return this.property.UriName; }
+        }
+
+        public PropertyMapping Property
+        {
+            get { return this.property; }
+        }
+
+        public override TypeSpec ResultType
+        {
+            get { return this.property.PropertyType; }
+        }
+
+
+        protected override IEnumerable<Route> LoadChildren()
+        {
+            return this.property.GetRoutes(this);
+        }
+
+
+        protected override bool Match(string pathSegment)
+        {
+            return string.Equals(pathSegment, this.property.UriName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+
+        protected override string PathSegmentToString()
+        {
+            return this.property.UriName;
+        }
     }
 }

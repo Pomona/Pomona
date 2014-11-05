@@ -33,22 +33,24 @@ namespace Pomona.RequestProcessing
 {
     public class DefaultRequestProcessorPipeline : IRequestProcessorPipeline
     {
+        public virtual IEnumerable<IPomonaRequestProcessor> After
+        {
+            get { yield break; }
+        }
+
         public virtual IEnumerable<IPomonaRequestProcessor> Before
         {
             get { yield return new ValidateEtagProcessor(); }
         }
 
-        public virtual IEnumerable<IPomonaRequestProcessor> After
-        {
-            get { yield return new DefaultGetRequestProcessor(); }
-        }
-
 
         public virtual PomonaResponse Process(PomonaRequest request)
         {
+            var routeActions = request.Session.GetRouteActions(request).ToList();
             return Before
-                .Concat(request.Node.GetRequestProcessors(request))
+                .Concat(routeActions.Where(x => x.CanProcess(request)))
                 .Concat(After)
+                .Where(x => x != null)
                 .Select(x => x.Process(request))
                 .FirstOrDefault(response => response != null);
         }

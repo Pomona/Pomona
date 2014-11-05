@@ -56,14 +56,6 @@ namespace Pomona.Example
             return this.store.ApplyAndExecute(queryable, query);
         }
 
-
-        public object Post(Critter critter, CaptureCommand captureCommand)
-        {
-            critter.IsCaptured = true;
-            return critter;
-        }
-
-
         public Planet Post(PlanetarySystem planetarySystem, Planet planet)
         {
             Console.WriteLine("The planet has been posted!");

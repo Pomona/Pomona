@@ -33,6 +33,6 @@ namespace Pomona
     /// </summary>
     public interface IHttpQueryTransformer
     {
-        PomonaQuery TransformRequest(NancyContext nancyContext, TransformedType rootType);
+        PomonaQuery TransformRequest(PomonaRequest request, TransformedType rootType);
     }
 }

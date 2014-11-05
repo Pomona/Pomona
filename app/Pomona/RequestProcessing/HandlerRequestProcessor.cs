@@ -1,4 +1,6 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
 // Copyright © 2014 Karsten Nikolai Strand
@@ -22,182 +24,54 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Nancy;
+
 using Pomona.Common;
+using Pomona.Routing;
 
 namespace Pomona.RequestProcessing
 {
-    public abstract class HandlerRequestProcessor : IPomonaRequestProcessor
+    public abstract class HandlerRequestProcessor : IRouteActionResolver
     {
-        public abstract PomonaResponse Process(PomonaRequest request);
+        public abstract IEnumerable<RouteAction> Resolve(Route route, HttpMethod method);
 
 
         public static HandlerRequestProcessor Create(Type type)
         {
             return
                 (HandlerRequestProcessor)
-                    Activator.CreateInstance(typeof (HandlerRequestProcessor<>).MakeGenericType(type));
+                    Activator.CreateInstance(typeof(HandlerRequestProcessor<>).MakeGenericType(type));
         }
     }
 
     public class HandlerRequestProcessor<THandler> : HandlerRequestProcessor
     {
-        private static readonly ConcurrentDictionary<string, IHandlerMethodInvoker> handlerMethodCache =
-            new ConcurrentDictionary<string, IHandlerMethodInvoker>();
-
-
-        public override PomonaResponse Process(PomonaRequest request)
+        public override IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
         {
-            var resourceNode = request.Node as ResourceNode;
-            if (resourceNode != null)
-                return ProcessResourceNode(request, resourceNode);
-            var collectionNode = request.Node as ResourceCollectionNode;
-            if (collectionNode != null)
-                return ProcessCollectionNode(request, collectionNode);
-            return null;
+            var handlerMethodInvokers = ResolveHandlerMethods(route, method);
+            return handlerMethodInvokers;
         }
 
 
         public IEnumerable<HandlerMethod> GetHandlerMethods(TypeMapper mapper)
         {
+            return typeof(THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Select(x => new HandlerMethod(x, mapper));
+        }
+
+
+        private IEnumerable<RouteAction> ResolveHandlerMethods(Route route, HttpMethod method)
+        {
+            var resourceType = route.ResultItemType;
+            var typeSpec = resourceType;
             return
-                typeof (THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance).Select(
-                    x => new HandlerMethod(x, mapper));
-        }
-
-
-        private PomonaResponse DeleteResource(PomonaRequest request, ResourceNode resourceNode)
-        {
-            var resource = resourceNode.Value;
-            var method = GetHandlerMethod(request.Method, resource.GetType(), PathNodeType.Resource, request.TypeMapper);
-
-            return InvokeAndWrap(request, method);
-        }
-
-
-        private IHandlerMethodInvoker GetHandlerMethod(HttpMethod method, Type resourceType, PathNodeType nodeType,
-            TypeMapper mapper)
-        {
-            var cacheKey = string.Format("{0}:{1}:{2}", method, resourceType.FullName, nodeType);
-            return handlerMethodCache.GetOrAdd(cacheKey,
-                k => ResolveHandlerMethod(method, resourceType, nodeType, mapper));
-        }
-
-
-        private PomonaResponse GetResource(PomonaRequest request, ResourceNode resourceNode)
-        {
-            var method = GetHandlerMethod(request.Method, resourceNode.ExpectedType, resourceNode.NodeType, request.TypeMapper);
-
-            return InvokeAndWrap(request, method);
-        }
-
-
-        private PomonaResponse InvokeAndWrap(PomonaRequest request,
-            IHandlerMethodInvoker invoker,
-            HttpStatusCode? statusCode = null)
-        {
-            // Continue to next request processor if method was not found.
-            if (invoker == null)
-                return null;
-
-            var handler = request.Context.GetInstance<THandler>();
-            var result = invoker.Invoke(handler, request);
-            var resultAsResponse = result as PomonaResponse;
-            if (resultAsResponse != null)
-                return resultAsResponse;
-
-            IQueryable resultAsQueryable = result as IQueryable;
-            if (resultAsQueryable != null && request.ExecuteQueryable)
-            {
-                return request.Node.GetQueryExecutor().ApplyAndExecute(resultAsQueryable, request.ParseQuery());
-            }
-
-            var responseBody = result;
-            if (invoker.ReturnType == typeof (void))
-                responseBody = PomonaResponse.NoBodyEntity;
-
-            if (responseBody == PomonaResponse.NoBodyEntity)
-                statusCode = HttpStatusCode.NoContent;
-
-            return new PomonaResponse(responseBody, statusCode ?? HttpStatusCode.OK, request.ExpandedPaths);
-        }
-
-
-        private PomonaResponse PatchResource(PomonaRequest request, ResourceNode resourceNode)
-        {
-            var resource = resourceNode.Value;
-            var method = GetHandlerMethod(request.Method, resource.GetType(), PathNodeType.Resource, request.TypeMapper);
-
-            return InvokeAndWrap(request, method);
-        }
-
-
-        private PomonaResponse PostToCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
-        {
-            var form = request.Bind();
-            var method = GetHandlerMethod(request.Method, form.GetType(), collectionNode.NodeType, request.TypeMapper);
-
-            return InvokeAndWrap(request,
-                method,
-                statusCode: HttpStatusCode.Created);
-        }
-
-
-        private PomonaResponse ProcessCollectionNode(PomonaRequest request, ResourceCollectionNode collectionNode)
-        {
-            switch (request.Method)
-            {
-                case HttpMethod.Post:
-                    return PostToCollection(request, collectionNode);
-                case HttpMethod.Get:
-                    return GetCollection(request, collectionNode);
-
-                default:
-                    return null;
-            }
-        }
-
-
-        private PomonaResponse GetCollection(PomonaRequest request, ResourceCollectionNode collectionNode)
-        {
-
-            var method = GetHandlerMethod(request.Method, collectionNode.ItemResourceType, collectionNode.NodeType, request.TypeMapper);
-
-            return InvokeAndWrap(request, method);
-        }
-
-
-        private PomonaResponse ProcessResourceNode(PomonaRequest request, ResourceNode resourceNode)
-        {
-            switch (request.Method)
-            {
-                case HttpMethod.Delete:
-                    return DeleteResource(request, resourceNode);
-                case HttpMethod.Get:
-                    return GetResource(request, resourceNode);
-                case HttpMethod.Patch:
-                    return PatchResource(request, resourceNode);
-                default:
-                    return null;
-            }
-        }
-
-
-        private IHandlerMethodInvoker ResolveHandlerMethod(HttpMethod method,
-            Type resourceType,
-            PathNodeType nodeType,
-            TypeMapper mapper)
-        {
-            var typeSpec = mapper.GetClassMapping(resourceType);
-            var matches = GetHandlerMethods(mapper).Select(x => x.Match(method, nodeType, typeSpec)).Where(x => x != null).ToList();
-            if (matches.Count > 1)
-                throw new NotImplementedException("Method overload resolution not implemented");
-            return matches.FirstOrDefault();
+                GetHandlerMethods((TypeMapper)typeSpec.TypeResolver).Select(
+                    x => x.Match(method, route.NodeType, typeSpec)).Where(x => x != null).ToList();
         }
     }
 }

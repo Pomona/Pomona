@@ -73,6 +73,12 @@ namespace Pomona.Common.Serialization
 
         public object Value { get; set; }
 
+        TypeSpec IResourceNode.ResultType
+        {
+            get { return this.expectedBaseType; }
+        }
+
+
         public void CheckItemAccessRights(HttpMethod method)
         {
         }

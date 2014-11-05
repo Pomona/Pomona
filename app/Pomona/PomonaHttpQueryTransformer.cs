@@ -51,13 +51,10 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public PomonaQuery TransformRequest(NancyContext nancyContext, TransformedType rootType)
+        public PomonaQuery TransformRequest(PomonaRequest request, TransformedType rootType)
         {
-            var request = nancyContext.Request;
             if (request == null)
                 throw new ArgumentNullException("request");
-            if (nancyContext == null)
-                throw new ArgumentNullException("nancyContext");
             if (rootType == null)
                 throw new ArgumentNullException("rootType");
 
@@ -136,7 +133,7 @@ namespace Pomona
             else
                 query.ExpandedPaths = string.Empty;
 
-            query.Url = request.Url.ToString();
+            query.Url = request.Url;
 
             UpdateResultType(query);
 

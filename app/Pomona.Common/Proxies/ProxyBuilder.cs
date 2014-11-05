@@ -237,7 +237,7 @@ namespace Pomona.Common.Proxies
                         else
                         {
                             //arg.paramBuilder.SetBaseTypeConstraint(typeof(object));
-                            interfaceConstraints = interfaceConstraints.Concat(baseTypeFixed);
+                            interfaceConstraints = interfaceConstraints.Append(baseTypeFixed);
                         }
                         //if (arg.target.BaseType.IsGenericParameter)
                         //{

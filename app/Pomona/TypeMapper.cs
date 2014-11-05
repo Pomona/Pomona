@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -35,17 +34,20 @@ using System.Reflection;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
+using Pomona.Routing;
 
 namespace Pomona
 {
     public class TypeMapper : ExportedTypeResolverBase, ITypeMapper
     {
+        private readonly InternalRouteActionResolver actionResolver;
         private readonly PomonaConfigurationBase configuration;
+
         private readonly ITypeMappingFilter filter;
+        private readonly PomonaRouteResolver routeResolver;
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
@@ -58,7 +60,7 @@ namespace Pomona
 
             this.filter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
-            this.filter = new FluentTypeMappingFilter(filter, fluentRuleObjects, null, configuration.SourceTypes);
+            this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects, null, configuration.SourceTypes);
 
             if (this.filter == null)
                 throw new ArgumentNullException("filter");
@@ -74,12 +76,20 @@ namespace Pomona
             }
 
             configuration.OnMappingComplete(this);
+
+            this.routeResolver = new PomonaRouteResolver(new DataSourceRootRoute(this));
+            this.actionResolver = new InternalRouteActionResolver(configuration.RouteActionResolvers);
         }
 
 
+        public PomonaConfigurationBase Configuration
+        {
+            get { return this.configuration; }
+        }
+
         public IEnumerable<EnumTypeSpec> EnumTypes
         {
-            get { return this.TypeMap.Values.OfType<EnumTypeSpec>(); }
+            get { return TypeMap.Values.OfType<EnumTypeSpec>(); }
         }
 
         public ITypeMappingFilter Filter
@@ -94,13 +104,94 @@ namespace Pomona
 
         public IEnumerable<TransformedType> TransformedTypes
         {
-            get { return this.TypeMap.Values.OfType<TransformedType>(); }
+            get { return TypeMap.Values.OfType<TransformedType>(); }
+        }
+
+        internal IRouteActionResolver ActionResolver
+        {
+            get { return this.actionResolver; }
+        }
+
+        internal PomonaRouteResolver RouteResolver
+        {
+            get { return this.routeResolver; }
         }
 
 
         public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {
             return TransformedTypes;
+        }
+
+
+        public override TypeSpec LoadBaseType(TypeSpec typeSpec)
+        {
+            if (typeSpec is TransformedType)
+            {
+                if (this.filter.IsIndependentTypeRoot(typeSpec))
+                    return null;
+
+                var exposedBaseType = typeSpec.Type.BaseType;
+
+                while (exposedBaseType != null && !this.filter.TypeIsMapped(exposedBaseType))
+                    exposedBaseType = exposedBaseType.BaseType;
+
+                if (exposedBaseType != null)
+                    return FromType(exposedBaseType);
+                return null;
+            }
+            return base.LoadBaseType(typeSpec);
+        }
+
+
+        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            var transformedType = typeSpec as TransformedType;
+            if (transformedType != null)
+                return this.filter.GetTypeConstructor(transformedType);
+            return base.LoadConstructor(typeSpec);
+        }
+
+
+        public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        {
+            var attrs = base.LoadDeclaredAttributes(memberSpec);
+
+            var typeSpec = memberSpec as TypeSpec;
+            if (typeSpec != null)
+            {
+                var customClientLibraryType = this.filter.GetClientLibraryType(typeSpec.Type);
+                if (customClientLibraryType != null)
+                    attrs = attrs.Append(new CustomClientLibraryTypeAttribute(customClientLibraryType));
+                var customJsonConverter = this.filter.GetJsonConverterForType(typeSpec.Type);
+                if (customJsonConverter != null)
+                    attrs = attrs.Append(new CustomJsonConverterAttribute(customJsonConverter));
+            }
+            var propSpec = memberSpec as PropertySpec;
+            if (propSpec != null)
+            {
+                var formulaExpr = this.filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo)
+                                  ?? (this.filter.PropertyFormulaIsDecompiled(propSpec.ReflectedType,
+                                                                              propSpec.PropertyInfo)
+                                      ? this.filter.GetDecompiledPropertyFormula(propSpec.ReflectedType,
+                                                                                 propSpec.PropertyInfo)
+                                      : null);
+                if (formulaExpr != null)
+                    attrs = attrs.Append(new PropertyFormulaAttribute(formulaExpr));
+
+                attrs =
+                    attrs.Concat(
+                        this.filter.GetPropertyAttributes(propSpec.ReflectedType, propSpec.PropertyInfo).EmptyIfNull());
+            }
+            return attrs;
+        }
+
+
+        public override TypeSpec LoadDeclaringType(PropertySpec propertySpec)
+        {
+            if (propertySpec is PropertyMapping)
+                return FromType(GetKnownDeclaringType(propertySpec.ReflectedType, propertySpec.PropertyInfo));
+            return base.LoadDeclaringType(propertySpec);
         }
 
 
@@ -114,20 +205,10 @@ namespace Pomona
                 this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
                 this.filter.GetPropertyItemAccessMode(propertyMapping.ReflectedType, propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propertyMapping.ReflectedType, propInfo)),
+                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propertyMapping.ReflectedType,
+                                                                                  propInfo)),
                 this.filter.PropertyIsAlwaysExpanded(propertyMapping.ReflectedType, propInfo));
             return details;
-        }
-
-
-        public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
-        {
-            var transformedType = typeSpec as TransformedType;
-            if (transformedType != null)
-            {
-                return this.filter.GetTypeConstructor(transformedType);
-            }
-            return base.LoadConstructor(typeSpec);
         }
 
 
@@ -135,67 +216,36 @@ namespace Pomona
         {
             // TODO: Get allowed methods from filter
             var allowedMethods = HttpMethod.Get |
-                                (filter.PatchOfTypeIsAllowed(exportedType) ? HttpMethod.Patch : 0) |
-                                (filter.PostOfTypeIsAllowed(exportedType) ? HttpMethod.Post : 0) |
-                                (filter.DeleteOfTypeIsAllowed(exportedType) ? HttpMethod.Delete : 0);
+                                 (this.filter.PatchOfTypeIsAllowed(exportedType) ? HttpMethod.Patch : 0) |
+                                 (this.filter.PostOfTypeIsAllowed(exportedType) ? HttpMethod.Post : 0) |
+                                 (this.filter.DeleteOfTypeIsAllowed(exportedType) ? HttpMethod.Delete : 0);
 
             var type = exportedType.Type;
             var details = new ExportedTypeDetails(exportedType,
-                allowedMethods,
-                this.filter.GetPluralNameForType(type),
-                this.filter.GetOnDeserializedHook(type),
-                this.filter.TypeIsMappedAsValueObject(type),
-                this.filter.TypeIsMappedAsValueObject(type),
-                this.filter.GetTypeIsAbstract(type));
+                                                  allowedMethods,
+                                                  this.filter.GetPluralNameForType(type),
+                                                  this.filter.GetOnDeserializedHook(type),
+                                                  this.filter.TypeIsMappedAsValueObject(type),
+                                                  this.filter.TypeIsMappedAsValueObject(type),
+                                                  this.filter.GetTypeIsAbstract(type));
 
             return details;
         }
 
 
-        public override TypeSpec LoadPropertyType(PropertySpec propertySpec)
+        public override Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
         {
-            var propMapping = propertySpec as PropertyMapping;
-            if (propMapping != null)
-            {
-                return FromType(this.filter.GetPropertyType(propMapping.ReflectedType, propMapping.PropertyInfo));
-            }
-            return base.LoadPropertyType(propertySpec);
+            return this.filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
+                   ?? base.LoadGetter(propertySpec);
         }
 
 
-        public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        public override IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
         {
-            var attrs = base.LoadDeclaredAttributes(memberSpec);
+            if (typeSpec is TransformedType)
+                return base.LoadInterfaces(typeSpec).Where(x => this.filter.TypeIsMappedAsTransformedType(x));
 
-            var typeSpec = memberSpec as TypeSpec;
-            if (typeSpec != null)
-            {
-                var customClientLibraryType = filter.GetClientLibraryType(typeSpec.Type);
-                if (customClientLibraryType != null)
-                {
-                    attrs = attrs.Concat(new CustomClientLibraryTypeAttribute(customClientLibraryType));
-                }
-                var customJsonConverter = filter.GetJsonConverterForType(typeSpec.Type);
-                if (customJsonConverter != null)
-                {
-                    attrs = attrs.Concat(new CustomJsonConverterAttribute(customJsonConverter));
-                }
-            }
-            var propSpec = memberSpec as PropertySpec;
-            if (propSpec != null)
-            {
-                var formulaExpr = filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo)
-                                  ?? (filter.PropertyFormulaIsDecompiled(propSpec.ReflectedType, propSpec.PropertyInfo)
-                                      ? filter.GetDecompiledPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo)
-                                      : null);
-                if (formulaExpr != null)
-                {
-                    attrs = attrs.Concat(new PropertyFormulaAttribute(formulaExpr));
-                }
-
-                attrs = attrs.Concat(filter.GetPropertyAttributes(propSpec.ReflectedType, propSpec.PropertyInfo).EmptyIfNull());
-            }
-            return attrs;
+            return base.LoadInterfaces(typeSpec);
         }
 
 
@@ -204,8 +254,8 @@ namespace Pomona
             return memberSpec
                 .Maybe()
                 .Switch()
-                    .Case<PropertySpec>().Then(x => filter.GetPropertyMappedName(x.ReflectedType, x.PropertyInfo))
-                    .Case<TypeSpec>().Then(x => filter.GetTypeMappedName(x.Type))
+                .Case<PropertySpec>().Then(x => this.filter.GetPropertyMappedName(x.ReflectedType, x.PropertyInfo))
+                .Case<TypeSpec>().Then(x => this.filter.GetTypeMappedName(x.Type))
                 .EndSwitch()
                 .OrDefault(() => base.LoadName(memberSpec));
         }
@@ -216,7 +266,7 @@ namespace Pomona
             if (typeSpec is TransformedType)
             {
                 var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
-                    ? typeSpec.Type.GetInterfaces().Where(x => !filter.TypeIsMapped(x)).SelectMany(
+                    ? typeSpec.Type.GetInterfaces().Where(x => !this.filter.TypeIsMapped(x)).SelectMany(
                         x => x.GetProperties())
                     : Enumerable.Empty<PropertyInfo>();
 
@@ -232,75 +282,18 @@ namespace Pomona
         }
 
 
-        public override Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
-        {
-            return filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadGetter(propertySpec);
-        }
-
-
-        public override Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
-        {
-            return filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo) ?? base.LoadSetter(propertySpec);
-        }
-
-
-        public override TypeSpec LoadBaseType(TypeSpec typeSpec)
-        {
-            if (typeSpec is TransformedType)
-            {
-                if (filter.IsIndependentTypeRoot(typeSpec))
-                    return null;
-
-                var exposedBaseType = typeSpec.Type.BaseType;
-
-                while (exposedBaseType != null && !filter.TypeIsMapped(exposedBaseType))
-                    exposedBaseType = exposedBaseType.BaseType;
-
-                if (exposedBaseType != null)
-                {
-                    return FromType(exposedBaseType);
-                }
-                return null;
-            }
-            return base.LoadBaseType(typeSpec);
-        }
-
-
-        private Type GetKnownDeclaringType(Type reflectedType, PropertyInfo propertyInfo)
-        {
-            // Hack, IGrouping
-            var propBaseDefinition = propertyInfo.GetBaseDefinition();
-            return reflectedType.GetFullTypeHierarchy()
-                                .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
-                                .TakeUntil(x => filter.IsIndependentTypeRoot(x))
-                                .LastOrDefault(x => SourceTypes.Contains(x)) ??
-                   propBaseDefinition.DeclaringType;
-        }
-
-        public override TypeSpec LoadDeclaringType(PropertySpec propertySpec)
-        {
-            if (propertySpec is PropertyMapping)
-            {
-                return FromType(GetKnownDeclaringType(propertySpec.ReflectedType, propertySpec.PropertyInfo));
-            }
-            return base.LoadDeclaringType(propertySpec);
-        }
-
-
         public override PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
         {
-            return filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
+            return this.filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
         }
 
 
-        public override IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
+        public override TypeSpec LoadPropertyType(PropertySpec propertySpec)
         {
-            if (typeSpec is TransformedType)
-            {
-                return base.LoadInterfaces(typeSpec).Where(x => filter.TypeIsMappedAsTransformedType(x));
-            }
-
-            return base.LoadInterfaces(typeSpec);
+            var propMapping = propertySpec as PropertyMapping;
+            if (propMapping != null)
+                return FromType(this.filter.GetPropertyType(propMapping.ReflectedType, propMapping.PropertyInfo));
+            return base.LoadPropertyType(propertySpec);
         }
 
 
@@ -308,31 +301,33 @@ namespace Pomona
         {
             var type = resourceType.Type;
             return new ResourceTypeDetails(resourceType,
-                NameUtils.ConvertCamelCaseToUri(filter.GetPluralNameForType(resourceType.UriBaseType ?? resourceType)),
-                this.filter.TypeIsExposedAsRepository(type),
-                this.filter.GetPostReturnType(type),
-                this.filter.GetParentToChildProperty(type),
-                this.filter.GetChildToParentProperty(type),
-                this.filter.GetResourceHandlers(type));
+                                           NameUtils.ConvertCamelCaseToUri(
+                                               this.filter.GetPluralNameForType(resourceType.UriBaseType ?? resourceType)),
+                                           this.filter.TypeIsExposedAsRepository(type),
+                                           this.filter.GetPostReturnType(type),
+                                           this.filter.GetParentToChildProperty(type),
+                                           this.filter.GetChildToParentProperty(type),
+                                           this.filter.GetResourceHandlers(type));
+        }
+
+
+        public override Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
+        {
+            return this.filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
+                   ?? base.LoadSetter(propertySpec);
+        }
+
+
+        public override ResourceType LoadUriBaseType(ResourceType resourceType)
+        {
+            Type uriBaseType = this.filter.GetUriBaseType(resourceType.Type);
+            return uriBaseType != null ? (ResourceType)FromType(uriBaseType) : null;
         }
 
 
         public TypeSpec GetClassMapping(Type type)
         {
             return FromType(type);
-        }
-
-
-        sealed protected override Type MapExposedClrType(Type type)
-        {
-            return this.filter.ResolveRealTypeForProxy(type);
-        }
-
-
-        public override ResourceType LoadUriBaseType(ResourceType resourceType)
-        {
-            Type uriBaseType = filter.GetUriBaseType(resourceType.Type);
-            return uriBaseType != null ? (ResourceType)FromType(uriBaseType) : null;
         }
 
 
@@ -353,6 +348,16 @@ namespace Pomona
         }
 
 
+        public bool TryGetTypeSpec(Type type, out TypeSpec typeSpec)
+        {
+            typeSpec = null;
+            if (!Filter.TypeIsMapped(type))
+                return false;
+            typeSpec = GetClassMapping(type);
+            return true;
+        }
+
+
         protected override TypeSpec CreateType(Type type)
         {
             if (!this.filter.TypeIsMappedAsSharedType(type) && this.filter.TypeIsMappedAsTransformedType(type))
@@ -365,19 +370,27 @@ namespace Pomona
         }
 
 
+        protected override sealed Type MapExposedClrType(Type type)
+        {
+            return this.filter.ResolveRealTypeForProxy(type);
+        }
+
+
         private TypeSpec CreateClassMapping(Type type)
         {
             return FromType(type);
         }
 
 
-        public bool TryGetTypeSpec(Type type, out TypeSpec typeSpec)
+        private Type GetKnownDeclaringType(Type reflectedType, PropertyInfo propertyInfo)
         {
-            typeSpec = null;
-            if (!Filter.TypeIsMapped(type))
-                return false;
-            typeSpec = GetClassMapping(type);
-            return true;
+            // Hack, IGrouping
+            var propBaseDefinition = propertyInfo.GetBaseDefinition();
+            return reflectedType.GetFullTypeHierarchy()
+                .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
+                .TakeUntil(x => this.filter.IsIndependentTypeRoot(x))
+                .LastOrDefault(x => SourceTypes.Contains(x)) ??
+                   propBaseDefinition.DeclaringType;
         }
     }
 }

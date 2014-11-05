@@ -26,30 +26,15 @@
 
 #endregion
 
-using System;
-using System.Linq;
+using System.Reflection;
 
-using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.Queries
+namespace Pomona.Routing
 {
-    public abstract class QueryableResolverBase : IQueryableResolver
+    public class DefaultQueryProviderCapabilityResolver : IQueryProviderCapabilityResolver
     {
-        private static readonly Func<Type, Type, QueryableResolverBase, ResourceCollectionNode, IQueryable> resolveMethodInvoker
-            =
-            GenericInvoker.Instance<QueryableResolverBase>().CreateFunc2<ResourceCollectionNode, IQueryable>(
-                x => x.Resolve<object, object>(null));
-
-
-        public virtual IQueryable Resolve(ResourceCollectionNode node, TypeSpec ofType)
+        public bool PropertyIsMapped(PropertyInfo propertyInfo)
         {
-            return resolveMethodInvoker(ofType ?? node.ItemResourceType, node.ItemResourceType, this, node);
+            return true;
         }
-
-
-        protected abstract IQueryable<TResource> Resolve<TResource, TBaseResource>(ResourceCollectionNode<TBaseResource> node)
-            where TResource : class, TBaseResource
-            where TBaseResource : class;
     }
 }

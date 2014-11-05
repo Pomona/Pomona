@@ -35,6 +35,7 @@ using Nancy;
 
 using Pomona.CodeGen;
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
@@ -101,12 +102,6 @@ namespace Pomona
             get { return new DefaultRequestProcessorPipeline(); }
         }
 
-        public PathNode RootNode
-        {
-            get { return new DataSourceRootNode(this.typeMapper, this.dataSource, ModulePath); }
-        }
-
-
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
             ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, embedPomonaClient);
@@ -125,13 +120,33 @@ namespace Pomona
         }
 
 
+        private class ModuleContainer : ServerContainer
+        {
+            private readonly IPomonaDataSource dataSource;
+
+
+            public ModuleContainer(IPomonaDataSource dataSource, NancyContext nancyContext)
+                : base(nancyContext)
+            {
+                if (dataSource == null)
+                    throw new ArgumentNullException("dataSource");
+                this.dataSource = dataSource;
+            }
+
+
+            public override T GetInstance<T>()
+            {
+                if (typeof(T) == typeof(IPomonaDataSource))
+                    return (T)dataSource;
+
+                return base.GetInstance<T>();
+            }
+        }
+
         protected virtual PomonaResponse ProcessRequest()
         {
-            var module = this;
-
-            var pomonaContext = new PomonaContext(Context, module, new PomonaJsonSerializerFactory());
-
-            return new DefaultRequestDispatcher().Dispatch(pomonaContext);
+            var pomonaEngine = new PomonaEngine(typeMapper, new ModuleContainer(dataSource, Context));
+            return pomonaEngine.Handle(Context, ModulePath);
         }
 
 

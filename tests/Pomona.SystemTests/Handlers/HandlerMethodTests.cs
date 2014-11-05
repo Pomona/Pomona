@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -44,6 +45,7 @@ using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.Example.Models.Existence;
 using Pomona.RequestProcessing;
+using Pomona.Routing;
 
 namespace Pomona.SystemTests
 {
@@ -73,7 +75,7 @@ namespace Pomona.SystemTests
             if (theGalaxy != null)
                 return new List<PlanetarySystem>().AsQueryable();
             else
-                throw new PomonaException("A test called GetPlanetarySystems in HandlerMethodTests.cs without a Galaxy.");
+                throw new PomonaServerException("A test called GetPlanetarySystems in HandlerMethodTests.cs without a Galaxy.");
         }
 
 
@@ -97,61 +99,6 @@ namespace Pomona.SystemTests
             this.serializationContextProvider =
                 new ClientSerializationContextProvider(new ClientTypeMapper(Assembly.GetExecutingAssembly()), Client);
             this.serializerFactory = new PomonaJsonSerializerFactory();
-        }
-
-
-
-        private static PomonaRequest CreateOuterPomonaRequest(ResourceNode pathNode,
-            NancyContext nancyContext,
-            ITextSerializerFactory textSerializerFactory)
-        {
-            IPomonaModule pomonaModule = Substitute.For<IPomonaModule>();
-            pomonaModule.ModulePath.Returns("/");
-            return new PomonaContext(nancyContext, pomonaModule, textSerializerFactory).CreateOuterRequest(pathNode);
-        }
-
-
-        [Test]
-        public void Invoke_Method_Handles_ParentResource()
-        {
-            var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("GetPlanetarySystems"),
-                TypeMapper);
-            var invoker = new DefaultHandlerMethodInvoker(methodObject);
-
-            var parentNode = new ResourceNode(TypeMapper,
-                null,
-                "Test",
-                x => new Galaxy(),
-                TypeMapper.FromType(typeof(Galaxy)) as ResourceType);
-            var pathNode = new ResourceNode(TypeMapper,
-                parentNode,
-                "Test",
-                x => null,
-                TypeMapper.FromType(typeof(PlanetarySystem)) as ResourceType);
-
-            var pomonaRequest = CreateOuterPomonaRequest(pathNode, this.nancyContext, this.serializerFactory);
-
-            Assert.DoesNotThrow(() => invoker.Invoke(this, pomonaRequest));
-        }
-
-
-        [Test]
-        public void Invoke_Method_Returns_Expected_Object()
-        {
-            var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
-            var invoker = new DefaultHandlerMethodInvoker(methodObject);
-
-            var pathNode = new ResourceNode(TypeMapper,
-                null,
-                "Test",
-                x => null,
-                TypeMapper.FromType(typeof(Critter)) as ResourceType);
-
-            var pomonaRequest = CreateOuterPomonaRequest(pathNode, this.nancyContext, this.serializerFactory);
-
-            var returnedObject = invoker.Invoke(this, pomonaRequest);
-
-            Assert.IsInstanceOf(typeof(IQueryable<Critter>), returnedObject);
         }
 
 

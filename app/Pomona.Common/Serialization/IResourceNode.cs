@@ -22,11 +22,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Common.Serialization
 {
     public interface IResourceNode
     {
         IResourceNode Parent { get; }
         object Value { get; }
+        TypeSpec ResultType { get; }
     }
 }
