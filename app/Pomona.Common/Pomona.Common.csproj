@@ -55,6 +55,8 @@
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="Expressions\Ex.cs" />
+    <Compile Include="Expressions\ExExtensions.cs" />
     <Compile Include="Expressions\ExpressionRewriter.cs" />
     <Compile Include="Expressions\IExpressionRewriter.cs" />
     <Compile Include="Expressions\IMatchContext.cs" />
