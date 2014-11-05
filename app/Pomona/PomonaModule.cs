@@ -117,7 +117,7 @@ namespace Pomona
         {
             if (exception is PomonaSerializationException)
                 return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
-            var pomonaException = exception as PomonaException;
+            var pomonaException = exception as PomonaServerException;
 
             return pomonaException != null
                 ? new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message)

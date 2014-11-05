@@ -137,7 +137,7 @@ namespace Pomona.RequestProcessing
 
             if (method == null)
             {
-                throw new PomonaException("Method Post to resource not allowed for resource type",
+                throw new PomonaServerException("Method Post to resource not allowed for resource type",
                     null,
                     HttpStatusCode.BadRequest);
             }

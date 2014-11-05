@@ -34,7 +34,7 @@ using Nancy;
 namespace Pomona
 {
     [Serializable]
-    public class UnknownTypeException : PomonaException
+    public class UnknownTypeException : PomonaServerException
     {
         public UnknownTypeException(string message, Exception innerException = null,
                                     HttpStatusCode statusCode = HttpStatusCode.BadRequest,

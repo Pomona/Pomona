@@ -27,7 +27,7 @@ using Nancy;
 
 namespace Pomona
 {
-    public class ResourcePreconditionFailedException : PomonaException
+    public class ResourcePreconditionFailedException : PomonaServerException
     {
         public ResourcePreconditionFailedException()
             : base("Precondition failed", null, HttpStatusCode.PreconditionFailed)

@@ -168,7 +168,7 @@
     <Compile Include="PomonaContext.cs" />
     <Compile Include="PomonaCsvResponseProcessor.cs" />
     <Compile Include="PomonaError.cs" />
-    <Compile Include="PomonaException.cs" />
+    <Compile Include="PomonaServerException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="PomonaMethodAttribute.cs" />
     <Compile Include="PomonaRequest.cs" />

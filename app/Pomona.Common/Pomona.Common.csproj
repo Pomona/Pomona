@@ -162,6 +162,7 @@
     <Compile Include="Linq\RestQueryProvider.cs" />
     <Compile Include="Linq\RestQueryRoot.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="PomonaException.cs" />
     <Compile Include="Profiling\IProfiler.cs" />
     <Compile Include="Profiling\IProfilerImplementation.cs" />
     <Compile Include="Profiling\Profiler.cs" />

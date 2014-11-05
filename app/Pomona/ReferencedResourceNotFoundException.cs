@@ -34,7 +34,7 @@ using Nancy;
 namespace Pomona
 {
     [Serializable]
-    public class ReferencedResourceNotFoundException : PomonaException
+    public class ReferencedResourceNotFoundException : PomonaServerException
     {
         [NonSerialized]
         private readonly PomonaResponse innerResponse;
@@ -50,9 +50,8 @@ namespace Pomona
 
 
         protected ReferencedResourceNotFoundException(SerializationInfo info,
-            StreamingContext context,
-            object entity = null)
-            : base(info, context, entity)
+            StreamingContext context)
+            : base(info, context)
         {
         }
 
