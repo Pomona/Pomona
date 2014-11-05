@@ -55,6 +55,16 @@ namespace Pomona.Common.Internals
             }
         }
 
+
+        public static Expression Visit<TVisitor>(this Expression expression)
+            where TVisitor : ExpressionVisitor, new()
+        {
+            if (expression == null)
+                throw new ArgumentNullException("expression");
+            return new TVisitor().Visit(expression);
+        }
+
+
         public static IEnumerable<Expression> EnumerateDescendants(this Expression expression)
         {
             if (expression == null)
