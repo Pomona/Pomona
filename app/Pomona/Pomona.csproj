@@ -234,6 +234,7 @@
     <Compile Include="ResourcePreconditionFailedException.cs" />
     <Compile Include="ResourceValidationException.cs" />
     <Compile Include="Routing\DefaultRequestDispatcher.cs" />
+    <Compile Include="Routing\IQueryProviderCapabilityResolver.cs" />
     <Compile Include="Routing\IRequestDispatcher.cs" />
     <Compile Include="Routing\PomonaRouteMetadata.cs" />
     <Compile Include="Routing\PomonaRouteMetadataProvider.cs" />
