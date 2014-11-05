@@ -192,17 +192,61 @@ namespace Pomona.Common
             TryDetectAndConvertEnumComparison(ref left, ref right, true);
             TryDetectAndConvertNullableEnumComparison(ref left, ref right, true);
 
+            if (node.NodeType == ExpressionType.NotEqual || node.NodeType == ExpressionType.Equal)
+                TryDetectAndConvertEqualBetweenResourcesWithIdProperty(ref left, ref right);
+
             return Scope(Nodes(node, Visit(left), " ", opString, " ", Visit(right)));
+        }
+
+
+        private static void TryDetectAndConvertEqualBetweenResourcesWithIdProperty(ref Expression left,
+                                                                                   ref Expression right)
+        {
+            if (left.Type != right.Type)
+                return;
+
+            PropertyInfo resourceIdProperty;
+            if (!GetInterfaceWithResourceIdProperty(left.Type, out resourceIdProperty))
+                return;
+
+            left = MakeResourceIdAccess(left, resourceIdProperty);
+            right = MakeResourceIdAccess(right, resourceIdProperty);
+        }
+
+
+        private static Expression MakeResourceIdAccess(Expression node, PropertyInfo resourceIdProperty)
+        {
+            var constantExpression = node as ConstantExpression;
+            if (constantExpression == null)
+                return Expression.Property(node, resourceIdProperty);
+
+            var value = resourceIdProperty.GetValue(constantExpression.Value, null);
+            var propertyType = resourceIdProperty.PropertyType;
+            if (value == null && propertyType.IsValueType)
+                return NotSupported(node, String.Format("Can't compare {0} with null.", propertyType));
+
+            return Expression.Constant(value, propertyType);
+        }
+
+
+        private static bool GetInterfaceWithResourceIdProperty(Type type, out PropertyInfo resourceIdProperty)
+        {
+            resourceIdProperty = null;
+            ResourceInfoAttribute ria;
+            if (type.TryGetResourceInfoAttribute(out ria))
+                resourceIdProperty = ria.IdProperty;
+
+            return resourceIdProperty != null;
         }
 
 
         protected override Expression VisitConditional(ConditionalExpression node)
         {
             return Format(node,
-                "iif({0},{1},{2})",
-                Visit(node.Test),
-                Visit(node.IfTrue),
-                Visit(node.IfFalse));
+                          "iif({0},{1},{2})",
+                          Visit(node.Test),
+                          Visit(node.IfTrue),
+                          Visit(node.IfFalse));
         }
 
 
@@ -211,11 +255,9 @@ namespace Pomona.Common
             var valueType = node.Type;
             var value = node.Value;
             var encodedConstant = GetEncodedConstant(valueType, value);
-            
+
             if (encodedConstant != null)
-            {
                 return Terminal(node, encodedConstant, true);
-            }
 
             return NotSupported(node, "Constant of this type not supported.");
         }
@@ -278,9 +320,7 @@ namespace Pomona.Common
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             if (node.Method.UniqueToken() == OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod.UniqueToken())
-            {
                 return VisitStringEqualsTakingComparisonTypeCall(node);
-            }
 
             if (node.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
                 return Format(node, "{0} in {1}", Visit(node.Arguments[1]), Visit(node.Arguments[0]));
@@ -316,8 +356,8 @@ namespace Pomona.Common
                 !TryMapKnownOdataFunction(node, node.Method, args, out odataExpression))
             {
                 return NotSupported(node,
-                    "Don't know what to do with method " + node.Method.Name + " declared in "
-                    + node.Method.DeclaringType.FullName);
+                                    "Don't know what to do with method " + node.Method.Name + " declared in "
+                                    + node.Method.DeclaringType.FullName);
             }
 
             return odataExpression;
@@ -328,8 +368,10 @@ namespace Pomona.Common
         {
             var compTypeConstant = node.Arguments[2] as ConstantExpression;
             if (compTypeConstant == null)
+            {
                 return NotSupported(node,
-                    "String.Equals taking 3 arguments is only supported when ComparisonType is constant.");
+                                    "String.Equals taking 3 arguments is only supported when ComparisonType is constant.");
+            }
 
             string opString;
 
@@ -398,9 +440,9 @@ namespace Pomona.Common
                     else
                     {
                         return Format(node,
-                            "isof({0},{1})",
-                            Visit(node.Expression),
-                            Visit(Expression.Constant(typeOperand)));
+                                      "isof({0},{1})",
+                                      Visit(node.Expression),
+                                      Visit(Expression.Constant(typeOperand)));
                     }
 
                     // TODO: Proper typename resolving
@@ -421,9 +463,9 @@ namespace Pomona.Common
 
                 case ExpressionType.TypeAs:
                     return Scope(Format(node,
-                        "{0} as {1}",
-                        Visit(node.Operand),
-                        GetExternalTypeName(node.Type)));
+                                        "{0} as {1}",
+                                        Visit(node.Operand),
+                                        GetExternalTypeName(node.Type)));
 
                 case ExpressionType.Convert:
                     if (node.Operand.Type.IsEnum)
@@ -437,14 +479,14 @@ namespace Pomona.Common
                     else
                     {
                         return Format(node,
-                            "cast({0},{1})",
-                            Visit(node.Operand),
-                            GetExternalTypeName(node.Type));
+                                      "cast({0},{1})",
+                                      Visit(node.Operand),
+                                      GetExternalTypeName(node.Type));
                     }
 
                 default:
                     return NotSupported(node,
-                        "NodeType " + node.NodeType + " in UnaryExpression not yet handled.");
+                                        "NodeType " + node.NodeType + " in UnaryExpression not yet handled.");
             }
         }
 
@@ -456,9 +498,9 @@ namespace Pomona.Common
 
 
         internal static QuerySegmentExpression Format(Expression origNode,
-            bool localExecutionPreferred,
-            string format,
-            params object[] args)
+                                                      bool localExecutionPreferred,
+                                                      string format,
+                                                      params object[] args)
         {
             return new QueryFormattedSegmentExpression(origNode.Type, format, args, localExecutionPreferred);
         }
@@ -468,6 +510,7 @@ namespace Pomona.Common
         {
             return new QuerySegmentListExpression(args, origNode.Type);
         }
+
 
         internal static QuerySegmentListExpression Nodes(Expression origNode, IEnumerable<object> args)
         {
@@ -482,8 +525,8 @@ namespace Pomona.Common
 
 
         internal static QuerySegmentExpression Terminal(Expression origNode,
-            string value,
-            bool localExecutionPreferred = false)
+                                                        string value,
+                                                        bool localExecutionPreferred = false)
         {
             return new QueryTerminalSegmentExpression(value, origNode.Type, localExecutionPreferred);
         }
@@ -571,8 +614,8 @@ namespace Pomona.Common
 
 
         private static void ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref MemberInfo member,
-            ref IEnumerable<Expression>
-                arguments)
+                                                                                    ref IEnumerable<Expression>
+                                                                                        arguments)
         {
             var firstArg = arguments.First();
             Type[] queryableTypeArgs;
@@ -593,9 +636,9 @@ namespace Pomona.Common
                         .Select(x => new { parameters = x.GetParameters(), mi = x })
                         .Where(x => x.parameters.Length == wantedArgs.Length &&
                                     x.parameters
-                                        .Select(y => y.ParameterType)
-                                        .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
-                                        .All(y => y))
+                                   .Select(y => y.ParameterType)
+                                   .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
+                                   .All(y => y))
                         .Select(x => x.mi)
                         .FirstOrDefault();
 
@@ -740,7 +783,7 @@ namespace Pomona.Common
                     var rightConstant = (ConstantExpression)right;
                     left = unaryLeft.Operand;
                     right = Expression.Constant(Enum.ToObject(unaryLeft.Operand.Type, rightConstant.Value),
-                        unaryLeft.Operand.Type);
+                                                unaryLeft.Operand.Type);
                     return;
                 }
             }
@@ -751,8 +794,8 @@ namespace Pomona.Common
 
 
         private void TryDetectAndConvertNullableEnumComparison(ref Expression left,
-            ref Expression right,
-            bool tryAgainSwapped)
+                                                               ref Expression right,
+                                                               bool tryAgainSwapped)
         {
             if (left.Type != right.Type || !left.Type.IsNullable())
                 return;
@@ -815,15 +858,16 @@ namespace Pomona.Common
                 // Constant folding
                 var left = Visit(node.Left);
                 var right = Visit(node.Right);
-                if (left.NodeType == ExpressionType.Constant && right.NodeType == ExpressionType.Constant
-                    && left.Type == right.Type && IsFoldedType(left.Type)
+                if (left.NodeType == ExpressionType.Constant
+                    && right.NodeType == ExpressionType.Constant
+                    && left.Type == right.Type
+                    && IsFoldedType(left.Type)
                     && (node.Method == null || node.Method.DeclaringType == left.Type))
                 {
-                    return
-                        Expression.Constant(
-                            Expression.Lambda(node, Enumerable.Empty<ParameterExpression>()).Compile().DynamicInvoke(
-                                null),
-                            node.Type);
+                    return Expression.Constant(
+                        Expression.Lambda(node, Enumerable.Empty<ParameterExpression>()).Compile().DynamicInvoke(
+                            null),
+                        node.Type);
                 }
 
                 if (node.NodeType == ExpressionType.Add && left.Type == typeof(string)

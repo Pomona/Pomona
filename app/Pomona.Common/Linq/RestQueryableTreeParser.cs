@@ -508,11 +508,6 @@ namespace Pomona.Common.Linq
             if (SelectExpression != null)
                 fixedPredicate = MergeWhereAfterSelect(fixedPredicate);
 
-            var resourceIdPropertyVisitor = new ResourceIdPropertyReplacer();
-            LambdaExpression rewritten = resourceIdPropertyVisitor.Visit(fixedPredicate) as LambdaExpression;
-            if (rewritten != null)
-                fixedPredicate = Expression.Lambda(fixedPredicate.Type, rewritten.Body, fixedPredicate.Parameters);
-
             this.whereExpressions.Add(fixedPredicate);
             if (this.wherePredicate == null)
                 this.wherePredicate = fixedPredicate;
@@ -689,87 +684,6 @@ namespace Pomona.Common.Linq
                     return this.replaceParam;
 
                 return base.VisitParameter(node);
-            }
-        }
-
-        #endregion
-
-        #region Nested type: ResourceIdPropertyReplacer
-
-        private class ResourceIdPropertyReplacer : ExpressionVisitor
-        {
-            protected override Expression VisitBinary(BinaryExpression node)
-            {
-                return base.VisitBinary(node);
-
-                /*var left = node.Left;
-                var right = node.Right;
-
-                if (left == null || right == null || left.Type != right.Type)
-                    return base.VisitBinary(node);
-
-                Type interfaceWithResourceIdProperty;
-                PropertyInfo resourceIdProperty;
-                if (!GetInterfaceWithResourceIdProperty(left.Type,
-                                                        out interfaceWithResourceIdProperty,
-                                                        out resourceIdProperty))
-                    return base.VisitBinary(node);
-
-                var resourceIdPropertyName = resourceIdProperty.Name;
-                var leftResourceIdProperty = Expression.Property(left,
-                                                                 interfaceWithResourceIdProperty,
-                                                                 resourceIdPropertyName);
-                var rightResourceIdProperty = Expression.Property(right,
-                                                                  interfaceWithResourceIdProperty,
-                                                                  resourceIdPropertyName);
-
-                node = Expression.Equal(leftResourceIdProperty, rightResourceIdProperty);
-
-                return base.VisitBinary(node);*/
-            }
-
-
-            protected override Expression VisitMember(MemberExpression node)
-            {
-                return base.VisitMember(node);
-
-                /*Type interfaceWithResourceIdProperty;
-                PropertyInfo resourceIdProperty;
-                if (!GetInterfaceWithResourceIdProperty(node.Type,
-                                                        out interfaceWithResourceIdProperty,
-                                                        out resourceIdProperty))
-                    return base.VisitMember(node);
-
-                var resourceIdPropertyName = resourceIdProperty.Name;
-
-                // TODO: Figure out why this causes "Reference equality is not defined for the types 'System.Int32' and 'System.Int32'." to be thrown. @asbjornu
-                return Expression.Property(node, interfaceWithResourceIdProperty, resourceIdPropertyName);*/
-            }
-
-
-            private static bool GetInterfaceWithResourceIdProperty(Type type,
-                                                                   out Type interfaceWithResourceIdProperty,
-                                                                   out PropertyInfo resourceIdProperty)
-            {
-                // TODO: This should be retrieved from a cache, if possible. @asbjornu
-                var interfaces = type.GetInterfaces();
-
-                foreach (var @interface in interfaces)
-                {
-                    resourceIdProperty = @interface
-                        .GetProperties()
-                        .FirstOrDefault(p => p.HasAttribute<ResourceIdPropertyAttribute>(true));
-
-                    if (resourceIdProperty == null)
-                        continue;
-
-                    interfaceWithResourceIdProperty = @interface;
-                    return true;
-                }
-
-                interfaceWithResourceIdProperty = null;
-                resourceIdProperty = null;
-                return false;
             }
         }
 
