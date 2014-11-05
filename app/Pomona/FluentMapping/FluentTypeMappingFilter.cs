@@ -63,7 +63,7 @@ namespace Pomona.FluentMapping
 
             var ruleMethods =
                 GetMappingRulesFromObjects(fluentRuleObjects).Concat(GetMappingRulesFromDelegates(mapDelegates)).Flatten
-                    (x => x.GetChildRules());
+                    (x => x.GetChildRules()).ToList();
 
             ApplyRules(ruleMethods);
         }
@@ -213,9 +213,24 @@ namespace TestNs
                 propertyInfo.ReflectedType,
                 propertyInfo,
                 x =>
-                    (x.Method & x.MethodMask)
-                    | (this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec) & ~(x.MethodMask)),
+                    GetCombinedPropertyAccessMode(propertyInfo, constructorSpec, x),
                 () => this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec));
+        }
+
+
+        private HttpMethod GetCombinedPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec, PropertyMappingOptions opts)
+        {
+            var accessModeFromWrappedFilter = this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec);
+            accessModeFromWrappedFilter |= PatchOfTypeIsAllowed(propertyInfo.PropertyType) ? HttpMethod.Patch : 0;
+
+            Type elementType;
+            if (propertyInfo.PropertyType.TryGetEnumerableElementType(out elementType))
+            {
+                accessModeFromWrappedFilter |= 
+                    (TypeIsMappedAsTransformedType(elementType) && PostOfTypeIsAllowed(elementType))
+                    ? HttpMethod.Post : 0;
+            }
+            return (opts.Method & opts.MethodMask) | (accessModeFromWrappedFilter & ~(opts.MethodMask));
         }
 
 
@@ -270,10 +285,18 @@ namespace TestNs
             return FromMappingOrDefault(type,
                                         propertyInfo,
                                         x =>
-                                            (x.ItemMethod & x.ItemMethodMask)
-                                            | (this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo)
-                                               & ~(x.ItemMethodMask)),
+                                            GetCombinedPropertyItemAccessMode(type, propertyInfo, x),
                                         () => this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo));
+        }
+
+
+        private HttpMethod GetCombinedPropertyItemAccessMode(Type type, PropertyInfo propertyInfo, PropertyMappingOptions opts)
+        {
+            var accessModeFromWrappedFilter = this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo);
+            accessModeFromWrappedFilter |= this.wrappedFilter.PatchOfTypeIsAllowed(type) ? HttpMethod.Patch : 0;
+            return (opts.ItemMethod & opts.ItemMethodMask)
+                   | (accessModeFromWrappedFilter
+                      & ~(opts.ItemMethodMask));
         }
 
 
@@ -306,7 +329,7 @@ namespace TestNs
 
         public IEnumerable<Type> GetResourceHandlers(Type type)
         {
-            return FromMappingOrDefault(type, x => x.HandlerTypes, () => this.wrappedFilter.GetResourceHandlers(type));
+            return FromMappingOrDefault(type, x => x.HandlerTypes, () => this.wrappedFilter.GetResourceHandlers(type).EmptyIfNull());
         }
 
 
@@ -692,6 +715,13 @@ namespace TestNs
                 this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
                 this.method = method;
                 this.instance = instance;
+            }
+
+
+            public override string ToString()
+            {
+                var declaringType = method.DeclaringType;
+                return string.Format("{1}.{2} for {0}", appliesToType.Name, declaringType != null ? declaringType.Name : "?", method.Name);
             }
 
 

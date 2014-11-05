@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Pomona.Common.Internals
@@ -47,6 +48,18 @@ namespace Pomona.Common.Internals
         {
             foreach (var item in source)
                 target.Add(item);
+        }
+
+
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> source, params T[] value)
+        {
+            return source.Concat(value);
+        }
+
+
+        public static IEnumerable<T> AppendLazy<T>(this IEnumerable<T> source, Func<T> value)
+        {
+            return source.Concat(Enumerable.Range(0, 1).Select(x => value()));
         }
 
 
@@ -80,9 +93,13 @@ namespace Pomona.Common.Internals
         }
 
 
-        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> items, Func<T, IEnumerable<T>> getChildren)
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> items,
+                                                Func<T, IEnumerable<T>> getChildren,
+                                                int? maxDepth = null)
         {
-            return items.SelectMany(x => x.WrapAsEnumerable().Concat(getChildren(x).Flatten(getChildren)));
+            if (maxDepth < 1)
+                return Enumerable.Empty<T>();
+            return items.SelectMany(x => x.WrapAsEnumerable().Concat(getChildren(x).Flatten(getChildren, maxDepth--)));
         }
 
 
@@ -105,6 +122,27 @@ namespace Pomona.Common.Internals
                 yield return paddingValue;
                 count--;
             }
+        }
+
+
+        /// <summary>
+        /// Returns the only element of a sequence, or a default value if the sequence is empty or contains more than one element.
+        /// </summary>
+        public static TSource SingleOrDefaultIfMultiple<TSource>(this IEnumerable<TSource> source)
+        {
+            var elements = source.Take(2).ToArray();
+
+            return (elements.Length == 1) ? elements[0] : default(TSource);
+        }
+
+
+        /// <summary>
+        /// Returns the only element of a sequence, or a default value if the sequence is empty or contains more than one element.
+        /// </summary>
+        public static TSource SingleOrDefaultIfMultiple<TSource>(this IEnumerable<TSource> source,
+                                                                 Func<TSource, bool> predicate)
+        {
+            return source.Where(predicate).SingleOrDefaultIfMultiple();
         }
 
 

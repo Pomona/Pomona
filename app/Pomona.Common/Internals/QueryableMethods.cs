@@ -81,7 +81,7 @@ namespace Pomona.Common.Internals
             thenBy = GetMethodInfo(x => x.ThenBy(y => y));
             thenByDescending = GetMethodInfo(x => x.ThenByDescending(y => y));
             first = GetMethodInfo(x => x.First());
-            firstOrDefault = GetMethodInfo(x => x.FirstOrDefault());
+            firstOrDefault = GetMethodInfo(x => Queryable.FirstOrDefault(x));
             firstWithPredicate = GetMethodInfo(x => x.First(y => false));
             firstOrDefaultWithPredicate = GetMethodInfo(x => x.FirstOrDefault(y => false));
             anyWithPredicate = GetMethodInfo(x => x.Any(null));

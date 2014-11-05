@@ -66,6 +66,17 @@ namespace Pomona.Common.Internals
 
         public static MethodInfo GetMethodDefinition<TInstance>(Expression<Action<TInstance>> expr)
         {
+            return GetMethodDefinition((LambdaExpression)expr);
+        }
+
+
+        public static MethodInfo GetMethodDefinition(Expression<Action> expr)
+        {
+            return GetMethodDefinition((LambdaExpression)expr);
+        }
+
+        public static MethodInfo GetMethodDefinition(LambdaExpression expr)
+        {
             var body = expr.Body;
             while (body.NodeType == ExpressionType.Convert)
                 body = ((UnaryExpression)body).Operand;

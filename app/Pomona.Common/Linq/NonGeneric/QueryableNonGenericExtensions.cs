@@ -31,12 +31,24 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
+using Pomona.Common.Expressions;
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Linq.NonGeneric
 {
     public static class QueryableNonGenericExtensions
     {
+        public static object Execute(this IQueryable source, QueryableProjection projection)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (projection == null)
+                throw new ArgumentNullException("projection");
+
+            return projection.Execute(source);
+        }
+
+
         public static IQueryable GroupBy(this IQueryable source, LambdaExpression keySelector)
         {
             if (source == null)

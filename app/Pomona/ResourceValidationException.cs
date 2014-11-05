@@ -27,7 +27,7 @@ using Nancy;
 
 namespace Pomona
 {
-    public class ResourceValidationException : PomonaException
+    public class ResourceValidationException : PomonaServerException
     {
         private readonly string memberName;
 

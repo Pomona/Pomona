@@ -54,8 +54,7 @@ namespace Pomona.UnitTests.FluentMapping
             DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null,
             Action<ITypeMappingConfigurator<T>> mappingOverride = null)
         {
-            var sourceTypes = typeof(FluentMappingTestsBase).GetNestedTypes().Where(
-                x => typeof(T).IsAssignableFrom(x)).ToList();
+            var sourceTypes = typeof(FluentMappingTestsBase).GetNestedTypes().ToList();
             var typeMappingFilter = new TestTypeMappingFilter(sourceTypes, defaultPropertyInclusionMode);
             var fluentRuleDelegates = mappingOverride != null ? new Delegate[] { mappingOverride } : new Delegate[] { };
             var fluentMappingFilter = new FluentTypeMappingFilter(
@@ -144,6 +143,7 @@ namespace Pomona.UnitTests.FluentMapping
         public class ChildEntity
         {
             public virtual int Id { get; set; }
+            public virtual TestEntityBase Parent { get; set; }
         }
 
         #endregion

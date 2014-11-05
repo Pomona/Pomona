@@ -326,14 +326,21 @@ namespace Pomona.Common
 
         public static bool IsGenericInstanceOf(this Type type, params Type[] genericTypeDefinitions)
         {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (genericTypeDefinitions == null)
+                throw new ArgumentNullException("genericTypeDefinitions");
             return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
         }
 
 
-        public static bool IsGenericTypeInstance(this Type typeInstance, Type genTypeDef)
+        public static bool IsGenericInstanceOf(this MethodInfo type, params MethodInfo[] genericTypeDefinitions)
         {
-            Type[] tmp;
-            return TryExtractTypeArguments(typeInstance, genTypeDef, out tmp);
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (genericTypeDefinitions == null)
+                throw new ArgumentNullException("genericTypeDefinitions");
+            return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
         }
 
 
@@ -554,13 +561,14 @@ namespace Pomona.Common
 
         public static bool TryGetEnumerableElementType(this Type type, out Type elementType)
         {
-            var enumerableInterface = type.GetInterfacesOfGeneric(typeof(IEnumerable<>)).FirstOrDefault();
-
-            if (enumerableInterface != null)
-                elementType = enumerableInterface.GetGenericArguments()[0];
-            else
-                elementType = null;
-            return elementType != null;
+            Type[] typeArgs;
+            if (TryExtractTypeArguments(type, typeof(IEnumerable<>), out typeArgs))
+            {
+                elementType = typeArgs[0];
+                return true;
+            }
+            elementType = null;
+            return false;
         }
 
 

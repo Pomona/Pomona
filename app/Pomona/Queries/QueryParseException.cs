@@ -37,7 +37,7 @@ using Nancy;
 
 namespace Pomona.Queries
 {
-    public class QueryParseException : PomonaException
+    public class QueryParseException : PomonaServerException
     {
         private readonly QueryParseErrorReason errorReason;
         private readonly string memberName;

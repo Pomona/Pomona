@@ -27,7 +27,7 @@ using Nancy;
 
 namespace Pomona
 {
-    public class ResourceNotFoundException : PomonaException
+    public class ResourceNotFoundException : PomonaServerException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class with a specified error message.
