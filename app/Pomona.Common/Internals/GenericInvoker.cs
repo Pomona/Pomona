@@ -47,21 +47,18 @@ namespace Pomona.Common.Internals
 
         public static MethodInfo ExtractMethodInfo(this LambdaExpression expr)
         {
-            var body = expr.Body;
-            while (body.NodeType == ExpressionType.Convert)
-                body = ((UnaryExpression)body).Operand;
-            return ((MethodCallExpression)body).Method;
+            return ReflectionHelper.GetMethodDefinition(expr);
         }
 
 
-        public static IntanceMethodFactory<TInstance> Instance<TInstance>()
+        public static InstanceMethodFactory<TInstance> Instance<TInstance>()
         {
-            return new IntanceMethodFactory<TInstance>();
+            return new InstanceMethodFactory<TInstance>();
         }
 
-        #region Nested type: IntanceMethodFactory
+        #region Nested type: InstanceMethodFactory
 
-        public class IntanceMethodFactory<TInstance>
+        public class InstanceMethodFactory<TInstance>
         {
             public Action<Type, TInstance> CreateAction1(Expression<Action<TInstance>> expr)
             {
@@ -109,15 +106,6 @@ namespace Pomona.Common.Internals
                 Expression<Action<TInstance>> expr)
             {
                 return WrapInstanceGenericMethod<Action<Type, Type, TInstance, T1, T2, T3>>(2, expr);
-            }
-
-
-            public GenericInvoker<Func<TInstance, T1, T2, TReturn>> CreateFunc<T1, T2, TReturn>(
-                Expression<Func<TInstance, object>> expr)
-            {
-                return
-                    new GenericInvoker<Func<TInstance, T1, T2, TReturn>>(
-                        expr.ExtractMethodInfo().GetGenericMethodDefinition());
             }
 
 
@@ -196,7 +184,7 @@ namespace Pomona.Common.Internals
             {
                 var tDelInvoke = typeof(TDel).GetDelegateInvokeMethod();
                 var innerDelegateSignature =
-                    tDelInvoke.GetParameters().Skip(typeArgCount).Select(x => x.ParameterType).Concat(
+                    tDelInvoke.GetParameters().Skip(typeArgCount).Select(x => x.ParameterType).Append(
                         tDelInvoke.ReturnType).ToArray();
                 var innerDelegate = Expression.GetDelegateType(innerDelegateSignature);
                 var gi = Create(innerDelegate, expr.ExtractMethodInfo().GetGenericMethodDefinition());
