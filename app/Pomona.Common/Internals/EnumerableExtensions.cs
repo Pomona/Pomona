@@ -93,9 +93,13 @@ namespace Pomona.Common.Internals
         }
 
 
-        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> items, Func<T, IEnumerable<T>> getChildren)
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> items,
+                                                Func<T, IEnumerable<T>> getChildren,
+                                                int? maxDepth = null)
         {
-            return items.SelectMany(x => x.WrapAsEnumerable().Concat(getChildren(x).Flatten(getChildren)));
+            if (maxDepth < 1)
+                return Enumerable.Empty<T>();
+            return items.SelectMany(x => x.WrapAsEnumerable().Concat(getChildren(x).Flatten(getChildren, maxDepth--)));
         }
 
 
