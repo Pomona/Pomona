@@ -42,11 +42,11 @@ namespace Pomona.Common.Internals
 
         internal static ResourceInfoAttribute GetResourceInfoAttribute(this Type type)
         {
-            var ria =
-                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
-                    .FirstOrDefault();
-            if (ria == null)
+            ResourceInfoAttribute ria;
+
+            if (!type.TryGetResourceInfoAttribute(out ria))
                 throw new InvalidOperationException("Unable to get resource info attribute");
+
             return ria;
         }
 
@@ -56,6 +56,20 @@ namespace Pomona.Common.Internals
             return
                 type.WalkTree(x => x.GetResourceBaseInterface()).Select(x => x.GetProperty(propertyName)).FirstOrDefault
                     (x => x != null);
+        }
+
+
+        internal static bool TryGetResourceInfoAttribute(this Type type, out ResourceInfoAttribute resourceInfoAttribute)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+
+            resourceInfoAttribute = type
+                .GetCustomAttributes(typeof(ResourceInfoAttribute), false)
+                .OfType<ResourceInfoAttribute>()
+                .FirstOrDefault();
+
+            return resourceInfoAttribute != null;
         }
     }
 }
