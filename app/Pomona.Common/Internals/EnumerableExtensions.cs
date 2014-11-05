@@ -51,6 +51,18 @@ namespace Pomona.Common.Internals
         }
 
 
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> source, params T[] value)
+        {
+            return source.Concat(value);
+        }
+
+
+        public static IEnumerable<T> AppendLazy<T>(this IEnumerable<T> source, Func<T> value)
+        {
+            return source.Concat(Enumerable.Range(0, 1).Select(x => value()));
+        }
+
+
         /// <summary>
         /// Cast to IEnumerable{T}, where T will be castType
         /// </summary>

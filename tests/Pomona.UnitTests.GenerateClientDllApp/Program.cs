@@ -116,7 +116,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
             public override IEnumerable<object> FluentRuleObjects
             {
-                get { return base.FluentRuleObjects.Concat(new ModifiedFluentRules()); }
+                get { return base.FluentRuleObjects.Append(new ModifiedFluentRules()); }
             }
 
             public override ITypeMappingFilter TypeMappingFilter
