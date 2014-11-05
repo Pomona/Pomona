@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona", "app\Pomona\Pomona.csproj", "{EE396A59-956E-4DEE-B222-991F2274ED67}"
 EndProject
@@ -61,6 +61,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Profiling.MiniProfiler", "app\Pomona.Profiling.MiniProfiler\Pomona.Profiling.MiniProfiler.csproj", "{0D02DC08-3CB7-45BB-8403-24200392785D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Example.ServerAspnetApp", "tests\Pomona.Example.ServerAspnetApp\Pomona.Example.ServerAspnetApp.csproj", "{8C32D931-0FA9-4191-9C6D-640435995207}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.NHibernate3", "app\Pomona.NHibernate3\Pomona.NHibernate3.csproj", "{7820ED76-DF9E-47E3-B122-D2D286603762}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -230,6 +232,16 @@ Global
 		{8C32D931-0FA9-4191-9C6D-640435995207}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{8C32D931-0FA9-4191-9C6D-640435995207}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{8C32D931-0FA9-4191-9C6D-640435995207}.Release|x86.ActiveCfg = Release|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7820ED76-DF9E-47E3-B122-D2D286603762}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -250,5 +262,6 @@ Global
 		{CFA3F173-4441-4773-BF3D-97F2818AAE1F} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
 		{0D02DC08-3CB7-45BB-8403-24200392785D} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
 		{8C32D931-0FA9-4191-9C6D-640435995207} = {5B5B9445-7105-4C81-B3BD-039FBCD52034}
+		{7820ED76-DF9E-47E3-B122-D2D286603762} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
 	EndGlobalSection
 EndGlobal
