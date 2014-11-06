@@ -121,6 +121,7 @@
     <Compile Include="QueryCritterTests.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="Handlers\HandlerMethodTests.cs" />
+    <Compile Include="RootResourceTests.cs" />
     <Compile Include="Serialization\JsonSerializationTests.cs" />
     <Compile Include="TestingClient\TestingClientTests.cs" />
     <Compile Include="TypeSystem\ClientTypeMapperTests.cs" />
