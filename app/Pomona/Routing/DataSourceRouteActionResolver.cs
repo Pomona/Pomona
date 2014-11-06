@@ -41,6 +41,10 @@ namespace Pomona.Routing
         public virtual IEnumerable<RouteAction> Resolve(Route route,
                                                         HttpMethod method)
         {
+            DataSourceRootRoute rootRoute = route as DataSourceRootRoute;
+            if (rootRoute != null)
+                yield return ResolveGetRootResource(rootRoute);
+
             var resourceItemType = route.ResultItemType as ResourceType;
             if (resourceItemType == null)
                 yield break;
@@ -60,6 +64,24 @@ namespace Pomona.Routing
             }
             if (func != null)
                 yield return func;
+        }
+
+
+        private Func<PomonaRequest, PomonaResponse> ResolveGetRootResource(DataSourceRootRoute route)
+        {
+            return pr =>
+            {
+                var request = pr;
+                var uriResolver = request.Session.GetInstance<IUriResolver>();
+                var repos =
+                    new SortedDictionary<string, string>(route.Children.OfType<ILiteralRoute>().ToDictionary(
+                        x => x.MatchValue,
+                        x => uriResolver.RelativeToAbsoluteUri(x.MatchValue)));
+
+                return new PomonaResponse(repos,
+                                          resultType :
+                                              request.TypeMapper.GetClassMapping<IDictionary<string, string>>());
+            };
         }
 
 

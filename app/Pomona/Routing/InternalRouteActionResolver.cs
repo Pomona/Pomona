@@ -88,24 +88,20 @@ namespace Pomona.Routing
         private IEnumerable<RouteAction> ResolveNonCached(Route route, HttpMethod method)
         {
             // First check whether there's a matching handler for type
-            var resourceItemType = route.ResultItemType as ResourceType;
-
             if (!route.AllowedMethods.HasFlag(method))
             {
                 return
                     RouteAction.Create(pr => ThrowMethodNotAllowedForType(method, route.AllowedMethods)).WrapAsArray();
             }
 
-            if (resourceItemType != null)
-            {
-                var routeActions = this.nestedActionResolvers
-                    .SelectMany(x => x.Resolve(route, method));
+            var routeActions = this.nestedActionResolvers
+                .SelectMany(x => x.Resolve(route, method).EmptyIfNull()).ToList();
+            if (routeActions.Count > 0)
                 return routeActions;
-            }
 
             return RouteAction.Create(x =>
             {
-                throw new PomonaServerException("Type of route is not a ResourceType, unable to locate handler.",
+                throw new PomonaServerException("Unable to resolve action for route.",
                                                 null,
                                                 statusCode : HttpStatusCode.Forbidden);
             }).WrapAsArray();

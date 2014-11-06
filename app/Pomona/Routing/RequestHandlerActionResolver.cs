@@ -43,7 +43,7 @@ namespace Pomona.Routing
             // First check whether there's a matching handler for type
             var resourceItemType = route.ResultItemType as ResourceType;
             if (resourceItemType == null)
-                return null;
+                return Enumerable.Empty<RouteAction>();
 
             var routeActions =
                 resourceItemType
