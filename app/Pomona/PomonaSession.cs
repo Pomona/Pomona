@@ -155,22 +155,25 @@ namespace Pomona
 
         private PomonaResponse ExecuteQueryable(PomonaRequest request, IQueryable resultAsQueryable)
         {
-            PomonaResponse result;
             var queryableActionResult = resultAsQueryable as IQueryableActionResult;
             if (queryableActionResult != null && queryableActionResult.Projection != null)
             {
-                var entity = queryableActionResult.Execute(queryableActionResult.Projection);
-                if (entity == null)
-                    throw new ResourceNotFoundException("Resource not found.");
-                result = new PomonaResponse(entity);
+                if (queryableActionResult.Projection != QueryProjection.AsEnumerable)
+                {
+                    var entity = queryableActionResult.Execute(queryableActionResult.Projection);
+                    if (entity == null)
+                        throw new ResourceNotFoundException("Resource not found.");
+                    return new PomonaResponse(entity);
+                }
+                else
+                {
+                    resultAsQueryable = queryableActionResult.WrappedQueryable;
+                }
             }
-            else
-            {
-                var queryExecutor = (GetInstance<IPomonaDataSource>() as IQueryExecutor) ?? new DefaultQueryExecutor();
-                var pomonaQuery = ParseQuery(request, resultAsQueryable.ElementType);
-                result = queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
-            }
-            return result;
+
+            var queryExecutor = (GetInstance<IPomonaDataSource>() as IQueryExecutor) ?? new DefaultQueryExecutor();
+            var pomonaQuery = ParseQuery(request, resultAsQueryable.ElementType);
+            return queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
         }
 
 

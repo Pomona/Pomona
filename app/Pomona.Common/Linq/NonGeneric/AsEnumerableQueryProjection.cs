@@ -36,7 +36,7 @@ namespace Pomona.Common.Linq.NonGeneric
     {
         public override string Name
         {
-            get { return "Enumerate"; }
+            get { return "AsEnumerable"; }
         }
 
         public override object Execute(IQueryable queryable)

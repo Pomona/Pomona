@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,12 @@ namespace Pomona.Example.Models.Existence
 {
     public class Galaxy : CelestialObject
     {
-        private ICollection<PlanetarySystem> planetarySystems = new List<PlanetarySystem>();
+        private readonly ICollection<PlanetarySystem> planetarySystems = new List<PlanetarySystem>();
+
+        public GalaxyInfo Info
+        {
+            get { return new GalaxyInfo(this); }
+        }
 
         public ICollection<PlanetarySystem> PlanetarySystems
         {

@@ -35,6 +35,7 @@ namespace Pomona.RequestProcessing
     internal interface IQueryableActionResult : IQueryable, IActionResult
     {
         QueryProjection Projection { get; }
+        IQueryable WrappedQueryable { get; }
     }
 
     internal interface IQueryableActionResult<out TElement> : IQueryable<TElement>, IQueryableActionResult

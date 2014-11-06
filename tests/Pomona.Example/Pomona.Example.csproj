@@ -95,6 +95,7 @@
     <Compile Include="Models\Existence\DwarfMoon.cs" />
     <Compile Include="Models\Existence\DwarfPlanet.cs" />
     <Compile Include="Models\Existence\Galaxy.cs" />
+    <Compile Include="Models\Existence\GalaxyInfo.cs" />
     <Compile Include="Models\Existence\Planemo.cs" />
     <Compile Include="Models\Existence\Planet.cs" />
     <Compile Include="Models\Existence\PlanetarySystem.cs" />

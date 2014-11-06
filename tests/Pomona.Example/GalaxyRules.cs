@@ -55,7 +55,8 @@ namespace Pomona.Example
         public void Map(ITypeMappingConfigurator<Galaxy> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository());
+                .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository())
+                .HasChild(x => x.Info, x => x.Galaxy);
         }
 
 

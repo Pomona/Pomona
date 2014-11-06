@@ -70,6 +70,25 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetChildResourceIdentifiedById_AtNonExistantUrl_ThrowsResourceNotFoundException()
+        {
+            Assert.Throws<Common.Web.ResourceNotFoundException>(() => Client.Get<IPlanetarySystem>("http://test/galaxies/nowhere/planetary-systems/nada"));
+        }
+
+        [Test]
+        public void GetChildResourceFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
+        {
+            Client.Get<IGalaxyInfo>("http://test/galaxies/milkyway/info");
+            Assert.Throws<Common.Web.ResourceNotFoundException>(() => Client.Get<IGalaxyInfo>("http://test/galaxies/nowhere/info"));
+        }
+
+        [Test]
+        public void GetCollectionOfChildResourcesFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
+        {
+            Assert.Throws<Common.Web.ResourceNotFoundException>(() => Client.Get<QueryResult<IPlanetarySystem>>("http://test/galaxies/nowhere/planetary-systems"));
+        }
+
+        [Test]
         public void ChildResourcesGetsCorrectUrl()
         {
             var galaxy = Client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();

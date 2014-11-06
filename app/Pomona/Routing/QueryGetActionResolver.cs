@@ -118,11 +118,20 @@ namespace Pomona.Routing
             {
                 return
                     pr =>
-                        new PomonaResponse(
-                            pr.Node.Parent
+                    {
+                        // Check existance of parent here, cannot differentiate between an empty collection and not found.
+                        var parent = pr.Node.Parent;
+                        if (parent.Route.IsSingle)
+                            if (!parent.Exists)
+                                throw new ResourceNotFoundException("Resource not found.");
+                            
+                        return new PomonaResponse(
+                            parent
                                 .Query()
                                 .OfTypeIfRequired(pr.Node.Route.InputType)
-                                .SelectManyEx(x => x.Apply(property.CreateGetterExpression)));
+                                .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
+                                .WrapActionResult());
+                    };
             }
             else
             {
@@ -138,7 +147,8 @@ namespace Pomona.Routing
                                 .OfTypeIfRequired(pr.Node.Route.InputType)
                                 .ToListDetectType()
                                 .AsQueryable()
-                                .SelectManyEx(x => x.Apply(property.CreateGetterExpression)));
+                                .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
+                                .WrapActionResult());
                     };
             }
         }
