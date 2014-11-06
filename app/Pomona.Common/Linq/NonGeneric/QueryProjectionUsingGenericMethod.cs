@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,35 +27,32 @@
 #endregion
 
 using System;
-using System.Linq;
+using System.Reflection;
 
-using Pomona.Common.Linq;
-using Pomona.Common.Linq.NonGeneric;
-
-namespace Pomona.RequestProcessing
+namespace Pomona.Common.Linq.NonGeneric
 {
-    internal class QueryableActionResult<TElement, TResult>
-        : WrappedQueryableBase<TElement>, IQueryableActionResult<TElement, TResult>
+    internal class QueryProjectionUsingGenericMethod : QueryProjectionMethodBase
     {
-        private readonly QueryProjection projection;
+        private readonly MethodInfo methodDefinition;
+        private readonly string name;
 
 
-        internal QueryableActionResult(IQueryable<TElement> innerQueryable,
-                                       QueryProjection projection)
-            : base(innerQueryable)
+        public QueryProjectionUsingGenericMethod(MethodInfo methodDefinition, string name)
         {
-            this.projection = projection;
+            this.methodDefinition = methodDefinition;
+            this.name = name;
         }
 
 
-        public QueryProjection Projection
+        public override string Name
         {
-            get { return this.projection; }
+            get { return this.name; }
         }
 
-        public Type ResultType
+
+        protected override MethodInfo GetMethod(Type elementType)
         {
-            get { return typeof(TResult); }
+            return this.methodDefinition.MakeGenericMethod(elementType);
         }
     }
 }

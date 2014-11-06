@@ -32,12 +32,16 @@ using Pomona.Common.Linq.NonGeneric;
 
 namespace Pomona.RequestProcessing
 {
-    internal interface IQueryableActionResult : IQueryable
+    internal interface IQueryableActionResult : IQueryable, IActionResult
     {
-        QueryableProjection DefaultProjection { get; }
+        QueryProjection Projection { get; }
     }
 
-    internal interface IQueryableActionResult<out T> : IQueryable<T>, IQueryableActionResult
+    internal interface IQueryableActionResult<out TElement> : IQueryable<TElement>, IQueryableActionResult
+    {
+    }
+
+    internal interface IQueryableActionResult<out TElement, TResult> : IQueryableActionResult<TElement>
     {
     }
 }

@@ -30,6 +30,5 @@ namespace Pomona.RequestProcessing
 {
     internal interface IActionResult
     {
-        string ExpandedPaths { get; }
     }
 }

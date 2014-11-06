@@ -32,33 +32,49 @@ using System.Reflection;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq.NonGeneric;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona.RequestProcessing
 {
     internal static class QueryableActionResultExtensions
     {
         private static readonly MethodInfo wrapActionResultGenericMethod =
-            ReflectionHelper.GetMethodDefinition<IQueryable<object>>(q => q.WrapActionResult(null, null));
+            ReflectionHelper.GetMethodDefinition(() => WrapActionResult<object, object>(null, null));
 
 
         public static IQueryableActionResult<T> WrapActionResult<T>(this IQueryable<T> source,
-                                                                    TypeSpec resultType = null,
-                                                                    QueryableProjection defaultProjection = null)
+                                                                    QueryProjection projection = null)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            return new QueryableActionResult<T>(source, resultType, defaultProjection);
+            return (IQueryableActionResult<T>)WrapActionResult((IQueryable)source, projection);
         }
 
 
-        public static IQueryableActionResult WrapActionResult(this IQueryable source, TypeSpec resultType = null, QueryableProjection defaultProjection = null)
+        public static IQueryableActionResult WrapActionResult(this IQueryable source,
+                                                              QueryProjection projection = null)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
+            Type resultType;
+            if (projection != null)
+                resultType = projection.GetResultType(source.ElementType);
+            else
+            {
+                projection = QueryProjection.AsEnumerable;
+                resultType = source.ElementType;
+            }
             return
-                (IQueryableActionResult)wrapActionResultGenericMethod.MakeGenericMethod(source.ElementType)
-                    .Invoke(null, new object[] { source, resultType, defaultProjection });
+                (IQueryableActionResult)wrapActionResultGenericMethod.MakeGenericMethod(source.ElementType, resultType)
+                    .Invoke(null, new object[] { source, projection });
+        }
+
+
+        private static IQueryableActionResult WrapActionResult<TElement, TResult>(IQueryable<TElement> source,
+                                                                                  QueryProjection projection)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            return new QueryableActionResult<TElement, TResult>(source, projection);
         }
     }
 }

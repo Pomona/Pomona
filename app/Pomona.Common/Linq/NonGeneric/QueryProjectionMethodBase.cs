@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,34 +28,40 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
-using Pomona.Common.Linq;
-using Pomona.Common.Linq.NonGeneric;
-
-namespace Pomona.RequestProcessing
+namespace Pomona.Common.Linq.NonGeneric
 {
-    internal class QueryableActionResult<TElement, TResult>
-        : WrappedQueryableBase<TElement>, IQueryableActionResult<TElement, TResult>
+    internal abstract class QueryProjectionMethodBase : QueryProjection
     {
-        private readonly QueryProjection projection;
-
-
-        internal QueryableActionResult(IQueryable<TElement> innerQueryable,
-                                       QueryProjection projection)
-            : base(innerQueryable)
+        public override Expression Apply(IQueryable queryable)
         {
-            this.projection = projection;
+            if (queryable == null)
+                throw new ArgumentNullException("queryable");
+            var method = GetMethod(queryable.ElementType);
+            return Expression.Call(method, queryable.Expression);
         }
 
 
-        public QueryProjection Projection
+        public override Type GetResultType(Type elementType)
         {
-            get { return this.projection; }
+            return GetMethod(elementType).ReturnType;
         }
 
-        public Type ResultType
+
+        protected abstract MethodInfo GetMethod(Type elementType);
+
+        private static MethodInfo GetNonGenericQueryableMethod(Type iqType, string name)
         {
-            get { return typeof(TResult); }
+            var method = typeof(Queryable).GetMethod(name,
+                                                     BindingFlags.Public | BindingFlags.Static,
+                                                     null,
+                                                     new Type[] { iqType },
+                                                     null);
+            if (method == null)
+                throw new NotSupportedException("Unable to apply " + name + " to " + iqType);
+            return method;
         }
     }
 }

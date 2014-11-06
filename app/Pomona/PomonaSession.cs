@@ -157,9 +157,9 @@ namespace Pomona
         {
             PomonaResponse result;
             var queryableActionResult = resultAsQueryable as IQueryableActionResult;
-            if (queryableActionResult != null && queryableActionResult.DefaultProjection != null)
+            if (queryableActionResult != null && queryableActionResult.Projection != null)
             {
-                var entity = queryableActionResult.Execute(queryableActionResult.DefaultProjection);
+                var entity = queryableActionResult.Execute(queryableActionResult.Projection);
                 if (entity == null)
                     throw new ResourceNotFoundException("Resource not found.");
                 result = new PomonaResponse(entity);

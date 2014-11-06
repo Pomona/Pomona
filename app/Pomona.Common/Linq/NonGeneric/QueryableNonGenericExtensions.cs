@@ -38,7 +38,7 @@ namespace Pomona.Common.Linq.NonGeneric
 {
     public static class QueryableNonGenericExtensions
     {
-        public static object Execute(this IQueryable source, QueryableProjection projection)
+        public static object Execute(this IQueryable source, QueryProjection projection)
         {
             if (source == null)
                 throw new ArgumentNullException("source");

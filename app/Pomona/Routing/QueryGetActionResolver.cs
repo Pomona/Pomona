@@ -95,7 +95,7 @@ namespace Pomona.Routing
                                                       ex =>
                                                           ex.Apply(idProp.CreateGetterExpression)
                                                           == Ex.Const(segmentValue, idType))
-                                                  .WrapActionResult(resourceType, QueryableProjection.FirstOrDefault));
+                                                  .WrapActionResult(QueryProjection.FirstOrDefault));
                 };
         }
 
@@ -167,7 +167,7 @@ namespace Pomona.Routing
                     new PomonaResponse(pr,
                                        pr.Node.Parent.Query()
                                            .SelectEx(x => x.Apply(property.CreateGetterExpression))
-                                           .WrapActionResult(resourceType, QueryableProjection.FirstOrDefault));
+                                           .WrapActionResult(QueryProjection.FirstOrDefault));
         }
     }
 }

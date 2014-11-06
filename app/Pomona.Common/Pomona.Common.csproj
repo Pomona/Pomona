@@ -114,8 +114,12 @@
     <Compile Include="Linq\ClientServerSplitSelectExpression.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\IRestQueryRoot.cs" />
+    <Compile Include="Linq\NonGeneric\AsEnumerableQueryProjection.cs" />
     <Compile Include="Linq\NonGeneric\QueryableNonGenericExtensions.cs" />
-    <Compile Include="Linq\NonGeneric\QueryableProjection.cs" />
+    <Compile Include="Linq\NonGeneric\QueryProjection.cs" />
+    <Compile Include="Linq\NonGeneric\QueryProjectionMethodBase.cs" />
+    <Compile Include="Linq\NonGeneric\QueryProjectionUsingGenericMethod.cs" />
+    <Compile Include="Linq\NonGeneric\QueryProjectionUsingNonGenericMethod.cs" />
     <Compile Include="Linq\NotSupportedByProviderExpression.cs" />
     <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />

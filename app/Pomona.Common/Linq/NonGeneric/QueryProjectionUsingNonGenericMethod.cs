@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,34 +28,37 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 
-using Pomona.Common.Linq;
-using Pomona.Common.Linq.NonGeneric;
-
-namespace Pomona.RequestProcessing
+namespace Pomona.Common.Linq.NonGeneric
 {
-    internal class QueryableActionResult<TElement, TResult>
-        : WrappedQueryableBase<TElement>, IQueryableActionResult<TElement, TResult>
+    internal class QueryProjectionUsingNonGenericMethod : QueryProjectionMethodBase
     {
-        private readonly QueryProjection projection;
+        private readonly string name;
 
 
-        internal QueryableActionResult(IQueryable<TElement> innerQueryable,
-                                       QueryProjection projection)
-            : base(innerQueryable)
+        public QueryProjectionUsingNonGenericMethod(string name)
         {
-            this.projection = projection;
+            this.name = name;
         }
 
 
-        public QueryProjection Projection
+        public override string Name
         {
-            get { return this.projection; }
+            get { return this.name; }
         }
 
-        public Type ResultType
+
+        protected override MethodInfo GetMethod(Type elementType)
         {
-            get { return typeof(TResult); }
+            var method = typeof(Queryable).GetMethod(this.name,
+                                                     BindingFlags.Public | BindingFlags.Static,
+                                                     null,
+                                                     new Type[] { typeof(IQueryable<>).MakeGenericType(elementType) },
+                                                     null);
+            if (method == null)
+                throw new NotSupportedException("Unable to apply " + this.name + " to " + elementType);
+            return method;
         }
     }
 }
