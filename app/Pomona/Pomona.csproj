@@ -232,7 +232,7 @@
     <Compile Include="ResourcePreconditionFailedException.cs" />
     <Compile Include="ResourceValidationException.cs" />
     <Compile Include="Routing\DataSourceCollectionRoute.cs" />
-    <Compile Include="Routing\DataSourceRootActionResolver.cs" />
+    <Compile Include="Routing\DataSourceRouteActionResolver.cs" />
     <Compile Include="Routing\DataSourceRootRoute.cs" />
     <Compile Include="Routing\DefaultQueryProviderCapabilityResolver.cs" />
     <Compile Include="Routing\IQueryProviderCapabilityResolver.cs" />

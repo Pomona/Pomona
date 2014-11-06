@@ -36,7 +36,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Routing
 {
-    public class DataSourceRootActionResolver : IRouteActionResolver
+    public class DataSourceRouteActionResolver : IRouteActionResolver
     {
         public virtual IEnumerable<RouteAction> Resolve(Route route,
                                                         HttpMethod method)

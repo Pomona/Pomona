@@ -58,7 +58,7 @@ namespace Pomona
                 return new[]
                 {
                     new RequestHandlerActionResolver(),
-                    DataSourceRootActionResolver,
+                    this.DataSourceRouteActionResolver,
                     QueryGetActionResolver
                 }.Where(x => x != null);
             }
@@ -68,9 +68,9 @@ namespace Pomona
 
         public abstract ITypeMappingFilter TypeMappingFilter { get; }
 
-        protected virtual IRouteActionResolver DataSourceRootActionResolver
+        protected virtual IRouteActionResolver DataSourceRouteActionResolver
         {
-            get { return new DataSourceRootActionResolver(); }
+            get { return new DataSourceRouteActionResolver(); }
         }
 
         protected virtual IRouteActionResolver QueryGetActionResolver
