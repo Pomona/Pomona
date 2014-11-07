@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -40,16 +41,18 @@ namespace Pomona.Routing
     public abstract class Route : ITreeNode<Route>
     {
         private readonly Lazy<ReadOnlyCollection<Route>> childrenSortedByPriority;
+        private readonly Lazy<ReadOnlyDictionary<string, IEnumerable<Route>>> literalRouteMap;
         private readonly Route parent;
         private readonly int priority;
-        private Dictionary<string, Route> literalRouteDict;
 
 
         public Route(int priority, Route parent)
         {
             this.priority = priority;
             this.parent = parent;
-            this.literalRouteDict = new Dictionary<string, Route>();
+            this.literalRouteMap = new Lazy<ReadOnlyDictionary<string, IEnumerable<Route>>>(LoadLiteralRouteMap,
+                                                                                            LazyThreadSafetyMode
+                                                                                                .PublicationOnly);
             this.childrenSortedByPriority =
                 new Lazy<ReadOnlyCollection<Route>>(() => LoadChildren().OrderBy(x => x.priority).ToList().AsReadOnly());
         }
@@ -101,6 +104,11 @@ namespace Pomona.Routing
 
         public abstract TypeSpec ResultType { get; }
 
+        private ReadOnlyDictionary<string, IEnumerable<Route>> LiteralRouteMap
+        {
+            get { return this.literalRouteMap.Value; }
+        }
+
 
         public override sealed string ToString()
         {
@@ -126,28 +134,25 @@ namespace Pomona.Routing
         protected abstract string PathSegmentToString();
 
 
+        private ReadOnlyDictionary<string, IEnumerable<Route>> LoadLiteralRouteMap()
+        {
+            var comparer = StringComparer.InvariantCultureIgnoreCase;
+            var lowestPriority = Children.Min(x => x.Priority);
+
+            return
+                Children
+                    .Where(x => x.Priority == lowestPriority)
+                    .OfType<ILiteralRoute>()
+                    .GroupBy(x => x.MatchValue, comparer)
+                    .ToDictionary(x => x.Key, x => (IEnumerable<Route>)x.Cast<Route>().ToList(), comparer)
+                    .AsReadOnly();
+        }
+
+
         private bool TryMatchLiteralChild(string pathSegment,
                                           out IEnumerable<Route> matchChildren)
         {
-            matchChildren = null;
-            if (this.literalRouteDict == null && Children.Any())
-            {
-                this.literalRouteDict = new Dictionary<string, Route>(StringComparer.InvariantCultureIgnoreCase);
-                var lowestPriority = Children.Min(x => x.Priority);
-                foreach (var literalRoute in Children.Where(x => x.Priority == lowestPriority).OfType<ILiteralRoute>())
-                    this.literalRouteDict[literalRoute.MatchValue] = (Route)literalRoute;
-            }
-
-            if (this.literalRouteDict != null)
-            {
-                Route route;
-                if (this.literalRouteDict.TryGetValue(pathSegment, out route))
-                {
-                    matchChildren = route.WrapAsArray();
-                    return true;
-                }
-            }
-            return false;
+            return LiteralRouteMap.TryGetValue(pathSegment, out matchChildren);
         }
     }
 }

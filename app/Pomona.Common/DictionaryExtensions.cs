@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,11 +33,20 @@ namespace Pomona.Common
 {
     public static class DictionaryExtensions
     {
+        public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> dict)
+        {
+            return new ReadOnlyDictionary<TKey, TValue>(dict);
+        }
+
+
         public static bool Contains<TKey, TValue>(
-            this IDictionary<TKey, TValue> dict, TKey key, Func<TValue, bool> predicate)
+            this IDictionary<TKey, TValue> dict,
+            TKey key,
+            Func<TValue, bool> predicate)
         {
             return dict.ContainsKey(key) && predicate(dict[key]);
         }
+
 
         public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
             where TValue : new()
@@ -66,19 +75,11 @@ namespace Pomona.Common
             return ret;
         }
 
-        public static bool TryGetValueAsType<TKey, TDictValue, TCastValue>(
-            this IDictionary<TKey, TDictValue> dict, TKey key, out TCastValue result)
-            where TDictValue : class 
-            where TCastValue : class, TDictValue
-        {
-            TDictValue resultObj;
-            result = null;
-            return dict.TryGetValue(key, out resultObj) && (result = resultObj as TCastValue) != null;
-        }
-
 
         public static TValue SafeGet<TKey, TValue>(
-            this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> getDefaultFunc)
+            this IDictionary<TKey, TValue> dictionary,
+            TKey key,
+            Func<TValue> getDefaultFunc)
         {
             if (dictionary == null)
                 throw new ArgumentNullException("dictionary");
@@ -90,8 +91,11 @@ namespace Pomona.Common
             return value;
         }
 
+
         public static TValue SafeGet<TKey, TValue>(
-            this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+            this IDictionary<TKey, TValue> dictionary,
+            TKey key,
+            TValue defaultValue)
         {
             if (dictionary == null)
                 throw new ArgumentNullException("dictionary");
@@ -103,7 +107,8 @@ namespace Pomona.Common
 
 
         public static TValue SafeGet<TKey, TValue>(
-            this IDictionary<TKey, TValue> dictionary, TKey key)
+            this IDictionary<TKey, TValue> dictionary,
+            TKey key)
         {
             if (dictionary == null)
                 throw new ArgumentNullException("dictionary");
@@ -115,7 +120,9 @@ namespace Pomona.Common
 
 
         public static TValue SafeGet<TKey, TValue>(
-            this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> getDefaultFunc)
+            this IDictionary<TKey, TValue> dictionary,
+            TKey key,
+            Func<TKey, TValue> getDefaultFunc)
         {
             if (dictionary == null)
                 throw new ArgumentNullException("dictionary");
@@ -125,6 +132,19 @@ namespace Pomona.Common
             if (!dictionary.TryGetValue(key, out value))
                 return getDefaultFunc(key);
             return value;
+        }
+
+
+        public static bool TryGetValueAsType<TKey, TDictValue, TCastValue>(
+            this IDictionary<TKey, TDictValue> dict,
+            TKey key,
+            out TCastValue result)
+            where TDictValue : class
+            where TCastValue : class, TDictValue
+        {
+            TDictValue resultObj;
+            result = null;
+            return dict.TryGetValue(key, out resultObj) && (result = resultObj as TCastValue) != null;
         }
     }
 }
