@@ -27,6 +27,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies

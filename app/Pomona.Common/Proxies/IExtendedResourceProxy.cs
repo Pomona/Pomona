@@ -26,6 +26,7 @@
 
 #endregion
 
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies

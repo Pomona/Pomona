@@ -1,7 +1,7 @@
-﻿// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2013 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace Pomona.Common.Internals
+using Pomona.Common.Internals;
+
+namespace Pomona.Common.ExtendedResources
 {
     public class ExtendedResourceInfo
     {
@@ -48,12 +50,12 @@ namespace Pomona.Common.Internals
 
         public Type ServerType
         {
-            get { return serverType; }
+            get { return this.serverType; }
         }
 
         public PropertyInfo DictProperty
         {
-            get { return dictProperty; }
+            get { return this.dictProperty; }
         }
 
         internal static bool TryGetExtendedResourceInfo(Type clientType, IClientTypeResolver client, out ExtendedResourceInfo info)

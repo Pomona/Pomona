@@ -33,6 +33,7 @@ using System.Text;
 
 using Newtonsoft.Json.Linq;
 
+using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
