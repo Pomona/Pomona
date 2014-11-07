@@ -3080,7 +3080,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_postfix_expr();
 	partial void LeaveRule_postfix_expr();
 	// $ANTLR start "postfix_expr"
-	// Queries\\PomonaQuery.g:168:1: postfix_expr : ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | PREFIXED_STRING );
+	// Queries\\PomonaQuery.g:168:1: postfix_expr : ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | '[' ']' -> ^( ARRAY_LITERAL ) | PREFIXED_STRING );
 	[GrammarRule("postfix_expr")]
 	private AstParserRuleReturnScope<object, IToken> postfix_expr()
 	{
@@ -3111,7 +3111,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		IToken char_literal79 = default(IToken);
 		IToken char_literal80 = default(IToken);
 		IToken char_literal82 = default(IToken);
-		IToken PREFIXED_STRING83 = default(IToken);
+		IToken char_literal83 = default(IToken);
+		IToken char_literal84 = default(IToken);
+		IToken PREFIXED_STRING85 = default(IToken);
 		AstParserRuleReturnScope<object, IToken> arglist_expr62 = default(AstParserRuleReturnScope<object, IToken>);
 		AstParserRuleReturnScope<object, IToken> arglist_expr69 = default(AstParserRuleReturnScope<object, IToken>);
 		AstParserRuleReturnScope<object, IToken> orderby_expr78 = default(AstParserRuleReturnScope<object, IToken>);
@@ -3136,7 +3138,9 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		object char_literal79_tree = default(object);
 		object char_literal80_tree = default(object);
 		object char_literal82_tree = default(object);
-		object PREFIXED_STRING83_tree = default(object);
+		object char_literal83_tree = default(object);
+		object char_literal84_tree = default(object);
+		object PREFIXED_STRING85_tree = default(object);
 		RewriteRuleITokenStream stream_ID=new RewriteRuleITokenStream(adaptor,"token ID");
 		RewriteRuleITokenStream stream_44=new RewriteRuleITokenStream(adaptor,"token 44");
 		RewriteRuleITokenStream stream_45=new RewriteRuleITokenStream(adaptor,"token 45");
@@ -3147,8 +3151,8 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		DebugLocation(168, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:169:2: ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | PREFIXED_STRING )
-			int alt26=10;
+			// Queries\\PomonaQuery.g:169:2: ( ID ( '(' arglist_expr ')' ) -> ^( METHOD_CALL ID arglist_expr ) | ID ( '(' ')' ) -> ^( METHOD_CALL ID ) | ID ( '[' arglist_expr ']' ) -> ^( INDEXER_ACCESS ID arglist_expr ) | ID ( '[' ']' ) -> ^( INDEXER_ACCESS ID ) | ID | STRING | INT | '(' ! orderby_expr ')' !| '[' arglist_expr ']' -> ^( ARRAY_LITERAL arglist_expr ) | '[' ']' -> ^( ARRAY_LITERAL ) | PREFIXED_STRING )
+			int alt26=11;
 			try { DebugEnterDecision(26, false);
 			switch (input.LA(1))
 			{
@@ -3264,12 +3268,27 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 58:
 				{
-				alt26 = 9;
+				int LA26_2 = input.LA(2);
+
+				if ((LA26_2==59))
+				{
+					alt26 = 10;
+				}
+				else if ((LA26_2==ID||LA26_2==INT||LA26_2==PREFIXED_STRING||LA26_2==STRING||LA26_2==40||LA26_2==44||LA26_2==58||LA26_2==76))
+				{
+					alt26 = 9;
+				}
+				else
+				{
+					NoViableAltException nvae = new NoViableAltException("", 26, 5, input, 2);
+					DebugRecognitionException(nvae);
+					throw nvae;
+				}
 				}
 				break;
 			case PREFIXED_STRING:
 				{
-				alt26 = 10;
+				alt26 = 11;
 				}
 				break;
 			default:
@@ -3653,14 +3672,59 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				break;
 			case 10:
 				DebugEnterAlt(10);
-				// Queries\\PomonaQuery.g:178:4: PREFIXED_STRING
+				// Queries\\PomonaQuery.g:178:4: '[' ']'
+				{
+				DebugLocation(178, 4);
+				char_literal83=(IToken)Match(input,58,Follow._58_in_postfix_expr1158);  
+				stream_58.Add(char_literal83);
+
+				DebugLocation(178, 8);
+				char_literal84=(IToken)Match(input,59,Follow._59_in_postfix_expr1160);  
+				stream_59.Add(char_literal84);
+
+
+
+				{
+				// AST REWRITE
+				// elements: 
+				// token labels: 
+				// rule labels: retval
+				// token list labels: 
+				// rule list labels: 
+				// wildcard labels: 
+				retval.Tree = root_0;
+				RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
+
+				root_0 = (object)adaptor.Nil();
+				// 178:12: -> ^( ARRAY_LITERAL )
+				{
+					DebugLocation(178, 15);
+					// Queries\\PomonaQuery.g:178:15: ^( ARRAY_LITERAL )
+					{
+					object root_1 = (object)adaptor.Nil();
+					DebugLocation(178, 17);
+					root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(ARRAY_LITERAL, "ARRAY_LITERAL"), root_1);
+
+					adaptor.AddChild(root_0, root_1);
+					}
+
+				}
+
+				retval.Tree = root_0;
+				}
+
+				}
+				break;
+			case 11:
+				DebugEnterAlt(11);
+				// Queries\\PomonaQuery.g:179:4: PREFIXED_STRING
 				{
 				root_0 = (object)adaptor.Nil();
 
-				DebugLocation(178, 4);
-				PREFIXED_STRING83=(IToken)Match(input,PREFIXED_STRING,Follow._PREFIXED_STRING_in_postfix_expr1158); 
-				PREFIXED_STRING83_tree = (object)adaptor.Create(PREFIXED_STRING83);
-				adaptor.AddChild(root_0, PREFIXED_STRING83_tree);
+				DebugLocation(179, 4);
+				PREFIXED_STRING85=(IToken)Match(input,PREFIXED_STRING,Follow._PREFIXED_STRING_in_postfix_expr1171); 
+				PREFIXED_STRING85_tree = (object)adaptor.Create(PREFIXED_STRING85);
+				adaptor.AddChild(root_0, PREFIXED_STRING85_tree);
 
 				}
 				break;
@@ -3685,7 +3749,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("postfix_expr", 18);
 			LeaveRule_postfix_expr();
 		}
-		DebugLocation(179, 1);
+		DebugLocation(180, 1);
 		} finally { DebugExitRule(GrammarFileName, "postfix_expr"); }
 		return retval;
 
@@ -3695,7 +3759,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_sortorder_operator();
 	partial void LeaveRule_sortorder_operator();
 	// $ANTLR start "sortorder_operator"
-	// Queries\\PomonaQuery.g:181:1: sortorder_operator : ( 'asc' | 'desc' );
+	// Queries\\PomonaQuery.g:182:1: sortorder_operator : ( 'asc' | 'desc' );
 	[GrammarRule("sortorder_operator")]
 	private AstParserRuleReturnScope<object, IToken> sortorder_operator()
 	{
@@ -3707,26 +3771,26 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken set84 = default(IToken);
+		IToken set86 = default(IToken);
 
-		object set84_tree = default(object);
+		object set86_tree = default(object);
 		try { DebugEnterRule(GrammarFileName, "sortorder_operator");
-		DebugLocation(181, 1);
+		DebugLocation(182, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:182:2: ( 'asc' | 'desc' )
+			// Queries\\PomonaQuery.g:183:2: ( 'asc' | 'desc' )
 			DebugEnterAlt(1);
 			// Queries\\PomonaQuery.g:
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(182, 2);
+			DebugLocation(183, 2);
 
-			set84=(IToken)input.LT(1);
+			set86=(IToken)input.LT(1);
 			if ((input.LA(1)>=63 && input.LA(1)<=64))
 			{
 				input.Consume();
-				adaptor.AddChild(root_0, (object)adaptor.Create(set84));
+				adaptor.AddChild(root_0, (object)adaptor.Create(set86));
 				state.errorRecovery=false;
 			}
 			else
@@ -3758,7 +3822,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("sortorder_operator", 19);
 			LeaveRule_sortorder_operator();
 		}
-		DebugLocation(184, 1);
+		DebugLocation(185, 1);
 		} finally { DebugExitRule(GrammarFileName, "sortorder_operator"); }
 		return retval;
 
@@ -3768,7 +3832,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_orderby_expr();
 	partial void LeaveRule_orderby_expr();
 	// $ANTLR start "orderby_expr"
-	// Queries\\PomonaQuery.g:186:1: orderby_expr : exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) ;
+	// Queries\\PomonaQuery.g:187:1: orderby_expr : exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) ;
 	[GrammarRule("orderby_expr")]
 	private AstParserRuleReturnScope<object, IToken> orderby_expr()
 	{
@@ -3780,27 +3844,27 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		AstParserRuleReturnScope<object, IToken> exp85 = default(AstParserRuleReturnScope<object, IToken>);
-		AstParserRuleReturnScope<object, IToken> sortorder_operator86 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> exp87 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> sortorder_operator88 = default(AstParserRuleReturnScope<object, IToken>);
 
 		RewriteRuleSubtreeStream stream_exp=new RewriteRuleSubtreeStream(adaptor,"rule exp");
 		RewriteRuleSubtreeStream stream_sortorder_operator=new RewriteRuleSubtreeStream(adaptor,"rule sortorder_operator");
 		try { DebugEnterRule(GrammarFileName, "orderby_expr");
-		DebugLocation(186, 1);
+		DebugLocation(187, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:187:2: ( exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) )
+			// Queries\\PomonaQuery.g:188:2: ( exp ( sortorder_operator )? -> ^( ORDERBY_ASC exp ( sortorder_operator )? ) )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:187:4: exp ( sortorder_operator )?
+			// Queries\\PomonaQuery.g:188:4: exp ( sortorder_operator )?
 			{
-			DebugLocation(187, 4);
-			PushFollow(Follow._exp_in_orderby_expr1185);
-			exp85=exp();
+			DebugLocation(188, 4);
+			PushFollow(Follow._exp_in_orderby_expr1198);
+			exp87=exp();
 			PopFollow();
 
-			stream_exp.Add(exp85.Tree);
-			DebugLocation(187, 8);
-			// Queries\\PomonaQuery.g:187:8: ( sortorder_operator )?
+			stream_exp.Add(exp87.Tree);
+			DebugLocation(188, 8);
+			// Queries\\PomonaQuery.g:188:8: ( sortorder_operator )?
 			int alt27=2;
 			try { DebugEnterSubRule(27);
 			try { DebugEnterDecision(27, false);
@@ -3815,14 +3879,14 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:187:9: sortorder_operator
+				// Queries\\PomonaQuery.g:188:9: sortorder_operator
 				{
-				DebugLocation(187, 9);
-				PushFollow(Follow._sortorder_operator_in_orderby_expr1188);
-				sortorder_operator86=sortorder_operator();
+				DebugLocation(188, 9);
+				PushFollow(Follow._sortorder_operator_in_orderby_expr1201);
+				sortorder_operator88=sortorder_operator();
 				PopFollow();
 
-				stream_sortorder_operator.Add(sortorder_operator86.Tree);
+				stream_sortorder_operator.Add(sortorder_operator88.Tree);
 
 				}
 				break;
@@ -3844,22 +3908,22 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			RewriteRuleSubtreeStream stream_retval=new RewriteRuleSubtreeStream(adaptor,"rule retval",retval!=null?retval.Tree:null);
 
 			root_0 = (object)adaptor.Nil();
-			// 187:30: -> ^( ORDERBY_ASC exp ( sortorder_operator )? )
+			// 188:30: -> ^( ORDERBY_ASC exp ( sortorder_operator )? )
 			{
-				DebugLocation(187, 33);
-				// Queries\\PomonaQuery.g:187:33: ^( ORDERBY_ASC exp ( sortorder_operator )? )
+				DebugLocation(188, 33);
+				// Queries\\PomonaQuery.g:188:33: ^( ORDERBY_ASC exp ( sortorder_operator )? )
 				{
 				object root_1 = (object)adaptor.Nil();
-				DebugLocation(187, 35);
+				DebugLocation(188, 35);
 				root_1 = (object)adaptor.BecomeRoot((object)adaptor.Create(ORDERBY_ASC, "ORDERBY_ASC"), root_1);
 
-				DebugLocation(187, 47);
+				DebugLocation(188, 47);
 				adaptor.AddChild(root_1, stream_exp.NextTree());
-				DebugLocation(187, 51);
-				// Queries\\PomonaQuery.g:187:51: ( sortorder_operator )?
+				DebugLocation(188, 51);
+				// Queries\\PomonaQuery.g:188:51: ( sortorder_operator )?
 				if (stream_sortorder_operator.HasNext)
 				{
-					DebugLocation(187, 51);
+					DebugLocation(188, 51);
 					adaptor.AddChild(root_1, stream_sortorder_operator.NextTree());
 
 				}
@@ -3894,7 +3958,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("orderby_expr", 20);
 			LeaveRule_orderby_expr();
 		}
-		DebugLocation(188, 1);
+		DebugLocation(189, 1);
 		} finally { DebugExitRule(GrammarFileName, "orderby_expr"); }
 		return retval;
 
@@ -3904,7 +3968,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 	partial void EnterRule_arglist_expr();
 	partial void LeaveRule_arglist_expr();
 	// $ANTLR start "arglist_expr"
-	// Queries\\PomonaQuery.g:190:1: arglist_expr : orderby_expr ( ',' ! orderby_expr )* ;
+	// Queries\\PomonaQuery.g:191:1: arglist_expr : orderby_expr ( ',' ! orderby_expr )* ;
 	[GrammarRule("arglist_expr")]
 	private AstParserRuleReturnScope<object, IToken> arglist_expr()
 	{
@@ -3916,29 +3980,29 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 
 		object root_0 = default(object);
 
-		IToken char_literal88 = default(IToken);
-		AstParserRuleReturnScope<object, IToken> orderby_expr87 = default(AstParserRuleReturnScope<object, IToken>);
+		IToken char_literal90 = default(IToken);
 		AstParserRuleReturnScope<object, IToken> orderby_expr89 = default(AstParserRuleReturnScope<object, IToken>);
+		AstParserRuleReturnScope<object, IToken> orderby_expr91 = default(AstParserRuleReturnScope<object, IToken>);
 
-		object char_literal88_tree = default(object);
+		object char_literal90_tree = default(object);
 		try { DebugEnterRule(GrammarFileName, "arglist_expr");
-		DebugLocation(190, 1);
+		DebugLocation(191, 1);
 		try
 		{
-			// Queries\\PomonaQuery.g:191:2: ( orderby_expr ( ',' ! orderby_expr )* )
+			// Queries\\PomonaQuery.g:192:2: ( orderby_expr ( ',' ! orderby_expr )* )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:191:4: orderby_expr ( ',' ! orderby_expr )*
+			// Queries\\PomonaQuery.g:192:4: orderby_expr ( ',' ! orderby_expr )*
 			{
 			root_0 = (object)adaptor.Nil();
 
-			DebugLocation(191, 4);
-			PushFollow(Follow._orderby_expr_in_arglist_expr1213);
-			orderby_expr87=orderby_expr();
+			DebugLocation(192, 4);
+			PushFollow(Follow._orderby_expr_in_arglist_expr1226);
+			orderby_expr89=orderby_expr();
 			PopFollow();
 
-			adaptor.AddChild(root_0, orderby_expr87.Tree);
-			DebugLocation(191, 17);
-			// Queries\\PomonaQuery.g:191:17: ( ',' ! orderby_expr )*
+			adaptor.AddChild(root_0, orderby_expr89.Tree);
+			DebugLocation(192, 17);
+			// Queries\\PomonaQuery.g:192:17: ( ',' ! orderby_expr )*
 			try { DebugEnterSubRule(28);
 			while (true)
 			{
@@ -3957,16 +4021,16 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 				{
 				case 1:
 					DebugEnterAlt(1);
-					// Queries\\PomonaQuery.g:191:19: ',' ! orderby_expr
+					// Queries\\PomonaQuery.g:192:19: ',' ! orderby_expr
 					{
-					DebugLocation(191, 22);
-					char_literal88=(IToken)Match(input,48,Follow._48_in_arglist_expr1217); 
-					DebugLocation(191, 24);
-					PushFollow(Follow._orderby_expr_in_arglist_expr1220);
-					orderby_expr89=orderby_expr();
+					DebugLocation(192, 22);
+					char_literal90=(IToken)Match(input,48,Follow._48_in_arglist_expr1230); 
+					DebugLocation(192, 24);
+					PushFollow(Follow._orderby_expr_in_arglist_expr1233);
+					orderby_expr91=orderby_expr();
 					PopFollow();
 
-					adaptor.AddChild(root_0, orderby_expr89.Tree);
+					adaptor.AddChild(root_0, orderby_expr91.Tree);
 
 					}
 					break;
@@ -4003,7 +4067,7 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 			LeaveRule("arglist_expr", 21);
 			LeaveRule_arglist_expr();
 		}
-		DebugLocation(192, 1);
+		DebugLocation(193, 1);
 		} finally { DebugExitRule(GrammarFileName, "arglist_expr"); }
 		return retval;
 
@@ -4096,12 +4160,14 @@ public partial class PomonaQueryParser : Antlr.Runtime.Parser
 		public static readonly BitSet _58_in_postfix_expr1141 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
 		public static readonly BitSet _arglist_expr_in_postfix_expr1143 = new BitSet(new ulong[]{0x800000000000000UL});
 		public static readonly BitSet _59_in_postfix_expr1145 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _PREFIXED_STRING_in_postfix_expr1158 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _exp_in_orderby_expr1185 = new BitSet(new ulong[]{0x8000000000000002UL,0x1UL});
-		public static readonly BitSet _sortorder_operator_in_orderby_expr1188 = new BitSet(new ulong[]{0x2UL});
-		public static readonly BitSet _orderby_expr_in_arglist_expr1213 = new BitSet(new ulong[]{0x1000000000002UL});
-		public static readonly BitSet _48_in_arglist_expr1217 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
-		public static readonly BitSet _orderby_expr_in_arglist_expr1220 = new BitSet(new ulong[]{0x1000000000002UL});
+		public static readonly BitSet _58_in_postfix_expr1158 = new BitSet(new ulong[]{0x800000000000000UL});
+		public static readonly BitSet _59_in_postfix_expr1160 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _PREFIXED_STRING_in_postfix_expr1171 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _exp_in_orderby_expr1198 = new BitSet(new ulong[]{0x8000000000000002UL,0x1UL});
+		public static readonly BitSet _sortorder_operator_in_orderby_expr1201 = new BitSet(new ulong[]{0x2UL});
+		public static readonly BitSet _orderby_expr_in_arglist_expr1226 = new BitSet(new ulong[]{0x1000000000002UL});
+		public static readonly BitSet _48_in_arglist_expr1230 = new BitSet(new ulong[]{0x400111400120000UL,0x1000UL});
+		public static readonly BitSet _orderby_expr_in_arglist_expr1233 = new BitSet(new ulong[]{0x1000000000002UL});
 	}
 	#endregion Follow sets
 }

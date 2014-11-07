@@ -50,6 +50,14 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("objectAttributes.jalla", _this => _this.ObjectAttributes.SafeGet("jalla"));
         }
 
+
+        [Test]
+        public void ParseNumberInEmptyCollection_CreatesCorrectExpression()
+        {
+            var numbers = new int[] { };
+            ParseAndAssert("number in []", _this => numbers.Contains(_this.Number));
+        }
+
         [Test]
         public void ParseObjectAttributesIn_CreatesCorrectExpression()
         {

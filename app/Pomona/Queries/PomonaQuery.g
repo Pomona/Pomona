@@ -175,6 +175,7 @@ postfix_expr
 	| INT
 	| '('! orderby_expr ')'!
 	| '[' arglist_expr ']' -> ^(ARRAY_LITERAL arglist_expr)
+	| '[' ']' -> ^(ARRAY_LITERAL)
 	| PREFIXED_STRING
 	;
 

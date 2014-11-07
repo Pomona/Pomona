@@ -2156,11 +2156,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		TraceIn("HEX_DIGIT", 46);
 		try
 		{
-			// Queries\\PomonaQuery.g:202:11: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
+			// Queries\\PomonaQuery.g:203:11: ( ( '0' .. '9' | 'a' .. 'f' | 'A' .. 'F' ) )
 			DebugEnterAlt(1);
 			// Queries\\PomonaQuery.g:
 			{
-			DebugLocation(202, 11);
+			DebugLocation(203, 11);
 			if ((input.LA(1)>='0' && input.LA(1)<='9')||(input.LA(1)>='A' && input.LA(1)<='F')||(input.LA(1)>='a' && input.LA(1)<='f'))
 			{
 				input.Consume();
@@ -2198,7 +2198,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		TraceIn("ESC_SEQ", 47);
 		try
 		{
-			// Queries\\PomonaQuery.g:206:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE_ESC | OCTAL_ESC )
+			// Queries\\PomonaQuery.g:207:5: ( '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' ) | UNICODE_ESC | OCTAL_ESC )
 			int alt11=3;
 			try { DebugEnterDecision(11, false);
 			int LA11_1 = input.LA(1);
@@ -2256,11 +2256,11 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:206:9: '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
+				// Queries\\PomonaQuery.g:207:9: '\\\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\\\"' | '\\'' | '\\\\' )
 				{
-				DebugLocation(206, 9);
+				DebugLocation(207, 9);
 				Match('\\'); 
-				DebugLocation(206, 14);
+				DebugLocation(207, 14);
 				input.Consume();
 
 
@@ -2268,18 +2268,18 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				break;
 			case 2:
 				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:207:9: UNICODE_ESC
+				// Queries\\PomonaQuery.g:208:9: UNICODE_ESC
 				{
-				DebugLocation(207, 9);
+				DebugLocation(208, 9);
 				mUNICODE_ESC(); 
 
 				}
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:208:9: OCTAL_ESC
+				// Queries\\PomonaQuery.g:209:9: OCTAL_ESC
 				{
-				DebugLocation(208, 9);
+				DebugLocation(209, 9);
 				mOCTAL_ESC(); 
 
 				}
@@ -2308,7 +2308,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		TraceIn("OCTAL_ESC", 48);
 		try
 		{
-			// Queries\\PomonaQuery.g:213:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
+			// Queries\\PomonaQuery.g:214:5: ( '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) ( '0' .. '7' ) | '\\\\' ( '0' .. '7' ) )
 			int alt12=3;
 			try { DebugEnterDecision(12, false);
 			int LA12_1 = input.LA(1);
@@ -2370,25 +2370,7 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			{
 			case 1:
 				DebugEnterAlt(1);
-				// Queries\\PomonaQuery.g:213:9: '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' )
-				{
-				DebugLocation(213, 9);
-				Match('\\'); 
-				DebugLocation(213, 14);
-				input.Consume();
-
-				DebugLocation(213, 25);
-				input.Consume();
-
-				DebugLocation(213, 36);
-				input.Consume();
-
-
-				}
-				break;
-			case 2:
-				DebugEnterAlt(2);
-				// Queries\\PomonaQuery.g:214:9: '\\\\' ( '0' .. '7' ) ( '0' .. '7' )
+				// Queries\\PomonaQuery.g:214:9: '\\\\' ( '0' .. '3' ) ( '0' .. '7' ) ( '0' .. '7' )
 				{
 				DebugLocation(214, 9);
 				Match('\\'); 
@@ -2398,16 +2380,34 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 				DebugLocation(214, 25);
 				input.Consume();
 
+				DebugLocation(214, 36);
+				input.Consume();
+
+
+				}
+				break;
+			case 2:
+				DebugEnterAlt(2);
+				// Queries\\PomonaQuery.g:215:9: '\\\\' ( '0' .. '7' ) ( '0' .. '7' )
+				{
+				DebugLocation(215, 9);
+				Match('\\'); 
+				DebugLocation(215, 14);
+				input.Consume();
+
+				DebugLocation(215, 25);
+				input.Consume();
+
 
 				}
 				break;
 			case 3:
 				DebugEnterAlt(3);
-				// Queries\\PomonaQuery.g:215:9: '\\\\' ( '0' .. '7' )
+				// Queries\\PomonaQuery.g:216:9: '\\\\' ( '0' .. '7' )
 				{
-				DebugLocation(215, 9);
+				DebugLocation(216, 9);
 				Match('\\'); 
-				DebugLocation(215, 14);
+				DebugLocation(216, 14);
 				input.Consume();
 
 
@@ -2437,21 +2437,21 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		TraceIn("UNICODE_ESC", 49);
 		try
 		{
-			// Queries\\PomonaQuery.g:220:5: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+			// Queries\\PomonaQuery.g:221:5: ( '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:220:9: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+			// Queries\\PomonaQuery.g:221:9: '\\\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
 			{
-			DebugLocation(220, 9);
+			DebugLocation(221, 9);
 			Match('\\'); 
-			DebugLocation(220, 14);
+			DebugLocation(221, 14);
 			Match('u'); 
-			DebugLocation(220, 18);
+			DebugLocation(221, 18);
 			mHEX_DIGIT(); 
-			DebugLocation(220, 28);
+			DebugLocation(221, 28);
 			mHEX_DIGIT(); 
-			DebugLocation(220, 38);
+			DebugLocation(221, 38);
 			mHEX_DIGIT(); 
-			DebugLocation(220, 48);
+			DebugLocation(221, 48);
 			mHEX_DIGIT(); 
 
 			}
