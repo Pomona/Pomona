@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
@@ -42,8 +43,37 @@ namespace Pomona.Common
     public class ClientTypeMapper : ExportedTypeResolverBase, ITypeMapper, IClientTypeResolver, IClientTypeFactory
     {
         private readonly ExtendedResourceMapper extendedResourceMapper;
-        private readonly ReadOnlyDictionary<Type, ResourceInfoAttribute> interfaceToResourceInfoDict;
+        private readonly ReadOnlyCollection<Type> resourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
+
+
+        public ClientTypeMapper(Assembly scanAssembly)
+            : this(
+                scanAssembly.GetTypes().Where(
+                    x =>
+                        x.IsInterface && typeof(IClientResource).IsAssignableFrom(x)
+                        && x.HasAttribute<ResourceInfoAttribute>(false)))
+        {
+        }
+
+
+        public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
+        {
+            this.resourceTypes = clientResourceTypes.ToList().AsReadOnly();
+            var mappedTypes = this.resourceTypes.Union(TypeUtils.GetNativeTypes());
+            this.typeNameMap =
+                mappedTypes
+                    .Select(GetClassMapping)
+                    .ToDictionary(GetJsonTypeName, x => x);
+
+            this.extendedResourceMapper = new ExtendedResourceMapper(this);
+        }
+
+
+        public IEnumerable<Type> ResourceTypes
+        {
+            get { return this.resourceTypes; }
+        }
 
         #region Implementation of ITypeMapper
 
@@ -62,10 +92,9 @@ namespace Pomona.Common
         protected override sealed Type MapExposedClrType(Type type)
         {
             Type[] proxyTypeArgs;
-            if (typeof(IExtendedResourceProxy).IsAssignableFrom(type) && type.TryExtractTypeArguments(typeof(IExtendedResourceProxy<>), out proxyTypeArgs))
-            {
+            if (typeof(IExtendedResourceProxy).IsAssignableFrom(type)
+                && type.TryExtractTypeArguments(typeof(IExtendedResourceProxy<>), out proxyTypeArgs))
                 type = proxyTypeArgs[0];
-            }
 
             if (!type.IsInterface)
             {
@@ -97,40 +126,6 @@ namespace Pomona.Common
         }
 
         #endregion
-
-        public ClientTypeMapper(Assembly scanAssembly)
-            : this(scanAssembly.GetTypes().Where(x => typeof(IClientResource).IsAssignableFrom(x)).ToList())
-        {
-        }
-
-
-        public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
-        {
-            var interfaceDict = new Dictionary<Type, ResourceInfoAttribute>();
-            foreach (
-                var resourceInfo in
-                    clientResourceTypes.SelectMany(
-                        x =>
-                            x.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>())
-                )
-                interfaceDict[resourceInfo.InterfaceType] = resourceInfo;
-
-            this.interfaceToResourceInfoDict = new ReadOnlyDictionary<Type, ResourceInfoAttribute>(interfaceDict);
-            var mappedTypes = this.interfaceToResourceInfoDict.Keys.Union(TypeUtils.GetNativeTypes());
-            this.typeNameMap =
-                mappedTypes
-                    .Select(GetClassMapping)
-                    .ToDictionary(GetJsonTypeName, x => x);
-
-            this.extendedResourceMapper = new ExtendedResourceMapper(this);
-        }
-
-
-        public IEnumerable<Type> ResourceTypes
-        {
-            get { return this.interfaceToResourceInfoDict.Keys; }
-        }
-
 
         public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {
@@ -178,13 +173,13 @@ namespace Pomona.Common
                 };
 
             return new ExportedPropertyDetails(isAttributes,
-                isEtagProperty,
-                isPrimaryId,
-                info.AccessMode,
-                info.ItemAccessMode,
-                false,
-                NameUtils.ConvertCamelCaseToUri(propertyMapping.Name),
-                true /* ??AlwaysExpand should be true on client, right? */);
+                                               isEtagProperty,
+                                               isPrimaryId,
+                                               info.AccessMode,
+                                               info.ItemAccessMode,
+                                               false,
+                                               NameUtils.ConvertCamelCaseToUri(propertyMapping.Name),
+                                               true /* ??AlwaysExpand should be true on client, right? */);
         }
 
 
@@ -193,24 +188,26 @@ namespace Pomona.Common
             if (IsAnonType(exportedType))
             {
                 return new ExportedTypeDetails(exportedType,
-                    HttpMethod.Get,
-                    null,
-                    null,
-                    true,
-                    true,
-                    false);
+                                               HttpMethod.Get,
+                                               null,
+                                               null,
+                                               true,
+                                               true,
+                                               false);
             }
 
             var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
             var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
                                  | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
             return new ExportedTypeDetails(exportedType,
-                allowedMethods,
-                ria.UrlRelativePath != null ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath) : null,
-                null,
-                ria.IsValueObject,
-                true,
-                false);
+                                           allowedMethods,
+                                           ria.UrlRelativePath != null
+                                               ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
+                                               : null,
+                                           null,
+                                           ria.IsValueObject,
+                                           true,
+                                           false);
         }
 
 
@@ -243,12 +240,12 @@ namespace Pomona.Common
             var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
 
             return new ResourceTypeDetails(resourceType,
-                ria.UrlRelativePath,
-                false,
-                resourceType,
-                null,
-                null,
-                Enumerable.Empty<Type>());
+                                           ria.UrlRelativePath,
+                                           false,
+                                           resourceType,
+                                           null,
+                                           null,
+                                           Enumerable.Empty<Type>());
         }
 
 
@@ -278,11 +275,11 @@ namespace Pomona.Common
                 throw new InvalidOperationException("Method PATCH is not allowed for uri.");
 
             var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                this.GetClassMapping(
-                    resourceInfo.InterfaceType),
-                this,
-                null,
-                resourceInfo.InterfaceType);
+                                                                        this.GetClassMapping(
+                                                                            resourceInfo.InterfaceType),
+                                                                        this,
+                                                                        null,
+                                                                        resourceInfo.InterfaceType);
 
             return serverPatchForm;
         }
@@ -295,7 +292,7 @@ namespace Pomona.Common
             if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
             {
                 return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
-                    extendedResourceInfo.ExtendedType);
+                                                            extendedResourceInfo.ExtendedType);
             }
 
             var resourceInfo = this.GetResourceInfoForType(resourceType);
@@ -314,7 +311,7 @@ namespace Pomona.Common
 
         public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
-            return this.interfaceToResourceInfoDict.TryGetValue(type, out resourceInfo);
+            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
         }
 
 
@@ -354,12 +351,6 @@ namespace Pomona.Common
         }
 
 
-        private static bool IsAnonType(Type type)
-        {
-            return type.IsAnonymous() || type.IsTuple();
-        }
-
-
         private static string GetJsonTypeName(TypeSpec type)
         {
             var clientType = type as TransformedType;
@@ -368,6 +359,12 @@ namespace Pomona.Common
                 return clientType.ResourceInfo.JsonTypeName;
 
             return type.Name;
+        }
+
+
+        private static bool IsAnonType(Type type)
+        {
+            return type.IsAnonymous() || type.IsTuple();
         }
     }
 }

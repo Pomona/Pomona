@@ -28,12 +28,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Common;
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;

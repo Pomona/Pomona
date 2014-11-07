@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 
@@ -35,6 +36,9 @@ namespace Pomona.Common
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
     public class ResourceInfoAttribute : Attribute
     {
+        private static readonly ConcurrentDictionary<Type, ResourceInfoAttribute> attributeCache =
+            new ConcurrentDictionary<Type, ResourceInfoAttribute>();
+
         private readonly Lazy<PropertyInfo> etagProperty;
         private readonly Lazy<PropertyInfo> idProperty;
 
@@ -85,6 +89,24 @@ namespace Pomona.Common
         public Type PostFormType { get; set; }
         public Type UriBaseType { get; set; }
         public string UrlRelativePath { get; set; }
+
+
+        public static bool TryGet(Type type, out ResourceInfoAttribute ria)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (!attributeCache.TryGetValue(type, out ria))
+            {
+                // Only cache if not null
+                var checkAttr =
+                    type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
+                        .FirstOrDefault();
+                if (checkAttr == null)
+                    return false;
+                ria = attributeCache.GetOrAdd(type, checkAttr);
+            }
+            return ria != null;
+        }
 
 
         private PropertyInfo GetPropertyWithAttribute<TAttribute>()

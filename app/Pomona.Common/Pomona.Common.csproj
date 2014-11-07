@@ -54,6 +54,7 @@
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientTypeMapper.cs" />
+    <Compile Include="ClientTypeResolver.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Expressions\Ex.cs" />
     <Compile Include="Expressions\ExExtensions.cs" />
