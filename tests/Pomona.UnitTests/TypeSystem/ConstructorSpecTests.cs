@@ -189,7 +189,6 @@ namespace Pomona.UnitTests.TypeSystem
         public void FromConstructorInfo_ReturnsCorrectConstructorSpec()
         {
             var cspec = ConstructorSpec.FromConstructorInfo(typeof (Inherited).GetConstructors().First());
-            Console.WriteLine(cspec.ConstructorExpression.ToCsharpString());
             AssertConstructorSpecWithFiveArguments(cspec);
         }
 
