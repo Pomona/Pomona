@@ -59,7 +59,7 @@ namespace Pomona.Common.ExtendedResources
 #else
 
             ExtendedResourceInfo info;
-            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType, clientTypeResolver, out info))
+            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType, out info))
                 throw new ArgumentException("extendedType is not inherited from a Pomona resource interface.", "extendedType");
 
             var userPostForm =
@@ -103,7 +103,6 @@ namespace Pomona.Common.ExtendedResources
 
             ExtendedResourceInfo extendedTypeInfo;
             if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType,
-                this.clientTypeResolver,
                 out extendedTypeInfo))
             {
                 if (extendedTypeInfo.ServerType != serverType)
@@ -150,7 +149,6 @@ namespace Pomona.Common.ExtendedResources
             IEnumerable<object> wrappedResults;
 
             if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedElementType,
-                                                                this.clientTypeResolver,
                                                                 out extendedTypeInfo))
 
             {

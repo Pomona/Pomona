@@ -43,73 +43,6 @@ namespace Pomona.SystemTests.Linq
     [TestFixture]
     public class ExtendedResourceClientTests : ClientTestsBase
     {
-        public interface IExtendedResource : IDictionaryContainer
-        {
-            string CustomString { get; set; }
-            string OtherCustom { get; set; }
-        }
-
-        public interface IExtendedResource2 : ISubtypedDictionaryContainer
-        {
-            string CustomString { get; set; }
-            string OtherCustom { get; set; }
-        }
-
-        public interface IExtendedResource3 : IStringToObjectDictionaryContainer
-        {
-            int? Number { get; set; }
-            string Text { get; set; }
-            DateTime? Time { get; set; }
-        }
-
-        public interface IExtendedResourceWithBoolean : IStringToObjectDictionaryContainer
-        {
-            bool? TheBool { get; set; }
-        }
-
-        public interface ITestClientResource : IStringToObjectDictionaryContainer
-        {
-            string Jalla { get; set; }
-        }
-
-        public interface IDecoratedWeapon : IWeapon
-        {
-        }
-
-        public interface IDecoratedCritter : ICritter
-        {
-        }
-
-        public interface IDecoratedMusicalWeapon : IWeapon
-        {
-        }
-
-        public interface IDecoratedMusicalFarm : IFarm
-        {
-        }
-
-        public interface ICustomOrder : IOrder
-        {
-        }
-
-        public interface ICustomOrderResponse : IOrderResponse
-        {
-            new ICustomOrder Order { get; set; }
-        }
-
-        public interface IDecoratedMusicalCritter : IMusicalCritter
-        {
-            new IDecoratedMusicalFarm Farm { get; set; }
-            new IList<IDecoratedMusicalWeapon> Weapons { get; set; }
-        }
-
-        public interface ITestParentClientResource : IHasReferenceToDictionaryContainer
-        {
-            new ITestClientResource Container { get; set; }
-            new IList<ITestClientResource> OtherContainers { get; set; }
-        }
-
-
         public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(
             string capturedArgument)
         {
@@ -143,9 +76,11 @@ namespace Pomona.SystemTests.Linq
                 Client.Patch(resource,
                              x =>
                              {
+                                 var extendedForm = new StringToObjectDictionaryContainerForm()
+                                     .Wrap<IStringToObjectDictionaryContainer, ITestClientResource>();
                                  x.OtherContainers.Add(
-                                     new StringToObjectDictionaryContainerForm()
-                                         .Wrap<IStringToObjectDictionaryContainer, ITestClientResource>());
+                                     extendedForm);
+                                 extendedForm.Jalla = "Hahaha";
                              },
                              x => x.Expand(y => y.OtherContainers));
 
@@ -172,6 +107,23 @@ namespace Pomona.SystemTests.Linq
                              });
 
             Assert.That(patchedResource.Text, Is.EqualTo("UPDATED!"));
+        }
+
+
+        [Test]
+        public void Post_ExtendedResource_Having_Non_Nullable_Integer_Property_Throws_ExtendedResourceMappingException()
+        {
+            var ex = Assert.Throws<ExtendedResourceMappingException>(
+                () =>
+                    Client.StringToObjectDictionaryContainers
+                    .Post<IExtendedResourceWithNonNullableInteger, IExtendedResourceWithNonNullableInteger>(
+                        p => p.NonNullableNumber = 34));
+            Assert.That(ex.Message,
+                        Is.EqualTo(
+                            "Unable to map property NonNullableNumber of type "
+                            + "Pomona.SystemTests.Linq.ExtendedResourceClientTests+IExtendedResourceWithNonNullableInteger "
+                            + "to underlying dictionary property Map of Critters.Client.IStringToObjectDictionaryContainer. "
+                            + "Only nullable value types can be mapped to a dictionary."));
         }
 
 
@@ -428,14 +380,6 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "TODO: Reminder for func to be implemented.")]
-        public void Query_ClientResourceWithNonNullableProperty_ThrowsSaneException_ExplainingWhyThisIsNotPossible()
-        {
-            Assert.Fail("Test not implemented, correct behaviour not yet defined.");
-        }
-
-
         [Test]
         public void Query_ClientResourceWithReferenceToAnotherClientResource_First()
         {
@@ -536,6 +480,78 @@ namespace Pomona.SystemTests.Linq
             var wrapped = resource.Wrap<IDictionaryContainer, IExtendedResource>();
             Assert.That(wrapped.CustomString, Is.EqualTo("Lalalala"));
             Assert.That(wrapped.OtherCustom, Is.EqualTo("Blob rob"));
+        }
+
+
+        public interface IExtendedResourceWithNonNullableInteger : IStringToObjectDictionaryContainer
+        {
+            int NonNullableNumber { get; set; }
+        }
+
+        public interface IExtendedResource : IDictionaryContainer
+        {
+            string CustomString { get; set; }
+            string OtherCustom { get; set; }
+        }
+
+        public interface IExtendedResource2 : ISubtypedDictionaryContainer
+        {
+            string CustomString { get; set; }
+            string OtherCustom { get; set; }
+        }
+
+        public interface IExtendedResource3 : IStringToObjectDictionaryContainer
+        {
+            int? Number { get; set; }
+            string Text { get; set; }
+            DateTime? Time { get; set; }
+        }
+
+        public interface IExtendedResourceWithBoolean : IStringToObjectDictionaryContainer
+        {
+            bool? TheBool { get; set; }
+        }
+
+        public interface ITestClientResource : IStringToObjectDictionaryContainer
+        {
+            string Jalla { get; set; }
+        }
+
+        public interface IDecoratedWeapon : IWeapon
+        {
+        }
+
+        public interface IDecoratedCritter : ICritter
+        {
+        }
+
+        public interface IDecoratedMusicalWeapon : IWeapon
+        {
+        }
+
+        public interface IDecoratedMusicalFarm : IFarm
+        {
+        }
+
+        public interface ICustomOrder : IOrder
+        {
+        }
+
+        public interface ICustomOrderResponse : IOrderResponse
+        {
+            new ICustomOrder Order { get; set; }
+        }
+
+        public interface IDecoratedMusicalCritter : IMusicalCritter
+        {
+            new IDecoratedMusicalFarm Farm { get; set; }
+            new IList<IDecoratedMusicalWeapon> Weapons { get; set; }
+        }
+
+        public interface ITestParentClientResource : IHasReferenceToDictionaryContainer
+        {
+            new ITestClientResource Container { get; set; }
+            new IList<ITestClientResource> OtherContainers { get; set; }
         }
     }
 }

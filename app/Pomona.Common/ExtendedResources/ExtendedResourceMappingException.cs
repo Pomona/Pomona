@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,28 +27,33 @@
 #endregion
 
 using System;
+using System.Runtime.Serialization;
 
-namespace Pomona.Common
+namespace Pomona.Common.ExtendedResources
 {
-    internal class ClientTypeResolver : IClientTypeResolver
+    [Serializable]
+    public class ExtendedResourceMappingException : PomonaException
     {
-        private static readonly IClientTypeResolver @default = new ClientTypeResolver();
-
-
-        private ClientTypeResolver()
+        public ExtendedResourceMappingException()
         {
         }
 
 
-        public static IClientTypeResolver Default
+        public ExtendedResourceMappingException(string message)
+            : base(message)
         {
-            get { return @default; }
         }
 
 
-        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        public ExtendedResourceMappingException(string message, Exception innerException)
+            : base(message, innerException)
         {
-            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
+        }
+
+
+        protected ExtendedResourceMappingException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
         }
     }
 }

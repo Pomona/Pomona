@@ -77,17 +77,7 @@ namespace Pomona.Common.Proxies
 #endif
         }
 
-
-        private static readonly MethodInfo onGetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ExtendedFormBase>(
-                x => x.OnGetAttribute<object, object, object>(null));
-
-
-        private static readonly MethodInfo onSetAttributeMethod =
-            ReflectionHelper.GetMethodDefinition<ExtendedFormBase>(
-                x => x.OnSetAttribute<object, object, object>(null, null));
-
-        private Dictionary<string, object> nestedProxyCache = new Dictionary<string, object>();
+        private Dictionary<string, IExtendedResourceProxy> nestedProxyCache = new Dictionary<string, IExtendedResourceProxy>();
 
         private bool IsServerKnownProperty<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
@@ -99,67 +89,62 @@ namespace Pomona.Common.Proxies
             if (IsServerKnownProperty(property))
                 return property.Getter((TOwner) this.WrappedResource);
 
-            // Check if this is a new'ed property on interface that is client type:
-            ExtendedResourceInfo memberUserTypeInfo;
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TPropType), Client, out memberUserTypeInfo))
-            {
-                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
-                if (serverProp != null && serverProp.PropertyType.IsAssignableFrom(typeof (TPropType)))
-                {
-                    var propValue = serverProp.GetValue(this.WrappedResource, null);
-                    if (propValue == null)
-                        return default(TPropType);
-#if DISABLE_PROXY_GENERATION
-                   throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
-#else
-                    return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () =>
-                        {
-                            var nestedProxy = RuntimeProxyFactory<ExtendedResourceBase, TPropType>.Create();
-                            ((ExtendedResourceBase)((object)nestedProxy)).Initialize(Client, memberUserTypeInfo,
-                                                                                            propValue);
+            var extProp = UserTypeInfo.ExtendedProperties.First(x => x.Property == property.PropertyInfo);
+            return (TPropType)extProp.GetValue(WrappedResource, nestedProxyCache);
 
-                            return nestedProxy;
-                        });
-#endif
-                }
-            }
+//            // Check if this is a new'ed property on interface that is client type:
+//            ExtendedResourceInfo memberUserTypeInfo;
+//            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TPropType), out memberUserTypeInfo))
+//            {
+//                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
+//                if (serverProp != null && serverProp.PropertyType.IsAssignableFrom(typeof (TPropType)))
+//                {
+//                    var propValue = serverProp.GetValue(this.WrappedResource, null);
+//                    if (propValue == null)
+//                        return default(TPropType);
+//#if DISABLE_PROXY_GENERATION
+//                   throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+//#else
+//                    return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () =>
+//                        {
+//                            var nestedProxy = RuntimeProxyFactory<ExtendedResourceBase, TPropType>.Create();
+//                            ((ExtendedResourceBase)((object)nestedProxy)).Initialize(Client, memberUserTypeInfo,
+//                                                                                            propValue);
 
-            Type elementType;
-            if (typeof (TPropType).TryGetEnumerableElementType(out elementType) &&
-                ExtendedResourceInfo.TryGetExtendedResourceInfo(elementType, Client, out memberUserTypeInfo))
-            {
+//                            return nestedProxy;
+//                        });
+//#endif
+//                }
+//            }
 
-                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
-                if (serverProp != null)
-                {
-                    var propValue = serverProp.GetValue(this.WrappedResource, null);
-                    if (propValue == null)
-                        return default(TPropType);
+//            Type elementType;
+//            if (typeof (TPropType).TryGetEnumerableElementType(out elementType) &&
+//                ExtendedResourceInfo.TryGetExtendedResourceInfo(elementType, out memberUserTypeInfo))
+//            {
 
-                    return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () => createProxyListMethod.MakeGenericMethod(elementType)
-                                         .Invoke(this, new object[] { propValue, memberUserTypeInfo }));
-                }
-            }
+//                var serverProp = UserTypeInfo.ServerType.GetResourceProperty(property.Name);
+//                if (serverProp != null)
+//                {
+//                    var propValue = serverProp.GetValue(this.WrappedResource, null);
+//                    if (propValue == null)
+//                        return default(TPropType);
 
-            if (UserTypeInfo.DictProperty == null)
-                throw new InvalidOperationException("No attributes property to map client-side property to!");
+//                    return (TPropType)nestedProxyCache.GetOrCreate(property.Name, () => createProxyListMethod.MakeGenericMethod(elementType)
+//                                         .Invoke(this, new object[] { propValue, memberUserTypeInfo }));
+//                }
+//            }
 
-            var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];
-            return
-                (TPropType)
-                onGetAttributeMethod.MakeGenericMethod(typeof(TOwner), typeof(TPropType), dictValueType)
-                                    .Invoke(this, new object[] { property });
+//            if (UserTypeInfo.DictProperty == null)
+//                throw new InvalidOperationException("No attributes property to map client-side property to!");
+
+//            var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];
+//            return
+//                (TPropType)
+//                onGetAttributeMethod.MakeGenericMethod(typeof(TOwner), typeof(TPropType), dictValueType)
+//                                    .Invoke(this, new object[] { property });
         }
 
 
-        private TPropType OnGetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property)
-        {
-            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(this.WrappedResource, null);
-            TDictValue value;
-            if (dict.TryGetValue(property.Name, out value))
-                return (TPropType)((object)value);
-            return default(TPropType);
-        }
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
@@ -176,29 +161,9 @@ namespace Pomona.Common.Proxies
                 return;
             }
 
-            if (typeof(IClientResource).IsAssignableFrom(typeof(TPropType)))
-            {
-                var underlyingServerProperty =
-                    UserTypeInfo.ServerType.GetPropertySearchInheritedInterfaces(property.Name);
-                if (underlyingServerProperty != null)
-                {
-                    underlyingServerProperty.SetValue(this.WrappedResource, unwrappedValue, null);
-                    return;
-                }
-            }
-
-            var dictValueType = UserTypeInfo.DictProperty.PropertyType.GetGenericArguments()[1];
-            onSetAttributeMethod.MakeGenericMethod(typeof(TOwner), typeof(TPropType), dictValueType)
-                                .Invoke(this, new object[] { property, value });
+            var extProp = UserTypeInfo.ExtendedProperties.First(x => x.Property == property.PropertyInfo);
+            extProp.SetValue(WrappedResource, value, nestedProxyCache);
         }
 
-
-        protected virtual bool OnSetAttribute<TOwner, TPropType, TDictValue>(PropertyWrapper<TOwner, TPropType> property,
-                                                                   TPropType value)
-        {
-            var dict = (IDictionary<string, TDictValue>)UserTypeInfo.DictProperty.GetValue(this.WrappedResource, null);
-            dict[property.Name] = (TDictValue)((object)value);
-            return false;
-        }
     }
 }

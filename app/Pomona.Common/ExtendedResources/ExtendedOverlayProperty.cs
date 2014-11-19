@@ -26,29 +26,34 @@
 
 #endregion
 
-using System;
+using System.Reflection;
 
-namespace Pomona.Common
+namespace Pomona.Common.ExtendedResources
 {
-    internal class ClientTypeResolver : IClientTypeResolver
+    internal abstract class ExtendedOverlayProperty : ExtendedProperty
     {
-        private static readonly IClientTypeResolver @default = new ClientTypeResolver();
+        private readonly ExtendedResourceInfo info;
+        private readonly PropertyInfo underlyingProperty;
 
 
-        private ClientTypeResolver()
+        protected ExtendedOverlayProperty(PropertyInfo property,
+                                          PropertyInfo underlyingProperty,
+                                          ExtendedResourceInfo info)
+            : base(property)
         {
+            this.underlyingProperty = underlyingProperty;
+            this.info = info;
         }
 
 
-        public static IClientTypeResolver Default
+        public PropertyInfo UnderlyingProperty
         {
-            get { return @default; }
+            get { return this.underlyingProperty; }
         }
 
-
-        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        public ExtendedResourceInfo Info
         {
-            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
+            get { return this.info; }
         }
     }
 }

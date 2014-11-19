@@ -67,7 +67,7 @@ namespace Pomona.SystemTests.ExtendedResources
             var wrappedSource = Enumerable.Empty<TServer>().AsQueryable();
 
             ExtendedResourceInfo extendedResourceInfo;
-            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TExtended), Client, out extendedResourceInfo))
+            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TExtended), out extendedResourceInfo))
             {
                 Assert.Fail("Unable to get ExtendedResourceInfo for " + typeof(TExtended));
             }

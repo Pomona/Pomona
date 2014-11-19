@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,7 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
@@ -32,16 +38,24 @@ namespace Pomona.Common.ExtendedResources
 {
     public class ExtendedResourceInfo
     {
-        private readonly Type extendedType;
         private readonly PropertyInfo dictProperty;
+        private readonly Type dictValueType;
+        private readonly Type extendedType;
         private readonly Type serverType;
+
 
         private ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty)
         {
             this.extendedType = extendedType;
             this.serverType = serverType;
             this.dictProperty = dictProperty;
+            Type[] dictTypeArgs;
+            if (dictProperty != null
+                && dictProperty.PropertyType.TryExtractTypeArguments(typeof(IDictionary<,>), out dictTypeArgs))
+                dictValueType = dictTypeArgs[1];
+            this.ExtendedProperties = InitializeExtendedProperties().ToList().AsReadOnly();
         }
+
 
         public Type ExtendedType
         {
@@ -53,15 +67,67 @@ namespace Pomona.Common.ExtendedResources
             get { return this.serverType; }
         }
 
+        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties { get; private set; }
+
+        internal Type DictValueType
+        {
+            get { return dictValueType; }
+        }
+
         public PropertyInfo DictProperty
         {
             get { return this.dictProperty; }
         }
 
-        internal static bool TryGetExtendedResourceInfo(Type clientType, IClientTypeResolver client, out ExtendedResourceInfo info)
+
+        private IEnumerable<ExtendedProperty> InitializeExtendedProperties()
+        {
+            return this.extendedType.GetProperties().Select(InitializeProperty);
+        }
+
+
+        private ExtendedProperty InitializeProperty(PropertyInfo extendedProp)
+        {
+            var serverProp = serverType.GetPropertySearchInheritedInterfaces(extendedProp.Name);
+            var extPropType = extendedProp.PropertyType;
+            if (serverProp != null)
+            {
+                var serverPropType = serverProp.PropertyType;
+                ExtendedResourceInfo propExtInfo;
+                if (TryGetExtendedResourceInfo(extPropType, out propExtInfo)
+                    && serverPropType == propExtInfo.ServerType)
+                    return new ExtendedComplexOverlayProperty(extendedProp, serverProp, propExtInfo);
+                Type extPropElementType;
+
+                Type serverPropElementType;
+                if (extPropType.TryGetEnumerableElementType(out extPropElementType)
+                    && TryGetExtendedResourceInfo(extPropElementType, out propExtInfo)
+                    && serverPropType.TryGetEnumerableElementType(out serverPropElementType)
+                    && serverPropElementType == propExtInfo.ServerType)
+                    return new ExtendedCollectionOverlayProperty(extendedProp, serverProp, propExtInfo);
+            }
+            else if (this.dictProperty != null)
+            {
+                if (!extPropType.IsValueType || extPropType.IsNullable())
+                    return ExtendedAttributeProperty.Create(extendedProp, this);
+                else
+                {
+                    throw new ExtendedResourceMappingException(string.Format(
+                        "Unable to map property {0} of type {1} to underlying dictionary property {2} of {3}. Only nullable value types can be mapped to a dictionary.",
+                        extendedProp.Name, extendedType.FullName, dictProperty.Name, serverType.FullName));
+                }
+            }
+            throw new ExtendedResourceMappingException(
+                string.Format(
+                    "Unable to map property {0} of type {1} to any underlying dictionary property having a [ResourceAttributesProperty] on {2}.",
+                    extendedProp.Name, extendedType.FullName, serverType.FullName));
+        }
+
+
+        internal static bool TryGetExtendedResourceInfo(Type clientType, out ExtendedResourceInfo info)
         {
             info = null;
-            var serverTypeInfo = client.GetMostInheritedResourceInterfaceInfo(clientType);
+            var serverTypeInfo = ClientTypeResolver.Default.GetMostInheritedResourceInterfaceInfo(clientType);
             if (!clientType.IsInterface || serverTypeInfo == null)
                 return false;
 
@@ -75,11 +141,12 @@ namespace Pomona.Common.ExtendedResources
             return true;
         }
 
+
         private static PropertyInfo GetAttributesDictionaryPropertyFromResource(Type serverKnownType)
         {
             var attrProp =
                 serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
-                    x => x.GetCustomAttributes(typeof (ResourceAttributesPropertyAttribute), true).Any());
+                    x => x.GetCustomAttributes(typeof(ResourceAttributesPropertyAttribute), true).Any());
 
             return attrProp;
         }

@@ -317,7 +317,7 @@ namespace Pomona.Common
 
         public bool TryGetExtendedTypeInfo(Type type, out ExtendedResourceInfo userTypeInfo)
         {
-            return ExtendedResourceInfo.TryGetExtendedResourceInfo(type, this, out userTypeInfo);
+            return ExtendedResourceInfo.TryGetExtendedResourceInfo(type, out userTypeInfo);
         }
 
 
@@ -330,7 +330,7 @@ namespace Pomona.Common
         public IQueryable<T> WrapExtendedQuery<T>(Func<Type, IQueryable> queryableCreator)
         {
             ExtendedResourceInfo extendedResourceInfo;
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(T), this, out extendedResourceInfo))
+            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(T), out extendedResourceInfo))
             {
                 var wrappedQueryable = queryableCreator(extendedResourceInfo.ServerType);
 

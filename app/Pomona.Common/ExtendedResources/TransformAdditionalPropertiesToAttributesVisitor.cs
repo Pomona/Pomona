@@ -236,7 +236,7 @@ namespace Pomona.Common.ExtendedResources
 
         private bool IsUserType(Type userType, out ExtendedResourceInfo userTypeInfo)
         {
-            return ExtendedResourceInfo.TryGetExtendedResourceInfo(userType, this.client, out userTypeInfo);
+            return ExtendedResourceInfo.TryGetExtendedResourceInfo(userType, out userTypeInfo);
         }
 
 
