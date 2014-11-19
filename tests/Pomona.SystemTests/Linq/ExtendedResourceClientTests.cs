@@ -28,14 +28,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 using Critters.Client;
 
 using NUnit.Framework;
 
-using Pomona.Common;
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
@@ -129,6 +127,29 @@ namespace Pomona.SystemTests.Linq
                     x.Map.Add("CustomString", "Lalalala");
                     x.Map.Add("OtherCustom", "Blob rob");
                 });
+        }
+
+
+        [Category("TODO")]
+        [Test(Description = "Not yet working, need a proper extended resource collection wrapper for this.")]
+        public void PatchExtendedResource_AddItemToWrappedCollection()
+        {
+            var entity = new HasReferenceToDictionaryContainer();
+            Save(entity);
+
+            var resource = Client.Query<ITestParentClientResource>().First(x => x.Id == entity.Id);
+
+            var patchedResource =
+                Client.Patch(resource,
+                             x =>
+                             {
+                                 x.OtherContainers.Add(
+                                     new StringToObjectDictionaryContainerForm()
+                                         .Wrap<IStringToObjectDictionaryContainer, ITestClientResource>());
+                             },
+                             x => x.Expand(y => y.OtherContainers));
+
+            Assert.That(patchedResource.OtherContainers, Has.Count.EqualTo(1));
         }
 
 
