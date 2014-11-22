@@ -16,11 +16,11 @@ Example document:
         },
         { "id" : 2, "name" : "Peter" }
     ],
-    "attributes" : [
+    "attributes" : {
         "goat" : "eat",
         "fish" : "swim",
         "-MUST_BE_ESCAPED-" : "nada"
-    ]
+    }
 }
 ```
 Property operators:
