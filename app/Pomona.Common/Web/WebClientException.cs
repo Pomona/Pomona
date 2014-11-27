@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,36 +28,47 @@
 
 using System;
 using System.Reflection;
+
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
 {
     internal class WebClientException<TBody> : WebClientException, IWebClientException<TBody>
     {
-        internal WebClientException(WebClientRequestMessage request, WebClientResponseMessage response, TBody body,
-                                    Exception innerException) : base(request, response, body, innerException)
+        internal WebClientException(WebClientRequestMessage request,
+                                    WebClientResponseMessage response,
+                                    TBody body,
+                                    Exception innerException)
+            : base(request, response, body, innerException)
         {
         }
 
+
         public new TBody Body
         {
-            get { return (TBody) base.Body; }
+            get { return (TBody)base.Body; }
         }
     }
 
     public class WebClientException : Exception
     {
-        private static readonly MethodInfo createGenericMethod =
-            ReflectionHelper.GetMethodDefinition<WebClientException>(
-                x => CreateGeneric<object>(null, null, null, null));
-
+        private static readonly MethodInfo createGenericMethod;
         private readonly object body;
-
         private readonly WebClientRequestMessage request;
         private readonly WebClientResponseMessage response;
 
-        protected WebClientException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                     object body, Exception innerException)
+
+        static WebClientException()
+        {
+            createGenericMethod = ReflectionHelper
+                .GetMethodDefinition<WebClientException>(x => CreateGeneric<object>(null, null, null, null));
+        }
+
+
+        protected WebClientException(WebClientRequestMessage request,
+                                     WebClientResponseMessage response,
+                                     object body,
+                                     Exception innerException)
             : base(CreateMessage(response, body), innerException)
         {
             this.request = request;
@@ -65,39 +76,65 @@ namespace Pomona.Common.Web
             this.body = body;
         }
 
-        public bool HasBody
-        {
-            get { return body != null; }
-        }
 
         public object Body
         {
-            get { return body; }
+            get { return this.body; }
+        }
+
+        public bool HasBody
+        {
+            get { return this.body != null; }
         }
 
         public HttpStatusCode StatusCode
         {
-            get { return response != null ? response.StatusCode : HttpStatusCode.EmptyResponse; }
+            get { return this.response != null ? this.response.StatusCode : HttpStatusCode.EmptyResponse; }
         }
 
-        private static string CreateMessage(WebClientResponseMessage response, object body)
+
+        public static WebClientException Create(IClientTypeResolver client,
+                                                WebClientRequestMessage request,
+                                                WebClientResponseMessage response,
+                                                object bodyObject,
+                                                Exception innerException)
         {
-            var message = response != null ? response.StatusCode.ToString() : "Response missing";
-            var bodyString = body as string;
-            if (bodyString != null)
-                message = message + ": " + bodyString;
-            else if (body != null)
+            if (request == null)
+                throw new ArgumentNullException("request");
+
+            // String body doesn't create a generic exception, it just puts the string in the message
+            if (bodyObject != null && !(bodyObject is string))
             {
-                var messageProperty = body.GetType().GetProperty("Message");
-                if (messageProperty != null && messageProperty.PropertyType == typeof(string))
-                    message = (string)messageProperty.GetValue(body, null);
+                var bodyObjectType = bodyObject.GetType();
+                var genericArg = bodyObject is IClientResource
+                    ? client.GetMostInheritedResourceInterface(bodyObjectType)
+                    : bodyObjectType;
+                return
+                    (WebClientException)
+                        createGenericMethod
+                            .MakeGenericMethod(genericArg)
+                            .Invoke(null, new[] { request, response, bodyObject, innerException });
             }
-            return message;
+
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            switch (statusCode)
+            {
+                case HttpStatusCode.BadRequest:
+                    return new BadRequestException(request, response, bodyObject, innerException);
+                case HttpStatusCode.NotFound:
+                    return new ResourceNotFoundException(request, response, bodyObject, innerException);
+                case HttpStatusCode.PreconditionFailed:
+                    return new PreconditionFailedException(request, response, bodyObject, innerException);
+                default:
+                    return new WebClientException(request, response, bodyObject, innerException);
+            }
         }
+
 
         private static WebClientException CreateGeneric<TBody>(WebClientRequestMessage request,
                                                                WebClientResponseMessage response,
-                                                               TBody bodyObject, Exception innerException)
+                                                               TBody bodyObject,
+                                                               Exception innerException)
         {
             var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
             switch (statusCode)
@@ -113,38 +150,20 @@ namespace Pomona.Common.Web
             }
         }
 
-        public static WebClientException Create(IClientTypeResolver client, WebClientRequestMessage request,
-                                                WebClientResponseMessage response,
-                                                object bodyObject, Exception innerException)
+
+        private static string CreateMessage(WebClientResponseMessage response, object body)
         {
-            if (request == null) throw new ArgumentNullException("request");
-
-            // String body doesn't create a generic exception, it just puts the string in the message
-            if (bodyObject != null && !(bodyObject is string))
+            var message = response != null ? response.StatusCode.ToString() : "Response missing";
+            var bodyString = body as string;
+            if (bodyString != null)
+                message = message + ": " + bodyString;
+            else if (body != null)
             {
-                var bodyObjectType = bodyObject.GetType();
-                var genericArg = bodyObject is IClientResource
-                                     ? client.GetMostInheritedResourceInterface(bodyObjectType)
-                                     : bodyObjectType;
-                return
-                    (WebClientException)
-                    createGenericMethod
-                        .MakeGenericMethod(genericArg)
-                        .Invoke(null, new[] {request, response, bodyObject, innerException});
+                var messageProperty = body.GetType().GetProperty("Message");
+                if (messageProperty != null && messageProperty.PropertyType == typeof(string))
+                    message = (string)messageProperty.GetValue(body, null);
             }
-
-            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
-            switch (statusCode)
-            {
-                case HttpStatusCode.BadRequest:
-                    return new BadRequestException(request, response, bodyObject, innerException);
-                case HttpStatusCode.NotFound:
-                    return new ResourceNotFoundException(request, response, bodyObject, innerException);
-                case HttpStatusCode.PreconditionFailed:
-                    return new PreconditionFailedException(request, response, bodyObject, innerException);
-                default:
-                    return new WebClientException(request, response, bodyObject, innerException);
-            }
+            return message;
         }
     }
 }
