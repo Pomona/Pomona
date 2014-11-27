@@ -130,7 +130,7 @@ namespace Pomona.Routing
                                 .Query()
                                 .OfTypeIfRequired(pr.Node.Route.InputType)
                                 .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
-                                .WrapActionResult());
+                                .WrapActionResult(defaultPageSize: property.ExposedAsRepository ? (int?)null : int.MaxValue));
                     };
             }
             else
@@ -148,7 +148,7 @@ namespace Pomona.Routing
                                 .ToListDetectType()
                                 .AsQueryable()
                                 .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
-                                .WrapActionResult());
+                                .WrapActionResult(defaultPageSize: property.ExposedAsRepository ? (int?)null : int.MaxValue));
                     };
             }
         }

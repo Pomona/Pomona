@@ -29,12 +29,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 using Critters.Client;
 
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 using Pomona.Example;
@@ -153,6 +155,19 @@ namespace Pomona.SystemTests
             var critterEntity = CritterEntities.First();
             var critterResource = Client.Critters.Get(critterEntity.Id);
             Assert.That(critterResource, Is.Not.Null);
+        }
+
+
+        [Test]
+        public void GetResource_WithNonRepoCollectionProperty_ReturnsAllChildResources()
+        {
+            var thingEntity = new ThingWithCollectionNotExposedAsRepository();
+            Enumerable.Range(0, 500).Select(x => new Hat() { HatType = x.ToString(), Style = "blah" }).AddTo(thingEntity.Hats);
+            thingEntity.Hats.ForEach(x => Save(x));
+            Save(thingEntity);
+            var thingResource = Client.ThingWithCollectionNotExposedAsRepositories.Get(thingEntity.Id);
+            Assert.That(thingResource.Hats.IsLoaded(), Is.False);
+            Assert.That(thingResource.Hats.Count, Is.EqualTo(500));
         }
 
 

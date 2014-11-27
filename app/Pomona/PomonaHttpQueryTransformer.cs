@@ -33,7 +33,7 @@ using Pomona.Queries;
 
 namespace Pomona
 {
-    public class PomonaHttpQueryTransformer : IHttpQueryTransformer
+    public class PomonaHttpQueryTransformer
     {
         private readonly QueryExpressionParser parser;
         private readonly ITypeMapper typeMapper;
@@ -51,7 +51,7 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public PomonaQuery TransformRequest(PomonaRequest request, TransformedType rootType)
+        public PomonaQuery TransformRequest(PomonaRequest request, TransformedType rootType, int? defaultTop = null)
         {
             if (request == null)
                 throw new ArgumentNullException("request");
@@ -73,7 +73,7 @@ namespace Pomona
             }
 
             string filter = null;
-            var top = 100;
+            var top = defaultTop ?? 100;
             var skip = 0;
 
             if (request.Query["$totalcount"].HasValue && ((string) request.Query["$totalcount"]).ToLower() == "true")

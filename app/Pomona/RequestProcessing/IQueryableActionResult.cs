@@ -34,6 +34,7 @@ namespace Pomona.RequestProcessing
 {
     internal interface IQueryableActionResult : IQueryable, IActionResult
     {
+        int? DefaultPageSize { get; }
         QueryProjection Projection { get; }
         IQueryable WrappedQueryable { get; }
     }

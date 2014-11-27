@@ -38,20 +38,22 @@ namespace Pomona.RequestProcessing
     internal static class QueryableActionResultExtensions
     {
         private static readonly MethodInfo wrapActionResultGenericMethod =
-            ReflectionHelper.GetMethodDefinition(() => WrapActionResult<object, object>(null, null));
+            ReflectionHelper.GetMethodDefinition(() => WrapActionResult<object, object>(null, null, null));
 
 
         public static IQueryableActionResult<T> WrapActionResult<T>(this IQueryable<T> source,
-                                                                    QueryProjection projection = null)
+                                                                    QueryProjection projection = null,
+                                                                    int? defaultPageSize = null)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            return (IQueryableActionResult<T>)WrapActionResult((IQueryable)source, projection);
+            return (IQueryableActionResult<T>)WrapActionResult((IQueryable)source, projection, defaultPageSize);
         }
 
 
         public static IQueryableActionResult WrapActionResult(this IQueryable source,
-                                                              QueryProjection projection = null)
+                                                              QueryProjection projection = null,
+                                                              int? defaultPageSize = null)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -65,16 +67,17 @@ namespace Pomona.RequestProcessing
             }
             return
                 (IQueryableActionResult)wrapActionResultGenericMethod.MakeGenericMethod(source.ElementType, resultType)
-                    .Invoke(null, new object[] { source, projection });
+                    .Invoke(null, new object[] { source, projection, defaultPageSize});
         }
 
 
         private static IQueryableActionResult WrapActionResult<TElement, TResult>(IQueryable<TElement> source,
-                                                                                  QueryProjection projection)
+                                                                                  QueryProjection projection,
+                                                                                  int? defaultPageSize)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            return new QueryableActionResult<TElement, TResult>(source, projection);
+            return new QueryableActionResult<TElement, TResult>(source, projection, defaultPageSize);
         }
     }
 }

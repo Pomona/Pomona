@@ -26,49 +26,17 @@
 
 #endregion
 
-using System;
-using System.Linq;
+using System.Collections.Generic;
 
-using Pomona.Common.Linq;
-using Pomona.Common.Linq.NonGeneric;
-
-namespace Pomona.RequestProcessing
+namespace Pomona.Example.Models
 {
-    internal class QueryableActionResult<TElement, TResult>
-        : WrappedQueryableBase<TElement>, IQueryableActionResult<TElement, TResult>
+    public class ThingWithCollectionNotExposedAsRepository : EntityBase
     {
-        private readonly QueryProjection projection;
-        private int? defaultPageSize;
+        private readonly IList<Hat> hats = new List<Hat>();
 
-
-        internal QueryableActionResult(IQueryable<TElement> innerQueryable,
-                                       QueryProjection projection,
-                                       int? defaultPageSize)
-            : base(innerQueryable)
+        public IList<Hat> Hats
         {
-            this.projection = projection;
-            this.defaultPageSize = defaultPageSize;
-        }
-
-
-        public int? DefaultPageSize
-        {
-            get { return this.defaultPageSize; }
-        }
-
-        public QueryProjection Projection
-        {
-            get { return this.projection; }
-        }
-
-        public IQueryable WrappedQueryable
-        {
-            get { return InnerQueryable; }
-        }
-
-        public Type ResultType
-        {
-            get { return typeof(TResult); }
+            get { return this.hats; }
         }
     }
 }

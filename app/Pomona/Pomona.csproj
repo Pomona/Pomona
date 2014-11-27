@@ -148,7 +148,6 @@
     <Compile Include="FluentMapping\WrappingTypeMappingFilter.cs" />
     <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IBaseUriProvider.cs" />
-    <Compile Include="IHttpQueryTransformer.cs" />
     <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaModule.cs" />

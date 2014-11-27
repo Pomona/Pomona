@@ -156,8 +156,10 @@ namespace Pomona
         private PomonaResponse ExecuteQueryable(PomonaRequest request, IQueryable resultAsQueryable)
         {
             var queryableActionResult = resultAsQueryable as IQueryableActionResult;
+            int? defaultPageSize = null;
             if (queryableActionResult != null && queryableActionResult.Projection != null)
             {
+                defaultPageSize = queryableActionResult.DefaultPageSize;
                 if (queryableActionResult.Projection != QueryProjection.AsEnumerable)
                 {
                     var entity = queryableActionResult.Execute(queryableActionResult.Projection);
@@ -165,24 +167,21 @@ namespace Pomona
                         throw new ResourceNotFoundException("Resource not found.");
                     return new PomonaResponse(entity);
                 }
-                else
-                {
-                    resultAsQueryable = queryableActionResult.WrappedQueryable;
-                }
+                resultAsQueryable = queryableActionResult.WrappedQueryable;
             }
 
             var queryExecutor = (GetInstance<IPomonaDataSource>() as IQueryExecutor) ?? new DefaultQueryExecutor();
-            var pomonaQuery = ParseQuery(request, resultAsQueryable.ElementType);
+            var pomonaQuery = ParseQuery(request, resultAsQueryable.ElementType, defaultPageSize);
             return queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
         }
 
 
-        private PomonaQuery ParseQuery(PomonaRequest request, Type rootType)
+        private PomonaQuery ParseQuery(PomonaRequest request, Type rootType, int? defaultPageSize = null)
         {
             return new PomonaHttpQueryTransformer(this.typeMapper,
                                                   new QueryExpressionParser(
                                                       new QueryTypeResolver(this.typeMapper)))
-                .TransformRequest(request, (ResourceType)this.typeMapper.GetClassMapping(rootType));
+                .TransformRequest(request, (ResourceType)this.typeMapper.GetClassMapping(rootType), defaultPageSize);
         }
     }
 }
