@@ -54,8 +54,7 @@ namespace Pomona.Common.Web
     {
         private static readonly MethodInfo createGenericMethod;
         private readonly object body;
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
+        private readonly HttpStatusCode statusCode;
 
 
         static WebClientException()
@@ -71,9 +70,8 @@ namespace Pomona.Common.Web
                                      Exception innerException)
             : base(CreateMessage(response, body), innerException)
         {
-            this.request = request;
-            this.response = response;
             this.body = body;
+            this.statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
         }
 
 
@@ -89,7 +87,7 @@ namespace Pomona.Common.Web
 
         public HttpStatusCode StatusCode
         {
-            get { return this.response != null ? this.response.StatusCode : HttpStatusCode.EmptyResponse; }
+            get { return this.statusCode; }
         }
 
 
