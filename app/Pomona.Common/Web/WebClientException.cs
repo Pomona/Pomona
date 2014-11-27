@@ -28,6 +28,7 @@
 
 using System;
 using System.Reflection;
+using System.Text;
 
 using Pomona.Common.Internals;
 
@@ -68,7 +69,7 @@ namespace Pomona.Common.Web
                                      WebClientResponseMessage response,
                                      object body,
                                      Exception innerException)
-            : base(CreateMessage(response, body), innerException)
+            : base(CreateMessage(request, response, body), innerException)
         {
             this.body = body;
             this.statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
@@ -149,15 +150,36 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string CreateMessage(WebClientResponseMessage response, object body)
+        private static string CreateMessage(WebClientRequestMessage request,
+                                            WebClientResponseMessage response,
+                                            object body)
         {
-            var message = response != null
-                ? String.Format("The request to <{0}> failed with '{1} {2}'",
-                                response.Uri,
-                                (int)response.StatusCode,
-                                response.StatusCode)
-                : "Response missing";
+            StringBuilder message = new StringBuilder("The ");
 
+            if (request != null)
+            {
+                message.AppendFormat("{0} request to <{1}> ", request.Method, request.Uri);
+            }
+            else
+            {
+                message.Append("request ");
+            }
+
+            if (response != null)
+            {
+                // If the request is null, we need to append the URI, otherwise it's already appended.
+                if (request == null)
+                    message.AppendFormat("to <{0}> ", response.Uri);
+
+                message.AppendFormat("failed with '{0} {1}'",
+                                     (int)response.StatusCode,
+                                     response.StatusCode);
+            }
+            else
+            {
+                message.Append("got no response");
+            }
+            
             var bodyString = body as string;
             if (bodyString == null && body != null)
             {
@@ -165,8 +187,14 @@ namespace Pomona.Common.Web
                 if (messageProperty != null && messageProperty.PropertyType == typeof(string))
                     bodyString = (string)messageProperty.GetValue(body, null);
             }
-            
-            return String.Concat(message, ": ", bodyString);
+
+            if (bodyString != null)
+            {
+                message.Append(": ");
+                message.Append(bodyString);
+            }
+
+            return message.ToString();
         }
     }
 }
