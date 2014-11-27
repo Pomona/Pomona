@@ -90,6 +90,12 @@ namespace Pomona.Common.Serialization.Patch
             throw new NotImplementedException();
         }
 
+
+        protected void ClearDirty()
+        {
+            isDirty = false;
+        }
+
         public virtual void SetDirty()
         {
             if (isDirty)

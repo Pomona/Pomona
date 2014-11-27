@@ -180,10 +180,29 @@ namespace Pomona.Common.Serialization.Patch
             set
             {
                 removed.Remove(key);
-                replaced[key] = value;
+                TValue originalValue;
+                if (Original.TryGetValue(key, out originalValue) && Equals(originalValue, value))
+                {
+                    replaced.Remove(key);
+                }
+                else
+                {
+                    replaced[key] = value;
+                }
                 SetDirty();
             }
         }
+
+        public override void SetDirty()
+        {
+            if (replaced.Count == 0 && removed.Count == 0)
+                ClearDirty();
+            else
+            {
+                base.SetDirty();
+            }
+        }
+
 
         public ICollection<TKey> Keys
         {

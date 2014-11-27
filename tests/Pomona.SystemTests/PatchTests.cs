@@ -45,6 +45,7 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class PatchTests : ClientTestsBase
     {
+        [Test]
         public void PatchProtectedProperty_ThrowsBadRequestException_AndDoesNotAllowChangeOfProtectedProperty()
         {
             var critter = Save(new Critter());

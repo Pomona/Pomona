@@ -55,6 +55,9 @@ namespace Pomona.UnitTests.Patch
             private static readonly PropertyWrapper<ITestResource, IList<ITestResource>> childrenPropWrapper =
                 new PropertyWrapper<ITestResource, IList<ITestResource>>("Children");
 
+            private static readonly PropertyWrapper<ITestResource, IDictionary<string, string>> dictionaryPropWrapper =
+                new PropertyWrapper<ITestResource, IDictionary<string, string>>("Dictionary");
+
             private static readonly PropertyWrapper<ITestResource, ITestResource> friendPropWrapper =
                 new PropertyWrapper<ITestResource, ITestResource>("Friend");
 
@@ -67,10 +70,17 @@ namespace Pomona.UnitTests.Patch
             private static readonly PropertyWrapper<ITestResource, ITestResource> spousePropWrapper =
                 new PropertyWrapper<ITestResource, ITestResource>("Spouse");
 
+            private IDictionary<string, string> dictionary;
+
             public IList<ITestResource> Children
             {
                 get { return base.OnGet(childrenPropWrapper); }
                 set { base.OnSet(childrenPropWrapper, value); }
+            }
+
+            public IDictionary<string, string> Dictionary
+            {
+                get { return this.dictionary; }
             }
 
             public ITestResource Friend
@@ -101,16 +111,23 @@ namespace Pomona.UnitTests.Patch
         public class TestResource : ITestResource
         {
             private readonly List<ITestResource> children = new List<ITestResource>();
+            private readonly IDictionary<string, string> dictionary = new Dictionary<string, string>();
 
             public IList<ITestResource> Children
             {
                 get { return this.children; }
             }
 
+            public IDictionary<string, string> Dictionary
+            {
+                get { return this.dictionary; }
+            }
+
             public ITestResource Friend { get; set; }
 
             public int Id { get; set; }
             public string Info { get; set; }
+
             public ITestResource Spouse { get; set; }
         }
 
@@ -120,6 +137,7 @@ namespace Pomona.UnitTests.Patch
         public interface ITestResource : IClientResource
         {
             IList<ITestResource> Children { get; }
+            IDictionary<string, string> Dictionary { get; }
             ITestResource Friend { get; set; }
 
             [ResourceIdProperty]
@@ -152,11 +170,11 @@ namespace Pomona.UnitTests.Patch
                 modifyOriginal(original);
 
             var proxy = (ITestResource)ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                this.typeMapper.GetClassMapping(
-                    typeof(ITestResource)),
-                this.typeMapper,
-                null,
-                typeof(ITestResource));
+                                                                             this.typeMapper.GetClassMapping(
+                                                                                 typeof(ITestResource)),
+                                                                             this.typeMapper,
+                                                                             null,
+                                                                             typeof(ITestResource));
 
             Assert.IsFalse(((Delta)proxy).IsDirty);
             return proxy;
@@ -186,13 +204,14 @@ namespace Pomona.UnitTests.Patch
         {
             var jsonSerializer =
                 (ITextSerializer)
-                    (new PomonaJsonSerializerFactory().GetSerializer(new ClientSerializationContextProvider(this.typeMapper,
-                        Substitute.For<IPomonaClient>())));
+                    (new PomonaJsonSerializerFactory().GetSerializer(
+                        new ClientSerializationContextProvider(this.typeMapper,
+                                                               Substitute.For<IPomonaClient>())));
             using (var stringWriter = new StringWriter())
             {
                 jsonSerializer.Serialize(stringWriter,
-                    proxy,
-                    new SerializeOptions() { ExpectedBaseType = typeof(ITestResource) });
+                                         proxy,
+                                         new SerializeOptions() { ExpectedBaseType = typeof(ITestResource) });
                 Console.WriteLine(stringWriter.ToString());
                 return JObject.Parse(stringWriter.ToString());
                 // TODO: More assertions here!
@@ -225,6 +244,32 @@ namespace Pomona.UnitTests.Patch
             var actual = proxy.Original;
             Assert.That(actual.Friend.Info, Is.EqualTo(expected.Friend.Info));
             Assert.That(actual.Info, Is.EqualTo(expected.Info));
+        }
+
+
+        [Test]
+        public void JsonPatch_DictionaryWithMultipleValues_SetKeyToSameValueAsBefore_PropertyIsNotPartOfPatch()
+        {
+            var proxy = GetObjectProxy(tr =>
+            {
+                tr.Dictionary["lala"] = "bah";
+            });
+            proxy.Dictionary["lala"] = "bah";
+            proxy.Dictionary["whoopsi"] = "nain";
+            var jobject = CreateJsonPatch(proxy);
+            var jdict = jobject.AssertHasPropertyWithObject("dictionary");
+            jdict.AssertDoesNotHaveProperty("lala");
+            Assert.That(jdict.AssertHasPropertyWithString("whoopsi"), Is.EqualTo("nain"));
+        }
+
+
+        [Test]
+        public void JsonPatch_DictionaryWithSingleChange_SetKeyToSameValueAsBefore_DictionaryIsNotPartOfPatch()
+        {
+            var proxy = GetObjectProxy(tr => tr.Dictionary["lala"] = "bah");
+            proxy.Dictionary["lala"] = "bah";
+            var jobject = CreateJsonPatch(proxy);
+            jobject.AssertDoesNotHaveProperty("dictionary");
         }
 
 
@@ -280,7 +325,7 @@ namespace Pomona.UnitTests.Patch
             // Set to same value as it was
             proxy.Info = null;
             Assert.That(((ObjectDelta)proxy).ModifiedProperties,
-                Contains.Item(new KeyValuePair<string, object>("Info", null)));
+                        Contains.Item(new KeyValuePair<string, object>("Info", null)));
         }
 
 
