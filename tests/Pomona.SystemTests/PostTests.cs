@@ -537,6 +537,7 @@ namespace Pomona.SystemTests
             // but should still not be postable on server. This is done to test server validation of posting rules.
 
             var ex = Assert.Throws<WebClientException>(() => Client.UnpostableThingsOnServer.Post(x => x.FooBar = "moo"));
+            Console.WriteLine(ex);
             Assert.That(ex.Message, Is.StringContaining("'405 MethodNotAllowed': Method POST not allowed!"));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
         }
