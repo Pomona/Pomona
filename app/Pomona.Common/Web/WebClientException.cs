@@ -153,17 +153,22 @@ namespace Pomona.Common.Web
 
         private static string CreateMessage(WebClientResponseMessage response, object body)
         {
-            var message = response != null ? response.StatusCode.ToString() : "Response missing";
+            var message = response != null
+                ? String.Format("The request to <{0}> failed with '{1} {2}'",
+                                response.Uri,
+                                (int)response.StatusCode,
+                                response.StatusCode)
+                : "Response missing";
+
             var bodyString = body as string;
-            if (bodyString != null)
-                message = message + ": " + bodyString;
-            else if (body != null)
+            if (bodyString == null && body != null)
             {
                 var messageProperty = body.GetType().GetProperty("Message");
                 if (messageProperty != null && messageProperty.PropertyType == typeof(string))
-                    message = (string)messageProperty.GetValue(body, null);
+                    bodyString = (string)messageProperty.GetValue(body, null);
             }
-            return message;
+            
+            return String.Concat(message, ": ", bodyString);
         }
     }
 }
