@@ -48,19 +48,9 @@ namespace Pomona.Example
         }
 
 
-        public PomonaModule Module { get; set; }
-
-
         public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery query)
         {
             return this.store.ApplyAndExecute(queryable, query);
-        }
-
-        public Planet Post(PlanetarySystem planetarySystem, Planet planet)
-        {
-            Console.WriteLine("The planet has been posted!");
-            Post(planet);
-            return planet;
         }
 
 
