@@ -71,7 +71,7 @@ namespace Pomona.Common.Serialization.Json
             if (contextProvider == null)
                 throw new ArgumentNullException("contextProvider");
             this.contextProvider = contextProvider;
-            this.jsonSerializer = new JsonSerializer();
+            this.jsonSerializer = new JsonSerializer() { DateParseHandling = DateParseHandling.None };
             this.jsonSerializer.Converters.Add(new StringEnumConverter());
         }
 
@@ -170,7 +170,8 @@ namespace Pomona.Common.Serialization.Json
 
         private Reader CreateReader(TextReader textReader)
         {
-            return new Reader(JToken.ReadFrom(new JsonTextReader(textReader)));
+            return
+                new Reader(JToken.ReadFrom(new JsonTextReader(textReader){ DateParseHandling = DateParseHandling.None }));
         }
 
 

@@ -59,7 +59,7 @@ namespace Pomona.SystemTests
         {
             var jsonDeserializer =
                 new PomonaJsonDeserializer(new ClientSerializationContextProvider(this.typeMapper,
-                    Substitute.For<IPomonaClient>()));
+                                                                                  Substitute.For<IPomonaClient>()));
             return jsonDeserializer.DeserializeFromString<T>(jsonString);
         }
 
@@ -118,7 +118,18 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void DeserializeClassWithObjectProperty_PropertyGotStringValue_ReturnsDeserializedObject()
+        public void DeserializeClassWithObjectProperty_PropertyGotStringValue_ContainingDate_IsStillParsedAsString()
+        {
+            var jsonString = @"{ ""fooBar"": ""2015-01-02T12:08:33"" }";
+
+            var deserialized = Deserialize<IHasObjectProperty>(jsonString);
+            Assert.That(deserialized.FooBar, Is.EqualTo("2015-01-02T12:08:33"));
+        }
+
+
+        [Test]
+        public void
+            DeserializeClassWithObjectProperty_PropertyGotStringValue_ReturnsDeserializedObject()
         {
             var jsonString = @"{ ""fooBar"": ""blabla"" }";
 
