@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 using Pomona.Common;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.FluentMapping
@@ -40,6 +39,7 @@ namespace Pomona.FluentMapping
     internal class PropertyMappingOptions
     {
         private readonly PropertyInfo propertyInfo;
+
 
         public PropertyMappingOptions(PropertyInfo propertyInfo)
         {
@@ -53,24 +53,31 @@ namespace Pomona.FluentMapping
         }
 
 
-        public HttpMethod Method { get; internal set; }
-        public HttpMethod MethodMask { get; internal set; }
+        public List<Attribute> AddedAttributes { get; set; }
+
         public bool? AlwaysExpanded { get; set; }
 
         public int? ConstructorArgIndex { get; set; }
 
         public PropertyCreateMode? CreateMode { get; internal set; }
+        public bool? ExpandItemsAsLinks { get; internal set; }
+        public bool? ExposedAsRepository { get; internal set; }
         public LambdaExpression Formula { get; set; }
 
         public PropertyInclusionMode InclusionMode { get; internal set; }
         public bool? IsAttributesProperty { get; set; }
         public bool? IsEtagProperty { get; set; }
-        public List<Attribute> AddedAttributes { get; set; }
 
         public bool? IsPrimaryKey { get; set; }
         public HttpMethod ItemMethod { get; internal set; }
         public HttpMethod ItemMethodMask { get; internal set; }
+        public HttpMethod Method { get; internal set; }
+        public HttpMethod MethodMask { get; internal set; }
         public string Name { get; set; }
+
+        public Func<object, IContainer, object> OnGetDelegate { get; set; }
+
+        public Action<object, object, IContainer> OnSetDelegate { get; set; }
         public bool? PropertyFormulaIsDecompiled { get; internal set; }
 
         public PropertyInfo PropertyInfo
@@ -78,40 +85,34 @@ namespace Pomona.FluentMapping
             get { return this.propertyInfo; }
         }
 
-        public bool? ExposedAsRepository { get; internal set; }
-
-        public Func<object, IContainer, object> OnGetDelegate { get; set; }
-
-        public Action<object, object, IContainer> OnSetDelegate { get; set; }
-
         public Type PropertyType { get; set; }
 
 
         internal void ClearAccessModeFlag(HttpMethod method)
         {
-            this.Method &= ~method;
-            this.MethodMask |= method;
+            Method &= ~method;
+            MethodMask |= method;
         }
 
 
         internal void ClearItemAccessModeFlag(HttpMethod method)
         {
-            this.ItemMethod &= ~method;
-            this.ItemMethodMask |= method;
+            ItemMethod &= ~method;
+            ItemMethodMask |= method;
         }
 
 
         internal void SetAccessModeFlag(HttpMethod method)
         {
-            this.Method |= method;
-            this.MethodMask |= method;
+            Method |= method;
+            MethodMask |= method;
         }
 
 
         internal void SetItemAccessModeFlag(HttpMethod method)
         {
-            this.ItemMethod |= method;
-            this.ItemMethodMask |= method;
+            ItemMethod |= method;
+            ItemMethodMask |= method;
         }
     }
 }

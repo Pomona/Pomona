@@ -226,6 +226,7 @@ namespace Pomona.Example
                                 critter.RelativeImageUrl =
                                     new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
                             }))
+                .Include(x => x.Enemies, o => o.ExpandItemsAsLinks())
                 .HandledBy<CritterHandler>()
                 .OnDeserialized(c => c.FixParentReferences());
         }

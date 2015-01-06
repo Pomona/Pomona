@@ -263,6 +263,12 @@ namespace Pomona
         }
 
 
+        public virtual bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo)
+        {
+            return false;
+        }
+
+
         public virtual IEnumerable<Type> GetResourceHandlers(Type type)
         {
             return null;

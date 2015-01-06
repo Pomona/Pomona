@@ -117,11 +117,10 @@ namespace Pomona
 
         public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
         {
-            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded ||
-                             PathToBeExpanded(node.ExpandPath) ||
-                             (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
-                             ||
-                             IsAlwaysExpandedPropertyNode(node);
+            var isExpanded =    node.ExpectedBaseType.IsAlwaysExpanded
+                             || PathToBeExpanded(node.ExpandPath)
+                             || (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
+                             || (GetPropertyExpandMode(node) != PropertyExpandMode.Default);
 
             node.SerializeAsReference = !isExpanded;
 
@@ -129,22 +128,22 @@ namespace Pomona
         }
 
 
-        private bool IsAlwaysExpandedPropertyNode(ISerializerNode node)
+        private PropertyExpandMode GetPropertyExpandMode(ISerializerNode node)
         {
             if (node.ExpectedBaseType.IsCollection && node.ExpectedBaseType.ElementType.IsAlwaysExpanded)
-                return true;
+                return PropertyExpandMode.FullExpand;
 
             if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
-                IsAlwaysExpandedPropertyNode(node.ParentNode))
-                return true;
+                GetPropertyExpandMode(node.ParentNode) == PropertyExpandMode.FullExpand)
+                return PropertyExpandMode.FullExpand;
 
             var propNode = node as PropertyValueSerializerNode;
             if (propNode == null)
-                return false;
+                return PropertyExpandMode.Default;
             var propMapping = propNode.Property as PropertyMapping;
             if (propMapping == null)
-                return false;
-            return propMapping.AlwaysExpand;
+                return PropertyExpandMode.Default;
+            return propMapping.ExpandMode;
         }
     }
 }

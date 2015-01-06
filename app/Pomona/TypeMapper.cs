@@ -198,16 +198,24 @@ namespace Pomona
         public override ExportedPropertyDetails LoadExportedPropertyDetails(PropertyMapping propertyMapping)
         {
             var propInfo = propertyMapping.PropertyInfo;
+
+            var reflectedType = propertyMapping.ReflectedType;
+            var expandMode = PropertyExpandMode.Default;
+            if (filter.PropertyIsAlwaysExpanded(reflectedType, propInfo))
+                expandMode = PropertyExpandMode.FullExpand;
+            else if (filter.PropertyItemsExpandedAsLinks(reflectedType, propInfo))
+                expandMode = PropertyExpandMode.ExpandItemsAsLinks;
+
             var details = new ExportedPropertyDetails(
-                this.filter.PropertyIsAttributes(propertyMapping.ReflectedType, propInfo),
-                this.filter.PropertyIsEtag(propertyMapping.ReflectedType, propInfo),
-                this.filter.PropertyIsPrimaryId(propertyMapping.ReflectedType, propInfo),
+                this.filter.PropertyIsAttributes(reflectedType, propInfo),
+                this.filter.PropertyIsEtag(reflectedType, propInfo),
+                this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
                 this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
-                this.filter.GetPropertyItemAccessMode(propertyMapping.ReflectedType, propInfo),
+                this.filter.GetPropertyItemAccessMode(reflectedType, propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(propertyMapping.ReflectedType,
+                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(reflectedType,
                                                                                   propInfo)),
-                this.filter.PropertyIsAlwaysExpanded(propertyMapping.ReflectedType, propInfo));
+                expandMode);
             return details;
         }
 

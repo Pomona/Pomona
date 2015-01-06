@@ -47,6 +47,7 @@ namespace Pomona.FluentMapping
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
 
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExpandItemsAsLinks();
 
         /// <summary>
         /// Property defines the attributes of the resource.

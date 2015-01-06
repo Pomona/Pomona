@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@ namespace Pomona.Common.TypeSystem
     public class ExportedPropertyDetails
     {
         private readonly HttpMethod accessMode;
-        private readonly bool alwaysExpand;
+        private readonly PropertyExpandMode expandMode;
         private readonly bool exposedAsRepository;
         private readonly bool isAttributesProperty, isEtagProperty, isPrimaryKey;
         private readonly HttpMethod itemAccessMode;
@@ -39,13 +39,13 @@ namespace Pomona.Common.TypeSystem
 
 
         public ExportedPropertyDetails(bool isAttributesProperty,
-            bool isEtagProperty,
-            bool isPrimaryKey,
-            HttpMethod accessMode,
-            HttpMethod itemAccessMode,
-            bool exposedAsRepository,
-            string uriName,
-            bool alwaysExpand)
+                                       bool isEtagProperty,
+                                       bool isPrimaryKey,
+                                       HttpMethod accessMode,
+                                       HttpMethod itemAccessMode,
+                                       bool exposedAsRepository,
+                                       string uriName,
+                                       PropertyExpandMode expandMode)
         {
             this.isAttributesProperty = isAttributesProperty;
             this.isEtagProperty = isEtagProperty;
@@ -54,7 +54,7 @@ namespace Pomona.Common.TypeSystem
             this.itemAccessMode = itemAccessMode;
             this.exposedAsRepository = exposedAsRepository;
             this.uriName = uriName;
-            this.alwaysExpand = alwaysExpand;
+            this.expandMode = expandMode;
         }
 
 
@@ -63,9 +63,9 @@ namespace Pomona.Common.TypeSystem
             get { return this.accessMode; }
         }
 
-        public bool AlwaysExpand
+        public PropertyExpandMode ExpandMode
         {
-            get { return this.alwaysExpand; }
+            get { return this.expandMode; }
         }
 
         public bool ExposedAsRepository

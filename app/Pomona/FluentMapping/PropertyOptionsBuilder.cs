@@ -93,6 +93,13 @@ namespace Pomona.FluentMapping
         }
 
 
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExpandItemsAsLinks()
+        {
+            this.options.ExpandItemsAsLinks = true;
+            return this;
+        }
+
+
         public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository()
         {
             this.options.ExposedAsRepository = true;

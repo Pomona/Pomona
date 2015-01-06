@@ -49,6 +49,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ExpandItemsAsLinks()
+        {
+            return this;
+        }
+
+
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> AsAttributes()
         {
             return this;

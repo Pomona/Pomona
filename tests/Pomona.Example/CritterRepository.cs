@@ -270,7 +270,7 @@ namespace Pomona.Example
         }
 
 
-        public void CreateRandomData(int critterCount = 5, int weaponModelCount = 3)
+        public void CreateRandomData(int critterCount = 5, int weaponModelCount = 3, bool alwaysHasEnemies = false)
         {
             var rng = new Random(23576758);
 
@@ -287,6 +287,20 @@ namespace Pomona.Example
             var thingWithCustomIList = Save(new ThingWithCustomIList());
             foreach (var loner in thingWithCustomIList.Loners)
                 Save(loner);
+
+            var critters = GetEntityList<Critter>();
+            foreach (var critter in critters)
+            {
+                var hasEnemies = alwaysHasEnemies || rng.NextDouble() > 0.3;
+                if (!hasEnemies)
+                    continue;
+                var enemyCount = rng.Next(5) + 1;
+                Enumerable.Repeat(0, enemyCount)
+                    .Select(x => rng.Next(critters.Count))
+                    .Distinct()
+                    .Select(x => critters[x])
+                    .AddTo(critter.Enemies);
+            }
         }
 
 

@@ -65,15 +65,15 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
-        {
-            return this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo);
-        }
-
-
         public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
         {
             return this.wrappedFilter.ClientEnumIsGeneratedAsStringEnum(enumType);
+        }
+
+
+        public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo);
         }
 
 
@@ -300,6 +300,12 @@ namespace Pomona.FluentMapping
         public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo);
+        }
+
+
+        public virtual bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.PropertyItemsExpandedAsLinks(type, propertyInfo);
         }
 
 

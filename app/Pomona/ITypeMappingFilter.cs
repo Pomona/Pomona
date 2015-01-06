@@ -161,6 +161,7 @@ namespace Pomona
         string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
         Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo);
         Type GetPropertyType(Type type, PropertyInfo propertyInfo);
+        bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo);
         bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
         bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
         bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);

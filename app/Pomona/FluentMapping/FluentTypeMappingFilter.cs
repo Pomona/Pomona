@@ -333,6 +333,15 @@ namespace TestNs
         }
 
 
+        public bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        o => o.ExpandItemsAsLinks,
+                                        () => this.wrappedFilter.PropertyItemsExpandedAsLinks(type, propertyInfo));
+        }
+
+
         public IEnumerable<Type> GetResourceHandlers(Type type)
         {
             return FromMappingOrDefault(type, x => x.HandlerTypes, () => this.wrappedFilter.GetResourceHandlers(type).EmptyIfNull());

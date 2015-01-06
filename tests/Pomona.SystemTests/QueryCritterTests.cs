@@ -45,6 +45,18 @@ namespace Pomona.SystemTests
     public class QueryCritterTests : ClientTestsBase
     {
         [Test]
+        public void GetCritter_HavingEnemies_ReturnsList_WithItemsSerializedAsReferences()
+        {
+            Repository.CreateRandomData(critterCount : 4, alwaysHasEnemies : true);
+            var critterId = CritterEntities.OrderByDescending(x => x.Enemies.Count).Select(x => x.Id).First();
+            var critterResource = Client.Critters.Get(critterId);
+            Assert.That(critterResource.Enemies.IsLoaded(), Is.True);
+            foreach (var enemy in critterResource.Enemies)
+                Assert.That(enemy.IsLoaded(), Is.False);
+        }
+
+
+        [Test]
         public void QueryCritter_CastToMusicalCritterWithEqualsOperator_ReturnsCorrectMusicalCritter()
         {
             var firstMusicalCritter =
