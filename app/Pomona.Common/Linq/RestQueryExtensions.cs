@@ -62,10 +62,11 @@ namespace Pomona.Common.Linq
 
 
         public static IEnumerable<TSource> Expand<TSource, TProperty>(this IEnumerable<TSource> source,
-            Func<TSource, TProperty> propertySelector)
+                                                                      Func<TSource, TProperty> propertySelector)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
+
             return source;
         }
 
@@ -74,11 +75,11 @@ namespace Pomona.Common.Linq
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            
+
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
             var methodCallExpression = Expression.Call(null, genericMethod, new[] { source.Expression });
-            
+
             return source.Provider.Execute<TSource>(methodCallExpression);
         }
 
@@ -87,6 +88,7 @@ namespace Pomona.Common.Linq
         {
             if (source == null)
                 throw new ArgumentNullException("source");
+
             return source.First();
         }
 
@@ -108,32 +110,7 @@ namespace Pomona.Common.Linq
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            return source;
-        }
 
-
-        public static IQueryable<TSource> WithOptions<TSource>(this IQueryable<TSource> source,
-                                                       Action<IRequestOptions> optionsModifier)
-        {
-            if (source == null)
-                throw new ArgumentNullException("source");
-
-            var method = (MethodInfo)MethodBase.GetCurrentMethod();
-            var genericMethod = method.MakeGenericMethod(typeof(TSource));
-
-            var methodCallExpression = Expression.Call(null, genericMethod, new[]
-            {
-                source.Expression, Expression.Constant(optionsModifier)
-            });
-
-            return source.Provider.CreateQuery<TSource>(methodCallExpression);
-        }
-
-
-        public static IEnumerable<TSource> WithOptions<TSource>(this IEnumerable<TSource> source)
-        {
-            if (source == null)
-                throw new ArgumentNullException("source");
             return source;
         }
 
@@ -163,11 +140,13 @@ namespace Pomona.Common.Linq
             return source.Provider.Execute<QueryResult<TSource>>(methodCallExpression);
         }
 
+
         public static QueryResult<TSource> ToQueryResult<TSource>(this IEnumerable<TSource> source)
         {
             var enumerable = source as TSource[] ?? source.ToArray();
             return new QueryResult<TSource>(enumerable, 0, enumerable.Length, null);
         }
+
 
         public static Uri ToUri<TSource>(this IQueryable<TSource> source)
         {
@@ -179,6 +158,33 @@ namespace Pomona.Common.Linq
             var methodCallExpression = Expression.Call(null, genericMethod, new[] { source.Expression });
 
             return source.Provider.Execute<Uri>(methodCallExpression);
+        }
+
+
+        public static IQueryable<TSource> WithOptions<TSource>(this IQueryable<TSource> source,
+                                                               Action<IRequestOptions> optionsModifier)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+
+            var method = (MethodInfo)MethodBase.GetCurrentMethod();
+            var genericMethod = method.MakeGenericMethod(typeof(TSource));
+
+            var methodCallExpression = Expression.Call(null, genericMethod, new[]
+            {
+                source.Expression, Expression.Constant(optionsModifier)
+            });
+
+            return source.Provider.CreateQuery<TSource>(methodCallExpression);
+        }
+
+
+        public static IEnumerable<TSource> WithOptions<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+
+            return source;
         }
     }
 }
