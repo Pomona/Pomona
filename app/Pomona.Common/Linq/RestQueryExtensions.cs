@@ -112,16 +112,21 @@ namespace Pomona.Common.Linq
         }
 
 
-        public static IQueryable<TSource> WithOptions<TSource>(this IQueryable<TSource> source, Action<IRequestOptions> optionsModifier)
+        public static IQueryable<TSource> WithOptions<TSource>(this IQueryable<TSource> source,
+                                                       Action<IRequestOptions> optionsModifier)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            return source.Provider.CreateQuery<TSource>(
-                Expression.Call(
-                    null,
-                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource)),
-                    new[] { source.Expression, Expression.Constant(optionsModifier) }
-                    ));
+
+            var method = (MethodInfo)MethodBase.GetCurrentMethod();
+            var genericMethod = method.MakeGenericMethod(typeof(TSource));
+
+            var methodCallExpression = Expression.Call(null, genericMethod, new[]
+            {
+                source.Expression, Expression.Constant(optionsModifier)
+            });
+
+            return source.Provider.CreateQuery<TSource>(methodCallExpression);
         }
 
 
