@@ -153,13 +153,13 @@ namespace Pomona.Common.Linq
 
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
-
             if (source == null)
                 throw new ArgumentNullException("source");
-            var methodCallExpression =
-                Expression.Call(null,
-                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new[] { typeof(TSource) }),
-                    new[] { source.Expression });
+
+            var method = (MethodInfo)MethodBase.GetCurrentMethod();
+            var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
+            var methodCallExpression = Expression.Call(null, genericMethod, new[] { source.Expression });
+
             return source.Provider.Execute<QueryResult<TSource>>(methodCallExpression);
         }
 
