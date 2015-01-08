@@ -37,31 +37,30 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Fetcher
 {
+    using FetchEntitiesByIdInBatches = Func<Type, Type, BatchFetcher, object[], PropertyInfo, IEnumerable<object>>;
+
     public class BatchFetcher
     {
-        private static readonly MethodInfo containsMethod =
-            ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
-
-        private static readonly MethodInfo expandCollectionBatchedMethod =
-            ReflectionHelper.GetMethodDefinition<BatchFetcher>(
-                x => x.ExpandCollectionBatched<object, object, object>(null, null, null));
-
-        private static readonly MethodInfo expandManyToOneMethod =
-            ReflectionHelper.GetMethodDefinition<BatchFetcher>(
-                x => x.ExpandManyToOne<object, object>(null, null, null));
-
-        private static readonly Action<Type, BatchFetcher, object, string> expandMethod =
-            GenericInvoker.Instance<BatchFetcher>().CreateAction1<object, string>(x => x.Expand<object>(null, null));
-
+        private static readonly MethodInfo containsMethod;
+        private static readonly MethodInfo expandCollectionBatchedMethod;
+        private static readonly MethodInfo expandManyToOneMethod;
+        private static readonly Action<Type, BatchFetcher, object, string> expandMethod;
         private readonly int batchFetchCount;
         private readonly IBatchFetchDriver driver;
-
         private readonly HashSet<string> expandedPaths;
+        private readonly FetchEntitiesByIdInBatches fetchEntitiesByIdInBatches;
 
-        private readonly Func<Type, Type, BatchFetcher, object[], PropertyInfo, IEnumerable<object>>
-            fetchEntitiesByIdInBatches =
-                GenericInvoker.Instance<BatchFetcher>().CreateFunc2<object[], PropertyInfo, IEnumerable<object>>(
-                    x => x.FetchEntitiesByIdInBatches<object, object>(null, null));
+
+        static BatchFetcher()
+        {
+            containsMethod = ReflectionHelper.GetMethodDefinition<IEnumerable<object>>(x => x.Contains(null));
+            expandCollectionBatchedMethod = ReflectionHelper.GetMethodDefinition<BatchFetcher>(
+                x => x.ExpandCollectionBatched<object, object, object>(null, null, null));
+            expandManyToOneMethod = ReflectionHelper.GetMethodDefinition<BatchFetcher>(
+                x => x.ExpandManyToOne<object, object>(null, null, null));
+            expandMethod = GenericInvoker.Instance<BatchFetcher>().CreateAction1<object, string>(
+                x => x.Expand<object>(null, null));
+        }
 
 
         public BatchFetcher(IBatchFetchDriver driver, string expandedPaths)
@@ -72,6 +71,11 @@ namespace Pomona.Fetcher
 
         public BatchFetcher(IBatchFetchDriver driver, string expandedPaths, int batchFetchCount)
         {
+            this.fetchEntitiesByIdInBatches = GenericInvoker
+                .Instance<BatchFetcher>()
+                .CreateFunc2<object[], PropertyInfo, IEnumerable<object>>(
+                    x => x.FetchEntitiesByIdInBatches<object, object>(null, null));
+
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
             this.driver = driver;
             this.batchFetchCount = batchFetchCount;
@@ -98,18 +102,6 @@ namespace Pomona.Fetcher
         }
 
 
-        private void Expand(IEnumerable entitiesUncast, string path = "")
-        {
-            var entitiesGroupedByType =
-                entitiesUncast
-                    .Cast<object>()
-                    .Where(x => x != null)
-                    .GroupBy(x => x.GetType())
-                    .ToList();
-
-            entitiesGroupedByType.ForEach(x => expandMethod(x.Key, this, x.Cast(x.Key), path));
-        }
-
         public void Expand<TEntity>(IEnumerable<TEntity> entities, string path = "")
             where TEntity : class
         {
@@ -128,12 +120,118 @@ namespace Pomona.Fetcher
                         Type elementType;
                         if (IsCollection(prop, out elementType))
                         {
-                            expandCollectionBatchedMethod.MakeGenericMethod(typeof(TEntity), elementType, driver.GetIdProperty(typeof(TEntity)).PropertyType)
+                            expandCollectionBatchedMethod.MakeGenericMethod(typeof(TEntity), elementType,
+                                                                            this.driver.GetIdProperty(typeof(TEntity))
+                                                                                .PropertyType)
                                 .Invoke(this, new object[] { entities, subPath, prop });
                         }
                     }
                 }
             }
+        }
+
+
+        protected virtual void ExpandCollection<TParentEntity, TCollectionElement, TParentId>(
+            IEnumerable<TParentEntity> entities,
+            string path,
+            PropertyInfo prop,
+            PropertyInfo parentIdProp,
+            Func<TParentEntity, TParentId> getParentIdExpr)
+            where TCollectionElement : class
+        {
+            PropertyInfo childIdProp;
+            var getChildIdExpr = CreateIdGetExpression<TCollectionElement>(out childIdProp).Compile();
+
+            var getChildLambdaParam = Expression.Parameter(typeof(TParentEntity), "z");
+            var childProperty = Expression.Convert(Expression.Property(getChildLambdaParam, prop),
+                                                   typeof(IEnumerable<TCollectionElement>));
+            var getChildLambda = Expression
+                .Lambda<Func<TParentEntity, IEnumerable<TCollectionElement>>>(childProperty, getChildLambdaParam)
+                .Compile();
+
+            var parentEntities = entities
+                .Select(x => new { Parent = x, Collection = getChildLambda(x), ParentId = getParentIdExpr(x) })
+                .ToList();
+
+            var parentIdsToFetch = parentEntities
+                .Where(x => x.Collection != null && !this.driver.IsLoaded(x.Collection))
+                .Select(x => x.ParentId)
+                .Distinct()
+                .ToArray();
+
+            if (parentIdsToFetch.Length == 0)
+                return;
+
+            var containsExprParam = Expression.Parameter(typeof(TParentEntity), "tp");
+            var containsExpr = Expression.Lambda<Func<TParentEntity, bool>>(
+                Expression.Call(containsMethod.MakeGenericMethod(typeof(TParentId)),
+                                Expression.Constant(parentIdsToFetch),
+                                Expression.Property(containsExprParam, parentIdProp)),
+                containsExprParam);
+            //var lineOrderIdMap =
+            //    db.Orders
+            //    .Where(x => ordersIds.Contains(x.OrderId))
+            //    .SelectMany(x => x.OrderLines.Select(y => new ParentChildRelation(x.OrderId, y.Id)))
+            //    .ToList();
+
+            var selectManyExprParam = Expression.Parameter(typeof(TParentEntity), "x");
+            var selectManyExpr = Expression.Lambda<Func<TParentEntity, IEnumerable<TCollectionElement>>>(
+                Expression.Property(selectManyExprParam, prop),
+                selectManyExprParam);
+
+            var selectRelationLeftParam = Expression.Parameter(typeof(TParentEntity), "a");
+            var selectRelationRightParam = Expression.Parameter(typeof(TCollectionElement), "b");
+            var selectRelation = Expression.Lambda<Func<TParentEntity, TCollectionElement, ParentChildRelation>>(
+                Expression.New(typeof(ParentChildRelation).GetConstructors().First(),
+                               Expression.Convert(Expression.Property(selectRelationLeftParam, parentIdProp),
+                                                  typeof(object)),
+                               Expression.Convert(Expression.Property(selectRelationRightParam, childIdProp),
+                                                  typeof(object))),
+                selectRelationLeftParam,
+                selectRelationRightParam);
+
+            var relations = this.driver.Query<TParentEntity>()
+                .Where(containsExpr)
+                .SelectMany(selectManyExpr, selectRelation)
+                .ToList();
+
+            var childIdsToFetch = relations.Select(x => x.ChildId).Distinct().ToArray();
+
+            var fetched =
+                FetchEntitiesByIdInBatches<TCollectionElement>(childIdsToFetch, childIdProp)
+                    .ToDictionary(getChildIdExpr, x => x);
+
+            var bindings =
+                parentEntities
+                    .Join(parentIdsToFetch, x => x.ParentId, x => x, (a, b) => a)
+                    // Only bind collections in parentIdsToFetch
+                    .GroupJoin(relations,
+                               x => x.ParentId,
+                               x => x.ParentId,
+                               (a, b) =>
+                                   new KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>
+                                   (a.Parent, b.Select(y => fetched[y.ChildId])));
+            this.driver.PopulateCollections(bindings, prop, typeof(TCollectionElement));
+
+            Expand(parentEntities.SelectMany(x => getChildLambda(x.Parent)), path);
+        }
+
+
+        protected virtual void ExpandCollectionBatched<TParentEntity, TCollectionElement, TParentId>(
+            IEnumerable<TParentEntity> entities,
+            string path,
+            PropertyInfo prop)
+            where TCollectionElement : class
+        {
+            PropertyInfo parentIdProp;
+            var getParentIdExpr = CreateIdGetExpression<TParentEntity, TParentId>(out parentIdProp).Compile();
+            Partition(entities.Distinct().OrderBy(getParentIdExpr), this.batchFetchCount)
+                .ToList()
+                .ForEach(x => ExpandCollection<TParentEntity, TCollectionElement, TParentId>(x,
+                                                                                             path,
+                                                                                             prop,
+                                                                                             parentIdProp,
+                                                                                             getParentIdExpr));
         }
 
 
@@ -207,106 +305,23 @@ namespace Pomona.Fetcher
             return idGetter;
         }
 
-        protected virtual void ExpandCollection<TParentEntity, TCollectionElement, TParentId>(IEnumerable<TParentEntity> entities,
-            string path,
-            PropertyInfo prop, PropertyInfo parentIdProp, Func<TParentEntity, TParentId> getParentIdExpr)
-            where TCollectionElement : class
+
+        private void Expand(IEnumerable entitiesUncast, string path = "")
         {
-            PropertyInfo childIdProp;
-            var getChildIdExpr = CreateIdGetExpression<TCollectionElement>(out childIdProp).Compile();
+            var entitiesGroupedByType =
+                entitiesUncast
+                    .Cast<object>()
+                    .Where(x => x != null)
+                    .GroupBy(x => x.GetType())
+                    .ToList();
 
-            var getChildLambdaParam = Expression.Parameter(typeof(TParentEntity), "z");
-            var getChildLambda =
-                Expression.Lambda<Func<TParentEntity, IEnumerable<TCollectionElement>>>(
-                    Expression.Convert(Expression.Property(getChildLambdaParam, prop),
-                        typeof(IEnumerable<TCollectionElement>)),
-                    getChildLambdaParam).Compile();
-
-            var parentEntities = entities.Select(x => new { Parent = x, Collection = getChildLambda(x), ParentId = getParentIdExpr(x) }).ToList();
-
-            var parentIdsToFetch =
-                parentEntities
-                    .Where(x => x.Collection != null && !this.driver.IsLoaded(x.Collection))
-                    .Select(x => x.ParentId)
-                    .Distinct()
-                    .ToArray();
-
-            if (parentIdsToFetch.Length == 0)
-                return;
-
-            var containsExprParam = Expression.Parameter(typeof(TParentEntity), "tp");
-            var containsExpr =
-                Expression.Lambda<Func<TParentEntity, bool>>(
-                    Expression.Call(containsMethod.MakeGenericMethod(typeof(TParentId)),
-                        Expression.Constant(parentIdsToFetch),
-                        Expression.Property(containsExprParam, parentIdProp)),
-                    containsExprParam);
-            //var lineOrderIdMap =
-            //    db.Orders
-            //    .Where(x => ordersIds.Contains(x.OrderId))
-            //    .SelectMany(x => x.OrderLines.Select(y => new ParentChildRelation(x.OrderId, y.Id)))
-            //    .ToList();
-
-            var selectManyExprParam = Expression.Parameter(typeof(TParentEntity), "x");
-            var selectManyExpr =
-                Expression.Lambda<Func<TParentEntity, IEnumerable<TCollectionElement>>>(
-                    Expression.Property(selectManyExprParam, prop),
-                    selectManyExprParam);
-
-            var selectRelationLeftParam = Expression.Parameter(typeof(TParentEntity), "a");
-            var selectRelationRightParam = Expression.Parameter(typeof(TCollectionElement), "b");
-            var selectRelation =
-                Expression.Lambda<Func<TParentEntity, TCollectionElement, ParentChildRelation>>(Expression.New(
-                    typeof(ParentChildRelation).GetConstructors().First(),
-                    Expression.Convert(Expression.Property(selectRelationLeftParam, parentIdProp), typeof(object)),
-                    Expression.Convert(Expression.Property(selectRelationRightParam, childIdProp), typeof(object))
-                    ),
-                    selectRelationLeftParam,
-                    selectRelationRightParam);
-
-            var relations = this.driver.Query<TParentEntity>()
-                .Where(containsExpr)
-                .SelectMany(selectManyExpr, selectRelation)
-                .ToList();
-
-            var childIdsToFetch = relations.Select(x => x.ChildId).Distinct().ToArray();
-
-            var fetched =
-                FetchEntitiesByIdInBatches<TCollectionElement>(childIdsToFetch, childIdProp)
-                    .ToDictionary(getChildIdExpr, x => x);
-
-            var bindings =
-                parentEntities
-                .Join(parentIdsToFetch, x => x.ParentId, x => x, (a, b) => a) // Only bind collections in parentIdsToFetch
-                .GroupJoin(relations,
-                    x => x.ParentId,
-                    x => x.ParentId,
-                    (a, b) =>
-                        new KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>
-                            (a.Parent, b.Select(y => fetched[y.ChildId])));
-            this.driver.PopulateCollections(bindings, prop, typeof(TCollectionElement));
-
-            Expand(parentEntities.SelectMany(x => getChildLambda(x.Parent)), path);
-        }
-
-
-        protected virtual void ExpandCollectionBatched<TParentEntity, TCollectionElement, TParentId>(IEnumerable<TParentEntity> entities,
-            string path,
-            PropertyInfo prop)
-            where TCollectionElement : class
-        {
-            PropertyInfo parentIdProp;
-            var getParentIdExpr = CreateIdGetExpression<TParentEntity, TParentId>(out parentIdProp).Compile();
-            Partition(entities.Distinct().OrderBy(getParentIdExpr), this.batchFetchCount).ToList().ForEach(
-                x =>
-                ExpandCollection<TParentEntity, TCollectionElement, TParentId>(x, path, prop, parentIdProp,
-                                                                                   getParentIdExpr));
+            entitiesGroupedByType.ForEach(x => expandMethod(x.Key, this, x.Cast(x.Key), path));
         }
 
 
         private void ExpandManyToOne<TParentEntity, TReferencedEntity>(IEnumerable<TParentEntity> entities,
-            string path,
-            PropertyInfo prop)
+                                                                       string path,
+                                                                       PropertyInfo prop)
             where TReferencedEntity : class
         {
             PropertyInfo idProp;
@@ -344,9 +359,8 @@ namespace Pomona.Fetcher
 
         private IEnumerable<TEntity> FetchEntitiesByIdInBatches<TEntity>(object[] ids, PropertyInfo idProp)
         {
-            return
-                ((IEnumerable<TEntity>)
-                    this.fetchEntitiesByIdInBatches(typeof(TEntity), idProp.PropertyType, this, ids, idProp)).ToList();
+            var entities = this.fetchEntitiesByIdInBatches(typeof(TEntity), idProp.PropertyType, this, ids, idProp);
+            return ((IEnumerable<TEntity>)entities).ToList();
         }
 
 
@@ -356,8 +370,7 @@ namespace Pomona.Fetcher
             if (prop.PropertyType == typeof(string))
                 return false;
 
-            elementType =
-                prop.PropertyType
+            elementType = prop.PropertyType
                     .GetInterfaces()
                     .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     .Select(x => x.GetGenericArguments()[0])
