@@ -38,14 +38,20 @@ namespace Pomona.Common
 {
     public class RequestOptions : IRequestOptions
     {
-        private readonly StringBuilder expandedPaths = new StringBuilder();
+        private readonly StringBuilder expandedPaths;
         private readonly Type expectedResponseType;
+        private readonly List<Action<WebClientRequestMessage>> requestModifyActions;
 
-        private readonly List<Action<WebClientRequestMessage>> requestModifyActions =
-            new List<Action<WebClientRequestMessage>>();
+
+        public RequestOptions()
+        {
+            this.expandedPaths = new StringBuilder();
+            this.requestModifyActions = new List<Action<WebClientRequestMessage>>();
+        }
 
 
         internal RequestOptions(Type expectedResponseType = null)
+            : this()
         {
             this.expectedResponseType = expectedResponseType;
         }
@@ -63,7 +69,7 @@ namespace Pomona.Common
 
 
         public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions,
-            Type expectedResponseType = null)
+                                               Type expectedResponseType = null)
         {
             var requestOptions = new RequestOptions<T>(expectedResponseType);
             if (optionActions != null)
