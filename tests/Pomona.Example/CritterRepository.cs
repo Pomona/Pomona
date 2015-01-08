@@ -43,6 +43,7 @@ namespace Pomona.Example
     public class CritterRepository
     {
         private static readonly MethodInfo deleteInternalMethod;
+        private static readonly MethodInfo getEntityListMethod;
         private static readonly MethodInfo queryMethod;
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
@@ -54,8 +55,6 @@ namespace Pomona.Example
         private Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
 
         private int idCounter;
-
-        private readonly static MethodInfo getEntityListMethod;
 
 
         static CritterRepository()
@@ -145,11 +144,10 @@ namespace Pomona.Example
             lock (this.syncLock)
             {
                 var entityType = typeof(T);
-                var entityUriBaseType = ((ResourceType)this.TypeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
+                var entityUriBaseType = ((ResourceType)TypeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
 
-                return
-                    (IQueryable<T>)
-                        queryMethod.MakeGenericMethod(entityUriBaseType, entityType).Invoke(this, null);
+                var genericQueryMethod = queryMethod.MakeGenericMethod(entityUriBaseType, entityType);
+                return (IQueryable<T>)genericQueryMethod.Invoke(this, null);
             }
         }
 
@@ -179,11 +177,8 @@ namespace Pomona.Example
             {
                 if (node.Method == OdataFunctionMapping.DictStringStringGetMethod)
                 {
-                    return
-                        Expression.Call(
-                            ReflectionHelper.GetMethodInfo<string, string>(x => GetDictItemOrDefault(null, null)),
-                            node.Object,
-                            node.Arguments.First());
+                    var method = ReflectionHelper.GetMethodInfo<string, string>(x => GetDictItemOrDefault(null, null));
+                    return Expression.Call(method, node.Object, node.Arguments.First());
                 }
                 return base.VisitMethodCall(node);
             }
@@ -202,18 +197,16 @@ namespace Pomona.Example
 
         public TypeMapper TypeMapper
         {
-            get { return typeMapper; }
+            get { return this.typeMapper; }
         }
 
 
         public static IEnumerable<Type> GetEntityTypes()
         {
-            return
-                typeof(CritterModule).Assembly.GetTypes()
-                    .Where(
-                        x =>
-                            (x.Namespace == "Pomona.Example.Models"
-                            || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
+            return typeof(CritterModule).Assembly
+                .GetTypes()
+                .Where(x => (x.Namespace == "Pomona.Example.Models"
+                             || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
                             && x.IsPublic
                             && !x.IsGenericTypeDefinition
                             && x != typeof(INonExposedBaseInterface));
@@ -225,7 +218,10 @@ namespace Pomona.Example
         }
 
 
-        public Critter CreateRandomCritter(Random rng = null, int? rngSeed = null, bool forceMusicalCritter = false, bool addToRandomFarm = true)
+        public Critter CreateRandomCritter(Random rng = null,
+                                           int? rngSeed = null,
+                                           bool forceMusicalCritter = false,
+                                           bool addToRandomFarm = true)
         {
             if (rng == null)
                 rng = new Random(rngSeed ?? 75648382 + this.idCounter);
@@ -332,6 +328,7 @@ namespace Pomona.Example
             return Save(entity, new HashSet<object>());
         }
 
+
         public T Save<T>(T entity, HashSet<object> savedObjects)
         {
             var mappedTypeInstance = GetBaseUriType<T>();
@@ -372,7 +369,11 @@ namespace Pomona.Example
                     {
                         var value = prop.GetValue(entity, null);
                         if (value != null)
-                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value, savedObjects });
+                        {
+                            saveCollectionMethod.MakeGenericMethod(genericArguments).Invoke(this,
+                                                                                            new[]
+                                                                                            { value, savedObjects });
+                        }
                     }
                 }
                 else if (TypeUtils.TryGetTypeArguments(propType, typeof(IDictionary<,>), out genericArguments))
@@ -381,7 +382,11 @@ namespace Pomona.Example
                     {
                         var value = prop.GetValue(entity, null);
                         if (value != null)
-                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this, new[] { value, savedObjects });
+                        {
+                            saveDictionaryMethod.MakeGenericMethod(genericArguments).Invoke(this,
+                                                                                            new[]
+                                                                                            { value, savedObjects });
+                        }
                     }
                 }
             }
@@ -411,14 +416,12 @@ namespace Pomona.Example
             for (var i = 0; i < count; i++)
             {
                 var weaponType = GetRandomEntity<WeaponModel>(rng);
-                var subscription =
-                    Save(
-                        new Subscription(weaponType)
-                        {
-                            Critter = critter,
-                            Sku = rng.Next(0, 9999).ToString(),
-                            StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))
-                        });
+                var subscription = Save(new Subscription(weaponType)
+                {
+                    Critter = critter,
+                    Sku = rng.Next(0, 9999).ToString(),
+                    StartsOn = DateTime.UtcNow.AddDays(rng.Next(0, 120))
+                });
                 critter.Subscriptions.Add(subscription);
             }
         }
@@ -434,13 +437,12 @@ namespace Pomona.Example
                 var weapon =
                     rng.NextDouble() > 0.5
                         ? Save(new Weapon(weaponType) { Strength = rng.NextDouble() })
-                        : Save<Weapon>(
-                            new Gun(weaponType)
-                            {
-                                Strength = rng.NextDouble(),
-                                ExplosionFactor = rng.NextDouble(),
-                                Price = (decimal)(rng.NextDouble() * 10)
-                            });
+                        : Save<Weapon>(new Gun(weaponType)
+                        {
+                            Strength = rng.NextDouble(),
+                            ExplosionFactor = rng.NextDouble(),
+                            Price = (decimal)(rng.NextDouble() * 10)
+                        });
                 critter.Weapons.Add(weapon);
             }
         }
@@ -454,7 +456,7 @@ namespace Pomona.Example
 
         private Type GetBaseUriType<T>()
         {
-            var transformedType = (TransformedType)this.TypeMapper.GetClassMapping<T>();
+            var transformedType = (TransformedType)TypeMapper.GetClassMapping<T>();
             var mappedTypeInstance =
                 (transformedType.Maybe().OfType<ResourceType>().Select(x => (TransformedType)x.UriBaseType).OrDefault(
                     () => transformedType)).Type;
@@ -478,11 +480,10 @@ namespace Pomona.Example
             }
             if (tt.ParentToChildProperty == null)
                 throw new InvalidOperationException("Expected a parent-child assosciation.");
-            var parents = (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
+            var parents =
+                (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
             if (tt.ParentToChildProperty.PropertyType.IsCollection)
-            {
                 return parents.SelectMany(p => ((IEnumerable)tt.ParentToChildProperty.GetValue(p)).OfType<T>()).ToList();
-            }
             return parents.Select(p => (T)tt.ParentToChildProperty.GetValue(p)).ToList();
         }
 
