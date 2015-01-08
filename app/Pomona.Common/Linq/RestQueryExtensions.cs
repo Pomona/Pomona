@@ -38,20 +38,26 @@ namespace Pomona.Common.Linq
 {
     public static class RestQueryExtensions
     {
-        public static IQueryable<TSource> Expand<TSource, TProperty>(this IQueryable<TSource> source,
-            Expression<Func<TSource, TProperty>>
-                propertySelector)
+        public static IQueryable<TSource> Expand<TSource, TProperty>(
+            this IQueryable<TSource> source,
+            Expression<Func<TSource, TProperty>> propertySelector)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
+
             if (propertySelector == null)
                 throw new ArgumentNullException("propertySelector");
-            return source.Provider.CreateQuery<TSource>(
-                Expression.Call(
-                    null,
-                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource), typeof(TProperty)),
-                    new[] { source.Expression, Expression.Quote(propertySelector) }
-                    ));
+
+            var method = (MethodInfo)MethodBase.GetCurrentMethod();
+            var genericMethod = method.MakeGenericMethod(typeof(TSource), typeof(TProperty));
+            var property = Expression.Quote(propertySelector);
+            var methodCallExpression = Expression.Call(null, genericMethod, new[]
+            {
+                source.Expression,
+                property
+            });
+
+            return source.Provider.CreateQuery<TSource>(methodCallExpression);
         }
 
 
