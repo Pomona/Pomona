@@ -68,9 +68,9 @@ namespace Pomona.Common.Linq
         }
 
 
-        S IQueryProvider.Execute<S>(Expression expression)
+        TResult IQueryProvider.Execute<TResult>(Expression expression)
         {
-            return (S)Execute(expression, typeof(S));
+            return (TResult)Execute(expression, typeof(TResult));
         }
 
 
