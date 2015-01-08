@@ -165,7 +165,8 @@ namespace Pomona.Common.Linq
 
         public static QueryResult<TSource> ToQueryResult<TSource>(this IEnumerable<TSource> source)
         {
-            return new QueryResult<TSource>(source,0,source.Count(),null);
+            var enumerable = source as TSource[] ?? source.ToArray();
+            return new QueryResult<TSource>(enumerable, 0, enumerable.Length, null);
         }
 
         public static Uri ToUri<TSource>(this IQueryable<TSource> source)
