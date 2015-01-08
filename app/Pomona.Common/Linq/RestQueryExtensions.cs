@@ -95,12 +95,12 @@ namespace Pomona.Common.Linq
         {
             if (source == null)
                 throw new ArgumentNullException("source");
-            return source.Provider.CreateQuery<TSource>(
-                Expression.Call(
-                    null,
-                    ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TSource)),
-                    new[] { source.Expression }
-                    ));
+
+            var method = (MethodInfo)MethodBase.GetCurrentMethod();
+            var genericMethod = method.MakeGenericMethod(typeof(TSource));
+            var methodCallExpression = Expression.Call(null, genericMethod, new[] { source.Expression });
+
+            return source.Provider.CreateQuery<TSource>(methodCallExpression);
         }
 
 
