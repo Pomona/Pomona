@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,19 +29,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Nancy;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
     public class PomonaResponse<T> : PomonaResponse
     {
-        public PomonaResponse(T entity, HttpStatusCode statusCode = HttpStatusCode.OK, string expandedPaths = "", TypeSpec resultType = null, IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+        public PomonaResponse(T entity,
+                              HttpStatusCode statusCode = HttpStatusCode.OK,
+                              string expandedPaths = "",
+                              TypeSpec resultType = null,
+                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
             : base(entity, statusCode, expandedPaths, resultType, responseHeaders)
         {
         }
 
-        new public T Entity { get { return (T)base.Entity; } }
 
         public PomonaResponse(PomonaQuery query, T entity)
             : base(query, entity)
@@ -53,12 +58,17 @@ namespace Pomona
             : base(query, entity, statusCode)
         {
         }
+
+
+        public new T Entity
+        {
+            get { return (T)base.Entity; }
+        }
     }
 
     public class PomonaResponse
     {
-        internal static readonly object NoBodyEntity = new object();
-
+        internal static readonly object NoBodyEntity;
         private readonly object entity;
         private readonly string expandedPaths;
         private readonly List<KeyValuePair<string, string>> responseHeaders;
@@ -66,7 +76,31 @@ namespace Pomona
         private readonly HttpStatusCode statusCode;
 
 
-        public PomonaResponse(object entity, HttpStatusCode statusCode = HttpStatusCode.OK,
+        static PomonaResponse()
+        {
+            NoBodyEntity = new object();
+        }
+
+
+        public PomonaResponse(PomonaRequest request,
+                              object entity,
+                              HttpStatusCode statusCode = HttpStatusCode.OK,
+                              string expandedPaths = "",
+                              TypeSpec resultType = null,
+                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+            : this(entity, statusCode, GetExpandedPaths(request, expandedPaths), resultType, responseHeaders)
+        {
+        }
+
+
+        public PomonaResponse(PomonaQuery query, object entity)
+            : this(query, entity, HttpStatusCode.OK)
+        {
+        }
+
+
+        public PomonaResponse(object entity,
+                              HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               TypeSpec resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
@@ -81,51 +115,49 @@ namespace Pomona
         }
 
 
-        public PomonaResponse(PomonaRequest request, object entity, HttpStatusCode statusCode = HttpStatusCode.OK,
-                              string expandedPaths = "",
-                              TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
-            :this(entity, statusCode, (string.IsNullOrEmpty(expandedPaths) && request != null) ? request.ExpandedPaths : expandedPaths, resultType, responseHeaders)
-        {
-        }
-
-        public PomonaResponse(PomonaQuery query, object entity)
-            : this(query, entity, HttpStatusCode.OK)
-        {
-        }
-
         public PomonaResponse(PomonaQuery query, object entity, HttpStatusCode statusCode)
         {
-            if (query == null) throw new ArgumentNullException("query");
+            if (query == null)
+                throw new ArgumentNullException("query");
+
             this.entity = entity;
             this.statusCode = statusCode;
-            expandedPaths = query.ExpandedPaths;
-            resultType = query.ResultType;
+            this.expandedPaths = query.ExpandedPaths;
+            this.resultType = query.ResultType;
         }
 
-        public List<KeyValuePair<string, string>> ResponseHeaders
-        {
-            get { return responseHeaders; }
-        }
 
-        public TypeSpec ResultType
+        public object Entity
         {
-            get { return resultType; }
+            get { return this.entity; }
         }
 
         public string ExpandedPaths
         {
-            get { return expandedPaths; }
+            get { return this.expandedPaths; }
         }
 
-        public object Entity
+        public List<KeyValuePair<string, string>> ResponseHeaders
         {
-            get { return entity; }
+            get { return this.responseHeaders; }
+        }
+
+        public TypeSpec ResultType
+        {
+            get { return this.resultType; }
         }
 
         public HttpStatusCode StatusCode
         {
-            get { return statusCode; }
+            get { return this.statusCode; }
+        }
+
+
+        private static string GetExpandedPaths(PomonaRequest request, string expandedPaths)
+        {
+            return String.IsNullOrEmpty(expandedPaths) && request != null
+                ? request.ExpandedPaths
+                : expandedPaths;
         }
     }
 }
