@@ -44,6 +44,15 @@ namespace Pomona.Common.Linq.Queries.Interception
 
         public event EventHandler<QueryExecutingEventArgs> Executing;
 
+
+        static InterceptedQueryProvider()
+        {
+            createLazySource = GenericInvoker
+                .Instance<InterceptedQueryProvider>()
+                .CreateFunc1<Func<Type, IQueryable>, IQueryable>(x => x.CreateLazySource<object>(null));
+            
+        }
+
         public InterceptedQueryProvider(IEnumerable<ExpressionVisitor> visitors)
         {
             if (visitors == null)
@@ -58,9 +67,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         }
 
 
-        private static Func<Type, InterceptedQueryProvider, Func<Type, IQueryable>, IQueryable> createLazySource =
-            GenericInvoker.Instance<InterceptedQueryProvider>().CreateFunc1<Func<Type, IQueryable>, IQueryable>(
-                x => x.CreateLazySource<object>(null));
+        private static Func<Type, InterceptedQueryProvider, Func<Type, IQueryable>, IQueryable> createLazySource;
 
         public IQueryable CreateLazySource(Type elementType, Func<Type, IQueryable> factory)
         {
