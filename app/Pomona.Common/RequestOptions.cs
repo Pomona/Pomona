@@ -80,7 +80,18 @@ namespace Pomona.Common
 
         public override string ToString()
         {
-            return this.expandedPaths.ToString();
+            var toString = new StringBuilder("{");
+            
+            if (expectedResponseType != null)
+                toString.AppendFormat(" Type: {0}, ", this.expectedResponseType);
+
+            var paths = (ExpandedPaths ?? String.Empty).Trim();
+            if (!String.IsNullOrEmpty(paths))
+                toString.AppendFormat("Expand: {0}, ", paths);
+
+            toString.Append("}");
+
+            return toString.ToString();
         }
 
 
