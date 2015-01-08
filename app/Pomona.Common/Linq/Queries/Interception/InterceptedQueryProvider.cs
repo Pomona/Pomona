@@ -37,9 +37,7 @@ namespace Pomona.Common.Linq.Queries.Interception
 {
     public class InterceptedQueryProvider : QueryProviderBase
     {
-        private static readonly Func<Type, IQueryProvider, Expression, object> queryableExecuteGenericMethod =
-            GenericInvoker.Instance<IQueryProvider>().CreateFunc1<Expression, object>(x => x.Execute<object>(null));
-
+        private static readonly Func<Type, IQueryProvider, Expression, object> queryableExecuteGenericMethod;
         private readonly IEnumerable<ExpressionVisitor> visitors;
 
         public event EventHandler<QueryExecutingEventArgs> Executing;
@@ -50,6 +48,10 @@ namespace Pomona.Common.Linq.Queries.Interception
             createLazySource = GenericInvoker
                 .Instance<InterceptedQueryProvider>()
                 .CreateFunc1<Func<Type, IQueryable>, IQueryable>(x => x.CreateLazySource<object>(null));
+
+            queryableExecuteGenericMethod = GenericInvoker
+                .Instance<IQueryProvider>()
+                .CreateFunc1<Expression, object>(x => x.Execute<object>(null));
             
         }
 
