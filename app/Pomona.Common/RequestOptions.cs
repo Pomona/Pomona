@@ -78,6 +78,12 @@ namespace Pomona.Common
         }
 
 
+        public override string ToString()
+        {
+            return this.expandedPaths.ToString();
+        }
+
+
         public void ApplyRequestModifications(WebClientRequestMessage request)
         {
             foreach (var action in this.requestModifyActions)
