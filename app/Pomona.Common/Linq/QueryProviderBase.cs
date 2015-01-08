@@ -37,9 +37,16 @@ namespace Pomona.Common.Linq
 {
     public abstract class QueryProviderBase : IQueryProvider
     {
-        private static readonly Func<Type, QueryProviderBase, Expression, IQueryable> createQueryGeneric =
-            GenericInvoker.Instance<QueryProviderBase>().CreateFunc1<Expression, IQueryable>(
-                x => x.CreateQuery<object>(null));
+        private static readonly Func<Type, QueryProviderBase, Expression, IQueryable> createQueryGeneric;
+
+
+        static QueryProviderBase()
+        {
+            createQueryGeneric = GenericInvoker
+                .Instance<QueryProviderBase>()
+                .CreateFunc1<Expression, IQueryable>(x => x.CreateQuery<object>(null));
+        }
+
 
         public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
         public abstract object Execute(Expression expression, Type returnType);
