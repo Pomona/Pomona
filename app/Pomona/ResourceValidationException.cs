@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,18 +24,25 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Runtime.Serialization;
+
 using Nancy;
 
 namespace Pomona
 {
+    [Serializable]
     public class ResourceValidationException : PomonaServerException
     {
         private readonly string memberName;
-
         private readonly string resourceName;
 
-        public ResourceValidationException(string message, string memberName, string resourceName,
+
+        public ResourceValidationException(string message,
+                                           string memberName,
+                                           string resourceName,
                                            Exception innerException)
             : base(message, innerException, HttpStatusCode.BadRequest)
         {
@@ -41,14 +50,21 @@ namespace Pomona
             this.resourceName = resourceName;
         }
 
+
+        protected ResourceValidationException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+
+
         public string MemberName
         {
-            get { return memberName; }
+            get { return this.memberName; }
         }
 
         public string ResourceName
         {
-            get { return resourceName; }
+            get { return this.resourceName; }
         }
     }
 }
