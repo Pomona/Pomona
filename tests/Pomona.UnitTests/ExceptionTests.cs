@@ -96,16 +96,17 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        public void AllExceptionsShouldHaveProtectedSerializationConstructor()
+        public void AllExceptionsHaveProtectedSerializationConstructor()
         {
             foreach (var exception in this.exceptions)
             {
-                var constructor = exception.GetConstructors(BindingFlags.NonPublic)
+                var constructor = exception
+                    .GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                     .FirstOrDefault(ctor => ctor.ParameterTypesMatch<SerializationInfo, StreamingContext>());
 
                 Assert.That(constructor,
                             Is.Not.Null,
-                            "The protected constructor {0}(SerializationInfo, StreamingContext) does not exist.",
+                            "The constructor {0}(SerializationInfo, StreamingContext) does not exist.",
                             exception);
 
                 Assert.That(constructor.IsFamily,
