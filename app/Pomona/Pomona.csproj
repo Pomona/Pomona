@@ -143,6 +143,7 @@
     <Compile Include="FluentMapping\PropertyMappingOptions.cs" />
     <Compile Include="FluentMapping\PropertyOptionsBuilder.cs" />
     <Compile Include="FluentMapping\PropertyOptionsBuilderBase.cs" />
+    <Compile Include="FluentMapping\PropertyOptionsBuilderExtensions.cs" />
     <Compile Include="FluentMapping\TypeMappingConfiguratorBase.cs" />
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
     <Compile Include="FluentMapping\WrappingTypeMappingFilter.cs" />

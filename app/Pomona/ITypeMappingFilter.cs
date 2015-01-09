@@ -156,12 +156,13 @@ namespace Pomona
         #region Property mapping conventions
 
         IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo);
+        ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo);
         LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
         Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
         string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
         Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo);
         Type GetPropertyType(Type type, PropertyInfo propertyInfo);
-        bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo);
+        [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
         bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
         bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
         bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);

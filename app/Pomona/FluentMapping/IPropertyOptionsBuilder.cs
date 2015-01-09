@@ -45,9 +45,9 @@ namespace Pomona.FluentMapping
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Allow(HttpMethod method);
 
 
+        [Obsolete("Use Expand instead.")]
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded();
 
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExpandItemsAsLinks();
 
         /// <summary>
         /// Property defines the attributes of the resource.
@@ -70,6 +70,12 @@ namespace Pomona.FluentMapping
         /// <returns>The builder</returns>
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Deny(HttpMethod method);
 
+        /// <summary>
+        /// When serializing resource also include the reference resource(s).
+        /// </summary>
+        /// <param name="expandMode">The expand mode.</param>
+        /// <returns>The builder</returns>
+        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Expand(ExpandMode expandMode);
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> HasAttribute(Attribute attribute);

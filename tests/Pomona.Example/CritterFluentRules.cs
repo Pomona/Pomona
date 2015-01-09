@@ -200,7 +200,7 @@ namespace Pomona.Example
             map.AsUriBaseType()
                 .Include(x => x.CrazyValue)
                 .Include(x => x.CreatedOn)
-                .Include(x => x.Subscriptions, o => o.AlwaysExpanded().Writable())
+                .Include(x => x.Subscriptions, o => o.Expand().Writable())
                 .Include(x => x.HandledGeneratedProperty, o => o.OnQuery(x => x.Id % 6))
                 .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                 .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
@@ -226,7 +226,7 @@ namespace Pomona.Example
                                 critter.RelativeImageUrl =
                                     new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
                             }))
-                .Include(x => x.Enemies, o => o.ExpandItemsAsLinks())
+                .Include(x => x.Enemies, o => o.ExpandShallow())
                 .HandledBy<CritterHandler>()
                 .OnDeserialized(c => c.FixParentReferences());
         }

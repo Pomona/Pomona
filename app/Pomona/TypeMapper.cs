@@ -200,11 +200,7 @@ namespace Pomona
             var propInfo = propertyMapping.PropertyInfo;
 
             var reflectedType = propertyMapping.ReflectedType;
-            var expandMode = ExpandMode.Default;
-            if (filter.PropertyIsAlwaysExpanded(reflectedType, propInfo))
-                expandMode = ExpandMode.Full;
-            else if (filter.PropertyItemsExpandedAsLinks(reflectedType, propInfo))
-                expandMode = ExpandMode.Shallow;
+            var expandMode = filter.GetPropertyExpandMode(reflectedType, propInfo);
 
             var details = new ExportedPropertyDetails(
                 this.filter.PropertyIsAttributes(reflectedType, propInfo),

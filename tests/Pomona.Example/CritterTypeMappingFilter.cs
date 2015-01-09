@@ -138,14 +138,14 @@ namespace Pomona.Example
         }
 
 
-        public override bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
+        public override ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo.DeclaringType == typeof(DictionaryContainer) && propertyInfo.Name == "Map")
-                return true;
+                return ExpandMode.Full;
             if (propertyInfo.DeclaringType == typeof(OrderResponse) && propertyInfo.Name == "Order")
-                return true;
+                return ExpandMode.Full;
 
-            return base.PropertyIsAlwaysExpanded(type, propertyInfo);
+            return base.GetPropertyExpandMode(type, propertyInfo);
         }
 
 

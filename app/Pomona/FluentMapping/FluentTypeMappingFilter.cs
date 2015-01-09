@@ -251,6 +251,15 @@ namespace TestNs
         }
 
 
+        public ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        o => o.PropertyExpandMode,
+                                        () => wrappedFilter.GetPropertyExpandMode(type, propertyInfo));
+        }
+
+
         public PropertyCreateMode GetPropertyCreateMode(Type type,
                                                         PropertyInfo propertyInfo,
                                                         ParameterInfo ctorParameterInfo)
@@ -332,16 +341,6 @@ namespace TestNs
                                         () => this.wrappedFilter.GetPropertyType(type, propertyInfo));
         }
 
-
-        public bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo)
-        {
-            return FromMappingOrDefault(type,
-                                        propertyInfo,
-                                        o => o.ExpandItemsAsLinks,
-                                        () => this.wrappedFilter.PropertyItemsExpandedAsLinks(type, propertyInfo));
-        }
-
-
         public IEnumerable<Type> GetResourceHandlers(Type type)
         {
             return FromMappingOrDefault(type, x => x.HandlerTypes, () => this.wrappedFilter.GetResourceHandlers(type).EmptyIfNull());
@@ -404,10 +403,7 @@ namespace TestNs
 
         public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(type,
-                                        propertyInfo,
-                                        x => x.AlwaysExpanded,
-                                        () => this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo));
+            throw new NotSupportedException("Method is obsolete.");
         }
 
 

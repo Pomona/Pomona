@@ -217,6 +217,12 @@ namespace Pomona
         }
 
 
+        public virtual ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
+        {
+            return ExpandMode.Default;
+        }
+
+
         public virtual LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
@@ -260,12 +266,6 @@ namespace Pomona
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
             return propertyInfo.PropertyType;
-        }
-
-
-        public virtual bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo)
-        {
-            return false;
         }
 
 
@@ -326,12 +326,10 @@ namespace Pomona
             return false;
         }
 
-
-        public virtual bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
+        [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
+        public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            return propertyInfo.DeclaringType.IsAnonymous();
+            throw new NotSupportedException("Method is obsolete");
         }
 
 

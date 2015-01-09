@@ -43,13 +43,13 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> AlwaysExpanded()
+        public IPropertyOptionsBuilder<TDeclaring, TProperty> AlwaysExpanded()
         {
-            return this;
+            return Expand(ExpandMode.Full);
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> ExpandItemsAsLinks()
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Expand(ExpandMode expandMode)
         {
             return this;
         }

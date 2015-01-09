@@ -58,13 +58,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AlwaysExpanded()
-        {
-            this.options.AlwaysExpanded = true;
-            return this;
-        }
-
-
         public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsAttributes()
         {
             this.options.IsAttributesProperty = true;
@@ -93,9 +86,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExpandItemsAsLinks()
+        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Expand(ExpandMode expandMode)
         {
-            this.options.ExpandItemsAsLinks = true;
+            this.options.PropertyExpandMode = expandMode;
             return this;
         }
 

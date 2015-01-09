@@ -169,6 +169,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.GetPropertyExpandMode(type, propertyInfo);
+        }
+
+
         public virtual PropertyCreateMode GetPropertyCreateMode(Type type,
                                                                 PropertyInfo propertyInfo,
                                                                 ParameterInfo ctorParameterInfo)
@@ -273,9 +279,10 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
+        [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
+        public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
         {
-            return this.wrappedFilter.PropertyIsAlwaysExpanded(type, propertyInfo);
+            throw new NotSupportedException("Method is obsolete.");
         }
 
 
@@ -300,12 +307,6 @@ namespace Pomona.FluentMapping
         public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.PropertyIsPrimaryId(type, propertyInfo);
-        }
-
-
-        public virtual bool PropertyItemsExpandedAsLinks(Type type, PropertyInfo propertyInfo)
-        {
-            return this.wrappedFilter.PropertyItemsExpandedAsLinks(type, propertyInfo);
         }
 
 

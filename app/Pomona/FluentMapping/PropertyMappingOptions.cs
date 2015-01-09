@@ -55,12 +55,9 @@ namespace Pomona.FluentMapping
 
         public List<Attribute> AddedAttributes { get; set; }
 
-        public bool? AlwaysExpanded { get; set; }
-
         public int? ConstructorArgIndex { get; set; }
 
         public PropertyCreateMode? CreateMode { get; internal set; }
-        public bool? ExpandItemsAsLinks { get; internal set; }
         public bool? ExposedAsRepository { get; internal set; }
         public LambdaExpression Formula { get; set; }
 
@@ -86,6 +83,8 @@ namespace Pomona.FluentMapping
         }
 
         public Type PropertyType { get; set; }
+
+        public ExpandMode? PropertyExpandMode { get; set; }
 
 
         internal void ClearAccessModeFlag(HttpMethod method)
