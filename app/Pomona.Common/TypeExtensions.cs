@@ -751,5 +751,31 @@ namespace Pomona.Common
 
             return type;
         }
+
+        /// <summary>
+        /// Gets all loadable <see cref="Type"/>s from the specified <paramref name="assembly"/>.
+        /// </summary>
+        /// <param name="assembly">The assembly.</param>
+        /// <returns>
+        /// All loadable <see cref="Type"/>s from the specified <paramref name="assembly"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">assembly</exception>
+        /// <remarks>
+        /// Shamelessly stolen form <a href="http://haacked.com/archive/2012/07/23/get-all-types-in-an-assembly.aspx/">Phil Haack</a>
+        /// </remarks>
+        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        {
+            if (assembly == null)
+                throw new ArgumentNullException("assembly");
+
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException e)
+            {
+                return e.Types.Where(t => t != null);
+            }
+        }
     }
 }
