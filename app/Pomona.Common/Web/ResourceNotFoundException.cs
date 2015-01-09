@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,28 +27,48 @@
 #endregion
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Pomona.Common.Web
 {
+    [Serializable]
     public class ResourceNotFoundException<TBody> : ResourceNotFoundException, IWebClientException<TBody>
     {
-        public ResourceNotFoundException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
+        public ResourceNotFoundException(WebClientRequestMessage request,
+                                         WebClientResponseMessage response,
+                                         object body,
                                          Exception innerException)
             : base(request, response, body, innerException)
         {
         }
 
+
+        protected ResourceNotFoundException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+
+
         public new TBody Body
         {
-            get { return (TBody) base.Body; }
+            get { return (TBody)base.Body; }
         }
     }
 
+    [Serializable]
     public class ResourceNotFoundException : WebClientException
     {
-        public ResourceNotFoundException(WebClientRequestMessage request, WebClientResponseMessage response,
-                                         object body, Exception innerException)
+        public ResourceNotFoundException(WebClientRequestMessage request,
+                                         WebClientResponseMessage response,
+                                         object body,
+                                         Exception innerException)
             : base(request, response, body, innerException)
+        {
+        }
+
+
+        protected ResourceNotFoundException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }

@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,18 +24,24 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Runtime.Serialization;
+
 using Nancy;
 
 namespace Pomona
 {
+    [Serializable]
     public class ResourceNotFoundException : PomonaServerException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:System.ApplicationException"/> class with a specified error message.
         /// </summary>
         /// <param name="message">A message that describes the error. </param>
-        public ResourceNotFoundException(string message) : base(message, null, HttpStatusCode.NotFound)
+        public ResourceNotFoundException(string message)
+            : base(message, null, HttpStatusCode.NotFound)
         {
         }
 
@@ -44,6 +52,17 @@ namespace Pomona
         /// <param name="message">The error message that explains the reason for the exception. </param><param name="innerException">The exception that is the cause of the current exception. If the <paramref name="innerException"/> parameter is not a null reference, the current exception is raised in a catch block that handles the inner exception. </param>
         public ResourceNotFoundException(string message, Exception innerException)
             : base(message, innerException, HttpStatusCode.NotFound)
+        {
+        }
+
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResourceNotFoundException"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="context">The context.</param>
+        protected ResourceNotFoundException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
