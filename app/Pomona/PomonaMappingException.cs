@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,10 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Runtime.Serialization;
 
 namespace Pomona
 {
+    [Serializable]
     public class PomonaMappingException : Exception
     {
         /// <summary>
@@ -40,7 +46,8 @@ namespace Pomona
         /// Initializes a new instance of the <see cref="T:Pomona.PomonaMappingException"/> class with a specified error message.
         /// </summary>
         /// <param name="message">The message that describes the error. </param>
-        public PomonaMappingException(string message) : base(message)
+        public PomonaMappingException(string message)
+            : base(message)
         {
         }
 
@@ -49,7 +56,19 @@ namespace Pomona
         /// Initializes a new instance of the <see cref="T:Pomona.PomonaMappingException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
         /// </summary>
         /// <param name="message">The error message that explains the reason for the exception. </param><param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified. </param>
-        public PomonaMappingException(string message, Exception innerException) : base(message, innerException)
+        public PomonaMappingException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PomonaMappingException"/> class.
+        /// </summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
+        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        protected PomonaMappingException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
