@@ -85,6 +85,7 @@ namespace Pomona.Common.Linq
                 TryMapQueryableFunction(method);
 
             MapQueryableFunction(x => x.Expand(y => 0));
+            MapQueryableFunction(x => x.ExpandShallow(y => (object[])null));
             MapQueryableFunction(x => x.IncludeTotalCount());
             MapQueryableFunction(x => x.ToUri());
             MapQueryableFunction(x => x.FirstLazy());
@@ -259,6 +260,14 @@ namespace Pomona.Common.Linq
             if (this.expandedPaths.Length > 0)
                 this.expandedPaths.Append(',');
             this.expandedPaths.Append(propertySelector.GetPropertyPath(true));
+        }
+
+
+        internal void QExpandShallow<TSource, TProperty>(Expression<Func<TSource, TProperty>> propertySelector)
+        {
+            if (this.expandedPaths.Length > 0)
+                this.expandedPaths.Append(',');
+            this.expandedPaths.Append(propertySelector.GetPropertyPath(true) + "!");
         }
 
 

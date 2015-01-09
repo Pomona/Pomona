@@ -34,6 +34,8 @@ using System.Reflection;
 
 using Newtonsoft.Json.Linq;
 
+using Pomona.Common.TypeSystem;
+
 namespace Pomona.Common.Linq
 {
     public static class RestQueryExtensions
@@ -51,13 +53,62 @@ namespace Pomona.Common.Linq
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(typeof(TSource), typeof(TProperty));
             var property = Expression.Quote(propertySelector);
-            var methodCallExpression = Expression.Call(null, genericMethod, new[]
-            {
-                source.Expression,
-                property
-            });
+            var methodCallExpression = Expression.Call(null,
+                                                       genericMethod,
+                                                       new[]
+                                                       {
+                                                           source.Expression,
+                                                           property
+                                                       });
 
             return source.Provider.CreateQuery<TSource>(methodCallExpression);
+        }
+
+
+        public static IEnumerable<TSource> Expand<TSource, TProperty>(this IEnumerable<TSource> source,
+                                                                      Func<TSource, TProperty> propertySelector,
+                                                                      ExpandMode expandMode)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (propertySelector == null)
+                throw new ArgumentNullException("propertySelector");
+
+            switch (expandMode)
+            {
+                case ExpandMode.Default:
+                    return source;
+                case ExpandMode.Full:
+                    return source.Expand(propertySelector);
+                case ExpandMode.Shallow:
+                    return source.ExpandShallow(propertySelector);
+                default:
+                    throw new PomonaException("ExpandMode " + expandMode + "not recognized.");
+            }
+        }
+
+
+        public static IQueryable<TSource> Expand<TSource, TProperty>(this IQueryable<TSource> source,
+                                                                     Expression<Func<TSource, TProperty>>
+                                                                         propertySelector,
+                                                                     ExpandMode expandMode)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (propertySelector == null)
+                throw new ArgumentNullException("propertySelector");
+
+            switch (expandMode)
+            {
+                case ExpandMode.Default:
+                    return source;
+                case ExpandMode.Full:
+                    return source.Expand(propertySelector);
+                case ExpandMode.Shallow:
+                    return source.ExpandShallow(propertySelector);
+                default:
+                    throw new PomonaException("ExpandMode " + expandMode + "not recognized.");
+            }
         }
 
 
@@ -66,8 +117,51 @@ namespace Pomona.Common.Linq
         {
             if (source == null)
                 throw new ArgumentNullException("source");
+            if (propertySelector == null)
+                throw new ArgumentNullException("propertySelector");
 
             return source;
+        }
+
+
+        public static IEnumerable<TSource> ExpandShallow<TSource, TProperty>(
+            this IEnumerable<TSource> source,
+            Func<TSource, TProperty> propertySelector)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (propertySelector == null)
+                throw new ArgumentNullException("propertySelector");
+
+            return source;
+        }
+
+
+        /// <summary>
+        /// Expands as list of references to resources. Only applicable to properties having a collection of resources.
+        /// </summary>
+        public static IQueryable<TSource> ExpandShallow<TSource, TProperty>(
+            this IQueryable<TSource> source,
+            Expression<Func<TSource, TProperty>> propertySelector)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+
+            if (propertySelector == null)
+                throw new ArgumentNullException("propertySelector");
+
+            var method = (MethodInfo)MethodBase.GetCurrentMethod();
+            var genericMethod = method.MakeGenericMethod(typeof(TSource), typeof(TProperty));
+            var property = Expression.Quote(propertySelector);
+            var methodCallExpression = Expression.Call(null,
+                                                       genericMethod,
+                                                       new[]
+                                                       {
+                                                           source.Expression,
+                                                           property
+                                                       });
+
+            return source.Provider.CreateQuery<TSource>(methodCallExpression);
         }
 
 
@@ -170,10 +264,12 @@ namespace Pomona.Common.Linq
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(typeof(TSource));
 
-            var methodCallExpression = Expression.Call(null, genericMethod, new[]
-            {
-                source.Expression, Expression.Constant(optionsModifier)
-            });
+            var methodCallExpression = Expression.Call(null,
+                                                       genericMethod,
+                                                       new[]
+                                                       {
+                                                           source.Expression, Expression.Constant(optionsModifier)
+                                                       });
 
             return source.Provider.CreateQuery<TSource>(methodCallExpression);
         }
