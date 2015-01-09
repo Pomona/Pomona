@@ -31,7 +31,7 @@ namespace Pomona.Common.TypeSystem
     public class ExportedPropertyDetails
     {
         private readonly HttpMethod accessMode;
-        private readonly PropertyExpandMode expandMode;
+        private readonly ExpandMode expandMode;
         private readonly bool exposedAsRepository;
         private readonly bool isAttributesProperty, isEtagProperty, isPrimaryKey;
         private readonly HttpMethod itemAccessMode;
@@ -45,7 +45,7 @@ namespace Pomona.Common.TypeSystem
                                        HttpMethod itemAccessMode,
                                        bool exposedAsRepository,
                                        string uriName,
-                                       PropertyExpandMode expandMode)
+                                       ExpandMode expandMode)
         {
             this.isAttributesProperty = isAttributesProperty;
             this.isEtagProperty = isEtagProperty;
@@ -63,7 +63,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.accessMode; }
         }
 
-        public PropertyExpandMode ExpandMode
+        public ExpandMode ExpandMode
         {
             get { return this.expandMode; }
         }

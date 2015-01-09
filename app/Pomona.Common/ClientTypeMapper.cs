@@ -182,7 +182,7 @@ namespace Pomona.Common
                                                info.ItemAccessMode,
                                                false,
                                                NameUtils.ConvertCamelCaseToUri(propertyMapping.Name),
-                                               PropertyExpandMode.FullExpand);
+                                               ExpandMode.Full);
         }
 
 

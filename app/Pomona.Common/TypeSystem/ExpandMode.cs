@@ -28,10 +28,10 @@
 
 namespace Pomona.Common.TypeSystem
 {
-    public enum PropertyExpandMode
+    public enum ExpandMode
     {
         Default,
-        FullExpand,
-        ExpandItemsAsLinks
+        Full,
+        Shallow
     }
 }

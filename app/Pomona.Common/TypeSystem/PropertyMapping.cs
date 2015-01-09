@@ -84,7 +84,7 @@ namespace Pomona.Common.TypeSystem
             get { return Details.ItemAccessMode; }
         }
 
-        public PropertyExpandMode ExpandMode
+        public ExpandMode ExpandMode
         {
             get { return Details.ExpandMode; }
         }

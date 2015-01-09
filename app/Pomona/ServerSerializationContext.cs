@@ -120,7 +120,7 @@ namespace Pomona
             var isExpanded =    node.ExpectedBaseType.IsAlwaysExpanded
                              || PathToBeExpanded(node.ExpandPath)
                              || (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
-                             || (GetPropertyExpandMode(node) != PropertyExpandMode.Default);
+                             || (GetPropertyExpandMode(node) != ExpandMode.Default);
 
             node.SerializeAsReference = !isExpanded;
 
@@ -128,21 +128,21 @@ namespace Pomona
         }
 
 
-        private PropertyExpandMode GetPropertyExpandMode(ISerializerNode node)
+        private ExpandMode GetPropertyExpandMode(ISerializerNode node)
         {
             if (node.ExpectedBaseType.IsCollection && node.ExpectedBaseType.ElementType.IsAlwaysExpanded)
-                return PropertyExpandMode.FullExpand;
+                return ExpandMode.Full;
 
             if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
-                GetPropertyExpandMode(node.ParentNode) == PropertyExpandMode.FullExpand)
-                return PropertyExpandMode.FullExpand;
+                GetPropertyExpandMode(node.ParentNode) == ExpandMode.Full)
+                return ExpandMode.Full;
 
             var propNode = node as PropertyValueSerializerNode;
             if (propNode == null)
-                return PropertyExpandMode.Default;
+                return ExpandMode.Default;
             var propMapping = propNode.Property as PropertyMapping;
             if (propMapping == null)
-                return PropertyExpandMode.Default;
+                return ExpandMode.Default;
             return propMapping.ExpandMode;
         }
     }
