@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,26 +27,48 @@
 #endregion
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Pomona.Common.Web
 {
+    [Serializable]
     public class BadRequestException<TBody> : BadRequestException, IWebClientException<TBody>
     {
-        public BadRequestException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
-                                   Exception innerException) : base(request, response, body, innerException)
+        public BadRequestException(WebClientRequestMessage request,
+                                   WebClientResponseMessage response,
+                                   object body,
+                                   Exception innerException)
+            : base(request, response, body, innerException)
         {
         }
+
+
+        protected BadRequestException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+
 
         public new TBody Body
         {
-            get { return (TBody) base.Body; }
+            get { return (TBody)base.Body; }
         }
     }
 
+    [Serializable]
     public class BadRequestException : WebClientException
     {
-        public BadRequestException(WebClientRequestMessage request, WebClientResponseMessage response, object body,
-                                   Exception innerException) : base(request, response, body, innerException)
+        public BadRequestException(WebClientRequestMessage request,
+                                   WebClientResponseMessage response,
+                                   object body,
+                                   Exception innerException)
+            : base(request, response, body, innerException)
+        {
+        }
+
+
+        protected BadRequestException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }
