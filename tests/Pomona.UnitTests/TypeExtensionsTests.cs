@@ -195,7 +195,9 @@ namespace Pomona.UnitTests
         [Test]
         public void GetFullNameWithSignature_MethodHasGenericArgumentsAndParameters_ReturnsExpectedString()
         {
-            var result = typeof(TheInheritedClass).GetGenericInstanceMethod("ProtectedVirtualMethod", 3).GetFullNameWithSignature();
+            var result = typeof(TheInheritedClass)
+                .GetGenericInstanceMethod("ProtectedVirtualMethod", 3)
+                .GetFullNameWithSignature();
 
             Assert.That(result, Is.EqualTo(
                 "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.ProtectedVirtualMethod<T1, T2, T3>(System.String, System.Int32)"));
