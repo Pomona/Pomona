@@ -35,7 +35,6 @@ using NUnit.Framework;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.Client
 {
@@ -51,7 +50,8 @@ namespace Pomona.UnitTests.Client
         private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
         {
             var queryString = BuildQueryString(predicate);
-            Console.WriteLine("Transformed \"" + new EvaluateClosureMemberVisitor().Visit(predicate) + "\" TO \"" + queryString + "\"");
+            Console.WriteLine("Transformed \"" + new EvaluateClosureMemberVisitor().Visit(predicate) + "\" TO \""
+                              + queryString + "\"");
             Assert.That(queryString, Is.EqualTo(expected));
         }
 
@@ -95,6 +95,31 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildAttributeAsStringIn_ReturnsCorrectString()
+        {
+            var array = new int?[] { 3, 2, 4 };
+            AssertBuild(x => array.Contains(x.StringObjectAttributes.SafeGet("nana") as int?),
+                        "(stringObjectAttributes.nana as t'Int32?') in [3,2,4]");
+        }
+
+
+        [Test]
+        public void BuildCaseInsensitiveStringEquals_ReturnsCorrectString()
+        {
+            AssertBuild(x => string.Equals(x.Bonga, x.Jalla, StringComparison.InvariantCultureIgnoreCase),
+                        "bonga ieq jalla");
+        }
+
+
+        [Test]
+        public void BuildCaseSensitiveStringEquals_ReturnsCorrectString()
+        {
+            AssertBuild(x => string.Equals(x.Bonga, x.Jalla, StringComparison.InvariantCulture),
+                        "bonga eq jalla");
+        }
+
+
+        [Test]
         public void BuildCastToIntExpression_ReturnsCorrectString()
         {
             AssertBuild(x => (int)x.Precise, "cast(precise,t'Int32')");
@@ -114,13 +139,6 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => x.SomeNullableEnum == TestEnum.Tock, "someNullableEnum eq 'Tock'");
             AssertBuild(x => TestEnum.Tick == x.SomeNullableEnum, "'Tick' eq someNullableEnum");
-        }
-
-
-        [Test]
-        public void BuildStringEnumConstant_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.SomeStringEnum == StringEnumTemplate.MemberTemplate, "someStringEnum eq 'MemberTemplate'");
         }
 
 
@@ -156,12 +174,6 @@ namespace Pomona.UnitTests.Client
             AssertBuild(x => array.Contains(x.Id), "id in [3,2,4]");
         }
 
-        [Test]
-        public void BuildAttributeAsStringIn_ReturnsCorrectString()
-        {
-            var array = new int?[] { 3, 2, 4 };
-            AssertBuild(x => array.Contains(x.StringObjectAttributes.SafeGet("nana") as int?), "(stringObjectAttributes.nana as t'Int32?') in [3,2,4]");
-        }
 
         [Test]
         public void BuildConstantExpression_UsingNestedClosureAccess_ReturnsConstant()
@@ -177,7 +189,7 @@ namespace Pomona.UnitTests.Client
         public void BuildConvertChangeType_FromObjectToString_ReturnsCorrectString()
         {
             AssertBuild(x => Convert.ChangeType(x.UnknownProperty, typeof(string)),
-                "convert(unknownProperty,t'String')");
+                        "convert(unknownProperty,t'String')");
         }
 
 
@@ -192,6 +204,13 @@ namespace Pomona.UnitTests.Client
         public void BuildConvertChangeType_FromStringToNullableInt32_ReturnsCorrectString()
         {
             AssertBuild(x => Convert.ChangeType(x.Bonga, typeof(int?)), "convert(bonga,t'Int32?')");
+        }
+
+
+        [Test]
+        public void BuildCountExtensionMethod_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Count(), "count(someList)");
         }
 
 
@@ -353,7 +372,7 @@ namespace Pomona.UnitTests.Client
         public void BuildFirstOrDefaultWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.FirstOrDefault(x => x.SomeString == "blah"),
-                "someList.firstdefault(x:x.someString eq 'blah')");
+                        "someList.firstdefault(x:x.someString eq 'blah')");
         }
 
 
@@ -427,7 +446,7 @@ namespace Pomona.UnitTests.Client
         public void BuildJoinExpression_ReturnsCorrectString()
         {
             AssertBuild(x => string.Join(";", x.SomeList.Select(y => y.SomeString)),
-                "someList.select(y:y.someString).join(';')");
+                        "someList.select(y:y.someString).join(';')");
         }
 
 
@@ -503,22 +522,6 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildCaseInsensitiveStringEquals_ReturnsCorrectString()
-        {
-            AssertBuild(x => string.Equals(x.Bonga, x.Jalla, StringComparison.InvariantCultureIgnoreCase),
-                "bonga ieq jalla");
-        }
-
-
-        [Test]
-        public void BuildCaseSensitiveStringEquals_ReturnsCorrectString()
-        {
-            AssertBuild(x => string.Equals(x.Bonga, x.Jalla, StringComparison.InvariantCulture),
-                "bonga eq jalla");
-        }
-
-
-        [Test]
         public void BuildPropEqProp_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla == x.Bonga, "jalla eq bonga");
@@ -577,7 +580,7 @@ namespace Pomona.UnitTests.Client
         public void BuildSafeGetFromObjectDictAsStringComparedWithNull_ReturnsCorrectString()
         {
             AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == null,
-                "(stringObjectAttributes.Hei as t'String') eq null");
+                        "(stringObjectAttributes.Hei as t'String') eq null");
         }
 
 
@@ -585,7 +588,7 @@ namespace Pomona.UnitTests.Client
         public void BuildSafeGetFromObjectDictAsStringComparedWithString_ReturnsCorrectString()
         {
             AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == "Nada",
-                "stringObjectAttributes.Hei eq 'Nada'");
+                        "stringObjectAttributes.Hei eq 'Nada'");
         }
 
 
@@ -593,7 +596,7 @@ namespace Pomona.UnitTests.Client
         public void BuildSafeGetFromObjectDictAsString_ReturnsCorrectString()
         {
             AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
-                "stringObjectAttributes.Hei as t'String'");
+                        "stringObjectAttributes.Hei as t'String'");
         }
 
 
@@ -601,7 +604,7 @@ namespace Pomona.UnitTests.Client
         public void BuildSingleOrDefaultWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.SingleOrDefault(x => x.SomeString == "blah"),
-                "someList.singledefault(x:x.someString eq 'blah')");
+                        "someList.singledefault(x:x.someString eq 'blah')");
         }
 
 
@@ -636,9 +639,9 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildCountExtensionMethod_ReturnsCorrectString()
+        public void BuildStringEnumConstant_ReturnsCorrectString()
         {
-            AssertBuild(x => x.SomeList.Count(), "count(someList)");
+            AssertBuild(x => x.SomeStringEnum == StringEnumTemplate.MemberTemplate, "someStringEnum eq 'MemberTemplate'");
         }
 
 
