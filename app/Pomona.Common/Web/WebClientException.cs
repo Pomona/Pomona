@@ -28,14 +28,22 @@
 
 using System;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
 {
+    [Serializable]
     internal class WebClientException<TBody> : WebClientException, IWebClientException<TBody>
     {
+        protected WebClientException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+
+
         internal WebClientException(WebClientRequestMessage request,
                                     WebClientResponseMessage response,
                                     TBody body,
@@ -51,6 +59,7 @@ namespace Pomona.Common.Web
         }
     }
 
+    [Serializable]
     public class WebClientException : Exception
     {
         private static readonly MethodInfo createGenericMethod;
@@ -73,6 +82,12 @@ namespace Pomona.Common.Web
         {
             this.body = body;
             this.statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+        }
+
+
+        protected WebClientException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
         }
 
 
@@ -157,13 +172,9 @@ namespace Pomona.Common.Web
             StringBuilder message = new StringBuilder("The ");
 
             if (request != null)
-            {
                 message.AppendFormat("{0} request to <{1}> ", request.Method, request.Uri);
-            }
             else
-            {
                 message.Append("request ");
-            }
 
             if (response != null)
             {
@@ -176,10 +187,8 @@ namespace Pomona.Common.Web
                                      response.StatusCode);
             }
             else
-            {
                 message.Append("got no response");
-            }
-            
+
             var bodyString = body as string;
             if (bodyString == null && body != null)
             {
