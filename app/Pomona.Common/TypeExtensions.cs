@@ -461,6 +461,32 @@ namespace Pomona.Common
 
 
         /// <summary>
+        /// Returns <c>true</c> if the parameters of the specified <paramref name="method" />
+        /// matches the number of type arguments and their type; otherwise <c>false</c>.
+        /// </summary>
+        /// <typeparam name="TParam1">The type of the first parameter of the <paramref name="method" />.</typeparam>
+        /// <typeparam name="TParam2">The type of the second parameter of the <paramref name="method" />.</typeparam>
+        /// <param name="method">The method.</param>
+        /// <returns>
+        /// <c>true</c> if the parameters of the specified <paramref name="method" />
+        /// matches the number of type arguments and their type; otherwise <c>false</c>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">method</exception>
+        public static bool ParameterTypesMatch<TParam1, TParam2>(this MethodBase method)
+        {
+            if (method == null)
+                throw new ArgumentNullException("method");
+
+            var parameters = method.GetParameters();
+            if (parameters.Length != 2)
+                return false;
+
+            return parameters[0].ParameterType == typeof(TParam1)
+                   && parameters[1].ParameterType == typeof(TParam2);
+        }
+
+
+        /// <summary>
         /// This method attempts to extract the type parameters of a given type, when viewed as a particular generic type.
         /// </summary>
         /// <param name="typeInstance">The type instance, which type args will be extracted from.</param>

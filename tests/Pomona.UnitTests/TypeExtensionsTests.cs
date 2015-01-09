@@ -323,6 +323,28 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void ParameterTypesMatch_Matching_ReturnsTrue()
+        {
+            var parameterTypesMatch = typeof(TheInheritedClass)
+                .GetMethod("PlainMethodWithParameters")
+                .ParameterTypesMatch<string, int>();
+
+            Assert.That(parameterTypesMatch, Is.True);
+        }
+
+
+        [Test]
+        public void ParameterTypesMatch_NotMatching_ReturnsFalse()
+        {
+            var parameterTypesMatch = typeof(TheInheritedClass)
+                .GetMethod("PlainMethodWithParameters")
+                .ParameterTypesMatch<Guid, DateTime>();
+
+            Assert.That(parameterTypesMatch, Is.False);
+        }
+
+
+        [Test]
         public void TryExtractTypeArguments_WhenBaseClassOfTypeImplementsGenericInterface_IsSuccessful()
         {
             Type[] typeArgs;
