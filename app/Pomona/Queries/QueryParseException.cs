@@ -37,6 +37,7 @@ using Nancy;
 
 namespace Pomona.Queries
 {
+    [Serializable]
     public class QueryParseException : PomonaServerException
     {
         private readonly QueryParseErrorReason errorReason;
@@ -55,9 +56,9 @@ namespace Pomona.Queries
 
 
         internal QueryParseException(string message,
-            Exception innerException,
-            QueryParseErrorReason errorReason,
-            string memberName)
+                                     Exception innerException,
+                                     QueryParseErrorReason errorReason,
+                                     string memberName)
             : base(message, innerException, HttpStatusCode.BadRequest)
         {
             this.errorReason = errorReason;
@@ -84,11 +85,11 @@ namespace Pomona.Queries
 
 
         internal static QueryParseException Create(ITree parserNode,
-            string message,
-            string parsedString,
-            Exception innerException,
-            QueryParseErrorReason? errorReason = null,
-            string memberName = null)
+                                                   string message,
+                                                   string parsedString,
+                                                   Exception innerException,
+                                                   QueryParseErrorReason? errorReason = null,
+                                                   string memberName = null)
         {
             if (parserNode != null && parsedString != null)
             {
@@ -105,8 +106,8 @@ namespace Pomona.Queries
                 }
 
                 sb.AppendFormat("Error on line {0} character {1} of query:\r\n",
-                    line,
-                    charPositionInLine);
+                                line,
+                                charPositionInLine);
                 sb.Append(' ', charPositionInLine);
                 sb.AppendLine("|/");
                 sb.AppendLine(GetLineOfString(parsedString, line));
@@ -114,9 +115,9 @@ namespace Pomona.Queries
             }
 
             return new QueryParseException(message,
-                innerException,
-                errorReason ?? QueryParseErrorReason.GenericError,
-                memberName);
+                                           innerException,
+                                           errorReason ?? QueryParseErrorReason.GenericError,
+                                           memberName);
         }
 
 
