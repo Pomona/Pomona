@@ -67,10 +67,10 @@ namespace Pomona
 
 
         public PomonaServerException(string message,
-            Exception innerException,
-            HttpStatusCode statusCode,
-            IEnumerable<KeyValuePair<string, string>> responseHeaders = null,
-            object entity = null)
+                                     Exception innerException,
+                                     HttpStatusCode statusCode,
+                                     IEnumerable<KeyValuePair<string, string>> responseHeaders = null,
+                                     object entity = null)
             : base(message, innerException)
         {
             this.entity = entity;
