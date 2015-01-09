@@ -63,19 +63,15 @@ namespace Pomona
         #endregion
 
         private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
-
         private readonly TransformedType ofType;
         private readonly TransformedType sourceType;
-
-        private List<Tuple<LambdaExpression, SortOrder>> orderByExpressions =
-            new List<Tuple<LambdaExpression, SortOrder>>();
 
 
         static PomonaQuery()
         {
-            applyAndExecuteMethod =
-                GenericInvoker.Instance<PomonaQuery>().CreateFunc1<IQueryable, bool, PomonaResponse>(
-                    x => x.ApplyAndExecute<object>(null, false));
+            applyAndExecuteMethod = GenericInvoker
+                .Instance<PomonaQuery>()
+                .CreateFunc1<IQueryable, bool, PomonaResponse>(x => x.ApplyAndExecute<object>(null, false));
         }
 
 
@@ -83,6 +79,8 @@ namespace Pomona
         {
             if (sourceType == null)
                 throw new ArgumentNullException("sourceType");
+
+            OrderByExpressions = new List<Tuple<LambdaExpression, SortOrder>>();
             this.sourceType = sourceType;
             this.ofType = ofType ?? sourceType;
             DebugInfoKeys = new HashSet<string>();
@@ -90,18 +88,19 @@ namespace Pomona
 
 
         public HashSet<string> DebugInfoKeys { get; set; }
-
+        public string ExpandedPaths { get; set; }
         public LambdaExpression FilterExpression { get; set; }
         public LambdaExpression GroupByExpression { get; set; }
         public bool IncludeTotalCount { get; set; }
 
-        public List<Tuple<LambdaExpression, SortOrder>> OrderByExpressions
+        public TransformedType OfType
         {
-            get { return this.orderByExpressions; }
-            set { this.orderByExpressions = value; }
+            get { return this.ofType; }
         }
 
+        public List<Tuple<LambdaExpression, SortOrder>> OrderByExpressions { get; set; }
         public ProjectionType Projection { get; set; }
+        public TypeSpec ResultType { get; internal set; }
         public LambdaExpression SelectExpression { get; set; }
         public int Skip { get; set; }
 
@@ -111,21 +110,8 @@ namespace Pomona
         }
 
         public int Top { get; set; }
-
-        #region PomonaQuery Members
-
-        public string ExpandedPaths { get; set; }
-
-        public TransformedType OfType
-        {
-            get { return this.ofType; }
-        }
-
-        public TypeSpec ResultType { get; internal set; }
-
         public string Url { get; set; }
 
-        #endregion
 
         public PomonaResponse ApplyAndExecute(IQueryable queryable, bool skipAndTakeAfterExecute = false)
         {
@@ -200,8 +186,8 @@ namespace Pomona
                         // We assume that this means no matching element.
                         // Don't know another way to check this in a non-ambigious way, since null might be a valid return value.
                         return new PomonaResponse(this,
-                            PomonaResponse.NoBodyEntity,
-                            HttpStatusCode.NotFound);
+                                                  PomonaResponse.NoBodyEntity,
+                                                  HttpStatusCode.NotFound);
                     }
                     return new PomonaResponse(this, result);
                 }
