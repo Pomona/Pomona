@@ -42,12 +42,11 @@ namespace Pomona.Common
     {
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)
         {
-            return
-                sourceType
-                    .WrapAsEnumerable()
-                    .Append(sourceType.GetInterfaces())
-                    .SelectMany(x => x.GetProperties())
-                    .Distinct();
+            return sourceType
+                .WrapAsEnumerable()
+                .Append(sourceType.GetInterfaces())
+                .SelectMany(x => x.GetProperties())
+                .Distinct();
         }
 
 
@@ -167,17 +166,6 @@ namespace Pomona.Common
         }
 
 
-        public static TypeSpec GetItemType(this TypeSpec typeSpec)
-        {
-            if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
-            var enumerableTypeSpec = typeSpec as EnumerableTypeSpec;
-            if (enumerableTypeSpec != null)
-                return enumerableTypeSpec.ItemType;
-            return typeSpec;
-        }
-
-
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
             return type.WalkTree(x => x.BaseType);
@@ -247,6 +235,44 @@ namespace Pomona.Common
                     .WrapAsEnumerable()
                     .Concat(type.GetInterfaces())
                     .Where(t => t.UniqueToken() == metadataToken);
+        }
+
+
+        public static TypeSpec GetItemType(this TypeSpec typeSpec)
+        {
+            if (typeSpec == null)
+                throw new ArgumentNullException("typeSpec");
+            var enumerableTypeSpec = typeSpec as EnumerableTypeSpec;
+            if (enumerableTypeSpec != null)
+                return enumerableTypeSpec.ItemType;
+            return typeSpec;
+        }
+
+
+        /// <summary>
+        /// Gets all loadable <see cref="Type"/>s from the specified <paramref name="assembly"/>.
+        /// </summary>
+        /// <param name="assembly">The assembly.</param>
+        /// <returns>
+        /// All loadable <see cref="Type"/>s from the specified <paramref name="assembly"/>.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">assembly</exception>
+        /// <remarks>
+        /// Shamelessly stolen form <a href="http://haacked.com/archive/2012/07/23/get-all-types-in-an-assembly.aspx/">Phil Haack</a>
+        /// </remarks>
+        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        {
+            if (assembly == null)
+                throw new ArgumentNullException("assembly");
+
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException e)
+            {
+                return e.Types.Where(t => t != null);
+            }
         }
 
 
@@ -484,11 +510,10 @@ namespace Pomona.Common
         /// <param name="methodTypeArgs">An array with type parameters to be filled.</param>
         /// <param name="typeArgsWasResolved">One or more type arguments were resolved, which means that methodTypeArgs was changed</param>
         /// <returns>true for match, false if actualType could not match wantedType.</returns>
-        public static bool TryFillGenericTypeParameters(
-            Type wantedType,
-            Type actualType,
-            Type[] methodTypeArgs,
-            out bool typeArgsWasResolved)
+        public static bool TryFillGenericTypeParameters(Type wantedType,
+                                                        Type actualType,
+                                                        Type[] methodTypeArgs,
+                                                        out bool typeArgsWasResolved)
         {
             typeArgsWasResolved = false;
             if (wantedType.IsGenericTypeDefinition)
@@ -750,32 +775,6 @@ namespace Pomona.Common
                 return type.GetGenericTypeDefinition().MakeGenericType(genArgs);
 
             return type;
-        }
-
-        /// <summary>
-        /// Gets all loadable <see cref="Type"/>s from the specified <paramref name="assembly"/>.
-        /// </summary>
-        /// <param name="assembly">The assembly.</param>
-        /// <returns>
-        /// All loadable <see cref="Type"/>s from the specified <paramref name="assembly"/>.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">assembly</exception>
-        /// <remarks>
-        /// Shamelessly stolen form <a href="http://haacked.com/archive/2012/07/23/get-all-types-in-an-assembly.aspx/">Phil Haack</a>
-        /// </remarks>
-        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
-        {
-            if (assembly == null)
-                throw new ArgumentNullException("assembly");
-
-            try
-            {
-                return assembly.GetTypes();
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                return e.Types.Where(t => t != null);
-            }
         }
     }
 }
