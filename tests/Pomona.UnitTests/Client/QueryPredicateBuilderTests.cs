@@ -636,6 +636,13 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildCountExtensionMethod_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeList.Count(), "count(someList)");
+        }
+
+
+        [Test]
         public void BuildString_EncodesSingleQuoteCorrectly()
         {
             AssertBuild(x => "Banana'Boo", "'Banana''Boo'");
