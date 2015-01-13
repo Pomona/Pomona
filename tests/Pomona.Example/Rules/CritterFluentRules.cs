@@ -35,7 +35,7 @@ using Pomona.Example.Handlers;
 using Pomona.Example.Models;
 using Pomona.FluentMapping;
 
-namespace Pomona.Example
+namespace Pomona.Example.Rules
 {
     public class CritterFluentRules
     {

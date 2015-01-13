@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pomona.Example.Models;
+using Pomona.Example.Rules;
 
 namespace Pomona.Example
 {

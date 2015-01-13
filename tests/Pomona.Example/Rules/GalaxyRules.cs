@@ -30,7 +30,7 @@ using Pomona.Common;
 using Pomona.Example.Models.Existence;
 using Pomona.FluentMapping;
 
-namespace Pomona.Example
+namespace Pomona.Example.Rules
 {
     public class GalaxyRules
     {
