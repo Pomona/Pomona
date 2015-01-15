@@ -63,8 +63,7 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "Not yet working, need a proper extended resource collection wrapper for this.")]
+        [Test]
         public void PatchExtendedResource_AddItemToWrappedCollection()
         {
             var entity = new HasReferenceToDictionaryContainer();
