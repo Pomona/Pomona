@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using Critters.Client;
@@ -70,23 +71,43 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetGalaxyAtUrlHavingEncodedCharacters_ReturnsResource()
+        {
+            var resourceName = "ksaj dlkj skdl jsklj ædøs ¤&(";
+            Save(new Galaxy() { Name = resourceName });
+            var galaxy = Client.Galaxies.Get(resourceName);
+            Assert.That(galaxy, Is.Not.Null);
+            Assert.That(galaxy.Name, Is.EqualTo(resourceName));
+            Console.WriteLine(((IHasResourceUri)galaxy).Uri);
+            Assert.That(((IHasResourceUri)galaxy).Uri,
+                        Is.EqualTo("http://test/galaxies/ksaj%20dlkj%20skdl%20jsklj%20%C3%A6d%C3%B8s%20%C2%A4%26("));
+        }
+
+
+        [Test]
         public void GetChildResourceIdentifiedById_AtNonExistantUrl_ThrowsResourceNotFoundException()
         {
-            Assert.Throws<Common.Web.ResourceNotFoundException>(() => Client.Get<IPlanetarySystem>("http://test/galaxies/nowhere/planetary-systems/nada"));
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => Client.Get<IPlanetarySystem>("http://test/galaxies/nowhere/planetary-systems/nada"));
         }
+
 
         [Test]
         public void GetChildResourceFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
         {
             Client.Get<IGalaxyInfo>("http://test/galaxies/milkyway/info");
-            Assert.Throws<Common.Web.ResourceNotFoundException>(() => Client.Get<IGalaxyInfo>("http://test/galaxies/nowhere/info"));
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => Client.Get<IGalaxyInfo>("http://test/galaxies/nowhere/info"));
         }
+
 
         [Test]
         public void GetCollectionOfChildResourcesFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
         {
-            Assert.Throws<Common.Web.ResourceNotFoundException>(() => Client.Get<QueryResult<IPlanetarySystem>>("http://test/galaxies/nowhere/planetary-systems"));
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => Client.Get<QueryResult<IPlanetarySystem>>("http://test/galaxies/nowhere/planetary-systems"));
         }
+
 
         [Test]
         public void ChildResourcesGetsCorrectUrl()
@@ -120,6 +141,7 @@ namespace Pomona.SystemTests
             Assert.That(star.Name, Is.EqualTo("Sun"));
         }
 
+
         [Test]
         public void PatchStarOfPlanetarySystem_IsSuccessful()
         {
@@ -137,9 +159,9 @@ namespace Pomona.SystemTests
             var planetarySystem = GetPlanetarySystemResource();
             var planetToDelete = planetarySystem.Planets.First();
             var patchedPlanetarySystem = Client.Patch(planetarySystem,
-                x => x.Planets.Delete(planetToDelete));
+                                                      x => x.Planets.Delete(planetToDelete));
             Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name),
-                Is.Not.Contains(planetToDelete.Name));
+                        Is.Not.Contains(planetToDelete.Name));
         }
 
 
@@ -148,7 +170,7 @@ namespace Pomona.SystemTests
         {
             var planetarySystem = GetPlanetarySystemResource();
             var patchedPlanetarySystem = Client.Patch(planetarySystem,
-                x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
+                                                      x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
             Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
         }
 

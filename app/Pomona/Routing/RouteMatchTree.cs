@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.Common;
+
 namespace Pomona.Routing
 {
     public class RouteMatchTree
@@ -41,7 +43,7 @@ namespace Pomona.Routing
         public RouteMatchTree(Route route, string path, IPomonaSession session)
         {
             this.session = session;
-            this.root = new UrlSegment(route, path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), this);
+            this.root = new UrlSegment(route, path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode).ToArray(), this);
         }
 
 
