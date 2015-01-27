@@ -50,11 +50,12 @@ namespace Pomona.TestHelpers
         /// Check all projects in solution at path for consistent nuget package references.
         /// </summary>
         /// <param name="solutionPath">Path to .sln file.</param>
-        public static void VerifyNugetPackageReferences(string solutionPath)
+        public static void VerifyNugetPackageReferences(string solutionPath, Func<NugetPackageElement, bool> filter)
         {
+            filter = filter ?? (x => true);
             var solutionDir = Path.GetDirectoryName(solutionPath);
             //var solution = new ICSharpCode.NRefactory.ConsistencyCheck.Solution(solutionPath);
-            var packages = NugetPackageElement.Load(solutionDir).GroupBy(x => x.Id).ToList();
+            var packages = NugetPackageElement.Load(solutionDir).Where(filter).GroupBy(x => x.Id).ToList();
             StringBuilder sb = new StringBuilder();
             int errorCount = 0;
             foreach (var package in packages)
