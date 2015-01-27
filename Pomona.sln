@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona", "app\Pomona\Pomona.csproj", "{EE396A59-956E-4DEE-B222-991F2274ED67}"
 EndProject
@@ -65,6 +65,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.NHibernate3", "app\Pomona.NHibernate3\Pomona.NHibernate3.csproj", "{7820ED76-DF9E-47E3-B122-D2D286603762}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.NHibernate3.Tests", "tests\Pomona.NHibernate3.Tests\Pomona.NHibernate3.Tests.csproj", "{628D590E-ACAE-4D7C-9F15-5C74A4EAD4F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.NHibernate4", "app\Pomona.NHibernate4\Pomona.NHibernate4.csproj", "{156EF2B3-61E8-413A-8885-7655556559E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -254,6 +256,16 @@ Global
 		{628D590E-ACAE-4D7C-9F15-5C74A4EAD4F0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{628D590E-ACAE-4D7C-9F15-5C74A4EAD4F0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{628D590E-ACAE-4D7C-9F15-5C74A4EAD4F0}.Release|x86.ActiveCfg = Release|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -276,5 +288,6 @@ Global
 		{8C32D931-0FA9-4191-9C6D-640435995207} = {5B5B9445-7105-4C81-B3BD-039FBCD52034}
 		{7820ED76-DF9E-47E3-B122-D2D286603762} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
 		{628D590E-ACAE-4D7C-9F15-5C74A4EAD4F0} = {5B5B9445-7105-4C81-B3BD-039FBCD52034}
+		{156EF2B3-61E8-413A-8885-7655556559E5} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
 	EndGlobalSection
 EndGlobal
