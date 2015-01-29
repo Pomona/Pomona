@@ -213,9 +213,16 @@ namespace Pomona.Common.Linq
         {
             LambdaExpression clientSideSelectPart;
             var uri = BuildUri(parser, out clientSideSelectPart);
-            var queryProjection = parser.Projection;
+
+            if (parser.ResultMode == RestQueryableTreeParser.ResultModeType.ToUri)
+                return new Uri(uri);
 
             var requestOptions = RequestOptions.Create<T>(x => parser.RequestOptionActions.ForEach(y => y(x)));
+            if (parser.ResultMode == RestQueryableTreeParser.ResultModeType.ToJson)
+                return this.client.Get<JToken>(uri, requestOptions);
+
+            var queryProjection = parser.Projection;
+
             if (clientSideSelectPart != null)
             {
                 return executeWithClientSelectPart.Invoke(clientSideSelectPart.Parameters[0].Type,
@@ -236,12 +243,6 @@ namespace Pomona.Common.Linq
                                               Func<T, TConverted> clientSideSelectPart,
                                               RequestOptions requestOptions)
         {
-            if (queryProjection == RestQueryableTreeParser.QueryProjection.ToJson)
-                return this.client.Get<JToken>(uri, requestOptions);
-
-            if (queryProjection == RestQueryableTreeParser.QueryProjection.ToUri)
-                return new Uri(uri);
-
             if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
                 var resourceInfo = this.client.GetResourceInfoForType(typeof(T));

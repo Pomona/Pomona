@@ -50,15 +50,20 @@ namespace Pomona.Common.Linq
             Single,
             SingleOrDefault,
             Any,
-            ToUri,
             Max,
             Min,
             Sum,
-            ToJson,
             Count
         }
 
         #endregion
+
+        public enum ResultModeType
+        {
+            Deserialized,
+            ToJson,
+            ToUri
+        }
 
         private static readonly Dictionary<UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary;
         private readonly StringBuilder expandedPaths;
@@ -70,6 +75,7 @@ namespace Pomona.Common.Linq
         private LambdaExpression groupByKeySelector;
         private bool includeTotalCount;
         private QueryProjection projection;
+        private ResultModeType resultMode = ResultModeType.Deserialized;
         private IRestQueryRoot queryRoot;
         private LambdaExpression selectExpression;
         private int? skipCount;
@@ -143,6 +149,11 @@ namespace Pomona.Common.Linq
         public List<Action<IRequestOptions>> RequestOptionActions
         {
             get { return this.requestOptionActions; }
+        }
+
+        public ResultModeType ResultMode
+        {
+            get { return this.resultMode; }
         }
 
         public LambdaExpression SelectExpression
@@ -492,7 +503,8 @@ namespace Pomona.Common.Linq
 
         internal void QToJson()
         {
-            this.projection = QueryProjection.ToJson;
+            this.projection = QueryProjection.Enumerable;
+            this.resultMode = ResultModeType.ToJson;
         }
 
 
@@ -504,7 +516,8 @@ namespace Pomona.Common.Linq
 
         internal void QToUri<TSource>()
         {
-            this.projection = QueryProjection.ToUri;
+            this.projection = QueryProjection.Enumerable;
+            this.resultMode = ResultModeType.ToUri;
         }
 
 
