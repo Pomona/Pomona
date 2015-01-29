@@ -193,10 +193,14 @@ namespace Pomona.Common.Linq
                 }
                 builder.AppendParameter("$select", selectNode);
             }
-            if (parser.SkipCount.HasValue)
-                builder.AppendParameter("$skip", parser.SkipCount.Value);
-            if (parser.TakeCount.HasValue)
-                builder.AppendParameter("$top", parser.TakeCount.Value);
+
+            if (parser.Projection == RestQueryableTreeParser.QueryProjection.Enumerable)
+            {
+                if (parser.SkipCount.HasValue)
+                    builder.AppendParameter("$skip", parser.SkipCount.Value);
+                if (parser.TakeCount.HasValue)
+                    builder.AppendParameter("$top", parser.TakeCount.GetValueOrDefault(int.MaxValue));
+            }
 
             var expandedPaths = parser.ExpandedPaths;
             if (!string.IsNullOrEmpty(expandedPaths))

@@ -466,8 +466,8 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_ToUri_ReturnsUriForQuery()
         {
-            var uri = Client.Query<ICritter>().Where(x => x.Name == "holahola").ToUri();
-            Assert.That(uri.PathAndQuery, Is.EqualTo("/critters?$filter=name+eq+'holahola'"));
+            var uri = Client.Query<ICritter>().Where(x => x.Name == "holahola").Take(10).ToUri();
+            Assert.That(uri.PathAndQuery, Is.EqualTo("/critters?$filter=name+eq+'holahola'&$top=10"));
         }
 
 

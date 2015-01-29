@@ -116,7 +116,7 @@ namespace Pomona.SystemTests
             var allEntities = Repository.List<TEntity>();
             var entities =
                 allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
-            var fetchedResources = Client.Query<TResource>().Where(resourcePredicate).Take(1024 * 1024).ToList();
+            var fetchedResources = Client.Query<TResource>().Where(resourcePredicate).ToList();
             Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
 
             if (expectedResultCount.HasValue)
