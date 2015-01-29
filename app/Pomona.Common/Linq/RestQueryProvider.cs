@@ -198,8 +198,7 @@ namespace Pomona.Common.Linq
             {
                 if (parser.SkipCount.HasValue)
                     builder.AppendParameter("$skip", parser.SkipCount.Value);
-                if (parser.TakeCount.HasValue)
-                    builder.AppendParameter("$top", parser.TakeCount.GetValueOrDefault(int.MaxValue));
+                builder.AppendParameter("$top", parser.TakeCount.GetValueOrDefault(int.MaxValue));
             }
 
             var expandedPaths = parser.ExpandedPaths;
