@@ -53,6 +53,7 @@ namespace Pomona.UnitTests.FluentMapping
                 "SuperChild");
         }
 
+
         [Test]
         public void AsAbstract_GivenTypeThatWouldBeConcreteByConvention_MakesTypeAbstract()
         {
@@ -63,6 +64,20 @@ namespace Pomona.UnitTests.FluentMapping
                 {
                     Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
                     Assert.That(changedValue, Is.EqualTo(true));
+                });
+        }
+
+
+        [Test]
+        public void ExposedAt_WillModifyUrlRelativePath()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
+                x => x.ExposedAt("newpath"),
+                (f, t) => f.GetUrlRelativePath(t),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo("newpath"));
                 });
         }
 
@@ -99,7 +114,7 @@ namespace Pomona.UnitTests.FluentMapping
         {
             var filter = GetMappingFilter(DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault);
             Assert.That(filter.PropertyIsIncluded(typeof(TestEntityBase), GetPropInfo<TestEntityBase>(x => x.Id)),
-                Is.True);
+                        Is.True);
             Assert.That(filter.PropertyIsIncluded(typeof(Specialized), GetPropInfo<Specialized>(x => x.Id)), Is.True);
         }
 
@@ -128,9 +143,9 @@ namespace Pomona.UnitTests.FluentMapping
         public void Named_OverridesDefaultNameOfType()
         {
             CheckHowChangeInTypeRuleAffectsFilter<Top, string>(x => x.Named("HolaHola"),
-                (x, t) => x.GetTypeMappedName(t),
-                "Top",
-                "HolaHola");
+                                                               (x, t) => x.GetTypeMappedName(t),
+                                                               "Top",
+                                                               "HolaHola");
         }
 
 
@@ -182,9 +197,9 @@ namespace Pomona.UnitTests.FluentMapping
         public void WithPluralName_OverridesDefaultNameOfType()
         {
             CheckHowChangeInTypeRuleAffectsFilter<Top, string>(x => x.WithPluralName("HolaHolas"),
-                (x, t) => x.GetPluralNameForType(t),
-                "Tops",
-                "HolaHolas");
+                                                               (x, t) => x.GetPluralNameForType(t),
+                                                               "Tops",
+                                                               "HolaHolas");
         }
     }
 }

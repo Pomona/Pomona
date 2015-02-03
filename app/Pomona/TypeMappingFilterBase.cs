@@ -45,11 +45,11 @@ using Pomona.FluentMapping;
 
 namespace Pomona
 {
-    public abstract class TypeMappingFilterBase : ITypeMappingFilter
+    public abstract class TypeMappingFilterBase : ITypeMappingFilter, IWrappableTypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
         private readonly HashSet<Type> sourceTypesCached;
-
+        public ITypeMappingFilter BaseFilter { get; set; }
 
         static TypeMappingFilterBase()
         {
@@ -60,6 +60,7 @@ namespace Pomona
         protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
         {
             this.sourceTypesCached = new HashSet<Type>(sourceTypes);
+            this.BaseFilter = this;
         }
 
 
@@ -169,7 +170,13 @@ namespace Pomona
 
         public virtual string GetPluralNameForType(Type type)
         {
-            return SingularToPluralTranslator.CamelCaseToPlural(type.Name);
+            return SingularToPluralTranslator.CamelCaseToPlural(BaseFilter.GetTypeMappedName(type));
+        }
+
+
+        public virtual string GetUrlRelativePath(Type type)
+        {
+            return NameUtils.ConvertCamelCaseToUri(this.BaseFilter.GetPluralNameForType(BaseFilter.GetUriBaseType(type) ?? type));
         }
 
 

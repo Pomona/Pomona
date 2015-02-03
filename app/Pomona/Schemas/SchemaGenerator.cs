@@ -136,7 +136,7 @@ namespace Pomona.Schemas
 
             if (resourceTypeSpec != null)
             {
-                schemaTypeEntry.Uri = resourceTypeSpec.UriRelativePath;
+                schemaTypeEntry.Uri = resourceTypeSpec.UrlRelativePath;
             }
 
             return schemaTypeEntry;

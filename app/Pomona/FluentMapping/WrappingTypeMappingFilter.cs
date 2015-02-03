@@ -151,6 +151,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual string GetUrlRelativePath(Type type)
+        {
+            return this.wrappedFilter.GetUrlRelativePath(type);
+        }
+
+
         public virtual Type GetPostReturnType(Type type)
         {
             return this.wrappedFilter.GetPostReturnType(type);

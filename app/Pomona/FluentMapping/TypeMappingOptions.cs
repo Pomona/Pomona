@@ -70,6 +70,7 @@ namespace Pomona.FluentMapping
         private string pluralName;
         private bool? postAllowed;
         private Type postResponseType;
+        private string urlRelativePath;
 
 
         public TypeMappingOptions(Type declaringType)
@@ -163,6 +164,7 @@ namespace Pomona.FluentMapping
             get { return this.name; }
         }
 
+        public string UrlRelativePath { get { return urlRelativePath; } }
 
         internal object GetConfigurator(Type exposedAsType)
         {
@@ -244,6 +246,13 @@ namespace Pomona.FluentMapping
             public override ITypeMappingConfigurator<TDeclaringType> AsAbstract()
             {
                 this.owner.isAbstract = true;
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> ExposedAt(string path)
+            {
+                this.owner.urlRelativePath = path;
                 return this;
             }
 

@@ -111,9 +111,9 @@ namespace Pomona.Common.TypeSystem
             get { return this.uriBaseType.Value; }
         }
 
-        public string UriRelativePath
+        public string UrlRelativePath
         {
-            get { return ResourceTypeDetails.UriRelativePath; }
+            get { return ResourceTypeDetails.UrlRelativePath; }
         }
 
         protected ResourceTypeDetails ResourceTypeDetails
@@ -180,7 +180,7 @@ namespace Pomona.Common.TypeSystem
             else
             {
                 var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
-                formatStringBuilder.AppendFormat("{0}/{{{1}}}", rt.UriRelativePath, sbFormatArgs.Count);
+                formatStringBuilder.AppendFormat("{0}/{{{1}}}", rt.UrlRelativePath, sbFormatArgs.Count);
                 sbFormatArgs.Add(sbArgsExpr);
             }
         }

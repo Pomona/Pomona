@@ -77,7 +77,7 @@ namespace Pomona.Example.Rules
 
         public void Map(ITypeMappingConfigurator<RenamedThing> map)
         {
-            map.Named("GotNewName").WithPluralName("ThingsWithNewName");
+            map.Named("GotNewName").WithPluralName("ThingsWithNewName").ExposedAt("renamings");
         }
 
 

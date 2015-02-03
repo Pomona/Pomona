@@ -54,6 +54,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> ExposedAt(string path)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> AsChildResourceOf<TParent>(
             Expression<Func<TDeclaring, TParent>> parentProperty,
             Expression<Func<TParent, IEnumerable<TDeclaring>>> collectionProperty)

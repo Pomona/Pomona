@@ -58,9 +58,12 @@ namespace Pomona
                 throw new ArgumentNullException("configuration");
             this.configuration = configuration;
 
-            this.filter = configuration.TypeMappingFilter;
+            var innerFilter = configuration.TypeMappingFilter;
             var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
-            this.filter = new FluentTypeMappingFilter(this.filter, fluentRuleObjects, null, configuration.SourceTypes);
+            this.filter = new FluentTypeMappingFilter(innerFilter, fluentRuleObjects, null, configuration.SourceTypes);
+            var wrappableFilter = innerFilter as IWrappableTypeMappingFilter;
+            if (wrappableFilter != null)
+                wrappableFilter.BaseFilter = filter;
 
             if (this.filter == null)
                 throw new ArgumentNullException("filter");
@@ -304,13 +307,18 @@ namespace Pomona
         public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
         {
             var type = resourceType.Type;
+            var parentToChildProperty = this.filter.GetParentToChildProperty(type);
+            var childToParentProperty = this.filter.GetChildToParentProperty(type);
+            var isRootResource = parentToChildProperty == null;
+
+            var relativeResourcePath = isRootResource ? this.filter.GetUrlRelativePath(type) : null;
+
             return new ResourceTypeDetails(resourceType,
-                                           NameUtils.ConvertCamelCaseToUri(
-                                               this.filter.GetPluralNameForType(resourceType.UriBaseType ?? resourceType)),
+                                           relativeResourcePath,
                                            this.filter.TypeIsExposedAsRepository(type),
                                            this.filter.GetPostReturnType(type),
-                                           this.filter.GetParentToChildProperty(type),
-                                           this.filter.GetChildToParentProperty(type),
+                                           parentToChildProperty,
+                                           childToParentProperty,
                                            this.filter.GetResourceHandlers(type));
         }
 

@@ -156,6 +156,7 @@
     <Compile Include="IPomonaUriResolver.cs" />
     <Compile Include="IResourceResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
+    <Compile Include="IWrappableTypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NoCloseStreamWriter.cs" />

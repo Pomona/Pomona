@@ -41,6 +41,7 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping();
         ITypeMappingConfigurator<TDeclaringType> AsAbstract();
 
+        ITypeMappingConfigurator<TDeclaringType> ExposedAt(string path);
 
         ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
             Expression<Func<TDeclaringType, TParent>> parentProperty,

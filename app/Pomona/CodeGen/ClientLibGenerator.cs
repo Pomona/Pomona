@@ -36,6 +36,7 @@ using System.Runtime.Remoting.Messaging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Mono.Collections.Generic;
 
 using NuGet;
 
@@ -508,37 +509,45 @@ namespace Pomona.CodeGen
             var custAttr =
                 new CustomAttribute(methodDefinition);
             var stringTypeReference = this.module.TypeSystem.String;
-            custAttr.Properties.Add(
-                new CustomAttributeNamedArgument("UrlRelativePath",
-                                                 new CustomAttributeArgument(stringTypeReference,
-                                                                             type
-                                                                                 .Maybe()
-                                                                                 .OfType<ResourceType>()
-                                                                                 .Select(x => x.UriRelativePath)
-                                                                                 .OrDefault())));
+
+            var namedArgs = custAttr.Properties;
+
+            var uriRelativePath = type
+                .Maybe()
+                .OfType<ResourceType>()
+                .Select(x => x.UrlRelativePath)
+                .OrDefault();
+
+            if (uriRelativePath != null)
+            {
+                namedArgs.Add(
+                    new CustomAttributeNamedArgument("UrlRelativePath",
+                                                     new CustomAttributeArgument(stringTypeReference,
+                                                                                 uriRelativePath)));
+            }
 
             var typeTypeReference = Import(typeof(Type));
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("PocoType",
+            namedArgs.Add(new CustomAttributeNamedArgument("PocoType",
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.PocoType)));
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("InterfaceType",
+            namedArgs.Add(new CustomAttributeNamedArgument("InterfaceType",
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.InterfaceType)));
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("LazyProxyType",
+            namedArgs.Add(new CustomAttributeNamedArgument("LazyProxyType",
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.LazyProxyType)));
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("PostFormType",
+            namedArgs.Add(new CustomAttributeNamedArgument("PostFormType",
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.PostFormType)));
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("PatchFormType",
+            namedArgs.Add(new CustomAttributeNamedArgument("PatchFormType",
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.PatchFormType)));
 
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("JsonTypeName",
+            namedArgs.Add(new CustomAttributeNamedArgument("JsonTypeName",
                                                                      new CustomAttributeArgument(stringTypeReference,
                                                                                                  type.Name)));
 
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("UriBaseType",
+            namedArgs.Add(new CustomAttributeNamedArgument("UriBaseType",
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.UriBaseType)));
 
@@ -546,7 +555,7 @@ namespace Pomona.CodeGen
             if (resourceType != null && resourceType.ParentResourceType != null)
             {
                 var parentResourceTypeInfo = this.clientTypeInfoDict[resourceType.ParentResourceType];
-                custAttr.Properties.Add(new CustomAttributeNamedArgument("ParentResourceType",
+                namedArgs.Add(new CustomAttributeNamedArgument("ParentResourceType",
                                                                          new CustomAttributeArgument(typeTypeReference,
                                                                                                      parentResourceTypeInfo
                                                                                                          .InterfaceType)));
@@ -554,12 +563,12 @@ namespace Pomona.CodeGen
 
             if (typeInfo.BaseType != null)
             {
-                custAttr.Properties.Add(new CustomAttributeNamedArgument("BaseType",
+                namedArgs.Add(new CustomAttributeNamedArgument("BaseType",
                                                                          new CustomAttributeArgument(typeTypeReference,
                                                                                                      typeInfo.BaseType)));
             }
 
-            custAttr.Properties.Add(new CustomAttributeNamedArgument("IsValueObject",
+            namedArgs.Add(new CustomAttributeNamedArgument("IsValueObject",
                                                                      new CustomAttributeArgument(
                                                                          this.module.TypeSystem.Boolean,
                                                                          typeInfo.TransformedType

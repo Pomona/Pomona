@@ -246,7 +246,7 @@ namespace Pomona
 
         private void RegisterRoutesFor(ResourceType type)
         {
-            var path = "/" + type.UriRelativePath;
+            var path = "/" + type.UrlRelativePath;
 
             Register(Get, path + "/{remaining*}", x => ProcessRequest());
             Register(Get, path, x => ProcessRequest());

@@ -128,6 +128,7 @@ namespace Pomona
         PropertyInfo GetChildToParentProperty(Type type);
         PropertyInfo GetParentToChildProperty(Type type);
         string GetPluralNameForType(Type type);
+        string GetUrlRelativePath(Type type);
         Type GetPostReturnType(Type type);
         IEnumerable<Type> GetResourceHandlers(Type type);
         ConstructorSpec GetTypeConstructor(Type type);

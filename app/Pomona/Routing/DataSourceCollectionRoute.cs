@@ -65,7 +65,7 @@ namespace Pomona.Routing
 
         public string MatchValue
         {
-            get { return this.resultItemType.UriRelativePath; }
+            get { return this.resultItemType.UrlRelativePath; }
         }
 
         public override TypeSpec ResultItemType
@@ -93,7 +93,7 @@ namespace Pomona.Routing
 
         protected override string PathSegmentToString()
         {
-            return this.resultItemType.UriRelativePath;
+            return this.resultItemType.UrlRelativePath;
         }
     }
 }

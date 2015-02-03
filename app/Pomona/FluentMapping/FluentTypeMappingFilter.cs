@@ -204,6 +204,12 @@ namespace TestNs
         }
 
 
+        public string GetUrlRelativePath(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.UrlRelativePath, () => this.wrappedFilter.GetUrlRelativePath(type));
+        }
+
+
         public Type GetPostReturnType(Type type)
         {
             return FromMappingOrDefault(

@@ -41,11 +41,11 @@ namespace Pomona.Common.TypeSystem
         private readonly PropertyInfo parentToChildPropertyInfo;
         private readonly Type postReturnType;
         private readonly ResourceType type;
-        private readonly string uriRelativePath;
+        private readonly string urlRelativePath;
 
 
         public ResourceTypeDetails(ResourceType type,
-            string uriRelativePath,
+            string urlRelativePath,
             bool isExposedAsRepository,
             Type postReturnType,
             PropertyInfo parentToChildPropertyInfo,
@@ -55,7 +55,7 @@ namespace Pomona.Common.TypeSystem
             if (type == null)
                 throw new ArgumentNullException("type");
             this.type = type;
-            this.uriRelativePath = uriRelativePath;
+            this.urlRelativePath = urlRelativePath;
             this.isExposedAsRepository = isExposedAsRepository;
             this.postReturnType = postReturnType;
             this.parentToChildPropertyInfo = parentToChildPropertyInfo;
@@ -102,9 +102,9 @@ namespace Pomona.Common.TypeSystem
             get { return (TransformedType)this.type.TypeResolver.FromType(this.postReturnType); }
         }
 
-        public string UriRelativePath
+        public string UrlRelativePath
         {
-            get { return this.uriRelativePath; }
+            get { return this.urlRelativePath; }
         }
     }
 }
