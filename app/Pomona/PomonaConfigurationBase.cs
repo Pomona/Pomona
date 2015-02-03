@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.FluentMapping;
 using Pomona.Routing;
 
 namespace Pomona
@@ -81,6 +82,18 @@ namespace Pomona
 
         public virtual void OnMappingComplete(TypeMapper typeMapper)
         {
+        }
+
+
+        internal FluentTypeMappingFilter CreateMappingFilter()
+        {
+            var innerFilter = TypeMappingFilter;
+            var fluentRuleObjects = FluentRuleObjects.ToArray();
+            var fluentFilter = new FluentTypeMappingFilter(innerFilter, fluentRuleObjects, null, SourceTypes);
+            var wrappableFilter = innerFilter as IWrappableTypeMappingFilter;
+            if (wrappableFilter != null)
+                wrappableFilter.BaseFilter = fluentFilter;
+            return fluentFilter;
         }
     }
 }

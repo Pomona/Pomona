@@ -27,10 +27,12 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
 
+using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.FluentMapping;
 
@@ -78,6 +80,20 @@ namespace Pomona.UnitTests.FluentMapping
                 {
                     Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
                     Assert.That(changedValue, Is.EqualTo("newpath"));
+                });
+        }
+
+
+        [Test]
+        public void ExposedAt_WithLeadingPathSeparator_LeadingPathSeparatorIsStrippedFromMappedType()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, ResourceType>(
+                x => x.ExposedAt("/newpath"),
+                (f, t) => (ResourceType)new TypeMapper(f, new []  {typeof(Top)}, null, null).GetClassMapping<Top>(),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue.UrlRelativePath, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue.UrlRelativePath, Is.EqualTo("newpath"));
                 });
         }
 

@@ -44,7 +44,6 @@ namespace Pomona
     public class TypeMapper : ExportedTypeResolverBase, ITypeMapper
     {
         private readonly InternalRouteActionResolver actionResolver;
-        private readonly PomonaConfigurationBase configuration;
 
         private readonly ITypeMappingFilter filter;
         private readonly PomonaRouteResolver routeResolver;
@@ -52,23 +51,21 @@ namespace Pomona
         private readonly Dictionary<string, TypeSpec> typeNameMap;
 
 
-        public TypeMapper(PomonaConfigurationBase configuration)
+        public TypeMapper(PomonaConfigurationBase configuration) :
+            this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete, configuration.RouteActionResolvers)
         {
-            if (configuration == null)
-                throw new ArgumentNullException("configuration");
-            this.configuration = configuration;
+        }
 
-            var innerFilter = configuration.TypeMappingFilter;
-            var fluentRuleObjects = configuration.FluentRuleObjects.ToArray();
-            this.filter = new FluentTypeMappingFilter(innerFilter, fluentRuleObjects, null, configuration.SourceTypes);
-            var wrappableFilter = innerFilter as IWrappableTypeMappingFilter;
-            if (wrappableFilter != null)
-                wrappableFilter.BaseFilter = filter;
-
-            if (this.filter == null)
+        public TypeMapper(ITypeMappingFilter filter, IEnumerable<Type> sourceTypes, Action<TypeMapper> onMappingComplete, IEnumerable<IRouteActionResolver> actionResolvers)
+        {
+            if (filter == null)
                 throw new ArgumentNullException("filter");
+            if (sourceTypes == null)
+                throw new ArgumentNullException("sourceTypes");
 
-            this.sourceTypes = new HashSet<Type>(this.configuration.SourceTypes.Where(this.filter.TypeIsMapped));
+            this.filter = filter;
+
+            this.sourceTypes = new HashSet<Type>(sourceTypes.Where(this.filter.TypeIsMapped));
 
             this.typeNameMap = new Dictionary<string, TypeSpec>();
 
@@ -78,17 +75,13 @@ namespace Pomona
                 this.typeNameMap[type.Name.ToLower()] = type;
             }
 
-            configuration.OnMappingComplete(this);
+            if (onMappingComplete != null)
+                onMappingComplete(this);
 
             this.routeResolver = new PomonaRouteResolver(new DataSourceRootRoute(this));
-            this.actionResolver = new InternalRouteActionResolver(configuration.RouteActionResolvers);
+            this.actionResolver = new InternalRouteActionResolver(actionResolvers ?? Enumerable.Empty<IRouteActionResolver>());
         }
 
-
-        public PomonaConfigurationBase Configuration
-        {
-            get { return this.configuration; }
-        }
 
         public IEnumerable<EnumTypeSpec> EnumTypes
         {
@@ -311,7 +304,7 @@ namespace Pomona
             var childToParentProperty = this.filter.GetChildToParentProperty(type);
             var isRootResource = parentToChildProperty == null;
 
-            var relativeResourcePath = isRootResource ? this.filter.GetUrlRelativePath(type) : null;
+            var relativeResourcePath = isRootResource ? this.filter.GetUrlRelativePath(type).TrimStart('/') : null;
 
             return new ResourceTypeDetails(resourceType,
                                            relativeResourcePath,
