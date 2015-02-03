@@ -246,6 +246,12 @@ namespace TestNs
         }
 
 
+        public bool TypeIsSingletonResource(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.IsSingleton, () => wrappedFilter.TypeIsSingletonResource(type));
+        }
+
+
         public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,

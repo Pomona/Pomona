@@ -98,6 +98,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> AsSingleton()
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> ConstructedUsing(
             Expression<Func<IConstructorControl<TDeclaring>, TDeclaring>> constructExpr)
         {

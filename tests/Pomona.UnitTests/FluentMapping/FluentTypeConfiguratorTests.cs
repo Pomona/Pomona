@@ -166,6 +166,14 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void AsSingleton_SetsIsSingletonToTrue()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(x => x.AsSingleton(),
+                                                             (f, t) => f.TypeIsSingletonResource(t), false, true);
+        }
+
+
+        [Test]
         public void OnDeserializedRule_IsAppliedToMappingFilter()
         {
             var fluentMappingFilter = GetMappingFilter();

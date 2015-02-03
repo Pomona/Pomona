@@ -297,6 +297,13 @@ namespace Pomona
         }
 
 
+        public virtual bool TypeIsSingletonResource(Type type)
+        {
+            // return type.HasAttribute<RootAttribute>(false);
+            return false;
+        }
+
+
         public virtual Type GetUriBaseType(Type type)
         {
             if (type == null)

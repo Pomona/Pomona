@@ -71,6 +71,7 @@ namespace Pomona.FluentMapping
         private bool? postAllowed;
         private Type postResponseType;
         private string urlRelativePath;
+        private bool? isSingleton;
 
 
         public TypeMappingOptions(Type declaringType)
@@ -130,6 +131,11 @@ namespace Pomona.FluentMapping
         public bool? IsValueObject
         {
             get { return this.isValueObject; }
+        }
+
+        public bool? IsSingleton
+        {
+            get { return this.isSingleton; }
         }
 
         public Action<object> OnDeserialized
@@ -310,6 +316,13 @@ namespace Pomona.FluentMapping
             public override ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
             {
                 this.owner.isUriBaseType = true;
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> AsSingleton()
+            {
+                this.owner.isSingleton = true;
                 return this;
             }
 

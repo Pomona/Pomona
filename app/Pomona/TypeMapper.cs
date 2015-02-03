@@ -312,6 +312,7 @@ namespace Pomona
                                            this.filter.GetPostReturnType(type),
                                            parentToChildProperty,
                                            childToParentProperty,
+                                           this.filter.TypeIsSingletonResource(type),
                                            this.filter.GetResourceHandlers(type));
         }
 

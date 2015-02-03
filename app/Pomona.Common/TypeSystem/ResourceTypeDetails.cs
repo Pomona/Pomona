@@ -32,9 +32,12 @@ using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class ResourceTypeDetails
+    public class 
+        ResourceTypeDetails
     {
         private readonly PropertyInfo childToParentPropertyInfo;
+        private readonly bool isSingleton;
+
         private readonly IEnumerable<Type> resourceHandlers;
 
         private readonly bool isExposedAsRepository;
@@ -50,6 +53,7 @@ namespace Pomona.Common.TypeSystem
             Type postReturnType,
             PropertyInfo parentToChildPropertyInfo,
             PropertyInfo childToParentPropertyInfo,
+            bool isSingleton,
             IEnumerable<Type> resourceHandlers)
         {
             if (type == null)
@@ -60,6 +64,7 @@ namespace Pomona.Common.TypeSystem
             this.postReturnType = postReturnType;
             this.parentToChildPropertyInfo = parentToChildPropertyInfo;
             this.childToParentPropertyInfo = childToParentPropertyInfo;
+            this.isSingleton = isSingleton;
             this.resourceHandlers = resourceHandlers;
         }
 
@@ -77,6 +82,11 @@ namespace Pomona.Common.TypeSystem
         public bool IsExposedAsRepository
         {
             get { return this.isExposedAsRepository; }
+        }
+
+        public bool IsSingleton
+        {
+            get { return this.isSingleton; }
         }
 
         public ResourceType ParentResourceType

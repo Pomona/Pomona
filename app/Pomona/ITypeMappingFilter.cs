@@ -151,6 +151,7 @@ namespace Pomona
 
         Type ResolveRealTypeForProxy(Type type);
         bool TypeIsExposedAsRepository(Type type);
+        bool TypeIsSingletonResource(Type type);
 
         #endregion
 

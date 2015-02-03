@@ -257,6 +257,7 @@ namespace Pomona.Common
                                            resourceType,
                                            null,
                                            null,
+                                           false,
                                            Enumerable.Empty<Type>());
         }
 

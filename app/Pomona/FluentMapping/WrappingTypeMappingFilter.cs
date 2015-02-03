@@ -169,6 +169,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual bool TypeIsSingletonResource(Type type)
+        {
+            return this.wrappedFilter.TypeIsSingletonResource(type);
+        }
+
+
         public virtual IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertyAttributes(type, propertyInfo);

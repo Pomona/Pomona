@@ -59,6 +59,7 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot();
         ITypeMappingConfigurator<TDeclaringType> AsUriBaseType();
         ITypeMappingConfigurator<TDeclaringType> AsValueObject();
+        ITypeMappingConfigurator<TDeclaringType> AsSingleton();
 
 
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
