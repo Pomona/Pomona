@@ -41,12 +41,6 @@ namespace Pomona.UnitTests.Client
     [TestFixture]
     public class QueryPredicateBuilderTests : QueryPredicateBuilderTestsBase
     {
-        public class Container
-        {
-            public string Junk { get; set; }
-        }
-
-
         private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
         {
             var queryString = BuildQueryString(predicate);
@@ -61,15 +55,6 @@ namespace Pomona.UnitTests.Client
             var builder = QueryPredicateBuilder.Create(predicate);
             var queryString = builder.ToString();
             return queryString;
-        }
-
-
-        public static class SomeStaticClass
-        {
-            public static DateTime SomeDate
-            {
-                get { return new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc); }
-            }
         }
 
 
@@ -190,6 +175,13 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => Convert.ChangeType(x.UnknownProperty, typeof(string)),
                         "convert(unknownProperty,t'String')");
+        }
+
+
+        [Test]
+        public void BuildValuePropertyOfNullable_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.NullableNumber.Value, "nullableNumber.value()");
         }
 
 
@@ -696,6 +688,20 @@ namespace Pomona.UnitTests.Client
         public void GetItemOnDictionary_ReturnsCorrectString()
         {
             AssertBuild(x => x.Attributes["hello world"] == "bob", "attributes['hello world'] eq 'bob'");
+        }
+
+
+        public class Container
+        {
+            public string Junk { get; set; }
+        }
+
+        public static class SomeStaticClass
+        {
+            public static DateTime SomeDate
+            {
+                get { return new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc); }
+            }
         }
     }
 }

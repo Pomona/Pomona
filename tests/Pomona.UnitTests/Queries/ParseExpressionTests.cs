@@ -44,10 +44,18 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDecimals.average()", _this => _this.ListOfDecimals.Average());
         }
 
+
         [Test]
         public void ParseObjectAttributesMemberSafeGet_CreatesCorrectExpression()
         {
             ParseAndAssert("objectAttributes.jalla", _this => _this.ObjectAttributes.SafeGet("jalla"));
+        }
+
+
+        [Test]
+        public void ParseValuePropertyOfNullable_ReturnsCorrectString()
+        {
+            ParseAndAssert("nullableNumber.value()", _this => _this.NullableNumber.Value);
         }
 
 
@@ -58,11 +66,13 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("number in []", _this => numbers.Contains(_this.Number));
         }
 
+
         [Test]
         public void ParseObjectAttributesIn_CreatesCorrectExpression()
         {
             object[] objects = new object[] { 12, 43, 66 };
-            ParseAndAssert("objectAttributes.jalla in [12,43,66]", _this => objects.Contains( _this.ObjectAttributes.SafeGet("jalla")));
+            ParseAndAssert("objectAttributes.jalla in [12,43,66]",
+                           _this => objects.Contains(_this.ObjectAttributes.SafeGet("jalla")));
         }
 
 
@@ -119,7 +129,7 @@ namespace Pomona.UnitTests.Queries
         public void ParseFirstOrDefaultWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.firstdefault(x:x.number eq 4)",
-                _this => _this.Children.FirstOrDefault(x => x.Number == 4));
+                           _this => _this.Children.FirstOrDefault(x => x.Number == 4));
         }
 
 
@@ -127,7 +137,7 @@ namespace Pomona.UnitTests.Queries
         public void ParseFirstWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.first(x:x.number eq 4)",
-                _this => _this.Children.First(x => x.Number == 4));
+                           _this => _this.Children.First(x => x.Number == 4));
         }
 
 
@@ -224,7 +234,7 @@ namespace Pomona.UnitTests.Queries
         public void ParseSingleOrDefaultWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.singledefault(x:x.number eq 4)",
-                _this => _this.Children.SingleOrDefault(x => x.Number == 4));
+                           _this => _this.Children.SingleOrDefault(x => x.Number == 4));
         }
 
 
@@ -239,7 +249,7 @@ namespace Pomona.UnitTests.Queries
         public void ParseSingleWithPredicate_ReturnsCorrectExpression()
         {
             ParseAndAssert("children.single(x:x.number eq 4)",
-                _this => _this.Children.Single(x => x.Number == 4));
+                           _this => _this.Children.Single(x => x.Number == 4));
         }
 
 

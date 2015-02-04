@@ -35,31 +35,14 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.ExtendedResources;
-using Pomona.Common.Internals;
 
 namespace Pomona.SystemTests.ExtendedResources
 {
     [TestFixture]
     public class TransformAdditionalPropertiesToAttributesVisitorTests : ClientTestsBase
     {
-        public interface ICustomUserEntity : IStringToObjectDictionaryContainer
-        {
-            string CustomString { get; set; }
-            string OtherCustom { get; set; }
-        }
-
-        public interface IHippieFarm : IFarm
-        {
-        }
-
-        public interface IMusicalCritterOnHippieFarm : IMusicalCritter
-        {
-            new IHippieFarm Farm { get; }
-        }
-
-
         public void AssertTransformIsCorrect<TServer, TExtended>(Func<IQueryable<TExtended>, IQueryable> origQuery,
-            Func<IQueryable<TServer>, IQueryable> expectedFunc)
+                                                                 Func<IQueryable<TServer>, IQueryable> expectedFunc)
             where TExtended : TServer
         {
             var visitor = new TransformAdditionalPropertiesToAttributesVisitor(Client);
@@ -68,11 +51,10 @@ namespace Pomona.SystemTests.ExtendedResources
 
             ExtendedResourceInfo extendedResourceInfo;
             if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TExtended), out extendedResourceInfo))
-            {
                 Assert.Fail("Unable to get ExtendedResourceInfo for " + typeof(TExtended));
-            }
 
-            var originalQuery = origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource, extendedResourceInfo));
+            var originalQuery =
+                origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource, extendedResourceInfo));
 
             var expectedQuery = expectedFunc(wrappedSource);
             var expectedQueryExpr = expectedQuery.Expression;
@@ -95,11 +77,37 @@ namespace Pomona.SystemTests.ExtendedResources
 
 
         [Test]
+        public void Visit_TransformsNullableValuePropertyAccess_ToCorrectExpression()
+        {
+            AssertTransformIsCorrect<IStringToObjectDictionaryContainer, ICustomUserEntity>(
+                q => q.Where(x => x.CustomInt.Value == 123),
+                q => q.Where(x => (x.Map.SafeGet("CustomInt") as int?).Value == 123));
+        }
+
+
+        [Test]
         public void Visit_TransformsPropertyWithReferenceToExtendedTypeToServerKnownType()
         {
             AssertTransformIsCorrect<IMusicalCritter, IMusicalCritterOnHippieFarm>(
                 q => q.Where(x => x.Farm.Name == "Wassup"),
                 q => q.Where(x => x.Farm.Name == "Wassup"));
+        }
+
+
+        public interface ICustomUserEntity : IStringToObjectDictionaryContainer
+        {
+            string CustomString { get; set; }
+            string OtherCustom { get; set; }
+            int? CustomInt { get; set; }
+        }
+
+        public interface IHippieFarm : IFarm
+        {
+        }
+
+        public interface IMusicalCritterOnHippieFarm : IMusicalCritter
+        {
+            new IHippieFarm Farm { get; }
         }
     }
 }

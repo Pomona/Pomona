@@ -104,8 +104,8 @@ namespace Pomona.UnitTests.Queries
             public string Text { get; set; }
             public DateTime Time { get; set; }
             public object UnknownProperty { get; set; }
-
             public bool and { get; set; }
+            public int? NullableNumber { get; set; }
         }
 
         #endregion
