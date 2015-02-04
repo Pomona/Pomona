@@ -53,14 +53,12 @@ namespace Pomona
             {
                 var request = this.context.Request;
                 var appUrl = request.Url.BasePath ?? string.Empty;
-                var uriString = String.Format("{0}://{1}:{2}{3}{4}{5}",
-                    request.Url.Scheme,
-                    request.Url.HostName,
-                    request.Url.Port,
-                    appUrl,
-                    pomonaroot,
-                    pomonaroot.EndsWith("/") ? String.Empty : "/")
-                    ;
+                var uriString = String.Format("{0}://{1}:{2}{3}{4}",
+                                              request.Url.Scheme,
+                                              request.Url.HostName,
+                                              request.Url.Port,
+                                              appUrl,
+                                              pomonaroot);
 
                 return new Uri(uriString);
             }

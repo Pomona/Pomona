@@ -58,7 +58,8 @@ namespace Pomona
 
         public virtual string RelativeToAbsoluteUri(string path)
         {
-            return String.Format("{0}{1}", this.baseUriProvider.BaseUri, path);
+            var baseUri = this.baseUriProvider.BaseUri.ToString();
+            return String.Format("{0}{1}{2}", baseUri, (baseUri.EndsWith("/") || path == string.Empty) ? string.Empty : "/", path);
         }
 
 

@@ -116,6 +116,11 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.UrlRelativePath; }
         }
 
+        public bool IsSingleton
+        {
+            get { return ResourceTypeDetails.IsSingleton; }
+        }
+
         protected ResourceTypeDetails ResourceTypeDetails
         {
             get { return this.resourceTypeDetails.Value; }
@@ -169,7 +174,9 @@ namespace Pomona.Common.TypeSystem
                 var childToParentProperty = rt.ChildToParentProperty;
                 var nextParentExpr = childToParentProperty.CreateGetterExpression(parentExpression);
                 BuildUriGenerator(rt.ParentResourceType, sbFormatArgs, nextParentExpr, formatStringBuilder);
-                formatStringBuilder.AppendFormat("/{0}", parentToChildProperty.UriName);
+                if (formatStringBuilder.Length > 0)
+                    formatStringBuilder.Append('/');
+                formatStringBuilder.AppendFormat("{0}", parentToChildProperty.UriName);
                 if (parentToChildProperty.PropertyType.IsCollection)
                 {
                     formatStringBuilder.AppendFormat("/{{{0}}}", sbFormatArgs.Count);
@@ -179,9 +186,16 @@ namespace Pomona.Common.TypeSystem
             }
             else
             {
-                var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
-                formatStringBuilder.AppendFormat("{0}/{{{1}}}", rt.UrlRelativePath, sbFormatArgs.Count);
-                sbFormatArgs.Add(sbArgsExpr);
+                if (rt.IsSingleton)
+                {
+                    formatStringBuilder.AppendFormat("{0}", rt.UrlRelativePath);
+                }
+                else
+                {
+                    var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
+                    formatStringBuilder.AppendFormat("{0}/{{{1}}}", rt.UrlRelativePath, sbFormatArgs.Count);
+                    sbFormatArgs.Add(sbArgsExpr);
+                }
             }
         }
 

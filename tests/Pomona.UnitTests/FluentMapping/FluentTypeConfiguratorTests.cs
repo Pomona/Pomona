@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using NUnit.Framework;
@@ -92,9 +91,21 @@ namespace Pomona.UnitTests.FluentMapping
                 (f, t) => (ResourceType)new TypeMapper(f, new []  {typeof(Top)}, null, null).GetClassMapping<Top>(),
                 (origValue, changedValue) =>
                 {
-                    Assert.That(changedValue.UrlRelativePath, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue.UrlRelativePath, Is.Not.EqualTo(origValue),
+                                "Test no use if change in filter has no effect");
                     Assert.That(changedValue.UrlRelativePath, Is.EqualTo("newpath"));
                 });
+        }
+
+
+        [Test]
+        public void ExposedAt_Root_ResultsInEmptyString()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
+                x => x.ExposedAt("/"),
+                (f, t) =>
+                    ((ResourceType)new TypeMapper(f, new[] { typeof(Top) }, null, null).GetClassMapping<Top>())
+                    .UrlRelativePath, "tops", "");
         }
 
 
