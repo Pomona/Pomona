@@ -48,7 +48,7 @@ namespace Pomona
 
 
         public PomonaContext(UrlSegment node,
-                             PomonaInnerRequest request = null,
+                             PomonaRequest request = null,
                              string expandedPaths = null,
                              bool executeQueryable = false,
                              Type acceptType = null)
@@ -56,14 +56,14 @@ namespace Pomona
             if (node == null)
                 throw new ArgumentNullException("node");
             this.Node = node;
-            this.Request = request ?? new PomonaInnerRequest(node.RelativePath, node.RelativePath);
+            this.Request = request ?? new PomonaRequest(node.RelativePath, node.RelativePath);
             this.expandedPaths = expandedPaths ?? GetExpandedPathsFromRequest(this.Request.Headers, Query);
             this.executeQueryable = executeQueryable;
             this.acceptType = acceptType;
         }
 
 
-        public PomonaInnerRequest Request { get; private set; }
+        public PomonaRequest Request { get; private set; }
 
         public Type AcceptType
         {

@@ -173,7 +173,7 @@
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaError.cs" />
     <Compile Include="PomonaModuleConfigurationBinder.cs" />
-    <Compile Include="PomonaInnerRequest.cs" />
+    <Compile Include="PomonaRequest.cs" />
     <Compile Include="PomonaServerException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="PomonaMethodAttribute.cs" />

@@ -40,7 +40,7 @@ namespace Pomona
         PomonaContext CurrentContext { get; }
         TypeMapper TypeMapper { get; }
         PomonaResponse Dispatch(PomonaContext context);
-        PomonaResponse Dispatch(PomonaInnerRequest request);
+        PomonaResponse Dispatch(PomonaRequest request);
         
         IEnumerable<RouteAction> GetRouteActions(PomonaContext context);
     }

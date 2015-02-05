@@ -58,7 +58,7 @@ namespace Pomona.Routing
                 (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
 
             var moduleRelativePath = context.Request.Path.Substring(modulePath.Length);
-            var request = new PomonaInnerRequest(context.Request.Url.ToString(), moduleRelativePath, httpMethod,
+            var request = new PomonaRequest(context.Request.Url.ToString(), moduleRelativePath, httpMethod,
                                             context.Request.Headers, context.Request.Body,
                                             context.Request.Query);
 

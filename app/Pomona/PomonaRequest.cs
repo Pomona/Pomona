@@ -36,7 +36,7 @@ using Pomona.Common;
 
 namespace Pomona
 {
-    public class PomonaInnerRequest
+    public class PomonaRequest
     {
         private readonly HttpMethod method;
         private readonly string relativePath;
@@ -44,7 +44,7 @@ namespace Pomona
         private RequestHeaders headers;
 
 
-        public PomonaInnerRequest(string url,
+        public PomonaRequest(string url,
                              string relativePath,
                              HttpMethod method = HttpMethod.Get,
                              RequestHeaders headers = null,

@@ -53,7 +53,7 @@ namespace Pomona
             }
 
             var relativePath = session.GetInstance<IUriResolver>().ToRelativePath(urlWithoutQueryPart);
-            var req = new PomonaInnerRequest(url, relativePath, query: query);
+            var req = new PomonaRequest(url, relativePath, query: query);
             return session.Dispatch(req);
         }
 

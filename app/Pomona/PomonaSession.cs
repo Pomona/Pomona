@@ -76,7 +76,7 @@ namespace Pomona
         }
 
 
-        public virtual PomonaResponse Dispatch(PomonaInnerRequest request)
+        public virtual PomonaResponse Dispatch(PomonaRequest request)
         {
             var finalSegmentMatch = MatchUrlSegment(request);
             return this.Dispatch(new PomonaContext(finalSegmentMatch, request, executeQueryable : true));
@@ -173,7 +173,7 @@ namespace Pomona
         }
 
 
-        private UrlSegment MatchUrlSegment(PomonaInnerRequest request)
+        private UrlSegment MatchUrlSegment(PomonaRequest request)
         {
             var match = new PomonaRouteResolver(this.Routes).Resolve(this, request.RelativePath);
 
