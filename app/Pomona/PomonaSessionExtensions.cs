@@ -58,7 +58,7 @@ namespace Pomona
         }
 
 
-        public static object Get(this IPomonaSession session,
+        internal static object Get(this IPomonaSession session,
                                  UrlSegment urlSegment)
         {
             if (session == null)
@@ -66,12 +66,12 @@ namespace Pomona
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaContext(urlSegment, executeQueryable : true);
+            var request = new PomonaContext(urlSegment, executeQueryable : true, handleException: false);
             return session.Dispatch(request).Entity;
         }
 
 
-        public static IQueryable Query(this IPomonaSession session,
+        internal static IQueryable Query(this IPomonaSession session,
                                        UrlSegment urlSegment)
         {
             if (session == null)
@@ -79,7 +79,7 @@ namespace Pomona
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable));
+            var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable), handleException: false);
             return (IQueryable)session.Dispatch(request).Entity;
         }
     }

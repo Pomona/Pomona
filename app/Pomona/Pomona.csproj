@@ -153,6 +153,7 @@
     <Compile Include="IBaseUriProvider.cs" />
     <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
     <Compile Include="IPomonaDataSource.cs" />
+    <Compile Include="IPomonaErrorHandler.cs" />
     <Compile Include="IPomonaModuleConfigurationBinder.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
     <Compile Include="IPomonaSessionFactory.cs" />

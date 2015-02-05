@@ -29,43 +29,49 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 using Nancy;
 
 using Pomona.CodeGen;
 using Pomona.Common;
-using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
-using Pomona.Plumbing;
 using Pomona.Routing;
 using Pomona.Schemas;
 
 namespace Pomona
 {
-    public abstract class PomonaModule : NancyModule
+    public abstract class PomonaModule : NancyModule, IPomonaErrorHandler
     {
+        private IContainer container;
         private IPomonaDataSource dataSource;
         private IPomonaSessionFactory sessionFactory;
 
-        protected PomonaModule(string modulePath = "/") : this(null, modulePath) { }
+
+        protected PomonaModule(string modulePath = "/")
+            : this(null, modulePath)
+        {
+        }
 
 
-        [Obsolete("This PomonaModule ctor will be removed in the future, replace with the one taking no arguments or just IPomonaSessionFactory.")]
+        [Obsolete(
+            "This PomonaModule ctor will be removed in the future, replace with the one taking no arguments or just IPomonaSessionFactory."
+            )]
         protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
             : this(dataSource, typeMapper, "/")
         {
         }
 
 
-        [Obsolete("This PomonaModule ctor will be removed in the future, replace with the one taking no arguments or just IPomonaSessionFactory.")]
+        [Obsolete(
+            "This PomonaModule ctor will be removed in the future, replace with the one taking no arguments or just IPomonaSessionFactory."
+            )]
         protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, string modulePath)
             : this(typeMapper.SessionFactory, modulePath, dataSource)
         {
         }
+
 
         protected PomonaModule(IPomonaSessionFactory sessionFactory,
                                string modulePath = "/",
@@ -76,12 +82,32 @@ namespace Pomona
         }
 
 
+        private TypeMapper TypeMapper
+        {
+            get { return sessionFactory.TypeMapper; }
+        }
+
+        protected IContainer Container
+        {
+            get
+            {
+                if (container == null)
+                    container = new ModuleContainer(Context, dataSource, this);
+                return container;
+            }
+        }
+
+
+        public PomonaError HandleException(Exception exception)
+        {
+            return OnException(UnwrapException(exception));
+        }
+
+
         private void Initialize(IPomonaSessionFactory sessionFactory, IPomonaDataSource dataSource)
         {
             if (sessionFactory == null)
-            {
                 sessionFactory = PomonaModuleConfigurationBinder.Current.GetFactory(this);
-            }
 
             this.sessionFactory = sessionFactory;
             this.dataSource = dataSource;
@@ -95,9 +121,7 @@ namespace Pomona
             };
 
             foreach (var route in this.sessionFactory.Routes.Children)
-            {
                 RegisterRoutesFor((ResourceType)route.ResultItemType);
-            }
 
             // For root resource links!
             Register(Get, "/", x => ProcessRequest());
@@ -110,12 +134,6 @@ namespace Pomona
             RegisterClientNugetPackageRoute();
 
             RegisterSerializationProvider(TypeMapper);
-        }
-
-
-        private TypeMapper TypeMapper
-        {
-            get { return sessionFactory.TypeMapper; }
         }
 
 
@@ -136,27 +154,6 @@ namespace Pomona
                 : new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
         }
 
-
-        public interface IConfigurator
-        {
-            IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map);
-        }
-
-        internal class Configurator : IConfigurator
-        {
-            private List<Delegate> delegates = new List<Delegate>();
-
-            public List<Delegate> Delegates
-            {
-                get { return this.delegates; }
-            }
-
-            public IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map)
-            {
-                delegates.Add(map);
-                return this;
-            }
-        }
 
         protected virtual void OnConfiguration(IConfigurator config)
         {
@@ -186,9 +183,13 @@ namespace Pomona
         {
             var pomonaConfigAttr = this.GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
             if (pomonaConfigAttr == null)
-                throw new InvalidOperationException("Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
+            {
+                throw new InvalidOperationException(
+                    "Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
+            }
             return (PomonaConfigurationBase)Activator.CreateInstance(pomonaConfigAttr.ConfigurationType);
         }
+
 
         private Response GetClientLibrary()
         {
@@ -306,15 +307,25 @@ namespace Pomona
         }
 
 
-        private IContainer container;
-
-        protected IContainer Container
+        public interface IConfigurator
         {
-            get
+            IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map);
+        }
+
+        internal class Configurator : IConfigurator
+        {
+            private readonly List<Delegate> delegates = new List<Delegate>();
+
+            public List<Delegate> Delegates
             {
-                if (container == null)
-                    container = new ModuleContainer(Context, dataSource, this);
-                return container;
+                get { return this.delegates; }
+            }
+
+
+            public IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map)
+            {
+                delegates.Add(map);
+                return this;
             }
         }
 
@@ -338,6 +349,8 @@ namespace Pomona
                     return (T)((object)module);
                 if (typeof(T) == typeof(IPomonaDataSource) && dataSource != null)
                     return (T)dataSource;
+                if (typeof(T) == typeof(IPomonaErrorHandler))
+                    return (T)((object)module);
 
                 return base.GetInstance<T>();
             }

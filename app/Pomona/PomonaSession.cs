@@ -85,40 +85,22 @@ namespace Pomona
 
         public virtual PomonaResponse Dispatch(PomonaContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException("context");
-            if (context.Session != this)
-                throw new ArgumentException("Request session is not same as this.");
-            var savedOuterContext = this.CurrentContext;
             try
             {
-                this.CurrentContext = context;
-                var result = this.Factory.Pipeline.Process(context);
-
-                var resultEntity = result.Entity;
-                var resultAsQueryable = resultEntity as IQueryable;
-                if (resultAsQueryable != null && context.ExecuteQueryable)
-                    result = ExecuteQueryable(context, resultAsQueryable);
-
-                if (context.AcceptType != null && !context.AcceptType.IsInstanceOfType(resultEntity))
-                {
-                    var route = context.Route;
-                    var resultType = route.ResultType;
-                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType) && route.IsSingle
-                        && resultType.Type.IsInstanceOfType(resultEntity))
-                    {
-                        var array = Array.CreateInstance(resultType, 1);
-                        array.SetValue(resultEntity, 0);
-                        return new PomonaResponse(array.AsQueryable());
-                    }
-
-                    throw new InvalidOperationException("Result is not of accepted type.");
-                }
-                return result;
+                return DispatchInternal(context);
             }
-            finally
+            catch (Exception ex)
             {
-                this.CurrentContext = savedOuterContext;
+                if (!context.HandleException)
+                    throw;
+
+                var error = this.container.GetInstance<IPomonaErrorHandler>().HandleException(ex);
+                if (error == null)
+                    throw;
+
+                return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
+                                          error.StatusCode,
+                                          responseHeaders : error.ResponseHeaders);
             }
         }
 
@@ -170,6 +152,46 @@ namespace Pomona
                 throw new ReferencedResourceNotFoundException(uri, pomonaResponse);
 
             return pomonaResponse.Entity;
+        }
+
+
+        private PomonaResponse DispatchInternal(PomonaContext context)
+        {
+            if (context == null)
+                throw new ArgumentNullException("context");
+            if (context.Session != this)
+                throw new ArgumentException("Request session is not same as this.");
+            var savedOuterContext = this.CurrentContext;
+            try
+            {
+                this.CurrentContext = context;
+                var result = this.Factory.Pipeline.Process(context);
+
+                var resultEntity = result.Entity;
+                var resultAsQueryable = resultEntity as IQueryable;
+                if (resultAsQueryable != null && context.ExecuteQueryable)
+                    result = ExecuteQueryable(context, resultAsQueryable);
+
+                if (context.AcceptType != null && !context.AcceptType.IsInstanceOfType(resultEntity))
+                {
+                    var route = context.Route;
+                    var resultType = route.ResultType;
+                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType) && route.IsSingle
+                        && resultType.Type.IsInstanceOfType(resultEntity))
+                    {
+                        var array = Array.CreateInstance(resultType, 1);
+                        array.SetValue(resultEntity, 0);
+                        return new PomonaResponse(array.AsQueryable());
+                    }
+
+                    throw new InvalidOperationException("Result is not of accepted type.");
+                }
+                return result;
+            }
+            finally
+            {
+                this.CurrentContext = savedOuterContext;
+            }
         }
 
 

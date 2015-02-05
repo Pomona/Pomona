@@ -44,6 +44,7 @@ namespace Pomona
         private readonly Type acceptType;
         private readonly bool executeQueryable;
         private readonly string expandedPaths;
+        private readonly bool handleException;
         private object deserializedBody;
 
 
@@ -51,6 +52,7 @@ namespace Pomona
                              PomonaRequest request = null,
                              string expandedPaths = null,
                              bool executeQueryable = false,
+                             bool handleException = true,
                              Type acceptType = null)
         {
             if (node == null)
@@ -59,9 +61,15 @@ namespace Pomona
             this.Request = request ?? new PomonaRequest(node.RelativePath, node.RelativePath);
             this.expandedPaths = expandedPaths ?? GetExpandedPathsFromRequest(this.Request.Headers, Query);
             this.executeQueryable = executeQueryable;
+            this.handleException = handleException;
             this.acceptType = acceptType;
         }
 
+
+        public bool HandleException
+        {
+            get { return this.handleException; }
+        }
 
         public PomonaRequest Request { get; private set; }
 
