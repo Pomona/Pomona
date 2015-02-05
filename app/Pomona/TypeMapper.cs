@@ -36,23 +36,26 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
-using Pomona.FluentMapping;
-using Pomona.Routing;
 
 namespace Pomona
 {
     public class TypeMapper : ExportedTypeResolverBase, ITypeMapper
     {
-
+        private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
-        private readonly DataSourceRootRoute rootRoute;
+        // TODO: These will be removed along with tight bidirectional coupling between TypeMapper and PomonaSessionFactory, this will break API compability.
+        private IPomonaSessionFactory sessionFactory;
 
-        public TypeMapper(PomonaConfigurationBase configuration) :
-            this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete)
+
+        public TypeMapper(PomonaConfigurationBase configuration)
+            :
+                this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete)
         {
+            this.configuration = configuration;
         }
+
 
         public TypeMapper(ITypeMappingFilter filter, IEnumerable<Type> sourceTypes, Action<TypeMapper> onMappingComplete)
         {
@@ -78,6 +81,12 @@ namespace Pomona
         }
 
 
+        internal IPomonaSessionFactory SessionFactory
+        {
+            get { return this.sessionFactory ?? (this.sessionFactory = this.configuration.CreateSessionFactory(this)); }
+            set { this.sessionFactory = value; }
+        }
+
         public IEnumerable<EnumTypeSpec> EnumTypes
         {
             get { return TypeMap.Values.OfType<EnumTypeSpec>(); }
@@ -97,6 +106,22 @@ namespace Pomona
         {
             get { return TypeMap.Values.OfType<TransformedType>(); }
         }
+
+
+        public TypeSpec GetClassMapping(Type type)
+        {
+            return FromType(type);
+        }
+
+
+        public TypeSpec GetClassMapping(string typeName)
+        {
+            TypeSpec type;
+            if (!this.typeNameMap.TryGetValue(typeName.ToLower(), out type))
+                throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
+            return type;
+        }
+
 
         public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {
@@ -312,21 +337,6 @@ namespace Pomona
         {
             Type uriBaseType = this.filter.GetUriBaseType(resourceType.Type);
             return uriBaseType != null ? (ResourceType)FromType(uriBaseType) : null;
-        }
-
-
-        public TypeSpec GetClassMapping(Type type)
-        {
-            return FromType(type);
-        }
-
-
-        public TypeSpec GetClassMapping(string typeName)
-        {
-            TypeSpec type;
-            if (!this.typeNameMap.TryGetValue(typeName.ToLower(), out type))
-                throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
-            return type;
         }
 
 

@@ -106,9 +106,15 @@ namespace Pomona
         public IPomonaSessionFactory CreateSessionFactory()
         {
             var typeMapper = new TypeMapper(this);
-            return new PomonaSessionFactory(typeMapper,
-                                            OnCreateRootRoute(typeMapper),
-                                            new InternalRouteActionResolver(RouteActionResolvers));
+            return CreateSessionFactory(typeMapper);
+        }
+
+
+        internal IPomonaSessionFactory CreateSessionFactory(TypeMapper typeMapper)
+        {
+            var pomonaSessionFactory = new PomonaSessionFactory(typeMapper, OnCreateRootRoute(typeMapper),
+                                                                new InternalRouteActionResolver(RouteActionResolvers));
+            return pomonaSessionFactory;
         }
 
 
