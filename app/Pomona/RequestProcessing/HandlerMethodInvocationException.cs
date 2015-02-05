@@ -42,13 +42,13 @@ namespace Pomona.RequestProcessing
         }
 
 
-        internal HandlerMethodInvocationException(PomonaRequest request, IHandlerMethodInvoker invoker, string message)
-            : this(request, invoker, message, null)
+        internal HandlerMethodInvocationException(PomonaContext context, IHandlerMethodInvoker invoker, string message)
+            : this(context, invoker, message, null)
         {
         }
 
 
-        internal HandlerMethodInvocationException(PomonaRequest request,
+        internal HandlerMethodInvocationException(PomonaContext context,
                                                   IHandlerMethodInvoker invoker,
                                                   string message,
                                                   Exception innerException)

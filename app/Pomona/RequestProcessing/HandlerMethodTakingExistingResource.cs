@@ -52,11 +52,11 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, object state)
+        protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, object state)
         {
             if (parameter == this.resourceParameter)
-                return request.Node.Value;
-            return base.OnGetArgument(parameter, request, state);
+                return context.Node.Value;
+            return base.OnGetArgument(parameter, context, state);
         }
     }
 }

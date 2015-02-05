@@ -77,7 +77,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaRequest, PomonaResponse> ResolveGetRootResource(DataSourceRootRoute route)
+        private Func<PomonaContext, PomonaResponse> ResolveGetRootResource(DataSourceRootRoute route)
         {
             return pr =>
             {
@@ -95,7 +95,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaRequest, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
+        private Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
         {
             if (route.ResultType.IsCollection)
                 return ResolveGetCollection(route, resourceType);
@@ -103,7 +103,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaRequest, PomonaResponse> ResolveGetCollection(Route route, ResourceType resourceType)
+        private Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route, ResourceType resourceType)
         {
             var dataSourceCollectionRoute = route as DataSourceCollectionRoute;
             if (dataSourceCollectionRoute != null)
@@ -123,7 +123,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaRequest, PomonaResponse> ResolvePatch(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, PomonaResponse> ResolvePatch(Route route, ResourceType resourceItemType)
         {
             if (route.IsSingle)
             {
@@ -140,7 +140,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaRequest, PomonaResponse> ResolvePost(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, PomonaResponse> ResolvePost(Route route, ResourceType resourceItemType)
         {
             if (route.NodeType == PathNodeType.Collection)
                 return ResolvePostToCollection(route, resourceItemType);
@@ -148,7 +148,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaRequest, PomonaResponse> ResolvePostToCollection(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, PomonaResponse> ResolvePostToCollection(Route route, ResourceType resourceItemType)
         {
             if (route.ResultItemType is ResourceType && route.ResultType.IsCollection
                 && route.Root() is DataSourceRootRoute)

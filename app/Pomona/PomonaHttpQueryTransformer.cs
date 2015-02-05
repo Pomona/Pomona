@@ -51,58 +51,58 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public PomonaQuery TransformRequest(PomonaRequest request, TransformedType rootType, int? defaultTop = null)
+        public PomonaQuery TransformRequest(PomonaContext context, TransformedType rootType, int? defaultTop = null)
         {
-            if (request == null)
-                throw new ArgumentNullException("request");
+            if (context == null)
+                throw new ArgumentNullException("context");
             if (rootType == null)
                 throw new ArgumentNullException("rootType");
 
             TransformedType ofType = null;
-            if (request.Query["$oftype"].HasValue)
+            if (context.Query["$oftype"].HasValue)
             {
-                ofType = (TransformedType) typeMapper.GetClassMapping((string) request.Query["$oftype"]);
+                ofType = (TransformedType) typeMapper.GetClassMapping((string) context.Query["$oftype"]);
             }
 
             var query = new PomonaQuery(rootType, ofType);
 
-            if (request.Query["$debug"].HasValue)
+            if (context.Query["$debug"].HasValue)
             {
                 query.DebugInfoKeys =
-                    new HashSet<string>(((string) request.Query["$debug"]).ToLower().Split(',').Select(x => x.Trim()));
+                    new HashSet<string>(((string) context.Query["$debug"]).ToLower().Split(',').Select(x => x.Trim()));
             }
 
             string filter = null;
             var top = defaultTop ?? 100;
             var skip = 0;
 
-            if (request.Query["$totalcount"].HasValue && ((string) request.Query["$totalcount"]).ToLower() == "true")
+            if (context.Query["$totalcount"].HasValue && ((string) context.Query["$totalcount"]).ToLower() == "true")
                 query.IncludeTotalCount = true;
 
-            if (request.Query["$top"].HasValue)
-                top = int.Parse(request.Query["$top"]);
+            if (context.Query["$top"].HasValue)
+                top = int.Parse(context.Query["$top"]);
 
-            if (request.Query["$skip"].HasValue)
-                skip = int.Parse(request.Query["$skip"]);
+            if (context.Query["$skip"].HasValue)
+                skip = int.Parse(context.Query["$skip"]);
 
-            if (request.Query["$filter"].HasValue)
-                filter = (string) request.Query["$filter"];
+            if (context.Query["$filter"].HasValue)
+                filter = (string) context.Query["$filter"];
 
             ParseFilterExpression(query, filter);
             var selectSourceType = query.OfType.Type;
 
-            if (request.Query["$groupby"].HasValue)
+            if (context.Query["$groupby"].HasValue)
             {
-                var groupby = (string) request.Query["$groupby"];
+                var groupby = (string) context.Query["$groupby"];
                 ParseGroupByExpression(query, groupby);
                 selectSourceType =
                     typeof (IGrouping<,>).MakeGenericType(
                         query.GroupByExpression.ReturnType, selectSourceType);
             }
 
-            if (request.Query["$projection"].HasValue)
+            if (context.Query["$projection"].HasValue)
             {
-                var projectionString = (string) request.Query["$projection"];
+                var projectionString = (string) context.Query["$projection"];
                 PomonaQuery.ProjectionType projection;
                 if (!Enum.TryParse(projectionString, true, out projection))
                     throw new QueryParseException("\"" + projectionString +
@@ -113,27 +113,27 @@ namespace Pomona
                 query.Projection = projection;
             }
 
-            if (request.Query["$select"].HasValue)
+            if (context.Query["$select"].HasValue)
             {
-                var select = (string) request.Query["$select"];
+                var select = (string) context.Query["$select"];
                 ParseSelect(query, select, selectSourceType);
             }
 
-            if (request.Query["$orderby"].HasValue)
-                ParseOrderBy(query, (string) request.Query["$orderby"]);
+            if (context.Query["$orderby"].HasValue)
+                ParseOrderBy(query, (string) context.Query["$orderby"]);
 
             query.Top = top;
             query.Skip = skip;
 
-            if (request.Query["$expand"].HasValue)
+            if (context.Query["$expand"].HasValue)
             {
                 // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string) request.Query["$expand"]);
+                query.ExpandedPaths = ((string) context.Query["$expand"]);
             }
             else
                 query.ExpandedPaths = string.Empty;
 
-            query.Url = request.Url;
+            query.Url = context.Url;
 
             UpdateResultType(query);
 

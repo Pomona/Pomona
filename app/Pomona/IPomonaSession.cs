@@ -37,11 +37,11 @@ namespace Pomona
     {
         Route Routes { get; }
         IPomonaSessionFactory Factory { get; }
-        PomonaRequest CurrentRequest { get; }
+        PomonaContext CurrentContext { get; }
         TypeMapper TypeMapper { get; }
-        PomonaResponse Dispatch(PomonaRequest request);
+        PomonaResponse Dispatch(PomonaContext context);
         PomonaResponse Dispatch(PomonaInnerRequest request);
         
-        IEnumerable<RouteAction> GetRouteActions(PomonaRequest request);
+        IEnumerable<RouteAction> GetRouteActions(PomonaContext context);
     }
 }

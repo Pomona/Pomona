@@ -37,13 +37,13 @@ namespace Pomona.RequestProcessing
 {
     public class ValidateEtagProcessor : IPomonaRequestProcessor
     {
-        public PomonaResponse Process(PomonaRequest request)
+        public PomonaResponse Process(PomonaContext context)
         {
             string ifMatch = null;
-            if ((ifMatch = GetIfMatchFromRequest(request)) == null)
+            if ((ifMatch = GetIfMatchFromRequest(context)) == null)
                 return null;
 
-            return ProcessPatch(request, ifMatch) ?? ProcessPostToChildResourceRepository(request, ifMatch);
+            return ProcessPatch(context, ifMatch) ?? ProcessPostToChildResourceRepository(context, ifMatch);
         }
 
 
@@ -62,9 +62,9 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private string GetIfMatchFromRequest(PomonaRequest request)
+        private string GetIfMatchFromRequest(PomonaContext context)
         {
-            var ifMatch = request.Headers.IfMatch.FirstOrDefault();
+            var ifMatch = context.Headers.IfMatch.FirstOrDefault();
             if (ifMatch != null)
             {
                 ifMatch = ifMatch.Trim();
@@ -80,19 +80,19 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse ProcessPatch(PomonaRequest request, string ifMatch)
+        private PomonaResponse ProcessPatch(PomonaContext context, string ifMatch)
         {
-            if (request.Method != HttpMethod.Patch)
+            if (context.Method != HttpMethod.Patch)
                 return null;
-            return ValidateResourceEtag(ifMatch, request.Node);
+            return ValidateResourceEtag(ifMatch, context.Node);
         }
 
 
-        private PomonaResponse ProcessPostToChildResourceRepository(PomonaRequest request, string ifMatch)
+        private PomonaResponse ProcessPostToChildResourceRepository(PomonaContext context, string ifMatch)
         {
-            var node = request.Node;
+            var node = context.Node;
             var collectionType = node.ResultType as EnumerableTypeSpec;
-            if (request.Method != HttpMethod.Post || collectionType == null)
+            if (context.Method != HttpMethod.Post || collectionType == null)
                 return null;
 
             var parentNode = node.Parent;

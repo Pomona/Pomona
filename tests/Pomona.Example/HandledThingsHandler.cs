@@ -90,12 +90,12 @@ namespace Pomona.Example
         }
 
 
-        public HandledThing Post(HandledThing handledThing, PomonaRequest request)
+        public HandledThing Post(HandledThing handledThing, PomonaContext context)
         {
             if (handledThing == null)
                 throw new ArgumentNullException("handledThing");
-            if (request == null)
-                throw new ArgumentNullException("request");
+            if (context == null)
+                throw new ArgumentNullException("context");
             handledThing.Marker = "HANDLER WAS HERE!";
             return (HandledThing)this.repository.Post(handledThing);
         }

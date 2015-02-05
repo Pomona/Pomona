@@ -68,7 +68,7 @@ namespace Pomona
             get { return factory; }
         }
 
-        public PomonaRequest CurrentRequest { get; private set; }
+        public PomonaContext CurrentContext { get; private set; }
 
         public TypeMapper TypeMapper
         {
@@ -79,32 +79,32 @@ namespace Pomona
         public virtual PomonaResponse Dispatch(PomonaInnerRequest request)
         {
             var finalSegmentMatch = MatchUrlSegment(request);
-            return this.Dispatch(new PomonaRequest(finalSegmentMatch, request, executeQueryable : true));
+            return this.Dispatch(new PomonaContext(finalSegmentMatch, request, executeQueryable : true));
         }
 
 
-        public virtual PomonaResponse Dispatch(PomonaRequest request)
+        public virtual PomonaResponse Dispatch(PomonaContext context)
         {
-            if (request == null)
-                throw new ArgumentNullException("request");
-            if (request.Session != this)
+            if (context == null)
+                throw new ArgumentNullException("context");
+            if (context.Session != this)
                 throw new ArgumentException("Request session is not same as this.");
-            var savedOuterContext = this.CurrentRequest;
+            var savedOuterContext = this.CurrentContext;
             try
             {
-                this.CurrentRequest = request;
-                var result = this.Factory.Pipeline.Process(request);
+                this.CurrentContext = context;
+                var result = this.Factory.Pipeline.Process(context);
 
                 var resultEntity = result.Entity;
                 var resultAsQueryable = resultEntity as IQueryable;
-                if (resultAsQueryable != null && request.ExecuteQueryable)
-                    result = ExecuteQueryable(request, resultAsQueryable);
+                if (resultAsQueryable != null && context.ExecuteQueryable)
+                    result = ExecuteQueryable(context, resultAsQueryable);
 
-                if (request.AcceptType != null && !request.AcceptType.IsInstanceOfType(resultEntity))
+                if (context.AcceptType != null && !context.AcceptType.IsInstanceOfType(resultEntity))
                 {
-                    var route = request.Route;
+                    var route = context.Route;
                     var resultType = route.ResultType;
-                    if (typeof(IQueryable).IsAssignableFrom(request.AcceptType) && route.IsSingle
+                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType) && route.IsSingle
                         && resultType.Type.IsInstanceOfType(resultEntity))
                     {
                         var array = Array.CreateInstance(resultType, 1);
@@ -118,7 +118,7 @@ namespace Pomona
             }
             finally
             {
-                this.CurrentRequest = savedOuterContext;
+                this.CurrentContext = savedOuterContext;
             }
         }
 
@@ -155,10 +155,10 @@ namespace Pomona
         }
 
 
-        public IEnumerable<RouteAction> GetRouteActions(PomonaRequest request)
+        public IEnumerable<RouteAction> GetRouteActions(PomonaContext context)
         {
-            var route = request.Node.Route;
-            return this.Factory.ActionResolver.Resolve(route, request.Method);
+            var route = context.Node.Route;
+            return this.Factory.ActionResolver.Resolve(route, context.Method);
         }
 
 
@@ -203,7 +203,7 @@ namespace Pomona
         }
 
 
-        private PomonaResponse ExecuteQueryable(PomonaRequest request, IQueryable resultAsQueryable)
+        private PomonaResponse ExecuteQueryable(PomonaContext context, IQueryable resultAsQueryable)
         {
             var queryableActionResult = resultAsQueryable as IQueryableActionResult;
             int? defaultPageSize = null;
@@ -221,17 +221,17 @@ namespace Pomona
             }
 
             var queryExecutor = (GetInstance<IPomonaDataSource>() as IQueryExecutor) ?? new DefaultQueryExecutor();
-            var pomonaQuery = ParseQuery(request, resultAsQueryable.ElementType, defaultPageSize);
+            var pomonaQuery = ParseQuery(context, resultAsQueryable.ElementType, defaultPageSize);
             return queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
         }
 
 
-        private PomonaQuery ParseQuery(PomonaRequest request, Type rootType, int? defaultPageSize = null)
+        private PomonaQuery ParseQuery(PomonaContext context, Type rootType, int? defaultPageSize = null)
         {
             return new PomonaHttpQueryTransformer(this.TypeMapper,
                                                   new QueryExpressionParser(
                                                       new QueryTypeResolver(this.TypeMapper)))
-                .TransformRequest(request, (ResourceType)this.TypeMapper.GetClassMapping(rootType), defaultPageSize);
+                .TransformRequest(context, (ResourceType)this.TypeMapper.GetClassMapping(rootType), defaultPageSize);
         }
     }
 }

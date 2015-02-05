@@ -51,27 +51,27 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, InvokeState state)
+        protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, InvokeState state)
         {
             if (parameter == targetResourceParameter)
-                return request.Node.Value;
+                return context.Node.Value;
             if (parameter == formParameter)
                 return state.Form;
-            return base.OnGetArgument(parameter, request, state);
+            return base.OnGetArgument(parameter, context, state);
         }
 
 
-        public override bool CanProcess(PomonaRequest request)
+        public override bool CanProcess(PomonaContext context)
         {
             object form;
-            return request.TryBindAsType(formParameter.TypeSpec, out form);
+            return context.TryBindAsType(formParameter.TypeSpec, out form);
         }
 
 
-        protected override object OnInvoke(object target, PomonaRequest request, InvokeState state)
+        protected override object OnInvoke(object target, PomonaContext context, InvokeState state)
         {
-            state.Form = request.Bind(formParameter.TypeSpec);
-            return base.OnInvoke(target, request, state);
+            state.Form = context.Bind(formParameter.TypeSpec);
+            return base.OnInvoke(target, context, state);
         }
 
         #region Nested type: InvokeState

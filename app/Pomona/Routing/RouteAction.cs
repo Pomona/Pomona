@@ -32,19 +32,19 @@ namespace Pomona.Routing
 {
     public abstract class RouteAction : IPomonaRequestProcessor
     {
-        public abstract bool CanProcess(PomonaRequest request);
-        public abstract PomonaResponse Process(PomonaRequest request);
+        public abstract bool CanProcess(PomonaContext context);
+        public abstract PomonaResponse Process(PomonaContext context);
 
 
-        public static RouteAction Create(Func<PomonaRequest, PomonaResponse> func,
-                                         Func<PomonaRequest, bool> condition = null)
+        public static RouteAction Create(Func<PomonaContext, PomonaResponse> func,
+                                         Func<PomonaContext, bool> condition = null)
         {
             return new DelegateRouteAction(func, condition);
         }
 
         #region Operators
 
-        public static implicit operator RouteAction(Func<PomonaRequest, PomonaResponse> func)
+        public static implicit operator RouteAction(Func<PomonaContext, PomonaResponse> func)
         {
             if (func == null)
                 return null;

@@ -44,9 +44,9 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnGetArgument(HandlerParameter parameter, PomonaRequest request, object state)
+        protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, object state)
         {
-            var node = request.Node;
+            var node = context.Node;
             var resourceResultType = node.Route.ResultItemType as ResourceType;
             if (resourceResultType != null)
             {
@@ -56,12 +56,12 @@ namespace Pomona.RequestProcessing
                     object parsedId;
                     if (!node.PathSegment.TryParse(primaryIdType, out parsedId))
                     {
-                        throw new HandlerMethodInvocationException(request, this, "Unable to parse id from url segment");
+                        throw new HandlerMethodInvocationException(context, this, "Unable to parse id from url segment");
                     }
                     return parsedId;
                 }
             }
-            return base.OnGetArgument(parameter, request, state);
+            return base.OnGetArgument(parameter, context, state);
         }
     }
 }

@@ -44,14 +44,14 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public virtual PomonaResponse Process(PomonaRequest request)
+        public virtual PomonaResponse Process(PomonaContext context)
         {
-            var routeActions = request.Session.GetRouteActions(request).ToList();
+            var routeActions = context.Session.GetRouteActions(context).ToList();
             return Before
-                .Concat(routeActions.Where(x => x.CanProcess(request)))
+                .Concat(routeActions.Where(x => x.CanProcess(context)))
                 .Concat(After)
                 .Where(x => x != null)
-                .Select(x => x.Process(request))
+                .Select(x => x.Process(context))
                 .FirstOrDefault(response => response != null);
         }
     }

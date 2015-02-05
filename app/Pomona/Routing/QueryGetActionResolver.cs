@@ -71,7 +71,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaRequest, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
+        protected virtual Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
         {
             if (route.ResultType.IsCollection)
                 return ResolveGetCollection(route, resourceType);
@@ -79,7 +79,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaRequest, PomonaResponse> ResolveGetById(GetByIdRoute route,
+        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetById(GetByIdRoute route,
                                                                              ResourceType resourceType)
         {
             var idProp = route.IdProperty;
@@ -100,7 +100,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaRequest, PomonaResponse> ResolveGetCollection(Route route,
+        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route,
                                                                                    ResourceType resourceType)
         {
             var propertyRoute = route as ResourcePropertyRoute;
@@ -110,7 +110,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaRequest, PomonaResponse> ResolveGetCollectionProperty(ResourcePropertyRoute route,
+        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetCollectionProperty(ResourcePropertyRoute route,
                                                                                            PropertyMapping property,
                                                                                            ResourceType resourceItemType)
         {
@@ -154,7 +154,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaRequest, PomonaResponse> ResolveGetSingle(Route route, ResourceType resourceType)
+        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetSingle(Route route, ResourceType resourceType)
         {
             var getByIdRoute = route as GetByIdRoute;
             if (getByIdRoute != null && !getByIdRoute.IsRoot)
@@ -168,7 +168,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaRequest, PomonaResponse> ResolveGetSingleProperty(ResourcePropertyRoute route,
+        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetSingleProperty(ResourcePropertyRoute route,
                                                                                        PropertyMapping property,
                                                                                        ResourceType resourceType)
         {

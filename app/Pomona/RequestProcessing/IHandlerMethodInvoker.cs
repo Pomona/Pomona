@@ -33,6 +33,6 @@ namespace Pomona.RequestProcessing
     public interface IHandlerMethodInvoker
     {
         Type ReturnType { get; }
-        object Invoke(object target, PomonaRequest request);
+        object Invoke(object target, PomonaContext context);
     }
 }

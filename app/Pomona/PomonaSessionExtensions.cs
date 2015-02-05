@@ -66,7 +66,7 @@ namespace Pomona
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaRequest(urlSegment, executeQueryable : true);
+            var request = new PomonaContext(urlSegment, executeQueryable : true);
             return session.Dispatch(request).Entity;
         }
 
@@ -79,7 +79,7 @@ namespace Pomona
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaRequest(urlSegment, acceptType : typeof(IQueryable));
+            var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable));
             return (IQueryable)session.Dispatch(request).Entity;
         }
     }

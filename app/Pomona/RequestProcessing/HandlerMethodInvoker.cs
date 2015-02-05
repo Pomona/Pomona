@@ -68,29 +68,29 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public virtual object Invoke(object target, PomonaRequest request)
+        public virtual object Invoke(object target, PomonaContext context)
         {
-            return OnInvoke(target, request, new TInvokeState());
+            return OnInvoke(target, context, new TInvokeState());
         }
 
 
-        public override bool CanProcess(PomonaRequest request)
+        public override bool CanProcess(PomonaContext context)
         {
             return true;
         }
 
 
-        public override PomonaResponse Process(PomonaRequest request)
+        public override PomonaResponse Process(PomonaContext context)
         {
-            return InvokeAndWrap(request);
+            return InvokeAndWrap(context);
         }
 
 
-        protected virtual object OnGetArgument(HandlerParameter parameter, PomonaRequest request, TInvokeState state)
+        protected virtual object OnGetArgument(HandlerParameter parameter, PomonaContext context, TInvokeState state)
         {
             if (parameter.IsResource)
             {
-                var parentNode = request
+                var parentNode = context
                     .Node
                     .Ascendants()
                     .FirstOrDefault(x => x.ResultType == parameter.TypeSpec);
@@ -98,21 +98,21 @@ namespace Pomona.RequestProcessing
                     return parentNode.Value;
             }
 
-            if (parameter.Type == typeof(PomonaRequest))
-                return request;
+            if (parameter.Type == typeof(PomonaContext))
+                return context;
 
             Exception innerEx = null;
             try
             {
                 // Never get value of transformed type parameter from IOC container
                 if (!parameter.Type.IsValueType && !parameter.IsTransformedType)
-                    return request.Session.GetInstance(parameter.Type);
+                    return context.Session.GetInstance(parameter.Type);
             }
             catch (Exception ex)
             {
                 innerEx = ex;
             }
-            throw new HandlerMethodInvocationException(request,
+            throw new HandlerMethodInvocationException(context,
                                                        this,
                                                        string.Format(
                                                            "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
@@ -123,7 +123,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected virtual object OnInvoke(object target, PomonaRequest request, TInvokeState state)
+        protected virtual object OnInvoke(object target, PomonaContext context, TInvokeState state)
         {
             var args = new object[Parameters.Count];
 
@@ -132,18 +132,18 @@ namespace Pomona.RequestProcessing
                 //else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
                 //    args[i] = resourceIdArg;
                 //else
-                args[i] = OnGetArgument(Parameters[i], request, state);
+                args[i] = OnGetArgument(Parameters[i], context, state);
             }
 
             return Method.MethodInfo.Invoke(target, args);
         }
 
 
-        private PomonaResponse InvokeAndWrap(PomonaRequest request,
+        private PomonaResponse InvokeAndWrap(PomonaContext context,
                                              HttpStatusCode? statusCode = null)
         {
-            var handler = request.Session.GetInstance(this.method.MethodInfo.ReflectedType);
-            var result = Invoke(handler, request);
+            var handler = context.Session.GetInstance(this.method.MethodInfo.ReflectedType);
+            var result = Invoke(handler, context);
             var resultAsResponse = result as PomonaResponse;
             if (resultAsResponse != null)
                 return resultAsResponse;
@@ -155,7 +155,7 @@ namespace Pomona.RequestProcessing
             if (responseBody == PomonaResponse.NoBodyEntity)
                 statusCode = HttpStatusCode.NoContent;
 
-            return new PomonaResponse(request, responseBody, statusCode ?? HttpStatusCode.OK, request.ExpandedPaths);
+            return new PomonaResponse(context, responseBody, statusCode ?? HttpStatusCode.OK, context.ExpandedPaths);
         }
     }
 }

@@ -32,11 +32,11 @@ namespace Pomona.Routing
 {
     internal class DelegateRouteAction : RouteAction
     {
-        private readonly Func<PomonaRequest, bool> condition;
-        private readonly Func<PomonaRequest, PomonaResponse> func;
+        private readonly Func<PomonaContext, bool> condition;
+        private readonly Func<PomonaContext, PomonaResponse> func;
 
 
-        public DelegateRouteAction(Func<PomonaRequest, PomonaResponse> func, Func<PomonaRequest, bool> condition = null)
+        public DelegateRouteAction(Func<PomonaContext, PomonaResponse> func, Func<PomonaContext, bool> condition = null)
         {
             if (func == null)
                 throw new ArgumentNullException("func");
@@ -45,15 +45,15 @@ namespace Pomona.Routing
         }
 
 
-        public override bool CanProcess(PomonaRequest request)
+        public override bool CanProcess(PomonaContext context)
         {
-            return this.condition == null || this.condition(request);
+            return this.condition == null || this.condition(context);
         }
 
 
-        public override PomonaResponse Process(PomonaRequest request)
+        public override PomonaResponse Process(PomonaContext context)
         {
-            return this.func(request);
+            return this.func(context);
         }
     }
 }

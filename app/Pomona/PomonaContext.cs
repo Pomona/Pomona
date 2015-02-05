@@ -39,7 +39,7 @@ using Pomona.Routing;
 
 namespace Pomona
 {
-    public class PomonaRequest
+    public class PomonaContext
     {
         private readonly Type acceptType;
         private readonly bool executeQueryable;
@@ -47,7 +47,7 @@ namespace Pomona
         private object deserializedBody;
 
 
-        public PomonaRequest(UrlSegment node,
+        public PomonaContext(UrlSegment node,
                              PomonaInnerRequest request = null,
                              string expandedPaths = null,
                              bool executeQueryable = false,
@@ -130,7 +130,7 @@ namespace Pomona
                 if (Method == HttpMethod.Patch)
                 {
                     patchedObject = patchedObject
-                                    ?? Node.Session.Dispatch(new PomonaRequest(this.Node, executeQueryable : true))
+                                    ?? Node.Session.Dispatch(new PomonaContext(this.Node, executeQueryable : true))
                                         .Entity;
                     if (patchedObject != null)
                         type = TypeMapper.GetClassMapping(patchedObject.GetType());

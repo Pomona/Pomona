@@ -30,6 +30,6 @@ namespace Pomona
 {
     public interface IPomonaRequestProcessor
     {
-        PomonaResponse Process(PomonaRequest request);
+        PomonaResponse Process(PomonaContext context);
     }
 }

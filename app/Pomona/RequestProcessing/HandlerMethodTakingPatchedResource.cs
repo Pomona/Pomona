@@ -38,10 +38,10 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnInvoke(object target, PomonaRequest request, object state)
+        protected override object OnInvoke(object target, PomonaContext context, object state)
         {
-            request.Bind(request.Node.ActualResultType, request.Node.Value);
-            return base.OnInvoke(target, request, state);
+            context.Bind(context.Node.ActualResultType, context.Node.Value);
+            return base.OnInvoke(target, context, state);
         }
     }
 }

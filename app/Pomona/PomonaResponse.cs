@@ -82,13 +82,13 @@ namespace Pomona
         }
 
 
-        public PomonaResponse(PomonaRequest request,
+        public PomonaResponse(PomonaContext context,
                               object entity,
                               HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               TypeSpec resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
-            : this(entity, statusCode, GetExpandedPaths(request, expandedPaths), resultType, responseHeaders)
+            : this(entity, statusCode, GetExpandedPaths(context, expandedPaths), resultType, responseHeaders)
         {
         }
 
@@ -153,10 +153,10 @@ namespace Pomona
         }
 
 
-        private static string GetExpandedPaths(PomonaRequest request, string expandedPaths)
+        private static string GetExpandedPaths(PomonaContext context, string expandedPaths)
         {
-            return String.IsNullOrEmpty(expandedPaths) && request != null
-                ? request.ExpandedPaths
+            return String.IsNullOrEmpty(expandedPaths) && context != null
+                ? context.ExpandedPaths
                 : expandedPaths;
         }
     }
