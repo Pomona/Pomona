@@ -67,6 +67,16 @@ namespace Pomona.Routing
         }
 
 
+        private IPomonaDataSource GetDataSource(IPomonaSession session)
+        {
+            var dataSourceType =
+                session.Routes.MaybeAs<DataSourceRootRoute>().Select(x => x.DataSource).OrDefault(
+                    typeof(IPomonaDataSource));
+            var dataSource = (IPomonaDataSource)session.GetInstance(dataSourceType);
+            return dataSource;
+        }
+
+
         private Func<PomonaRequest, PomonaResponse> ResolveGetRootResource(DataSourceRootRoute route)
         {
             return pr =>
@@ -106,7 +116,7 @@ namespace Pomona.Routing
                         && pr.AcceptType.TryExtractTypeArguments(typeof(IQueryable<>), out qTypeArgs))
                         elementType = qTypeArgs[0];
 
-                    return new PomonaResponse(pr, pr.Session.GetInstance<IPomonaDataSource>().Query(elementType));
+                    return new PomonaResponse(pr, GetDataSource(pr.Session).Query(elementType));
                 };
             }
             return null;
@@ -122,8 +132,8 @@ namespace Pomona.Routing
                     var patchedObject = pr.Bind();
                     return
                         new PomonaResponse(pr,
-                                           pr.Session.GetInstance<IPomonaDataSource>().Patch(patchedObject.GetType(),
-                                                                                             patchedObject));
+                                           GetDataSource(pr.Session).Patch(patchedObject.GetType(),
+                                                                           patchedObject));
                 };
             }
             return null;
@@ -146,7 +156,7 @@ namespace Pomona.Routing
                 return pr =>
                 {
                     var form = pr.Bind(resourceItemType);
-                    return new PomonaResponse(pr, pr.Session.GetInstance<IPomonaDataSource>().Post(form.GetType(), form));
+                    return new PomonaResponse(pr, GetDataSource(pr.Session).Post(form.GetType(), form));
                 };
             }
             return null;

@@ -35,9 +35,13 @@ namespace Pomona
 {
     public interface IPomonaSession : IContainer
     {
+        Route Routes { get; }
+        IPomonaSessionFactory Factory { get; }
         PomonaRequest CurrentRequest { get; }
         TypeMapper TypeMapper { get; }
         PomonaResponse Dispatch(PomonaRequest request);
+        PomonaResponse Dispatch(PomonaInnerRequest request);
+        
         IEnumerable<RouteAction> GetRouteActions(PomonaRequest request);
     }
 }

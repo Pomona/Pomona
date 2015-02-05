@@ -64,18 +64,18 @@ namespace Pomona
 
 
         /// <summary>
-        /// Gets a set of mappings that map a given extension (such as .json)
-        /// to a media range that can be sent to the client in a vary header.
-        /// </summary>
-        public abstract IEnumerable<Tuple<string, MediaRange>> ExtensionMappings { get; }
-
-        /// <summary>
         /// Gets the HTTP content type.
         /// </summary>
         /// <value>
         /// The HTTP content type.
         /// </value>
         protected abstract string ContentType { get; }
+
+        /// <summary>
+        /// Gets a set of mappings that map a given extension (such as .json)
+        /// to a media range that can be sent to the client in a vary header.
+        /// </summary>
+        public abstract IEnumerable<Tuple<string, MediaRange>> ExtensionMappings { get; }
 
 
         /// <summary>
@@ -102,14 +102,14 @@ namespace Pomona
             if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
                 return new Response { StatusCode = pomonaResponse.StatusCode };
 
-            string jsonString = GetSerializerFactory(context)
-                .GetSerializer(context.GetSerializationContextProvider())
-                .SerializeToString(pomonaResponse.Entity,
-                                   new SerializeOptions
-                                   {
-                                       ExpandedPaths = pomonaResponse.ExpandedPaths,
-                                       ExpectedBaseType = pomonaResponse.ResultType
-                                   });
+            string jsonString =
+                GetSerializer(context)
+                    .SerializeToString(pomonaResponse.Entity,
+                                       new SerializeOptions
+                                       {
+                                           ExpandedPaths = pomonaResponse.ExpandedPaths,
+                                           ExpectedBaseType = pomonaResponse.ResultType
+                                       });
 
             if (IsTextHtmlContentType(requestedMediaRange))
             {
@@ -158,6 +158,13 @@ namespace Pomona
 
                 return response;
             }
+        }
+
+
+        private ITextSerializer GetSerializer(NancyContext context)
+        {
+            return GetSerializerFactory(context)
+                .GetSerializer(context.GetPomonaSession().GetInstance<ISerializationContextProvider>());
         }
 
 

@@ -70,9 +70,10 @@ namespace Pomona.Example
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
+            //container.Register(new CritterPomonaConfiguration().CreateSessionFactory());
             container.Register(this.repository);
-            container.Register<CritterDataSource>();
-            container.Register(this.typeMapper);
+            //container.Register<CritterDataSource>();
+            //container.Register(this.typeMapper);
         }
     }
 }

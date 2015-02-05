@@ -56,7 +56,14 @@ namespace Pomona.Plumbing
 
         public IEnumerable<TypeRegistration> TypeRegistrations
         {
-            get { return Enumerable.Empty<TypeRegistration>(); }
+            get
+            {
+                return new[]
+                {
+                    new TypeRegistration(typeof(IPomonaModuleConfigurationBinder),
+                                         typeof(PomonaModuleConfigurationBinder), Lifetime.Singleton)
+                };
+            }
         }
     }
 }

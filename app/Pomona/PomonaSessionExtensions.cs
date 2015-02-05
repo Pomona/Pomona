@@ -29,6 +29,9 @@
 using System;
 using System.Linq;
 
+using Nancy;
+using Nancy.Extensions;
+
 using Pomona.Common;
 using Pomona.Routing;
 
@@ -36,6 +39,25 @@ namespace Pomona
 {
     public static class PomonaSessionExtensions
     {
+        public static PomonaResponse Get(this IPomonaSession session, string url)
+        {
+            // TODO: Move this to some other class.
+
+            string urlWithoutQueryPart = url;
+            DynamicDictionary query = null;
+            var queryStart = url.IndexOf('?');
+            if (queryStart != -1)
+            {
+                urlWithoutQueryPart = url.Substring(0, queryStart);
+                query = url.Substring(queryStart + 1).AsQueryDictionary();
+            }
+
+            var relativePath = session.GetInstance<IUriResolver>().ToRelativePath(urlWithoutQueryPart);
+            var req = new PomonaInnerRequest(url, relativePath, query: query);
+            return session.Dispatch(req);
+        }
+
+
         public static object Get(this IPomonaSession session,
                                  UrlSegment urlSegment)
         {
@@ -44,9 +66,7 @@ namespace Pomona
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaRequest(urlSegment,
-                                            HttpMethod.Get,
-                                            executeQueryable : true);
+            var request = new PomonaRequest(urlSegment, executeQueryable : true);
             return session.Dispatch(request).Entity;
         }
 
@@ -59,9 +79,7 @@ namespace Pomona
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaRequest(urlSegment,
-                                            HttpMethod.Get,
-                                            acceptType : typeof(IQueryable));
+            var request = new PomonaRequest(urlSegment, acceptType : typeof(IQueryable));
             return (IQueryable)session.Dispatch(request).Entity;
         }
     }

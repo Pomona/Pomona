@@ -37,6 +37,8 @@ namespace Pomona
 {
     public abstract class PomonaConfigurationBase
     {
+        private InternalRouteActionResolver internalRouteActionResolver;
+
         public virtual IEnumerable<Delegate> FluentRuleDelegates
         {
             get { return Enumerable.Empty<Delegate>(); }
@@ -66,7 +68,6 @@ namespace Pomona
         }
 
         public abstract IEnumerable<Type> SourceTypes { get; }
-
         public abstract ITypeMappingFilter TypeMappingFilter { get; }
 
         protected virtual IRouteActionResolver DataSourceRouteActionResolver
@@ -79,6 +80,11 @@ namespace Pomona
             get { return new QueryGetActionResolver(new DefaultQueryProviderCapabilityResolver()); }
         }
 
+        protected virtual Type DataSource
+        {
+            get { return typeof(IPomonaDataSource); }
+        }
+
 
         public virtual void OnMappingComplete(TypeMapper typeMapper)
         {
@@ -89,11 +95,26 @@ namespace Pomona
         {
             var innerFilter = TypeMappingFilter;
             var fluentRuleObjects = FluentRuleObjects.ToArray();
-            var fluentFilter = new FluentTypeMappingFilter(innerFilter, fluentRuleObjects, null, SourceTypes);
+            var fluentFilter = new FluentTypeMappingFilter(innerFilter, fluentRuleObjects, FluentRuleDelegates, SourceTypes);
             var wrappableFilter = innerFilter as IWrappableTypeMappingFilter;
             if (wrappableFilter != null)
                 wrappableFilter.BaseFilter = fluentFilter;
             return fluentFilter;
+        }
+
+
+        public IPomonaSessionFactory CreateSessionFactory()
+        {
+            var typeMapper = new TypeMapper(this);
+            return new PomonaSessionFactory(typeMapper,
+                                            OnCreateRootRoute(typeMapper),
+                                            new InternalRouteActionResolver(RouteActionResolvers));
+        }
+
+
+        protected virtual Route OnCreateRootRoute(TypeMapper typeMapper)
+        {
+            return new DataSourceRootRoute(typeMapper, DataSource);
         }
     }
 }

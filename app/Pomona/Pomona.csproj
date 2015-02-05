@@ -136,9 +136,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
+    <Compile Include="FluentMapping\FluentRuleMethodScanner.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
     <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />
     <Compile Include="FluentMapping\ITypeMappingConfigurator.cs" />
+    <Compile Include="FluentMapping\NestedTypeMappingConfigurator.cs" />
     <Compile Include="FluentMapping\PropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\PropertyMappingOptions.cs" />
     <Compile Include="FluentMapping\PropertyOptionsBuilder.cs" />
@@ -151,13 +153,15 @@
     <Compile Include="IBaseUriProvider.cs" />
     <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
     <Compile Include="IPomonaDataSource.cs" />
-    <Compile Include="IPomonaModule.cs" />
+    <Compile Include="IPomonaModuleConfigurationBinder.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
+    <Compile Include="IPomonaSessionFactory.cs" />
     <Compile Include="IPomonaUriResolver.cs" />
     <Compile Include="IResourceResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="IWrappableTypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
+    <Compile Include="PomonaConfigurationAttribute.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NoCloseStreamWriter.cs" />
     <Compile Include="PathNodeType.cs" />
@@ -168,6 +172,8 @@
     <Compile Include="PomonaCsvResponseProcessor.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaError.cs" />
+    <Compile Include="PomonaModuleConfigurationBinder.cs" />
+    <Compile Include="PomonaInnerRequest.cs" />
     <Compile Include="PomonaServerException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="PomonaMethodAttribute.cs" />
@@ -177,6 +183,7 @@
     <Compile Include="PomonaResponseProcessorBase.cs" />
     <Compile Include="PomonaSession.cs" />
     <Compile Include="PomonaSessionExtensions.cs" />
+    <Compile Include="PomonaSessionFactory.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />
     <Compile Include="Queries\IQueryableResolver.cs" />
     <Compile Include="Queries\IQueryExecutor.cs" />
@@ -200,7 +207,6 @@
     <Compile Include="RequestProcessing\HandlerRequestProcessor.cs" />
     <Compile Include="RequestProcessing\IRequestProcessorPipeline.cs" />
     <Compile Include="RequestProcessing\ValidateEtagProcessor.cs" />
-    <Compile Include="ResourceResolver.cs" />
     <Compile Include="PomonaXmlResponseProcessor.cs" />
     <Compile Include="Queries\ArrayNode.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />

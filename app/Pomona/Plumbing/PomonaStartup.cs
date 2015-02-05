@@ -34,12 +34,10 @@ namespace Pomona.Plumbing
     public class PomonaStartup : IApplicationStartup
     {
         private readonly IRouteResolver routeResolver;
-        private readonly TypeMapper typeMapper;
 
 
-        public PomonaStartup(TypeMapper typeMapper, IRouteResolver routeResolver)
+        public PomonaStartup(IRouteResolver routeResolver)
         {
-            this.typeMapper = typeMapper;
             this.routeResolver = routeResolver;
         }
 

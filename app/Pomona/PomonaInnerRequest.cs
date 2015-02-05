@@ -28,53 +28,64 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
-namespace Pomona.Common.TypeSystem
+using Nancy;
+
+using Pomona.Common;
+
+namespace Pomona
 {
-    public static class MaybeExtensions
+    public class PomonaInnerRequest
     {
-        public static Maybe<T> MaybeAs<T>(this object val)
+        private readonly HttpMethod method;
+        private readonly string relativePath;
+        private readonly string url;
+        private RequestHeaders headers;
+
+
+        public PomonaInnerRequest(string url,
+                             string relativePath,
+                             HttpMethod method = HttpMethod.Get,
+                             RequestHeaders headers = null,
+                             Stream body = null,
+                             DynamicDictionary query = null)
         {
-            return val.Maybe().OfType<T>();
+            if (url == null)
+                throw new ArgumentNullException("url");
+            this.method = method;
+            this.url = url;
+            this.relativePath = relativePath;
+            this.Body = body;
+            this.headers = headers;
+            this.Query = query ?? new DynamicDictionary();
         }
 
 
-        public static Maybe<T> Maybe<T>(this T val, Func<T, bool> predicate)
-            where T : class
+        public HttpMethod Method
         {
-            return ReferenceEquals(val, null) ? TypeSystem.Maybe<T>.Empty : new Maybe<T>(val).Where(predicate);
+            get { return this.method; }
         }
 
-
-        public static Maybe<T> Maybe<T>(this T? val, Func<T, bool> predicate)
-            where T : struct
+        public string Url
         {
-            return val.HasValue ? new Maybe<T>(val.Value).Where(predicate) : TypeSystem.Maybe<T>.Empty;
+            get { return this.url; }
         }
 
+        public Stream Body { get; internal set; }
+        public DynamicDictionary Query { get; internal set; }
 
-        public static Maybe<T> Maybe<T>(this T val)
-            where T : class
+        public string RelativePath
         {
-            return ReferenceEquals(val, null) ? TypeSystem.Maybe<T>.Empty : new Maybe<T>(val);
+            get { return this.relativePath; }
         }
 
-
-        public static Maybe<T> Maybe<T>(this T? val)
-            where T : struct
+        public RequestHeaders Headers
         {
-            return val.HasValue ? new Maybe<T>(val.Value) : TypeSystem.Maybe<T>.Empty;
-        }
-
-
-        public static Maybe<T> MaybeFirst<T>(this IEnumerable<T> source)
-        {
-            using (var enumerator = source.GetEnumerator())
+            get
             {
-                if (enumerator.MoveNext())
-                    return new Maybe<T>(enumerator.Current);
+                return this.headers ?? (this.headers = new RequestHeaders(new Dictionary<string, IEnumerable<string>>()));
             }
-            return TypeSystem.Maybe<T>.Empty;
         }
     }
 }

@@ -28,10 +28,11 @@
 
 namespace Pomona.Example.SimpleExtraSite
 {
+    [PomonaConfiguration(typeof(SimplePomonaConfiguration))]
     public class SimpleExtraModule : PomonaModule
     {
         public SimpleExtraModule()
-            : base(new SimpleDataSource(), new TypeMapper(new SimplePomonaConfiguration()), "/Extra")
+            : base("/Extra")
         {
         }
     }

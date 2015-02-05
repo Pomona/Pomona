@@ -27,32 +27,23 @@
 #endregion
 
 using System;
-using System.Linq;
 
 using Nancy;
 
 using Pomona.Common;
-using Pomona.Common.Internals;
-using Pomona.Common.Serialization.Json;
-using Pomona.Common.TypeSystem;
-using Pomona.RequestProcessing;
 
 namespace Pomona.Routing
 {
-    public class PomonaEngine
+    internal class PomonaEngine
     {
-        private readonly IContainer container;
-        private readonly TypeMapper typeMapper;
+        private readonly IPomonaSession session;
 
 
-        public PomonaEngine(TypeMapper typeMapper, IContainer container)
+        public PomonaEngine(IPomonaSession session)
         {
-            if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
-            if (container == null)
-                throw new ArgumentNullException("container");
-            this.typeMapper = typeMapper;
-            this.container = container;
+            if (session == null)
+                throw new ArgumentNullException("session");
+            this.session = session;
         }
 
 
@@ -62,50 +53,16 @@ namespace Pomona.Routing
                 throw new ArgumentNullException("context");
             if (modulePath == null)
                 throw new ArgumentNullException("modulePath");
-            var session = new PomonaSession(this.typeMapper,
-                                            new DefaultRequestProcessorPipeline(),
-                                            new PomonaJsonSerializerFactory(),
-                                            typeMapper.ActionResolver,
-                                            this.container);
-
-            var moduleRelativePath = context.Request.Path.Substring(modulePath.Length);
-
-            var match = typeMapper.RouteResolver.Resolve(session, moduleRelativePath);
-
-            if (match == null)
-                    throw new ResourceNotFoundException("Resource not found.");
-
-            var finalSegmentMatch = match.Root.SelectedFinalMatch;
-            if (finalSegmentMatch == null)
-            {
-                // Route conflict resolution:
-                var node = match.Root.NextConflict;
-                while (node != null)
-                {
-                    var actualResultType = node.ActualResultType;
-                    // Reduce using input type difference
-                    var validSelection =
-                        node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
-                            .SingleOrDefaultIfMultiple();
-                    if (validSelection == null)
-                        throw new ResourceNotFoundException("No route alternative found due to conflict.");
-                    node.SelectedChild = validSelection;
-                    node = node.NextConflict;
-                }
-                finalSegmentMatch = match.Root.SelectedFinalMatch;
-            }
 
             HttpMethod httpMethod =
                 (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
 
-            return
-                session.Dispatch(new PomonaRequest(finalSegmentMatch,
-                                                   httpMethod,
-                                                   body : context.Request.Body,
-                                                   executeQueryable : true,
-                                                   query : context.Request.Query,
-                                                   headers : context.Request.Headers,
-                                                   url : context.Request.Url.ToString()));
+            var moduleRelativePath = context.Request.Path.Substring(modulePath.Length);
+            var request = new PomonaInnerRequest(context.Request.Url.ToString(), moduleRelativePath, httpMethod,
+                                            context.Request.Headers, context.Request.Body,
+                                            context.Request.Query);
+
+            return session.Dispatch(request);
         }
     }
 }

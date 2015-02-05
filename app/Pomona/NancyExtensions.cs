@@ -31,8 +31,7 @@ using System.Linq;
 using System.Threading;
 
 using Nancy;
-using Nancy.Routing;
-using Pomona.Common.Serialization;
+
 using Pomona.Ioc;
 
 namespace Pomona
@@ -57,14 +56,10 @@ namespace Pomona
             };
         }
 
-        internal static IRouteResolver GetRouteResolver(this NancyContext nancyContext)
+
+        internal static IPomonaSession GetPomonaSession(this NancyContext nancyContext)
         {
-            return (IRouteResolver)nancyContext.Items[typeof(IRouteResolver).FullName];
-        }
-        
-        internal static ISerializationContextProvider GetSerializationContextProvider(this NancyContext nancyContext)
-        {
-            return (ISerializationContextProvider)nancyContext.Items[typeof(ISerializationContextProvider).FullName];
+            return (IPomonaSession)nancyContext.Items[typeof(IPomonaSession).FullName];
         }
 
 
@@ -72,7 +67,7 @@ namespace Pomona
         {
             return (IUriResolver)nancyContext.Items[typeof(IUriResolver).FullName];
         }
-        
+
 
         internal static RuntimeContainerWrapper GetIocContainerWrapper(this NancyContext context)
         {
@@ -89,8 +84,8 @@ namespace Pomona
                 childContainer = item.Value;
             }
             return RuntimeContainerWrapper.Create(childContainer);
-
         }
+
 
         internal static object Resolve(this NancyContext context, Type type)
         {
@@ -98,8 +93,6 @@ namespace Pomona
                 throw new ArgumentNullException("context");
             if (type == typeof(NancyContext))
                 return context;
-            if (type == typeof(ISerializationContextProvider))
-                return context.GetSerializationContextProvider();
             if (type == typeof(IUriResolver))
                 return context.GetUriResolver();
 

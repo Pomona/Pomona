@@ -61,9 +61,7 @@ namespace Pomona.FluentMapping
             this.wrappedFilter = wrappedFilter;
             this.sourceTypes = sourceTypes ?? Enumerable.Empty<Type>();
 
-            var ruleMethods =
-                GetMappingRulesFromObjects(fluentRuleObjects).Concat(GetMappingRulesFromDelegates(mapDelegates)).Flatten
-                    (x => x.GetChildRules()).ToList();
+            var ruleMethods = FluentRuleMethodScanner.Scan(fluentRuleObjects, mapDelegates);
 
             ApplyRules(ruleMethods);
         }
@@ -538,39 +536,7 @@ namespace TestNs
         }
 
 
-        private static IEnumerable<RuleMethod> GetMappingRulesFromDelegates(IEnumerable<Delegate> mapDelegates)
-        {
-            return mapDelegates == null
-                ? Enumerable.Empty<RuleMethod>()
-                : mapDelegates.Where(x => IsRuleMethod(x.Method)).Select(x => new RuleMethod(x.Method, x.Target));
-        }
-
-
-        private static IEnumerable<RuleMethod> GetMappingRulesFromObjects(IEnumerable<object> ruleContainers)
-        {
-            if (ruleContainers == null)
-                return Enumerable.Empty<RuleMethod>();
-            return ruleContainers
-                .SelectMany(x => x.GetType()
-                                .GetMethods()
-                                .Where(IsRuleMethod)
-                                .Select(m => new RuleMethod(m, x)));
-        }
-
-
-        private static bool IsRuleMethod(MethodInfo method)
-        {
-            var parameters = method.GetParameters();
-            if (parameters.Length != 1)
-                return false;
-            var paramType = parameters[0].ParameterType;
-
-            // Metadata token is the same across all generic type instances and generic type definition
-            return paramType.UniqueToken() == typeof(ITypeMappingConfigurator<>).UniqueToken();
-        }
-
-
-        private void ApplyRules(IEnumerable<RuleMethod> ruleMethods)
+        private void ApplyRules(IEnumerable<FluentRuleMethod> ruleMethods)
         {
             var allTransformedTypes = this.sourceTypes.Where(TypeIsMappedAsTransformedType).ToList();
 
@@ -676,109 +642,67 @@ namespace TestNs
 
         #region Nested type: NestedTypeMappingConfigurator
 
-        private class NestedTypeMappingConfigurator<TDeclaring> : TypeMappingConfiguratorBase<TDeclaring>
-        {
-            private readonly List<Delegate> typeConfigurationDelegates = new List<Delegate>();
-
-
-            public NestedTypeMappingConfigurator(List<Delegate> typeConfigurationDelegates)
-            {
-                this.typeConfigurationDelegates = typeConfigurationDelegates;
-            }
-
-
-            protected override ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(
-                Expression<Func<TDeclaring, TItem>> childProperty,
-                Expression<Func<TItem, TDeclaring>> parentProperty,
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
-                Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>>
-                    propertyOptions)
-            {
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping =
-                    x => x.AsChildResourceOf(parentProperty, childProperty);
-                this.typeConfigurationDelegates.Add(asChildResourceMapping);
-                this.typeConfigurationDelegates.Add(typeOptions);
-                return this;
-            }
-
-
-            protected override ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(
-                Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty,
-                Expression<Func<TItem, TDeclaring>> parentProperty,
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
-                Func
-                    <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
-                    IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
-            {
-                Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> asChildResourceMapping =
-                    x => x.AsChildResourceOf(parentProperty, collectionProperty);
-                this.typeConfigurationDelegates.Add(asChildResourceMapping);
-                this.typeConfigurationDelegates.Add(typeOptions);
-                return this;
-            }
-        }
-
         #endregion
 
         #region Nested type: RuleMethod
 
-        private class RuleMethod
+        #endregion
+    }
+
+    internal class FluentRuleMethod
+    {
+        public static readonly MethodInfo getChildRulesMethod =
+            ReflectionHelper.GetMethodDefinition<FluentRuleMethod>(x => x.GetChildRules<object>());
+
+        private readonly Type appliesToType;
+
+        private readonly object instance;
+        private readonly MethodInfo method;
+
+
+        public FluentRuleMethod(MethodInfo method, object instance)
         {
-            public static readonly MethodInfo getChildRulesMethod =
-                ReflectionHelper.GetMethodDefinition<RuleMethod>(x => x.GetChildRules<object>());
-
-            private readonly Type appliesToType;
-
-            private readonly object instance;
-            private readonly MethodInfo method;
-
-
-            public RuleMethod(MethodInfo method, object instance)
-            {
-                this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
-                this.method = method;
-                this.instance = instance;
-            }
-
-
-            public override string ToString()
-            {
-                var declaringType = method.DeclaringType;
-                return string.Format("{1}.{2} for {0}", appliesToType.Name, declaringType != null ? declaringType.Name : "?", method.Name);
-            }
-
-
-            public Type AppliesToType
-            {
-                get { return this.appliesToType; }
-            }
-
-            public object Instance
-            {
-                get { return this.instance; }
-            }
-
-            public MethodInfo Method
-            {
-                get { return this.method; }
-            }
-
-
-            public IEnumerable<RuleMethod> GetChildRules()
-            {
-                return (IEnumerable<RuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
-            }
-
-
-            private IEnumerable<RuleMethod> GetChildRules<T>()
-            {
-                var typeConfigDelegates = new List<Delegate>();
-                var nestedScanner = new NestedTypeMappingConfigurator<T>(typeConfigDelegates);
-                Method.Invoke(Instance, new object[] { nestedScanner });
-                return typeConfigDelegates.Select(x => new RuleMethod(x.Method, x.Target)).ToList();
-            }
+            this.appliesToType = method.GetParameters()[0].ParameterType.GetGenericArguments()[0];
+            this.method = method;
+            this.instance = instance;
         }
 
-        #endregion
+
+        public override string ToString()
+        {
+            var declaringType = this.method.DeclaringType;
+            return String.Format("{1}.{2} for {0}", this.appliesToType.Name, declaringType != null ? declaringType.Name : "?", this.method.Name);
+        }
+
+
+        public Type AppliesToType
+        {
+            get { return this.appliesToType; }
+        }
+
+        public object Instance
+        {
+            get { return this.instance; }
+        }
+
+        public MethodInfo Method
+        {
+            get { return this.method; }
+        }
+
+
+        public IEnumerable<FluentRuleMethod> GetChildRules()
+        {
+            return (IEnumerable<FluentRuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
+        }
+
+
+        private IEnumerable<FluentRuleMethod> GetChildRules<T>()
+        {
+            var typeConfigDelegates = new List<Delegate>();
+            var nestedScanner = new NestedTypeMappingConfigurator<T>(typeConfigDelegates);
+            Method.Invoke(Instance, new object[] { nestedScanner });
+            return typeConfigDelegates.Select<Delegate, FluentRuleMethod>(x => new FluentRuleMethod(x.Method, x.Target)).ToList<FluentRuleMethod>();
+        }
     }
 }

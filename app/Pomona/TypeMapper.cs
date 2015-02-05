@@ -43,20 +43,18 @@ namespace Pomona
 {
     public class TypeMapper : ExportedTypeResolverBase, ITypeMapper
     {
-        private readonly InternalRouteActionResolver actionResolver;
 
         private readonly ITypeMappingFilter filter;
-        private readonly PomonaRouteResolver routeResolver;
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
-
+        private readonly DataSourceRootRoute rootRoute;
 
         public TypeMapper(PomonaConfigurationBase configuration) :
-            this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete, configuration.RouteActionResolvers)
+            this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete)
         {
         }
 
-        public TypeMapper(ITypeMappingFilter filter, IEnumerable<Type> sourceTypes, Action<TypeMapper> onMappingComplete, IEnumerable<IRouteActionResolver> actionResolvers)
+        public TypeMapper(ITypeMappingFilter filter, IEnumerable<Type> sourceTypes, Action<TypeMapper> onMappingComplete)
         {
             if (filter == null)
                 throw new ArgumentNullException("filter");
@@ -77,9 +75,6 @@ namespace Pomona
 
             if (onMappingComplete != null)
                 onMappingComplete(this);
-
-            this.routeResolver = new PomonaRouteResolver(new DataSourceRootRoute(this));
-            this.actionResolver = new InternalRouteActionResolver(actionResolvers ?? Enumerable.Empty<IRouteActionResolver>());
         }
 
 
@@ -102,17 +97,6 @@ namespace Pomona
         {
             get { return TypeMap.Values.OfType<TransformedType>(); }
         }
-
-        internal IRouteActionResolver ActionResolver
-        {
-            get { return this.actionResolver; }
-        }
-
-        internal PomonaRouteResolver RouteResolver
-        {
-            get { return this.routeResolver; }
-        }
-
 
         public override IEnumerable<TransformedType> GetAllTransformedTypes()
         {

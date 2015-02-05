@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,29 +38,41 @@ using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
-using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
-using Pomona.RequestProcessing;
+using Pomona.FluentMapping;
+using Pomona.Plumbing;
 using Pomona.Routing;
 using Pomona.Schemas;
 
 namespace Pomona
 {
-    public abstract class PomonaModule : NancyModule, IPomonaModule
+    public abstract class PomonaModule : NancyModule
     {
-        private readonly IPomonaDataSource dataSource;
-        private readonly TypeMapper typeMapper;
+        private IPomonaDataSource dataSource;
+        private IPomonaSessionFactory sessionFactory;
+
+        protected PomonaModule(string modulePath = "/") : this(null, modulePath) { }
 
 
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
-            : this(dataSource, typeMapper, "/")
+        protected PomonaModule(IPomonaSessionFactory sessionFactory,
+                               string modulePath = "/",
+                               IPomonaDataSource dataSource = null)
+            : base(modulePath)
         {
+            Initialize(sessionFactory, dataSource);
         }
 
 
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, string baseUrl)
-            : base(baseUrl)
+        private void Initialize(IPomonaSessionFactory sessionFactory, IPomonaDataSource dataSource)
         {
+            if (sessionFactory == null)
+            {
+                sessionFactory = PomonaModuleConfigurationBinder.Current.GetFactory(this);
+            }
+
+            this.sessionFactory = sessionFactory;
+            this.dataSource = dataSource;
+
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
             {
@@ -68,43 +81,34 @@ namespace Pomona
                 return null;
             };
 
-            this.dataSource = dataSource;
-            this.typeMapper = typeMapper;
-
-            foreach (var transformedType in this.typeMapper
-                .TransformedTypes.OfType<ResourceType>()
-                .Select(x => x.UriBaseType)
-                .Where(x => x != null && !x.IsAnonymous() && x.IsRootResource)
-                .Distinct())
-                RegisterRoutesFor(transformedType);
+            foreach (var route in this.sessionFactory.Routes.Children)
+            {
+                RegisterRoutesFor((ResourceType)route.ResultItemType);
+            }
 
             // For root resource links!
             Register(Get, "/", x => ProcessRequest());
 
             Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
 
-            var clientAssemblyFileName = String.Format("/{0}.dll", this.typeMapper.Filter.ClientMetadata.AssemblyName);
+            var clientAssemblyFileName = String.Format("/{0}.dll", this.TypeMapper.Filter.ClientMetadata.AssemblyName);
             Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
 
-            RegisterSerializationProvider(typeMapper);
+            RegisterSerializationProvider(TypeMapper);
         }
 
 
-        public IPomonaDataSource DataSource
+        private TypeMapper TypeMapper
         {
-            get { return this.dataSource; }
+            get { return sessionFactory.TypeMapper; }
         }
 
-        public IRequestProcessorPipeline Pipeline
-        {
-            get { return new DefaultRequestProcessorPipeline(); }
-        }
 
         public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
         {
-            ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, embedPomonaClient);
+            ClientLibGenerator.WriteClientLibrary(this.TypeMapper, stream, embedPomonaClient);
         }
 
 
@@ -120,32 +124,38 @@ namespace Pomona
         }
 
 
-        private class ModuleContainer : ServerContainer
+        public interface IConfigurator
         {
-            private readonly IPomonaDataSource dataSource;
+            IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map);
+        }
 
+        internal class Configurator : IConfigurator
+        {
+            private List<Delegate> delegates = new List<Delegate>();
 
-            public ModuleContainer(IPomonaDataSource dataSource, NancyContext nancyContext)
-                : base(nancyContext)
+            public List<Delegate> Delegates
             {
-                if (dataSource == null)
-                    throw new ArgumentNullException("dataSource");
-                this.dataSource = dataSource;
+                get { return this.delegates; }
             }
 
-
-            public override T GetInstance<T>()
+            public IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map)
             {
-                if (typeof(T) == typeof(IPomonaDataSource))
-                    return (T)dataSource;
-
-                return base.GetInstance<T>();
+                delegates.Add(map);
+                return this;
             }
         }
 
+        protected virtual void OnConfiguration(IConfigurator config)
+        {
+        }
+
+
         protected virtual PomonaResponse ProcessRequest()
         {
-            var pomonaEngine = new PomonaEngine(typeMapper, new ModuleContainer(dataSource, Context));
+            var pomonaSession = this.sessionFactory.CreateSession(Container);
+            Context.Items[typeof(IPomonaSession).FullName] = pomonaSession;
+            var pomonaEngine =
+                new PomonaEngine(pomonaSession);
             return pomonaEngine.Handle(Context, ModulePath);
         }
 
@@ -158,6 +168,14 @@ namespace Pomona
             return exception;
         }
 
+
+        internal PomonaConfigurationBase GetConfiguration()
+        {
+            var pomonaConfigAttr = this.GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
+            if (pomonaConfigAttr == null)
+                throw new InvalidOperationException("Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
+            return (PomonaConfigurationBase)Activator.CreateInstance(pomonaConfigAttr.ConfigurationType);
+        }
 
         private Response GetClientLibrary()
         {
@@ -173,7 +191,7 @@ namespace Pomona
 
         private Response GetClientNugetPackage()
         {
-            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            var packageBuilder = new ClientNugetPackageBuilder(this.TypeMapper);
             var response = new Response
             {
                 Contents = stream =>
@@ -196,7 +214,7 @@ namespace Pomona
         {
             var response = new Response();
 
-            var schemas = new SchemaGenerator(this.typeMapper).Generate().ToJson();
+            var schemas = new SchemaGenerator(this.TypeMapper).Generate().ToJson();
             response.ContentsFromString(schemas);
             response.ContentType = "application/json; charset=utf-8";
 
@@ -234,7 +252,7 @@ namespace Pomona
 
         private void RegisterClientNugetPackageRoute()
         {
-            var packageBuilder = new ClientNugetPackageBuilder(this.typeMapper);
+            var packageBuilder = new ClientNugetPackageBuilder(this.TypeMapper);
             var packageFileName = packageBuilder.PackageFileName;
 
             Get[PomonaRouteMetadataProvider.ClientNugetPackage, "/Client.nupkg"] =
@@ -262,11 +280,8 @@ namespace Pomona
             Before += context =>
             {
                 var uriResolver = new UriResolver(typeMapper, new BaseUriResolver(context, ModulePath));
-                var resourceResolver = new ResourceResolver(typeMapper, context, context.GetRouteResolver());
-                var contextProvider = new ServerSerializationContextProvider(uriResolver, resourceResolver, context);
 
                 context.Items[typeof(IUriResolver).FullName] = uriResolver;
-                context.Items[typeof(ISerializationContextProvider).FullName] = contextProvider;
                 return null;
             };
         }
@@ -275,6 +290,44 @@ namespace Pomona
         private void SetErrorHandled()
         {
             Context.Items["ERROR_HANDLED"] = true;
+        }
+
+
+        private IContainer container;
+
+        protected IContainer Container
+        {
+            get
+            {
+                if (container == null)
+                    container = new ModuleContainer(Context, dataSource, this);
+                return container;
+            }
+        }
+
+        private class ModuleContainer : ServerContainer
+        {
+            private readonly IPomonaDataSource dataSource;
+            private readonly PomonaModule module;
+
+
+            public ModuleContainer(NancyContext nancyContext, IPomonaDataSource dataSource, PomonaModule module)
+                : base(nancyContext)
+            {
+                this.dataSource = dataSource;
+                this.module = module;
+            }
+
+
+            public override T GetInstance<T>()
+            {
+                if (typeof(T) == this.GetType())
+                    return (T)((object)module);
+                if (typeof(T) == typeof(IPomonaDataSource) && dataSource != null)
+                    return (T)dataSource;
+
+                return base.GetInstance<T>();
+            }
         }
     }
 }

@@ -37,17 +37,33 @@ namespace Pomona.Routing
 {
     public class DataSourceRootRoute : Route
     {
+        private readonly Type dataSource;
         private readonly TypeMapper typeMapper;
 
 
-        public DataSourceRootRoute(TypeMapper typeMapper)
+        public DataSourceRootRoute(TypeMapper typeMapper, Type dataSource)
             : base(0, null)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
+            var dataSourceInterface = typeof(IPomonaDataSource);
+            dataSource = dataSource ?? dataSourceInterface;
+
+            if (!dataSourceInterface.IsAssignableFrom(dataSource))
+            {
+                throw new ArgumentException(string.Format("dataSourceType must be castable to {0}",
+                                                          dataSourceInterface.FullName));
+            }
+
             this.typeMapper = typeMapper;
+            this.dataSource = dataSource;
         }
 
+
+        internal Type DataSource
+        {
+            get { return this.dataSource; }
+        }
 
         public override HttpMethod AllowedMethods
         {
@@ -91,7 +107,7 @@ namespace Pomona.Routing
         internal IEnumerable<ResourceType> GetRootResourceBaseTypes()
         {
             return this.typeMapper.TransformedTypes.OfType<ResourceType>()
-                .Where(x => x.IsUriBaseType && x.IsRootResource);
+                .Where(x => x.IsUriBaseType && x.ParentResourceType == null);
         }
     }
 }

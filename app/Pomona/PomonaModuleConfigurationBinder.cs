@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,16 +26,39 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
+using System;
+using System.Collections.Concurrent;
 
 namespace Pomona
 {
-    public interface IUriResolver
+    /// <summary>
+    /// Class responsible for keeping a map of session factories related to modules.
+    /// </summary>
+    internal class PomonaModuleConfigurationBinder : IPomonaModuleConfigurationBinder
     {
-        string RelativeToAbsoluteUri(string uri);
-        string ToRelativePath(string url);
-        string GetUriFor(object entity);
-        string GetUriFor(PropertySpec property, object entity);
-        ITypeMapper TypeMapper { get; }
+        private readonly ConcurrentDictionary<Type, IPomonaSessionFactory> moduleFactoryMap =
+            new ConcurrentDictionary<Type, IPomonaSessionFactory>();
+
+
+        static PomonaModuleConfigurationBinder()
+        {
+            Current = new PomonaModuleConfigurationBinder();
+        }
+
+
+        public static IPomonaModuleConfigurationBinder Current { get; set; }
+
+
+        public IPomonaSessionFactory GetFactory(PomonaModule module)
+        {
+            return this.moduleFactoryMap.GetOrAdd(module.GetType(), t => CreateFactory(module));
+        }
+
+
+        private IPomonaSessionFactory CreateFactory(PomonaModule module)
+        {
+            var conf = module.GetConfiguration();
+            return conf.CreateSessionFactory();
+        }
     }
 }

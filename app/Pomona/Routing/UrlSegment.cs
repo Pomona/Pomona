@@ -57,6 +57,11 @@ namespace Pomona.Routing
         }
 
 
+        public string RelativePath
+        {
+            get { return string.Join("/", pathSegments.Take(pathSegmentIndex + 1)); }
+        }
+
         private UrlSegment(Route route,
                            string[] pathSegments,
                            int pathSegmentIndex,

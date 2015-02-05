@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,16 +26,27 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
+using System;
 
 namespace Pomona
 {
-    public interface IUriResolver
+    [AttributeUsage(AttributeTargets.Class)]
+    public class PomonaConfigurationAttribute : Attribute
     {
-        string RelativeToAbsoluteUri(string uri);
-        string ToRelativePath(string url);
-        string GetUriFor(object entity);
-        string GetUriFor(PropertySpec property, object entity);
-        ITypeMapper TypeMapper { get; }
+        private readonly Type configurationType;
+
+
+        public PomonaConfigurationAttribute(Type configurationType)
+        {
+            if (configurationType == null)
+                throw new ArgumentNullException("configurationType");
+            this.configurationType = configurationType;
+        }
+
+
+        public Type ConfigurationType
+        {
+            get { return this.configurationType; }
+        }
     }
 }

@@ -42,5 +42,10 @@ namespace Pomona.Example.SimpleExtraSite
         {
             get { return new SimpleTypeMappingFilter(SourceTypes); }
         }
+
+        protected override Type DataSource
+        {
+            get { return typeof(SimpleDataSource); }
+        }
     }
 }

@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,16 +26,20 @@
 
 #endregion
 
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
+using Pomona.RequestProcessing;
+using Pomona.Routing;
 
 namespace Pomona
 {
-    public interface IUriResolver
+    public interface IPomonaSessionFactory
     {
-        string RelativeToAbsoluteUri(string uri);
-        string ToRelativePath(string url);
-        string GetUriFor(object entity);
-        string GetUriFor(PropertySpec property, object entity);
-        ITypeMapper TypeMapper { get; }
+        TypeMapper TypeMapper { get; }
+        Route Routes { get; }
+        IRequestProcessorPipeline Pipeline { get; }
+        ITextSerializerFactory SerializerFactory { get; }
+        IRouteActionResolver ActionResolver { get; }
+        IPomonaSession CreateSession(IContainer container);
     }
 }

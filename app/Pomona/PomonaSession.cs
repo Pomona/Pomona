@@ -30,6 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Nancy;
+
+using Pomona.Common.Internals;
 using Pomona.Common.Linq.NonGeneric;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -39,46 +42,44 @@ using Pomona.Routing;
 
 namespace Pomona
 {
-    internal class PomonaSession : IPomonaSession
+    internal class PomonaSession : IPomonaSession, IResourceResolver
     {
         private readonly IContainer container;
-        private readonly IRequestProcessorPipeline pipeline;
-        private readonly IRouteActionResolver routeActionResolver;
-        private readonly ITextSerializerFactory textSerializerFactory;
-        private readonly TypeMapper typeMapper;
-        private PomonaRequest currentRequest;
+        private readonly IPomonaSessionFactory factory;
 
 
-        public PomonaSession(TypeMapper typeMapper,
-                             IRequestProcessorPipeline pipeline,
-                             ITextSerializerFactory textSerializerFactory,
-                             IRouteActionResolver routeActionResolver,
+        public PomonaSession(IPomonaSessionFactory factory,
                              IContainer container = null)
         {
-            if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
-            if (pipeline == null)
-                throw new ArgumentNullException("pipeline");
-            if (textSerializerFactory == null)
-                throw new ArgumentNullException("textSerializerFactory");
-            if (routeActionResolver == null)
-                throw new ArgumentNullException("routeActionResolver");
-            this.typeMapper = typeMapper;
-            this.pipeline = pipeline;
-            this.textSerializerFactory = textSerializerFactory;
-            this.routeActionResolver = routeActionResolver;
+            if (factory == null)
+                throw new ArgumentNullException("factory");
+            this.factory = factory;
             this.container = container;
         }
 
 
-        public PomonaRequest CurrentRequest
+        public Route Routes
         {
-            get { return this.currentRequest; }
+            get { return Factory.Routes; }
         }
+
+        public IPomonaSessionFactory Factory
+        {
+            get { return factory; }
+        }
+
+        public PomonaRequest CurrentRequest { get; private set; }
 
         public TypeMapper TypeMapper
         {
-            get { return this.typeMapper; }
+            get { return this.factory.TypeMapper; }
+        }
+
+
+        public virtual PomonaResponse Dispatch(PomonaInnerRequest request)
+        {
+            var finalSegmentMatch = MatchUrlSegment(request);
+            return this.Dispatch(new PomonaRequest(finalSegmentMatch, request, executeQueryable : true));
         }
 
 
@@ -88,11 +89,11 @@ namespace Pomona
                 throw new ArgumentNullException("request");
             if (request.Session != this)
                 throw new ArgumentException("Request session is not same as this.");
-            var savedOuterRequest = this.currentRequest;
+            var savedOuterContext = this.CurrentRequest;
             try
             {
-                this.currentRequest = request;
-                var result = this.pipeline.Process(request);
+                this.CurrentRequest = request;
+                var result = this.Factory.Pipeline.Process(request);
 
                 var resultEntity = result.Entity;
                 var resultAsQueryable = resultEntity as IQueryable;
@@ -117,7 +118,7 @@ namespace Pomona
             }
             finally
             {
-                this.currentRequest = savedOuterRequest;
+                this.CurrentRequest = savedOuterContext;
             }
         }
 
@@ -125,19 +126,27 @@ namespace Pomona
         public T GetInstance<T>()
         {
             // TODO: This should instead be injected to IOC container:
+            if (typeof(T) == typeof(ISerializationContextProvider))
+            {
+                return
+                    (T)(object)new ServerSerializationContextProvider(GetInstance<IUriResolver>(),
+                                                                      GetInstance<IResourceResolver>(),
+                                                                      GetInstance<NancyContext>());
+            }
+
             if (typeof(T) == typeof(ITextDeserializer))
             {
                 return
                     (T)
-                        this.textSerializerFactory.GetDeserializer(
-                            this.container.GetInstance<ISerializationContextProvider>());
+                        this.Factory.SerializerFactory.GetDeserializer(
+                            this.GetInstance<ISerializationContextProvider>());
             }
             if (typeof(T) == typeof(ITextSerializer))
             {
                 return
                     (T)
-                        this.textSerializerFactory.GetSerializer(
-                            this.container.GetInstance<ISerializationContextProvider>());
+                        this.Factory.SerializerFactory.GetSerializer(
+                            this.GetInstance<ISerializationContextProvider>());
             }
 
             if (typeof(T).IsAssignableFrom(GetType()))
@@ -149,7 +158,48 @@ namespace Pomona
         public IEnumerable<RouteAction> GetRouteActions(PomonaRequest request)
         {
             var route = request.Node.Route;
-            return this.routeActionResolver.Resolve(route, request.Method);
+            return this.Factory.ActionResolver.Resolve(route, request.Method);
+        }
+
+
+        public object ResolveUri(string uri)
+        {
+            var pomonaResponse = this.Get(uri);
+
+            if ((int)pomonaResponse.StatusCode >= 400)
+                throw new ReferencedResourceNotFoundException(uri, pomonaResponse);
+
+            return pomonaResponse.Entity;
+        }
+
+
+        private UrlSegment MatchUrlSegment(PomonaInnerRequest request)
+        {
+            var match = new PomonaRouteResolver(this.Routes).Resolve(this, request.RelativePath);
+
+            if (match == null)
+                throw new ResourceNotFoundException("Resource not found.");
+
+            var finalSegmentMatch = match.Root.SelectedFinalMatch;
+            if (finalSegmentMatch == null)
+            {
+                // Route conflict resolution:
+                var node = match.Root.NextConflict;
+                while (node != null)
+                {
+                    var actualResultType = node.ActualResultType;
+                    // Reduce using input type difference
+                    var validSelection =
+                        node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
+                            .SingleOrDefaultIfMultiple();
+                    if (validSelection == null)
+                        throw new ResourceNotFoundException("No route alternative found due to conflict.");
+                    node.SelectedChild = validSelection;
+                    node = node.NextConflict;
+                }
+                finalSegmentMatch = match.Root.SelectedFinalMatch;
+            }
+            return finalSegmentMatch;
         }
 
 
@@ -178,10 +228,10 @@ namespace Pomona
 
         private PomonaQuery ParseQuery(PomonaRequest request, Type rootType, int? defaultPageSize = null)
         {
-            return new PomonaHttpQueryTransformer(this.typeMapper,
+            return new PomonaHttpQueryTransformer(this.TypeMapper,
                                                   new QueryExpressionParser(
-                                                      new QueryTypeResolver(this.typeMapper)))
-                .TransformRequest(request, (ResourceType)this.typeMapper.GetClassMapping(rootType), defaultPageSize);
+                                                      new QueryTypeResolver(this.TypeMapper)))
+                .TransformRequest(request, (ResourceType)this.TypeMapper.GetClassMapping(rootType), defaultPageSize);
         }
     }
 }

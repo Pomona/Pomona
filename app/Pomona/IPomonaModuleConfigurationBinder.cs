@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,16 +26,13 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
-
 namespace Pomona
 {
-    public interface IUriResolver
+    /// <summary>
+    /// Interface responsible for keeping a map of session factories related to modules.
+    /// </summary>
+    internal interface IPomonaModuleConfigurationBinder
     {
-        string RelativeToAbsoluteUri(string uri);
-        string ToRelativePath(string url);
-        string GetUriFor(object entity);
-        string GetUriFor(PropertySpec property, object entity);
-        ITypeMapper TypeMapper { get; }
+        IPomonaSessionFactory GetFactory(PomonaModule module);
     }
 }

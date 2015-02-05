@@ -36,13 +36,9 @@ using Pomona.Example.Models;
 
 namespace Pomona.Example
 {
+    [PomonaConfiguration(typeof(CritterPomonaConfiguration))]
     public class CritterModule : PomonaModule
     {
-        public CritterModule(CritterDataSource dataSource, TypeMapper typeMapper)
-            : base(dataSource, typeMapper)
-        {
-        }
-
         protected override PomonaError OnException(Exception exception)
         {
             if (exception is ModelValidationException)

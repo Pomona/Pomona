@@ -63,6 +63,15 @@ namespace Pomona
         }
 
 
+        public string ToRelativePath(string url)
+        {
+            var baseUrl = baseUriProvider.BaseUri.ToString().TrimEnd('/');
+            if (!(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase) && (baseUrl.Length == url.Length || url[baseUrl.Length] == '/')))
+                throw new ArgumentException("Url does not have the correct base url.", "url");
+            return url.Substring(baseUrl.Length);
+        }
+
+
         public string GetUriFor(PropertySpec property, object entity)
         {
             return RelativeToAbsoluteUri(BuildRelativeUri(entity, property));
