@@ -1,7 +1,9 @@
+﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,50 +24,32 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Globalization;
-using System.Linq;
+#endregion
 
-namespace Pomona.Queries
+namespace Pomona.NHibernate3.Tests.Models
 {
-    internal class NumberNode : NodeBase
+    public class Customer
     {
-        private readonly string value;
+        private string name;
 
 
-        public NumberNode(string value) : base(NodeType.NumberLiteral, Enumerable.Empty<NodeBase>())
+        public Customer(string name)
         {
-            this.value = value;
+            this.name = name;
         }
 
 
-        public string Value
+        protected Customer()
         {
-            get { return value; }
         }
 
 
-        public override string ToString()
+        public virtual int Id { get; set; }
+
+        public virtual string Name
         {
-            return base.ToString() + " " + Value;
-        }
-
-
-        public object Parse()
-        {
-            var lastCharacter = value[value.Length - 1];
-            if (lastCharacter == 'm' || lastCharacter == 'M')
-                return decimal.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
-            if (lastCharacter == 'f' || lastCharacter == 'F')
-                return float.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
-
-            var parts = value.Split('.');
-            if (parts.Length == 1)
-                return int.Parse(parts[0], CultureInfo.InvariantCulture);
-            if (parts.Length == 2)
-                return double.Parse(value, CultureInfo.InvariantCulture);
-
-            throw new InvalidOperationException("Unable to parse " + value);
+            get { return this.name; }
+            set { this.name = value; }
         }
     }
 }

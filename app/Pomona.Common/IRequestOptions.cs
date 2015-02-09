@@ -26,27 +26,21 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
+using System.Linq.Expressions;
 
-namespace Pomona.NHibernate3.Tests.Models
+using Pomona.Common.Web;
+
+namespace Pomona.Common
 {
-    public class Order
+    public interface IRequestOptions
     {
-        public Order()
-        {
-            Lines = new List<OrderLine>();
-        }
+        IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action);
+    }
 
-
-        public virtual int Id { get; protected set; }
-        public virtual IList<OrderLine> Lines { get; protected set; }
-
-        public virtual IEnumerable<OrderLine> LinesWithOddIds
-        {
-            get { return Lines.Where(x => x.Id % 2 == 1); }
-        }
-
-        public virtual string Reference { get; set; }
+    public interface IRequestOptions<T> : IRequestOptions
+    {
+        new IRequestOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
+        IRequestOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
     }
 }

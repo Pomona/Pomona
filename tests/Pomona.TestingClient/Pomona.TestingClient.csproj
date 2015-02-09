@@ -46,7 +46,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestableClientGenerator.cs" />
     <Compile Include="TestableClientProxyBase.cs" />
-    <Compile Include="TestableRepository.cs" />
+    <Compile Include="MockedRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">

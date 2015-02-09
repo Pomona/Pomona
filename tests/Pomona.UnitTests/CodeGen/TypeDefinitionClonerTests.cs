@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 using Mono.Cecil;
@@ -38,41 +37,6 @@ using Pomona.CodeGen;
 
 namespace Pomona.UnitTests.CodeGen
 {
-    public class IndependentClass
-    {
-        public static readonly IndependentClass StaticField = new IndependentClass("klsjlkdj");
-        private List<IndependentClass> listOfMySelf;
-
-
-        private IndependentClass(string klsjlkdj)
-        {
-            this.listOfMySelf = new List<IndependentClass>();
-        }
-
-
-        public bool AutoProp { get; set; }
-        public IndependentClass SelfRef { get; set; }
-
-
-        public static void OutMethod(out IndependentClass bah)
-        {
-            bah = new IndependentClass(null);
-        }
-
-
-        public bool AnotherMethod()
-        {
-            OneMethod();
-            return false;
-        }
-
-
-        public void OneMethod()
-        {
-            AnotherMethod();
-        }
-    }
-
     [TestFixture]
     public class TypeDefinitionClonerTests
     {

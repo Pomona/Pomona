@@ -26,27 +26,35 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
 
 namespace Pomona.NHibernate3.Tests.Models
 {
-    public class Order
+    public class OrderLine
     {
-        public Order()
+        private Order order;
+
+
+        public OrderLine(Order order)
         {
-            Lines = new List<OrderLine>();
+            if (order == null)
+                throw new ArgumentNullException("order");
+            this.order = order;
         }
 
 
+        protected OrderLine()
+        {
+        }
+
+
+        public virtual string Description { get; set; }
         public virtual int Id { get; protected set; }
-        public virtual IList<OrderLine> Lines { get; protected set; }
 
-        public virtual IEnumerable<OrderLine> LinesWithOddIds
+        public virtual Order Order
         {
-            get { return Lines.Where(x => x.Id % 2 == 1); }
+            get { return this.order; }
+            protected set { this.order = value; }
         }
-
-        public virtual string Reference { get; set; }
     }
 }

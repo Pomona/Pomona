@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,23 +27,50 @@
 #endregion
 
 using System;
+using System.Globalization;
+using System.Linq;
 
-namespace Pomona.CodeGen
+namespace Pomona.Queries
 {
-    public class CustomClientLibraryTypeAttribute : Attribute
+    internal class NumberNode : NodeBase
     {
-        private readonly Type type;
+        private readonly string value;
 
 
-        public CustomClientLibraryTypeAttribute(Type type)
+        public NumberNode(string value)
+            : base(NodeType.NumberLiteral, Enumerable.Empty<NodeBase>())
         {
-            this.type = type;
+            this.value = value;
         }
 
 
-        public Type Type
+        public string Value
         {
-            get { return this.type; }
+            get { return value; }
+        }
+
+
+        public override string ToString()
+        {
+            return base.ToString() + " " + Value;
+        }
+
+
+        public object Parse()
+        {
+            var lastCharacter = value[value.Length - 1];
+            if (lastCharacter == 'm' || lastCharacter == 'M')
+                return decimal.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
+            if (lastCharacter == 'f' || lastCharacter == 'F')
+                return float.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
+
+            var parts = value.Split('.');
+            if (parts.Length == 1)
+                return int.Parse(parts[0], CultureInfo.InvariantCulture);
+            if (parts.Length == 2)
+                return double.Parse(value, CultureInfo.InvariantCulture);
+
+            throw new InvalidOperationException("Unable to parse " + value);
         }
     }
 }

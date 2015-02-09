@@ -26,27 +26,24 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
 
-namespace Pomona.NHibernate3.Tests.Models
+namespace Pomona.CodeGen
 {
-    public class Order
+    public class CustomClientLibraryTypeAttribute : Attribute
     {
-        public Order()
+        private readonly Type type;
+
+
+        public CustomClientLibraryTypeAttribute(Type type)
         {
-            Lines = new List<OrderLine>();
+            this.type = type;
         }
 
 
-        public virtual int Id { get; protected set; }
-        public virtual IList<OrderLine> Lines { get; protected set; }
-
-        public virtual IEnumerable<OrderLine> LinesWithOddIds
+        public Type Type
         {
-            get { return Lines.Where(x => x.Id % 2 == 1); }
+            get { return this.type; }
         }
-
-        public virtual string Reference { get; set; }
     }
 }

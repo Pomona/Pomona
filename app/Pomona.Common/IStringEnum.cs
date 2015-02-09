@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,27 +26,14 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Pomona.NHibernate3.Tests.Models
+namespace Pomona.Common
 {
-    public class Order
+    public interface IStringEnum<T> : IStringEnum
+        where T : struct
     {
-        public Order()
-        {
-            Lines = new List<OrderLine>();
-        }
+    }
 
-
-        public virtual int Id { get; protected set; }
-        public virtual IList<OrderLine> Lines { get; protected set; }
-
-        public virtual IEnumerable<OrderLine> LinesWithOddIds
-        {
-            get { return Lines.Where(x => x.Id % 2 == 1); }
-        }
-
-        public virtual string Reference { get; set; }
+    public interface IStringEnum
+    {
     }
 }

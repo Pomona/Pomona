@@ -116,7 +116,7 @@
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
-    <Compile Include="CodeGen\ClientLibraryTypeAttribute.cs" />
+    <Compile Include="CodeGen\CustomClientLibraryTypeAttribute.cs" />
     <Compile Include="ClientMetadata.cs" />
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="CodeGen\ClientTypeExtensions.cs" />
@@ -136,6 +136,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
+    <Compile Include="FluentMapping\FluentRuleMethod.cs" />
     <Compile Include="FluentMapping\FluentRuleMethodScanner.cs" />
     <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
     <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />
@@ -157,7 +158,7 @@
     <Compile Include="IPomonaModuleConfigurationBinder.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
     <Compile Include="IPomonaSessionFactory.cs" />
-    <Compile Include="IPomonaUriResolver.cs" />
+    <Compile Include="IUriResolver.cs" />
     <Compile Include="IResourceResolver.cs" />
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="IWrappableTypeMappingFilter.cs" />
@@ -227,7 +228,7 @@
     <Compile Include="Queries\BinaryOperatorNode.cs" />
     <Compile Include="Queries\DateTimeNode.cs" />
     <Compile Include="Queries\GuidNode.cs" />
-    <Compile Include="Queries\IntNode.cs" />
+    <Compile Include="Queries\NumberNode.cs" />
     <Compile Include="Queries\IQueryTypeResolver.cs" />
     <Compile Include="Queries\LiteralNode.cs" />
     <Compile Include="Queries\NodeBase.cs" />

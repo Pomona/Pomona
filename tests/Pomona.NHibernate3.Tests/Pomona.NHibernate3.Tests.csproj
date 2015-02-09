@@ -70,6 +70,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Customer.cs" />
+    <Compile Include="Models\OrderLine.cs" />
     <Compile Include="NhQueryProviderCapabilityResolverTests.cs" />
     <Compile Include="Mapping\AutomappingConfiguration.cs" />
     <Compile Include="Models\Order.cs" />

@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,20 +24,44 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Linq.Expressions;
-using Pomona.Common.Web;
+#endregion
 
-namespace Pomona.Common
+using System.Collections.Generic;
+
+namespace Pomona.UnitTests.CodeGen
 {
-    public interface IRequestOptions
+    public class IndependentClass
     {
-        IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action);
-    }
+        public static readonly IndependentClass StaticField = new IndependentClass("klsjlkdj");
+        private List<IndependentClass> listOfMySelf;
 
-    public interface IRequestOptions<T> : IRequestOptions
-    {
-        new IRequestOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
-        IRequestOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
+
+        private IndependentClass(string klsjlkdj)
+        {
+            this.listOfMySelf = new List<IndependentClass>();
+        }
+
+
+        public bool AutoProp { get; set; }
+        public IndependentClass SelfRef { get; set; }
+
+
+        public static void OutMethod(out IndependentClass bah)
+        {
+            bah = new IndependentClass(null);
+        }
+
+
+        public bool AnotherMethod()
+        {
+            OneMethod();
+            return false;
+        }
+
+
+        public void OneMethod()
+        {
+            AnotherMethod();
+        }
     }
 }

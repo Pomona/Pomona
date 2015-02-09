@@ -26,52 +26,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 
 namespace Pomona.Common.TypeSystem
 {
-    internal class Lazy<T>
-    {
-        [ThreadStatic]
-        private static int recursiveCallCounter;
-
-        private readonly LazyThreadSafetyMode lazyThreadSafetyMode;
-        private Func<T> factory;
-        private bool isInitialized;
-        private T value;
-
-        public Lazy(Func<T> factory, LazyThreadSafetyMode lazyThreadSafetyMode)
-        {
-            this.lazyThreadSafetyMode = lazyThreadSafetyMode;
-            this.factory = factory ?? Expression.Lambda<Func<T>>(Expression.New(typeof (T))).Compile();
-        }
-
-        public T Value
-        {
-            get
-            {
-                if (!isInitialized)
-                {
-                    try
-                    {
-                        if (recursiveCallCounter++ > 500)
-                            throw new InvalidOperationException("Seems like we're going to get a StackOverflowException here, lets fail early to avoid that.");
-                        value = factory();
-                    }
-                    finally
-                    {
-                        recursiveCallCounter--;
-                    }
-                    Thread.MemoryBarrier();
-                    isInitialized = true;
-                }
-                return value;
-            }
-        }
-    }
-
     public abstract class MemberSpec
     {
         private readonly Lazy<ReadOnlyCollection<Attribute>> declaredAttributes;

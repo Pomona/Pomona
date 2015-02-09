@@ -49,6 +49,7 @@
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ChildResourceRepository.cs" />
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
@@ -82,7 +83,7 @@
     <Compile Include="ExtendedResources\ExtendedResourceMappingException.cs" />
     <Compile Include="ExtendedResources\IExtendedQueryableRoot.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitor.cs" />
-    <Compile Include="HttpAccessMode.cs" />
+    <Compile Include="HttpMethod.cs" />
     <Compile Include="HttpEncoder.cs" />
     <Compile Include="HttpUtility.cs" />
     <Compile Include="IClientRepository.cs" />
@@ -114,11 +115,12 @@
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPatchableRepository.cs" />
-    <Compile Include="IPatchOptions.cs" />
+    <Compile Include="IRequestOptions.cs" />
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="IPostableRepository.cs" />
     <Compile Include="IQueryableRepository.cs" />
     <Compile Include="IRequestDispatcher.cs" />
+    <Compile Include="IStringEnum.cs" />
     <Compile Include="Linq\ClientServerSplitSelectExpression.cs" />
     <Compile Include="Linq\ExpressionTypeVisitor.cs" />
     <Compile Include="Linq\IRestQueryRoot.cs" />
@@ -284,6 +286,7 @@
     <Compile Include="TypeSystem\ITypeFactory.cs" />
     <Compile Include="TypeSystem\ITypeMapper.cs" />
     <Compile Include="TypeSystem\ITypeResolver.cs" />
+    <Compile Include="TypeSystem\Lazy.cs" />
     <Compile Include="TypeSystem\Maybe.cs" />
     <Compile Include="TypeSystem\MaybeExtensions.cs" />
     <Compile Include="TypeSystem\MemberSpec.cs" />

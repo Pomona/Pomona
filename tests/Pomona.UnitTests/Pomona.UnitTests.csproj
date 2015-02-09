@@ -101,13 +101,14 @@
     <Compile Include="Client\QueryPredicateBuilderTestsBase.cs" />
     <Compile Include="Client\QuerySelectBuilderTests.cs" />
     <Compile Include="ClientMetadataTests.cs" />
+    <Compile Include="CodeGen\IndependentClass.cs" />
     <Compile Include="CodeGen\StringExtensionTests.cs" />
     <Compile Include="CodeGen\TypeDefinitionClonerTests.cs" />
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExceptionTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="Expressions\RecursiveRewriteVisitorTests.cs" />
-    <Compile Include="ExpressionTreeMatcherTests.cs" />
+    <Compile Include="SearchReplaceVisitorTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTestsBase.cs" />
     <Compile Include="FluentMapping\FluentPropertyConfiguratorTests.cs" />
     <Compile Include="FluentMapping\FluentTypeConfiguratorTests.cs" />
@@ -125,7 +126,7 @@
     <Compile Include="Linq\RestQueryExtensionsTests.cs" />
     <Compile Include="Nuget\ClientNugetPackageBuilderTests.cs" />
     <Compile Include="Patch\DeltaTests.cs" />
-    <Compile Include="PeVerify.cs" />
+    <Compile Include="PeVerifyHelper.cs" />
     <Compile Include="PomonaSession\SessionTestsBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proxies\IlEmitBasedProxyBuilderTests.cs" />
