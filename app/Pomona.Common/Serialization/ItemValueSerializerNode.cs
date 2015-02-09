@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,79 +30,30 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization
 {
-    public class ItemValueSerializerNode : ISerializerNode
+    public class ItemValueSerializerNode : SerializerNode
     {
-        private readonly ISerializationContext context;
-
-        private readonly string expandPath;
-        private readonly TypeSpec expectedBaseType;
-        private readonly bool isRemoved;
-        private readonly ISerializerNode parentNode;
         private readonly object value;
-        private TypeSpec valueType;
 
         #region Implementation of ISerializerNode
 
         public ItemValueSerializerNode(
-            object value, TypeSpec expectedBaseType, string expandPath, ISerializationContext context,
-            ISerializerNode parentNode, bool isRemoved = false)
+            object value,
+            TypeSpec expectedBaseType,
+            string expandPath,
+            ISerializationContext context,
+            ISerializerNode parentNode,
+            bool isRemoved = false)
+            : base(expectedBaseType, expandPath, context, parentNode, isRemoved)
         {
             this.value = value;
-            this.expectedBaseType = expectedBaseType;
-            this.expandPath = expandPath;
-            this.context = context;
-            this.parentNode = parentNode;
-            this.isRemoved = isRemoved;
         }
 
 
-        public ISerializationContext Context
+        public override object Value
         {
-            get { return context; }
-        }
-
-        public string ExpandPath
-        {
-            get { return expandPath; }
-        }
-
-        public TypeSpec ExpectedBaseType
-        {
-            get { return expectedBaseType; }
-        }
-
-        public bool SerializeAsReference { get; set; }
-
-        public string Uri
-        {
-            get { return Context.GetUri(Value); }
-        }
-
-        public object Value
-        {
-            get { return value; }
-        }
-
-        public TypeSpec ValueType
-        {
-            get
-            {
-                if (valueType == null)
-                    valueType = context.GetClassMapping(Value.GetType());
-                return valueType;
-            }
-        }
-
-        public ISerializerNode ParentNode
-        {
-            get { return parentNode; }
+            get { return this.value; }
         }
 
         #endregion
-
-        public bool IsRemoved
-        {
-            get { return isRemoved; }
-        }
     }
 }
