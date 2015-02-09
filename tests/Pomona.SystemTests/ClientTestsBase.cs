@@ -50,22 +50,35 @@ namespace Pomona.SystemTests
 {
     public class ClientTestsBase : CritterServiceTestsBase<CritterClient>
     {
+        private readonly List<ClientRequestLogEventArgs> requestLog = new List<ClientRequestLogEventArgs>();
+
+        protected List<ClientRequestLogEventArgs> RequestLog
+        {
+            get { return requestLog; }
+        }
+
+        protected IWebClient WebClient
+        {
+            get { return Client.WebClient; }
+        }
+
+
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
             requestLog.Add(e);
             if (RequestTraceEnabled)
             {
                 Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                    e.Request,
-                    (object)e.Response ?? "(nothing received)");
+                                  e.Request,
+                                  (object)e.Response ?? "(nothing received)");
             }
         }
 
-        private readonly List<ClientRequestLogEventArgs> requestLog = new List<ClientRequestLogEventArgs>();
 
         public override CritterClient CreateHttpTestingClient(string baseUri)
         {
-            return new CritterClient(baseUri, new HttpWebRequestClient(new HttpHeaders() { { "MongoHeader", "lalaal" } }));
+            return new CritterClient(baseUri,
+                                     new HttpWebRequestClient(new HttpHeaders() { { "MongoHeader", "lalaal" } }));
         }
 
 
@@ -76,13 +89,8 @@ namespace Pomona.SystemTests
         }
 
 
-        protected List<ClientRequestLogEventArgs> RequestLog
-        {
-            get { return requestLog; }
-        }
-
-
-        public override CritterClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
+        public override CritterClient CreateInMemoryTestingClient(string baseUri,
+                                                                  CritterBootstrapper critterBootstrapper)
         {
             var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
             return new CritterClient(baseUri, nancyTestingWebClient);
@@ -122,8 +130,8 @@ namespace Pomona.SystemTests
             if (expectedResultCount.HasValue)
             {
                 Assert.That(fetchedResources.Count,
-                    Is.EqualTo(expectedResultCount.Value),
-                    "Expected result count wrong.");
+                            Is.EqualTo(expectedResultCount.Value),
+                            "Expected result count wrong.");
             }
 
             return fetchedResources;
@@ -139,7 +147,10 @@ namespace Pomona.SystemTests
         protected IHat PostAHat(string hatType)
         {
             var hat = Client.Post<IHat>(
-                x => { x.HatType = hatType; });
+                x =>
+                {
+                    x.HatType = hatType;
+                });
             return (IHat)hat;
         }
 
