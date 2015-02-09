@@ -42,6 +42,8 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class TypeMapperTests
     {
+        private TypeMapper typeMapper;
+
         #region Setup/Teardown
 
         [SetUp]
@@ -51,9 +53,6 @@ namespace Pomona.UnitTests
         }
 
         #endregion
-
-        private TypeMapper typeMapper;
-
 
         [Test]
         public void AnonymousCompilerGeneratedType_IsMappedAsValueObject()
@@ -69,7 +68,7 @@ namespace Pomona.UnitTests
         public void ChangePluralNameWorksCorrectly()
         {
             Assert.That(((TransformedType)this.typeMapper.GetClassMapping<RenamedThing>()).PluralName,
-                Is.EqualTo("ThingsWithNewName"));
+                        Is.EqualTo("ThingsWithNewName"));
         }
 
 
@@ -87,6 +86,22 @@ namespace Pomona.UnitTests
             Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
             var idProp = tt.Properties.First(x => x.Name == "Id");
             Assert.That(idProp.DeclaringType, Is.EqualTo(this.typeMapper.GetClassMapping<EntityBase>()));
+        }
+
+
+        [Test]
+        public void GetClassMapping_ByInvalidName_ThrowsUnknownTypeException()
+        {
+            Assert.Throws<UnknownTypeException>(() => typeMapper.GetClassMapping("WTF"));
+        }
+
+
+        [Test]
+        public void GetClassMapping_ByValidName_ReturnsCorrectType()
+        {
+            var critterType = typeMapper.GetClassMapping("Critter");
+            Assert.IsNotNull(critterType);
+            Assert.That(critterType.Type, Is.EqualTo(typeof(Critter)));
         }
 
 
