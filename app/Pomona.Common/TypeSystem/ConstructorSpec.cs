@@ -36,11 +36,6 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
-    public interface IConstructorPropertySource<T> : IConstructorControl<T>
-    {
-        TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory);
-    }
-
     public class ConstructorSpec
     {
         private static readonly MethodInfo maybeMethod =
@@ -86,8 +81,8 @@ namespace Pomona.Common.TypeSystem
 
 
         public static ConstructorSpec FromConstructorInfo(ConstructorInfo constructorInfo,
-            Type convertedType = null,
-            Func<ConstructorSpec> defaultFactory = null)
+                                                          Type convertedType = null,
+                                                          Func<ConstructorSpec> defaultFactory = null)
         {
             if (constructorInfo == null)
                 throw new ArgumentNullException("constructorInfo");
@@ -125,7 +120,7 @@ namespace Pomona.Common.TypeSystem
                     x =>
                         Expression.Property(
                             Expression.Call(constructorControlParam,
-                                x.Param.IsOptional ? optionalMethodInstance : requiresMethodInstance),
+                                            x.Param.IsOptional ? optionalMethodInstance : requiresMethodInstance),
                             x.Property))
                     .ToList();
 
@@ -161,10 +156,10 @@ namespace Pomona.Common.TypeSystem
 
 
             protected override Expression VisitArgumentBinding(Expression node,
-                PropertyInfo property,
-                bool isRequired,
-                int position,
-                Type convertedToType)
+                                                               PropertyInfo property,
+                                                               bool isRequired,
+                                                               int position,
+                                                               Type convertedToType)
             {
                 base.VisitArgumentBinding(node, property, isRequired, position, convertedToType);
 
@@ -172,9 +167,9 @@ namespace Pomona.Common.TypeSystem
                     ? (Expression)Expression.Lambda(Expression.Default(convertedToType))
                     : Expression.Constant(null, typeof(Func<>).MakeGenericType(convertedToType));
                 return Expression.Call(this.newParam,
-                    this.getValueMethod.MakeGenericMethod(convertedToType),
-                    Expression.Constant(property),
-                    defaultFactory);
+                                       this.getValueMethod.MakeGenericMethod(convertedToType),
+                                       Expression.Constant(property),
+                                       defaultFactory);
             }
 
 
@@ -218,10 +213,10 @@ namespace Pomona.Common.TypeSystem
 
 
             protected virtual Expression VisitArgumentBinding(Expression node,
-                PropertyInfo property,
-                bool isRequired,
-                int position,
-                Type convertedToType)
+                                                              PropertyInfo property,
+                                                              bool isRequired,
+                                                              int position,
+                                                              Type convertedToType)
             {
                 this.parameterSpecs.Add(new ParameterSpec(isRequired, property, position));
                 return node;
@@ -284,10 +279,10 @@ namespace Pomona.Common.TypeSystem
                     && objExpr.Object is ParameterExpression)
                 {
                     result = VisitArgumentBinding(outerNode,
-                        propInfo,
-                        isRequired,
-                        this.parameterSpecs.Count,
-                        convertedToType);
+                                                  propInfo,
+                                                  isRequired,
+                                                  this.parameterSpecs.Count,
+                                                  convertedToType);
                     return true;
                 }
                 return false;

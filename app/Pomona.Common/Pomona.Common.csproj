@@ -278,6 +278,7 @@
     <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
     <Compile Include="TypeSystem\IClientTypeFactory.cs" />
     <Compile Include="TypeSystem\IConstructorControl.cs" />
+    <Compile Include="TypeSystem\IConstructorPropertySource.cs" />
     <Compile Include="TypeSystem\IContainer.cs" />
     <Compile Include="TypeSystem\IExportedTypeResolver.cs" />
     <Compile Include="TypeSystem\ITypeFactory.cs" />
