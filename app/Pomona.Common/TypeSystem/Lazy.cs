@@ -32,6 +32,7 @@ using System.Threading;
 
 namespace Pomona.Common.TypeSystem
 {
+#if CUSTOM_LAZY_TYPE
     internal class Lazy<T>
     {
         [ThreadStatic]
@@ -76,4 +77,5 @@ namespace Pomona.Common.TypeSystem
             }
         }
     }
+#endif
 }
