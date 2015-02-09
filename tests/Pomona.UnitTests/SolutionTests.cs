@@ -110,7 +110,6 @@ namespace Pomona.UnitTests
         }
 
 
-        [Ignore]
         [Test]
         public void AllClassesAreContainedInFilesWithCorrectName()
         {
