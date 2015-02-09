@@ -276,7 +276,6 @@
     <Compile Include="SingularToPluralTranslator.cs" />
     <Compile Include="TypeMapper.cs" />
     <Compile Include="ExpandPathsUtils.cs" />
-    <Compile Include="MappingBase.cs" />
     <Compile Include="ServerSerializationContext.cs" />
     <Compile Include="PropertyMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
