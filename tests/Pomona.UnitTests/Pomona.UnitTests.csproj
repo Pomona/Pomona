@@ -108,6 +108,7 @@
     <Compile Include="ExceptionTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />
     <Compile Include="Expressions\RecursiveRewriteVisitorTests.cs" />
+    <Compile Include="IO\PathHelperTests.cs" />
     <Compile Include="SearchReplaceVisitorTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTestsBase.cs" />
     <Compile Include="FluentMapping\FluentPropertyConfiguratorTests.cs" />
