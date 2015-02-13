@@ -121,7 +121,7 @@
     <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
     <Compile Include="CodeGen\ClientTypeExtensions.cs" />
     <Compile Include="CodeGen\StringEnumTemplate.cs" />
-    <Compile Include="CodeGen\StringExtensions.cs" />
+    <Compile Include="CodeGen\VersionStringExtensions.cs" />
     <Compile Include="CodeGen\ProxyBuilder.cs" />
     <Compile Include="CodeGen\TypeDefinitionCloner.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />

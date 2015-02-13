@@ -36,7 +36,7 @@ namespace Pomona.CodeGen
     /// <summary>
     /// Contains extension methods for <see cref="string"/>.
     /// </summary>
-    public static class StringExtensions
+    public static class VersionStringExtensions
     {
         /// <summary>
         /// Pads the <paramref name="versionNumber" /> to four dot separated segments.
