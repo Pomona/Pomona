@@ -37,8 +37,6 @@ namespace Pomona
 {
     public abstract class PomonaConfigurationBase
     {
-        private InternalRouteActionResolver internalRouteActionResolver;
-
         public virtual IEnumerable<Delegate> FluentRuleDelegates
         {
             get { return Enumerable.Empty<Delegate>(); }
