@@ -206,12 +206,14 @@ namespace Pomona
 
             var reflectedType = propertyMapping.ReflectedType;
             var expandMode = filter.GetPropertyExpandMode(reflectedType, propInfo);
+            var accessMode = this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor);
 
             var details = new ExportedPropertyDetails(
                 this.filter.PropertyIsAttributes(reflectedType, propInfo),
                 this.filter.PropertyIsEtag(reflectedType, propInfo),
                 this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
-                this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor),
+                accessMode.HasFlag(HttpMethod.Get),
+                accessMode,
                 this.filter.GetPropertyItemAccessMode(reflectedType, propInfo),
                 this.filter.ClientPropertyIsExposedAsRepository(propInfo),
                 NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(reflectedType,

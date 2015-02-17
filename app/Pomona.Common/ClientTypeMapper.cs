@@ -178,6 +178,7 @@ namespace Pomona.Common
             return new ExportedPropertyDetails(isAttributes,
                                                isEtagProperty,
                                                isPrimaryId,
+                                               true,
                                                info.AccessMode,
                                                info.ItemAccessMode,
                                                false,

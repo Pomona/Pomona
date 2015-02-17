@@ -34,6 +34,8 @@ namespace Pomona.Common.TypeSystem
         private readonly ExpandMode expandMode;
         private readonly bool exposedAsRepository;
         private readonly bool isAttributesProperty, isEtagProperty, isPrimaryKey;
+        private readonly bool isSerialized;
+
         private readonly HttpMethod itemAccessMode;
         private readonly string uriName;
 
@@ -41,6 +43,7 @@ namespace Pomona.Common.TypeSystem
         public ExportedPropertyDetails(bool isAttributesProperty,
                                        bool isEtagProperty,
                                        bool isPrimaryKey,
+                                       bool isSerialized,
                                        HttpMethod accessMode,
                                        HttpMethod itemAccessMode,
                                        bool exposedAsRepository,
@@ -50,6 +53,7 @@ namespace Pomona.Common.TypeSystem
             this.isAttributesProperty = isAttributesProperty;
             this.isEtagProperty = isEtagProperty;
             this.isPrimaryKey = isPrimaryKey;
+            this.isSerialized = isSerialized;
             this.accessMode = accessMode;
             this.itemAccessMode = itemAccessMode;
             this.exposedAsRepository = exposedAsRepository;
@@ -86,6 +90,11 @@ namespace Pomona.Common.TypeSystem
         public bool IsPrimaryKey
         {
             get { return this.isPrimaryKey; }
+        }
+
+        public bool IsSerialized
+        {
+            get { return this.isSerialized; }
         }
 
         public HttpMethod ItemAccessMode

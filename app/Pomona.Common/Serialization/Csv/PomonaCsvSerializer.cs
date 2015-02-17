@@ -81,7 +81,7 @@ namespace Pomona.Common.Serialization.Csv
             var valueProperties =
                 elementType.Properties
                     .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
-                    .Where(x => node.Context.PropertyIsSerialized(x))
+                    .Where(x => x.IsSerialized)
                     .ToList();
 
             foreach (var item in (IEnumerable)node.Value)

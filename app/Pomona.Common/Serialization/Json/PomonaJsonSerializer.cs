@@ -375,13 +375,13 @@ namespace Pomona.Common.Serialization.Json
             var pomonaSerializable = node.Value as IPomonaSerializable;
             if (pomonaSerializable == null && TryGetTypeEntry(node.ValueType, out cacheTypeEntry))
             {
-                cacheTypeEntry.WritePropertiesFunc(jsonWriter, node.Value);
+                cacheTypeEntry.WritePropertiesFunc(jsonWriter, node.Value, node.Context);
                 propertiesToSerialize = cacheTypeEntry.ManuallyWrittenProperties;
             }
 
             propertiesToSerialize = propertiesToSerialize ?? node.ValueType.Properties;
 
-            propertiesToSerialize = propertiesToSerialize.Where(x => node.Context.PropertyIsSerialized(x));
+            propertiesToSerialize = propertiesToSerialize.Where(x => x.IsSerialized);
 
             if (pomonaSerializable != null)
             {

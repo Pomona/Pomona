@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,17 +37,17 @@ namespace Pomona.Common.TypeSystem
 
 
         public PropertyMapping(IExportedTypeResolver typeResolver,
-            PropertyInfo propertyInfo,
-            Func<TypeSpec> reflectedType = null)
+                               PropertyInfo propertyInfo,
+                               Func<TypeSpec> reflectedType = null)
             : base(typeResolver, propertyInfo, reflectedType)
         {
             this.exportedPropertyDetails = CreateLazy(() => typeResolver.LoadExportedPropertyDetails(this));
         }
 
 
-        public override HttpMethod AccessMode
+        public virtual bool ExposedAsRepository
         {
-            get { return Details.AccessMode; }
+            get { return Details.ExposedAsRepository; }
         }
 
         public virtual bool ExposedOnUrl
@@ -57,11 +57,6 @@ namespace Pomona.Common.TypeSystem
                 // TODO: Make this configurable
                 return PropertyType is ResourceType || PropertyType is EnumerableTypeSpec;
             }
-        }
-
-        public virtual bool ExposedAsRepository
-        {
-            get { return Details.ExposedAsRepository; }
         }
 
         public virtual bool IsAttributesProperty
@@ -79,14 +74,24 @@ namespace Pomona.Common.TypeSystem
             get { return Details.IsPrimaryKey; }
         }
 
-        public override HttpMethod ItemAccessMode
+        public override HttpMethod AccessMode
         {
-            get { return Details.ItemAccessMode; }
+            get { return Details.AccessMode; }
         }
 
         public ExpandMode ExpandMode
         {
             get { return Details.ExpandMode; }
+        }
+
+        public override bool IsSerialized
+        {
+            get { return Details.IsSerialized; }
+        }
+
+        public override HttpMethod ItemAccessMode
+        {
+            get { return Details.ItemAccessMode; }
         }
 
         public new TransformedType ReflectedType

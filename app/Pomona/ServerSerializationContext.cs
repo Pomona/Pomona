@@ -106,15 +106,6 @@ namespace Pomona
         }
 
 
-        public bool PropertyIsSerialized(PropertySpec property)
-        {
-            var propMapping = property as PropertyMapping;
-            if (propMapping != null && !propMapping.AccessMode.HasFlag(HttpMethod.Get))
-                return false;
-            return property.IsSerialized;
-        }
-
-
         public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
         {
             var isExpanded =    node.ExpectedBaseType.IsAlwaysExpanded

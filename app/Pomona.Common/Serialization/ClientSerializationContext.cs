@@ -80,11 +80,6 @@ namespace Pomona.Common.Serialization
             serializeNodeAction(node);
         }
 
-        public bool PropertyIsSerialized(PropertySpec property)
-        {
-            return property.IsSerialized;
-        }
-
         #endregion
 
         public T GetInstance<T>()

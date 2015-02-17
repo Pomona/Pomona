@@ -189,7 +189,7 @@ namespace Pomona.Common.Serialization.Xml
             if (node.ExpectedBaseType != node.ValueType)
                 jsonWriter.WriteAttributeString("type", node.ValueType.Name);
 
-            var propertiesToSerialize = node.ValueType.Properties.Where(x => node.Context.PropertyIsSerialized(x));
+            var propertiesToSerialize = node.ValueType.Properties.Where(x => x.IsSerialized);
 
             var pomonaSerializable = node.Value as IPomonaSerializable;
             if (pomonaSerializable != null)

@@ -39,8 +39,8 @@ namespace Pomona.Common.Serialization.Json
     {
         private readonly List<PropertySpec> manuallyWrittenProperties = new List<PropertySpec>();
         private readonly TypeSpec type;
-        private Expression<Action<JsonWriter, object>> writePropertiesExpression;
-        private Action<JsonWriter, object> writePropertiesFunc;
+        private Expression<Action<JsonWriter, object, IContainer>> writePropertiesExpression;
+        private Action<JsonWriter, object, IContainer> writePropertiesFunc;
 
 
         public PomonaJsonSerializerTypeEntry(TypeSpec type)
@@ -58,7 +58,7 @@ namespace Pomona.Common.Serialization.Json
             get { return manuallyWrittenProperties; }
         }
 
-        public Action<JsonWriter, object> WritePropertiesFunc
+        public Action<JsonWriter, object, IContainer> WritePropertiesFunc
         {
             get { return writePropertiesFunc; }
         }
@@ -88,6 +88,7 @@ namespace Pomona.Common.Serialization.Json
             var expressions = new List<Expression>();
             var jsonWriterParam = Expression.Parameter(typeof (JsonWriter));
             var objValueParam = Expression.Parameter(typeof (object));
+            var containerParam = Expression.Parameter(typeof(IContainer));
             var valueVariable = Expression.Variable(type.Type);
 
             expressions.Add(
@@ -101,15 +102,16 @@ namespace Pomona.Common.Serialization.Json
                     expressions.Add(
                         Expression.Call(
                             jsonWriterParam, writePropertyNameMethod, Expression.Constant(prop.JsonName)));
+                    var getter = prop.GetterFunc;
                     expressions.Add(
-                        Expression.Call(jsonWriterParam, method, prop.CreateGetterExpression(valueVariable)));
+                        Expression.Call(jsonWriterParam, method, Expression.Convert(Expression.Invoke(Expression.Constant(getter), valueVariable, containerParam), prop.PropertyType)));
                 }
                 else
                     manuallyWrittenProperties.Add(prop);
             }
 
-            writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object>>(
-                Expression.Block(new[] {valueVariable}, expressions), jsonWriterParam, objValueParam);
+            writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object, IContainer>>(
+                Expression.Block(new[] {valueVariable}, expressions), jsonWriterParam, objValueParam, containerParam);
 
             writePropertiesFunc = writePropertiesExpression.Compile();
 

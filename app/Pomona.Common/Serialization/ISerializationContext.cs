@@ -36,7 +36,5 @@ namespace Pomona.Common.Serialization
 
 
         void Serialize(ISerializerNode node, Action<ISerializerNode> serializeNodeAction);
-
-        bool PropertyIsSerialized(PropertySpec property);
     }
 }
