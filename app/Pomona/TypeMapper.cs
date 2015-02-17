@@ -295,9 +295,9 @@ namespace Pomona
 
         public override TypeSpec LoadPropertyType(PropertySpec propertySpec)
         {
-            var propMapping = propertySpec as ComplexProperty;
-            if (propMapping != null)
-                return FromType(this.filter.GetPropertyType(propMapping.ReflectedType, propMapping.PropertyInfo));
+            var complexProperty = propertySpec as ComplexProperty;
+            if (complexProperty != null)
+                return FromType(this.filter.GetPropertyType(complexProperty.ReflectedType, complexProperty.PropertyInfo));
             return base.LoadPropertyType(propertySpec);
         }
 
