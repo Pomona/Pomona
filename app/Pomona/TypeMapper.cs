@@ -200,7 +200,7 @@ namespace Pomona
         }
 
 
-        public override ComplexPropertyDetails LoadExportedPropertyDetails(ComplexProperty complexProperty)
+        public override ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty)
         {
             var propInfo = complexProperty.PropertyInfo;
 

@@ -41,7 +41,7 @@ namespace Pomona.Common.TypeSystem
                                Func<TypeSpec> reflectedType = null)
             : base(typeResolver, propertyInfo, reflectedType)
         {
-            this.exportedPropertyDetails = CreateLazy(() => typeResolver.LoadExportedPropertyDetails(this));
+            this.exportedPropertyDetails = CreateLazy(() => typeResolver.LoadComplexPropertyDetails(this));
         }
 
 
