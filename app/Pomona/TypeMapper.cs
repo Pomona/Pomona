@@ -39,7 +39,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class TypeMapper : ExportedTypeResolverBase, ITypeResolver
+    public class TypeMapper : ExportedTypeResolverBase
     {
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;

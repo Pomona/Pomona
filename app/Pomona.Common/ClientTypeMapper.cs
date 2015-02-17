@@ -43,7 +43,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
-    public class ClientTypeMapper : ExportedTypeResolverBase, ITypeResolver, IClientTypeResolver, IClientTypeFactory
+    public class ClientTypeMapper : ExportedTypeResolverBase, IClientTypeResolver, IClientTypeFactory
     {
         private readonly ExtendedResourceMapper extendedResourceMapper;
         private readonly ReadOnlyCollection<Type> resourceTypes;
