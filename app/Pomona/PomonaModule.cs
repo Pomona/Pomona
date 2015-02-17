@@ -289,7 +289,7 @@ namespace Pomona
         }
 
 
-        private void RegisterSerializationProvider(ITypeMapper typeMapper)
+        private void RegisterSerializationProvider(ITypeResolver typeMapper)
         {
             Before += context =>
             {

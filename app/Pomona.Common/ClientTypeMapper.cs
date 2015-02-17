@@ -43,7 +43,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
-    public class ClientTypeMapper : ExportedTypeResolverBase, ITypeMapper, IClientTypeResolver, IClientTypeFactory
+    public class ClientTypeMapper : ExportedTypeResolverBase, ITypeResolver, IClientTypeResolver, IClientTypeFactory
     {
         private readonly ExtendedResourceMapper extendedResourceMapper;
         private readonly ReadOnlyCollection<Type> resourceTypes;
@@ -66,7 +66,7 @@ namespace Pomona.Common
             var mappedTypes = this.resourceTypes.Union(TypeUtils.GetNativeTypes());
             this.typeNameMap =
                 mappedTypes
-                    .Select(GetClassMapping)
+                    .Select(FromType)
                     .ToDictionary(GetJsonTypeName, x => x);
 
             this.extendedResourceMapper = new ExtendedResourceMapper(this);
@@ -78,15 +78,8 @@ namespace Pomona.Common
             get { return this.resourceTypes; }
         }
 
-        #region Implementation of ITypeMapper
 
-        public TypeSpec GetClassMapping(Type type)
-        {
-            return FromType(type);
-        }
-
-
-        public TypeSpec GetClassMapping(string typeName)
+        public override TypeSpec FromType(string typeName)
         {
             return this.typeNameMap[typeName];
         }
@@ -128,7 +121,6 @@ namespace Pomona.Common
             return type;
         }
 
-        #endregion
 
         public override IEnumerable<ComplexType> GetAllComplexTypes()
         {
@@ -289,7 +281,7 @@ namespace Pomona.Common
                 throw new InvalidOperationException("Method PATCH is not allowed for uri.");
 
             var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                                                                        this.GetClassMapping(
+                                                                        this.FromType(
                                                                             resourceInfo.InterfaceType),
                                                                         this,
                                                                         null,

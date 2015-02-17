@@ -38,17 +38,17 @@ namespace Pomona.Common.Serialization
     public class ClientDeserializationContext : IDeserializationContext
     {
         private readonly IPomonaClient client;
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
 
 
         [Obsolete("Solely here for testing purposes")]
-        public ClientDeserializationContext(ITypeMapper typeMapper)
+        public ClientDeserializationContext(ITypeResolver typeMapper)
             : this(typeMapper, null)
         {
         }
 
 
-        public ClientDeserializationContext(ITypeMapper typeMapper, IPomonaClient client)
+        public ClientDeserializationContext(ITypeResolver typeMapper, IPomonaClient client)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -130,7 +130,7 @@ namespace Pomona.Common.Serialization
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return this.typeMapper.GetClassMapping(type);
+            return this.typeMapper.FromType(type);
         }
 
 
@@ -142,7 +142,7 @@ namespace Pomona.Common.Serialization
 
         public TypeSpec GetTypeByName(string typeName)
         {
-            return this.typeMapper.GetClassMapping(typeName);
+            return this.typeMapper.FromType(typeName);
         }
 
 

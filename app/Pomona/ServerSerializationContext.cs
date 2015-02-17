@@ -42,7 +42,7 @@ namespace Pomona
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
 
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
         private readonly IUriResolver uriResolver;
 
 
@@ -68,7 +68,7 @@ namespace Pomona
             get { return this.debugMode; }
         }
 
-        public ITypeMapper TypeMapper
+        public ITypeResolver TypeMapper
         {
             get { return this.typeMapper; }
         }
@@ -81,7 +81,7 @@ namespace Pomona
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return this.typeMapper.GetClassMapping(type);
+            return this.typeMapper.FromType(type);
         }
 
 

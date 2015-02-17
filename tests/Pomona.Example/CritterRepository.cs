@@ -144,7 +144,7 @@ namespace Pomona.Example
             lock (this.syncLock)
             {
                 var entityType = typeof(T);
-                var entityUriBaseType = ((ResourceType)TypeMapper.GetClassMapping(typeof(T))).UriBaseType.Type;
+                var entityUriBaseType = ((ResourceType)TypeMapper.FromType(typeof(T))).UriBaseType.Type;
 
                 var genericQueryMethod = queryMethod.MakeGenericMethod(entityUriBaseType, entityType);
                 return (IQueryable<T>)genericQueryMethod.Invoke(this, null);
@@ -339,7 +339,7 @@ namespace Pomona.Example
 
         public T SaveInternal<T>(T entity, HashSet<object> savedObjects)
         {
-            var typeSpec = TypeMapper.GetClassMapping(typeof(T));
+            var typeSpec = TypeMapper.FromType(typeof(T));
 
             if (savedObjects.Contains(entity))
                 return entity;
@@ -467,7 +467,7 @@ namespace Pomona.Example
         private IList<T> GetEntityList<T>()
         {
             var type = typeof(T);
-            var tt = (ResourceType)TypeMapper.GetClassMapping(type);
+            var tt = (ResourceType)TypeMapper.FromType(type);
             if (tt.IsRootResource)
             {
                 object list;

@@ -35,10 +35,10 @@ namespace Pomona.Common.Serialization
 {
     public class ClientSerializationContext : ISerializationContext
     {
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
 
 
-        public ClientSerializationContext(ITypeMapper typeMapper)
+        public ClientSerializationContext(ITypeResolver typeMapper)
         {
             this.typeMapper = typeMapper;
         }
@@ -47,7 +47,7 @@ namespace Pomona.Common.Serialization
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return typeMapper.GetClassMapping(type);
+            return typeMapper.FromType(type);
         }
 
 

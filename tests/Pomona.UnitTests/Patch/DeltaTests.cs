@@ -170,7 +170,7 @@ namespace Pomona.UnitTests.Patch
                 modifyOriginal(original);
 
             var proxy = (ITestResource)ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                                                                             this.typeMapper.GetClassMapping(
+                                                                             this.typeMapper.FromType(
                                                                                  typeof(ITestResource)),
                                                                              this.typeMapper,
                                                                              null,

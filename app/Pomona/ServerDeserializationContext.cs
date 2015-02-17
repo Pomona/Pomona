@@ -40,10 +40,10 @@ namespace Pomona
     {
         private readonly IResourceResolver resourceResolver;
         private readonly IResourceNode targetNode;
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
 
 
-        public ServerDeserializationContext(ITypeMapper typeMapper,
+        public ServerDeserializationContext(ITypeResolver typeMapper,
             IResourceResolver resourceResolver,
             IResourceNode targetNode,
             NancyContext nancyContext)
@@ -114,13 +114,13 @@ namespace Pomona
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return this.typeMapper.GetClassMapping(type);
+            return this.typeMapper.FromType(type);
         }
 
 
         public TypeSpec GetTypeByName(string typeName)
         {
-            return this.typeMapper.GetClassMapping(typeName);
+            return this.typeMapper.FromType(typeName);
         }
 
 

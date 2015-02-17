@@ -37,7 +37,7 @@ namespace Pomona.Common.Serialization.Patch
         private readonly HashSet<TKey> removed = new HashSet<TKey>();
         private readonly IDictionary<TKey, TValue> replaced = new Dictionary<TKey, TValue>();
 
-        public DictionaryDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        public DictionaryDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }

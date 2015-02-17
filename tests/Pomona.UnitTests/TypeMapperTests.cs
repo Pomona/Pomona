@@ -92,14 +92,14 @@ namespace Pomona.UnitTests
         [Test]
         public void GetClassMapping_ByInvalidName_ThrowsUnknownTypeException()
         {
-            Assert.Throws<UnknownTypeException>(() => typeMapper.GetClassMapping("WTF"));
+            Assert.Throws<UnknownTypeException>(() => typeMapper.FromType("WTF"));
         }
 
 
         [Test]
         public void GetClassMapping_ByValidName_ReturnsCorrectType()
         {
-            var critterType = typeMapper.GetClassMapping("Critter");
+            var critterType = typeMapper.FromType("Critter");
             Assert.IsNotNull(critterType);
             Assert.That(critterType.Type, Is.EqualTo(typeof(Critter)));
         }

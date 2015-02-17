@@ -42,7 +42,7 @@ namespace Pomona.Common.Serialization.Patch
             return TrackedProperties.TryGetValue(propertyName, out propValue) && ValueIsDirty(propValue);
         }
 
-        private static object Create(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent)
+        private static object Create(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent)
         {
 #if DISABLE_PROXY_GENERATION
             throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
@@ -59,7 +59,7 @@ namespace Pomona.Common.Serialization.Patch
 #endif
         }
 
-        public static object CreateDeltaProxy(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent, Type propertyType)
+        public static object CreateDeltaProxy(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent, Type propertyType)
         {
             if (type.SerializationMode == TypeSerializationMode.Complex)
             {

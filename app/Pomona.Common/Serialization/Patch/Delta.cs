@@ -36,7 +36,7 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
-        protected Delta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        protected Delta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
         {
             if (original == null) throw new ArgumentNullException("original");
             if (type == null) throw new ArgumentNullException("type");
@@ -57,7 +57,7 @@ namespace Pomona.Common.Serialization.Patch
             internal set { parent = value; }
         }
 
-        public ITypeMapper TypeMapper { get; internal set; }
+        public ITypeResolver TypeMapper { get; internal set; }
 
         public bool IsDirty
         {

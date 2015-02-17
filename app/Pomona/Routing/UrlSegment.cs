@@ -105,7 +105,7 @@ namespace Pomona.Routing
                         .Maybe()
                         .Switch(x => x.Case<ResourceType>(y => !y.MergedTypes.Any()).Then(y => (TypeSpec)y))
                         .OrDefault(
-                            () => Value != null ? Session.TypeMapper.GetClassMapping(Value.GetType()) : ResultType);
+                            () => Value != null ? Session.TypeMapper.FromType(Value.GetType()) : ResultType);
                 }
                 return this.actualResultType;
             }

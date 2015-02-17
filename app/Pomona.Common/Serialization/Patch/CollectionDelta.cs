@@ -40,7 +40,7 @@ namespace Pomona.Common.Serialization.Patch
 {
     public class CollectionDelta<TElement, TCollection> : CollectionDelta<TElement>, IDelta<TCollection>
     {
-        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        public CollectionDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }
@@ -70,7 +70,7 @@ namespace Pomona.Common.Serialization.Patch
         private bool originalIsLoaded = false;
 
 
-        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        public CollectionDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }
@@ -259,7 +259,7 @@ namespace Pomona.Common.Serialization.Patch
 
         internal static object CreateTypedCollectionDelta(object original,
             TypeSpec type,
-            ITypeMapper typeMapper,
+            ITypeResolver typeMapper,
             Delta parent,
             Type propertyType)
         {
@@ -311,7 +311,7 @@ namespace Pomona.Common.Serialization.Patch
             return this.nestedDeltaMap.GetOrCreate(item,
                 () =>
                 {
-                    var origItemType = TypeMapper.GetClassMapping(item.GetType());
+                    var origItemType = TypeMapper.FromType(item.GetType());
                     if (origItemType.SerializationMode == TypeSerializationMode.Complex)
                         return (Delta)CreateNestedDelta(item, origItemType, Type.ElementType);
                     throw new InvalidOperationException("Unable to wrap non-complex type in nested delta.");
@@ -327,7 +327,7 @@ namespace Pomona.Common.Serialization.Patch
 
     public class CollectionDelta<TElement> : CollectionDelta, IList<TElement>
     {
-        public CollectionDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        public CollectionDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }

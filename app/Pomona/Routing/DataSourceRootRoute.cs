@@ -72,12 +72,12 @@ namespace Pomona.Routing
 
         public override TypeSpec InputType
         {
-            get { return this.typeMapper.GetClassMapping(typeof(void)); }
+            get { return this.typeMapper.FromType(typeof(void)); }
         }
 
         public override TypeSpec ResultType
         {
-            get { return this.typeMapper.GetClassMapping(typeof(IDictionary<string, object>)); }
+            get { return this.typeMapper.FromType(typeof(IDictionary<string, object>)); }
         }
 
         internal TypeMapper TypeMapper

@@ -36,10 +36,10 @@ namespace Pomona
     public class PomonaHttpQueryTransformer
     {
         private readonly QueryExpressionParser parser;
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
 
 
-        public PomonaHttpQueryTransformer(ITypeMapper typeMapper, QueryExpressionParser parser)
+        public PomonaHttpQueryTransformer(ITypeResolver typeMapper, QueryExpressionParser parser)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -61,7 +61,7 @@ namespace Pomona
             ComplexType ofType = null;
             if (context.Query["$oftype"].HasValue)
             {
-                ofType = (ComplexType) typeMapper.GetClassMapping((string) context.Query["$oftype"]);
+                ofType = (ComplexType) typeMapper.FromType((string) context.Query["$oftype"]);
             }
 
             var query = new PomonaQuery(rootType, ofType);
@@ -146,7 +146,7 @@ namespace Pomona
         {
             TypeSpec elementType = query.OfType;
             if (query.SelectExpression != null)
-                elementType = typeMapper.GetClassMapping(query.SelectExpression.ReturnType);
+                elementType = typeMapper.FromType(query.SelectExpression.ReturnType);
 
             if (query.Projection == PomonaQuery.ProjectionType.First
                 || query.Projection == PomonaQuery.ProjectionType.FirstOrDefault

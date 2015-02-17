@@ -51,7 +51,7 @@ namespace Pomona.Schemas
             var typeSchemas =
                 this.typeMapper
                     .SourceTypes
-                    .Select(this.typeMapper.GetClassMapping)
+                    .Select(this.typeMapper.FromType)
                     .OfType<ComplexType>()
                     .OrderBy(x => x.Name)
                     .Select(GenerateForType);

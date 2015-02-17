@@ -39,7 +39,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class TypeMapper : ExportedTypeResolverBase, ITypeMapper
+    public class TypeMapper : ExportedTypeResolverBase, ITypeResolver
     {
         private readonly PomonaConfigurationBase configuration;
         private readonly ITypeMappingFilter filter;
@@ -72,7 +72,7 @@ namespace Pomona
 
             foreach (var sourceType in this.sourceTypes.Concat(TypeUtils.GetNativeTypes()))
             {
-                var type = GetClassMapping(sourceType);
+                var type = FromType(sourceType);
                 this.typeNameMap[type.Name.ToLower()] = type;
             }
 
@@ -108,13 +108,7 @@ namespace Pomona
         }
 
 
-        public TypeSpec GetClassMapping(Type type)
-        {
-            return FromType(type);
-        }
-
-
-        public TypeSpec GetClassMapping(string typeName)
+        public override TypeSpec FromType(string typeName)
         {
             TypeSpec type;
             if (!this.typeNameMap.TryGetValue(typeName.ToLower(), out type))
@@ -346,7 +340,7 @@ namespace Pomona
         {
             var type = typeof(T);
 
-            return GetClassMapping(type);
+            return FromType(type);
         }
 
 
@@ -355,7 +349,7 @@ namespace Pomona
             typeSpec = null;
             if (!Filter.TypeIsMapped(type))
                 return false;
-            typeSpec = GetClassMapping(type);
+            typeSpec = FromType(type);
             return true;
         }
 

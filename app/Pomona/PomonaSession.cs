@@ -253,7 +253,7 @@ namespace Pomona
             return new PomonaHttpQueryTransformer(this.TypeMapper,
                                                   new QueryExpressionParser(
                                                       new QueryTypeResolver(this.TypeMapper)))
-                .TransformRequest(context, (ResourceType)this.TypeMapper.GetClassMapping(rootType), defaultPageSize);
+                .TransformRequest(context, (ResourceType)this.TypeMapper.FromType(rootType), defaultPageSize);
         }
     }
 }

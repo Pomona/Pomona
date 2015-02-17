@@ -36,10 +36,10 @@ namespace Pomona
     public class UriResolver : IUriResolver
     {
         private readonly IBaseUriProvider baseUriProvider;
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
 
 
-        public UriResolver(ITypeMapper typeMapper, IBaseUriProvider baseUriProvider)
+        public UriResolver(ITypeResolver typeMapper, IBaseUriProvider baseUriProvider)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -50,7 +50,7 @@ namespace Pomona
         }
 
 
-        public ITypeMapper TypeMapper
+        public ITypeResolver TypeMapper
         {
             get { return this.typeMapper; }
         }
@@ -94,7 +94,7 @@ namespace Pomona
 
         private void BuildRelativeUri(object entity, PropertySpec property, StringBuilder sb)
         {
-            var type = this.typeMapper.GetClassMapping(entity.GetType()) as ResourceType;
+            var type = this.typeMapper.FromType(entity.GetType()) as ResourceType;
             if (type == null)
                 throw new InvalidOperationException("Can only get Uri for a ResourceType.");
 

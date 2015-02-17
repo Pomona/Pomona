@@ -141,7 +141,7 @@ namespace Pomona
                                     ?? Node.Session.Dispatch(new PomonaContext(this.Node, executeQueryable : true))
                                         .Entity;
                     if (patchedObject != null)
-                        type = TypeMapper.GetClassMapping(patchedObject.GetType());
+                        type = TypeMapper.FromType(patchedObject.GetType());
                 }
 
                 this.deserializedBody = Deserialize(type as ComplexType, patchedObject);

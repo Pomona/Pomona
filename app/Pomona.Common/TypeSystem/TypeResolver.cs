@@ -32,7 +32,7 @@ using Pomona.Common.Serialization;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class TypeResolver : ITypeResolver
+    public abstract class TypeResolver : ITypeResolver
     {
         private readonly IEnumerable<ITypeFactory> typeFactories;
 
@@ -207,6 +207,9 @@ namespace Pomona.Common.TypeSystem
                 throw new ArgumentNullException("memberSpec");
             return memberSpec.OnLoadDeclaredAttributes();
         }
+
+
+        public abstract TypeSpec FromType(string typeName);
 
 
         public virtual PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo)

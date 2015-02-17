@@ -110,7 +110,7 @@ namespace Pomona.SystemTests
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
                     PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof(PlanetarySystem))),
+                    TypeMapper.FromType(typeof(PlanetarySystem))),
                 Is.Null);
         }
 
@@ -123,7 +123,7 @@ namespace Pomona.SystemTests
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
                     PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof(PlanetarySystem))),
+                    TypeMapper.FromType(typeof(PlanetarySystem))),
                 Is.Not.Null);
         }
 
@@ -135,7 +135,7 @@ namespace Pomona.SystemTests
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
                     PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof(Critter))),
+                    TypeMapper.FromType(typeof(Critter))),
                 Is.Null);
         }
 
@@ -147,7 +147,7 @@ namespace Pomona.SystemTests
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
                     PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof(MusicalCritter))),
+                    TypeMapper.FromType(typeof(MusicalCritter))),
                 Is.Null);
         }
 
@@ -159,7 +159,7 @@ namespace Pomona.SystemTests
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
                     PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof(Critter))),
+                    TypeMapper.FromType(typeof(Critter))),
                 Is.Not.Null);
         }
 
@@ -171,7 +171,7 @@ namespace Pomona.SystemTests
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
                     PathNodeType.Collection,
-                    TypeMapper.GetClassMapping(typeof(Critter))),
+                    TypeMapper.FromType(typeof(Critter))),
                 Is.Not.Null);
         }
     }

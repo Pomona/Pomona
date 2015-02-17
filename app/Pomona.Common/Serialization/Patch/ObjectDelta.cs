@@ -37,7 +37,7 @@ namespace Pomona.Common.Serialization.Patch
         {
         }
 
-        public ObjectDelta(object original, TypeSpec type, ITypeMapper typeMapper, Delta parent = null)
+        public ObjectDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
         {
         }
@@ -72,7 +72,7 @@ namespace Pomona.Common.Serialization.Patch
                 if (propValue == null)
                     return null;
 
-                var propValueType = TypeMapper.GetClassMapping(propValue.GetType());
+                var propValueType = TypeMapper.FromType(propValue.GetType());
                 if (propValueType.SerializationMode != TypeSerializationMode.Value)
                 {
                     var nestedDelta = CreateNestedDelta(propValue, propValueType, prop.PropertyType);

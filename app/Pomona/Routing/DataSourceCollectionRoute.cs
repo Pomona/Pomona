@@ -49,7 +49,7 @@ namespace Pomona.Routing
                 throw new ArgumentNullException("resultItemType");
             this.parent = parent;
             this.resultItemType = resultItemType;
-            this.resultType = parent.TypeMapper.GetClassMapping(typeof(IEnumerable<>).MakeGenericType(resultItemType));
+            this.resultType = parent.TypeMapper.FromType(typeof(IEnumerable<>).MakeGenericType(resultItemType));
         }
 
 
@@ -60,7 +60,7 @@ namespace Pomona.Routing
 
         public override TypeSpec InputType
         {
-            get { return this.parent.TypeMapper.GetClassMapping(typeof(void)); }
+            get { return this.parent.TypeMapper.FromType(typeof(void)); }
         }
 
         public string MatchValue

@@ -37,6 +37,7 @@ namespace Pomona.Common.TypeSystem
     public interface ITypeResolver
     {
         TypeSpec FromType(Type type);
+        TypeSpec FromType(string typeName);
         PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo);
         IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec);
         TypeSpec LoadDeclaringType(PropertySpec propertySpec);

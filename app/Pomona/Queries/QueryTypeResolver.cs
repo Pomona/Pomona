@@ -40,9 +40,9 @@ namespace Pomona.Queries
         private static readonly Dictionary<string, Type> nativeTypes =
             TypeUtils.GetNativeTypes().ToDictionary(x => x.Name.ToLower(), x => x);
 
-        private readonly ITypeMapper typeMapper;
+        private readonly ITypeResolver typeMapper;
 
-        public QueryTypeResolver(ITypeMapper typeMapper)
+        public QueryTypeResolver(ITypeResolver typeMapper)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -55,7 +55,7 @@ namespace Pomona.Queries
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
             property = null;
-            var transformedType = (ComplexType)typeMapper.GetClassMapping(type);
+            var transformedType = (ComplexType)typeMapper.FromType(type);
             PropertySpec uncastProperty;
             return transformedType.TryGetPropertyByName(propertyPath,
                 StringComparison.InvariantCultureIgnoreCase,
@@ -73,7 +73,7 @@ namespace Pomona.Queries
             if (nativeTypes.TryGetValue(typeName.ToLower(), out type))
                 return type;
 
-            return typeMapper.GetClassMapping(typeName).Type;
+            return typeMapper.FromType(typeName).Type;
         }
 
         #endregion
