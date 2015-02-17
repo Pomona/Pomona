@@ -260,7 +260,6 @@
     <Compile Include="Serialization\SerializeOptions.cs" />
     <Compile Include="Serialization\SerializerExtensions.cs" />
     <Compile Include="Serialization\SerializerNode.cs" />
-    <Compile Include="Serialization\SerializerNodeExtensions.cs" />
     <Compile Include="Serialization\TextSerializerBase.cs" />
     <Compile Include="Serialization\TextSerializerFactoryBase.cs" />
     <Compile Include="Serialization\Xml\PomonaXmlSerializer.cs" />
