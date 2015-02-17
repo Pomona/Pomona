@@ -139,7 +139,7 @@ namespace Pomona.Common.Serialization.Xml
         private void SerializeCollection(ISerializerNode node, Writer writer)
         {
             var elementType = node.ExpectedBaseType.ElementType;
-            var outerArrayElementName = writer.NextElementName ?? GetXmlName(((TransformedType)elementType).PluralName);
+            var outerArrayElementName = writer.NextElementName ?? GetXmlName(((ComplexType)elementType).PluralName);
 
             writer.XmlWriter.WriteStartElement(outerArrayElementName);
 

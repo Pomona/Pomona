@@ -69,9 +69,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public PropertyMapping ChildToParentProperty
+        public ComplexProperty ChildToParentProperty
         {
-            get { return (PropertyMapping)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
+            get { return (ComplexProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
         }
 
         public IEnumerable<Type> ResourceHandlers
@@ -94,12 +94,12 @@ namespace Pomona.Common.TypeSystem
             get { return ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null; }
         }
 
-        public PropertyMapping ParentToChildProperty
+        public ComplexProperty ParentToChildProperty
         {
             get
             {
                 return this.parentToChildPropertyInfo != null
-                    ? (PropertyMapping)
+                    ? (ComplexProperty)
                         this.type.TypeResolver.FromType(this.parentToChildPropertyInfo.DeclaringType).GetPropertyByName(
                             this.parentToChildPropertyInfo.Name,
                             false)
@@ -107,9 +107,9 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public TransformedType PostReturnType
+        public ComplexType PostReturnType
         {
-            get { return (TransformedType)this.type.TypeResolver.FromType(this.postReturnType); }
+            get { return (ComplexType)this.type.TypeResolver.FromType(this.postReturnType); }
         }
 
         public string UrlRelativePath

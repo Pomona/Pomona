@@ -144,7 +144,7 @@ namespace Pomona
                         type = TypeMapper.GetClassMapping(patchedObject.GetType());
                 }
 
-                this.deserializedBody = Deserialize(type as TransformedType, patchedObject);
+                this.deserializedBody = Deserialize(type as ComplexType, patchedObject);
             }
             return this.deserializedBody;
         }
@@ -154,7 +154,7 @@ namespace Pomona
         {
             form = this.deserializedBody;
             if (form == null || !type.Type.IsInstanceOfType(form))
-                form = Deserialize(type as TransformedType, null);
+                form = Deserialize(type as ComplexType, null);
             if (type.Type.IsInstanceOfType(form))
             {
                 this.deserializedBody = form;
@@ -174,7 +174,7 @@ namespace Pomona
         }
 
 
-        private object Deserialize(TransformedType expectedBaseType, object patchedObject = null)
+        private object Deserialize(ComplexType expectedBaseType, object patchedObject = null)
         {
             if (!this.Request.Body.CanSeek)
             {

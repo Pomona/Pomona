@@ -28,7 +28,7 @@
 
 namespace Pomona.Common.TypeSystem
 {
-    public class ExportedPropertyDetails
+    public class ComplexPropertyDetails
     {
         private readonly HttpMethod accessMode;
         private readonly ExpandMode expandMode;
@@ -40,7 +40,7 @@ namespace Pomona.Common.TypeSystem
         private readonly string uriName;
 
 
-        public ExportedPropertyDetails(bool isAttributesProperty,
+        public ComplexPropertyDetails(bool isAttributesProperty,
                                        bool isEtagProperty,
                                        bool isPrimaryKey,
                                        bool isSerialized,

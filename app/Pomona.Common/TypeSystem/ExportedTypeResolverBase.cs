@@ -30,16 +30,16 @@ namespace Pomona.Common.TypeSystem
 {
     public abstract class ExportedTypeResolverBase : TypeResolver, IExportedTypeResolver
     {
-        public abstract IEnumerable<TransformedType> GetAllTransformedTypes();
-        public abstract ExportedPropertyDetails LoadExportedPropertyDetails(PropertyMapping propertyMapping);
-        public abstract ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType);
+        public abstract IEnumerable<ComplexType> GetAllTransformedTypes();
+        public abstract ComplexPropertyDetails LoadExportedPropertyDetails(ComplexProperty complexProperty);
+        public abstract ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType);
         public abstract ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
 
         public override IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec)
         {
             if (typeSpec == null)
                 throw new ArgumentNullException("typeSpec");
-            var transformedType = typeSpec as TransformedType;
+            var transformedType = typeSpec as ComplexType;
             if (transformedType != null)
             {
                 if (!transformedType.PostAllowed)

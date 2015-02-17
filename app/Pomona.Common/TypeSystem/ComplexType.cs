@@ -36,20 +36,20 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class TransformedType : RuntimeTypeSpec
+    public class ComplexType : RuntimeTypeSpec
     {
         private readonly Lazy<ExportedTypeDetails> exportedTypeDetails;
-        private readonly Lazy<IEnumerable<TransformedType>> subTypes;
+        private readonly Lazy<IEnumerable<ComplexType>> subTypes;
         private Func<IDictionary<PropertySpec, object>, object> createFunc;
         private Delegate createUsingPropertySourceFunc;
 
 
-        public TransformedType(IExportedTypeResolver typeResolver,
+        public ComplexType(IExportedTypeResolver typeResolver,
             Type type,
             Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
-            this.subTypes = CreateLazy(() => (IEnumerable<TransformedType>)typeResolver.GetAllTransformedTypes()
+            this.subTypes = CreateLazy(() => (IEnumerable<ComplexType>)typeResolver.GetAllTransformedTypes()
                 .Where(x => x.BaseType == this)
                 .SelectMany(x => x.SubTypes.Append(x)).ToList());
             this.exportedTypeDetails = CreateLazy(() => typeResolver.LoadExportedTypeDetails(this));
@@ -61,14 +61,14 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.AllowedMethods; }
         }
 
-        public virtual PropertyMapping PrimaryId
+        public virtual ComplexProperty PrimaryId
         {
             get { return ExportedTypeDetails.PrimaryId; }
         }
 
-        public new virtual IEnumerable<PropertyMapping> Properties
+        public new virtual IEnumerable<ComplexProperty> Properties
         {
-            get { return base.Properties.Cast<PropertyMapping>(); }
+            get { return base.Properties.Cast<ComplexProperty>(); }
         }
 
         public virtual ResourceInfoAttribute ResourceInfo
@@ -81,7 +81,7 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
         }
 
-        public PropertyMapping ETagProperty
+        public ComplexProperty ETagProperty
         {
             get { return ExportedTypeDetails.ETagProperty; }
         }
@@ -121,7 +121,7 @@ namespace Pomona.Common.TypeSystem
             get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
         }
 
-        public IEnumerable<TransformedType> SubTypes
+        public IEnumerable<ComplexType> SubTypes
         {
             get { return this.subTypes.Value; }
         }
@@ -206,7 +206,7 @@ namespace Pomona.Common.TypeSystem
 
         protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
         {
-            return new PropertyMapping(TypeResolver, property, () => this);
+            return new ComplexProperty(TypeResolver, property, () => this);
         }
 
         #region Nested type: ConstructorPropertySource

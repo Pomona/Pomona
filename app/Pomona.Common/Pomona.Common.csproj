@@ -274,7 +274,7 @@
     <Compile Include="TypeSystem\DictionaryTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumTypeSpec.cs" />
-    <Compile Include="TypeSystem\ExportedPropertyDetails.cs" />
+    <Compile Include="TypeSystem\ComplexPropertyDetails.cs" />
     <Compile Include="TypeSystem\ExportedTypeDetails.cs" />
     <Compile Include="TypeSystem\ExportedTypeResolverBase.cs" />
     <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
@@ -296,7 +296,7 @@
     <Compile Include="TypeSystem\PropertyFlags.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttribute.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttributeExtensions.cs" />
-    <Compile Include="TypeSystem\PropertyMapping.cs" />
+    <Compile Include="TypeSystem\ComplexProperty.cs" />
     <Compile Include="TypeSystem\PropertySpec.cs" />
     <Compile Include="TypeSystem\ResourceTypeDetails.cs" />
     <Compile Include="TypeSystem\ResourceType.cs" />
@@ -304,7 +304,7 @@
     <Compile Include="TypeSystem\RuntimeTypeDetails.cs" />
     <Compile Include="TypeSystem\RuntimeTypeSpec.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />
-    <Compile Include="TypeSystem\TransformedType.cs" />
+    <Compile Include="TypeSystem\ComplexType.cs" />
     <Compile Include="TypeSystem\TypeResolver.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="TypeSystem\TypeSpec.cs" />

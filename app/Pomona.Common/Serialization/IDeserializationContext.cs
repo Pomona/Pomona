@@ -38,7 +38,7 @@ namespace Pomona.Common.Serialization
         void CheckAccessRights(PropertySpec property, HttpMethod method);
         void CheckPropertyItemAccessRights(PropertySpec property, HttpMethod method);
         object CreateReference(IDeserializerNode node);
-        object CreateResource<T>(TransformedType type, IConstructorPropertySource<T> args);
+        object CreateResource<T>(ComplexType type, IConstructorPropertySource<T> args);
 
         void Deserialize(IDeserializerNode node, Action<IDeserializerNode> deserializeNodeAction);
 

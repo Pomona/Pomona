@@ -63,8 +63,8 @@ namespace Pomona
         #endregion
 
         private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
-        private readonly TransformedType ofType;
-        private readonly TransformedType sourceType;
+        private readonly ComplexType ofType;
+        private readonly ComplexType sourceType;
 
 
         static PomonaQuery()
@@ -75,7 +75,7 @@ namespace Pomona
         }
 
 
-        public PomonaQuery(TransformedType sourceType, TransformedType ofType = null)
+        public PomonaQuery(ComplexType sourceType, ComplexType ofType = null)
         {
             if (sourceType == null)
                 throw new ArgumentNullException("sourceType");
@@ -93,7 +93,7 @@ namespace Pomona
         public LambdaExpression GroupByExpression { get; set; }
         public bool IncludeTotalCount { get; set; }
 
-        public TransformedType OfType
+        public ComplexType OfType
         {
             get { return this.ofType; }
         }
@@ -104,7 +104,7 @@ namespace Pomona
         public LambdaExpression SelectExpression { get; set; }
         public int Skip { get; set; }
 
-        public TransformedType SourceType
+        public ComplexType SourceType
         {
             get { return this.sourceType; }
         }

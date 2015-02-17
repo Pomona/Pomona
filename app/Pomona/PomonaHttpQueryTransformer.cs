@@ -51,17 +51,17 @@ namespace Pomona
 
         #region IHttpQueryTransformer Members
 
-        public PomonaQuery TransformRequest(PomonaContext context, TransformedType rootType, int? defaultTop = null)
+        public PomonaQuery TransformRequest(PomonaContext context, ComplexType rootType, int? defaultTop = null)
         {
             if (context == null)
                 throw new ArgumentNullException("context");
             if (rootType == null)
                 throw new ArgumentNullException("rootType");
 
-            TransformedType ofType = null;
+            ComplexType ofType = null;
             if (context.Query["$oftype"].HasValue)
             {
-                ofType = (TransformedType) typeMapper.GetClassMapping((string) context.Query["$oftype"]);
+                ofType = (ComplexType) typeMapper.GetClassMapping((string) context.Query["$oftype"]);
             }
 
             var query = new PomonaQuery(rootType, ofType);

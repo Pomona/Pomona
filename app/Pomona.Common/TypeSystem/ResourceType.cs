@@ -38,7 +38,7 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class ResourceType : TransformedType
+    public class ResourceType : ComplexType
     {
         private static readonly MethodInfo convertToPathEncodedStringMethod =
             ReflectionHelper.GetMethodDefinition<ResourceType>(x => ConvertToPathEncodedString(null));
@@ -61,7 +61,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public PropertyMapping ChildToParentProperty
+        public ComplexProperty ChildToParentProperty
         {
             get { return ResourceTypeDetails.ChildToParentProperty; }
         }
@@ -91,12 +91,12 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.ParentResourceType; }
         }
 
-        public PropertyMapping ParentToChildProperty
+        public ComplexProperty ParentToChildProperty
         {
             get { return ResourceTypeDetails.ParentToChildProperty; }
         }
 
-        public TransformedType PostReturnType
+        public ComplexType PostReturnType
         {
             get { return ResourceTypeDetails.PostReturnType; }
         }

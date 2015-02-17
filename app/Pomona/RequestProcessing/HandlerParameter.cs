@@ -55,7 +55,7 @@ namespace Pomona.RequestProcessing
 
         public bool IsTransformedType
         {
-            get { return TypeSpec is TransformedType; }
+            get { return TypeSpec is ComplexType; }
         }
 
         public HandlerMethod Method

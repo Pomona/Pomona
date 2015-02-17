@@ -131,7 +131,7 @@ namespace Pomona
             var propNode = node as PropertyValueSerializerNode;
             if (propNode == null)
                 return ExpandMode.Default;
-            var propMapping = propNode.Property as PropertyMapping;
+            var propMapping = propNode.Property as ComplexProperty;
             if (propMapping == null)
                 return ExpandMode.Default;
             return propMapping.ExpandMode;

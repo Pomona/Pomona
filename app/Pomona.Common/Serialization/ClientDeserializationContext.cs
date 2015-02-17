@@ -96,9 +96,9 @@ namespace Pomona.Common.Serialization
             }*/
             if (type.SerializationMode == TypeSerializationMode.Array)
                 return LazyCollectionProxy.CreateForType(type, uri, this.client);
-            if (type is TransformedType && type.SerializationMode == TypeSerializationMode.Complex)
+            if (type is ComplexType && type.SerializationMode == TypeSerializationMode.Complex)
             {
-                var clientType = (TransformedType)type;
+                var clientType = (ComplexType)type;
                 var proxyType = clientType.ResourceInfo.LazyProxyType;
                 var refobj = (LazyProxyBase)Activator.CreateInstance(proxyType);
                 refobj.Client = this.client;
@@ -110,7 +110,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public object CreateResource<T>(TransformedType type, IConstructorPropertySource<T> args)
+        public object CreateResource<T>(ComplexType type, IConstructorPropertySource<T> args)
         {
             return type.Create(args);
         }

@@ -130,9 +130,9 @@ namespace Pomona.Common
 
         #endregion
 
-        public override IEnumerable<TransformedType> GetAllTransformedTypes()
+        public override IEnumerable<ComplexType> GetAllTransformedTypes()
         {
-            return this.typeNameMap.Values.OfType<TransformedType>();
+            return this.typeNameMap.Values.OfType<ComplexType>();
         }
 
 
@@ -158,9 +158,9 @@ namespace Pomona.Common
         }
 
 
-        public override ExportedPropertyDetails LoadExportedPropertyDetails(PropertyMapping propertyMapping)
+        public override ComplexPropertyDetails LoadExportedPropertyDetails(ComplexProperty complexProperty)
         {
-            var propInfo = propertyMapping.PropertyInfo;
+            var propInfo = complexProperty.PropertyInfo;
 
             var isAttributes = propInfo.HasAttribute<ResourceAttributesPropertyAttribute>(true);
             var isPrimaryId = propInfo.HasAttribute<ResourceIdPropertyAttribute>(true);
@@ -175,19 +175,19 @@ namespace Pomona.Common
                     Required = false
                 };
 
-            return new ExportedPropertyDetails(isAttributes,
+            return new ComplexPropertyDetails(isAttributes,
                                                isEtagProperty,
                                                isPrimaryId,
                                                true,
                                                info.AccessMode,
                                                info.ItemAccessMode,
                                                false,
-                                               NameUtils.ConvertCamelCaseToUri(propertyMapping.Name),
+                                               NameUtils.ConvertCamelCaseToUri(complexProperty.Name),
                                                ExpandMode.Full);
         }
 
 
-        public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
+        public override ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType)
         {
             if (IsAnonType(exportedType))
             {
@@ -217,7 +217,7 @@ namespace Pomona.Common
 
         public override string LoadName(MemberSpec memberSpec)
         {
-            var transformedType = memberSpec as TransformedType;
+            var transformedType = memberSpec as ComplexType;
             if (transformedType != null && transformedType.ResourceInfo != null)
                 return transformedType.ResourceInfo.JsonTypeName;
 
@@ -356,18 +356,18 @@ namespace Pomona.Common
             if (ria != null && typeof(IClientResource).IsAssignableFrom(type))
             {
                 if (ria.IsValueObject)
-                    return new TransformedType(this, type);
+                    return new ComplexType(this, type);
                 return new ResourceType(this, type);
             }
             if (IsAnonType(type))
-                return new TransformedType(this, type);
+                return new ComplexType(this, type);
             return base.CreateType(type);
         }
 
 
         private static string GetJsonTypeName(TypeSpec type)
         {
-            var clientType = type as TransformedType;
+            var clientType = type as ComplexType;
 
             if (clientType != null)
                 return clientType.ResourceInfo.JsonTypeName;

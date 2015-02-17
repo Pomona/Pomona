@@ -103,7 +103,7 @@ namespace Pomona
             if (property != null)
             {
                 sb.Append('/');
-                sb.Append(((PropertyMapping)property).UriName);
+                sb.Append(((ComplexProperty)property).UriName);
             }
         }
     }

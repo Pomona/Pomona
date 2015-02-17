@@ -39,10 +39,10 @@ namespace Pomona.Common.TypeSystem
         private readonly bool mappedAsValueObject;
         private readonly Action<object> onDeserialized;
         private readonly string pluralName;
-        private readonly TransformedType type;
+        private readonly ComplexType type;
 
 
-        public ExportedTypeDetails(TransformedType type,
+        public ExportedTypeDetails(ComplexType type,
             HttpMethod allowedMethods,
             string pluralName,
             Action<object> onDeserialized,
@@ -70,7 +70,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.alwaysExpand; }
         }
 
-        public PropertyMapping ETagProperty
+        public ComplexProperty ETagProperty
         {
             get { return this.type.Properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
@@ -92,9 +92,9 @@ namespace Pomona.Common.TypeSystem
 
         private readonly bool isAbstract;
 
-        public PropertyMapping PrimaryId
+        public ComplexProperty PrimaryId
         {
-            get { return this.type.AllProperties.OfType<PropertyMapping>().FirstOrDefault(x => x.IsPrimaryKey); }
+            get { return this.type.AllProperties.OfType<ComplexProperty>().FirstOrDefault(x => x.IsPrimaryKey); }
         }
 
         public bool IsAbstract

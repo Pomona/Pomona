@@ -456,9 +456,9 @@ namespace Pomona.Example
 
         private Type GetBaseUriType<T>()
         {
-            var transformedType = (TransformedType)TypeMapper.GetClassMapping<T>();
+            var transformedType = (ComplexType)TypeMapper.GetClassMapping<T>();
             var mappedTypeInstance =
-                (transformedType.Maybe().OfType<ResourceType>().Select(x => (TransformedType)x.UriBaseType).OrDefault(
+                (transformedType.Maybe().OfType<ResourceType>().Select(x => (ComplexType)x.UriBaseType).OrDefault(
                     () => transformedType)).Type;
             return mappedTypeInstance;
         }

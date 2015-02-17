@@ -59,15 +59,15 @@ namespace Pomona.UnitTests
         {
             var anonObject = new { Foo = "hoohoo" };
             var type = this.typeMapper.FromType(anonObject.GetType());
-            Assert.That(type, Is.TypeOf<TransformedType>());
-            Assert.That(((TransformedType)type).MappedAsValueObject, Is.True);
+            Assert.That(type, Is.TypeOf<ComplexType>());
+            Assert.That(((ComplexType)type).MappedAsValueObject, Is.True);
         }
 
 
         [Test]
         public void ChangePluralNameWorksCorrectly()
         {
-            Assert.That(((TransformedType)this.typeMapper.GetClassMapping<RenamedThing>()).PluralName,
+            Assert.That(((ComplexType)this.typeMapper.GetClassMapping<RenamedThing>()).PluralName,
                         Is.EqualTo("ThingsWithNewName"));
         }
 
@@ -116,8 +116,8 @@ namespace Pomona.UnitTests
         public void InterfaceIGrouping_IsMappedAsValueObject()
         {
             var type = this.typeMapper.FromType(typeof(IGrouping<string, string>));
-            Assert.That(type, Is.TypeOf<TransformedType>());
-            Assert.That(((TransformedType)type).MappedAsValueObject, Is.True);
+            Assert.That(type, Is.TypeOf<ComplexType>());
+            Assert.That(((ComplexType)type).MappedAsValueObject, Is.True);
         }
 
 
@@ -135,7 +135,7 @@ namespace Pomona.UnitTests
         public void Property_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
         {
             var tt =
-                (PropertyMapping)
+                (ComplexProperty)
                     this.typeMapper.GetClassMapping<Critter>().Properties.First(
                         x => x.Name == "PublicAndReadOnlyThroughApi");
             Assert.That(!tt.AccessMode.HasFlag(HttpMethod.Post));

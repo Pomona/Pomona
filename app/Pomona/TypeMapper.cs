@@ -102,9 +102,9 @@ namespace Pomona
             get { return this.sourceTypes; }
         }
 
-        public IEnumerable<TransformedType> TransformedTypes
+        public IEnumerable<ComplexType> TransformedTypes
         {
-            get { return TypeMap.Values.OfType<TransformedType>(); }
+            get { return TypeMap.Values.OfType<ComplexType>(); }
         }
 
 
@@ -123,7 +123,7 @@ namespace Pomona
         }
 
 
-        public override IEnumerable<TransformedType> GetAllTransformedTypes()
+        public override IEnumerable<ComplexType> GetAllTransformedTypes()
         {
             return TransformedTypes;
         }
@@ -131,7 +131,7 @@ namespace Pomona
 
         public override TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
-            if (typeSpec is TransformedType)
+            if (typeSpec is ComplexType)
             {
                 if (this.filter.IsIndependentTypeRoot(typeSpec))
                     return null;
@@ -151,7 +151,7 @@ namespace Pomona
 
         public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
         {
-            var transformedType = typeSpec as TransformedType;
+            var transformedType = typeSpec as ComplexType;
             if (transformedType != null)
                 return this.filter.GetTypeConstructor(transformedType);
             return base.LoadConstructor(typeSpec);
@@ -194,21 +194,21 @@ namespace Pomona
 
         public override TypeSpec LoadDeclaringType(PropertySpec propertySpec)
         {
-            if (propertySpec is PropertyMapping)
+            if (propertySpec is ComplexProperty)
                 return FromType(GetKnownDeclaringType(propertySpec.ReflectedType, propertySpec.PropertyInfo));
             return base.LoadDeclaringType(propertySpec);
         }
 
 
-        public override ExportedPropertyDetails LoadExportedPropertyDetails(PropertyMapping propertyMapping)
+        public override ComplexPropertyDetails LoadExportedPropertyDetails(ComplexProperty complexProperty)
         {
-            var propInfo = propertyMapping.PropertyInfo;
+            var propInfo = complexProperty.PropertyInfo;
 
-            var reflectedType = propertyMapping.ReflectedType;
+            var reflectedType = complexProperty.ReflectedType;
             var expandMode = filter.GetPropertyExpandMode(reflectedType, propInfo);
-            var accessMode = this.filter.GetPropertyAccessMode(propInfo, propertyMapping.DeclaringType.Constructor);
+            var accessMode = this.filter.GetPropertyAccessMode(propInfo, complexProperty.DeclaringType.Constructor);
 
-            var details = new ExportedPropertyDetails(
+            var details = new ComplexPropertyDetails(
                 this.filter.PropertyIsAttributes(reflectedType, propInfo),
                 this.filter.PropertyIsEtag(reflectedType, propInfo),
                 this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
@@ -223,7 +223,7 @@ namespace Pomona
         }
 
 
-        public override ExportedTypeDetails LoadExportedTypeDetails(TransformedType exportedType)
+        public override ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType)
         {
             // TODO: Get allowed methods from filter
             var allowedMethods = HttpMethod.Get |
@@ -253,7 +253,7 @@ namespace Pomona
 
         public override IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
         {
-            if (typeSpec is TransformedType)
+            if (typeSpec is ComplexType)
                 return base.LoadInterfaces(typeSpec).Where(x => this.filter.TypeIsMappedAsTransformedType(x));
 
             return base.LoadInterfaces(typeSpec);
@@ -274,7 +274,7 @@ namespace Pomona
 
         public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
         {
-            if (typeSpec is TransformedType)
+            if (typeSpec is ComplexType)
             {
                 var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
                     ? typeSpec.Type.GetInterfaces().Where(x => !this.filter.TypeIsMapped(x)).SelectMany(
@@ -301,7 +301,7 @@ namespace Pomona
 
         public override TypeSpec LoadPropertyType(PropertySpec propertySpec)
         {
-            var propMapping = propertySpec as PropertyMapping;
+            var propMapping = propertySpec as ComplexProperty;
             if (propMapping != null)
                 return FromType(this.filter.GetPropertyType(propMapping.ReflectedType, propMapping.PropertyInfo));
             return base.LoadPropertyType(propertySpec);
@@ -365,7 +365,7 @@ namespace Pomona
             if (!this.filter.TypeIsMappedAsSharedType(type) && this.filter.TypeIsMappedAsTransformedType(type))
             {
                 if (this.filter.TypeIsMappedAsValueObject(type))
-                    return new TransformedType(this, type);
+                    return new ComplexType(this, type);
                 return new ResourceType(this, type);
             }
             return base.CreateType(type);

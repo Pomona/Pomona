@@ -175,13 +175,13 @@ namespace Pomona.CodeGen
             CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic), (info, def) =>
             {
                 info.PatchFormType = def;
-            }, typeIsGeneratedPredicate : x => x.TransformedType.PatchAllowed);
+            }, typeIsGeneratedPredicate : x => x.ComplexType.PatchAllowed);
 
             CreateProxies(new PostFormProxyBuilder(this), (info, def) =>
             {
                 info.PostFormType = def;
-                def.IsAbstract = info.TransformedType.IsAbstract;
-            }, typeIsGeneratedPredicate : x => (x.TransformedType.PostAllowed));
+                def.IsAbstract = info.ComplexType.IsAbstract;
+            }, typeIsGeneratedPredicate : x => (x.ComplexType.PostAllowed));
 
             CreateClientInterface(this.typeMapper.Filter.ClientMetadata.InterfaceName);
             CreateClientType(this.typeMapper.Filter.ClientMetadata.Name);
@@ -396,7 +396,7 @@ namespace Pomona.CodeGen
                                                     TypeSpec propertyType,
                                                     List<Action<ILProcessor>> ctorIlActions)
         {
-            if (propertyType.Maybe().OfType<TransformedType>().Select(x => x.MappedAsValueObject).OrDefault())
+            if (propertyType.Maybe().OfType<ComplexType>().Select(x => x.MappedAsValueObject).OrDefault())
             {
                 var typeInfo = this.clientTypeInfoDict[propertyType];
 
@@ -483,7 +483,7 @@ namespace Pomona.CodeGen
         {
             foreach (var resourceTypeInfo in GetAllUriBaseTypesExposedAsRepositories())
             {
-                var transformedType = (ResourceType)resourceTypeInfo.TransformedType;
+                var transformedType = (ResourceType)resourceTypeInfo.ComplexType;
                 var repoPropName = transformedType.PluralName;
 
                 var repoPropType = resourceTypeInfo.CustomRepositoryInterface;
@@ -502,7 +502,7 @@ namespace Pomona.CodeGen
         private void AddResourceInfoAttribute(TypeCodeGenInfo typeInfo)
         {
             var interfaceDef = typeInfo.InterfaceType;
-            var type = typeInfo.TransformedType;
+            var type = typeInfo.ComplexType;
             var attr = Import(typeof(ResourceInfoAttribute));
             var methodDefinition =
                 Import(attr.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
@@ -551,7 +551,7 @@ namespace Pomona.CodeGen
                                                                      new CustomAttributeArgument(typeTypeReference,
                                                                                                  typeInfo.UriBaseType)));
 
-            var resourceType = typeInfo.TransformedType as ResourceType;
+            var resourceType = typeInfo.ComplexType as ResourceType;
             if (resourceType != null && resourceType.ParentResourceType != null)
             {
                 var parentResourceTypeInfo = this.clientTypeInfoDict[resourceType.ParentResourceType];
@@ -571,7 +571,7 @@ namespace Pomona.CodeGen
             namedArgs.Add(new CustomAttributeNamedArgument("IsValueObject",
                                                                      new CustomAttributeArgument(
                                                                          this.module.TypeSystem.Boolean,
-                                                                         typeInfo.TransformedType
+                                                                         typeInfo.ComplexType
                                                                              .MappedAsValueObject)));
 
             interfaceDef.CustomAttributes.Add(custAttr);
@@ -668,7 +668,7 @@ namespace Pomona.CodeGen
             }
         }
 
-        private void BuildInterfacesAndPocoTypes(IEnumerable<TransformedType> transformedTypes)
+        private void BuildInterfacesAndPocoTypes(IEnumerable<ComplexType> transformedTypes)
         {
             var resourceBaseRef = Import(typeof(ResourceBase));
             var resourceInterfaceRef = Import(typeof(IClientResource));
@@ -705,7 +705,7 @@ namespace Pomona.CodeGen
 
             foreach (var kvp in this.clientTypeInfoDict)
             {
-                var type = (TransformedType)kvp.Key;
+                var type = (ComplexType)kvp.Key;
                 var typeInfo = kvp.Value;
                 var pocoDef = typeInfo.PocoType;
                 var interfaceDef = typeInfo.InterfaceType;
@@ -881,12 +881,12 @@ namespace Pomona.CodeGen
                                            TypeCodeGenInfo typeInfo,
                                            Dictionary<TypeCodeGenInfo, TypeDefinition> generatedTypeDict)
         {
-            var targetType = typeInfo.TransformedType;
+            var targetType = typeInfo.ComplexType;
             var name = targetType.Name;
 
             TypeDefinition baseTypeDef = null;
-            var tt = typeInfo.TransformedType;
-            var rt = typeInfo.TransformedType as ResourceType;
+            var tt = typeInfo.ComplexType;
+            var rt = typeInfo.ComplexType as ResourceType;
             if (rt != null && rt.UriBaseType != null && rt.UriBaseType != rt)
             {
                 var baseTypeInfo = this.clientTypeInfoDict[tt.BaseType];
@@ -914,7 +914,7 @@ namespace Pomona.CodeGen
 
             var interfacesToImplement = new List<TypeReference> { queryableRepoType };
 
-            var tt = resourceTypeInfo.TransformedType as ResourceType;
+            var tt = resourceTypeInfo.ComplexType as ResourceType;
 
             if (tt.PrimaryId != null)
             {
@@ -988,10 +988,10 @@ namespace Pomona.CodeGen
                                                     bool isImplementation,
                                                     IEnumerable<TypeReference> interfacesToImplement = null)
         {
-            var tt = (ResourceType)rti.TransformedType;
+            var tt = (ResourceType)rti.ComplexType;
 
             repoTypeDef.Namespace = this.@namespace;
-            repoTypeDef.Name = String.Format(repoTypeNameFormat, rti.TransformedType.Name);
+            repoTypeDef.Name = String.Format(repoTypeNameFormat, rti.ComplexType.Name);
             repoTypeDef.Attributes = typeAttributes;
 
             if (isImplementation)
@@ -1048,7 +1048,7 @@ namespace Pomona.CodeGen
         private IEnumerable<TypeCodeGenInfo> GetAllUriBaseTypesExposedAsRepositories()
         {
             return this.clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType
-                                                             && x.TransformedType.Maybe().OfType<ResourceType>().Select(
+                                                             && x.ComplexType.Maybe().OfType<ResourceType>().Select(
                                                                  y => y.IsRootResource && y.IsExposedAsRepository)
                                                             .OrDefault());
         }
@@ -1065,7 +1065,7 @@ namespace Pomona.CodeGen
         }
 
 
-        private PropertyMapping GetPropertyMapping(PropertyDefinition propertyDefinition,
+        private ComplexProperty GetPropertyMapping(PropertyDefinition propertyDefinition,
                                                    TypeReference reflectedInterface = null)
         {
             reflectedInterface = reflectedInterface ?? propertyDefinition.DeclaringType;
@@ -1073,12 +1073,12 @@ namespace Pomona.CodeGen
             return this.clientTypeInfoDict
                 .Values
                 .First(x => x.InterfaceType == reflectedInterface)
-                .TransformedType.Properties.Cast<PropertyMapping>()
+                .ComplexType.Properties.Cast<ComplexProperty>()
                 .First(x => x.Name == propertyDefinition.Name);
         }
 
 
-        private TypeReference GetPropertyTypeReference(PropertyMapping prop)
+        private TypeReference GetPropertyTypeReference(ComplexProperty prop)
         {
             if (prop.ExposedAsRepository)
             {
@@ -1105,7 +1105,7 @@ namespace Pomona.CodeGen
             // TODO: Cache typeRef
 
             var sharedType = type as RuntimeTypeSpec;
-            var transformedType = type as TransformedType;
+            var transformedType = type as ComplexType;
             var enumType = type as EnumTypeSpec;
             TypeReference typeRef = null;
 
@@ -1380,12 +1380,12 @@ namespace Pomona.CodeGen
             private readonly TypeDefinition interfaceType;
             private readonly ClientLibGenerator parent;
             private readonly Lazy<TypeReference> postReturnTypeReference;
-            private readonly TransformedType transformedType;
+            private readonly ComplexType complexType;
 
 
-            public TypeCodeGenInfo(ClientLibGenerator parent, TransformedType transformedType)
+            public TypeCodeGenInfo(ClientLibGenerator parent, ComplexType complexType)
             {
-                var resourceType = transformedType as ResourceType;
+                var resourceType = complexType as ResourceType;
                 if (resourceType != null && resourceType.IsUriBaseType)
                 {
                     if ((resourceType.IsRootResource && resourceType.IsExposedAsRepository)
@@ -1394,7 +1394,7 @@ namespace Pomona.CodeGen
                     {
                         this.customRepositoryInterface = new TypeDefinition(parent.@namespace,
                                                                             String.Format("I{0}Repository",
-                                                                                          transformedType.Name),
+                                                                                          complexType.Name),
                                                                             TypeAttributes.Interface
                                                                             | TypeAttributes.Public
                                                                             | TypeAttributes.Abstract);
@@ -1406,7 +1406,7 @@ namespace Pomona.CodeGen
                     throw new ArgumentNullException("parent");
 
                 this.parent = parent;
-                this.transformedType = transformedType;
+                this.complexType = complexType;
 
                 this.postReturnTypeReference = new Lazy<TypeReference>(() =>
                 {
@@ -1453,7 +1453,7 @@ namespace Pomona.CodeGen
                 });
 
                 // Add I in front of name if resource is class type, do not for interfaces to avoid IIWhatever name.
-                var name = "I" + transformedType.Name;
+                var name = "I" + complexType.Name;
 
                 this.interfaceType = new TypeDefinition(parent.@namespace,
                                                         name,
@@ -1502,15 +1502,15 @@ namespace Pomona.CodeGen
                 get
                 {
                     return
-                        this.parent.Import(this.transformedType.PrimaryId != null
-                            ? this.transformedType.PrimaryId.PropertyType
+                        this.parent.Import(this.complexType.PrimaryId != null
+                            ? this.complexType.PrimaryId.PropertyType
                             : typeof(object));
                 }
             }
 
-            public TransformedType TransformedType
+            public ComplexType ComplexType
             {
-                get { return this.transformedType; }
+                get { return this.complexType; }
             }
 
             public TypeDefinition UriBaseType { get; set; }

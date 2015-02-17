@@ -356,7 +356,7 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
             {
-                var primaryId = node.ValueType.Maybe().OfType<TransformedType>().Select(x => x.PrimaryId).OrDefault();
+                var primaryId = node.ValueType.Maybe().OfType<ComplexType>().Select(x => x.PrimaryId).OrDefault();
                 if (primaryId == null)
                     throw new PomonaSerializationException("When we are removing complex object a primary id is required.");
 

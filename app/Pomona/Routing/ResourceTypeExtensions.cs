@@ -79,7 +79,7 @@ namespace Pomona.Routing
         }
 
 
-        public static IEnumerable<Route> GetRoutes(this PropertyMapping property, Route parent)
+        public static IEnumerable<Route> GetRoutes(this ComplexProperty property, Route parent)
         {
             if (property == null)
                 throw new ArgumentNullException("property");

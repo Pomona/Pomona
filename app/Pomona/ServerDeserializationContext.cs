@@ -81,7 +81,7 @@ namespace Pomona
         }
 
 
-        public object CreateResource<T>(TransformedType type, IConstructorPropertySource<T> args)
+        public object CreateResource<T>(ComplexType type, IConstructorPropertySource<T> args)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace Pomona
         {
             nodeDeserializeAction(node);
 
-            var transformedType = node.ValueType as TransformedType;
+            var transformedType = node.ValueType as ComplexType;
             if (transformedType != null && transformedType.OnDeserialized != null && node.Value != null)
                 transformedType.OnDeserialized(node.Value);
         }

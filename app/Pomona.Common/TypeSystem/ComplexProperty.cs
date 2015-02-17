@@ -31,12 +31,12 @@ using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class PropertyMapping : RuntimePropertySpec
+    public class ComplexProperty : RuntimePropertySpec
     {
-        private readonly Lazy<ExportedPropertyDetails> exportedPropertyDetails;
+        private readonly Lazy<ComplexPropertyDetails> exportedPropertyDetails;
 
 
-        public PropertyMapping(IExportedTypeResolver typeResolver,
+        public ComplexProperty(IExportedTypeResolver typeResolver,
                                PropertyInfo propertyInfo,
                                Func<TypeSpec> reflectedType = null)
             : base(typeResolver, propertyInfo, reflectedType)
@@ -94,9 +94,9 @@ namespace Pomona.Common.TypeSystem
             get { return Details.ItemAccessMode; }
         }
 
-        public new TransformedType ReflectedType
+        public new ComplexType ReflectedType
         {
-            get { return (TransformedType)base.ReflectedType; }
+            get { return (ComplexType)base.ReflectedType; }
         }
 
         public string UriName
@@ -104,7 +104,7 @@ namespace Pomona.Common.TypeSystem
             get { return Details.UriName; }
         }
 
-        protected virtual ExportedPropertyDetails Details
+        protected virtual ComplexPropertyDetails Details
         {
             get { return this.exportedPropertyDetails.Value; }
         }

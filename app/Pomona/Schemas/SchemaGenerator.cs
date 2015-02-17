@@ -52,7 +52,7 @@ namespace Pomona.Schemas
                 this.typeMapper
                     .SourceTypes
                     .Select(this.typeMapper.GetClassMapping)
-                    .OfType<TransformedType>()
+                    .OfType<ComplexType>()
                     .OrderBy(x => x.Name)
                     .Select(GenerateForType);
             return new Schema
@@ -63,7 +63,7 @@ namespace Pomona.Schemas
         }
 
 
-        private SchemaPropertyEntry GenerateForProperty(PropertyMapping propertyInfo)
+        private SchemaPropertyEntry GenerateForProperty(ComplexProperty propertyInfo)
         {
             var propType = propertyInfo.PropertyType;
 
@@ -105,22 +105,22 @@ namespace Pomona.Schemas
         }
 
 
-        private SchemaTypeEntry GenerateForType(TransformedType transformedType)
+        private SchemaTypeEntry GenerateForType(ComplexType complexType)
         {
             string extends = null;
-            var resourceTypeSpec = transformedType as ResourceType;
-            IEnumerable<PropertyMapping> properties = transformedType.Properties;
+            var resourceTypeSpec = complexType as ResourceType;
+            IEnumerable<ComplexProperty> properties = complexType.Properties;
             if (resourceTypeSpec == null || !resourceTypeSpec.IsUriBaseType)
             {
-                if (transformedType.BaseType != null && transformedType.BaseType != typeof(object))
+                if (complexType.BaseType != null && complexType.BaseType != typeof(object))
                 {
-                    extends = transformedType.BaseType.Name;
-                    var propsOfBaseType = new HashSet<string>(transformedType.BaseType.Properties.Select(x => x.Name));
+                    extends = complexType.BaseType.Name;
+                    var propsOfBaseType = new HashSet<string>(complexType.BaseType.Properties.Select(x => x.Name));
                     properties = properties.Where(x => !propsOfBaseType.Contains(x.Name));
                 }
             }
 
-            var typeName = transformedType.Name;
+            var typeName = complexType.Name;
 
             var schemaTypeEntry = new SchemaTypeEntry
             {
@@ -130,8 +130,8 @@ namespace Pomona.Schemas
                     .Select(GenerateForProperty)
                     .ToDictionary(x => x.Name, x => x)),
                 // TODO: Expose IsAbstract on TypeSpec
-                Abstract = transformedType.Type != null && transformedType.Type.IsAbstract,
-                AllowedMethods = transformedType.AllowedMethods
+                Abstract = complexType.Type != null && complexType.Type.IsAbstract,
+                AllowedMethods = complexType.AllowedMethods
             };
 
             if (resourceTypeSpec != null)
