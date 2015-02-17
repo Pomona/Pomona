@@ -522,12 +522,10 @@ namespace Pomona.Common.Serialization.Json
             private readonly IDeserializerNode node;
 
             private readonly Dictionary<string, PropertyContainer> propertyDict;
-            private JObject jobj;
 
 
             public PropertyValueSource(JObject jobj, IDeserializerNode node, PomonaJsonDeserializer deserializer)
             {
-                this.jobj = jobj;
                 this.node = node;
                 this.deserializer = deserializer;
                 this.propertyDict = jobj.Properties()
