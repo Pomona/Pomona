@@ -31,7 +31,7 @@ using System.Linq;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class ExportedTypeDetails
+    public class ComplexTypeDetails
     {
         private readonly HttpMethod allowedMethods;
         private readonly bool alwaysExpand;
@@ -42,7 +42,7 @@ namespace Pomona.Common.TypeSystem
         private readonly ComplexType type;
 
 
-        public ExportedTypeDetails(ComplexType type,
+        public ComplexTypeDetails(ComplexType type,
             HttpMethod allowedMethods,
             string pluralName,
             Action<object> onDeserialized,

@@ -32,7 +32,7 @@ namespace Pomona.Common.TypeSystem
     {
         public abstract IEnumerable<ComplexType> GetAllTransformedTypes();
         public abstract ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty);
-        public abstract ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType);
+        public abstract ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType);
         public abstract ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
 
         public override IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec)

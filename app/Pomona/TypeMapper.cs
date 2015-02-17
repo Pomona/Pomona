@@ -223,7 +223,7 @@ namespace Pomona
         }
 
 
-        public override ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType)
+        public override ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType)
         {
             // TODO: Get allowed methods from filter
             var allowedMethods = HttpMethod.Get |
@@ -232,7 +232,7 @@ namespace Pomona
                                  (this.filter.DeleteOfTypeIsAllowed(exportedType) ? HttpMethod.Delete : 0);
 
             var type = exportedType.Type;
-            var details = new ExportedTypeDetails(exportedType,
+            var details = new ComplexTypeDetails(exportedType,
                                                   allowedMethods,
                                                   this.filter.GetPluralNameForType(type),
                                                   this.filter.GetOnDeserializedHook(type),

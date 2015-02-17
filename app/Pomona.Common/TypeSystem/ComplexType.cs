@@ -38,7 +38,7 @@ namespace Pomona.Common.TypeSystem
 {
     public class ComplexType : RuntimeTypeSpec
     {
-        private readonly Lazy<ExportedTypeDetails> exportedTypeDetails;
+        private readonly Lazy<ComplexTypeDetails> complexTypeDetails;
         private readonly Lazy<IEnumerable<ComplexType>> subTypes;
         private Func<IDictionary<PropertySpec, object>, object> createFunc;
         private Delegate createUsingPropertySourceFunc;
@@ -52,18 +52,18 @@ namespace Pomona.Common.TypeSystem
             this.subTypes = CreateLazy(() => (IEnumerable<ComplexType>)typeResolver.GetAllTransformedTypes()
                 .Where(x => x.BaseType == this)
                 .SelectMany(x => x.SubTypes.Append(x)).ToList());
-            this.exportedTypeDetails = CreateLazy(() => typeResolver.LoadExportedTypeDetails(this));
+            this.complexTypeDetails = CreateLazy(() => typeResolver.LoadComplexTypeDetails(this));
         }
 
 
         public virtual HttpMethod AllowedMethods
         {
-            get { return ExportedTypeDetails.AllowedMethods; }
+            get { return this.ComplexTypeDetails.AllowedMethods; }
         }
 
         public virtual ComplexProperty PrimaryId
         {
-            get { return ExportedTypeDetails.PrimaryId; }
+            get { return this.ComplexTypeDetails.PrimaryId; }
         }
 
         public new virtual IEnumerable<ComplexProperty> Properties
@@ -78,47 +78,47 @@ namespace Pomona.Common.TypeSystem
 
         public bool DeleteAllowed
         {
-            get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
+            get { return this.ComplexTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
         }
 
         public ComplexProperty ETagProperty
         {
-            get { return ExportedTypeDetails.ETagProperty; }
+            get { return this.ComplexTypeDetails.ETagProperty; }
         }
 
         public override bool IsAbstract
         {
-            get { return ExportedTypeDetails.IsAbstract; }
+            get { return this.ComplexTypeDetails.IsAbstract; }
         }
 
         public override bool IsAlwaysExpanded
         {
-            get { return ExportedTypeDetails.AlwaysExpand; }
+            get { return this.ComplexTypeDetails.AlwaysExpand; }
         }
 
         public bool MappedAsValueObject
         {
-            get { return ExportedTypeDetails.MappedAsValueObject; }
+            get { return this.ComplexTypeDetails.MappedAsValueObject; }
         }
 
         public Action<object> OnDeserialized
         {
-            get { return ExportedTypeDetails.OnDeserialized; }
+            get { return this.ComplexTypeDetails.OnDeserialized; }
         }
 
         public bool PatchAllowed
         {
-            get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
+            get { return this.ComplexTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
         }
 
         public string PluralName
         {
-            get { return ExportedTypeDetails.PluralName; }
+            get { return this.ComplexTypeDetails.PluralName; }
         }
 
         public bool PostAllowed
         {
-            get { return ExportedTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
+            get { return this.ComplexTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
         }
 
         public IEnumerable<ComplexType> SubTypes
@@ -131,9 +131,9 @@ namespace Pomona.Common.TypeSystem
             get { return (IExportedTypeResolver)base.TypeResolver; }
         }
 
-        protected ExportedTypeDetails ExportedTypeDetails
+        protected ComplexTypeDetails ComplexTypeDetails
         {
-            get { return this.exportedTypeDetails.Value; }
+            get { return this.complexTypeDetails.Value; }
         }
 
 

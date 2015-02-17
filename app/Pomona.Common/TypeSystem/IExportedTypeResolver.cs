@@ -6,7 +6,7 @@ namespace Pomona.Common.TypeSystem
     {
         IEnumerable<ComplexType> GetAllTransformedTypes();
         ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty);
-        ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType);
+        ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType);
         ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
     }
 }

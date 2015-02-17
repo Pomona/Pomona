@@ -275,7 +275,7 @@
     <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumTypeSpec.cs" />
     <Compile Include="TypeSystem\ComplexPropertyDetails.cs" />
-    <Compile Include="TypeSystem\ExportedTypeDetails.cs" />
+    <Compile Include="TypeSystem\ComplexTypeDetails.cs" />
     <Compile Include="TypeSystem\ExportedTypeResolverBase.cs" />
     <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
     <Compile Include="TypeSystem\IClientTypeFactory.cs" />

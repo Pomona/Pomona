@@ -187,11 +187,11 @@ namespace Pomona.Common
         }
 
 
-        public override ExportedTypeDetails LoadExportedTypeDetails(ComplexType exportedType)
+        public override ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType)
         {
             if (IsAnonType(exportedType))
             {
-                return new ExportedTypeDetails(exportedType,
+                return new ComplexTypeDetails(exportedType,
                                                HttpMethod.Get,
                                                null,
                                                null,
@@ -203,7 +203,7 @@ namespace Pomona.Common
             var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
             var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
                                  | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
-            return new ExportedTypeDetails(exportedType,
+            return new ComplexTypeDetails(exportedType,
                                            allowedMethods,
                                            ria.UrlRelativePath != null
                                                ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
