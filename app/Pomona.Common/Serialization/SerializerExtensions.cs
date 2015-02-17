@@ -47,12 +47,14 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public static T DeserializeFromString<T>(this ITextDeserializer deserializer,
+        public static T DeserializeString<T>(this ITextDeserializer deserializer,
             string serializedObj,
             DeserializeOptions options = null)
         {
             if (deserializer == null)
                 throw new ArgumentNullException("deserializer");
+            if (serializedObj == null)
+                throw new ArgumentNullException("serializedObj");
             using (var textReader = new StringReader(serializedObj))
             {
                 return deserializer.Deserialize<T>(textReader, options);

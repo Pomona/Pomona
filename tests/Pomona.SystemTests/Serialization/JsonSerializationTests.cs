@@ -70,7 +70,7 @@ namespace Pomona.SystemTests.Serialization
         public void DateTimeWithUTCMarkAtEndDeserializesCorrectly()
         {
             var obj =
-                this.deserializer.DeserializeFromString<IStringToObjectDictionaryContainer>(
+                this.deserializer.DeserializeString<IStringToObjectDictionaryContainer>(
                     "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00Z' } } }");
             Assert.That((DateTime)obj.Map.SafeGet("blah"),
                 Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Utc)));
@@ -81,7 +81,7 @@ namespace Pomona.SystemTests.Serialization
         public void DateTimeWithoutUTCMarkAtEndDeserializesCorrectly()
         {
             var obj =
-                this.deserializer.DeserializeFromString<IStringToObjectDictionaryContainer>(
+                this.deserializer.DeserializeString<IStringToObjectDictionaryContainer>(
                     "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00' } } }");
             Assert.That((DateTime)obj.Map.SafeGet("blah"),
                 Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Local)));
@@ -91,7 +91,7 @@ namespace Pomona.SystemTests.Serialization
         [Test]
         public void UnknownPropertyIsIgnoredByDeserializer()
         {
-            this.deserializer.DeserializeFromString<IOrderItem>("{name:\"blah\",ignored:\"optional\"}");
+            this.deserializer.DeserializeString<IOrderItem>("{name:\"blah\",ignored:\"optional\"}");
         }
     }
 }
