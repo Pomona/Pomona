@@ -49,7 +49,7 @@ namespace Pomona.Common.TypeSystem
             Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
-            this.subTypes = CreateLazy(() => (IEnumerable<ComplexType>)typeResolver.GetAllTransformedTypes()
+            this.subTypes = CreateLazy(() => (IEnumerable<ComplexType>)typeResolver.GetAllComplexTypes()
                 .Where(x => x.BaseType == this)
                 .SelectMany(x => x.SubTypes.Append(x)).ToList());
             this.complexTypeDetails = CreateLazy(() => typeResolver.LoadComplexTypeDetails(this));

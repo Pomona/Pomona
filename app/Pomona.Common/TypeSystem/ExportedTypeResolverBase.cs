@@ -30,7 +30,7 @@ namespace Pomona.Common.TypeSystem
 {
     public abstract class ExportedTypeResolverBase : TypeResolver, IExportedTypeResolver
     {
-        public abstract IEnumerable<ComplexType> GetAllTransformedTypes();
+        public abstract IEnumerable<ComplexType> GetAllComplexTypes();
         public abstract ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty);
         public abstract ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType);
         public abstract ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);

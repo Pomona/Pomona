@@ -130,7 +130,7 @@ namespace Pomona.Common
 
         #endregion
 
-        public override IEnumerable<ComplexType> GetAllTransformedTypes()
+        public override IEnumerable<ComplexType> GetAllComplexTypes()
         {
             return this.typeNameMap.Values.OfType<ComplexType>();
         }

@@ -123,7 +123,7 @@ namespace Pomona
         }
 
 
-        public override IEnumerable<ComplexType> GetAllTransformedTypes()
+        public override IEnumerable<ComplexType> GetAllComplexTypes()
         {
             return TransformedTypes;
         }
