@@ -52,6 +52,11 @@ namespace Pomona.Common
 
         public static PropertyInfo GetBaseDefinition(this PropertyInfo propertyInfo)
         {
+            var virtualPropertyInfo = propertyInfo as VirtualPropertyInfo;
+            if (virtualPropertyInfo != null)
+            {
+                return virtualPropertyInfo.BaseDefinition;
+            }
             var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);
             if (method == null)
                 return propertyInfo.NormalizeReflectedType();
@@ -456,7 +461,7 @@ namespace Pomona.Common
                 (TMemberInfo)memberInfo.DeclaringType.GetMember(memberInfo.Name,
                                                                 BindingFlags.Instance | BindingFlags.NonPublic |
                                                                 BindingFlags.Public)
-                    .First(x => x.MetadataToken == memberInfo.MetadataToken);
+                    .FirstOrDefault(x => x.MetadataToken == memberInfo.MetadataToken);
         }
 
 

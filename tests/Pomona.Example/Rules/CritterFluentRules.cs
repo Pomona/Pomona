@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Linq;
 
 using Nancy;
 
@@ -194,6 +195,20 @@ namespace Pomona.Example.Rules
             map.Exclude(x => x.Critter);
         }
 
+
+        public void Map(ITypeMappingConfigurator<VirtualPropertyThing> map)
+        {
+            map
+                .Include<string>("Rocky",
+                                 o => o.OnGetAndQuery(x => x.Items.SafeGet("Rocky") ?? "BALOBA")
+                                     .OnSet((x, v) => x.Items["Rocky"] = v)
+                                     .Writable())
+                .Include<double>("NumberSquareRoot",
+                                 o => o.OnGetAndQuery(x => Math.Sqrt(x.Number))
+                                     .OnSet((x, v) => x.Number = v * v)
+                                     .Writable());
+
+        }
 
         public void Map(ITypeMappingConfigurator<Critter> map)
         {

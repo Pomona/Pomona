@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 
 using NUnit.Framework;
 
@@ -225,6 +226,16 @@ namespace Pomona.UnitTests.FluentMapping
                 FluentTypeMappingFilter.BuildPropertyMappingTemplate(
                     CritterRepository.GetEntityTypes().Where(x => !x.IsEnum));
             Console.Write(code);
+        }
+
+
+        [Test]
+        public void Include_non_existant_property_makes_GetAllPropertiesOfType_return_a_new_virtual_property()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(x => x.Include<int>("Virtual", o => o.OnGet(y => 1234)),
+                                                             (x, t) =>
+                                                                 x.GetAllPropertiesOfType(t, default(BindingFlags)).Any(
+                                                                     y => y.Name == "Virtual"), false, true);
         }
 
 

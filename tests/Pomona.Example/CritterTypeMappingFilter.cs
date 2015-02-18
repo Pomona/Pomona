@@ -36,6 +36,7 @@ using Mono.Reflection;
 
 using Newtonsoft.Json;
 
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 

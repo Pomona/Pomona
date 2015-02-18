@@ -26,40 +26,56 @@
 
 #endregion
 
-using System;
-using System.Linq.Expressions;
+using System.Threading;
 
-using Pomona.Common.TypeSystem;
-
-namespace Pomona.FluentMapping
+namespace Pomona.Common.TypeSystem
 {
-    public static class PropertyOptionsBuilderExtensions
+    internal static class VirtualMemberMetadataTokenAllocator
     {
-        public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Expand
-            <TDeclaringType, TPropertyType>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> builder)
+        private static int tokenCounter;
+
+
+        static VirtualMemberMetadataTokenAllocator()
         {
-            if (builder == null)
-                throw new ArgumentNullException("builder");
-            return builder.Expand(ExpandMode.Full);
+            tokenCounter = (int)MetadataTokenType.Invalid;
         }
 
 
-        public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExpandShallow
-            <TDeclaringType, TPropertyType>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> builder)
+        internal static int AllocateToken()
         {
-            if (builder == null)
-                throw new ArgumentNullException("builder");
-            return builder.Expand(ExpandMode.Shallow);
+            return Interlocked.Increment(ref tokenCounter);
         }
 
 
-        public static IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnGetAndQuery
-            <TDeclaringType, TPropertyType>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> builder,
-                                            Expression<Func<TDeclaringType, TPropertyType>> getter)
+        private enum MetadataTokenType
         {
-            if (builder == null)
-                throw new ArgumentNullException("builder");
-            return builder.OnQuery(getter).OnGet(getter.Compile());
+            Module = 0,
+            TypeRef = 16777216,
+            TypeDef = 33554432,
+            FieldDef = 67108864,
+            MethodDef = 100663296,
+            ParamDef = 134217728,
+            InterfaceImpl = 150994944,
+            MemberRef = 167772160,
+            CustomAttribute = 201326592,
+            Permission = 234881024,
+            Signature = 285212672,
+            Event = 335544320,
+            Property = 385875968,
+            ModuleRef = 436207616,
+            TypeSpec = 452984832,
+            Assembly = 536870912,
+            AssemblyRef = 587202560,
+            File = 637534208,
+            ExportedType = 654311424,
+            ManifestResource = 671088640,
+            GenericPar = 704643072,
+            MethodSpec = 721420288,
+            String = 1879048192,
+            Name = 1895825408,
+            BaseType = 1912602624,
+            Invalid = 2147483647,
+            Mask = 0xff << 24
         }
     }
 }

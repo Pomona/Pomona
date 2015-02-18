@@ -137,7 +137,14 @@ namespace TestNs
 
         public IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags)
         {
-            return this.wrappedFilter.GetAllPropertiesOfType(type, bindingFlags);
+            TypeMappingOptions typeMappingOptions;
+            var properties = this.wrappedFilter.GetAllPropertiesOfType(type, bindingFlags);
+            if (this.typeMappingDict.TryGetValue(type.FullName, out typeMappingOptions))
+            {
+                return properties.Concat(typeMappingOptions.VirtualProperties);
+            }
+
+            return properties;
         }
 
 

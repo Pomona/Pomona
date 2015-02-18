@@ -308,6 +308,9 @@
     <Compile Include="TypeSystem\TypeResolverExtensions.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="TypeSystem\TypeSpec.cs" />
+    <Compile Include="TypeSystem\VirtualMemberMetadataTokenAllocator.cs" />
+    <Compile Include="TypeSystem\VirtualMethodInfo.cs" />
+    <Compile Include="TypeSystem\VirtualPropertyInfo.cs" />
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />

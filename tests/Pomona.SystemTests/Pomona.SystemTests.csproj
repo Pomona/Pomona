@@ -119,6 +119,7 @@
     <Compile Include="Serialization\JsonSerializationTests.cs" />
     <Compile Include="TestingClient\TestingClientTests.cs" />
     <Compile Include="TypeSystem\ClientTypeMapperTests.cs" />
+    <Compile Include="VirtualPropertyTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">

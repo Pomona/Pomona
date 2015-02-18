@@ -81,6 +81,9 @@ namespace Pomona.UnitTests
         #endregion
 
         private Type[] exceptions;
+        const MethodAttributes methodAttributes = MethodAttributes.NewSlot | MethodAttributes.SpecialName |
+                                          MethodAttributes.HideBySig
+                                          | MethodAttributes.Virtual | MethodAttributes.Public;
 
 
         [Test]

@@ -72,6 +72,7 @@ namespace Pomona.FluentMapping
         private Type postResponseType;
         private string urlRelativePath;
         private bool? isSingleton;
+        private List<VirtualPropertyInfo> virtualProperties = new List<VirtualPropertyInfo>();
 
 
         public TypeMappingOptions(Type declaringType)
@@ -172,6 +173,11 @@ namespace Pomona.FluentMapping
 
         public string UrlRelativePath { get { return urlRelativePath; } }
 
+        public ICollection<VirtualPropertyInfo> VirtualProperties
+        {
+            get { return this.virtualProperties; }
+        }
+        
         internal object GetConfigurator(Type exposedAsType)
         {
             if (exposedAsType == null)
@@ -391,6 +397,17 @@ namespace Pomona.FluentMapping
             {
                 this.owner.HandlerTypes.Add(typeof(THandler));
                 return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(string name, Func<IPropertyOptionsBuilder<TDeclaringType, TPropertyType>, IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options)
+            {
+                if (name == null)
+                    throw new ArgumentNullException("name");
+                var propInfo = VirtualPropertyInfo.Create(name, typeof(TDeclaringType), this.owner.DeclaringType,
+                                                          typeof(TPropertyType), PropertyAttributes.None, true, false);
+                this.owner.VirtualProperties.Add(propInfo);
+                return Include(propInfo, options, propInfo.PropertyType);
             }
 
 

@@ -196,6 +196,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> Include<TPropertyType>(string name, Func<IPropertyOptionsBuilder<TDeclaring, TPropertyType>, IPropertyOptionsBuilder<TDeclaring, TPropertyType>> options)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> Include<TPropertyType>(
             Expression<Func<TDeclaring, TPropertyType>> property,
             Func<IPropertyOptionsBuilder<TDeclaring, TPropertyType>, IPropertyOptionsBuilder<TDeclaring, TPropertyType>>
