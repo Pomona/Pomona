@@ -37,6 +37,7 @@ using Nancy.Extensions;
 using Newtonsoft.Json;
 
 using Pomona.Common;
+using Pomona.Common.Expressions;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
@@ -222,7 +223,7 @@ namespace Pomona
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
-            return null;
+            return Ex.Lambda(type, x => x.Member(propertyInfo.NormalizeReflectedType()));
         }
 
 
