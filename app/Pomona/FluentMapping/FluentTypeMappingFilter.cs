@@ -162,12 +162,6 @@ namespace TestNs
         }
 
 
-        public LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
-        {
-            return this.wrappedFilter.GetDecompiledPropertyFormula(type, propertyInfo);
-        }
-
-
         public DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
         {
             return this.wrappedFilter.GetDefaultPropertyInclusionMode();
@@ -399,15 +393,6 @@ namespace TestNs
         public bool PostOfTypeIsAllowed(Type type)
         {
             return FromMappingOrDefault(type, x => x.PostAllowed, () => this.wrappedFilter.PostOfTypeIsAllowed(type));
-        }
-
-
-        public bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
-        {
-            return FromMappingOrDefault(type,
-                                        propertyInfo,
-                                        x => x.PropertyFormulaIsDecompiled,
-                                        () => this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo));
         }
 
 

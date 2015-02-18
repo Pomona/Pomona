@@ -202,7 +202,6 @@ namespace Pomona.Example.Rules
                 .Include(x => x.CreatedOn)
                 .Include(x => x.Subscriptions, o => o.Expand().Writable())
                 .Include(x => x.HandledGeneratedProperty, o => o.OnQuery(x => x.Id % 6))
-                .Include(x => x.DecompiledGeneratedProperty, o => o.UsingDecompiledFormula())
                 .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
                 .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
                 .Include(x => x.PropertyWithAttributeAddedFluently, o => o.HasAttribute(new ObsoleteAttribute()))

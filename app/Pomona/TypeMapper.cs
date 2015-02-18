@@ -169,12 +169,7 @@ namespace Pomona
             var propSpec = memberSpec as PropertySpec;
             if (propSpec != null)
             {
-                var formulaExpr = this.filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo)
-                                  ?? (this.filter.PropertyFormulaIsDecompiled(propSpec.ReflectedType,
-                                                                              propSpec.PropertyInfo)
-                                      ? this.filter.GetDecompiledPropertyFormula(propSpec.ReflectedType,
-                                                                                 propSpec.PropertyInfo)
-                                      : null);
+                var formulaExpr = this.filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo);
                 if (formulaExpr != null)
                     attrs = attrs.Append(new PropertyFormulaAttribute(formulaExpr));
 

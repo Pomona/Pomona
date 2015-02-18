@@ -620,17 +620,6 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "This test does not work on TC with code coverage enabled.")]
-        public void QueryCritter_WithDecompiledGeneratedProperty_UsesPropertyFormula()
-        {
-            Client.Critters.Query(x => x.DecompiledGeneratedProperty == 0x1337).ToList();
-            var query = Repository.QueryLog.Last();
-            Expression<Func<Critter, bool>> expectedFilter = _this => (_this.Id + 100) == 0x1337;
-            query.FilterExpression.AssertEquals(expectedFilter);
-        }
-
-
         [Test]
         public void QueryCritter_WithExpandedPropertyOfAnonymousClass_HasPropertyExpanded()
         {

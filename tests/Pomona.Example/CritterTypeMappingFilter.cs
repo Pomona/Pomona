@@ -88,29 +88,6 @@ namespace Pomona.Example
         }
 
 
-        public override LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
-        {
-            try
-            {
-                try
-                {
-                    Console.WriteLine("Decompiled instructions:");
-                    var instructions = propertyInfo.GetGetMethod().GetInstructions();
-                    Console.WriteLine(string.Join("\r\n", instructions));
-                }
-                catch
-                {
-                }
-                return base.GetDecompiledPropertyFormula(type, propertyInfo);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception while decompiling {0}: {1}", propertyInfo.Name, ex);
-                throw;
-            }
-        }
-
-
         public override JsonConverter GetJsonConverterForType(Type type)
         {
             if (type == typeof(WebColor))

@@ -141,12 +141,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingDecompiledFormula()
-        {
-            return this;
-        }
-
-
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> UsingFormula(
             Expression<Func<TDeclaring, TProperty>> formula)
         {

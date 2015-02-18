@@ -54,14 +54,6 @@ namespace Pomona
 
         #endregion
 
-        #region Delegate decompiler related methods
-
-        // The methods below should maybe be provided in an addon, to remove dependency on DelegateCompiler
-        LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo);
-        bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo);
-
-        #endregion
-
         #region Access rules, don't know where to put this yet
 
         bool DeleteOfTypeIsAllowed(Type type);

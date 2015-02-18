@@ -75,7 +75,6 @@ namespace Pomona.FluentMapping
         public Func<object, IContainer, object> OnGetDelegate { get; set; }
 
         public Action<object, object, IContainer> OnSetDelegate { get; set; }
-        public bool? PropertyFormulaIsDecompiled { get; internal set; }
 
         public PropertyInfo PropertyInfo
         {

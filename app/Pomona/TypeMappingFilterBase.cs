@@ -32,8 +32,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using DelegateDecompiler;
-
 using Nancy.Extensions;
 
 using Newtonsoft.Json;
@@ -133,16 +131,6 @@ namespace Pomona
                 throw new ArgumentNullException("type");
 
             return null;
-        }
-
-
-        public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            var getMethod = propertyInfo.GetGetMethod(true);
-            var decompiled = getMethod.Decompile();
-            return decompiled;
         }
 
 
@@ -332,13 +320,6 @@ namespace Pomona
             return true;
         }
 
-
-        public virtual bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
-        {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
-            return false;
-        }
 
         [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
         public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)

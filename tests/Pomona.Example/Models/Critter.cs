@@ -62,11 +62,6 @@ namespace Pomona.Example.Models
 
         public DateTime CreatedOn { get; set; }
 
-        public int DecompiledGeneratedProperty
-        {
-            get { return Id + 100; }
-        }
-
         public IList<Critter> Enemies { get; set; }
         public Farm Farm { get; set; }
 

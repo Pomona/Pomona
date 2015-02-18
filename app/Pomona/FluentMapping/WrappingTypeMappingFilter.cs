@@ -115,12 +115,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual LambdaExpression GetDecompiledPropertyFormula(Type type, PropertyInfo propertyInfo)
-        {
-            return this.wrappedFilter.GetDecompiledPropertyFormula(type, propertyInfo);
-        }
-
-
         public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
         {
             return this.wrappedFilter.GetDefaultPropertyInclusionMode();
@@ -282,12 +276,6 @@ namespace Pomona.FluentMapping
         public virtual bool PostOfTypeIsAllowed(Type type)
         {
             return this.wrappedFilter.PostOfTypeIsAllowed(type);
-        }
-
-
-        public virtual bool PropertyFormulaIsDecompiled(Type type, PropertyInfo propertyInfo)
-        {
-            return this.wrappedFilter.PropertyFormulaIsDecompiled(type, propertyInfo);
         }
 
 

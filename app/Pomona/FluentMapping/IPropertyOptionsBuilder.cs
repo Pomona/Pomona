@@ -119,7 +119,6 @@ namespace Pomona.FluentMapping
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> OnSet(Action<TDeclaringType, TPropertyType> setter);
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ReadOnly();
-        IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula();
 
 
         [Obsolete("Use OnQuery instead")]

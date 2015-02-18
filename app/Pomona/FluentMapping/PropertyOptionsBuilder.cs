@@ -180,13 +180,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingDecompiledFormula()
-        {
-            this.options.PropertyFormulaIsDecompiled = true;
-            return this;
-        }
-
-
         public override IPropertyOptionsBuilder<TDeclaringType, TPropertyType> UsingFormula(
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {
