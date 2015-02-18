@@ -32,8 +32,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
-using Newtonsoft.Json.Converters;
-
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -76,6 +74,58 @@ namespace Pomona.Common
         public IEnumerable<Type> ResourceTypes
         {
             get { return this.resourceTypes; }
+        }
+
+
+        public object CreatePatchForm(Type resourceType, object original)
+        {
+            var extendedResourceProxy = original as ExtendedResourceBase;
+
+            if (extendedResourceProxy != null)
+            {
+                var info = extendedResourceProxy.UserTypeInfo;
+                return
+                    this.extendedResourceMapper.WrapForm(
+                        CreatePatchForm(info.ServerType, extendedResourceProxy.WrappedResource),
+                        info.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
+            if (resourceInfo.PatchFormType == null)
+                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
+
+            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
+                                                                        this.FromType(
+                                                                            resourceInfo.InterfaceType),
+                                                                        this,
+                                                                        null,
+                                                                        resourceInfo.InterfaceType);
+
+            return serverPatchForm;
+        }
+
+
+        public object CreatePostForm(Type resourceType)
+        {
+            ExtendedResourceInfo extendedResourceInfo;
+
+            if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
+            {
+                return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
+                                                            extendedResourceInfo.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
+            if (resourceInfo.PostFormType == null)
+                throw new InvalidOperationException("Method POST is not allowed for uri.");
+            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
+            return serverPostForm;
+        }
+
+
+        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        {
+            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
         }
 
 
@@ -168,14 +218,14 @@ namespace Pomona.Common
                 };
 
             return new ComplexPropertyDetails(isAttributes,
-                                               isEtagProperty,
-                                               isPrimaryId,
-                                               true,
-                                               info.AccessMode,
-                                               info.ItemAccessMode,
-                                               false,
-                                               NameUtils.ConvertCamelCaseToUri(complexProperty.Name),
-                                               ExpandMode.Full);
+                                              isEtagProperty,
+                                              isPrimaryId,
+                                              true,
+                                              info.AccessMode,
+                                              info.ItemAccessMode,
+                                              false,
+                                              NameUtils.ConvertCamelCaseToUri(complexProperty.Name),
+                                              ExpandMode.Full);
         }
 
 
@@ -184,26 +234,26 @@ namespace Pomona.Common
             if (IsAnonType(exportedType))
             {
                 return new ComplexTypeDetails(exportedType,
-                                               HttpMethod.Get,
-                                               null,
-                                               null,
-                                               true,
-                                               true,
-                                               false);
+                                              HttpMethod.Get,
+                                              null,
+                                              null,
+                                              true,
+                                              true,
+                                              false);
             }
 
             var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
             var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
                                  | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
             return new ComplexTypeDetails(exportedType,
-                                           allowedMethods,
-                                           ria.UrlRelativePath != null
-                                               ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
-                                               : null,
-                                           null,
-                                           ria.IsValueObject,
-                                           true,
-                                           false);
+                                          allowedMethods,
+                                          ria.UrlRelativePath != null
+                                              ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
+                                              : null,
+                                          null,
+                                          ria.IsValueObject,
+                                          true,
+                                          false);
         }
 
 
@@ -235,7 +285,11 @@ namespace Pomona.Common
         {
             var typeSpec = memberSpec as RuntimeTypeSpec;
             if (typeSpec != null && typeof(IStringEnum).IsAssignableFrom(typeSpec))
-                return base.LoadDeclaredAttributes(memberSpec).Append(new CustomJsonConverterAttribute(new StringEnumJsonConverter()));
+            {
+                return
+                    base.LoadDeclaredAttributes(memberSpec).Append(
+                        new CustomJsonConverterAttribute(new StringEnumJsonConverter()));
+            }
             return base.LoadDeclaredAttributes(memberSpec);
         }
 
@@ -263,61 +317,9 @@ namespace Pomona.Common
         }
 
 
-        public object CreatePatchForm(Type resourceType, object original)
-        {
-            var extendedResourceProxy = original as ExtendedResourceBase;
-
-            if (extendedResourceProxy != null)
-            {
-                var info = extendedResourceProxy.UserTypeInfo;
-                return
-                    this.extendedResourceMapper.WrapForm(
-                        CreatePatchForm(info.ServerType, extendedResourceProxy.WrappedResource),
-                        info.ExtendedType);
-            }
-
-            var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (resourceInfo.PatchFormType == null)
-                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
-
-            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                                                                        this.FromType(
-                                                                            resourceInfo.InterfaceType),
-                                                                        this,
-                                                                        null,
-                                                                        resourceInfo.InterfaceType);
-
-            return serverPatchForm;
-        }
-
-
-        public object CreatePostForm(Type resourceType)
-        {
-            ExtendedResourceInfo extendedResourceInfo;
-
-            if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
-            {
-                return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
-                                                            extendedResourceInfo.ExtendedType);
-            }
-
-            var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (resourceInfo.PostFormType == null)
-                throw new InvalidOperationException("Method POST is not allowed for uri.");
-            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
-            return serverPostForm;
-        }
-
-
         public bool TryGetExtendedTypeInfo(Type type, out ExtendedResourceInfo userTypeInfo)
         {
             return ExtendedResourceInfo.TryGetExtendedResourceInfo(type, out userTypeInfo);
-        }
-
-
-        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
-        {
-            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
         }
 
 
