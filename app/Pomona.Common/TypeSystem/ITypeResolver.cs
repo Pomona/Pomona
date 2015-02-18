@@ -46,7 +46,6 @@ namespace Pomona.Common.TypeSystem
         string LoadName(MemberSpec memberSpec);
         string LoadNamespace(TypeSpec typeSpec);
         IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec);
-        TypeSpec LoadReflectedType(PropertySpec propertySpec);
         TypeSpec LoadBaseType(TypeSpec typeSpec);
         TypeSpec LoadPropertyType(PropertySpec propertySpec);
         PropertyFlags LoadPropertyFlags(PropertySpec propertySpec);

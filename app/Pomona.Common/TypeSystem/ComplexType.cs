@@ -206,7 +206,7 @@ namespace Pomona.Common.TypeSystem
 
         protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
         {
-            return new ComplexProperty(TypeResolver, property, () => this);
+            return new ComplexProperty(TypeResolver, property, this);
         }
 
         #region Nested type: ConstructorPropertySource

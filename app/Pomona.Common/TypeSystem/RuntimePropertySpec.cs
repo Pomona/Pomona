@@ -32,7 +32,7 @@ namespace Pomona.Common.TypeSystem
 {
     public class RuntimePropertySpec : PropertySpec
     {
-        public RuntimePropertySpec(ITypeResolver typeResolver, PropertyInfo propertyInfo, Func<TypeSpec> reflectedType = null) : base(typeResolver, propertyInfo, reflectedType)
+        public RuntimePropertySpec(ITypeResolver typeResolver, PropertyInfo propertyInfo, RuntimeTypeSpec reflectedType) : base(typeResolver, propertyInfo, reflectedType)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");

@@ -164,7 +164,7 @@ namespace Pomona.Common.TypeSystem
 
         protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
         {
-            return new RuntimePropertySpec(TypeResolver, property, () => this);
+            return new RuntimePropertySpec(TypeResolver, property, this);
         }
 
 

@@ -120,13 +120,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual TypeSpec LoadReflectedType(PropertySpec propertySpec)
-        {
-            if (propertySpec == null) throw new ArgumentNullException("propertySpec");
-
-            return propertySpec.OnLoadReflectedType();
-        }
-
         public virtual TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
             if (typeSpec == null) throw new ArgumentNullException("typeSpec");

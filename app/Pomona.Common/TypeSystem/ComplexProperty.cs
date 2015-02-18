@@ -38,7 +38,7 @@ namespace Pomona.Common.TypeSystem
 
         public ComplexProperty(IExportedTypeResolver typeResolver,
                                PropertyInfo propertyInfo,
-                               Func<TypeSpec> reflectedType = null)
+                               ComplexType reflectedType)
             : base(typeResolver, propertyInfo, reflectedType)
         {
             this.exportedPropertyDetails = CreateLazy(() => typeResolver.LoadComplexPropertyDetails(this));

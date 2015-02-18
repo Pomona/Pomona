@@ -43,16 +43,18 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<bool> isRequiredForConstructor;
         private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
-        private readonly Lazy<TypeSpec> reflectedType;
+        private readonly TypeSpec reflectedType;
         private readonly Lazy<Action<object, object, IContainer>> setter;
 
 
         protected PropertySpec(ITypeResolver typeResolver,
             PropertyInfo propertyInfo,
-            Func<TypeSpec> reflectedType = null)
+            TypeSpec reflectedType)
             : base(typeResolver, propertyInfo)
         {
-            this.reflectedType = CreateLazy(reflectedType ?? (() => typeResolver.LoadReflectedType(this)));
+            if (reflectedType == null)
+                throw new ArgumentNullException("reflectedType");
+            this.reflectedType = reflectedType;
             this.declaringType = CreateLazy(() => typeResolver.LoadDeclaringType(this));
             this.propertyType = CreateLazy(() => typeResolver.LoadPropertyType(this));
             this.propertyFlags = typeResolver.LoadPropertyFlags(this);
@@ -94,7 +96,7 @@ namespace Pomona.Common.TypeSystem
 
         public virtual TypeSpec ReflectedType
         {
-            get { return this.reflectedType.Value; }
+            get { return this.reflectedType; }
         }
 
         public virtual Action<object, object, IContainer> SetterDelegate
@@ -252,15 +254,6 @@ namespace Pomona.Common.TypeSystem
                 throw new InvalidOperationException("Unable to load PropertyType when PropertyInfo is null.");
 
             return TypeResolver.FromType(PropertyInfo.PropertyType);
-        }
-
-
-        protected internal virtual TypeSpec OnLoadReflectedType()
-        {
-            if (PropertyInfo == null)
-                throw new InvalidOperationException("Unable to load ReflectedType when PropertyInfo is null.");
-
-            return TypeResolver.FromType(PropertyInfo.ReflectedType);
         }
 
 
