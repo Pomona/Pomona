@@ -305,6 +305,7 @@
     <Compile Include="TypeSystem\SharedType.cs" />
     <Compile Include="TypeSystem\ComplexType.cs" />
     <Compile Include="TypeSystem\TypeResolver.cs" />
+    <Compile Include="TypeSystem\TypeResolverExtensions.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />
     <Compile Include="TypeSystem\TypeSpec.cs" />
     <Compile Include="UniqueMemberToken.cs" />

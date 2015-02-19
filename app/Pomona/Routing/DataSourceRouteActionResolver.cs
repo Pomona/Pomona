@@ -90,7 +90,7 @@ namespace Pomona.Routing
 
                 return new PomonaResponse(repos,
                                           resultType :
-                                              request.TypeMapper.GetClassMapping<IDictionary<string, string>>());
+                                              request.TypeMapper.FromType<IDictionary<string, string>>());
             };
         }
 

@@ -67,7 +67,7 @@ namespace Pomona.UnitTests
         [Test]
         public void ChangePluralNameWorksCorrectly()
         {
-            Assert.That(((ComplexType)this.typeMapper.GetClassMapping<RenamedThing>()).PluralName,
+            Assert.That(((ComplexType)this.typeMapper.FromType<RenamedThing>()).PluralName,
                         Is.EqualTo("ThingsWithNewName"));
         }
 
@@ -75,17 +75,17 @@ namespace Pomona.UnitTests
         [Test]
         public void ChangeTypeNameWorksCorrectly()
         {
-            Assert.That(this.typeMapper.GetClassMapping<RenamedThing>().Name, Is.EqualTo("GotNewName"));
+            Assert.That(this.typeMapper.FromType<RenamedThing>().Name, Is.EqualTo("GotNewName"));
         }
 
 
         [Test]
         public void DoesNotDuplicatePropertiesWhenDerivedFromHiddenBaseClassInMiddle()
         {
-            var tt = this.typeMapper.GetClassMapping<InheritsFromHiddenBase>();
+            var tt = this.typeMapper.FromType<InheritsFromHiddenBase>();
             Assert.That(tt.Properties.Count(x => x.Name == "Id"), Is.EqualTo(1));
             var idProp = tt.Properties.First(x => x.Name == "Id");
-            Assert.That(idProp.DeclaringType, Is.EqualTo(this.typeMapper.GetClassMapping<EntityBase>()));
+            Assert.That(idProp.DeclaringType, Is.EqualTo(this.typeMapper.FromType<EntityBase>()));
         }
 
 
@@ -115,7 +115,7 @@ namespace Pomona.UnitTests
         [Test]
         public void Property_removed_from_filter_in_GetAllPropertiesOfType_is_not_mapped()
         {
-            var type = this.typeMapper.GetClassMapping<Critter>();
+            var type = this.typeMapper.FromType<Critter>();
             Assert.That(type.Properties.Where(x => x.Name == "PropertyExcludedByGetAllPropertiesOfType"), Is.Empty);
         }
 
@@ -132,7 +132,7 @@ namespace Pomona.UnitTests
         [Test]
         public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
         {
-            var tt = this.typeMapper.GetClassMapping<IExposedInterface>();
+            var tt = this.typeMapper.FromType<IExposedInterface>();
             var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyFromInheritedInterface");
             Assert.That(prop, Is.Not.Null, "Unable to find property PropertyFromInheritedInterface");
             Assert.That(prop.DeclaringType, Is.EqualTo(tt));
@@ -144,7 +144,7 @@ namespace Pomona.UnitTests
         {
             var tt =
                 (ComplexProperty)
-                    this.typeMapper.GetClassMapping<Critter>().Properties.First(
+                    this.typeMapper.FromType<Critter>().Properties.First(
                         x => x.Name == "PublicAndReadOnlyThroughApi");
             Assert.That(!tt.AccessMode.HasFlag(HttpMethod.Post));
         }
@@ -153,7 +153,7 @@ namespace Pomona.UnitTests
         [Test]
         public void Property_WithFluentlyAddedAttribute_GotAttributeAddedToPropertySpec()
         {
-            var tt = this.typeMapper.GetClassMapping<Critter>();
+            var tt = this.typeMapper.FromType<Critter>();
             var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyWithAttributeAddedFluently");
             Assert.That(prop, Is.Not.Null, "Unable to find property PropertyWithAttributeAddedFluently");
             Assert.That(prop.DeclaredAttributes.OfType<ObsoleteAttribute>().Any(), Is.True);

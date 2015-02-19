@@ -153,7 +153,7 @@ namespace Pomona.UnitTests.Routing
             // WHEN ROUTE IS AMBIGUOUS BY TYPE, WE ALWAYS NEED TO FETCH THE LAST SINGLE-RESOURCE NODE, OR AT LEAST DETERMINE TYPE
 
             var tm = new TypeMapper(new Config());
-            var root = new RootRoute((ResourceType)tm.GetClassMapping<Root>());
+            var root = new RootRoute((ResourceType)tm.FromType<Root>());
 
             var allNodes = root.WrapAsEnumerable<Route>().Flatten(x => x.Children).ToList();
 

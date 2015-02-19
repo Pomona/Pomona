@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,36 +24,19 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using CsQuery.EquationParser.Implementation;
-using NUnit.Framework;
-using Pomona.Common.TypeSystem;
-using Pomona.Example;
-using Pomona.Example.Models;
-using Pomona.Example.Models.Existence;
 
-namespace Pomona.UnitTests.TypeSystem
+namespace Pomona.Common.TypeSystem
 {
-    [TestFixture]
-    public class TypeSystemTests
+    public static class TypeResolverExtensions
     {
-        [Test]
-        public void TransformedType_RequiredProperties_ReturnsRequiredProperties()
+        public static TypeSpec FromType<T>(this ITypeResolver typeResolver)
         {
-            var mapper = new TypeMapper(new CritterPomonaConfiguration());
-            var type = mapper.FromType(typeof (Planet));
-            var requiredProperties = type.RequiredProperties.ToList();
-            Assert.That(requiredProperties.All(x => x.IsRequiredForConstructor), Is.True);
-            Assert.Inconclusive();
-        }
-
-        [Test]
-        public void FromEnumType_ReturnsEnumTypeSpec()
-        {
-            var mapper = new TypeMapper(new CritterPomonaConfiguration());
-            Assert.That(mapper.FromType<CustomEnum>(), Is.InstanceOf<EnumTypeSpec>());
+            if (typeResolver == null)
+                throw new ArgumentNullException("typeResolver");
+            return typeResolver.FromType(typeof(T));
         }
     }
 }

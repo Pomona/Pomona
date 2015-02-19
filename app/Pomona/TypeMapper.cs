@@ -332,14 +332,6 @@ namespace Pomona
         }
 
 
-        public TypeSpec GetClassMapping<T>()
-        {
-            var type = typeof(T);
-
-            return FromType(type);
-        }
-
-
         public bool TryGetTypeSpec(Type type, out TypeSpec typeSpec)
         {
             typeSpec = null;

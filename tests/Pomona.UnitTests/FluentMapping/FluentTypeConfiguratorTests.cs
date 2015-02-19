@@ -88,7 +88,7 @@ namespace Pomona.UnitTests.FluentMapping
         {
             CheckHowChangeInTypeRuleAffectsFilter<Top, ResourceType>(
                 x => x.ExposedAt("/newpath"),
-                (f, t) => (ResourceType)new TypeMapper(f, new []  {typeof(Top)}, null).GetClassMapping<Top>(),
+                (f, t) => (ResourceType)new TypeMapper(f, new []  {typeof(Top)}, null).FromType<Top>(),
                 (origValue, changedValue) =>
                 {
                     Assert.That(changedValue.UrlRelativePath, Is.Not.EqualTo(origValue),
@@ -104,7 +104,7 @@ namespace Pomona.UnitTests.FluentMapping
             CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
                 x => x.ExposedAt("/"),
                 (f, t) =>
-                    ((ResourceType)new TypeMapper(f, new[] { typeof(Top) }, null).GetClassMapping<Top>())
+                    ((ResourceType)new TypeMapper(f, new[] { typeof(Top) }, null).FromType<Top>())
                     .UrlRelativePath, "tops", "");
         }
 
