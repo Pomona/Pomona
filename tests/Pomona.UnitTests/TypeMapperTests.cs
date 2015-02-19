@@ -113,6 +113,14 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void Property_removed_from_filter_in_GetAllPropertiesOfType_is_not_mapped()
+        {
+            var type = this.typeMapper.GetClassMapping<Critter>();
+            Assert.That(type.Properties.Where(x => x.Name == "PropertyExcludedByGetAllPropertiesOfType"), Is.Empty);
+        }
+
+
+        [Test]
         public void InterfaceIGrouping_IsMappedAsValueObject()
         {
             var type = this.typeMapper.FromType(typeof(IGrouping<string, string>));

@@ -100,6 +100,12 @@ namespace Pomona
         }
 
 
+        public virtual IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags)
+        {
+            return type.GetProperties(bindingFlags);
+        }
+
+
         public virtual PropertyInfo GetChildToParentProperty(Type type)
         {
             return null;

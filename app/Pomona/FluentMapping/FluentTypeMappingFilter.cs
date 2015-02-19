@@ -135,6 +135,12 @@ namespace TestNs
         }
 
 
+        public IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags)
+        {
+            return this.wrappedFilter.GetAllPropertiesOfType(type, bindingFlags);
+        }
+
+
         public PropertyInfo GetChildToParentProperty(Type type)
         {
             return FromMappingOrDefault(type,

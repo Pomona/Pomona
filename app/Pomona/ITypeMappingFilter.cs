@@ -117,6 +117,7 @@ namespace Pomona
 
         #region TypeMappingConventions
 
+        IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags);
         PropertyInfo GetChildToParentProperty(Type type);
         PropertyInfo GetParentToChildProperty(Type type);
         string GetPluralNameForType(Type type);
@@ -127,8 +128,7 @@ namespace Pomona
         bool GetTypeIsAbstract(Type type);
         string GetTypeMappedName(Type type);
 
-
-        /// <summary>
+            /// <summary>
         /// This returns what URI this type will be mapped to.
         /// For example if this method returns the type Animal when passed Dog
         /// it means that dogs will be available on same url as Animal.

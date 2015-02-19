@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -123,6 +124,12 @@ namespace Pomona.Example
                 return ExpandMode.Full;
 
             return base.GetPropertyExpandMode(type, propertyInfo);
+        }
+
+
+        public override IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags)
+        {
+            return base.GetAllPropertiesOfType(type, bindingFlags).Where(x => x.Name != "PropertyExcludedByGetAllPropertiesOfType");
         }
 
 

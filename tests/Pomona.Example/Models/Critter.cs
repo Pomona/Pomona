@@ -58,6 +58,8 @@ namespace Pomona.Example.Models
             get { throw new NotImplementedException("Should not be gotten!"); }
         }
 
+        public string PropertyExcludedByGetAllPropertiesOfType { get; set; }
+
         public CrazyValueObject CrazyValue { get; set; }
 
         public DateTime CreatedOn { get; set; }

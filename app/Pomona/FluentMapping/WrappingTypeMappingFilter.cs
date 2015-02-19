@@ -89,6 +89,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags)
+        {
+            return this.wrappedFilter.GetAllPropertiesOfType(type, bindingFlags);
+        }
+
+
         public virtual PropertyInfo GetChildToParentProperty(Type type)
         {
             return this.wrappedFilter.GetChildToParentProperty(type);

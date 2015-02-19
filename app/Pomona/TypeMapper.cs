@@ -267,12 +267,13 @@ namespace Pomona
             {
                 var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
                     ? typeSpec.Type.GetInterfaces().Where(x => !this.filter.TypeIsMapped(x)).SelectMany(
-                        x => x.GetProperties())
+                        x => this.filter.GetAllPropertiesOfType(x, BindingFlags.Instance | BindingFlags.Public))
                     : Enumerable.Empty<PropertyInfo>();
 
-                return typeSpec.Type
-                    .GetProperties(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public
-                                   | BindingFlags.NonPublic)
+                return this.filter.GetAllPropertiesOfType(typeSpec,
+                                                          BindingFlags.Instance | BindingFlags.Static
+                                                          | BindingFlags.Public
+                                                          | BindingFlags.NonPublic)
                     .Concat(propertiesFromNonMappedInterfaces)
                     .Where(x => this.filter.PropertyIsIncluded(typeSpec.Type, x))
                     .Select(x => WrapProperty(typeSpec, x));
