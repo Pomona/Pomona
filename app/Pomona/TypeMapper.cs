@@ -360,12 +360,6 @@ namespace Pomona
         }
 
 
-        private TypeSpec CreateClassMapping(Type type)
-        {
-            return FromType(type);
-        }
-
-
         private Type GetKnownDeclaringType(Type reflectedType, PropertyInfo propertyInfo)
         {
             // Hack, IGrouping
