@@ -36,7 +36,7 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<StructuredPropertyDetails> exportedPropertyDetails;
 
 
-        public StructuredProperty(IExportedTypeResolver typeResolver,
+        public StructuredProperty(IStructuredTypeResolver typeResolver,
                                PropertyInfo propertyInfo,
                                StructuredType reflectedType)
             : base(typeResolver, propertyInfo, reflectedType)

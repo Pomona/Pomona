@@ -28,7 +28,7 @@
 
 namespace Pomona.Common.TypeSystem
 {
-    public interface IResourceTypeResolver : IExportedTypeResolver
+    public interface IResourceTypeResolver : IStructuredTypeResolver
     {
         ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
         ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property);

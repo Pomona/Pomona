@@ -33,7 +33,7 @@ namespace Pomona.Common.TypeSystem
 {
     public class AnonymousType : StructuredType
     {
-        public AnonymousType(IExportedTypeResolver typeResolver,
+        public AnonymousType(IStructuredTypeResolver typeResolver,
                              Type type,
                              Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)

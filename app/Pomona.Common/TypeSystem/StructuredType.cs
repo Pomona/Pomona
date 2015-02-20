@@ -44,7 +44,7 @@ namespace Pomona.Common.TypeSystem
         private Delegate createUsingPropertySourceFunc;
 
 
-        protected StructuredType(IExportedTypeResolver typeResolver,
+        protected StructuredType(IStructuredTypeResolver typeResolver,
             Type type,
             Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)

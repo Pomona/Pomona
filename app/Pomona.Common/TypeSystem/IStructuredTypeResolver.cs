@@ -30,7 +30,7 @@ using System.Collections.Generic;
 
 namespace Pomona.Common.TypeSystem
 {
-    public interface IExportedTypeResolver : ITypeResolver
+    public interface IStructuredTypeResolver : ITypeResolver
     {
         IEnumerable<StructuredType> GetAllStructuredTypes();
         StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property);

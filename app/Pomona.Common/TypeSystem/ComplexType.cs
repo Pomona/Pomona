@@ -33,7 +33,7 @@ namespace Pomona.Common.TypeSystem
 {
     public class ComplexType : StructuredType
     {
-        public ComplexType(IExportedTypeResolver typeResolver,
+        public ComplexType(IStructuredTypeResolver typeResolver,
                            Type type,
                            Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
