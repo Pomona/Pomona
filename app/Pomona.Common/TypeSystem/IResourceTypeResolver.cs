@@ -26,37 +26,11 @@
 
 #endregion
 
-using System;
-using System.Reflection;
-
 namespace Pomona.Common.TypeSystem
 {
-    public class ResourceProperty : StructuredProperty
+    public interface IResourceTypeResolver : IExportedTypeResolver
     {
-        private Lazy<ResourcePropertyDetails> resourcePropertyDetails;
-
-
-        public ResourceProperty(IResourceTypeResolver typeResolver,
-                                PropertyInfo propertyInfo,
-                                ResourceType reflectedType)
-            : base(typeResolver, propertyInfo, reflectedType)
-        {
-            this.resourcePropertyDetails = CreateLazy(() => typeResolver.LoadResourcePropertyDetails(this));
-        }
-
-        protected virtual ResourcePropertyDetails ResourcePropertyDetails
-        {
-            get { return this.resourcePropertyDetails.Value; }
-        }
-
-        public virtual bool ExposedAsRepository
-        {
-            get { return ResourcePropertyDetails.ExposedAsRepository; }
-        }
-
-        public string UriName
-        {
-            get { return ResourcePropertyDetails.UriName; }
-        }
+        ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
+        ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property);
     }
 }

@@ -126,9 +126,9 @@ namespace Pomona.Common.TypeSystem
             get { return this.subTypes.Value; }
         }
 
-        public new IExportedTypeResolver TypeResolver
+        public new IResourceTypeResolver TypeResolver
         {
-            get { return (IExportedTypeResolver)base.TypeResolver; }
+            get { return (IResourceTypeResolver)(((TypeSpec)this).TypeResolver); }
         }
 
         protected StructuredTypeDetails StructuredTypeDetails

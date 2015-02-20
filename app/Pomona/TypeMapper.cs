@@ -204,9 +204,6 @@ namespace Pomona
                 accessMode.HasFlag(HttpMethod.Get),
                 accessMode,
                 this.filter.GetPropertyItemAccessMode(reflectedType, propInfo),
-                this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(reflectedType,
-                                                                                  propInfo)),
                 expandMode);
             return details;
         }
@@ -315,6 +312,14 @@ namespace Pomona
                                            childToParentProperty,
                                            this.filter.TypeIsSingletonResource(type),
                                            this.filter.GetResourceHandlers(type));
+        }
+
+
+        public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
+        {
+            var propInfo = property.PropertyInfo;
+            return new ResourcePropertyDetails(this.filter.ClientPropertyIsExposedAsRepository(propInfo),
+                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(property.ReflectedType, propInfo)));
         }
 
 

@@ -223,8 +223,6 @@ namespace Pomona.Common
                                               true,
                                               info.AccessMode,
                                               info.ItemAccessMode,
-                                              false,
-                                              NameUtils.ConvertCamelCaseToUri(property.Name),
                                               ExpandMode.Full);
         }
 
@@ -306,6 +304,12 @@ namespace Pomona.Common
                                            null,
                                            false,
                                            Enumerable.Empty<Type>());
+        }
+
+
+        public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
+        {
+            return new ResourcePropertyDetails(false, NameUtils.ConvertCamelCaseToUri(property.Name));
         }
 
 

@@ -52,7 +52,7 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<Action<object, StringBuilder>> uriGenerator;
 
 
-        public ResourceType(IExportedTypeResolver typeResolver, Type type)
+        public ResourceType(IResourceTypeResolver typeResolver, Type type)
             : base(typeResolver, type)
         {
             this.uriBaseType = CreateLazy(() => typeResolver.LoadUriBaseType(this));

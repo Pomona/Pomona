@@ -32,23 +32,19 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly HttpMethod accessMode;
         private readonly ExpandMode expandMode;
-        private readonly bool exposedAsRepository;
         private readonly bool isAttributesProperty, isEtagProperty, isPrimaryKey;
         private readonly bool isSerialized;
 
         private readonly HttpMethod itemAccessMode;
-        private readonly string uriName;
 
 
         public StructuredPropertyDetails(bool isAttributesProperty,
-                                       bool isEtagProperty,
-                                       bool isPrimaryKey,
-                                       bool isSerialized,
-                                       HttpMethod accessMode,
-                                       HttpMethod itemAccessMode,
-                                       bool exposedAsRepository,
-                                       string uriName,
-                                       ExpandMode expandMode)
+                                         bool isEtagProperty,
+                                         bool isPrimaryKey,
+                                         bool isSerialized,
+                                         HttpMethod accessMode,
+                                         HttpMethod itemAccessMode,
+                                         ExpandMode expandMode)
         {
             this.isAttributesProperty = isAttributesProperty;
             this.isEtagProperty = isEtagProperty;
@@ -56,8 +52,6 @@ namespace Pomona.Common.TypeSystem
             this.isSerialized = isSerialized;
             this.accessMode = accessMode;
             this.itemAccessMode = itemAccessMode;
-            this.exposedAsRepository = exposedAsRepository;
-            this.uriName = uriName;
             this.expandMode = expandMode;
         }
 
@@ -70,11 +64,6 @@ namespace Pomona.Common.TypeSystem
         public ExpandMode ExpandMode
         {
             get { return this.expandMode; }
-        }
-
-        public bool ExposedAsRepository
-        {
-            get { return this.exposedAsRepository; }
         }
 
         public bool IsAttributesProperty
@@ -100,11 +89,6 @@ namespace Pomona.Common.TypeSystem
         public HttpMethod ItemAccessMode
         {
             get { return this.itemAccessMode; }
-        }
-
-        public string UriName
-        {
-            get { return this.uriName; }
         }
     }
 }
