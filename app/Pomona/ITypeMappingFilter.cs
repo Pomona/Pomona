@@ -28,7 +28,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 
 using Newtonsoft.Json;
@@ -36,10 +35,11 @@ using Newtonsoft.Json;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
+using Pomona.Mapping;
 
 namespace Pomona
 {
-    public interface ITypeMappingFilter
+    public interface ITypeMappingFilter : ITypeConventions, IPropertyConventions, IResourceConventions
     {
         #region Undecided stuff:
 
@@ -110,45 +110,6 @@ namespace Pomona
 
         #endregion
 
-        #region TypeMappingConventions
-
-        bool TypeIsMapped(Type type);
-        bool TypeIsMappedAsCollection(Type type);
-        bool TypeIsMappedAsSharedType(Type type);
-        bool TypeIsMappedAsTransformedType(Type type);
-        bool TypeIsMappedAsValueObject(Type type);
-
-        IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags);
-        ConstructorSpec GetTypeConstructor(Type type);
-        bool GetTypeIsAbstract(Type type);
-        string GetTypeMappedName(Type type);
-        bool IsIndependentTypeRoot(Type type);
-
-        #endregion
-
-        #region ResourceTypeConventions
-
-        PropertyInfo GetChildToParentProperty(Type type);
-        PropertyInfo GetParentToChildProperty(Type type);
-
-        string GetUrlRelativePath(Type type);
-        string GetPluralNameForType(Type type);
-        Type GetPostReturnType(Type type);
-        IEnumerable<Type> GetResourceHandlers(Type type);
-        bool TypeIsExposedAsRepository(Type type);
-        bool TypeIsSingletonResource(Type type);
-
-        /// <summary>
-        /// This returns what URI this type will be mapped to.
-        /// For example if this method returns the type Animal when passed Dog
-        /// it means that dogs will be available on same url as Animal.
-        /// (ie. http://somehost/animal/{id}, not http://somehost/dog/{id})
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        Type GetUriBaseType(Type type);
-
-        #endregion
 
         #region ProxyTypeResolver
 
@@ -158,15 +119,6 @@ namespace Pomona
 
         #region Property mapping conventions
 
-        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
-        IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo);
-        Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
-        string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
-        Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo);
-        Type GetPropertyType(Type type, PropertyInfo propertyInfo);
-        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
-        ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo);
-        
         [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
         bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
 

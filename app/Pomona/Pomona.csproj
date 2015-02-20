@@ -157,6 +157,9 @@
     <Compile Include="ITypeMappingFilter.cs" />
     <Compile Include="IWrappableTypeMappingFilter.cs" />
     <Compile Include="MappedTypeExtensions.cs" />
+    <Compile Include="Mapping\IPropertyConventions.cs" />
+    <Compile Include="Mapping\IResourceConventions.cs" />
+    <Compile Include="Mapping\ITypeConventions.cs" />
     <Compile Include="PomonaConfigurationAttribute.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NoCloseStreamWriter.cs" />
