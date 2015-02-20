@@ -45,11 +45,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual bool ExposedAsRepository
-        {
-            get { return Details.ExposedAsRepository; }
-        }
-
         public virtual bool ExposedOnUrl
         {
             get
@@ -97,11 +92,6 @@ namespace Pomona.Common.TypeSystem
         public new StructuredType ReflectedType
         {
             get { return (StructuredType)base.ReflectedType; }
-        }
-
-        public string UriName
-        {
-            get { return Details.UriName; }
         }
 
         protected virtual StructuredPropertyDetails Details

@@ -69,9 +69,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public StructuredProperty ChildToParentProperty
+        public ResourceProperty ChildToParentProperty
         {
-            get { return (StructuredProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
+            get { return (ResourceProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
         }
 
         public IEnumerable<Type> ResourceHandlers
@@ -94,12 +94,12 @@ namespace Pomona.Common.TypeSystem
             get { return ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null; }
         }
 
-        public StructuredProperty ParentToChildProperty
+        public ResourceProperty ParentToChildProperty
         {
             get
             {
                 return this.parentToChildPropertyInfo != null
-                    ? (StructuredProperty)
+                    ? (ResourceProperty)
                         this.type.TypeResolver.FromType(this.parentToChildPropertyInfo.DeclaringType).GetPropertyByName(
                             this.parentToChildPropertyInfo.Name,
                             false)

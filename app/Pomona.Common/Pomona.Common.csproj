@@ -276,6 +276,7 @@
     <Compile Include="TypeSystem\DictionaryTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumTypeSpec.cs" />
+    <Compile Include="TypeSystem\ResourceProperty.cs" />
     <Compile Include="TypeSystem\StructuredPropertyDetails.cs" />
     <Compile Include="TypeSystem\StructuredTypeDetails.cs" />
     <Compile Include="TypeSystem\ExportedTypeResolverBase.cs" />

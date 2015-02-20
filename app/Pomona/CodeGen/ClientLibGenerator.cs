@@ -396,7 +396,7 @@ namespace Pomona.CodeGen
                                                     TypeSpec propertyType,
                                                     List<Action<ILProcessor>> ctorIlActions)
         {
-            if (propertyType.Maybe().OfType<StructuredType>().Select(x => x.MappedAsValueObject).OrDefault())
+            if (propertyType.MaybeAs<StructuredType>().Select(x => x.MappedAsValueObject).OrDefault())
             {
                 var typeInfo = this.clientTypeInfoDict[propertyType];
 
@@ -772,7 +772,7 @@ namespace Pomona.CodeGen
 
                     FieldDefinition backingField;
                     AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
-                    if (!prop.ExposedAsRepository)
+                    if (!prop.MaybeAs<ResourceProperty>().Select(x => x.ExposedAsRepository).OrDefault())
                         AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
                 }
 
@@ -1080,7 +1080,7 @@ namespace Pomona.CodeGen
 
         private TypeReference GetPropertyTypeReference(StructuredProperty prop)
         {
-            if (prop.ExposedAsRepository)
+            if (prop.MaybeAs<ResourceProperty>().Select(x => x.ExposedAsRepository).OrDefault())
             {
                 var propType = prop.PropertyType as EnumerableTypeSpec;
                 if (propType == null)

@@ -61,7 +61,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public StructuredProperty ChildToParentProperty
+        public ResourceProperty ChildToParentProperty
         {
             get { return ResourceTypeDetails.ChildToParentProperty; }
         }
@@ -91,7 +91,7 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.ParentResourceType; }
         }
 
-        public StructuredProperty ParentToChildProperty
+        public ResourceProperty ParentToChildProperty
         {
             get { return ResourceTypeDetails.ParentToChildProperty; }
         }
@@ -99,6 +99,11 @@ namespace Pomona.Common.TypeSystem
         public StructuredType PostReturnType
         {
             get { return ResourceTypeDetails.PostReturnType; }
+        }
+
+        public new virtual IEnumerable<ResourceProperty> Properties
+        {
+            get { return base.Properties.Cast<ResourceProperty>(); }
         }
 
         public IEnumerable<Type> ResourceHandlers
@@ -130,6 +135,12 @@ namespace Pomona.Common.TypeSystem
         public void AppendUri(object o, StringBuilder sb)
         {
             this.uriGenerator.Value(o, sb);
+        }
+
+
+        protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
+        {
+            return new ResourceProperty(TypeResolver, property, this);
         }
 
 

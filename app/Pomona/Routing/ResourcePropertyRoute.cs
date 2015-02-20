@@ -36,10 +36,10 @@ namespace Pomona.Routing
 {
     public class ResourcePropertyRoute : Route, ILiteralRoute
     {
-        private readonly StructuredProperty property;
+        private readonly ResourceProperty property;
 
 
-        public ResourcePropertyRoute(StructuredProperty property, Route parent)
+        public ResourcePropertyRoute(ResourceProperty property, Route parent)
             : base(0, parent)
         {
             this.property = property;
@@ -61,7 +61,7 @@ namespace Pomona.Routing
             get { return this.property.UriName; }
         }
 
-        public StructuredProperty Property
+        public ResourceProperty Property
         {
             get { return this.property; }
         }
