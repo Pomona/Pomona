@@ -33,7 +33,7 @@ namespace Pomona.Common.TypeSystem
 {
     public class StructuredProperty : RuntimePropertySpec
     {
-        private readonly Lazy<StructuredPropertyDetails> exportedPropertyDetails;
+        private readonly Lazy<StructuredPropertyDetails> structuredPropertyDetails;
 
 
         public StructuredProperty(IStructuredTypeResolver typeResolver,
@@ -41,7 +41,7 @@ namespace Pomona.Common.TypeSystem
                                StructuredType reflectedType)
             : base(typeResolver, propertyInfo, reflectedType)
         {
-            this.exportedPropertyDetails = CreateLazy(() => typeResolver.LoadStructuredPropertyDetails(this));
+            this.structuredPropertyDetails = CreateLazy(() => typeResolver.LoadStructuredPropertyDetails(this));
         }
 
 
@@ -56,37 +56,37 @@ namespace Pomona.Common.TypeSystem
 
         public virtual bool IsAttributesProperty
         {
-            get { return Details.IsAttributesProperty; }
+            get { return this.StructuredPropertyDetails.IsAttributesProperty; }
         }
 
         public virtual bool IsEtagProperty
         {
-            get { return Details.IsEtagProperty; }
+            get { return this.StructuredPropertyDetails.IsEtagProperty; }
         }
 
         public virtual bool IsPrimaryKey
         {
-            get { return Details.IsPrimaryKey; }
+            get { return this.StructuredPropertyDetails.IsPrimaryKey; }
         }
 
         public override HttpMethod AccessMode
         {
-            get { return Details.AccessMode; }
+            get { return this.StructuredPropertyDetails.AccessMode; }
         }
 
         public ExpandMode ExpandMode
         {
-            get { return Details.ExpandMode; }
+            get { return this.StructuredPropertyDetails.ExpandMode; }
         }
 
         public override bool IsSerialized
         {
-            get { return Details.IsSerialized; }
+            get { return this.StructuredPropertyDetails.IsSerialized; }
         }
 
         public override HttpMethod ItemAccessMode
         {
-            get { return Details.ItemAccessMode; }
+            get { return this.StructuredPropertyDetails.ItemAccessMode; }
         }
 
         public new StructuredType ReflectedType
@@ -94,9 +94,9 @@ namespace Pomona.Common.TypeSystem
             get { return (StructuredType)base.ReflectedType; }
         }
 
-        protected virtual StructuredPropertyDetails Details
+        protected virtual StructuredPropertyDetails StructuredPropertyDetails
         {
-            get { return this.exportedPropertyDetails.Value; }
+            get { return this.structuredPropertyDetails.Value; }
         }
     }
 }
