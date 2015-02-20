@@ -267,15 +267,17 @@
     <Compile Include="SortOrder.cs" />
     <Compile Include="StringEnumExtensions.cs" />
     <Compile Include="TypeExtensions.cs" />
+    <Compile Include="TypeSystem\AnonymousType.cs" />
     <Compile Include="TypeSystem\Calculator.cs" />
     <Compile Include="TypeSystem\ClientType.cs" />
+    <Compile Include="TypeSystem\ComplexType.cs" />
     <Compile Include="TypeSystem\ConstructorSpec.cs" />
     <Compile Include="TypeSystem\ContainerExtensions.cs" />
     <Compile Include="TypeSystem\DictionaryTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumTypeSpec.cs" />
-    <Compile Include="TypeSystem\ComplexPropertyDetails.cs" />
-    <Compile Include="TypeSystem\ComplexTypeDetails.cs" />
+    <Compile Include="TypeSystem\StructuredPropertyDetails.cs" />
+    <Compile Include="TypeSystem\StructuredTypeDetails.cs" />
     <Compile Include="TypeSystem\ExportedTypeResolverBase.cs" />
     <Compile Include="TypeSystem\FindAndReplaceVisitor.cs" />
     <Compile Include="TypeSystem\IClientTypeFactory.cs" />
@@ -295,7 +297,7 @@
     <Compile Include="TypeSystem\PropertyFlags.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttribute.cs" />
     <Compile Include="TypeSystem\PropertyFormulaAttributeExtensions.cs" />
-    <Compile Include="TypeSystem\ComplexProperty.cs" />
+    <Compile Include="TypeSystem\StructuredProperty.cs" />
     <Compile Include="TypeSystem\PropertySpec.cs" />
     <Compile Include="TypeSystem\ResourceTypeDetails.cs" />
     <Compile Include="TypeSystem\ResourceType.cs" />
@@ -303,7 +305,7 @@
     <Compile Include="TypeSystem\RuntimeTypeDetails.cs" />
     <Compile Include="TypeSystem\RuntimeTypeSpec.cs" />
     <Compile Include="TypeSystem\SharedType.cs" />
-    <Compile Include="TypeSystem\ComplexType.cs" />
+    <Compile Include="TypeSystem\StructuredType.cs" />
     <Compile Include="TypeSystem\TypeResolver.cs" />
     <Compile Include="TypeSystem\TypeResolverExtensions.cs" />
     <Compile Include="TypeSystem\TypeSerializationMode.cs" />

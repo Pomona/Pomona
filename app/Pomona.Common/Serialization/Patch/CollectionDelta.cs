@@ -312,7 +312,7 @@ namespace Pomona.Common.Serialization.Patch
                 () =>
                 {
                     var origItemType = TypeMapper.FromType(item.GetType());
-                    if (origItemType.SerializationMode == TypeSerializationMode.Complex)
+                    if (origItemType.SerializationMode == TypeSerializationMode.Structured)
                         return (Delta)CreateNestedDelta(item, origItemType, Type.ElementType);
                     throw new InvalidOperationException("Unable to wrap non-complex type in nested delta.");
                 });

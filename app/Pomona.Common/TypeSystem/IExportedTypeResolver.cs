@@ -4,9 +4,9 @@ namespace Pomona.Common.TypeSystem
 {
     public interface IExportedTypeResolver : ITypeResolver
     {
-        IEnumerable<ComplexType> GetAllComplexTypes();
-        ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty);
-        ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType);
+        IEnumerable<StructuredType> GetAllStructuredTypes();
+        StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property);
+        StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType);
         ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
     }
 }

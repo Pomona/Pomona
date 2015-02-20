@@ -102,9 +102,9 @@ namespace Pomona
             get { return this.sourceTypes; }
         }
 
-        public IEnumerable<ComplexType> TransformedTypes
+        public IEnumerable<StructuredType> TransformedTypes
         {
-            get { return TypeMap.Values.OfType<ComplexType>(); }
+            get { return TypeMap.Values.OfType<StructuredType>(); }
         }
 
 
@@ -117,7 +117,7 @@ namespace Pomona
         }
 
 
-        public override IEnumerable<ComplexType> GetAllComplexTypes()
+        public override IEnumerable<StructuredType> GetAllStructuredTypes()
         {
             return TransformedTypes;
         }
@@ -125,7 +125,7 @@ namespace Pomona
 
         public override TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
-            if (typeSpec is ComplexType)
+            if (typeSpec is StructuredType)
             {
                 if (this.filter.IsIndependentTypeRoot(typeSpec))
                     return null;
@@ -145,7 +145,7 @@ namespace Pomona
 
         public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
         {
-            var transformedType = typeSpec as ComplexType;
+            var transformedType = typeSpec as StructuredType;
             if (transformedType != null)
                 return this.filter.GetTypeConstructor(transformedType);
             return base.LoadConstructor(typeSpec);
@@ -183,21 +183,21 @@ namespace Pomona
 
         public override TypeSpec LoadDeclaringType(PropertySpec propertySpec)
         {
-            if (propertySpec is ComplexProperty)
+            if (propertySpec is StructuredProperty)
                 return FromType(GetKnownDeclaringType(propertySpec.ReflectedType, propertySpec.PropertyInfo));
             return base.LoadDeclaringType(propertySpec);
         }
 
 
-        public override ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty)
+        public override StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property)
         {
-            var propInfo = complexProperty.PropertyInfo;
+            var propInfo = property.PropertyInfo;
 
-            var reflectedType = complexProperty.ReflectedType;
+            var reflectedType = property.ReflectedType;
             var expandMode = filter.GetPropertyExpandMode(reflectedType, propInfo);
-            var accessMode = this.filter.GetPropertyAccessMode(propInfo, complexProperty.DeclaringType.Constructor);
+            var accessMode = this.filter.GetPropertyAccessMode(propInfo, property.DeclaringType.Constructor);
 
-            var details = new ComplexPropertyDetails(
+            var details = new StructuredPropertyDetails(
                 this.filter.PropertyIsAttributes(reflectedType, propInfo),
                 this.filter.PropertyIsEtag(reflectedType, propInfo),
                 this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
@@ -212,16 +212,16 @@ namespace Pomona
         }
 
 
-        public override ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType)
+        public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
         {
             // TODO: Get allowed methods from filter
             var allowedMethods = HttpMethod.Get |
-                                 (this.filter.PatchOfTypeIsAllowed(exportedType) ? HttpMethod.Patch : 0) |
-                                 (this.filter.PostOfTypeIsAllowed(exportedType) ? HttpMethod.Post : 0) |
-                                 (this.filter.DeleteOfTypeIsAllowed(exportedType) ? HttpMethod.Delete : 0);
+                                 (this.filter.PatchOfTypeIsAllowed(structuredType) ? HttpMethod.Patch : 0) |
+                                 (this.filter.PostOfTypeIsAllowed(structuredType) ? HttpMethod.Post : 0) |
+                                 (this.filter.DeleteOfTypeIsAllowed(structuredType) ? HttpMethod.Delete : 0);
 
-            var type = exportedType.Type;
-            var details = new ComplexTypeDetails(exportedType,
+            var type = structuredType.Type;
+            var details = new StructuredTypeDetails(structuredType,
                                                   allowedMethods,
                                                   this.filter.GetPluralNameForType(type),
                                                   this.filter.GetOnDeserializedHook(type),
@@ -242,7 +242,7 @@ namespace Pomona
 
         public override IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
         {
-            if (typeSpec is ComplexType)
+            if (typeSpec is StructuredType)
                 return base.LoadInterfaces(typeSpec).Where(x => this.filter.TypeIsMappedAsTransformedType(x));
 
             return base.LoadInterfaces(typeSpec);
@@ -263,7 +263,7 @@ namespace Pomona
 
         public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
         {
-            if (typeSpec is ComplexType)
+            if (typeSpec is StructuredType)
             {
                 var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
                     ? typeSpec.Type.GetInterfaces().Where(x => !this.filter.TypeIsMapped(x)).SelectMany(
@@ -291,7 +291,7 @@ namespace Pomona
 
         public override TypeSpec LoadPropertyType(PropertySpec propertySpec)
         {
-            var complexProperty = propertySpec as ComplexProperty;
+            var complexProperty = propertySpec as StructuredProperty;
             if (complexProperty != null)
                 return FromType(this.filter.GetPropertyType(complexProperty.ReflectedType, complexProperty.PropertyInfo));
             return base.LoadPropertyType(propertySpec);

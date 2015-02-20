@@ -111,7 +111,7 @@ namespace Pomona.Routing
 
 
         protected virtual Func<PomonaContext, PomonaResponse> ResolveGetCollectionProperty(ResourcePropertyRoute route,
-                                                                                           ComplexProperty property,
+                                                                                           StructuredProperty property,
                                                                                            ResourceType resourceItemType)
         {
             if (this.capabilityResolver.PropertyIsMapped(property.PropertyInfo) || property.GetPropertyFormula() != null)
@@ -169,7 +169,7 @@ namespace Pomona.Routing
 
 
         protected virtual Func<PomonaContext, PomonaResponse> ResolveGetSingleProperty(ResourcePropertyRoute route,
-                                                                                       ComplexProperty property,
+                                                                                       StructuredProperty property,
                                                                                        ResourceType resourceType)
         {
             return

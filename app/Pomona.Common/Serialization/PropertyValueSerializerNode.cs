@@ -78,7 +78,7 @@ namespace Pomona.Common.Serialization
         {
             get
             {
-                if (property.PropertyType.SerializationMode == TypeSerializationMode.Complex)
+                if (property.PropertyType.SerializationMode == TypeSerializationMode.Structured)
                     return base.Uri;
                 return Context.GetUri(property, ParentNode.Value);
             }

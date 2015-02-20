@@ -26,7 +26,7 @@ namespace Pomona.Common.TypeSystem
 {
     public enum TypeSerializationMode
     {
-        Complex,
+        Structured,
         Value,
         Array,
         Dictionary

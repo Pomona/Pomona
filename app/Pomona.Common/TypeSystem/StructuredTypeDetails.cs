@@ -31,7 +31,7 @@ using System.Linq;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class ComplexTypeDetails
+    public class StructuredTypeDetails
     {
         private readonly HttpMethod allowedMethods;
         private readonly bool alwaysExpand;
@@ -39,10 +39,10 @@ namespace Pomona.Common.TypeSystem
         private readonly bool mappedAsValueObject;
         private readonly Action<object> onDeserialized;
         private readonly string pluralName;
-        private readonly ComplexType type;
+        private readonly StructuredType type;
 
 
-        public ComplexTypeDetails(ComplexType type,
+        public StructuredTypeDetails(StructuredType type,
             HttpMethod allowedMethods,
             string pluralName,
             Action<object> onDeserialized,
@@ -70,7 +70,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.alwaysExpand; }
         }
 
-        public ComplexProperty ETagProperty
+        public StructuredProperty ETagProperty
         {
             get { return this.type.Properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
@@ -92,9 +92,9 @@ namespace Pomona.Common.TypeSystem
 
         private readonly bool isAbstract;
 
-        public ComplexProperty PrimaryId
+        public StructuredProperty PrimaryId
         {
-            get { return this.type.AllProperties.OfType<ComplexProperty>().FirstOrDefault(x => x.IsPrimaryKey); }
+            get { return this.type.AllProperties.OfType<StructuredProperty>().FirstOrDefault(x => x.IsPrimaryKey); }
         }
 
         public bool IsAbstract

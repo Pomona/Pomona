@@ -79,7 +79,7 @@ namespace Pomona.Common.Serialization.Patch
 
         protected virtual object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyType)
         {
-            if (propValueType.SerializationMode == TypeSerializationMode.Complex)
+            if (propValueType.SerializationMode == TypeSerializationMode.Structured)
             {
                 return new ObjectDelta(propValue, propValueType, TypeMapper, this);
             }

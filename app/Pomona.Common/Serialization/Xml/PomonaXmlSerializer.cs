@@ -73,7 +73,7 @@ namespace Pomona.Common.Serialization.Xml
             var mappedType = node.ValueType ?? node.ExpectedBaseType;
             switch (mappedType.SerializationMode)
             {
-                case TypeSerializationMode.Complex:
+                case TypeSerializationMode.Structured:
                     SerializeComplex(node, writer);
                     break;
                 case TypeSerializationMode.Value:
@@ -139,7 +139,7 @@ namespace Pomona.Common.Serialization.Xml
         private void SerializeCollection(ISerializerNode node, Writer writer)
         {
             var elementType = node.ExpectedBaseType.ElementType;
-            var outerArrayElementName = writer.NextElementName ?? GetXmlName(((ComplexType)elementType).PluralName);
+            var outerArrayElementName = writer.NextElementName ?? GetXmlName(((StructuredType)elementType).PluralName);
 
             writer.XmlWriter.WriteStartElement(outerArrayElementName);
 

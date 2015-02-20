@@ -117,7 +117,7 @@ namespace Pomona.Common.TypeSystem
         protected virtual TypeSerializationMode OnLoadSerializationMode()
         {
             if (Type.IsAnonymous())
-                return TypeSerializationMode.Complex;
+                return TypeSerializationMode.Structured;
             return TypeSerializationMode.Value;
             //return TypeSerializationMode.Complex;
         }

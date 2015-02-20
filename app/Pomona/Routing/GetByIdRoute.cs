@@ -37,7 +37,7 @@ namespace Pomona.Routing
 {
     public class GetByIdRoute : Route
     {
-        private readonly ComplexProperty idProperty;
+        private readonly StructuredProperty idProperty;
 
         private readonly ResourceType resultItemType;
         private readonly HttpMethod allowedMethods;
@@ -61,7 +61,7 @@ namespace Pomona.Routing
             get { return allowedMethods; }
         }
 
-        public ComplexProperty IdProperty
+        public StructuredProperty IdProperty
         {
             get { return this.idProperty; }
         }

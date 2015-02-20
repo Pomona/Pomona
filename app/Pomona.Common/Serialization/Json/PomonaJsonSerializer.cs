@@ -105,7 +105,7 @@ namespace Pomona.Common.Serialization.Json
                 case TypeSerializationMode.Dictionary:
                     SerializeDictionary(node, writer);
                     break;
-                case TypeSerializationMode.Complex:
+                case TypeSerializationMode.Structured:
                     SerializeComplex(node, writer);
                     break;
                 case TypeSerializationMode.Array:
@@ -356,7 +356,7 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
             {
-                var primaryId = node.ValueType.Maybe().OfType<ComplexType>().Select(x => x.PrimaryId).OrDefault();
+                var primaryId = node.ValueType.Maybe().OfType<StructuredType>().Select(x => x.PrimaryId).OrDefault();
                 if (primaryId == null)
                     throw new PomonaSerializationException("When we are removing complex object a primary id is required.");
 
@@ -391,7 +391,7 @@ namespace Pomona.Common.Serialization.Json
             foreach (var prop in propertiesToSerialize)
             {
                 var propNode = new PropertyValueSerializerNode(node, prop);
-                if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Complex &&
+                if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Structured &&
                     !(propNode.Value is IDelta))
                 {
                     jsonWriter.WritePropertyName("!" + prop.JsonName);                    

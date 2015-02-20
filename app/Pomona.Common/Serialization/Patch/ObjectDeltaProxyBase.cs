@@ -61,7 +61,7 @@ namespace Pomona.Common.Serialization.Patch
 
         public static object CreateDeltaProxy(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent, Type propertyType)
         {
-            if (type.SerializationMode == TypeSerializationMode.Complex)
+            if (type.SerializationMode == TypeSerializationMode.Structured)
             {
                 return Create(original, type, typeMapper, parent);
             }

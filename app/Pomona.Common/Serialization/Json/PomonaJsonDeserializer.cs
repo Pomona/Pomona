@@ -289,7 +289,7 @@ namespace Pomona.Common.Serialization.Json
                     DeserializeThroughContext(itemNode, new Reader(jitem));
                     if (itemNode.Operation != DeserializerNodeOperation.Patch)
                     {
-                        if (!(itemNode.ExpectedBaseType is ComplexType)
+                        if (!(itemNode.ExpectedBaseType is StructuredType)
                             || itemNode.ExpectedBaseType.IsAnonymous()
                             || !collection.Contains((TElement)itemNode.Value))
                             collection.Add((TElement)itemNode.Value);
@@ -435,7 +435,7 @@ namespace Pomona.Common.Serialization.Json
 
             switch (mappedType.SerializationMode)
             {
-                case TypeSerializationMode.Complex:
+                case TypeSerializationMode.Structured:
                     DeserializeComplexNode(node, reader);
                     break;
                 case TypeSerializationMode.Value:
@@ -547,9 +547,9 @@ namespace Pomona.Common.Serialization.Json
                 SetUri();
                 if (this.node.Value == null || this.node.Operation == DeserializerNodeOperation.Post)
                 {
-                    if (!(this.node.ValueType is ComplexType))
+                    if (!(this.node.ValueType is StructuredType))
                         throw new NotSupportedException("Only knows how to deserialize TransformedType.");
-                    this.node.Value = this.node.Context.CreateResource((ComplexType)this.node.ValueType, this);
+                    this.node.Value = this.node.Context.CreateResource((StructuredType)this.node.ValueType, this);
                 }
                 DeserializeRemainingProperties();
             }

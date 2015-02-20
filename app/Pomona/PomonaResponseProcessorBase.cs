@@ -141,7 +141,7 @@ namespace Pomona
                 }
 
                 // Add etag header
-                var transformedResultType = pomonaResponse.ResultType as ComplexType;
+                var transformedResultType = pomonaResponse.ResultType as StructuredType;
                 if (transformedResultType == null)
                     return response;
 

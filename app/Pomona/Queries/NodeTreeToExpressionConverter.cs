@@ -463,7 +463,7 @@ namespace Pomona.Queries
         private Expression MakePropertyAccess(SymbolNode currentNode, Expression target, string expressionPath = null)
         {
             expressionPath = expressionPath ?? currentNode.Name;
-            ComplexProperty prop;
+            StructuredProperty prop;
             if (!propertyResolver.TryResolveProperty(target.Type, expressionPath, out prop))
                 throw CreateParseException(currentNode, "Property not recognized.");
 

@@ -172,9 +172,9 @@ namespace Pomona.Common
         }
 
 
-        public override IEnumerable<ComplexType> GetAllComplexTypes()
+        public override IEnumerable<StructuredType> GetAllStructuredTypes()
         {
-            return this.typeNameMap.Values.OfType<ComplexType>();
+            return this.typeNameMap.Values.OfType<StructuredType>();
         }
 
 
@@ -200,9 +200,9 @@ namespace Pomona.Common
         }
 
 
-        public override ComplexPropertyDetails LoadComplexPropertyDetails(ComplexProperty complexProperty)
+        public override StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property)
         {
-            var propInfo = complexProperty.PropertyInfo;
+            var propInfo = property.PropertyInfo;
 
             var isAttributes = propInfo.HasAttribute<ResourceAttributesPropertyAttribute>(true);
             var isPrimaryId = propInfo.HasAttribute<ResourceIdPropertyAttribute>(true);
@@ -217,23 +217,23 @@ namespace Pomona.Common
                     Required = false
                 };
 
-            return new ComplexPropertyDetails(isAttributes,
+            return new StructuredPropertyDetails(isAttributes,
                                               isEtagProperty,
                                               isPrimaryId,
                                               true,
                                               info.AccessMode,
                                               info.ItemAccessMode,
                                               false,
-                                              NameUtils.ConvertCamelCaseToUri(complexProperty.Name),
+                                              NameUtils.ConvertCamelCaseToUri(property.Name),
                                               ExpandMode.Full);
         }
 
 
-        public override ComplexTypeDetails LoadComplexTypeDetails(ComplexType exportedType)
+        public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
         {
-            if (IsAnonType(exportedType))
+            if (IsAnonType(structuredType))
             {
-                return new ComplexTypeDetails(exportedType,
+                return new StructuredTypeDetails(structuredType,
                                               HttpMethod.Get,
                                               null,
                                               null,
@@ -242,10 +242,10 @@ namespace Pomona.Common
                                               false);
             }
 
-            var ria = exportedType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
+            var ria = structuredType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
             var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
                                  | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
-            return new ComplexTypeDetails(exportedType,
+            return new StructuredTypeDetails(structuredType,
                                           allowedMethods,
                                           ria.UrlRelativePath != null
                                               ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
@@ -259,7 +259,7 @@ namespace Pomona.Common
 
         public override string LoadName(MemberSpec memberSpec)
         {
-            var transformedType = memberSpec as ComplexType;
+            var transformedType = memberSpec as StructuredType;
             if (transformedType != null && transformedType.ResourceInfo != null)
                 return transformedType.ResourceInfo.JsonTypeName;
 
@@ -312,7 +312,7 @@ namespace Pomona.Common
         public override RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec)
         {
             if (IsAnonType(typeSpec))
-                return new RuntimeTypeDetails(TypeSerializationMode.Complex);
+                return new RuntimeTypeDetails(TypeSerializationMode.Structured);
             return base.LoadRuntimeTypeDetails(typeSpec);
         }
 
@@ -354,14 +354,14 @@ namespace Pomona.Common
                 return new ResourceType(this, type);
             }
             if (IsAnonType(type))
-                return new ComplexType(this, type);
+                return new AnonymousType(this, type);
             return base.CreateType(type);
         }
 
 
         private static string GetJsonTypeName(TypeSpec type)
         {
-            var clientType = type as ComplexType;
+            var clientType = type as StructuredType;
 
             if (clientType != null)
                 return clientType.ResourceInfo.JsonTypeName;

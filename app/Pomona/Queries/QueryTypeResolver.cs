@@ -55,7 +55,7 @@ namespace Pomona.Queries
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
             property = null;
-            var transformedType = (ComplexType)typeMapper.FromType(type);
+            var transformedType = (StructuredType)typeMapper.FromType(type);
             PropertySpec uncastProperty;
             return transformedType.TryGetPropertyByName(propertyPath,
                 StringComparison.InvariantCultureIgnoreCase,
