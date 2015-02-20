@@ -48,7 +48,7 @@ namespace Pomona
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
         private readonly HashSet<Type> sourceTypesCached;
-        public ITypeMappingFilter BaseFilter { get; set; }
+
 
         static TypeMappingFilterBase()
         {
@@ -59,7 +59,7 @@ namespace Pomona
         protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
         {
             this.sourceTypesCached = new HashSet<Type>(sourceTypes);
-            this.BaseFilter = this;
+            BaseFilter = this;
         }
 
 
@@ -73,6 +73,8 @@ namespace Pomona
             get { return new ClientMetadata(informationalVersion : ApiVersion); }
         }
 
+        public ITypeMappingFilter BaseFilter { get; set; }
+
         private HashSet<Type> SourceTypes
         {
             get { return this.sourceTypesCached; }
@@ -80,16 +82,16 @@ namespace Pomona
 
         #region ITypeMappingFilter Members
 
-        public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
+        public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
         {
-            if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
             return false;
         }
 
 
-        public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
+        public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
             return false;
         }
 
@@ -109,20 +111,6 @@ namespace Pomona
         public virtual PropertyInfo GetChildToParentProperty(Type type)
         {
             return null;
-        }
-
-
-        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
-        public virtual string GetClientAssemblyName()
-        {
-            throw new NotImplementedException("Use the ClientMetadata.AssemblyName property instead.");
-        }
-
-
-        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
-        public virtual string GetClientInformationalVersion()
-        {
-            throw new NotImplementedException("Use the ClientMetadata.InformationalVersion property instead.");
         }
 
 
@@ -169,12 +157,6 @@ namespace Pomona
         }
 
 
-        public virtual string GetUrlRelativePath(Type type)
-        {
-            return NameUtils.ConvertCamelCaseToUri(this.BaseFilter.GetPluralNameForType(BaseFilter.GetUriBaseType(type) ?? type));
-        }
-
-
         public virtual Type GetPostReturnType(Type type)
         {
             if (type == null)
@@ -212,16 +194,16 @@ namespace Pomona
         }
 
 
+        public virtual ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
+        {
+            return ExpandMode.Default;
+        }
+
+
         public virtual PropertyFlags? GetPropertyFlags(PropertyInfo propertyInfo)
         {
             return (propertyInfo.CanRead ? PropertyFlags.IsReadable | PropertyFlags.AllowsFiltering : 0) |
                    (propertyInfo.CanWrite ? PropertyFlags.IsWritable : 0);
-        }
-
-
-        public virtual ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
-        {
-            return ExpandMode.Default;
         }
 
 
@@ -292,13 +274,6 @@ namespace Pomona
         }
 
 
-        public virtual bool TypeIsSingletonResource(Type type)
-        {
-            // return type.HasAttribute<RootAttribute>(false);
-            return false;
-        }
-
-
         public virtual Type GetUriBaseType(Type type)
         {
             if (type == null)
@@ -307,6 +282,13 @@ namespace Pomona
                 return null;
 
             return type;
+        }
+
+
+        public virtual string GetUrlRelativePath(Type type)
+        {
+            return
+                NameUtils.ConvertCamelCaseToUri(BaseFilter.GetPluralNameForType(BaseFilter.GetUriBaseType(type) ?? type));
         }
 
 
@@ -325,13 +307,6 @@ namespace Pomona
         public virtual bool PostOfTypeIsAllowed(Type type)
         {
             return true;
-        }
-
-
-        [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
-        public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
-        {
-            throw new NotSupportedException("Method is obsolete");
         }
 
 
@@ -447,6 +422,13 @@ namespace Pomona
             if (type == null)
                 throw new ArgumentNullException("type");
             return TypeIsAnonymousOrGrouping(type);
+        }
+
+
+        public virtual bool TypeIsSingletonResource(Type type)
+        {
+            // return type.HasAttribute<RootAttribute>(false);
+            return false;
         }
 
 

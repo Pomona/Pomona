@@ -101,20 +101,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
-        public virtual string GetClientAssemblyName()
-        {
-            throw new NotImplementedException("Use the ClientMetadata.AssemblyName property instead.");
-        }
-
-
-        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
-        public virtual string GetClientInformationalVersion()
-        {
-            throw new NotImplementedException("Use the ClientMetadata.InformationalVersion property instead.");
-        }
-
-
         public virtual Type GetClientLibraryType(Type type)
         {
             return this.wrappedFilter.GetClientLibraryType(type);
@@ -282,13 +268,6 @@ namespace Pomona.FluentMapping
         public virtual bool PostOfTypeIsAllowed(Type type)
         {
             return this.wrappedFilter.PostOfTypeIsAllowed(type);
-        }
-
-
-        [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
-        public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
-        {
-            throw new NotSupportedException("Method is obsolete.");
         }
 
 

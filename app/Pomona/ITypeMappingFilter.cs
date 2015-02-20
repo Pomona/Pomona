@@ -83,21 +83,6 @@ namespace Pomona
         /// </summary>
         bool GenerateIndependentClient();
 
-
-        /// <summary>
-        /// Gets the name of the generated client assembly.
-        /// </summary>
-        /// <returns>
-        /// The name of the generated client assembly.
-        /// </returns>
-        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
-        string GetClientAssemblyName(); // Maybe expose as property ClientAssemblyName instead
-
-        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
-        string GetClientInformationalVersion();
-
-        // Expose as property ClientInformationalVersion instead
-
         #endregion
 
         #region GeneratedClientConventions
@@ -118,9 +103,6 @@ namespace Pomona
         #endregion
 
         #region Property mapping conventions
-
-        [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
-        bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
 
         bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
         bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);

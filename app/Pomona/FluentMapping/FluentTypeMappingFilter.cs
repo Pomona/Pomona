@@ -156,13 +156,6 @@ namespace TestNs
         }
 
 
-        [Obsolete("Use the ClientMetadata.AssemblyName property instead.", true)]
-        public string GetClientAssemblyName()
-        {
-            throw new NotImplementedException("Use the ClientMetadata.AssemblyName property instead.");
-        }
-
-
         public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
         {
             return this.wrappedFilter.GetClientLibraryAttributes(member);
@@ -409,12 +402,6 @@ namespace TestNs
         }
 
 
-        public bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo)
-        {
-            throw new NotSupportedException("Method is obsolete.");
-        }
-
-
         public bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
@@ -618,13 +605,6 @@ namespace TestNs
                 return ifMappingMissing();
 
             return (T)result;
-        }
-
-
-        [Obsolete("Use the ClientMetadata.InformationalVersion property instead.", true)]
-        string ITypeMappingFilter.GetClientInformationalVersion()
-        {
-            return this.wrappedFilter.GetClientInformationalVersion();
         }
 
 
