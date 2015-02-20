@@ -55,8 +55,6 @@ namespace Pomona.FluentMapping
 
         public List<Attribute> AddedAttributes { get; set; }
 
-        public int? ConstructorArgIndex { get; set; }
-
         public PropertyCreateMode? CreateMode { get; internal set; }
         public bool? ExposedAsRepository { get; internal set; }
         public LambdaExpression Formula { get; set; }
