@@ -46,11 +46,6 @@ namespace Pomona
         DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
         JsonConverter GetJsonConverterForType(Type type);
         Action<object> GetOnDeserializedHook(Type type);
-        bool TypeIsMapped(Type type);
-        bool TypeIsMappedAsCollection(Type type);
-        bool TypeIsMappedAsSharedType(Type type);
-        bool TypeIsMappedAsTransformedType(Type type);
-        bool TypeIsMappedAsValueObject(Type type);
 
         #endregion
 
@@ -117,18 +112,33 @@ namespace Pomona
 
         #region TypeMappingConventions
 
+        bool TypeIsMapped(Type type);
+        bool TypeIsMappedAsCollection(Type type);
+        bool TypeIsMappedAsSharedType(Type type);
+        bool TypeIsMappedAsTransformedType(Type type);
+        bool TypeIsMappedAsValueObject(Type type);
+
         IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags);
-        PropertyInfo GetChildToParentProperty(Type type);
-        PropertyInfo GetParentToChildProperty(Type type);
-        string GetPluralNameForType(Type type);
-        string GetUrlRelativePath(Type type);
-        Type GetPostReturnType(Type type);
-        IEnumerable<Type> GetResourceHandlers(Type type);
         ConstructorSpec GetTypeConstructor(Type type);
         bool GetTypeIsAbstract(Type type);
         string GetTypeMappedName(Type type);
+        bool IsIndependentTypeRoot(Type type);
 
-            /// <summary>
+        #endregion
+
+        #region ResourceTypeConventions
+
+        PropertyInfo GetChildToParentProperty(Type type);
+        PropertyInfo GetParentToChildProperty(Type type);
+
+        string GetUrlRelativePath(Type type);
+        string GetPluralNameForType(Type type);
+        Type GetPostReturnType(Type type);
+        IEnumerable<Type> GetResourceHandlers(Type type);
+        bool TypeIsExposedAsRepository(Type type);
+        bool TypeIsSingletonResource(Type type);
+
+        /// <summary>
         /// This returns what URI this type will be mapped to.
         /// For example if this method returns the type Animal when passed Dog
         /// it means that dogs will be available on same url as Animal.
@@ -138,30 +148,31 @@ namespace Pomona
         /// <returns></returns>
         Type GetUriBaseType(Type type);
 
+        #endregion
 
-        bool IsIndependentTypeRoot(Type type);
+        #region ProxyTypeResolver
 
         Type ResolveRealTypeForProxy(Type type);
-        bool TypeIsExposedAsRepository(Type type);
-        bool TypeIsSingletonResource(Type type);
 
         #endregion
 
         #region Property mapping conventions
 
+        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
         IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo);
-        ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo);
-        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
         Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
         string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
         Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo);
         Type GetPropertyType(Type type, PropertyInfo propertyInfo);
+        LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
+        ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo);
+        
         [Obsolete("Obsolete, and no longer supported. Should not be called. Use GetPropertyExpandMode(..) instead.", true)]
         bool PropertyIsAlwaysExpanded(Type type, PropertyInfo propertyInfo);
+
+        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
         bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo);
         bool PropertyIsEtag(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
-        bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo);
 
         #endregion
     }
