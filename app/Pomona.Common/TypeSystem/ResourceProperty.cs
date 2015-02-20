@@ -33,7 +33,7 @@ namespace Pomona.Common.TypeSystem
 {
     public class ResourceProperty : StructuredProperty
     {
-        private Lazy<ResourcePropertyDetails> resourcePropertyDetails;
+        private readonly Lazy<ResourcePropertyDetails> resourcePropertyDetails;
 
 
         public ResourceProperty(IResourceTypeResolver typeResolver,
