@@ -58,6 +58,7 @@ namespace Pomona
 
         public virtual string RelativeToAbsoluteUri(string path)
         {
+            Console.WriteLine("NOCOMMIT! " + path);
             var baseUri = this.baseUriProvider.BaseUri.ToString();
             return String.Format("{0}{1}{2}", baseUri, (baseUri.EndsWith("/") || path == string.Empty) ? string.Empty : "/", path);
         }
@@ -102,7 +103,8 @@ namespace Pomona
 
             if (property != null)
             {
-                sb.Append('/');
+                if (sb.Length > 0)
+                    sb.Append('/');
                 sb.Append(((ComplexProperty)property).UriName);
             }
         }
