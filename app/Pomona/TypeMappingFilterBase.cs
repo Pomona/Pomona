@@ -211,7 +211,7 @@ namespace Pomona
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
-            return Ex.Lambda(type, x => x.Member(propertyInfo.NormalizeReflectedType()));
+            return null;
         }
 
 
