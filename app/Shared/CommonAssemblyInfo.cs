@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 
 [assembly : AssemblyCompany("Karsten N. Strand")]
 [assembly : AssemblyProduct("Pomona")]
-[assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2014")]
-[assembly : AssemblyVersion("0.16.0.0")]
-[assembly : AssemblyFileVersion("0.16.0.0")]
-[assembly : AssemblyInformationalVersion("0.16.0")]
+[assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2015")]
+[assembly : AssemblyVersion("0.17.0.0")]
+[assembly : AssemblyFileVersion("0.17.0.0")]
+[assembly : AssemblyInformationalVersion("0.17.0")]
 [assembly : ComVisible(false)]
