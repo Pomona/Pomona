@@ -71,9 +71,9 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.IsExposedAsRepository; }
         }
 
-        public bool IsRootResource
+        public bool IsChildResource
         {
-            get { return ResourceTypeDetails.ParentResourceType == null; }
+            get { return ResourceTypeDetails.ParentResourceType != null; }
         }
 
         public bool IsUriBaseType

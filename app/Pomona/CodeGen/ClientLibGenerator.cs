@@ -1049,7 +1049,7 @@ namespace Pomona.CodeGen
         {
             return this.clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType
                                                              && x.StructuredType.Maybe().OfType<ResourceType>().Select(
-                                                                 y => y.IsRootResource && y.IsExposedAsRepository)
+                                                                 y => !y.IsChildResource && y.IsExposedAsRepository)
                                                             .OrDefault());
         }
 
@@ -1388,7 +1388,7 @@ namespace Pomona.CodeGen
                 var resourceType = structuredType as ResourceType;
                 if (resourceType != null && resourceType.IsUriBaseType)
                 {
-                    if ((resourceType.IsRootResource && resourceType.IsExposedAsRepository)
+                    if ((!resourceType.IsChildResource && resourceType.IsExposedAsRepository)
                         || (resourceType.ParentToChildProperty != null
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
@@ -1421,7 +1421,7 @@ namespace Pomona.CodeGen
                     {
                         if (resourceType.IsUriBaseType)
                         {
-                            if (resourceType.IsRootResource && resourceType.IsExposedAsRepository)
+                            if (!resourceType.IsChildResource && resourceType.IsExposedAsRepository)
                                 return typeof(ClientRepository<,,>);
                             if (resourceType.ParentToChildProperty != null
                                 && resourceType.ParentToChildProperty.ExposedAsRepository)

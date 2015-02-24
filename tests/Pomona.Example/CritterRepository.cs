@@ -468,7 +468,7 @@ namespace Pomona.Example
         {
             var type = typeof(T);
             var tt = (ResourceType)TypeMapper.FromType(type);
-            if (tt.IsRootResource)
+            if (!tt.IsChildResource)
             {
                 object list;
                 if (!this.entityLists.TryGetValue(type, out list))
