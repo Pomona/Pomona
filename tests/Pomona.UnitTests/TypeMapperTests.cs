@@ -130,6 +130,14 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void GetPropertyFormula_ForTypeNotHavingFormulaSpecified_ReturnsNull()
+        {
+            var idProp = this.typeMapper.FromType<Critter>().GetPropertyByName("Id", false);
+            Assert.That(idProp.GetPropertyFormula(), Is.Null);
+        }
+
+
+        [Test]
         public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
         {
             var tt = this.typeMapper.FromType<IExposedInterface>();
