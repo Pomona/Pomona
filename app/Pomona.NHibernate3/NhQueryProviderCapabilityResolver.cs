@@ -51,10 +51,10 @@ namespace Pomona.NHibernate3
 
         public bool PropertyIsMapped(PropertyInfo propertyInfo)
         {
-            var cm = this.factory.GetClassMetadata(propertyInfo.DeclaringType);
+            var cm = this.factory.GetClassMetadata(propertyInfo.ReflectedType);
             if (cm == null)
                 return false;
-            return cm.PropertyNames.Contains(propertyInfo.Name);
+            return (cm.HasIdentifierProperty && cm.IdentifierPropertyName == propertyInfo.Name) || cm.PropertyNames.Contains(propertyInfo.Name);
         }
     }
 }

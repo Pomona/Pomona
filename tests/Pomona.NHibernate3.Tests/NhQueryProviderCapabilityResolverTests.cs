@@ -76,6 +76,13 @@ namespace Pomona.NHibernate3.Tests
 
 
         [Test]
+        public void IdPropertyIsMapped_With_Property_Mapped_By_Nhibernate_Returns_False()
+        {
+            Assert.That(this.resolver.PropertyIsMapped(typeof(Order).GetProperty("Id")), Is.True);
+        }
+
+
+        [Test]
         public void PropertyIsMapped_With_Property_Not_Mapped_By_Nhibernate_Returns_False()
         {
             Assert.That(this.resolver.PropertyIsMapped(typeof(Order).GetProperty("LinesWithOddIds")), Is.False);
