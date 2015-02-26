@@ -123,11 +123,10 @@ namespace Pomona.Common.Web
                 var genericArg = bodyObject is IClientResource
                     ? client.GetMostInheritedResourceInterface(bodyObjectType)
                     : bodyObjectType;
-                return
-                    (WebClientException)
-                        createGenericMethod
-                            .MakeGenericMethod(genericArg)
-                            .Invoke(null, new[] { request, response, bodyObject, innerException });
+
+                return (WebClientException)createGenericMethod
+                    .MakeGenericMethod(genericArg)
+                    .Invoke(null, new[] { request, response, bodyObject, innerException });
             }
 
             var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
@@ -178,7 +177,7 @@ namespace Pomona.Common.Web
 
             if (response != null)
             {
-                // If the request is null, we need to append the URI, otherwise it's already appended.
+                // If the request is null, we need to append the URI from the response, otherwise it's already appended.
                 if (request == null)
                     message.AppendFormat("to <{0}> ", response.Uri);
 
