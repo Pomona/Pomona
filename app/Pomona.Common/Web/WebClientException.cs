@@ -65,6 +65,7 @@ namespace Pomona.Common.Web
         private static readonly MethodInfo createGenericMethod;
         private readonly object body;
         private readonly HttpStatusCode statusCode;
+        private readonly string uri;
 
 
         static WebClientException()
@@ -81,7 +82,11 @@ namespace Pomona.Common.Web
             : base(CreateMessage(request, response, body), innerException)
         {
             this.body = body;
-            this.statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            this.statusCode = response != null
+                ? response.StatusCode
+                : HttpStatusCode.EmptyResponse;
+            this.uri = (request != null ? request.Uri : null)
+                       ?? (response != null ? response.Uri : null);
         }
 
 
@@ -104,6 +109,11 @@ namespace Pomona.Common.Web
         public HttpStatusCode StatusCode
         {
             get { return this.statusCode; }
+        }
+
+        public string Uri
+        {
+            get { return this.uri; }
         }
 
 
@@ -171,14 +181,19 @@ namespace Pomona.Common.Web
             StringBuilder message = new StringBuilder("The ");
 
             if (request != null)
-                message.AppendFormat("{0} request to <{1}> ", request.Method, request.Uri);
+            {
+                message.AppendFormat("{0} request ", request.Method);
+
+                if (request.Uri != null)
+                    message.AppendFormat("to <{0}> ", request.Uri);
+            }
             else
                 message.Append("request ");
 
             if (response != null)
             {
                 // If the request is null, we need to append the URI from the response, otherwise it's already appended.
-                if (request == null)
+                if (request == null && response.Uri != null)
                     message.AppendFormat("to <{0}> ", response.Uri);
 
                 message.AppendFormat("failed with '{0} {1}'",
