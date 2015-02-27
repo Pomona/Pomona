@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright Â© 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 
 [assembly : AssemblyCompany("Karsten N. Strand")]
 [assembly : AssemblyProduct("Pomona")]
-[assembly : AssemblyCopyright("Copyright © Karsten N. Strand 2015")]
+[assembly : AssemblyCopyright("Copyright Â© Karsten N. Strand 2015")]
 [assembly : AssemblyVersion("0.17.0.0")]
-[assembly : AssemblyFileVersion("0.17.2.0")]
-[assembly : AssemblyInformationalVersion("0.17.2")]
+[assembly : AssemblyFileVersion("0.17.3.0")]
+[assembly : AssemblyInformationalVersion("0.17.3")]
 [assembly : ComVisible(false)]
