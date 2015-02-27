@@ -153,6 +153,7 @@
     <Compile Include="TypeSystem\SubclassComparerTests.cs" />
     <Compile Include="TypeSystem\TypeSystemTests.cs" />
     <Compile Include="UriResolverTests.cs" />
+    <Compile Include="Web\ResourceNotFoundExceptionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
