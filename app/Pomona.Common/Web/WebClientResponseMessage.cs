@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,8 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Linq;
+#endregion
+
 using System.Text;
 
 namespace Pomona.Common.Web
@@ -36,8 +38,18 @@ namespace Pomona.Common.Web
         private readonly HttpStatusCode statusCode;
         private readonly string uri;
 
-        public WebClientResponseMessage(string uri, byte[] data, HttpStatusCode statusCode,
-                                        HttpHeaders headers, string protocolVersion)
+
+        public WebClientResponseMessage(string uri, HttpStatusCode statusCode)
+            : this(uri, null, statusCode, null)
+        {
+        }
+
+
+        public WebClientResponseMessage(string uri,
+                                        byte[] data,
+                                        HttpStatusCode statusCode,
+                                        HttpHeaders headers,
+                                        string protocolVersion = "1.1")
         {
             this.headers = headers;
             this.uri = uri;
@@ -46,41 +58,41 @@ namespace Pomona.Common.Web
             this.protocolVersion = protocolVersion;
         }
 
-        public HttpHeaders Headers
-        {
-            get { return headers; }
-        }
-
-        public string Uri
-        {
-            get { return uri; }
-        }
 
         public byte[] Data
         {
-            get { return data; }
+            get { return this.data; }
+        }
+
+        public HttpHeaders Headers
+        {
+            get { return this.headers; }
         }
 
         public HttpStatusCode StatusCode
         {
-            get { return statusCode; }
+            get { return this.statusCode; }
         }
+
+        public string Uri
+        {
+            get { return this.uri; }
+        }
+
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("HTTP/{0} {1} {2}\r\n", protocolVersion, (int) statusCode, statusCode);
-            foreach (var h in headers)
+            sb.AppendFormat("HTTP/{0} {1} {2}\r\n", this.protocolVersion, (int)this.statusCode, this.statusCode);
+            foreach (var h in this.headers)
             {
                 foreach (var v in h.Value)
                     sb.AppendFormat("{0}: {1}\r\n", h.Key, v);
             }
             sb.AppendLine();
 
-            if (data != null)
-            {
-                sb.Append(Encoding.UTF8.GetString(data));
-            }
+            if (this.data != null)
+                sb.Append(Encoding.UTF8.GetString(this.data));
             sb.AppendLine();
             return sb.ToString();
         }
