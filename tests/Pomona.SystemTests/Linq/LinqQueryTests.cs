@@ -710,11 +710,25 @@ namespace Pomona.SystemTests.Linq
         }
 
 
+        [Test(Description =
+            "We need a scenario that makes this throw so we can assert that the exception contains the information we need to debug the missing Expand()."
+            )]
+        [Category("TODO")]
+        public void QueryCritter_WithPropertyOfListItemsUnexpanded_ThrowsResourceNotFoundException()
+        {
+            var result = Client.Critters.Query().Take(1).First();
+
+            var exception =
+                Assert.Throws<Common.Web.ResourceNotFoundException>(() => result.Weapons.Select(x => x.Id).ToArray());
+            Assert.That(exception.Uri, Is.StringContaining(""));
+        }
+
+
         [Test]
         public void QueryCritter_WithUnhandledGeneratedProperty_ThrowsExceptionUsingCritterDataSource()
         {
             Assert.That(() => Client.Critters.Query(x => x.UnhandledGeneratedProperty == "nono").ToList(),
-                Throws.Exception);
+                        Throws.Exception);
         }
 
 
