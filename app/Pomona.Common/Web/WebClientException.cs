@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -85,8 +86,7 @@ namespace Pomona.Common.Web
             this.statusCode = response != null
                 ? response.StatusCode
                 : HttpStatusCode.EmptyResponse;
-            this.uri = (request != null ? request.Uri : null)
-                       ?? (response != null ? response.Uri : null);
+            this.uri = GetUri(request, response);
         }
 
 
@@ -180,28 +180,26 @@ namespace Pomona.Common.Web
         {
             StringBuilder message = new StringBuilder("The ");
 
-            if (request != null)
-            {
-                message.AppendFormat("{0} request ", request.Method);
+            if (request != null && request.Method != null)
+                message.AppendFormat("{0} ", request.Method);
 
-                if (request.Uri != null)
-                    message.AppendFormat("to <{0}> ", request.Uri);
-            }
-            else
-                message.Append("request ");
+            message.Append("request ");
+
+            string uri = GetUri(request, response);
+
+            if (uri != null)
+                message.AppendFormat("to <{0}> ", uri);
 
             if (response != null)
             {
-                // If the request is null, we need to append the URI from the response, otherwise it's already appended.
-                if (request == null && response.Uri != null)
-                    message.AppendFormat("to <{0}> ", response.Uri);
-
                 message.AppendFormat("failed with '{0} {1}'",
                                      (int)response.StatusCode,
                                      response.StatusCode);
             }
             else
                 message.Append("got no response");
+
+            body = GetBody(body, response);
 
             var bodyString = body as string;
             if (bodyString == null && body != null)
@@ -216,8 +214,36 @@ namespace Pomona.Common.Web
                 message.Append(": ");
                 message.Append(bodyString);
             }
+            else
+                message.Append('.');
 
-            return message.ToString();
+            return message.ToString().Trim();
+        }
+
+
+        private static object GetBody(object body, WebClientResponseMessage response)
+        {
+            if (body != null)
+                return body;
+
+            if (response == null || response.Data == null || response.Data.Length == 0)
+                return null;
+
+            try
+            {
+                return Encoding.UTF8.GetString(response.Data);
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine("The response data could not be encoded as an UTF-8 string. {0}", exception);
+                return null;
+            }
+        }
+
+
+        private static string GetUri(WebClientRequestMessage request, WebClientResponseMessage response)
+        {
+            return (request != null ? request.Uri : null) ?? (response != null ? response.Uri : null);
         }
     }
 }
