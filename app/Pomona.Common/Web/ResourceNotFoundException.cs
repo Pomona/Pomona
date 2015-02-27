@@ -36,8 +36,8 @@ namespace Pomona.Common.Web
     {
         public ResourceNotFoundException(WebClientRequestMessage request,
                                          WebClientResponseMessage response,
-                                         TBody body,
-                                         Exception innerException)
+                                         TBody body = default(TBody),
+                                         Exception innerException = null)
             : base(request, response, body, innerException)
         {
         }
@@ -60,8 +60,8 @@ namespace Pomona.Common.Web
     {
         public ResourceNotFoundException(WebClientRequestMessage request,
                                          WebClientResponseMessage response,
-                                         object body,
-                                         Exception innerException)
+                                         object body = null,
+                                         Exception innerException = null)
             : base(request, response, body, innerException)
         {
         }

@@ -46,8 +46,8 @@ namespace Pomona.Common.Web
 
         internal WebClientException(WebClientRequestMessage request,
                                     WebClientResponseMessage response,
-                                    TBody body,
-                                    Exception innerException)
+                                    TBody body = default(TBody),
+                                    Exception innerException = null)
             : base(request, response, body, innerException)
         {
         }
@@ -77,8 +77,8 @@ namespace Pomona.Common.Web
 
         protected WebClientException(WebClientRequestMessage request,
                                      WebClientResponseMessage response,
-                                     object body,
-                                     Exception innerException)
+                                     object body = null,
+                                     Exception innerException = null)
             : base(CreateMessage(request, response, body), innerException)
         {
             this.body = body;
