@@ -180,14 +180,14 @@ namespace Pomona.Common.Web
         {
             StringBuilder message = new StringBuilder("The ");
 
-            if (request != null && request.Method != null)
+            if (request != null && !String.IsNullOrWhiteSpace(request.Method))
                 message.AppendFormat("{0} ", request.Method);
 
             message.Append("request ");
 
             string uri = GetUri(request, response);
 
-            if (uri != null)
+            if (!String.IsNullOrWhiteSpace(uri))
                 message.AppendFormat("to <{0}> ", uri);
 
             if (response != null)
@@ -209,7 +209,7 @@ namespace Pomona.Common.Web
                     bodyString = (string)messageProperty.GetValue(body, null);
             }
 
-            if (bodyString != null)
+            if (!String.IsNullOrWhiteSpace(bodyString))
             {
                 message.Append(": ");
                 message.Append(bodyString);
