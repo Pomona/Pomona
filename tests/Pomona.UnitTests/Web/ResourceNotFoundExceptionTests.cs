@@ -40,6 +40,17 @@ namespace Pomona.UnitTests.Web
     public class ResourceNotFoundExceptionTests
     {
         [Test]
+        public void Constructor_WithNoRequestAndEmptyUri_ReturnsExpectedMessage()
+        {
+            var response = new WebClientResponseMessage("", HttpStatusCode.NotFound);
+            var exception = new RNFException(null, response);
+            Console.WriteLine(exception);
+
+            Assert.That(exception.Message, Is.EqualTo("The request failed with '404 NotFound'."));
+        }
+
+
+        [Test]
         public void Constructor_WithNoRequestAndNoResponse_ReturnsExpectedMessage()
         {
             var exception = new RNFException(null, null);
@@ -69,6 +80,28 @@ namespace Pomona.UnitTests.Web
 
             Assert.That(exception.Message,
                         Is.EqualTo("The request to <http://example.com/> failed with '404 NotFound'."));
+        }
+
+
+        [Test]
+        public void Constructor_WithNoResponseEmptyUriAndNoMethod_ReturnsExpectedMessage()
+        {
+            var request = new WebClientRequestMessage("");
+            var exception = new RNFException(request, null);
+            Console.WriteLine(exception);
+
+            Assert.That(exception.Message, Is.EqualTo("The request got no response."));
+        }
+
+
+        [Test]
+        public void Constructor_WithNoResponseNoUriAndEmptyMethod_ReturnsExpectedMessage()
+        {
+            var request = new WebClientRequestMessage(null, method : "");
+            var exception = new RNFException(request, null);
+            Console.WriteLine(exception);
+
+            Assert.That(exception.Message, Is.EqualTo("The request got no response."));
         }
 
 
