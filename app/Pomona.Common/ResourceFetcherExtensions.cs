@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,36 @@
 
 #endregion
 
+using System;
+
 namespace Pomona.Common
 {
-    public interface IHasResourceUri
+    public static class ResourceFetcherExtensions
     {
-        string Uri { get; set; }
+        public static T Get<T>(this IResourceFetcher resourceFetcher, string uri)
+        {
+            if (resourceFetcher == null)
+                throw new ArgumentNullException("client");
+
+            return (T)resourceFetcher.Get(uri, typeof(T), null);
+        }
+
+
+        public static T Get<T>(this IResourceFetcher resourceFetcher, string uri, RequestOptions requestOptions)
+        {
+            if (resourceFetcher == null)
+                throw new ArgumentNullException("client");
+
+            return (T)resourceFetcher.Get(uri, typeof(T), requestOptions);
+        }
+
+
+        public static object Get(this IResourceFetcher resourceFetcher, string uri, Type type)
+        {
+            if (resourceFetcher == null)
+                throw new ArgumentNullException("client");
+
+            return resourceFetcher.Get(uri, type, null);
+        }
     }
 }

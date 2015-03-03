@@ -28,9 +28,8 @@
 
 using System.Linq;
 
-
 using Critters.Client;
-using Critters.Client.Pomona.Common.Linq;
+using Critters.Client.Pomona.Common;
 
 using NUnit.Framework;
 

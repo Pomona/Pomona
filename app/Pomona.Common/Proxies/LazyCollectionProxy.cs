@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,16 +33,17 @@ namespace Pomona.Common.Proxies
 {
     public abstract class LazyCollectionProxy : ILazyProxy, IHasResourceUri
     {
-        protected readonly IPomonaClient clientBase;
-        protected readonly string uri;
+        private readonly IResourceFetcher resourceFetcher;
+        private readonly string uri;
 
 
-        protected LazyCollectionProxy(string uri, IPomonaClient clientBase)
+        protected LazyCollectionProxy(string uri, IResourceFetcher resourceFetcher)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
+
             this.uri = uri;
-            this.clientBase = clientBase;
+            this.resourceFetcher = resourceFetcher;
         }
 
 
@@ -51,7 +52,15 @@ namespace Pomona.Common.Proxies
         public string Uri
         {
             get { return this.uri; }
-            set { }
+            set
+            {
+                // TODO: Remove setter. This feels dirty. @asbjornu
+            }
+        }
+
+        protected IResourceFetcher ResourceFetcher
+        {
+            get { return this.resourceFetcher; }
         }
 
 
@@ -59,13 +68,11 @@ namespace Pomona.Common.Proxies
         {
             Type[] genArgs;
             if (collectionType.TryExtractTypeArguments(typeof(ISet<>), out genArgs))
-            {
                 return Activator.CreateInstance(typeof(LazySetProxy<>).MakeGenericType(genArgs), uri, clientBase);
-            }
+
             if (collectionType.TryExtractTypeArguments(typeof(IEnumerable<>), out genArgs))
-            {
                 return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(genArgs), uri, clientBase);
-            }
+
             throw new NotSupportedException("Unable to create lazy list proxy for collection type " + collectionType);
         }
     }

@@ -40,8 +40,8 @@ namespace Pomona.Common.Proxies
         private TCollection dontTouchwrappedList;
 
 
-        public LazyCollectionProxyBase(string uri, IPomonaClient clientBase)
-            : base(uri, clientBase)
+        public LazyCollectionProxyBase(string uri, IResourceFetcher resourceFetcher)
+            : base(uri, resourceFetcher)
         {
         }
 
@@ -66,7 +66,8 @@ namespace Pomona.Common.Proxies
             get
             {
                 if (this.dontTouchwrappedList == null)
-                    this.dontTouchwrappedList = clientBase.Get<TCollection>(uri);
+                    this.dontTouchwrappedList = ResourceFetcher.Get<TCollection>(Uri);
+
                 return this.dontTouchwrappedList;
             }
         }

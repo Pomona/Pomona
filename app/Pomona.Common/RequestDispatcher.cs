@@ -52,9 +52,9 @@ namespace Pomona.Common
 
 
         public RequestDispatcher(ClientTypeMapper typeMapper,
-            IWebClient webClient,
-            ITextSerializerFactory serializerFactory,
-            HttpHeaders defaultHeaders = null)
+                                 IWebClient webClient,
+                                 ITextSerializerFactory serializerFactory,
+                                 HttpHeaders defaultHeaders = null)
         {
             this.defaultHeaders = defaultHeaders;
             if (typeMapper != null)
@@ -74,23 +74,22 @@ namespace Pomona.Common
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
-        public object SendRequest(
-            ISerializationContextProvider provider,
-            string uri,
-            object body,
-            string httpMethod,
-            RequestOptions options,
-            Type responseBaseType = null)
+        public object SendRequest(ISerializationContextProvider provider,
+                                  string uri,
+                                  object body,
+                                  string httpMethod,
+                                  RequestOptions options,
+                                  Type responseBaseType = null)
         {
             var bodyAsExtendedProxy = body as IExtendedResourceProxy;
             if (bodyAsExtendedProxy != null)
             {
                 return SendExtendedResourceRequest(provider,
-                    uri,
-                    bodyAsExtendedProxy,
-                    httpMethod,
-                    options,
-                    responseBaseType);
+                                                   uri,
+                                                   bodyAsExtendedProxy,
+                                                   httpMethod,
+                                                   options,
+                                                   responseBaseType);
             }
 
             var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
@@ -98,21 +97,20 @@ namespace Pomona.Common
         }
 
 
-        protected virtual object SendExtendedResourceRequest(
-            ISerializationContextProvider serializationContextProvider,
-            string uri,
-            IExtendedResourceProxy body,
-            string httpMethod,
-            RequestOptions options,
-            Type responseBaseType = null)
+        protected virtual object SendExtendedResourceRequest(ISerializationContextProvider serializationContextProvider,
+                                                             string uri,
+                                                             IExtendedResourceProxy body,
+                                                             string httpMethod,
+                                                             RequestOptions options,
+                                                             Type responseBaseType = null)
         {
             var info = body.UserTypeInfo;
             var serverTypeResult = SendRequest(serializationContextProvider,
-                uri,
-                body.WrappedResource,
-                httpMethod,
-                options,
-                null);
+                                               uri,
+                                               body.WrappedResource,
+                                               httpMethod,
+                                               options,
+                                               null);
             if (serverTypeResult == null)
                 return null;
 
@@ -122,8 +120,8 @@ namespace Pomona.Common
                 info.ServerType.IsInstanceOfType(serverTypeResult))
             {
                 return this.typeMapper.WrapResource(serverTypeResult,
-                    info.ServerType,
-                    info.ExtendedType);
+                                                    info.ServerType,
+                                                    info.ExtendedType);
             }
 
             ExtendedResourceInfo responseExtendedInfo;
@@ -131,17 +129,24 @@ namespace Pomona.Common
                 && this.typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
             {
                 return this.typeMapper.WrapResource(serverTypeResult,
-                    responseExtendedInfo.ServerType,
-                    responseExtendedInfo.ExtendedType);
+                                                    responseExtendedInfo.ServerType,
+                                                    responseExtendedInfo.ExtendedType);
             }
 
             return serverTypeResult;
         }
 
 
+        private void AddDefaultHeaders(WebClientRequestMessage request)
+        {
+            if (this.defaultHeaders != null)
+                this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
+        }
+
+
         private object Deserialize(string jsonString,
-            Type expectedType,
-            ISerializationContextProvider serializationContextProvider)
+                                   Type expectedType,
+                                   ISerializationContextProvider serializationContextProvider)
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             var jToken = JToken.Parse(jsonString);
@@ -164,18 +169,24 @@ namespace Pomona.Common
                         var totalCount = (int)jObject.GetValue("totalCount");
 
                         var deserializedItems = Deserialize(itemsToken.ToString(),
-                            expectedType,
-                            serializationContextProvider);
+                                                            expectedType,
+                                                            serializationContextProvider);
                         return QueryResult.Create((IEnumerable)deserializedItems,
-                            /* TODO */ 0,
-                            totalCount,
-                            "http://todo");
+                                                  /* TODO */ 0,
+                                                  totalCount,
+                                                  "http://todo");
                     }
                 }
             }
 
             return this.serializerFactory.GetDeserializer(serializationContextProvider).DeserializeString(jsonString,
-                new DeserializeOptions() { ExpectedBaseType = expectedType });
+                                                                                                          new DeserializeOptions
+                                                                                                              ()
+                                                                                                          {
+                                                                                                              ExpectedBaseType
+                                                                                                                  =
+                                                                                                                  expectedType
+                                                                                                          });
         }
 
 
@@ -208,7 +219,7 @@ namespace Pomona.Common
                 AddDefaultHeaders(request);
 
                 request.Headers.Add("Accept", "application/json");
-                
+
                 using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
                     response = this.webClient.Send(request);
@@ -244,13 +255,6 @@ namespace Pomona.Common
             }
 
             return responseString;
-        }
-
-
-        private void AddDefaultHeaders(WebClientRequestMessage request)
-        {
-            if (this.defaultHeaders != null)
-                this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
         }
     }
 }

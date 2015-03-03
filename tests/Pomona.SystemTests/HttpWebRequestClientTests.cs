@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@ using Critters.Client;
 
 using NUnit.Framework;
 
-using Pomona.Common.Linq;
+using Pomona.Common;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
 
@@ -54,16 +54,6 @@ namespace Pomona.SystemTests
                 () => Client.Get<ICritter>(Client.BaseUri + "critters/38473833"));
         }
 
-
-        [Category("TODO")]
-        [Test(Description = "Encoding of some identifiers (?&/) is not working properly, this is due to behaviour in Nancy hosts. Maybe we need custom encoding?")]
-        public void QueryGalaxyHavingQuestionMarkInName_ReturnsCorrectResource()
-        {
-            var galaxy = Client.Galaxies.Post(new GalaxyForm() { Name = "The Joker?" });
-            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
-            galaxy = Client.Reload(galaxy);
-            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
-        }
 
         [Test]
         public void Get_UsingQuery_ReturnsEntities()
@@ -95,7 +85,7 @@ namespace Pomona.SystemTests
             etaggedEntity.SetEtag("MODIFIED!");
 
             Assert.That(() => Client.EtaggedEntities.Patch(originalResource, x => x.Info = "Fresh"),
-                Throws.TypeOf<PreconditionFailedException>());
+                        Throws.TypeOf<PreconditionFailedException>());
             Assert.That(etaggedEntity.Info, Is.EqualTo("Ancient"));
         }
 
@@ -103,7 +93,8 @@ namespace Pomona.SystemTests
         [Test]
         public void Post_FailingThing_ThrowsWebClientException()
         {
-            var ex = Assert.Throws<WebClientException<IErrorStatus>>(() => Client.FailingThings.Post(new FailingThingForm()));
+            var ex =
+                Assert.Throws<WebClientException<IErrorStatus>>(() => Client.FailingThings.Post(new FailingThingForm()));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
 
@@ -114,6 +105,20 @@ namespace Pomona.SystemTests
             var resource = Client.Critters.Post(new CritterForm { Name = "Hiihaa" });
             Assert.That(resource.Id, Is.GreaterThan(0));
             Assert.That(resource.Name, Is.EqualTo("Hiihaa"));
+        }
+
+
+        [Category("TODO")]
+        [Test(
+            Description =
+                "Encoding of some identifiers (?&/) is not working properly, this is due to behaviour in Nancy hosts. Maybe we need custom encoding?"
+            )]
+        public void QueryGalaxyHavingQuestionMarkInName_ReturnsCorrectResource()
+        {
+            var galaxy = Client.Galaxies.Post(new GalaxyForm() { Name = "The Joker?" });
+            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
+            galaxy = Client.Reload(galaxy);
+            Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
         }
     }
 }

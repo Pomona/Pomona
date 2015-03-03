@@ -76,8 +76,11 @@ namespace Pomona.CodeGen
             this.typeMapper = typeMapper;
             this.allowedReferencedAssemblies = new[]
             {
-                /*mscorlib*/typeof(string).Assembly, typeof(IPomonaClient).Assembly, /*System.Core*/
-                typeof(Func<>).Assembly, /*System*/ typeof(Uri).Assembly, typeof(HashSet<>).Assembly
+                /*mscorlib*/typeof(string).Assembly,
+                typeof(IPomonaClient).Assembly,
+                /*System.Core*/typeof(Func<>).Assembly,
+                /*System*/ typeof(Uri).Assembly,
+                typeof(HashSet<>).Assembly
             };
             PomonaClientEmbeddingEnabled = true;
         }

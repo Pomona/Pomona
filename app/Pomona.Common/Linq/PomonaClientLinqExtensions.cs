@@ -34,39 +34,28 @@ namespace Pomona.Common.Linq
 {
     public static class PomonaClientLinqExtensions
     {
-        public static T Get<T>(this IPomonaClient client, string uri)
-        {
-            if (client == null)
-                throw new ArgumentNullException("client");
-            return (T)client.Get(uri, typeof(T), null);
-        }
-
-
-        public static T Get<T>(this IPomonaClient client, string uri, RequestOptions requestOptions)
-        {
-            if (client == null)
-                throw new ArgumentNullException("client");
-            return (T)client.Get(uri, typeof(T), requestOptions);
-        }
-
-        public static object Get(this IPomonaClient client, string uri, Type type)
-        {
-            if (client == null)
-                throw new ArgumentNullException("client");
-            return client.Get(uri, type, null);
-        }
-
-
         public static IQueryable<T> Query<T>(this IPomonaClient client, Expression<Func<T, bool>> predicate)
         {
+            if (client == null)
+                throw new ArgumentNullException("client");
+
+            if (predicate == null)
+                throw new ArgumentNullException("predicate");
+
             return client.Query<T>().Where(predicate);
         }
 
 
         public static IQueryable<TResource> Query<TResource>(this IQueryableRepository<TResource> repository,
-            Expression<Func<TResource, bool>> predicate)
+                                                             Expression<Func<TResource, bool>> predicate)
             where TResource : class, IClientResource
         {
+            if (repository == null)
+                throw new ArgumentNullException("repository");
+
+            if (predicate == null)
+                throw new ArgumentNullException("predicate");
+
             return repository.Query().Where(predicate);
         }
     }

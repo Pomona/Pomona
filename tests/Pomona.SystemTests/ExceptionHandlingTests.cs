@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@ using Critters.Client;
 
 using NUnit.Framework;
 
-using Pomona.Common.Linq;
+using Pomona.Common;
 using Pomona.Common.Web;
 
 namespace Pomona.SystemTests
@@ -49,7 +49,8 @@ namespace Pomona.SystemTests
         [Test]
         public void Post_FailingThing_ThrowsWebClientException()
         {
-            var ex = Assert.Throws<WebClientException<IErrorStatus>>(() => Client.FailingThings.Post(new FailingThingForm()));
+            var ex =
+                Assert.Throws<WebClientException<IErrorStatus>>(() => Client.FailingThings.Post(new FailingThingForm()));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         }
     }
