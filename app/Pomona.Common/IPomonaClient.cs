@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright ï¿½ 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,13 @@
 
 #endregion
 
-using System;
 using System.Linq;
 
 namespace Pomona.Common
 {
     public interface IPomonaClient : IClientTypeResolver, IResourceFetcher
     {
-        object Get(string uri, Type type, RequestOptions requestOptions);
-        T Reload<T>(T resource);
         IQueryable<T> Query<T>();
+        T Reload<T>(T resource);
     }
 }

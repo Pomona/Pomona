@@ -35,48 +35,55 @@ using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
-using Pomona.Common.Serialization;
 
 namespace Pomona.TestingClient
 {
+    using PropertyType = IClientRepository<IClientResource, IClientResource, object>;
+
     public class TestableClientProxyBase : IPomonaClient, ITestableClient
     {
-        private static readonly MethodInfo getResourceCollection =
-            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.GetResourceCollection<object>());
-
-        private static readonly MethodInfo mapFormDictionaryToResourceDictionaryMethod =
-            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(
-                x => x.MapFormDictionaryToResourceDictionary<object, object>(null));
-
-        private static readonly MethodInfo mapFormListToResourceListMethod =
-            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(
-                x => x.MapFormListToResourceList<object>(null));
-
-        private static readonly MethodInfo onGetRepositoryMethod =
-            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(
-                x =>
-                    x
-                        .OnGetRepository
-                        <object, IClientRepository<IClientResource, IClientResource, object>, IClientResource, IClientResource, object>(
-                            null));
-
-        private static readonly MethodInfo querySubResourceMethod =
-            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.QuerySubResource<object, object>());
-
-        private static readonly MethodInfo saveInternalMethod =
-            ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.SaveInternal<IClientResource>(null));
-
-        private readonly Dictionary<Type, Delegate> postHandlers = new Dictionary<Type, Delegate>();
-
-        private readonly Dictionary<string, object> repositoryCache = new Dictionary<string, object>();
-
-        private readonly Dictionary<Type, object> resourceCollections = new Dictionary<Type, object>();
+        private static readonly MethodInfo getResourceCollection;
+        private static readonly MethodInfo mapFormDictionaryToResourceDictionaryMethod;
+        private static readonly MethodInfo mapFormListToResourceListMethod;
+        private static readonly MethodInfo onGetRepositoryMethod;
+        private static readonly MethodInfo querySubResourceMethod;
+        private static readonly MethodInfo saveInternalMethod;
+        private readonly Dictionary<Type, Delegate> postHandlers;
+        private readonly Dictionary<string, object> repositoryCache;
+        private readonly Dictionary<Type, object> resourceCollections;
         private readonly ClientTypeMapper typeMapper;
-        private long idCounter = 1;
+        private long idCounter;
+
+
+        static TestableClientProxyBase()
+        {
+            getResourceCollection =
+                ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.GetResourceCollection<object>());
+
+            mapFormDictionaryToResourceDictionaryMethod =
+                ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(
+                    x => x.MapFormDictionaryToResourceDictionary<object, object>(null));
+
+            mapFormListToResourceListMethod = ReflectionHelper
+                .GetMethodDefinition<TestableClientProxyBase>(x => x.MapFormListToResourceList<object>(null));
+
+            onGetRepositoryMethod = ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(
+                x => x.OnGetRepository<object, PropertyType, IClientResource, IClientResource, object>(null));
+
+            querySubResourceMethod =
+                ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.QuerySubResource<object, object>());
+
+            saveInternalMethod =
+                ReflectionHelper.GetMethodDefinition<TestableClientProxyBase>(x => x.SaveInternal<IClientResource>(null));
+        }
 
 
         public TestableClientProxyBase()
         {
+            this.postHandlers = new Dictionary<Type, Delegate>();
+            this.repositoryCache = new Dictionary<string, object>();
+            this.resourceCollections = new Dictionary<Type, object>();
+            this.idCounter = 1;
             var proxiedClientInterface =
                 GetType().GetInterfaces().Except((typeof(TestableClientProxyBase).GetInterfaces())).Single();
             this.typeMapper = new ClientTypeMapper(proxiedClientInterface.Assembly);
@@ -115,12 +122,6 @@ namespace Pomona.TestingClient
         }
 
 
-        public T Reload<T>(T resource)
-        {
-            return resource;
-        }
-
-
         public virtual IQueryable<T> Query<T>()
         {
             return this.typeMapper.WrapExtendedQuery<T>(Query);
@@ -150,15 +151,14 @@ namespace Pomona.TestingClient
 
             foreach (var formProp in formType.GetProperties())
             {
-                if (((IPomonaSerializable)form).PropertyIsSerialized(formProp.Name))
+                if (form.PropertyIsSerialized(formProp.Name))
                 {
                     var resProp = resInfo.PocoType.GetProperty(formProp.Name);
                     var value = formProp.GetValue(form, null);
-                    Type valueType = null;
 
                     if (value != null)
                     {
-                        valueType = value.GetType();
+                        Type valueType = value.GetType();
                         if (value is PostResourceBase)
                             value = SaveResourceFromForm((PostResourceBase)value);
                         else if (valueType != typeof(string))
@@ -229,6 +229,17 @@ namespace Pomona.TestingClient
         }
 
 
+        public void Initialize(IResourceFetchContext context)
+        {
+        }
+
+
+        public T Reload<T>(T resource)
+        {
+            return resource;
+        }
+
+
         public void SetupPostHandler<TResource>(
             Func<TResource, object> func)
         {
@@ -265,18 +276,16 @@ namespace Pomona.TestingClient
                 Type primaryIdType = typeof(object);
                 Type[] gettableRepoType;
                 if (propType.TryExtractTypeArguments(typeof(IGettableRepository<,>), out gettableRepoType))
-                {
                     primaryIdType = gettableRepoType[1];
-                }
 
                 object repository;
                 if (!this.repositoryCache.TryGetValue(property.Name, out repository))
                 {
                     repository = onGetRepositoryMethod.MakeGenericMethod(typeof(TOwner),
-                        propType,
-                        resourceType,
-                        postResponseType,
-                        primaryIdType)
+                                                                         propType,
+                                                                         resourceType,
+                                                                         postResponseType,
+                                                                         primaryIdType)
                         .Invoke(this, new object[] { property });
                     this.repositoryCache[property.Name] = repository;
                 }
@@ -294,7 +303,8 @@ namespace Pomona.TestingClient
             where TResource : class, IClientResource
             where TPostResponseType : IClientResource
         {
-            var mockedRepo = RuntimeProxyFactory<MockedRepository<TResource, TPostResponseType, TId>, TPropType>.Create();
+            var mockedRepo =
+                RuntimeProxyFactory<MockedRepository<TResource, TPostResponseType, TId>, TPropType>.Create();
             ((MockedRepository<TResource, TPostResponseType, TId>)((object)mockedRepo)).Client = this;
             return mockedRepo;
         }
@@ -314,25 +324,22 @@ namespace Pomona.TestingClient
 
         protected object MapFormDictionaryToResourceDictionary<TKey, TValue>(IDictionary<TKey, TValue> dict)
         {
-            return
-                dict.ToDictionary(
-                    x =>
-                        x.Key is PostResourceBase
-                            ? (TKey)SaveResourceFromForm((PostResourceBase)((object)x.Key))
-                            : x.Key,
-                    x =>
-                        x.Value is PostResourceBase
-                            ? (TValue)SaveResourceFromForm((PostResourceBase)((object)x.Value))
-                            : x.Value);
+            Func<object, object> savePostResourceBase = x => x is PostResourceBase
+                ? SaveResourceFromForm((PostResourceBase)(x))
+                : x;
+
+            return dict.ToDictionary(x => savePostResourceBase.Invoke(x.Key),
+                                     x => savePostResourceBase.Invoke(x.Value));
         }
 
 
         protected object MapFormListToResourceList<TElement>(IEnumerable<TElement> items)
         {
-            return
-                items.Select(
-                    x => x is PostResourceBase ? (TElement)SaveResourceFromForm((PostResourceBase)((object)x)) : x)
-                    .ToList();
+            return items
+                .Select(x => x is PostResourceBase
+                    ? (TElement)SaveResourceFromForm((PostResourceBase)((object)x))
+                    : x)
+                .ToList();
         }
 
 
@@ -367,8 +374,8 @@ namespace Pomona.TestingClient
                 (resInfo.IdProperty.PropertyType == typeof(int) || resInfo.IdProperty.PropertyType == typeof(long)))
             {
                 resInfo.IdProperty.SetValue(resource,
-                    Convert.ChangeType(this.idCounter++, resInfo.IdProperty.PropertyType),
-                    null);
+                                            Convert.ChangeType(this.idCounter++, resInfo.IdProperty.PropertyType),
+                                            null);
             }
 
             GetResourceCollection<TResource>().Add(resource);

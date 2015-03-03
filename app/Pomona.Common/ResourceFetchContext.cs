@@ -26,23 +26,59 @@
 
 #endregion
 
-using Pomona.Common.Proxies;
-
 namespace Pomona.Common
 {
-    public interface IClientRepository
+    public abstract class ResourceFetchContext : IResourceFetchContext
     {
-        string Uri { get; }
-    }
+        private static readonly IResourceFetchContext @default;
+        private static readonly IResourceFetchContext lazy;
 
-    public interface IClientRepository<TResource, TPostResponseResource, TId>
-        : IQueryableRepository<TResource>,
-            IPatchableRepository<TResource>,
-            IPostableRepository<TResource, TPostResponseResource>,
-            IDeletableRepository<TResource>
-        where TResource : class, IClientResource
-        where TPostResponseResource : IClientResource
-    {
-        TPostResponseResource Post(IPostForm form);
+
+        static ResourceFetchContext()
+        {
+            lazy = new LazyResourceFetchContext();
+            @default = new DefaultResourceFetcContext();
+        }
+
+
+        public static IResourceFetchContext Default
+        {
+            get { return @default; }
+        }
+
+        public static IResourceFetchContext Lazy
+        {
+            get { return lazy; }
+        }
+
+        public abstract bool LazyEnabled { get; }
+
+        #region Nested type: DefaultResourceFetcContext
+
+        private class DefaultResourceFetcContext : ResourceFetchContext
+        {
+            public override bool LazyEnabled
+            {
+                get
+                {
+                    // TODO: We need to get this from global settings somehow. @asbjornu
+                    return false;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Nested type: LazyResourceFetchContext
+
+        private class LazyResourceFetchContext : ResourceFetchContext
+        {
+            public override bool LazyEnabled
+            {
+                get { return true; }
+            }
+        }
+
+        #endregion
     }
 }

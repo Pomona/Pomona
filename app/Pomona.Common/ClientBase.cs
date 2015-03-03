@@ -59,6 +59,7 @@ namespace Pomona.Common
 
         public abstract object Get(string uri, Type type, RequestOptions requestOptions);
 
+
         public abstract T GetLazy<T>(string uri)
             where T : class, IClientResource;
 
@@ -77,9 +78,18 @@ namespace Pomona.Common
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
 
 
+        public void Initialize(IResourceFetchContext context)
+        {
+            if (context == null)
+                throw new ArgumentNullException("context");
+
+            // TODO: Is the fact that IResourceFetchContext isn't needed here an indication of a design flaw and should we do something about it? @asbjornu
+        }
+
+
         protected void RaiseRequestCompleted(WebClientRequestMessage request,
-            WebClientResponseMessage response,
-            Exception thrownException = null)
+                                             WebClientResponseMessage response,
+                                             Exception thrownException = null)
         {
             var eh = RequestCompleted;
             if (eh != null)
@@ -99,7 +109,6 @@ namespace Pomona.Common
     {
         private static readonly ClientTypeMapper typeMapper;
         private readonly string baseUri;
-
         private readonly IRequestDispatcher dispatcher;
         private readonly ISerializationContextProvider serializationContextProvider;
 
@@ -178,10 +187,12 @@ namespace Pomona.Common
         {
             var typeInfo = this.GetResourceInfoForType(typeof(T));
             var proxy = (LazyProxyBase)Activator.CreateInstance(typeInfo.LazyProxyType);
+            // TODO: Should Uri, Client and ProxyTargetType be moved to ResourceFetchContext? @asbjornu
+            proxy.Initialize(ResourceFetchContext.Lazy);
             proxy.Uri = uri;
             proxy.Client = this;
             proxy.ProxyTargetType = typeInfo.PocoType;
-            return (T)((object)proxy);
+            return (T)(object)proxy;
         }
 
 
@@ -231,7 +242,7 @@ namespace Pomona.Common
             if (resourceWithUri == null)
             {
                 throw new ArgumentException("Could not find resource URI, resouce not of type IHasResourceUri.",
-                    "resource");
+                                            "resource");
             }
 
             if (resourceWithUri.Uri == null)
@@ -327,22 +338,15 @@ namespace Pomona.Common
             var generatedAssembly = GetType().Assembly;
             var repoTypes = generatedAssembly.GetTypes()
                 .Where(x => typeof(IClientRepository).IsAssignableFrom(x) && !x.IsInterface && !x.IsGenericType).ToList();
-            var repositoryImplementations =
-                repoTypes
-                    .Select(
-                        x =>
-                            new
-                            {
-                                Interface =
-                                    x.GetInterfaces()
-                                        .First(y => y.Assembly == generatedAssembly && y.Name == "I" + x.Name),
-                                Implementation = x
-                            })
-                    .ToDictionary(x => x.Interface, x => x.Implementation);
+            var repositoryImplementations = repoTypes.Select(x => new
+            {
+                Interface = x.GetInterfaces().First(y => y.Assembly == generatedAssembly && y.Name == "I" + x.Name),
+                Implementation = x
+            }).ToDictionary(x => x.Interface, x => x.Implementation);
 
-            foreach (
-                var prop in
-                    GetType().GetProperties().Where(x => typeof(IClientRepository).IsAssignableFrom(x.PropertyType)))
+            foreach (var prop in GetType()
+                .GetProperties()
+                .Where(x => typeof(IClientRepository).IsAssignableFrom(x.PropertyType)))
             {
                 var repositoryInterface = prop.PropertyType;
                 var repositoryImplementation = repositoryImplementations[repositoryInterface];

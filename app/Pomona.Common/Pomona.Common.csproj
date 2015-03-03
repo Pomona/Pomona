@@ -91,6 +91,7 @@
     <Compile Include="IDeletableByIdRepository.cs" />
     <Compile Include="IDeletableRepository.cs" />
     <Compile Include="IHasSettableResourceUri.cs" />
+    <Compile Include="IResourceFetchContext.cs" />
     <Compile Include="IResourceFetcher.cs" />
     <Compile Include="IGettableRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="Linq\QuerySegmentParenScopeExpression.cs" />
     <Compile Include="Linq\QuerySelectExpression.cs" />
     <Compile Include="Linq\QueryTerminalSegmentExpression.cs" />
+    <Compile Include="ResourceFetchContext.cs" />
     <Compile Include="ResourceFetcherExtensions.cs" />
     <Compile Include="Linq\RestQuery.cs" />
     <Compile Include="Linq\RestQueryableTreeParser.cs" />

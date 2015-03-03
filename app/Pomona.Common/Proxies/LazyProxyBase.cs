@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright ï¿½ 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@ namespace Pomona.Common.Proxies
     public class LazyProxyBase : IHasSettableResourceUri, ILazyProxy
     {
         private IPomonaClient client;
+        private IResourceFetchContext fetchContext;
         private object proxyTarget;
         private Type proxyTargetType;
         private string uri;
@@ -41,6 +42,11 @@ namespace Pomona.Common.Proxies
         {
             get { return this.client; }
             internal set { this.client = value; }
+        }
+
+        public bool IsLoaded
+        {
+            get { return this.proxyTarget != null; }
         }
 
         public object ProxyTarget
@@ -62,32 +68,45 @@ namespace Pomona.Common.Proxies
         }
 
 
+        public virtual void Initialize(IResourceFetchContext context)
+        {
+            if (context == null)
+                throw new ArgumentNullException("context");
+
+            this.fetchContext = context;
+        }
+
+
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
+            if (this.fetchContext == null)
+                throw new InvalidOperationException(String.Format("{0}.Initialize(IResourceFetchContext) must be invoked before OnGet.", this));
+
+            if (!IsLoaded && !this.fetchContext.LazyEnabled)
+                throw new InvalidOperationException(String.Format("Lazy fetching has been disabled for {0}.", property));
+
             Fetch();
 
-            return property.Getter((TOwner) proxyTarget);
+            return property.Getter((TOwner)this.proxyTarget);
+        }
+
+
+        protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
+        {
+            throw new InvalidOperationException(String.Format("{0} is just a proxy. Use Patch to modify a resource.",
+                                                              property));
         }
 
 
         private void Fetch()
         {
-            if (proxyTarget == null)
-            {
-                proxyTarget = client.Get(uri, proxyTargetType);
-                var hasResourceUri = proxyTarget as IHasResourceUri;
-                if (hasResourceUri != null)
-                {
-                    Uri = hasResourceUri.Uri;
-                }
-            }
-        }
+            if (IsLoaded)
+                return;
 
-        protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
-        {
-            throw new InvalidOperationException("This is just a proxy, use Patch to modify a resource.");
+            this.proxyTarget = this.client.Get(this.uri, this.proxyTargetType);
+            var hasResourceUri = this.proxyTarget as IHasResourceUri;
+            if (hasResourceUri != null)
+                Uri = hasResourceUri.Uri;
         }
-
-        public bool IsLoaded { get { return proxyTarget != null; } }
     }
 }

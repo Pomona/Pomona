@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,10 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
@@ -41,73 +46,80 @@ namespace Pomona.Common.Proxies
 
         public PropertyWrapper(string propertyName)
         {
-            var ownerType = typeof (TOwner);
+            var ownerType = typeof(TOwner);
+            const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            this.propertyInfo = TypeUtils.AllBaseTypesAndInterfaces(ownerType)
+                .Select(t => t.GetProperty(propertyName, bindingFlags))
+                .FirstOrDefault(t => t != null);
 
-            propertyInfo = TypeUtils.AllBaseTypesAndInterfaces(ownerType).Select(
-                t => t.GetProperty(
-                    propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)).FirstOrDefault(
-                        t => t != null);
+            if (this.propertyInfo == null)
+                throw new MissingMemberException(String.Format("Could not wrap property {0}.", propertyName));
         }
 
 
         public Func<TOwner, TPropType> Getter
         {
-            get { return getter ?? (getter = GetterExpression.Compile()); }
+            get { return this.getter ?? (this.getter = GetterExpression.Compile()); }
         }
 
         public Expression<Func<TOwner, TPropType>> GetterExpression
         {
             get
             {
-                if (getterExpression == null)
+                if (this.getterExpression == null)
                 {
-                    var ownerType = typeof (TOwner);
+                    var ownerType = typeof(TOwner);
 
                     var getterSelfParam = Expression.Parameter(ownerType, "x");
-                    getterExpression =
+                    this.getterExpression =
                         Expression.Lambda<Func<TOwner, TPropType>>(
-                            Expression.MakeMemberAccess(getterSelfParam, propertyInfo), getterSelfParam);
+                            Expression.MakeMemberAccess(getterSelfParam, this.propertyInfo), getterSelfParam);
                 }
 
-
-                return getterExpression;
+                return this.getterExpression;
             }
         }
 
         public string Name
         {
-            get { return propertyInfo.Name; }
+            get { return this.propertyInfo.Name; }
         }
 
         public PropertyInfo PropertyInfo
         {
-            get { return propertyInfo; }
+            get { return this.propertyInfo; }
         }
 
         public Action<TOwner, TPropType> Setter
         {
-            get { return setter ?? (setter = SetterExpression.Compile()); }
+            get { return this.setter ?? (this.setter = SetterExpression.Compile()); }
         }
 
         public Expression<Action<TOwner, TPropType>> SetterExpression
         {
             get
             {
-                if (setterExpression == null)
+                if (this.setterExpression == null)
                 {
-                    var ownerType = typeof (TOwner);
+                    var ownerType = typeof(TOwner);
 
                     var setterSelfParam = Expression.Parameter(ownerType, "x");
-                    var setterValueParam = Expression.Parameter(typeof (TPropType), "value");
+                    var setterValueParam = Expression.Parameter(typeof(TPropType), "value");
 
-                    setterExpression =
+                    this.setterExpression =
                         Expression.Lambda<Action<TOwner, TPropType>>(
-                            Expression.Assign(Expression.Property(setterSelfParam, propertyInfo), setterValueParam),
+                            Expression.Assign(Expression.Property(setterSelfParam, this.propertyInfo), setterValueParam),
                             setterSelfParam,
                             setterValueParam);
                 }
-                return setterExpression;
+                return this.setterExpression;
             }
+        }
+
+
+        public override string ToString()
+        {
+            return String.Format("{0}.{1}", this.propertyInfo.DeclaringType, Name);
         }
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright ï¿½ 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -101,9 +101,10 @@ namespace Pomona.Common.Serialization
                 var clientType = (StructuredType)type;
                 var proxyType = clientType.ResourceInfo.LazyProxyType;
                 var refobj = (LazyProxyBase)Activator.CreateInstance(proxyType);
+                refobj.Initialize(ResourceFetchContext.Lazy);
+                refobj.Uri = uri;
                 refobj.Client = this.client;
                 refobj.ProxyTargetType = clientType.ResourceInfo.PocoType;
-                ((IHasResourceUri)refobj).Uri = uri;
                 return refobj;
             }
             throw new NotImplementedException("Don't know how to make reference to type " + type.Name + " yet!");

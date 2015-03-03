@@ -33,5 +33,6 @@ namespace Pomona.Common
     public interface IResourceFetcher
     {
         object Get(string uri, Type type, RequestOptions requestOptions);
+        void Initialize(IResourceFetchContext context);
     }
 }
