@@ -90,6 +90,7 @@
     <Compile Include="IClientTypeResolver.cs" />
     <Compile Include="IDeletableByIdRepository.cs" />
     <Compile Include="IDeletableRepository.cs" />
+    <Compile Include="IHasSettableResourceUri.cs" />
     <Compile Include="IResourceFetcher.cs" />
     <Compile Include="IGettableRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />

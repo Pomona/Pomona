@@ -179,33 +179,33 @@ namespace Pomona.Common
                 }
             }
 
-            return this.serializerFactory.GetDeserializer(serializationContextProvider).DeserializeString(jsonString,
-                                                                                                          new DeserializeOptions
-                                                                                                              ()
-                                                                                                          {
-                                                                                                              ExpectedBaseType
-                                                                                                                  =
-                                                                                                                  expectedType
-                                                                                                          });
+            return this.serializerFactory
+                .GetDeserializer(serializationContextProvider)
+                .DeserializeString(jsonString,
+                                   new DeserializeOptions
+                                   {
+                                       ExpectedBaseType = expectedType
+                                   });
         }
 
 
-        private string SendHttpRequest(
-            ISerializationContextProvider serializationContextProvider,
-            string uri,
-            string httpMethod,
-            object requestBodyEntity,
-            TypeSpec requestBodyBaseType,
-            RequestOptions options)
+        private string SendHttpRequest(ISerializationContextProvider serializationContextProvider,
+                                       string uri,
+                                       string httpMethod,
+                                       object requestBodyEntity,
+                                       TypeSpec requestBodyBaseType,
+                                       RequestOptions options)
         {
             byte[] requestBytes = null;
             WebClientResponseMessage response = null;
             if (requestBodyEntity != null)
             {
-                requestBytes =
-                    this.serializerFactory.GetSerializer(serializationContextProvider).SerializeToBytes(
-                        requestBodyEntity,
-                        new SerializeOptions() { ExpectedBaseType = requestBodyBaseType });
+                requestBytes = this.serializerFactory
+                    .GetSerializer(serializationContextProvider)
+                    .SerializeToBytes(requestBodyEntity, new SerializeOptions
+                    {
+                        ExpectedBaseType = requestBodyBaseType
+                    });
             }
             var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 

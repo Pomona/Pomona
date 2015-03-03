@@ -52,10 +52,6 @@ namespace Pomona.Common.Proxies
         public string Uri
         {
             get { return this.uri; }
-            set
-            {
-                // TODO: Remove setter. This feels dirty. @asbjornu
-            }
         }
 
         protected IResourceFetcher ResourceFetcher

@@ -30,8 +30,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using Pomona.Common.Linq;
-
 namespace Pomona.Common.Proxies
 {
     public abstract class LazyCollectionProxyBase<T, TCollection> : LazyCollectionProxy, ICollection<T>

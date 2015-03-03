@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,14 +24,17 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 namespace Pomona.Common
 {
-    public class ResourceBase : IHasResourceUri
+    public class ResourceBase : IHasSettableResourceUri
     {
-        #region IHasResourceUri Members
+        public string Uri
+        {
+            get { return ((IHasSettableResourceUri)this).Uri; }
+        }
 
-        string IHasResourceUri.Uri { get; set; }
-
-        #endregion
+        string IHasSettableResourceUri.Uri { get; set; }
     }
 }

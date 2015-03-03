@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright ï¿½ 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,48 +24,43 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
+#endregion
 
-using Pomona.Common.Linq;
+using System;
 
 namespace Pomona.Common.Proxies
 {
-    public class LazyProxyBase : IHasResourceUri, ILazyProxy
+    public class LazyProxyBase : IHasSettableResourceUri, ILazyProxy
     {
         private IPomonaClient client;
-
         private object proxyTarget;
         private Type proxyTargetType;
-
         private string uri;
 
         public IPomonaClient Client
         {
-            get { return client; }
-            internal set { client = value; }
+            get { return this.client; }
+            internal set { this.client = value; }
         }
 
         public object ProxyTarget
         {
-            get { return proxyTarget; }
-            internal set { proxyTarget = value; }
+            get { return this.proxyTarget; }
+            internal set { this.proxyTarget = value; }
         }
 
         public Type ProxyTargetType
         {
-            get { return proxyTargetType; }
-            internal set { proxyTargetType = value; }
+            get { return this.proxyTargetType; }
+            internal set { this.proxyTargetType = value; }
         }
-
-        #region IHasResourceUri Members
 
         public string Uri
         {
-            get { return uri; }
-            set { uri = value; }
+            get { return this.uri; }
+            set { this.uri = value; }
         }
 
-        #endregion
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright ï¿½ 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ namespace Pomona.Common.Serialization
             deserializeNodeAction(node);
             if (node.Uri != null)
             {
-                var uriResource = node.Value as IHasResourceUri;
+                var uriResource = node.Value as IHasSettableResourceUri;
                 if (uriResource != null)
                     uriResource.Uri = node.Uri;
             }
