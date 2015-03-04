@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright ï¿½ 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Loading;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
 
@@ -48,6 +49,17 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class PostTests : ClientTestsBase
     {
+        #region Setup/Teardown
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Reset lazymode back to enabled. @asbjornu
+            Client.Settings.LazyMode = LazyMode.Enabled;
+        }
+
+        #endregion
+
         [Test]
         public void PostAbstractClass_ThrowsExceptionOnClient()
         {
@@ -130,13 +142,36 @@ namespace Pomona.SystemTests
 
             const string critterName = "Super critter";
 
-            var critter = (ICritter)Client.Post<ICritter>(
-                x =>
-                {
-                    x.Hat = Client.Hats.Query().Where(y => y.HatType.StartsWith("Special")).FirstLazy();
-                    x.Name = critterName;
-                });
+            var critter = (ICritter)Client.Post<ICritter>(x =>
+            {
+                x.Hat = Client.Hats.Query().Where(y => y.HatType.StartsWith("Special")).FirstLazy();
+                x.Name = critterName;
+            });
 
+            Assert.That(critter.Name, Is.EqualTo(critterName));
+            Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
+        }
+
+
+        [Test(Description = "We need to be able to turn on lazy")]
+        [Category("TODO")]
+        public void PostCritterWithExistingHat_UsingFirstLazyQueryWithLazyDisabled_Works()
+        {
+            Client.Settings.LazyMode = LazyMode.Disabled;
+            const string hatType = "Special hat";
+
+            var hat = PostAHat(hatType);
+
+            const string critterName = "Super critter";
+
+            var critter = (ICritter)Client.Post<ICritter>(x =>
+            {
+                x.Hat = Client.Hats.Query().Where(y => y.HatType.StartsWith("Special")).FirstLazy();
+                x.Name = critterName;
+            });
+
+            // TODO: Enabling lazy mode on the Client (obviously) has no effect on lazy-loading Hat, but we need to enable it somehow. @asbjornu
+            Client.Settings.LazyMode = LazyMode.Enabled;
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));
         }

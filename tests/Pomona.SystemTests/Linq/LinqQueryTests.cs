@@ -54,7 +54,7 @@ namespace Pomona.SystemTests.Linq
         [TearDown]
         public void TearDown()
         {
-            // Reset lazymode back to enabled.
+            // Reset lazymode back to enabled. @asbjornu
             Client.Settings.LazyMode = LazyMode.Enabled;
         }
 
