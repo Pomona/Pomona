@@ -30,6 +30,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 
+using Pomona.Common.Loading;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 
@@ -38,25 +39,31 @@ namespace Pomona.Common.Serialization
     public class ClientDeserializationContext : IDeserializationContext
     {
         private readonly IPomonaClient client;
+        private readonly IResourceLoader resourceLoader;
         private readonly ITypeResolver typeMapper;
 
 
-        [Obsolete("Solely here for testing purposes")]
-        public ClientDeserializationContext(ITypeResolver typeMapper)
-            : this(typeMapper, null)
-        {
-        }
-
-
-        public ClientDeserializationContext(ITypeResolver typeMapper, IPomonaClient client)
+        public ClientDeserializationContext(ITypeResolver typeMapper,
+                                            IPomonaClient client,
+                                            IResourceLoader resourceLoader)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
+
+            if (resourceLoader == null)
+                throw new ArgumentNullException("resourceLoader");
+
             this.typeMapper = typeMapper;
             this.client = client;
+            this.resourceLoader = resourceLoader;
         }
 
-        #region Implementation of IDeserializationContext
+
+        [Obsolete("Solely here for testing purposes")]
+        internal ClientDeserializationContext(ITypeResolver typeMapper, IResourceLoader resourceLoader)
+            : this(typeMapper, null, resourceLoader)
+        {
+        }
 
         private readonly ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap =
             new ConcurrentDictionary<Type, Type>();
@@ -94,16 +101,19 @@ namespace Pomona.Common.Serialization
                 }
                 return Activator.CreateInstance(type.Type, client, uri, null);
             }*/
+
             if (type.SerializationMode == TypeSerializationMode.Array)
                 return LazyCollectionProxy.CreateForType(type, uri, this.client);
+
             if (type is StructuredType && type.SerializationMode == TypeSerializationMode.Structured)
             {
                 var clientType = (StructuredType)type;
                 var proxyType = clientType.ResourceInfo.LazyProxyType;
                 var refobj = (LazyProxyBase)Activator.CreateInstance(proxyType);
-                refobj.Initialize(uri, this.client, clientType.ResourceInfo.PocoType, node.ExpandPath);
+                refobj.Initialize(uri, this.resourceLoader, clientType.ResourceInfo.PocoType, node.ExpandPath);
                 return refobj;
             }
+
             throw new NotImplementedException("Don't know how to make reference to type " + type.Name + " yet!");
         }
 
@@ -157,25 +167,33 @@ namespace Pomona.Common.Serialization
             if (typeof(IClientRepository).IsAssignableFrom(property.PropertyType))
             {
                 var repoImplementationType = this.clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
-                    t => t.Assembly.GetTypes().First(x => !x.IsInterface && x.IsClass && t.IsAssignableFrom(x)));
+                                                                                             t =>
+                                                                                                 t.Assembly.GetTypes()
+                                                                                                 .First(
+                                                                                                     x =>
+                                                                                                         !x.IsInterface
+                                                                                                         && x.IsClass
+                                                                                                         && t
+                                                                                                         .IsAssignableFrom
+                                                                                                         (x)));
 
                 var listProxyValue = propertyValue as LazyCollectionProxy;
                 object repo;
                 if (listProxyValue != null)
                 {
                     repo = Activator.CreateInstance(repoImplementationType,
-                        this.client,
-                        listProxyValue.Uri,
-                        null,
-                        target.Value);
+                                                    this.client,
+                                                    listProxyValue.Uri,
+                                                    null,
+                                                    target.Value);
                 }
                 else
                 {
                     repo = Activator.CreateInstance(repoImplementationType,
-                        this.client,
-                        target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
-                        propertyValue,
-                        target.Value);
+                                                    this.client,
+                                                    target.Uri + "/" + NameUtils.ConvertCamelCaseToUri(property.Name),
+                                                    propertyValue,
+                                                    target.Value);
                 }
                 property.SetValue(target.Value, repo);
                 return;
@@ -183,7 +201,5 @@ namespace Pomona.Common.Serialization
 
             property.SetValue(target.Value, propertyValue);
         }
-
-        #endregion
     }
 }

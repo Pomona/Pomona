@@ -54,6 +54,7 @@
     <Compile Include="ClientRepository.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
+    <Compile Include="ClientSettings.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="ClientTypeResolver.cs" />
     <Compile Include="DictionaryExtensions.cs" />
@@ -91,7 +92,8 @@
     <Compile Include="IDeletableByIdRepository.cs" />
     <Compile Include="IDeletableRepository.cs" />
     <Compile Include="IHasSettableResourceUri.cs" />
-    <Compile Include="IResourceFetcher.cs" />
+    <Compile Include="Loading\DefaultResourceLoader.cs" />
+    <Compile Include="Loading\IResourceLoader.cs" />
     <Compile Include="IGettableRepository.cs" />
     <Compile Include="IHasResourceUri.cs" />
     <Compile Include="Internals\CastingListWrapper.cs" />
@@ -172,6 +174,10 @@
     <Compile Include="Linq\QuerySegmentParenScopeExpression.cs" />
     <Compile Include="Linq\QuerySelectExpression.cs" />
     <Compile Include="Linq\QueryTerminalSegmentExpression.cs" />
+    <Compile Include="Loading\DisabledResourceLoader.cs" />
+    <Compile Include="Loading\LazyLoadingDisabledException.cs" />
+    <Compile Include="Loading\LazyMode.cs" />
+    <Compile Include="Loading\LoadException.cs" />
     <Compile Include="ResourceFetcherExtensions.cs" />
     <Compile Include="Linq\RestQuery.cs" />
     <Compile Include="Linq\RestQueryableTreeParser.cs" />

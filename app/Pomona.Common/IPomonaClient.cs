@@ -30,8 +30,9 @@ using System.Linq;
 
 namespace Pomona.Common
 {
-    public interface IPomonaClient : IClientTypeResolver, IResourceFetcher
+    public interface IPomonaClient : IClientTypeResolver, IResourceLoader
     {
+        ClientSettings Settings { get; }
         IQueryable<T> Query<T>();
         T Reload<T>(T resource);
     }

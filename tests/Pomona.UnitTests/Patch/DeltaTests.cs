@@ -202,11 +202,13 @@ namespace Pomona.UnitTests.Patch
 
         private JObject CreateJsonPatch(ITestResource proxy)
         {
+            var pomonaClient = Substitute.For<IPomonaClient>();
             var jsonSerializer =
                 (ITextSerializer)
                     (new PomonaJsonSerializerFactory().GetSerializer(
                         new ClientSerializationContextProvider(this.typeMapper,
-                                                               Substitute.For<IPomonaClient>())));
+                                                               pomonaClient,
+                                                               pomonaClient)));
             using (var stringWriter = new StringWriter())
             {
                 jsonSerializer.Serialize(stringWriter,

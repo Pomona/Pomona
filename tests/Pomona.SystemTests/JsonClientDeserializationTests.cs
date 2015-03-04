@@ -57,9 +57,11 @@ namespace Pomona.SystemTests
 
         private T Deserialize<T>(string jsonString)
         {
-            var jsonDeserializer =
-                new PomonaJsonDeserializer(new ClientSerializationContextProvider(this.typeMapper,
-                                                                                  Substitute.For<IPomonaClient>()));
+            var pomonaClient = Substitute.For<IPomonaClient>();
+            var jsonDeserializer = new PomonaJsonDeserializer(
+                new ClientSerializationContextProvider(this.typeMapper,
+                                                       pomonaClient,
+                                                       pomonaClient));
             return jsonDeserializer.DeserializeString<T>(jsonString);
         }
 

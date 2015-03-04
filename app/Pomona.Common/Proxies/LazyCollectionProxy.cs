@@ -33,17 +33,17 @@ namespace Pomona.Common.Proxies
 {
     public abstract class LazyCollectionProxy : ILazyProxy, IHasResourceUri
     {
-        private readonly IResourceFetcher resourceFetcher;
+        private readonly IResourceLoader resourceLoader;
         private readonly string uri;
 
 
-        protected LazyCollectionProxy(string uri, IResourceFetcher resourceFetcher)
+        protected LazyCollectionProxy(string uri, IResourceLoader resourceLoader)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
 
             this.uri = uri;
-            this.resourceFetcher = resourceFetcher;
+            this.resourceLoader = resourceLoader;
         }
 
 
@@ -54,9 +54,9 @@ namespace Pomona.Common.Proxies
             get { return this.uri; }
         }
 
-        protected IResourceFetcher ResourceFetcher
+        protected IResourceLoader ResourceLoader
         {
-            get { return this.resourceFetcher; }
+            get { return this.resourceLoader; }
         }
 
 

@@ -27,35 +27,34 @@
 #endregion
 
 using System;
+using System.Runtime.Serialization;
 
-namespace Pomona.Common
+namespace Pomona.Common.Loading
 {
-    public static class ResourceFetcherExtensions
+    [Serializable]
+    public class LazyLoadingDisabledException : LoadException
     {
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri)
+        public LazyLoadingDisabledException(string message, Exception innerException)
+            : base(message, innerException)
         {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return (T)resourceLoader.Get(uri, typeof(T), null);
         }
 
 
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri, RequestOptions requestOptions)
+        public LazyLoadingDisabledException(string uri, Type type)
+            : base(uri, type)
         {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return (T)resourceLoader.Get(uri, typeof(T), requestOptions);
         }
 
 
-        public static object Get(this IResourceLoader resourceLoader, string uri, Type type)
+        protected LazyLoadingDisabledException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
+        }
 
-            return resourceLoader.Get(uri, type, null);
+
+        internal LazyLoadingDisabledException(string resourcePath, LoadException innerException)
+            : base(String.Format("Unable to fetch {0}. Lazy loading is disabled.", resourcePath), innerException)
+        {
         }
     }
 }

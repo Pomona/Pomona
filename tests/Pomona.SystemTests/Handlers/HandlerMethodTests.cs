@@ -97,7 +97,7 @@ namespace Pomona.SystemTests
             this.nancyContext = new NancyContext();
             this.nancyContext.Request = new Request("Get", "http://test");
             this.serializationContextProvider =
-                new ClientSerializationContextProvider(new ClientTypeMapper(Assembly.GetExecutingAssembly()), Client);
+                new ClientSerializationContextProvider(new ClientTypeMapper(Assembly.GetExecutingAssembly()), Client, Client);
             this.serializerFactory = new PomonaJsonSerializerFactory();
         }
 

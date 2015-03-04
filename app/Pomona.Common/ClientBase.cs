@@ -33,6 +33,7 @@ using System.Linq;
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
+using Pomona.Common.Loading;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
@@ -43,12 +44,22 @@ namespace Pomona.Common
 {
     public abstract class ClientBase : IPomonaClient
     {
+        private readonly ClientSettings settings;
+
+
         internal ClientBase()
         {
+            this.settings = new ClientSettings();
         }
 
 
         public abstract string BaseUri { get; }
+
+        public ClientSettings Settings
+        {
+            get { return this.settings; }
+        }
+
         public abstract IWebClient WebClient { get; }
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
@@ -88,11 +99,11 @@ namespace Pomona.Common
         }
 
 
-        internal abstract object Post<T>(string uri, Action<T> postAction, RequestOptions options)
+        internal abstract object Post<T>(string uri, Action<T> postAction, RequestOptions requestOptions)
             where T : class, IClientResource;
 
 
-        internal abstract object Post<T>(string uri, T form, RequestOptions options)
+        internal abstract object Post<T>(string uri, T form, RequestOptions requestOptions)
             where T : class, IClientResource;
     }
 
@@ -101,7 +112,7 @@ namespace Pomona.Common
         private static readonly ClientTypeMapper typeMapper;
         private readonly string baseUri;
         private readonly IRequestDispatcher dispatcher;
-        private readonly ISerializationContextProvider serializationContextProvider;
+        // private readonly ISerializationContextProvider serializationContextProvider;
 
 
         static ClientBase()
@@ -132,7 +143,7 @@ namespace Pomona.Common
 
             this.baseUri = uri;
             this.dispatcher = dispatcher;
-            this.serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this);
+            // this.serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this);
 
             dispatcher.RequestCompleted += (s, e) => RaiseRequestCompleted(e.Request, e.Response, e.ThrownException);
 
@@ -164,13 +175,15 @@ namespace Pomona.Common
         public override void Delete<T>(T resource)
         {
             var uri = ((IHasResourceUri)resource).Uri;
-            this.dispatcher.SendRequest(this.serializationContextProvider, uri, null, "DELETE");
+            var serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this, this);
+            this.dispatcher.SendRequest(serializationContextProvider, uri, null, "DELETE");
         }
 
 
         public override object Get(string uri, Type type, RequestOptions requestOptions)
         {
-            return this.dispatcher.SendRequest(this.serializationContextProvider, uri, null, "GET", requestOptions, type);
+            var serializationContextProvider = GetSerializationContextProvider(requestOptions);
+            return this.dispatcher.SendRequest(serializationContextProvider, uri, null, "GET", requestOptions, type);
         }
 
 
@@ -256,22 +269,23 @@ namespace Pomona.Common
         }
 
 
-        internal override object Post<T>(string uri, Action<T> postAction, RequestOptions options)
+        internal override object Post<T>(string uri, Action<T> postAction, RequestOptions requestOptions)
         {
             var postForm = (T)typeMapper.CreatePostForm(typeof(T));
             postAction(postForm);
-            return Post(uri, postForm, options);
+            return Post(uri, postForm, requestOptions);
         }
 
 
-        internal override object Post<T>(string uri, T form, RequestOptions options)
+        internal override object Post<T>(string uri, T form, RequestOptions requestOptions)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
             if (form == null)
                 throw new ArgumentNullException("form");
 
-            return this.dispatcher.SendRequest(this.serializationContextProvider, uri, form, "POST", options);
+            var serializationContextProvider = GetSerializationContextProvider(requestOptions);
+            return this.dispatcher.SendRequest(serializationContextProvider, uri, form, "POST", requestOptions);
         }
 
 
@@ -358,7 +372,20 @@ namespace Pomona.Common
             var uri = GetUriOfForm(form);
 
             AddIfMatchToPatch(form, requestOptions);
-            return (T)this.dispatcher.SendRequest(this.serializationContextProvider, uri, form, "PATCH", requestOptions);
+            var serializationContextProvider = GetSerializationContextProvider(requestOptions);
+            return (T)this.dispatcher.SendRequest(serializationContextProvider, uri, form, "PATCH", requestOptions);
+        }
+
+
+        private ClientSerializationContextProvider GetSerializationContextProvider(RequestOptions requestOptions)
+        {
+            var resourceLoader = requestOptions == null || requestOptions.ResourceLoader == null
+                ? Settings.LazyMode == LazyMode.Disabled
+                    ? (IResourceLoader)new DisabledResourceLoader()
+                    : new DefaultResourceLoader(this)
+                : requestOptions.ResourceLoader;
+
+            return new ClientSerializationContextProvider(typeMapper, this, resourceLoader);
         }
     }
 }

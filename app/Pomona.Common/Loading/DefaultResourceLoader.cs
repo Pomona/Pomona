@@ -28,34 +28,28 @@
 
 using System;
 
-namespace Pomona.Common
+namespace Pomona.Common.Loading
 {
-    public static class ResourceFetcherExtensions
+    public class DefaultResourceLoader : IResourceLoader
     {
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri)
-        {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
+        private readonly IResourceLoader loader;
 
-            return (T)resourceLoader.Get(uri, typeof(T), null);
+
+        public DefaultResourceLoader(IResourceLoader loader)
+        {
+            if (loader == null)
+                throw new ArgumentNullException("wrappedLoader");
+
+            this.loader = loader;
         }
 
 
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri, RequestOptions requestOptions)
+        public object Get(string uri, Type type, RequestOptions requestOptions)
         {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
+            if (requestOptions != null)
+                requestOptions.ResourceLoader = this;
 
-            return (T)resourceLoader.Get(uri, typeof(T), requestOptions);
-        }
-
-
-        public static object Get(this IResourceLoader resourceLoader, string uri, Type type)
-        {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return resourceLoader.Get(uri, type, null);
+            return this.loader.Get(uri, type, requestOptions);
         }
     }
 }

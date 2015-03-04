@@ -39,6 +39,7 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.Linq;
+using Pomona.Common.Loading;
 using Pomona.Common.Web;
 using Pomona.Example.Models;
 using Pomona.TestHelpers;
@@ -92,7 +93,10 @@ namespace Pomona.SystemTests.Linq
         {
             var randCritter = Repository.CreateRandomCritter(new Random());
             var expected = CritterEntities.First(x => x.Id == randCritter.Id);
-            var lazyCritter = Client.Query<ICritter>().Where(x => x.Id == randCritter.Id).FirstLazy();
+            var lazyCritter = Client.Query<ICritter>()
+                .Where(x => x.Id == randCritter.Id)
+                // Explicit call to FirstLazy should succeed.
+                .FirstLazy();
             var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
             var predicate = string.Format("$filter=id+eq+{0}", randCritter.Id);
             Assert.That(beforeLoadUri, Is.StringContaining(predicate));
@@ -307,6 +311,23 @@ namespace Pomona.SystemTests.Linq
                     .ToList();
 
             Assert.That(actual.SequenceEqual(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_LazyDisabled_ThrowsLazyLoadException()
+        {
+            Client.Settings.LazyMode = LazyMode.Disabled;
+            var result = Client.Critters.Query().Take(1).First();
+
+            var exception = Assert.Throws<LazyLoadingDisabledException>(() =>
+            {
+                var hatType = result.Hat.HatType;
+            });
+
+            Console.WriteLine(exception);
+
+            Assert.That(exception.Message, Is.StringContaining("hat"));
         }
 
 

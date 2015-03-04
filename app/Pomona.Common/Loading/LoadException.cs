@@ -27,35 +27,38 @@
 #endregion
 
 using System;
+using System.Runtime.Serialization;
 
-namespace Pomona.Common
+namespace Pomona.Common.Loading
 {
-    public static class ResourceFetcherExtensions
+    [Serializable]
+    public class LoadException : PomonaException
     {
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri)
-        {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
+        private readonly string uri;
 
-            return (T)resourceLoader.Get(uri, typeof(T), null);
+
+        public LoadException(string message, Exception innerException)
+            : base(message, innerException)
+        {
         }
 
 
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri, RequestOptions requestOptions)
+        public LoadException(string uri, Type type)
+            : base("Could not load " + type)
         {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return (T)resourceLoader.Get(uri, typeof(T), requestOptions);
+            this.uri = uri;
         }
 
 
-        public static object Get(this IResourceLoader resourceLoader, string uri, Type type)
+        protected LoadException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
+        }
 
-            return resourceLoader.Get(uri, type, null);
+
+        public string Uri
+        {
+            get { return this.uri; }
         }
     }
 }

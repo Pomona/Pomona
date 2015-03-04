@@ -26,12 +26,18 @@
 
 #endregion
 
-using System;
+using Pomona.Common.Loading;
 
 namespace Pomona.Common
 {
-    public interface IResourceFetcher
+    public class ClientSettings
     {
-        object Get(string uri, Type type, RequestOptions requestOptions);
+        public ClientSettings()
+        {
+            LazyMode = LazyMode.Enabled;
+        }
+
+
+        public LazyMode LazyMode { get; set; }
     }
 }

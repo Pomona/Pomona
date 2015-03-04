@@ -28,6 +28,8 @@
 
 using System;
 
+using Pomona.Common.Loading;
+
 namespace Pomona.Common.Proxies
 {
     public class LazyProxyBase : IHasResourceUri, ILazyProxy
@@ -35,13 +37,13 @@ namespace Pomona.Common.Proxies
         private string expandPath;
         private object proxyTarget;
         private Type proxyTargetType;
-        private IResourceFetcher resourceFetcher;
+        private IResourceLoader resourceLoader;
         private string uri;
 
-        public IResourceFetcher Client
+        public IResourceLoader Client
         {
-            get { return this.resourceFetcher; }
-            internal set { this.resourceFetcher = value; }
+            get { return this.resourceLoader; }
+            internal set { this.resourceLoader = value; }
         }
 
         public bool IsLoaded
@@ -68,7 +70,7 @@ namespace Pomona.Common.Proxies
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (this.resourceFetcher == null)
+            if (this.resourceLoader == null)
             {
                 throw new InvalidOperationException(
                     String.Format("{0}.Initialize(IResourceFetchContext) must be invoked before OnGet.", this));
@@ -78,11 +80,10 @@ namespace Pomona.Common.Proxies
             {
                 Fetch();
             }
-            catch (Exception exception)
+            catch (LoadException exception)
             {
-                var what = this.expandPath ?? property.ToString();
-                throw new PomonaException(String.Format("Unable to fetch {0}. Lazy loading is disabled.", what),
-                                          exception);
+                var resourcePath = this.expandPath ?? property.ToString();
+                throw new LazyLoadingDisabledException(resourcePath, exception);
             }
 
             return property.Getter((TOwner)this.proxyTarget);
@@ -97,21 +98,21 @@ namespace Pomona.Common.Proxies
 
 
         internal void Initialize(string uri,
-                                 IResourceFetcher resourceFetcher,
+                                 IResourceLoader resourceLoader,
                                  Type proxyTargetType,
                                  string expandPath = null)
         {
             if (String.IsNullOrWhiteSpace(uri))
                 throw new ArgumentNullException("uri");
 
-            if (resourceFetcher == null)
+            if (resourceLoader == null)
                 throw new ArgumentNullException("resourceFetcher");
 
             if (proxyTargetType == null)
                 throw new ArgumentNullException("proxyTargetType");
 
             this.uri = uri;
-            this.resourceFetcher = resourceFetcher;
+            this.resourceLoader = resourceLoader;
             this.proxyTargetType = proxyTargetType;
             this.expandPath = expandPath;
         }
@@ -122,7 +123,7 @@ namespace Pomona.Common.Proxies
             if (IsLoaded)
                 return;
 
-            this.proxyTarget = this.resourceFetcher.Get(this.uri, this.proxyTargetType);
+            this.proxyTarget = this.resourceLoader.Get(this.uri, this.proxyTargetType);
             var hasResourceUri = this.proxyTarget as IHasResourceUri;
             if (hasResourceUri != null)
                 this.uri = hasResourceUri.Uri;

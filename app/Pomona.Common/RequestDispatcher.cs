@@ -181,11 +181,10 @@ namespace Pomona.Common
 
             return this.serializerFactory
                 .GetDeserializer(serializationContextProvider)
-                .DeserializeString(jsonString,
-                                   new DeserializeOptions
-                                   {
-                                       ExpectedBaseType = expectedType
-                                   });
+                .DeserializeString(jsonString, new DeserializeOptions
+                {
+                    ExpectedBaseType = expectedType
+                });
         }
 
 

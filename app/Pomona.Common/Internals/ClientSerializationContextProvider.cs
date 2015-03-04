@@ -35,23 +35,30 @@ namespace Pomona.Common.Internals
     internal class ClientSerializationContextProvider : ISerializationContextProvider
     {
         private readonly IPomonaClient client;
+        private readonly IResourceLoader resourceLoader;
         private readonly ClientTypeMapper clientTypeMapper;
 
 
-        internal ClientSerializationContextProvider(ClientTypeMapper clientTypeMapper, IPomonaClient client)
+        internal ClientSerializationContextProvider(ClientTypeMapper clientTypeMapper, IPomonaClient client, IResourceLoader resourceLoader)
         {
             if (clientTypeMapper == null)
                 throw new ArgumentNullException("clientTypeMapper");
+            
             if (client == null)
                 throw new ArgumentNullException("client");
+            
+            if (resourceLoader == null)
+                throw new ArgumentNullException("resourceLoader");
+
             this.clientTypeMapper = clientTypeMapper;
             this.client = client;
+            this.resourceLoader = resourceLoader;
         }
 
 
         public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
         {
-            return new ClientDeserializationContext(this.clientTypeMapper, this.client);
+            return new ClientDeserializationContext(this.clientTypeMapper, this.client, this.resourceLoader);
         }
 
 

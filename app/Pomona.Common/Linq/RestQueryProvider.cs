@@ -34,6 +34,7 @@ using System.Linq.Expressions;
 using Newtonsoft.Json.Linq;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Loading;
 using Pomona.Common.Proxies;
 using Pomona.Common.Web;
 
@@ -248,9 +249,13 @@ namespace Pomona.Common.Linq
         {
             if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
+                var resourceLoader = requestOptions == null || requestOptions.ResourceLoader == null
+                    ? new DefaultResourceLoader(this.client)
+                    : requestOptions.ResourceLoader;
+
                 var resourceInfo = this.client.GetResourceInfoForType(typeof(T));
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
-                proxy.Initialize(uri, this.client, resourceInfo.PocoType);
+                proxy.Initialize(uri, resourceLoader, resourceInfo.PocoType);
                 return proxy;
             }
 

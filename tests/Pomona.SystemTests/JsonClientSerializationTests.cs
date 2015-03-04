@@ -64,8 +64,9 @@ namespace Pomona.SystemTests
         {
             var serializerFactory =
                 new PomonaJsonSerializerFactory();
-            var serializer = serializerFactory.GetSerializer(new ClientSerializationContextProvider(this.typeMapper,
-                Substitute.For<IPomonaClient>()));
+            var pomonaClient = Substitute.For<IPomonaClient>();
+            var serializer = serializerFactory.GetSerializer(
+                new ClientSerializationContextProvider(this.typeMapper, pomonaClient, pomonaClient));
             Console.WriteLine("Serialized object to json:");
             var jsonString = serializer.SerializeToString(value);
             Console.WriteLine(jsonString);

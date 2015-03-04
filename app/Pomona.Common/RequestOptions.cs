@@ -67,6 +67,8 @@ namespace Pomona.Common
             get { return this.expectedResponseType; }
         }
 
+        internal IResourceLoader ResourceLoader { get; set; }
+
 
         public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions,
                                                Type expectedResponseType = null)
@@ -81,8 +83,8 @@ namespace Pomona.Common
         public override string ToString()
         {
             var toString = new StringBuilder("{");
-            
-            if (expectedResponseType != null)
+
+            if (this.expectedResponseType != null)
                 toString.AppendFormat(" Type: {0}, ", this.expectedResponseType);
 
             var paths = (ExpandedPaths ?? String.Empty).Trim();

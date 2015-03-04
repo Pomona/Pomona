@@ -26,36 +26,11 @@
 
 #endregion
 
-using System;
-
-namespace Pomona.Common
+namespace Pomona.Common.Loading
 {
-    public static class ResourceFetcherExtensions
+    public enum LazyMode
     {
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri)
-        {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return (T)resourceLoader.Get(uri, typeof(T), null);
-        }
-
-
-        public static T Get<T>(this IResourceLoader resourceLoader, string uri, RequestOptions requestOptions)
-        {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return (T)resourceLoader.Get(uri, typeof(T), requestOptions);
-        }
-
-
-        public static object Get(this IResourceLoader resourceLoader, string uri, Type type)
-        {
-            if (resourceLoader == null)
-                throw new ArgumentNullException("client");
-
-            return resourceLoader.Get(uri, type, null);
-        }
+        Enabled,
+        Disabled,
     }
 }

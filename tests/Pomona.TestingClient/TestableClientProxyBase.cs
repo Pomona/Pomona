@@ -51,6 +51,7 @@ namespace Pomona.TestingClient
         private readonly Dictionary<Type, Delegate> postHandlers;
         private readonly Dictionary<string, object> repositoryCache;
         private readonly Dictionary<Type, object> resourceCollections;
+        private readonly ClientSettings settings;
         private readonly ClientTypeMapper typeMapper;
         private long idCounter;
 
@@ -80,6 +81,7 @@ namespace Pomona.TestingClient
 
         public TestableClientProxyBase()
         {
+            this.settings = new ClientSettings();
             this.postHandlers = new Dictionary<Type, Delegate>();
             this.repositoryCache = new Dictionary<string, object>();
             this.resourceCollections = new Dictionary<Type, object>();
@@ -89,6 +91,11 @@ namespace Pomona.TestingClient
             this.typeMapper = new ClientTypeMapper(proxiedClientInterface.Assembly);
         }
 
+
+        public ClientSettings Settings
+        {
+            get { return this.settings; }
+        }
 
         public ClientTypeMapper TypeMapper
         {
