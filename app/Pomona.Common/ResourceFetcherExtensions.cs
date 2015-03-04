@@ -28,6 +28,8 @@
 
 using System;
 
+using Pomona.Common.Loading;
+
 namespace Pomona.Common
 {
     public static class ResourceFetcherExtensions

@@ -28,6 +28,8 @@
 
 using System.Linq;
 
+using Pomona.Common.Loading;
+
 namespace Pomona.Common
 {
     public interface IPomonaClient : IClientTypeResolver, IResourceLoader

@@ -28,6 +28,7 @@
 
 using System;
 
+using Pomona.Common.Loading;
 using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Internals

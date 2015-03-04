@@ -28,7 +28,7 @@
 
 using System;
 
-namespace Pomona.Common
+namespace Pomona.Common.Loading
 {
     public interface IResourceLoader
     {
