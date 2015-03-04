@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright ï¿½ 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -51,19 +51,11 @@ namespace Pomona.SystemTests
         [Test]
         public void PostAbstractClass_ThrowsExceptionOnClient()
         {
-            try
-            {
-                var critter = (IAbstractAnimal)Client.Post<IAbstractAnimal>(x =>
-                {
-                });
-                throw new Exception("Pomona didn't throw an exception despite posting an abstract class!");
-            }
-            catch (MissingMethodException e)
-            {
-                StringAssert.Contains("Cannot create an abstract class.",
-                                      e.Message,
-                                      "Pomona should warn about posting an abstract class");
-            }
+            var exception = Assert.Throws<MissingMethodException>(() => Client.Post<IAbstractAnimal>(x => {}));
+
+            Assert.That(exception.Message,
+                        Is.StringContaining("Cannot create an abstract class."),
+                        "Pomona should warn about posting an abstract class");
         }
 
 
