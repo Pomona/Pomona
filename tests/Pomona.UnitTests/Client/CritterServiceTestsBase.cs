@@ -44,9 +44,7 @@ namespace Pomona.UnitTests.Client
         private static TClient cachedNancyTestingClient;
         private static CritterRepository cachedNancyTestingClientRepository;
         private string baseUri;
-
         private TClient client;
-
         private CritterHost critterHost;
 
         protected bool RequestTraceEnabled { get; set; }
@@ -81,10 +79,9 @@ namespace Pomona.UnitTests.Client
         public abstract void TeardownRequestCompletedHandler();
 
 
-        public void AssertIsOrderedBy<T, TOrderKey>(
-            IEnumerable<T> enumerable,
-            Func<T, TOrderKey> orderby,
-            SortOrder sortOrder)
+        public void AssertIsOrderedBy<T, TOrderKey>(IEnumerable<T> enumerable,
+                                                    Func<T, TOrderKey> orderby,
+                                                    SortOrder sortOrder)
         {
             var list = enumerable.ToList();
             IEnumerable<T> expected;

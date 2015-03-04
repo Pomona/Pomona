@@ -118,12 +118,11 @@ namespace Pomona.SystemTests
 
             const string critterName = "Super critter";
 
-            var critter = (ICritter)Client.Post<ICritter>(
-                x =>
-                {
-                    x.Hat = hat;
-                    x.Name = critterName;
-                });
+            var critter = (ICritter)Client.Post<ICritter>(x =>
+            {
+                x.Hat = hat;
+                x.Name = critterName;
+            });
 
             Assert.That(critter.Name, Is.EqualTo(critterName));
             Assert.That(critter.Hat.HatType, Is.EqualTo(hatType));

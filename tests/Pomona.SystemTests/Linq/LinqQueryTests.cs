@@ -49,6 +49,17 @@ namespace Pomona.SystemTests.Linq
     [TestFixture]
     public class LinqQueryTests : ClientTestsBase
     {
+        #region Setup/Teardown
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Reset lazymode back to enabled.
+            Client.Settings.LazyMode = LazyMode.Enabled;
+        }
+
+        #endregion
+
         public int TestIntProperty { get; set; }
 
 
