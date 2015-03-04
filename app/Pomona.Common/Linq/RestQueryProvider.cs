@@ -250,10 +250,7 @@ namespace Pomona.Common.Linq
             {
                 var resourceInfo = this.client.GetResourceInfoForType(typeof(T));
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
-                proxy.Initialize(ResourceFetchContext.Default);
-                proxy.Uri = uri;
-                proxy.Client = this.client;
-                proxy.ProxyTargetType = resourceInfo.PocoType;
+                proxy.Initialize(uri, this.client, resourceInfo.PocoType);
                 return proxy;
             }
 

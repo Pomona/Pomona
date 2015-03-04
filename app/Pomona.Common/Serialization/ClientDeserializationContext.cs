@@ -101,10 +101,7 @@ namespace Pomona.Common.Serialization
                 var clientType = (StructuredType)type;
                 var proxyType = clientType.ResourceInfo.LazyProxyType;
                 var refobj = (LazyProxyBase)Activator.CreateInstance(proxyType);
-                refobj.Initialize(ResourceFetchContext.Lazy);
-                refobj.Uri = uri;
-                refobj.Client = this.client;
-                refobj.ProxyTargetType = clientType.ResourceInfo.PocoType;
+                refobj.Initialize(uri, this.client, clientType.ResourceInfo.PocoType, node.ExpandPath);
                 return refobj;
             }
             throw new NotImplementedException("Don't know how to make reference to type " + type.Name + " yet!");

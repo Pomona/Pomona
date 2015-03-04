@@ -30,6 +30,7 @@ namespace Pomona
 {
     public interface IResourceResolver
     {
+        // TODO: Rename to Resolve. @asbjornu
         object ResolveUri(string uri);
     }
 }

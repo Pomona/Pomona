@@ -78,15 +78,6 @@ namespace Pomona.Common
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
 
 
-        public void Initialize(IResourceFetchContext context)
-        {
-            if (context == null)
-                throw new ArgumentNullException("context");
-
-            // TODO: Is the fact that IResourceFetchContext isn't needed here an indication of a design flaw and should we do something about it? @asbjornu
-        }
-
-
         protected void RaiseRequestCompleted(WebClientRequestMessage request,
                                              WebClientResponseMessage response,
                                              Exception thrownException = null)
@@ -187,11 +178,7 @@ namespace Pomona.Common
         {
             var typeInfo = this.GetResourceInfoForType(typeof(T));
             var proxy = (LazyProxyBase)Activator.CreateInstance(typeInfo.LazyProxyType);
-            // TODO: Should Uri, Client and ProxyTargetType be moved to ResourceFetchContext? @asbjornu
-            proxy.Initialize(ResourceFetchContext.Lazy);
-            proxy.Uri = uri;
-            proxy.Client = this;
-            proxy.ProxyTargetType = typeInfo.PocoType;
+            proxy.Initialize(uri, this, typeInfo.PocoType);
             return (T)(object)proxy;
         }
 

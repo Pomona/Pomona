@@ -30,18 +30,18 @@ using System;
 
 namespace Pomona.Common.Proxies
 {
-    public class LazyProxyBase : IHasSettableResourceUri, ILazyProxy
+    public class LazyProxyBase : IHasResourceUri, ILazyProxy
     {
-        private IPomonaClient client;
-        private IResourceFetchContext fetchContext;
+        private string expandPath;
         private object proxyTarget;
         private Type proxyTargetType;
+        private IResourceFetcher resourceFetcher;
         private string uri;
 
-        public IPomonaClient Client
+        public IResourceFetcher Client
         {
-            get { return this.client; }
-            internal set { this.client = value; }
+            get { return this.resourceFetcher; }
+            internal set { this.resourceFetcher = value; }
         }
 
         public bool IsLoaded
@@ -58,34 +58,32 @@ namespace Pomona.Common.Proxies
         public Type ProxyTargetType
         {
             get { return this.proxyTargetType; }
-            internal set { this.proxyTargetType = value; }
         }
 
         public string Uri
         {
             get { return this.uri; }
-            set { this.uri = value; }
-        }
-
-
-        public virtual void Initialize(IResourceFetchContext context)
-        {
-            if (context == null)
-                throw new ArgumentNullException("context");
-
-            this.fetchContext = context;
         }
 
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (this.fetchContext == null)
-                throw new InvalidOperationException(String.Format("{0}.Initialize(IResourceFetchContext) must be invoked before OnGet.", this));
+            if (this.resourceFetcher == null)
+            {
+                throw new InvalidOperationException(
+                    String.Format("{0}.Initialize(IResourceFetchContext) must be invoked before OnGet.", this));
+            }
 
-            if (!IsLoaded && !this.fetchContext.LazyEnabled)
-                throw new InvalidOperationException(String.Format("Lazy fetching has been disabled for {0}.", property));
-
-            Fetch();
+            try
+            {
+                Fetch();
+            }
+            catch (Exception exception)
+            {
+                var what = this.expandPath ?? property.ToString();
+                throw new PomonaException(String.Format("Unable to fetch {0}. Lazy loading is disabled.", what),
+                                          exception);
+            }
 
             return property.Getter((TOwner)this.proxyTarget);
         }
@@ -98,15 +96,36 @@ namespace Pomona.Common.Proxies
         }
 
 
+        internal void Initialize(string uri,
+                                 IResourceFetcher resourceFetcher,
+                                 Type proxyTargetType,
+                                 string expandPath = null)
+        {
+            if (String.IsNullOrWhiteSpace(uri))
+                throw new ArgumentNullException("uri");
+
+            if (resourceFetcher == null)
+                throw new ArgumentNullException("resourceFetcher");
+
+            if (proxyTargetType == null)
+                throw new ArgumentNullException("proxyTargetType");
+
+            this.uri = uri;
+            this.resourceFetcher = resourceFetcher;
+            this.proxyTargetType = proxyTargetType;
+            this.expandPath = expandPath;
+        }
+
+
         private void Fetch()
         {
             if (IsLoaded)
                 return;
 
-            this.proxyTarget = this.client.Get(this.uri, this.proxyTargetType);
+            this.proxyTarget = this.resourceFetcher.Get(this.uri, this.proxyTargetType);
             var hasResourceUri = this.proxyTarget as IHasResourceUri;
             if (hasResourceUri != null)
-                Uri = hasResourceUri.Uri;
+                this.uri = hasResourceUri.Uri;
         }
     }
 }

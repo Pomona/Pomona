@@ -229,11 +229,6 @@ namespace Pomona.TestingClient
         }
 
 
-        public void Initialize(IResourceFetchContext context)
-        {
-        }
-
-
         public T Reload<T>(T resource)
         {
             return resource;
