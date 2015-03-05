@@ -473,6 +473,14 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void WrapResourceWithReferenceLoop_IsSuccessful()
+        {
+            var wrappedResource = Client.Critters.First().Wrap<ICritter, IRecursiveCritter>();
+            Assert.That(((ICritter)wrappedResource).Enemies, Is.Not.Null);
+        }
+
+
+        [Test]
         public void WrapResource_IsSuccessful()
         {
             var resource = PostResourceWithAttributes();
@@ -481,6 +489,11 @@ namespace Pomona.SystemTests.Linq
             Assert.That(wrapped.OtherCustom, Is.EqualTo("Blob rob"));
         }
 
+
+        public interface IRecursiveCritter : ICritter
+        {
+            new IList<IRecursiveCritter> Enemies { get; set; }
+        }
 
         public interface IExtendedResourceWithNonNullableInteger : IStringToObjectDictionaryContainer
         {

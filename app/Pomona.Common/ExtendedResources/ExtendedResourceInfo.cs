@@ -42,6 +42,7 @@ namespace Pomona.Common.ExtendedResources
         private readonly Type dictValueType;
         private readonly Type extendedType;
         private readonly Type serverType;
+        private readonly Lazy<ReadOnlyCollection<ExtendedProperty>> extendedProperties;
 
 
         private ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty)
@@ -53,7 +54,8 @@ namespace Pomona.Common.ExtendedResources
             if (dictProperty != null
                 && dictProperty.PropertyType.TryExtractTypeArguments(typeof(IDictionary<,>), out dictTypeArgs))
                 dictValueType = dictTypeArgs[1];
-            this.ExtendedProperties = InitializeExtendedProperties().ToList().AsReadOnly();
+            this.extendedProperties =
+                new Lazy<ReadOnlyCollection<ExtendedProperty>>(() => InitializeExtendedProperties().ToList().AsReadOnly());
         }
 
 
@@ -67,7 +69,10 @@ namespace Pomona.Common.ExtendedResources
             get { return this.serverType; }
         }
 
-        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties { get; private set; }
+        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties
+        {
+            get { return this.extendedProperties.Value; }
+        }
 
         internal Type DictValueType
         {
