@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
@@ -43,13 +44,20 @@ namespace Pomona.Common.Web
         {
         }
 
+
         public HttpWebRequestClient(HttpHeaders defaultHeaders)
         {
             this.defaultHeaders = defaultHeaders;
         }
 
 
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> DefaultHeaders
+        {
+            get { return this.defaultHeaders.Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value)); }
+        }
+
         public NetworkCredential Credentials { get; set; }
+
 
         public WebClientResponseMessage Send(WebClientRequestMessage request)
         {
@@ -69,9 +77,7 @@ namespace Pomona.Common.Web
                 if (!WebHeaderCollection.IsRestricted(h.Key))
                 {
                     foreach (var v in h.Value)
-                    {
                         webRequest.Headers.Add(h.Key, v);
-                    }
                 }
                 else
                 {
@@ -105,19 +111,22 @@ namespace Pomona.Common.Web
 
             Exception innerException;
             using (var webResponse = GetResponseNoThrow(webRequest, out innerException))
-            using (var responseStream = webResponse.GetResponseStream())
             {
-                var responseBytes = responseStream.ReadAllBytes();
+                using (var responseStream = webResponse.GetResponseStream())
+                {
+                    var responseBytes = responseStream.ReadAllBytes();
 
-                var responseUri = webResponse.ResponseUri ?? webRequest.RequestUri;
-                var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
+                    var responseUri = webResponse.ResponseUri ?? webRequest.RequestUri;
+                    var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
 
-                return new WebClientResponseMessage(responseUri.ToString(), responseBytes,
-                                                    (HttpStatusCode)webResponse.StatusCode,
-                                                    new HttpHeaders(ConvertHeaders(webResponse.Headers)),
-                                                    protocolVersion.ToString());
+                    return new WebClientResponseMessage(responseUri.ToString(), responseBytes,
+                                                        (HttpStatusCode)webResponse.StatusCode,
+                                                        new HttpHeaders(ConvertHeaders(webResponse.Headers)),
+                                                        protocolVersion.ToString());
+                }
             }
         }
+
 
         private static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ConvertHeaders(
             WebHeaderCollection webHeaders)
@@ -128,6 +137,7 @@ namespace Pomona.Common.Web
                 yield return new KeyValuePair<string, IEnumerable<string>>(key, webHeaders.GetValues(i));
             }
         }
+
 
         private static HttpWebResponse GetResponseNoThrow(HttpWebRequest request, out Exception thrownException)
         {
