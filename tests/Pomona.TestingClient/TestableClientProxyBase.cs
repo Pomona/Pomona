@@ -35,6 +35,7 @@ using System.Reflection;
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
+using Pomona.Common.Web;
 
 namespace Pomona.TestingClient
 {
@@ -89,12 +90,6 @@ namespace Pomona.TestingClient
             var proxiedClientInterface =
                 GetType().GetInterfaces().Except((typeof(TestableClientProxyBase).GetInterfaces())).Single();
             this.typeMapper = new ClientTypeMapper(proxiedClientInterface.Assembly);
-        }
-
-
-        public ClientTypeMapper TypeMapper
-        {
-            get { return this.typeMapper; }
         }
 
 
@@ -163,6 +158,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public virtual IQueryable<T> Query<T>()
+        {
+            return this.typeMapper.WrapExtendedQuery<T>(Query);
+        }
+
+
         public virtual void Save(object resource)
         {
             var resourceInterface = this.GetMostInheritedResourceInterface(resource.GetType());
@@ -222,6 +223,16 @@ namespace Pomona.TestingClient
             if (!resInfo.IsValueObject)
                 Save(resource);
             return resource;
+        }
+
+
+        public object SendRequest(string uri,
+                                  object body,
+                                  string httpMethod,
+                                  RequestOptions options = null,
+                                  Type responseBaseType = null)
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -350,15 +361,33 @@ namespace Pomona.TestingClient
         }
 
 
+        public void Delete(object resource, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public object Get(string uri, Type type, RequestOptions requestOptions)
         {
             throw new NotImplementedException();
         }
 
 
-        public virtual IQueryable<T> Query<T>()
+        public object Patch(object form, RequestOptions options)
         {
-            return this.typeMapper.WrapExtendedQuery<T>(Query);
+            throw new NotImplementedException();
+        }
+
+
+        public object Post(string uri, object form, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public IQueryable<T> Query<T>(string uri)
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -367,6 +396,8 @@ namespace Pomona.TestingClient
             return resource;
         }
 
+
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
         public ClientSettings Settings
         {
@@ -388,6 +419,17 @@ namespace Pomona.TestingClient
                     .OfType<ResourceInfoAttribute>()
                     .FirstOrDefault();
             return resourceInfo != null;
+        }
+
+
+        public ClientTypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
+        }
+
+        public IWebClient WebClient
+        {
+            get { throw new NotImplementedException(); }
         }
     }
 }

@@ -34,6 +34,7 @@ using Critters.Client;
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Web;
 using Pomona.Example.Models.Existence;

@@ -27,9 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Reflection;
 
 using Pomona.Common.Proxies;
 
@@ -37,10 +34,6 @@ namespace Pomona.Common.ExtendedResources
 {
     public static class ExtendedResourceExtensions
     {
-        private static readonly ConcurrentDictionary<Assembly, ClientTypeMapper> assemblyTypeMapperDict =
-            new ConcurrentDictionary<Assembly, ClientTypeMapper>();
-
-
         public static TOriginal Unwrap<TOriginal>(this IClientResource wrapped)
             where TOriginal : class, IClientResource
         {
@@ -58,29 +51,8 @@ namespace Pomona.Common.ExtendedResources
             where TOriginal : IClientResource
             where TExtended : TOriginal, IClientResource
         {
-            var typeMapper = GetTypeMapper(typeof(TOriginal));
+            var typeMapper = ClientTypeMapper.GetTypeMapper(typeof(TOriginal));
             return (TExtended)typeMapper.WrapResource(resource, typeof(TOriginal), typeof(TExtended));
-        }
-
-
-        private static ClientTypeMapper GetTypeMapper(Type type)
-        {
-            var assembly = type.Assembly;
-            return assemblyTypeMapperDict.GetOrAdd(assembly, GetTypeMapperFromAssembly);
-        }
-
-
-        private static ClientTypeMapper GetTypeMapperFromAssembly(Assembly assembly)
-        {
-            var generatedClientInterface =
-                assembly.GetTypes().Single(
-                    x => x.IsInterface && typeof(IPomonaClient).IsAssignableFrom(x) && x != typeof(IPomonaClient));
-            var clientBaseType = typeof(ClientBase<>).MakeGenericType(generatedClientInterface);
-            var clientTypeMapper =
-                clientBaseType.GetProperty("ClientTypeMapper", BindingFlags.NonPublic | BindingFlags.Static).GetValue(
-                    null,
-                    null);
-            return (ClientTypeMapper)clientTypeMapper;
         }
     }
 }

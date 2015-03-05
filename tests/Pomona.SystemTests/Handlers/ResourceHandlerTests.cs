@@ -32,6 +32,8 @@ using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Example.Models;
 
 namespace Pomona.SystemTests.Handlers

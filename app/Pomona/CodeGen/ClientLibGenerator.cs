@@ -869,7 +869,7 @@ namespace Pomona.CodeGen
 
         private void CreateClientType(string clientTypeName)
         {
-            var clientBaseTypeRef = Import(typeof(ClientBase<>));
+            var clientBaseTypeRef = Import(typeof(RootResource<>));
 
             var clientTypeDefinition = new TypeDefinition(this.@namespace,
                                                           clientTypeName,
@@ -1130,7 +1130,7 @@ namespace Pomona.CodeGen
 
         private TypeReference GetProxyType(string proxyTypeName)
         {
-            return Import(typeof(ClientBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
+            return Import(typeof(PomonaClient).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
         }
 
 

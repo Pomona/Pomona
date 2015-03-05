@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -43,6 +44,9 @@ namespace Pomona.Common
 {
     public class ClientTypeMapper : ExportedTypeResolverBase, IClientTypeResolver, IClientTypeFactory
     {
+        private static readonly ConcurrentDictionary<Assembly, ClientTypeMapper> assemblyTypeMapperDict =
+            new ConcurrentDictionary<Assembly, ClientTypeMapper>();
+
         private readonly ExtendedResourceMapper extendedResourceMapper;
         private readonly ReadOnlyCollection<Type> resourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
@@ -300,6 +304,13 @@ namespace Pomona.Common
         }
 
 
+        internal static ClientTypeMapper GetTypeMapper(Type type)
+        {
+            var assembly = type.Assembly;
+            return assemblyTypeMapperDict.GetOrAdd(assembly, GetTypeMapperFromAssembly);
+        }
+
+
         private static string GetJsonTypeName(TypeSpec type)
         {
             var clientType = type as StructuredType;
@@ -326,6 +337,20 @@ namespace Pomona.Common
 
             type = mostSubtypedInterface;
             return type;
+        }
+
+
+        private static ClientTypeMapper GetTypeMapperFromAssembly(Assembly assembly)
+        {
+            var generatedClientInterface =
+                assembly.GetTypes().Single(
+                    x => x.IsInterface && typeof(IPomonaClient).IsAssignableFrom(x) && x != typeof(IPomonaClient));
+            var clientBaseType = typeof(RootResource<>).MakeGenericType(generatedClientInterface);
+            var clientTypeMapper =
+                clientBaseType.GetProperty("ClientTypeMapper", BindingFlags.NonPublic | BindingFlags.Static).GetValue(
+                    null,
+                    null);
+            return (ClientTypeMapper)clientTypeMapper;
         }
 
 

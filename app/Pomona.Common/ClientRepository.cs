@@ -33,6 +33,7 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 
@@ -47,12 +48,12 @@ namespace Pomona.Common
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
-        private readonly ClientBase client;
+        private readonly IPomonaClient client;
         private readonly IEnumerable<TResource> results;
         private readonly string uri;
 
 
-        public ClientRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
+        public ClientRepository(IPomonaClient client, string uri, IEnumerable results, IClientResource parent)
         {
             if (client == null)
                 throw new ArgumentNullException("client");
@@ -62,7 +63,7 @@ namespace Pomona.Common
         }
 
 
-        internal ClientBase Client
+        internal IPomonaClient Client
         {
             get { return this.client; }
         }
@@ -78,7 +79,7 @@ namespace Pomona.Common
 
         public void Delete(TResource resource)
         {
-            this.client.Delete(resource);
+            this.client.Delete(resource, null);
         }
 
 
@@ -135,7 +136,7 @@ namespace Pomona.Common
         public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+            return (TPostResponseResource)this.client.Post<TSubResource>(Uri, postAction, null);
         }
 
 
@@ -145,7 +146,7 @@ namespace Pomona.Common
             where TSubResponseResource : TPostResponseResource
         {
             var requestOptions = RequestOptions.Create(options, typeof(TSubResponseResource));
-            return (TSubResponseResource)this.client.Post(Uri, postAction, requestOptions);
+            return (TSubResponseResource)this.client.Post<TSubResource>(Uri, postAction, requestOptions);
         }
 
 
@@ -155,13 +156,13 @@ namespace Pomona.Common
         {
             return
                 (TPostResponseResource)
-                    this.client.Post(Uri, postAction, RequestOptions.Create(options));
+                    this.client.Post<TSubResource>(Uri, postAction, RequestOptions.Create(options));
         }
 
 
         public virtual TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+            return (TPostResponseResource)this.client.Post<TResource>(Uri, postAction, null);
         }
 
 
@@ -212,7 +213,7 @@ namespace Pomona.Common
 
         void IDeletableByIdRepository<TId>.Delete(TId id)
         {
-            this.client.Delete(GetLazy(id));
+            this.client.Delete(GetLazy(id), null);
         }
 
 
