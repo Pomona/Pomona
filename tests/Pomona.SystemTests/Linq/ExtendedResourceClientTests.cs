@@ -506,6 +506,19 @@ namespace Pomona.SystemTests.Linq
         }
 
 
+        [Test]
+        public void WrapResource_With_Null_Reference_To_Another_Extended_Resource_Does_Not_Crash_When_Accessing_Property_Twice()
+        {
+            // Regression test that cache works properly
+            var entity = Save(new HasReferenceToDictionaryContainer { Container = null });
+            var wrapped =
+                Client.HasReferenceToDictionaryContainers.Get(entity.Id).Wrap<IHasReferenceToDictionaryContainer, ITestParentClientResource>
+                    ();
+            Assert.That(wrapped.Container, Is.EqualTo(null));
+            Assert.That(wrapped.Container, Is.EqualTo(null));
+        }
+
+
         public interface IRecursiveCritter : ICritter
         {
             new IList<IRecursiveCritter> Enemies { get; set; }

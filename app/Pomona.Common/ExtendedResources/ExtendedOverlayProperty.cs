@@ -26,7 +26,10 @@
 
 #endregion
 
+using System.Collections.Generic;
 using System.Reflection;
+
+using Pomona.Common.Proxies;
 
 namespace Pomona.Common.ExtendedResources
 {
@@ -54,6 +57,19 @@ namespace Pomona.Common.ExtendedResources
         public ExtendedResourceInfo Info
         {
             get { return this.info; }
+        }
+
+
+        protected bool TryGetFromCache(IDictionary<string, IExtendedResourceProxy> cache, object underlyingResource, out IExtendedResourceProxy extendedResource)
+        {
+            if (cache.TryGetValue(Property.Name, out extendedResource))
+            {
+                if ((extendedResource != null && extendedResource.WrappedResource == underlyingResource) || underlyingResource == null)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

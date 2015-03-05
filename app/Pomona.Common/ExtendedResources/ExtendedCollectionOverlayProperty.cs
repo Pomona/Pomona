@@ -64,8 +64,7 @@ namespace Pomona.Common.ExtendedResources
         {
             IExtendedResourceProxy extendedResource;
             var underlyingResource = UnderlyingProperty.GetValue(obj, null);
-            if (cache.TryGetValue(Property.Name, out extendedResource)
-                && extendedResource.WrappedResource == underlyingResource)
+            if (TryGetFromCache(cache, underlyingResource, out extendedResource))
                 return extendedResource;
             if (underlyingResource != null)
             {
