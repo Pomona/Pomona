@@ -44,7 +44,7 @@ namespace Pomona.Common
         {
             return sourceType
                 .WrapAsEnumerable()
-                .Append(sourceType.GetInterfaces())
+                .Concat(sourceType.GetInterfaces())
                 .SelectMany(x => x.GetProperties())
                 .Distinct();
         }

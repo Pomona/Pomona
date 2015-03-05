@@ -85,9 +85,19 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
+        private IEnumerable<PropertyInfo> GetAllExtendedPropertiesFromType()
+        {
+            return this.extendedType
+                .WrapAsEnumerable()
+                .Concat(this.extendedType.GetInterfaces().Where(x => !x.IsAssignableFrom(this.serverType)))
+                .SelectMany(x => x.GetProperties())
+                .Distinct();
+        }
+
+
         private IEnumerable<ExtendedProperty> InitializeExtendedProperties()
         {
-            return this.extendedType.GetProperties().Select(InitializeProperty);
+            return GetAllExtendedPropertiesFromType().Select(InitializeProperty);
         }
 
 

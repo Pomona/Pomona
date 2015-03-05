@@ -424,6 +424,22 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void Post_InheritedExtendedResource_IsSuccessful()
+        {
+            var resource = Client.DictionaryContainers.Post<IInheritedExtendedResource, IInheritedExtendedResource>(f =>
+            {
+                f.CustomString = "custom";
+                f.OtherCustom = "other";
+                f.NewOnInherited = "itsnew";
+            });
+
+            Assert.That(resource.CustomString, Is.EqualTo("custom"));
+            Assert.That(resource.OtherCustom, Is.EqualTo("other"));
+            Assert.That(resource.NewOnInherited, Is.EqualTo("itsnew"));
+        }
+
+
+        [Test]
         public void
             Query_ExtendedResourceSubclassedOnServer_ThatGotListOfAnotherTypeOfExtendedResources_WrapsResourcesCorrectly
             ()
@@ -498,6 +514,11 @@ namespace Pomona.SystemTests.Linq
         public interface IExtendedResourceWithNonNullableInteger : IStringToObjectDictionaryContainer
         {
             int NonNullableNumber { get; set; }
+        }
+
+        public interface IInheritedExtendedResource : IExtendedResource
+        {
+            string NewOnInherited { get; set; }
         }
 
         public interface IExtendedResource : IDictionaryContainer
