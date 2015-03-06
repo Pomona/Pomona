@@ -118,7 +118,7 @@ namespace Pomona.Common.ExtendedResources
 
         public void CopyTo(TExtended[] array, int arrayIndex)
         {
-            wrappedList.CopyTo(array.Select(x => Unwrap(x, true)).ToArray(), arrayIndex);
+            this.wrappedList.Select(Wrap).ToArray().CopyTo(array, arrayIndex);
         }
 
 

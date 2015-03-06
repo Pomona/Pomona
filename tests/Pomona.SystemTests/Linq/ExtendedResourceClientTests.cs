@@ -424,6 +424,18 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void Patch_SetOverlayedComplexProperty_ToNull_IsSuccessful()
+        {
+            var entity = Save(new HasReferenceToDictionaryContainer { Container = new StringToObjectDictionaryContainer() });
+            var wrapped =
+                Client.HasReferenceToDictionaryContainers.Get(entity.Id).Wrap<IHasReferenceToDictionaryContainer, ITestParentClientResource>
+                    ();
+            Client.HasReferenceToDictionaryContainers.Patch(wrapped, f => f.Container = null);
+            Assert.IsNull(entity.Container);
+        }
+
+
+        [Test]
         public void Post_InheritedExtendedResource_IsSuccessful()
         {
             var resource = Client.DictionaryContainers.Post<IInheritedExtendedResource, IInheritedExtendedResource>(f =>
@@ -447,6 +459,14 @@ namespace Pomona.SystemTests.Linq
             var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
             var weapons = extendedMusicalCritter.Weapons;
             Assert.That(weapons.Count, Is.EqualTo(((ICritter)extendedMusicalCritter).Weapons.Count));
+        }
+
+        [Test]
+        public void Query_ExtendedResources_WrapsResourcesCorrectly_WhenUsingToArray()
+        {
+            var critterEntities = CritterEntities.Take(10);
+            var critters = Client.Critters.Query<IDecoratedCritter>().Take(10).ToArray();
+            Assert.That(critterEntities.Select(x => x.Id), Is.EquivalentTo(critters.Select(x => x.Id)));
         }
 
 

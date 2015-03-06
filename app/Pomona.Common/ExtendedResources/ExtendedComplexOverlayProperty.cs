@@ -71,10 +71,11 @@ namespace Pomona.Common.ExtendedResources
             if (value == null)
             {
                 cache.Remove(Property.Name);
+                UnderlyingProperty.SetValue(obj, null, null);
                 return;
             }
             var extendedResource = (IExtendedResourceProxy)value;
-            object underlyingResource = extendedResource.WrappedResource;
+            var underlyingResource = extendedResource.WrappedResource;
             UnderlyingProperty.SetValue(obj, underlyingResource, null);
             cache[Property.Name] = extendedResource;
         }
