@@ -330,8 +330,8 @@ namespace Pomona.TestingClient
                 ? SaveResourceFromForm((PostResourceBase)(x))
                 : x;
 
-            return dict.ToDictionary(x => savePostResourceBase.Invoke(x.Key),
-                                     x => savePostResourceBase.Invoke(x.Value));
+            return dict.ToDictionary(x => (TKey)savePostResourceBase.Invoke(x.Key),
+                                     x => (TValue)savePostResourceBase.Invoke(x.Value));
         }
 
 
