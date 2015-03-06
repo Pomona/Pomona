@@ -47,6 +47,7 @@ namespace Pomona.UnitTests
         public class Child
         {
             public Bar Bar { get; set; }
+            public Dummy Dummy { get; set; }
         }
 
         public class Foo
@@ -64,6 +65,13 @@ namespace Pomona.UnitTests
         public void GetPropertyPathThroughEnumerable_WithDefaultNameStyle_ReturnsCorrectString()
         {
             Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar)), Is.EqualTo("Foo.Children.Bar"));
+        }
+
+        [Category("TODO")]
+        [Test(Description = "Not yet working, need to rework GetPropertyPath a little.")]
+        public void GetPropertyPathThroughEnumerable_WithChainedInnerExpand_ReturnsCorrectString()
+        {
+            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar).Expand(y => y.Dummy)), Is.EqualTo("Foo.Children.Bar,Foo.Children.Dummy"));
         }
 
         [Test]
