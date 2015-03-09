@@ -40,9 +40,9 @@ namespace Pomona.Common.ExtendedResources
     {
         private readonly PropertyInfo dictProperty;
         private readonly Type dictValueType;
+        private readonly Lazy<ReadOnlyCollection<ExtendedProperty>> extendedProperties;
         private readonly Type extendedType;
         private readonly Type serverType;
-        private readonly Lazy<ReadOnlyCollection<ExtendedProperty>> extendedProperties;
 
 
         private ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty)
@@ -110,7 +110,7 @@ namespace Pomona.Common.ExtendedResources
                 var serverPropType = serverProp.PropertyType;
                 ExtendedResourceInfo propExtInfo;
                 if (TryGetExtendedResourceInfo(extPropType, out propExtInfo)
-                    && serverPropType == propExtInfo.ServerType)
+                    && typeof(IClientResource).IsAssignableFrom(serverPropType))
                     return new ExtendedComplexOverlayProperty(extendedProp, serverProp, propExtInfo);
                 Type extPropElementType;
 

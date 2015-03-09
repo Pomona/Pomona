@@ -517,6 +517,15 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void WrapResource_HavingReferenceTo_ResourceInheritedFromSubClass_WhereUnderlyingPropertyIsOfTypeBaseClass_IsSuccessful()
+        {
+            var wrappedResource = Client.Orders.Post(new SubOrderForm() {Items = { new OrderItemForm() { Name = "cola"}}}).Wrap<IOrderResponse, ICustomSubClassedOrderResponse>();
+            Assert.That(wrappedResource, Is.Not.Null);
+            Assert.That(wrappedResource.Order, Is.Not.Null);
+        }
+
+
+        [Test]
         public void WrapResource_IsSuccessful()
         {
             var resource = PostResourceWithAttributes();
@@ -603,11 +612,18 @@ namespace Pomona.SystemTests.Linq
         {
         }
 
+        public interface ICustomSubOrder : ISubOrder
+        {
+        }
         public interface ICustomOrderResponse : IOrderResponse
         {
             new ICustomOrder Order { get; set; }
         }
 
+        public interface ICustomSubClassedOrderResponse : IOrderResponse
+        {
+            new ICustomSubOrder Order { get; set; }
+        }
         public interface IDecoratedMusicalCritter : IMusicalCritter
         {
             new IDecoratedMusicalFarm Farm { get; set; }

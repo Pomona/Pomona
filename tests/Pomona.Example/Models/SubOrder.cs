@@ -26,22 +26,15 @@
 
 #endregion
 
+using System.Collections.Generic;
+
 namespace Pomona.Example.Models
 {
-    public class OrderResponse
+    public class SubOrder : Order
     {
-        private readonly Order order;
-
-
-        public OrderResponse(Order order)
+        public SubOrder(IEnumerable<OrderItem> items)
+            : base(items)
         {
-            this.order = order;
-        }
-
-
-        public Order Order
-        {
-            get { return order; }
         }
     }
 }

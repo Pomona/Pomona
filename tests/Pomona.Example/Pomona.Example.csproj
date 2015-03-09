@@ -113,6 +113,7 @@
     <Compile Include="Models\InheritedHandledThing.cs" />
     <Compile Include="Models\ISetEtaggedEntity.cs" />
     <Compile Include="Models\INonExposedBaseInterface.cs" />
+    <Compile Include="Models\SubOrder.cs" />
     <Compile Include="Models\VirtualPropertyThing.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
