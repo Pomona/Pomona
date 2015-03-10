@@ -134,9 +134,13 @@ namespace Pomona.Common.Internals
             if (memberExpr == null)
             {
                 var methodCallExpr = expr as MethodCallExpression;
-                if (methodCallExpr != null && expandMethodTokens.Contains(methodCallExpr.Method.UniqueToken()))
+                if (IsExpandExpression(methodCallExpr))
                 {
-                    GetPropertyPath(methodCallExpr.Arguments[0], thisParam, sb, jsonNameStyle);
+                    var chainExpr = methodCallExpr.Arguments[0];
+                    if (IsExpandExpression(chainExpr))
+                        throw new NotImplementedException("Chained nested Expand() not yet supported.");
+
+                    GetPropertyPath(chainExpr, thisParam, sb, jsonNameStyle);
                     var innerExpr = methodCallExpr.Arguments[1];
                     if (innerExpr.NodeType == ExpressionType.Quote)
                         innerExpr = ((UnaryExpression)innerExpr).Operand;
@@ -154,6 +158,13 @@ namespace Pomona.Common.Internals
             var name = memberExpr.Member.Name;
             name = jsonNameStyle ? name.LowercaseFirstLetter() : name;
             sb.Append(name);
+        }
+
+
+        private static bool IsExpandExpression(Expression expr)
+        {
+            var methodCallExpr = expr as MethodCallExpression;
+            return methodCallExpr != null && expandMethodTokens.Contains(methodCallExpr.Method.UniqueToken());
         }
     }
 }
