@@ -329,15 +329,19 @@
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />
     <Compile Include="Web\HttpHeaders.cs" />
+    <Compile Include="Web\HttpHeadersConverter.cs" />
     <Compile Include="Web\HttpStatusCode.cs" />
     <Compile Include="Web\IWebClient.cs" />
     <Compile Include="Web\IWebClientException.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\ResourceNotFoundException.cs" />
     <Compile Include="Web\WebClientRequestMessage.cs" />
+    <Compile Include="Web\WebClientRequestMessageConverter.cs" />
+    <Compile Include="Web\WebClientRequestResponseMessageJsonConverterBase.cs" />
     <Compile Include="Web\WebClientResponseMessage.cs" />
     <Compile Include="Web\WebClientException.cs" />
     <Compile Include="Web\HttpWebRequestClient.cs" />
+    <Compile Include="Web\WebClientResponseMessageConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

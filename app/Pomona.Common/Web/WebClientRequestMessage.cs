@@ -28,21 +28,25 @@
 
 using System.Text;
 
+using Newtonsoft.Json;
+
 namespace Pomona.Common.Web
 {
+    [JsonConverter(typeof(WebClientRequestMessageConverter))]
     public class WebClientRequestMessage
     {
         private readonly byte[] data;
-        private readonly HttpHeaders headers = new HttpHeaders();
+        private readonly HttpHeaders headers;
         private readonly string method;
         private string uri;
 
 
-        public WebClientRequestMessage(string uri, byte[] data = null, string method = null)
+        public WebClientRequestMessage(string uri, byte[] data = null, string method = null, HttpHeaders headers = null)
         {
             this.uri = uri;
             this.data = data;
             this.method = method;
+            this.headers = headers ?? new HttpHeaders();
         }
 
 
