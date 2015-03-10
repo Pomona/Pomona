@@ -28,8 +28,11 @@
 
 using System.Text;
 
+using Newtonsoft.Json;
+
 namespace Pomona.Common.Web
 {
+    [JsonConverter(typeof(WebClientResponseMessageConverter))]
     public class WebClientResponseMessage
     {
         private readonly byte[] data;
