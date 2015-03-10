@@ -403,7 +403,7 @@ namespace Pomona
             if (type == null)
                 throw new ArgumentNullException("type");
             return type.IsEnum || IsNativelySupportedType(type) || type == typeof(byte[])
-                   || TypeIsMappedAsCollection(type);
+                   || TypeIsMappedAsCollection(type) || typeof(QueryResult).IsAssignableFrom(type);
         }
 
 

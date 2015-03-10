@@ -100,21 +100,6 @@ namespace Pomona.Common.Serialization.Csv
             }
         }
 
-
-        protected override void SerializeQueryResult(QueryResult queryResult,
-            ISerializationContext fetchContext,
-            Writer writer,
-            TypeSpec elementType)
-        {
-            var itemNode = new ItemValueSerializerNode(queryResult,
-                fetchContext.GetClassMapping(queryResult.ListType),
-                string.Empty,
-                fetchContext,
-                null);
-            SerializeThroughContext(itemNode, writer);
-        }
-
-
         #region Nested type: Writer
 
         public class Writer : ISerializerWriter

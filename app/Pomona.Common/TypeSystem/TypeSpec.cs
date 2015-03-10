@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,11 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
+        public string FullName
+        {
+            get { return string.Format("{0}.{1}", Namespace, Name); }
+        }
+
         public abstract IEnumerable<TypeSpec> Interfaces { get; }
         public abstract bool IsAbstract { get; }
 
@@ -123,11 +128,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.@namespace.Value; }
         }
 
-        public string FullName
-        {
-            get { return string.Format("{0}.{1}", Namespace, Name); }
-        }
-
+        public abstract string NameWithGenericArguments { get; }
         public abstract IEnumerable<PropertySpec> Properties { get; }
         public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
         public abstract TypeSerializationMode SerializationMode { get; }
@@ -135,6 +136,12 @@ namespace Pomona.Common.TypeSystem
         public virtual Type Type
         {
             get { return (Type)Member; }
+        }
+
+
+        public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
+        {
+            throw new NotSupportedException("Unable to instantiate type " + FullName);
         }
 
 

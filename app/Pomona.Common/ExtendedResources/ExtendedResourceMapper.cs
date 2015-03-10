@@ -187,7 +187,8 @@ namespace Pomona.Common.ExtendedResources
                 return QueryResult.Create(wrappedResults,
                                           resultAsQueryResult.Skip,
                                           resultAsQueryResult.TotalCount,
-                                          resultAsQueryResult.Url,
+                                          resultAsQueryResult.Previous,
+                                          resultAsQueryResult.Next,
                                           extendedElementType);
             }
             return wrappedResults.Cast(extendedElementType).ToListDetectType();

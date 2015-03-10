@@ -33,8 +33,8 @@ namespace Pomona.Common
 {
     public class QuerySetResult<T> : QueryResultBase<T, ISet<T>>, ISet<T>
     {
-        public QuerySetResult(IEnumerable<T> items, int skip, int totalCount, string url)
-            : base(new HashSet<T>(items), skip, totalCount, url)
+        public QuerySetResult(IEnumerable<T> items, int skip, int totalCount, string previous, string next)
+            : base(new HashSet<T>(items), skip, totalCount, previous, next)
         {
         }
 

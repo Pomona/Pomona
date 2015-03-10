@@ -63,7 +63,11 @@ namespace Pomona.Common.Serialization
         private static string GetExpandPath(ISerializerNode parentNode, PropertySpec property)
         {
             if (string.IsNullOrEmpty(parentNode.ExpandPath))
+            {
+                if (property is QueryResultType.ItemsPropertySpec)
+                    return string.Empty;
                 return property.LowerCaseName;
+            }
 
             return string.Concat(parentNode.ExpandPath, ".", property.LowerCaseName);
         }

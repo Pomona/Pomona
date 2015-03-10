@@ -332,7 +332,12 @@ namespace Pomona.Common.Serialization.Json
 
             TypeSpec mappedType;
             if (node.ExpectedBaseType != null && node.ExpectedBaseType != typeof(object))
-                mappedType = node.ExpectedBaseType;
+            {
+                if (SetNodeValueType(node, reader.Token))
+                    mappedType = node.ValueType;
+                else
+                    mappedType = node.ExpectedBaseType;
+            }
             else if (reader.Token.Type == JTokenType.String)
             {
                 node.SetValueType(node.Context.GetClassMapping(typeof(string)));
@@ -436,23 +441,43 @@ namespace Pomona.Common.Serialization.Json
                             explicitTypeSpec.Type);
                     }
 
-                    node.SetValueType(explicitTypeSpec.Value<string>());
+                    var typeName = explicitTypeSpec.Value<string>();
+                    if (typeName == "__result__")
+                    {
+                        if (!(node.ExpectedBaseType is QueryResultType) && node.ExpectedBaseType is EnumerableTypeSpec)
+                        {
+                            Type queryResultGenericTypeDefinition;
+                            if (node.ExpectedBaseType.Type.IsGenericInstanceOf(typeof(ISet<>)))
+                                queryResultGenericTypeDefinition = typeof(QuerySetResult<>);
+                            else
+                                queryResultGenericTypeDefinition = typeof(QueryResult<>);
+                            var queryResultTypeInstance = queryResultGenericTypeDefinition.MakeGenericType(node.ExpectedBaseType.ElementType);
+                            if (node.ExpectedBaseType.Type.IsAssignableFrom(queryResultTypeInstance))
+                                node.SetValueType(queryResultTypeInstance);
+                        }
+                    }
+                    else
+                        node.SetValueType(typeName);
                     return true;
                 }
             }
-            var jval = jtoken as JValue;
-            if (jval != null)
+
+            if (node.ExpectedBaseType == null || node.ExpectedBaseType == typeof(object))
             {
-                switch (jval.Type)
+                var jval = jtoken as JValue;
+                if (jval != null)
                 {
-                    case JTokenType.String:
-                        node.SetValueType(typeof(string));
-                        return true;
-                    case JTokenType.Boolean:
-                        node.SetValueType(typeof(bool));
-                        return true;
-                    default:
-                        return false;
+                    switch (jval.Type)
+                    {
+                        case JTokenType.String:
+                            node.SetValueType(typeof(string));
+                            return true;
+                        case JTokenType.Boolean:
+                            node.SetValueType(typeof(bool));
+                            return true;
+                        default:
+                            return false;
+                    }
                 }
             }
 
@@ -500,9 +525,21 @@ namespace Pomona.Common.Serialization.Json
             try
             {
                 options = options ?? new DeserializeOptions();
+
+                var returnTypeSpecified = options.ExpectedBaseType != null;
+
+                if (returnTypeSpecified && typeof(JToken).IsAssignableFrom(options.ExpectedBaseType))
+                {
+                    // When asking for a JToken, just return the deserialized json object
+                    using (var jr = new JsonTextReader(textReader))
+                    {
+                        return JToken.Load(jr);
+                    }
+                }
+
                 var context = this.contextProvider.GetDeserializationContext(options);
                 return Deserialize(textReader,
-                                   options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
+                                   returnTypeSpecified ? context.GetClassMapping(options.ExpectedBaseType) : null,
                                    context,
                                    options.Target);
             }
@@ -556,6 +593,7 @@ namespace Pomona.Common.Serialization.Json
                         var newValue = propNode.Value;
                         if (oldValue != newValue)
                             this.node.SetProperty(prop, newValue);
+                        propContainer.Fetched = true;
                     }
                 }
             }
@@ -586,11 +624,7 @@ namespace Pomona.Common.Serialization.Json
             {
                 SetUri();
                 if (this.node.Value == null || this.node.Operation == DeserializerNodeOperation.Post)
-                {
-                    if (!(this.node.ValueType is StructuredType))
-                        throw new NotSupportedException("Only knows how to deserialize TransformedType.");
-                    this.node.Value = this.node.Context.CreateResource((StructuredType)this.node.ValueType, this);
-                }
+                    this.node.Value = this.node.Context.CreateResource(this.node.ValueType, this);
                 DeserializeRemainingProperties();
             }
 

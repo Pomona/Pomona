@@ -29,8 +29,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Globalization;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Pomona.Common
 {
@@ -38,17 +38,19 @@ namespace Pomona.Common
         where TCollection : ICollection<T>
     {
         protected readonly TCollection items;
+        private readonly string next;
+        private readonly string previous;
         private readonly int skip;
         private readonly int totalCount;
-        private readonly string url;
 
 
-        protected QueryResultBase(TCollection items, int skip, int totalCount, string url)
+        protected QueryResultBase(TCollection items, int skip, int totalCount, string previous, string next)
         {
             this.items = items;
             this.skip = skip;
             this.totalCount = totalCount;
-            this.url = url;
+            this.previous = previous;
+            this.next = next;
         }
 
 
@@ -62,6 +64,16 @@ namespace Pomona.Common
             get { return typeof(TCollection); }
         }
 
+        public override string Next
+        {
+            get { return this.next; }
+        }
+
+        public override string Previous
+        {
+            get { return this.previous; }
+        }
+
         public override int Skip
         {
             get { return this.skip; }
@@ -72,43 +84,17 @@ namespace Pomona.Common
             get { return this.totalCount; }
         }
 
-        public override string Url
-        {
-            get { return this.url; }
-        }
-
-
-        public override bool TryGetPage(int offset, out Uri pageUri)
-        {
-            var newSkip = Math.Max(Skip + (Count * offset), 0);
-            var uriBuilder = new UriBuilder(Url);
-
-            if (Skip == newSkip || (TotalCount != -1 && newSkip >= TotalCount))
-            {
-                pageUri = null;
-                return false;
-            }
-
-            NameValueCollection parameters;
-            if (!string.IsNullOrEmpty(uriBuilder.Query))
-            {
-                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
-                parameters["$skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
-                uriBuilder.Query = parameters.ToString();
-            }
-            else
-                uriBuilder.Query = "$skip=" + newSkip;
-
-            pageUri = uriBuilder.Uri;
-
-            return true;
-        }
-
         #region IList<T> Members
 
         public override int Count
         {
             get { return this.items.Count; }
+        }
+
+        // For serialization
+        internal IEnumerable<T> Items
+        {
+            get { return new ReadOnlyCollection<T>(this.ToList()); }
         }
 
         public bool IsReadOnly

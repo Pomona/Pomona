@@ -36,6 +36,7 @@ using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
+using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.Serialization.Json
 {
@@ -45,6 +46,14 @@ namespace Pomona.UnitTests.Serialization.Json
         private PomonaJsonDeserializer deserializer;
         private TypeMapper typeMapper;
 
+
+        [Test]
+        public void Deserialize_using_TypeMapper_QueryResult_when_specifying_expected_type_is_successful()
+        {
+            var qr = this.deserializer.DeserializeString<QueryResult<int>>(@"{""_type"": ""__result__"",""totalCount"": 12,""count"": 7,""items"": [1,2,3,4,5,6,7]}");
+            Assert.That(qr, Is.EquivalentTo(new int[] { 1, 2, 3, 4, 5, 6, 7 }));
+            Assert.That(qr.TotalCount, Is.EqualTo(12));
+        }
 
         [Test]
         public void Deserialize_null_to_non_nullable_value_throws_PomonaSerializationException()

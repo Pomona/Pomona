@@ -75,7 +75,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.StructuredPropertyDetails.AccessMode; }
         }
 
-        public ExpandMode ExpandMode
+        public override ExpandMode ExpandMode
         {
             get { return this.StructuredPropertyDetails.ExpandMode; }
         }

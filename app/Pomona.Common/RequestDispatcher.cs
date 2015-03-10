@@ -78,35 +78,8 @@ namespace Pomona.Common
                                    ISerializationContextProvider serializationContextProvider)
         {
             // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
-            var jToken = JToken.Parse(jsonString);
-
             if (expectedType == typeof(JToken))
-                return jToken;
-
-            var jObject = jToken as JObject;
-            if (jObject != null)
-            {
-                JToken typeValue;
-                if (jObject.TryGetValue("_type", out typeValue))
-                {
-                    if (typeValue.Type == JTokenType.String && (string)((JValue)typeValue).Value == "__result__")
-                    {
-                        JToken itemsToken;
-                        if (!jObject.TryGetValue("items", out itemsToken))
-                            throw new InvalidOperationException("Got result object, but lacking items");
-
-                        var totalCount = (int)jObject.GetValue("totalCount");
-
-                        var deserializedItems = Deserialize(itemsToken.ToString(),
-                                                            expectedType,
-                                                            serializationContextProvider);
-                        return QueryResult.Create((IEnumerable)deserializedItems,
-                                                  /* TODO */ 0,
-                                                  totalCount,
-                                                  "http://todo");
-                    }
-                }
-            }
+                return JToken.Parse(jsonString);
 
             return this.serializerFactory
                        .GetDeserializer(serializationContextProvider)

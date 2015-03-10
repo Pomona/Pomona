@@ -88,11 +88,11 @@ namespace Pomona.Common
             var ria = typeSpec.DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
             if (ria == null)
             {
-                return
-                    ConstructorSpec.FromConstructorInfo(
-                        typeSpec.Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public
-                                                      | BindingFlags.NonPublic).First(),
-                        defaultFactory : () => null);
+                return typeSpec.OnLoadConstructor() ??
+                       ConstructorSpec.FromConstructorInfo(
+                           typeSpec.Type.GetConstructors(BindingFlags.Instance | BindingFlags.Public
+                                                         | BindingFlags.NonPublic).First(),
+                           defaultFactory : () => null);
             }
 
             if (ria.PocoType == null)
@@ -205,7 +205,7 @@ namespace Pomona.Common
 
         public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
         {
-            if (IsAnonType(structuredType))
+            if (IsAnonType(structuredType) || structuredType is QueryResultType)
             {
                 return new StructuredTypeDetails(structuredType,
                                                  HttpMethod.Get,
@@ -275,6 +275,7 @@ namespace Pomona.Common
                     return new ComplexType(this, type);
                 return new ResourceType(this, type);
             }
+
             if (IsAnonType(type))
                 return new AnonymousType(this, type);
             return base.CreateType(type);

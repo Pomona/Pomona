@@ -28,6 +28,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -212,7 +214,10 @@ namespace Pomona
                     else
                         limitedQueryable = ((IQueryable<T>)ApplySkipAndTake(totalQueryable)).ToList();
 
-                    var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, Url);
+                    var previous = GetPage(Url, Skip, Top, limitedQueryable.Count, totalCount, -1);
+                    var next = GetPage(Url, Skip, Top, limitedQueryable.Count, totalCount, 1);
+
+                    var qr = QueryResult.Create(limitedQueryable, Skip, totalCount, previous, next);
                     return new PomonaResponse(this, qr);
                 }
             }
@@ -239,6 +244,28 @@ namespace Pomona
         private PomonaResponse ApplySum<T>(IQueryable<T> totalQueryable)
         {
             return new PomonaResponse(this, totalQueryable.Sum());
+        }
+
+
+        private static string GetPage(string url, int skip, int take, int count, int totalcount, int offset)
+        {
+            var newSkip = Math.Max(skip + (take * offset), 0);
+            var uriBuilder = new UriBuilder(url);
+
+            if (skip == newSkip || (totalcount != -1 && newSkip >= totalcount) || count < take)
+                return null;
+
+            NameValueCollection parameters;
+            if (!string.IsNullOrEmpty(uriBuilder.Query))
+            {
+                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
+                parameters["$skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
+                uriBuilder.Query = parameters.ToString();
+            }
+            else
+                uriBuilder.Query = "$skip=" + newSkip;
+
+            return uriBuilder.Uri.ToString();
         }
     }
 }

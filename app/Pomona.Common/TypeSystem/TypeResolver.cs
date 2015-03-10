@@ -49,16 +49,10 @@ namespace Pomona.Common.TypeSystem
                                     typeof(DictionaryTypeSpec),
                                     typeof(EnumerableTypeSpec),
                                     typeof(EnumTypeSpec),
-                                    typeof(RuntimeTypeSpec)
+                                    typeof(RuntimeTypeSpec),
+                                    typeof(QueryResultType)
                                 };
             this.typeFactories =
-                /*
-                GetType().WalkTree(x => x.BaseType)
-                .TakeUntil(x => x == typeof(object))
-                .Select(x => x.Assembly).Distinct()
-                .SelectMany(x => x.GetTypes())
-                    .Where(x => typeof(TypeSpec).IsAssignableFrom(x))
-                 */
                 typeSpecTypes
                     .SelectMany(
                         x =>

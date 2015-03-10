@@ -45,7 +45,7 @@ namespace Pomona.Common
         static QueryResult()
         {
             createMethod =
-                ReflectionHelper.GetMethodDefinition<QueryResult>(x => Create<object>(null, 0, 0, null));
+                ReflectionHelper.GetMethodDefinition<QueryResult>(x => Create<object>(null, 0, 0, null, null));
         }
 
 
@@ -58,16 +58,19 @@ namespace Pomona.Common
 
         public abstract Type ItemType { get; }
         public abstract Type ListType { get; }
+        public abstract string Next { get; }
+        public abstract string Previous { get; }
         public abstract int Skip { get; }
         public abstract int TotalCount { get; }
-        public abstract string Url { get; }
 
 
-        public static QueryResult Create(IEnumerable source,
-                                         int skip,
-                                         int totalCount,
-                                         string url,
-                                         Type elementType = null)
+        public static QueryResult Create(
+            IEnumerable source,
+            int skip,
+            int totalCount,
+            string previousPageUrl,
+            string nextPageUrl,
+            Type elementType = null)
         {
             Type[] genargs;
             if (elementType == null)
@@ -82,18 +85,16 @@ namespace Pomona.Common
                 else
                     elementType = genargs[0];
             }
+
             return
                 (QueryResult)
                     createMethod.MakeGenericMethod(elementType).Invoke(
                         null,
-                        new object[] { source, skip, totalCount, url });
+                        new object[] { source, skip, totalCount, previousPageUrl, nextPageUrl });
         }
 
 
-        public abstract bool TryGetPage(int offset, out Uri pageUri);
-
-
-        private static QueryResult Create<TSource>(IEnumerable source, int skip, int totalCount, string url)
+        private static QueryResult Create<TSource>(IEnumerable source, int skip, int totalCount, string previousPageUrl, string nextPageUrl)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -101,15 +102,15 @@ namespace Pomona.Common
             Type[] tmp;
             var isSetCollection = source.GetType().TryExtractTypeArguments(typeof(ISet<>), out tmp);
             return isSetCollection
-                ? (QueryResult)new QuerySetResult<TSource>(castSource, skip, totalCount, url)
-                : new QueryResult<TSource>(castSource, skip, totalCount, url);
+                ? (QueryResult)new QuerySetResult<TSource>(castSource, skip, totalCount, previousPageUrl, nextPageUrl)
+                : new QueryResult<TSource>(castSource, skip, totalCount, previousPageUrl, nextPageUrl);
         }
     }
 
     public class QueryResult<T> : QueryResultBase<T, IList<T>>, IList<T>
     {
-        public QueryResult(IEnumerable<T> items, int skip, int totalCount, string url)
-            : base(items.ToList(), skip, totalCount, url)
+        public QueryResult(IEnumerable<T> items, int skip, int totalCount, string previous, string next)
+            : base(items.ToList(), skip, totalCount, previous, next)
         {
         }
 

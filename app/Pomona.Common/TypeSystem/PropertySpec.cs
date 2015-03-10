@@ -155,6 +155,11 @@ namespace Pomona.Common.TypeSystem
             get { return Name.ToLowerInvariant(); }
         }
 
+        public virtual ExpandMode ExpandMode
+        {
+            get { return ExpandMode.Default; }
+        }
+
         #endregion
 
         public virtual object GetValue(object target)

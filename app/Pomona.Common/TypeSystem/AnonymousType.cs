@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,37 @@ namespace Pomona.Common.TypeSystem
                              Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
+        }
+
+
+        public new static ITypeFactory GetFactory()
+        {
+            return new TypeFactory();
+        }
+
+
+        private class TypeFactory : ITypeFactory
+        {
+            public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
+            {
+                if (typeResolver == null)
+                    throw new ArgumentNullException("typeResolver");
+                var structuredTypeResolver = typeResolver as IStructuredTypeResolver;
+                if (structuredTypeResolver == null)
+                    throw new ArgumentException("typerResolver must be of type " + typeof(IStructuredTypeResolver).FullName, "typeResolver");
+                if (type == null)
+                    throw new ArgumentNullException("type");
+                if (!type.IsAnonymous())
+                    return null;
+
+                return new AnonymousType(structuredTypeResolver, type);
+            }
+
+
+            public int Priority
+            {
+                get { return 0; }
+            }
         }
     }
 }

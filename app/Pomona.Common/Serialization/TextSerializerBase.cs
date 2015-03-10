@@ -48,17 +48,12 @@ namespace Pomona.Common.Serialization
                 throw new ArgumentNullException("textWriter");
 
             var writer = serializer.CreateWriter(textWriter);
-            if (obj is QueryResult)
-                serializer.SerializeQueryResult((QueryResult)obj, serializationContext, writer, null);
-            else
-            {
-                var itemValueNode = new ItemValueSerializerNode(obj,
-                    expectedBaseType,
-                    string.Empty,
-                    serializationContext,
-                    null);
-                serializer.SerializeNode(itemValueNode, writer);
-            }
+            var itemValueNode = new ItemValueSerializerNode(obj,
+                expectedBaseType,
+                string.Empty,
+                serializationContext,
+                null);
+            serializer.SerializeNode(itemValueNode, writer);
         }
 
         protected void SerializeThroughContext(ISerializerNode node, TWriter writer)
@@ -68,11 +63,6 @@ namespace Pomona.Common.Serialization
 
 
         protected abstract void SerializeNode(ISerializerNode node, TWriter writer);
-
-        protected abstract void SerializeQueryResult(QueryResult queryResult,
-            ISerializationContext context,
-            TWriter writer,
-            TypeSpec elementType);
 
         protected abstract TWriter CreateWriter(TextWriter textWriter);
 

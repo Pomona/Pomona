@@ -118,7 +118,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public object CreateResource<T>(StructuredType type, IConstructorPropertySource<T> args)
+        public object CreateResource<T>(TypeSpec type, IConstructorPropertySource<T> args)
         {
             return type.Create(args);
         }

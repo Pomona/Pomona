@@ -408,10 +408,11 @@ namespace TestNs
 
         public Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
-            return FromMappingOrDefault(type,
-                                        propertyInfo,
-                                        x => x.OnGetDelegate,
-                                        () => this.wrappedFilter.GetPropertyGetter(type, propertyInfo));
+            var getter = FromMappingOrDefault(type,
+                                              propertyInfo,
+                                              x => x.OnGetDelegate,
+                                              () => this.wrappedFilter.GetPropertyGetter(type, propertyInfo));
+            return getter;
         }
 
 

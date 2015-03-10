@@ -94,6 +94,17 @@ namespace Pomona.Common.TypeSystem
             get { return Type.IsNullable(); }
         }
 
+        public override string NameWithGenericArguments
+        {
+            get
+            {
+                return IsGenericType
+                    ? string.Format("{0}<{1}>", Name.Split('`')[0],
+                                    string.Join(", ", GenericArguments.Select(x => x.NameWithGenericArguments)))
+                    : Name;
+            }
+        }
+
         public override IEnumerable<PropertySpec> Properties
         {
             get { return this.properties.Value; }

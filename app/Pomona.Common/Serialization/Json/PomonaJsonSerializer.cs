@@ -103,60 +103,6 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        protected override void SerializeQueryResult(
-            QueryResult queryResult,
-            ISerializationContext fetchContext,
-            Writer writer,
-            TypeSpec elementType)
-        {
-            var jsonWriter = writer.JsonWriter;
-            jsonWriter.WriteStartObject();
-
-            jsonWriter.WritePropertyName("_type");
-            jsonWriter.WriteValue("__result__");
-
-            jsonWriter.WritePropertyName("totalCount");
-            jsonWriter.WriteValue(queryResult.TotalCount);
-
-            jsonWriter.WritePropertyName("count");
-            jsonWriter.WriteValue(queryResult.Count);
-
-            Uri previousPageUri;
-            if (queryResult.TryGetPage(-1, out previousPageUri))
-            {
-                jsonWriter.WritePropertyName("previous");
-                jsonWriter.WriteValue(previousPageUri.ToString());
-            }
-
-            Uri nextPageUri;
-            if (queryResult.TryGetPage(1, out nextPageUri))
-            {
-                jsonWriter.WritePropertyName("next");
-                jsonWriter.WriteValue(nextPageUri.ToString());
-            }
-
-            jsonWriter.WritePropertyName("items");
-            var itemNode = new ItemValueSerializerNode(queryResult, fetchContext.GetClassMapping(queryResult.ListType),
-                                                       string.Empty, fetchContext, null);
-            SerializeThroughContext(itemNode, writer);
-
-            if (queryResult.DebugInfo.Count > 0)
-            {
-                jsonWriter.WritePropertyName("debugInfo");
-                jsonWriter.WriteStartObject();
-                foreach (var kvp in queryResult.DebugInfo)
-                {
-                    jsonWriter.WritePropertyName(kvp.Key);
-                    jsonWriter.WriteValue(kvp.Value);
-                }
-                jsonWriter.WriteEndObject();
-            }
-
-            jsonWriter.WriteEndObject();
-            jsonWriter.Flush();
-        }
-
-
         private string EscapePropertyName(string propName)
         {
             if (propName.Length > 0 && reservedFirstCharacters.Contains(propName[0]))
@@ -291,10 +237,7 @@ namespace Pomona.Common.Serialization.Json
                 jsonWriter.WriteValue(node.Uri);
             }
             if (node.ExpectedBaseType != node.ValueType && !node.ValueType.IsAnonymous() && !serializingDelta && !node.IsRemoved)
-            {
-                jsonWriter.WritePropertyName("_type");
-                jsonWriter.WriteValue(node.ValueType.Name);
-            }
+                SerializeTypeProperty(jsonWriter, node.ValueType);
 
             if (node.IsRemoved || (serializingDelta && node.ParentNode != null && node.ParentNode.ValueType.IsCollection))
             {
@@ -382,13 +325,21 @@ namespace Pomona.Common.Serialization.Json
             jsonWriter.WriteStartObject();
             jsonWriter.WritePropertyName("_ref");
             jsonWriter.WriteValue(node.Uri);
-            if (node.ExpectedBaseType != node.ValueType)
-            {
-                jsonWriter.WritePropertyName("_type");
-                jsonWriter.WriteValue(node.ValueType.Name);
-            }
+            var valueType = node.ValueType;
+            if (node.ExpectedBaseType != valueType)
+                SerializeTypeProperty(jsonWriter, valueType);
 
             jsonWriter.WriteEndObject();
+        }
+
+
+        private static void SerializeTypeProperty(JsonWriter jsonWriter, TypeSpec valueType)
+        {
+            jsonWriter.WritePropertyName("_type");
+            if (valueType is QueryResultType)
+                jsonWriter.WriteValue("__result__");
+            else
+                jsonWriter.WriteValue(valueType.NameWithGenericArguments);
         }
 
 
@@ -403,8 +354,7 @@ namespace Pomona.Common.Serialization.Json
             if (boxValueWithTypeSpec)
             {
                 writer.JsonWriter.WriteStartObject();
-                writer.JsonWriter.WritePropertyName("_type");
-                writer.JsonWriter.WriteValue(node.ValueType.Name);
+                SerializeTypeProperty(writer.JsonWriter, node.ValueType);
                 writer.JsonWriter.WritePropertyName("value");
             }
 

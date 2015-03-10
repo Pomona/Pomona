@@ -133,9 +133,9 @@ namespace Pomona
 
         public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
         {
-            var transformedType = typeSpec as StructuredType;
-            if (transformedType != null)
-                return this.filter.GetTypeConstructor(transformedType);
+            // TODO: Maybe introduce a IMappedType/IExportedType for this purpose
+            if (typeSpec is ResourceType || typeSpec is ComplexType)
+                return this.filter.GetTypeConstructor(typeSpec);
             return base.LoadConstructor(typeSpec);
         }
 
@@ -207,7 +207,7 @@ namespace Pomona
 
         public override IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
         {
-            if (typeSpec is StructuredType)
+            if (typeSpec is ComplexType || typeSpec is ResourceType)
             {
                 var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
                     ? typeSpec.Type.GetInterfaces().Where(x => !this.filter.TypeIsMapped(x)).SelectMany(

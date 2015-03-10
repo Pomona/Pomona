@@ -357,8 +357,8 @@ namespace Pomona.SystemTests
         {
             Repository.CreateRandomData(critterCount : 20);
             var farms = Client.Farms.Query().ExpandShallow(x => x.MusicalCritters).ToList();
-            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(farms.All(x => x.MusicalCritters.IsLoaded()), Is.True);
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(farms.SelectMany(x => x.MusicalCritters).All(x => x.IsLoaded()), Is.False);
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
                         Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));

@@ -123,7 +123,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
+        public override object Create<T>(IConstructorPropertySource<T> propertySource)
         {
             if (typeof(T) != Type)
                 throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));

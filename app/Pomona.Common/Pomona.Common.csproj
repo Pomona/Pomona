@@ -281,7 +281,9 @@
     <Compile Include="SortOrder.cs" />
     <Compile Include="StringEnumExtensions.cs" />
     <Compile Include="TypeExtensions.cs" />
-    <Compile Include="TypeSystem\AnonymousType.cs" />
+    <Compile Include="TypeSystem\AnonymousType.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TypeSystem\Calculator.cs" />
     <Compile Include="TypeSystem\ComplexType.cs" />
     <Compile Include="TypeSystem\ConstructorSpec.cs" />
@@ -290,6 +292,8 @@
     <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumTypeSpec.cs" />
     <Compile Include="TypeSystem\IResourceTypeResolver.cs" />
+    <Compile Include="TypeSystem\QueryResultType.cs" />
+    <Compile Include="TypeSystem\QuerySetResultType.cs" />
     <Compile Include="TypeSystem\ResourceProperty.cs" />
     <Compile Include="TypeSystem\ResourcePropertyDetails.cs" />
     <Compile Include="TypeSystem\StructuredPropertyDetails.cs" />

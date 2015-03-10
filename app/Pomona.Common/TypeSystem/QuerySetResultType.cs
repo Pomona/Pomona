@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,18 +27,34 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
-namespace Pomona.Example.Models
+namespace Pomona.Common.TypeSystem
 {
-    public class Hat : EntityBase
+    internal class QuerySetResultType<T> : QueryResultType
     {
-        public Hat(string hatType = null)
+        public QuerySetResultType(IStructuredTypeResolver typeResolver)
+            : base(typeResolver, typeof(QuerySetResult<T>), GetGenericArguments(typeResolver))
         {
-            HatType = hatType ?? "Hat#" + new Random().Next();
         }
 
 
-        public string HatType { get; set; }
-        public string Style { get; set; }
+        protected internal override ConstructorSpec OnLoadConstructor()
+        {
+            Expression<Func<IConstructorControl<QuerySetResult<T>>, QuerySetResult<T>>> expr =
+                x =>
+                    new QuerySetResult<T>(x.Requires().Items, x.Optional().Skip, x.Optional().TotalCount,
+                                          x.Optional().Previous, x.Optional().Next);
+            return new ConstructorSpec(expr);
+        }
+
+
+        private static Func<IEnumerable<TypeSpec>> GetGenericArguments(ITypeResolver typeResolver)
+        {
+            if (typeResolver == null)
+                throw new ArgumentNullException("typeResolver");
+            return () => new[] { typeResolver.FromType(typeof(T)) };
+        }
     }
 }

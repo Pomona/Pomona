@@ -74,7 +74,7 @@ namespace Pomona
         }
 
 
-        public object CreateResource<T>(StructuredType type, IConstructorPropertySource<T> args)
+        public object CreateResource<T>(TypeSpec type, IConstructorPropertySource<T> args)
         {
             try
             {
