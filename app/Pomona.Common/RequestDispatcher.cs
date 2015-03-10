@@ -217,7 +217,12 @@ namespace Pomona.Common
 
                 AddDefaultHeaders(request);
 
-                request.Headers.Add("Accept", "application/json");
+                const string jsonContentType = "application/json; charset=utf-8";
+                request.Headers.Add("Accept", jsonContentType);
+                if (requestBytes != null)
+                {
+                    request.Headers.Add("Content-Type", jsonContentType);
+                }
 
                 using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
