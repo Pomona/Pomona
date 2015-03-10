@@ -29,7 +29,7 @@ using System.Linq;
 
 namespace Pomona.Common.Web
 {
-    public class HttpHeaders : IHttpHeaders
+    public class HttpHeaders : IDictionary<string, IList<string>>
     {
         private readonly IDictionary<string, IList<string>> dict =
             new Dictionary<string, IList<string>>(StringComparer.InvariantCultureIgnoreCase);

@@ -85,7 +85,7 @@ namespace Pomona.IndependentClientTests
         public class NancyTestingWebClient : IWebClient
         {
             private readonly Browser browser;
-            private readonly IHttpHeaders headers = new HttpHeaders();
+            private readonly HttpHeaders headers = new HttpHeaders();
 
 
             public NancyTestingWebClient(Browser browser)
@@ -98,7 +98,7 @@ namespace Pomona.IndependentClientTests
 
             public NetworkCredential Credentials { get; set; }
 
-            public IHttpHeaders Headers
+            public HttpHeaders Headers
             {
                 get { return this.headers; }
             }
