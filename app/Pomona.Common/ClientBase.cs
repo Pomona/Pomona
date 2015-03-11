@@ -174,16 +174,27 @@ namespace Pomona.Common
 
         public override void Delete<T>(T resource)
         {
+            if (resource == null)
+                throw new ArgumentNullException("resource");
             var uri = ((IHasResourceUri)resource).Uri;
             var serializationContextProvider = new ClientSerializationContextProvider(typeMapper, this, this);
-            this.dispatcher.SendRequest(serializationContextProvider, uri, null, "DELETE");
+            this.dispatcher.SendRequest(uri, "DELETE", null, serializationContextProvider);
         }
 
 
         public override object Get(string uri, Type type, RequestOptions requestOptions)
         {
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (requestOptions == null)
+                requestOptions = new RequestOptions(type);
+            else if (type != null && requestOptions.ExpectedResponseType == null)
+            {
+                requestOptions.ExpectedResponseType = type;
+            }
+
             var serializationContextProvider = GetSerializationContextProvider(requestOptions);
-            return this.dispatcher.SendRequest(serializationContextProvider, uri, null, "GET", requestOptions, type);
+            return this.dispatcher.SendRequest(uri, "GET", null, serializationContextProvider, requestOptions);
         }
 
 
@@ -285,7 +296,7 @@ namespace Pomona.Common
                 throw new ArgumentNullException("form");
 
             var serializationContextProvider = GetSerializationContextProvider(requestOptions);
-            return this.dispatcher.SendRequest(serializationContextProvider, uri, form, "POST", requestOptions);
+            return this.dispatcher.SendRequest(uri, "POST", form, serializationContextProvider, requestOptions);
         }
 
 
@@ -373,7 +384,7 @@ namespace Pomona.Common
 
             AddIfMatchToPatch(form, requestOptions);
             var serializationContextProvider = GetSerializationContextProvider(requestOptions);
-            return (T)this.dispatcher.SendRequest(serializationContextProvider, uri, form, "PATCH", requestOptions);
+            return (T)this.dispatcher.SendRequest(uri, "PATCH", form, serializationContextProvider, requestOptions);
         }
 
 

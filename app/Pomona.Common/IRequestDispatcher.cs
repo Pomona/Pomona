@@ -40,11 +40,6 @@ namespace Pomona.Common
         event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
-        object SendRequest(ISerializationContextProvider provider,
-                           string uri,
-                           object body,
-                           string httpMethod,
-                           RequestOptions options = null,
-                           Type responseBaseType = null);
+        object SendRequest(string uri, string httpMethod, object body, ISerializationContextProvider provider, RequestOptions options = null);
     }
 }

@@ -40,7 +40,6 @@ namespace Pomona.Common
     public class RequestOptions : IRequestOptions
     {
         private readonly StringBuilder expandedPaths;
-        private readonly Type expectedResponseType;
         private readonly List<Action<WebClientRequestMessage>> requestModifyActions;
 
 
@@ -51,10 +50,21 @@ namespace Pomona.Common
         }
 
 
+        public RequestOptions(RequestOptions clonedOptions)
+        {
+            if (clonedOptions == null)
+                throw new ArgumentNullException("clonedOptions");
+            ExpectedResponseType = clonedOptions.ExpectedResponseType;
+            this.expandedPaths = new StringBuilder(clonedOptions.expandedPaths.ToString());
+            this.requestModifyActions = new List<Action<WebClientRequestMessage>>(clonedOptions.requestModifyActions);
+            this.ResourceLoader = clonedOptions.ResourceLoader;
+        }
+
+
         internal RequestOptions(Type expectedResponseType = null)
             : this()
         {
-            this.expectedResponseType = expectedResponseType;
+            ExpectedResponseType = expectedResponseType;
         }
 
 
@@ -63,12 +73,17 @@ namespace Pomona.Common
             get { return this.expandedPaths.ToString(); }
         }
 
-        public Type ExpectedResponseType
-        {
-            get { return this.expectedResponseType; }
-        }
-
+        public Type ExpectedResponseType { get; set; }
         internal IResourceLoader ResourceLoader { get; set; }
+
+
+        public void ApplyRequestModifications(WebClientRequestMessage request)
+        {
+            foreach (var action in this.requestModifyActions)
+                action(request);
+            if (!string.IsNullOrEmpty(ExpandedPaths))
+                request.Headers.Add("X-Pomona-Expand", ExpandedPaths);
+        }
 
 
         public static RequestOptions Create<T>(Action<IRequestOptions<T>> optionActions,
@@ -85,8 +100,8 @@ namespace Pomona.Common
         {
             var toString = new StringBuilder("{");
 
-            if (this.expectedResponseType != null)
-                toString.AppendFormat(" Type: {0}, ", this.expectedResponseType);
+            if (ExpectedResponseType != null)
+                toString.AppendFormat(" Type: {0}, ", ExpectedResponseType);
 
             var paths = (ExpandedPaths ?? String.Empty).Trim();
             if (!String.IsNullOrEmpty(paths))
@@ -98,12 +113,11 @@ namespace Pomona.Common
         }
 
 
-        public void ApplyRequestModifications(WebClientRequestMessage request)
+        protected void Expand(LambdaExpression expression)
         {
-            foreach (var action in this.requestModifyActions)
-                action(request);
-            if (!string.IsNullOrEmpty(ExpandedPaths))
-                request.Headers.Add("X-Pomona-Expand", ExpandedPaths);
+            if (this.expandedPaths.Length > 0)
+                this.expandedPaths.Append(',');
+            this.expandedPaths.Append(expression.GetPropertyPath(true));
         }
 
 
@@ -111,14 +125,6 @@ namespace Pomona.Common
         {
             this.requestModifyActions.Add(action);
             return this;
-        }
-
-
-        protected void Expand(LambdaExpression expression)
-        {
-            if (this.expandedPaths.Length > 0)
-                this.expandedPaths.Append(',');
-            this.expandedPaths.Append(expression.GetPropertyPath(true));
         }
     }
 

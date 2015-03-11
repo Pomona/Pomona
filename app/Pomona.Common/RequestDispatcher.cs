@@ -74,13 +74,17 @@ namespace Pomona.Common
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
-        public object SendRequest(ISerializationContextProvider provider,
-                                  string uri,
-                                  object body,
-                                  string httpMethod,
-                                  RequestOptions options,
-                                  Type responseBaseType = null)
+        public object SendRequest(string uri, string httpMethod, object body, ISerializationContextProvider provider, RequestOptions options = null)
         {
+            if (provider == null)
+                throw new ArgumentNullException("provider");
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (httpMethod == null)
+                throw new ArgumentNullException("httpMethod");
+            if (options == null)
+                options = new RequestOptions();
+
             var bodyAsExtendedProxy = body as IExtendedResourceProxy;
             if (bodyAsExtendedProxy != null)
             {
@@ -88,12 +92,11 @@ namespace Pomona.Common
                                                    uri,
                                                    bodyAsExtendedProxy,
                                                    httpMethod,
-                                                   options,
-                                                   responseBaseType);
+                                                   options);
             }
 
             var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
-            return response != null ? Deserialize(response, responseBaseType, provider) : null;
+            return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
         }
 
 
@@ -101,16 +104,12 @@ namespace Pomona.Common
                                                              string uri,
                                                              IExtendedResourceProxy body,
                                                              string httpMethod,
-                                                             RequestOptions options,
-                                                             Type responseBaseType = null)
+                                                             RequestOptions options)
         {
             var info = body.UserTypeInfo;
-            var serverTypeResult = SendRequest(serializationContextProvider,
-                                               uri,
-                                               body.WrappedResource,
+            var serverTypeResult = SendRequest(uri,
                                                httpMethod,
-                                               options,
-                                               null);
+                                               body.WrappedResource, serializationContextProvider, new RequestOptions(options) {  ExpectedResponseType = info.ServerType });
             if (serverTypeResult == null)
                 return null;
 
