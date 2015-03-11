@@ -139,12 +139,18 @@ namespace Pomona.Common
             this IDictionary<TKey, TDictValue> dict,
             TKey key,
             out TCastValue result)
-            where TDictValue : class
-            where TCastValue : class, TDictValue
         {
             TDictValue resultObj;
-            result = null;
-            return dict.TryGetValue(key, out resultObj) && (result = resultObj as TCastValue) != null;
+            result = default(TCastValue);
+            if (dict.TryGetValue(key, out resultObj))
+            {
+                if (resultObj is TCastValue)
+                {
+                    result = (TCastValue)((object)resultObj);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
