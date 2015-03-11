@@ -126,7 +126,7 @@ namespace Pomona.Common.TypeSystem
 
         internal static Lazy<T> CreateLazy<T>(Func<T> valueFactory)
         {
-            var lazy = new Lazy<T>(valueFactory, LazyThreadSafetyMode.None);
+            var lazy = new Lazy<T>(valueFactory, LazyThreadSafetyMode.ExecutionAndPublication);
 
             return lazy;
         }

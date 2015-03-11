@@ -27,7 +27,9 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 
 using NUnit.Framework;
 
@@ -44,15 +46,6 @@ namespace Pomona.UnitTests
     {
         private TypeMapper typeMapper;
 
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-        }
-
-        #endregion
 
         [Test]
         public void AnonymousCompilerGeneratedType_IsMappedAsValueObject()
@@ -92,16 +85,24 @@ namespace Pomona.UnitTests
         [Test]
         public void GetClassMapping_ByInvalidName_ThrowsUnknownTypeException()
         {
-            Assert.Throws<UnknownTypeException>(() => typeMapper.FromType("WTF"));
+            Assert.Throws<UnknownTypeException>(() => this.typeMapper.FromType("WTF"));
         }
 
 
         [Test]
         public void GetClassMapping_ByValidName_ReturnsCorrectType()
         {
-            var critterType = typeMapper.FromType("Critter");
+            var critterType = this.typeMapper.FromType("Critter");
             Assert.IsNotNull(critterType);
             Assert.That(critterType.Type, Is.EqualTo(typeof(Critter)));
+        }
+
+
+        [Test]
+        public void GetPropertyFormula_ForTypeNotHavingFormulaSpecified_ReturnsNull()
+        {
+            var idProp = this.typeMapper.FromType<Critter>().GetPropertyByName("Id", false);
+            Assert.That(idProp.GetPropertyFormula(), Is.Null);
         }
 
 
@@ -109,14 +110,6 @@ namespace Pomona.UnitTests
         public void GetTypeForProxyTypeInheritedFromMappedType_ReturnsMappedBaseType()
         {
             Assert.That(this.typeMapper.FromType(typeof(BearProxy)).Type, Is.EqualTo(typeof(Bear)));
-        }
-
-
-        [Test]
-        public void Property_removed_from_filter_in_GetAllPropertiesOfType_is_not_mapped()
-        {
-            var type = this.typeMapper.FromType<Critter>();
-            Assert.That(type.Properties.Where(x => x.Name == "PropertyExcludedByGetAllPropertiesOfType"), Is.Empty);
         }
 
 
@@ -130,20 +123,10 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        public void GetPropertyFormula_ForTypeNotHavingFormulaSpecified_ReturnsNull()
+        public void Property_removed_from_filter_in_GetAllPropertiesOfType_is_not_mapped()
         {
-            var idProp = this.typeMapper.FromType<Critter>().GetPropertyByName("Id", false);
-            Assert.That(idProp.GetPropertyFormula(), Is.Null);
-        }
-
-
-        [Test]
-        public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
-        {
-            var tt = this.typeMapper.FromType<IExposedInterface>();
-            var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyFromInheritedInterface");
-            Assert.That(prop, Is.Not.Null, "Unable to find property PropertyFromInheritedInterface");
-            Assert.That(prop.DeclaringType, Is.EqualTo(tt));
+            var type = this.typeMapper.FromType<Critter>();
+            Assert.That(type.Properties.Where(x => x.Name == "PropertyExcludedByGetAllPropertiesOfType"), Is.Empty);
         }
 
 
@@ -167,6 +150,66 @@ namespace Pomona.UnitTests
             Assert.That(prop.DeclaredAttributes.OfType<ObsoleteAttribute>().Any(), Is.True);
         }
 
+
+        [Test]
+        public void PropertyOfExposedInterfaceFromNonExposedBaseInterfaceGotCorrectDeclaringType()
+        {
+            var tt = this.typeMapper.FromType<IExposedInterface>();
+            var prop = tt.Properties.SingleOrDefault(x => x.Name == "PropertyFromInheritedInterface");
+            Assert.That(prop, Is.Not.Null, "Unable to find property PropertyFromInheritedInterface");
+            Assert.That(prop.DeclaringType, Is.EqualTo(tt));
+        }
+
+
+        [Test]
+        public void Resolve_types_from_a_lot_of_threads_does_not_cause_exceptions_due_to_race_conditions()
+        {
+            var kickoffEvent = new ManualResetEvent(false);
+            var sourceTypes = new CritterPomonaConfiguration().SourceTypes;
+            ConcurrentBag<Exception> exceptions = new ConcurrentBag<Exception>();
+            var threads = Enumerable.Range(0, 40).Select(i =>
+            {
+                var thread = new Thread(y =>
+                {
+                    try
+                    {
+                        kickoffEvent.WaitOne();
+                        var t = this.typeMapper.FromType(typeof(Critter));
+                        var name = t.Name;
+                        var rt = t as ResourceType;
+                        if (rt != null)
+                        {
+                            var uriBaseType = rt.UriBaseType;
+                        }
+                        var props = t.Properties.ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        exceptions.Add(ex);
+                        throw new InvalidOperationException("Thread faild", ex);
+                    }
+                });
+                thread.Start();
+                return thread;
+            }).ToList();
+
+            kickoffEvent.Set();
+
+            foreach (var t in threads)
+                t.Join();
+            Assert.That(exceptions, Is.Empty);
+        }
+
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+        }
+
+        #endregion
 
         [Test]
         public void StaticProperty_IsExcludedByDefault()
