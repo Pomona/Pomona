@@ -90,7 +90,7 @@ namespace Pomona.Common.Serialization
             SerializeOptions options = null,
             Encoding encoding = null)
         {
-            encoding = encoding ?? Encoding.UTF8;
+            encoding = encoding ?? new UTF8Encoding(false);
             using (var memStream = new MemoryStream())
             {
                 using (var streamWriter = new StreamWriter(memStream, encoding))

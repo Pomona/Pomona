@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System.IO;
+using System.Text;
 
 namespace Pomona
 {
@@ -31,7 +32,7 @@ namespace Pomona
     /// </summary>
     internal class NoCloseStreamWriter : StreamWriter
     {
-        public NoCloseStreamWriter(Stream stream) : base(stream)
+        public NoCloseStreamWriter(Stream stream) : base(stream, new UTF8Encoding(false))
         {
         }
 

@@ -27,8 +27,10 @@
 #endregion
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Newtonsoft.Json;
@@ -98,7 +100,14 @@ namespace Pomona.Common.Web
             }
             else
             {
-                var str = encoding.GetString(data);
+                // Need to use memory stream to avoid UTF-8 BOM weirdness
+                string str;
+                using (var ms = new MemoryStream(data))
+                using (var sr = new StreamReader(ms, encoding))
+                {
+                    str = sr.ReadToEnd();
+                }
+
                 if (contentType.MediaType == "application/json" || contentType.MediaType.EndsWith("+json"))
                 {
                     var jtoken = JToken.Parse(str);

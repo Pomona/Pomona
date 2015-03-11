@@ -122,7 +122,7 @@ namespace Pomona.Security.Crypto
             {
                 using (var gzipStream = CreateCompressStream(memStream))
                 {
-                    using (var textWriter = new StreamWriter(gzipStream))
+                    using (var textWriter = new StreamWriter(gzipStream, new UTF8Encoding(false)))
                     {
                         JsonSerializer.CreateDefault(new JsonSerializerSettings() { Formatting = Formatting.None })
                             .Serialize(
