@@ -66,76 +66,6 @@ namespace Pomona.Common
         }
 
 
-        public IWebClient WebClient
-        {
-            get { return this.webClient; }
-        }
-
-        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-
-
-        public object SendRequest(string uri, string httpMethod, object body, ISerializationContextProvider provider, RequestOptions options = null)
-        {
-            if (provider == null)
-                throw new ArgumentNullException("provider");
-            if (uri == null)
-                throw new ArgumentNullException("uri");
-            if (httpMethod == null)
-                throw new ArgumentNullException("httpMethod");
-            if (options == null)
-                options = new RequestOptions();
-
-            var bodyAsExtendedProxy = body as IExtendedResourceProxy;
-            if (bodyAsExtendedProxy != null)
-            {
-                return SendExtendedResourceRequest(provider,
-                                                   uri,
-                                                   bodyAsExtendedProxy,
-                                                   httpMethod,
-                                                   options);
-            }
-
-            var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
-            return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
-        }
-
-
-        protected virtual object SendExtendedResourceRequest(ISerializationContextProvider serializationContextProvider,
-                                                             string uri,
-                                                             IExtendedResourceProxy body,
-                                                             string httpMethod,
-                                                             RequestOptions options)
-        {
-            var info = body.UserTypeInfo;
-            var serverTypeResult = SendRequest(uri,
-                                               httpMethod,
-                                               body.WrappedResource, serializationContextProvider, new RequestOptions(options) {  ExpectedResponseType = info.ServerType });
-            if (serverTypeResult == null)
-                return null;
-
-            var expectedResponseType = options != null ? options.ExpectedResponseType : null;
-
-            if ((expectedResponseType == null || expectedResponseType == info.ServerType) &&
-                info.ServerType.IsInstanceOfType(serverTypeResult))
-            {
-                return this.typeMapper.WrapResource(serverTypeResult,
-                                                    info.ServerType,
-                                                    info.ExtendedType);
-            }
-
-            ExtendedResourceInfo responseExtendedInfo;
-            if (expectedResponseType != null
-                && this.typeMapper.TryGetExtendedTypeInfo(expectedResponseType, out responseExtendedInfo))
-            {
-                return this.typeMapper.WrapResource(serverTypeResult,
-                                                    responseExtendedInfo.ServerType,
-                                                    responseExtendedInfo.ExtendedType);
-            }
-
-            return serverTypeResult;
-        }
-
-
         private void AddDefaultHeaders(WebClientRequestMessage request)
         {
             if (this.defaultHeaders != null)
@@ -179,11 +109,11 @@ namespace Pomona.Common
             }
 
             return this.serializerFactory
-                .GetDeserializer(serializationContextProvider)
-                .DeserializeString(jsonString, new DeserializeOptions
-                {
-                    ExpectedBaseType = expectedType
-                });
+                       .GetDeserializer(serializationContextProvider)
+                       .DeserializeString(jsonString, new DeserializeOptions
+                                                      {
+                                                          ExpectedBaseType = expectedType
+                                                      });
         }
 
 
@@ -199,11 +129,11 @@ namespace Pomona.Common
             if (requestBodyEntity != null)
             {
                 requestBytes = this.serializerFactory
-                    .GetSerializer(serializationContextProvider)
-                    .SerializeToBytes(requestBodyEntity, new SerializeOptions
-                    {
-                        ExpectedBaseType = requestBodyBaseType
-                    });
+                                   .GetSerializer(serializationContextProvider)
+                                   .SerializeToBytes(requestBodyEntity, new SerializeOptions
+                                                                        {
+                                                                            ExpectedBaseType = requestBodyBaseType
+                                                                        });
             }
             var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
 
@@ -219,9 +149,7 @@ namespace Pomona.Common
                 const string jsonContentType = "application/json; charset=utf-8";
                 request.Headers.Add("Accept", jsonContentType);
                 if (requestBytes != null)
-                {
                     request.Headers.Add("Content-Type", jsonContentType);
-                }
 
                 using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
@@ -236,7 +164,7 @@ namespace Pomona.Common
                 {
                     var gotJsonResponseBody = responseString != null &&
                                               response.Headers.GetValues("Content-Type")
-                                                  .Any(x => x.StartsWith("application/json"));
+                                                      .Any(x => x.StartsWith("application/json"));
 
                     var responseObject = gotJsonResponseBody
                         ? Deserialize(responseString, null, serializationContextProvider)
@@ -258,6 +186,92 @@ namespace Pomona.Common
             }
 
             return responseString;
+        }
+
+
+        private object SendRequestInner(string uri,
+                                        string httpMethod,
+                                        object body,
+                                        ISerializationContextProvider provider,
+                                        RequestOptions options)
+        {
+            if (provider == null)
+                throw new ArgumentNullException("provider");
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (httpMethod == null)
+                throw new ArgumentNullException("httpMethod");
+            if (options == null)
+                options = new RequestOptions();
+
+            if (body is IExtendedResourceProxy)
+                throw new ArgumentException("SendRequestInner should never get a body of type IExtendedResourceProxy");
+
+            var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
+            return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
+        }
+
+
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+
+
+        public object SendRequest(string uri,
+                                  string httpMethod,
+                                  object body,
+                                  ISerializationContextProvider provider,
+                                  RequestOptions options = null)
+        {
+            if (provider == null)
+                throw new ArgumentNullException("provider");
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (httpMethod == null)
+                throw new ArgumentNullException("httpMethod");
+            if (options == null)
+                options = new RequestOptions();
+
+            var innerBody = body;
+            var proxyBody = body as IExtendedResourceProxy;
+            if (proxyBody != null)
+                innerBody = proxyBody.WrappedResource;
+
+            // Figure out server side response type
+            ExtendedResourceInfo responseExtendedTypeInfo;
+            var responseType = options.ExpectedResponseType;
+            var innerOptions = options;
+            var innerResponseType = options.ExpectedResponseType;
+            if (innerResponseType != null)
+            {
+                if (this.typeMapper.TryGetExtendedTypeInfo(innerResponseType, out responseExtendedTypeInfo))
+                {
+                    innerResponseType = responseExtendedTypeInfo.ServerType;
+                    innerOptions = new RequestOptions(options) { ExpectedResponseType = innerResponseType };
+                }
+            }
+
+            var innerResult = SendRequestInner(uri, httpMethod, innerBody, provider, innerOptions);
+            if (innerResponseType == null && proxyBody != null && innerResult != null)
+            {
+                // Special case: No response type specified, but response has same type as posted body,
+                // and the posted body was of an extended type. In this case we will wrap the response
+                // to the same type if possible.
+                var proxyBodyInfo = proxyBody.UserTypeInfo;
+                if (proxyBodyInfo.ServerType.IsInstanceOfType(innerResult))
+                {
+                    responseType = proxyBodyInfo.ExtendedType;
+                    innerResponseType = proxyBodyInfo.ServerType;
+                }
+            }
+
+            if (responseType != innerResponseType)
+                return this.typeMapper.WrapResource(innerResult, innerResponseType, responseType);
+            return innerResult;
+        }
+
+
+        public IWebClient WebClient
+        {
+            get { return this.webClient; }
         }
     }
 }

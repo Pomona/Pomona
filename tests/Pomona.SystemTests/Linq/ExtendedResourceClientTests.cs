@@ -169,6 +169,20 @@ namespace Pomona.SystemTests.Linq
 
         [Test]
         public void
+            PostNormalResource_AndResponseIsExtendedType_ReturnsCorrectResponse()
+        {
+            var response = Client.Orders.Post<IOrder, ICustomOrderResponse>(co =>
+            {
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
+            });
+            Assert.That(response, Is.AssignableTo<ICustomOrderResponse>());
+            Assert.That(response.Order, Is.AssignableTo<ICustomOrder>());
+        }
+
+
+        [Test]
+        public void
             PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsCorrectResponse
             ()
         {

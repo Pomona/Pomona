@@ -212,7 +212,7 @@ namespace Pomona.Common
             var patchForm = (T)typeMapper.CreatePatchForm(typeof(T), target);
             updateAction(patchForm);
 
-            var requestOptions = new RequestOptions<T>();
+            var requestOptions = new RequestOptions<T>(typeof(T));
             if (options != null)
                 options(requestOptions);
 
