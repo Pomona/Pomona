@@ -92,14 +92,48 @@ namespace Pomona.TestingClient
         }
 
 
-        public ClientSettings Settings
-        {
-            get { return this.settings; }
-        }
-
         public ClientTypeMapper TypeMapper
         {
             get { return this.typeMapper; }
+        }
+
+
+        public virtual void Delete(IClientResource resource)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public object Get(string uri, Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public T Get<T>(string uri)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public IList<TResource> GetResourceCollection<TResource>()
+        {
+            var type = typeof(TResource);
+
+            object collection;
+            if (!this.resourceCollections.TryGetValue(type, out collection))
+            {
+                collection = new List<TResource>();
+                this.resourceCollections[type] = collection;
+            }
+
+            return (IList<TResource>)collection;
+        }
+
+
+        public string GetUriOfType(Type type)
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -126,12 +160,6 @@ namespace Pomona.TestingClient
                 return del.DynamicInvoke(form);
 
             return SaveResourceFromForm(form);
-        }
-
-
-        public virtual IQueryable<T> Query<T>()
-        {
-            return this.typeMapper.WrapExtendedQuery<T>(Query);
         }
 
 
@@ -182,7 +210,7 @@ namespace Pomona.TestingClient
                             else if (valueType.TryGetEnumerableElementType(out elementType))
                             {
                                 value = mapFormListToResourceListMethod.MakeGenericMethod(elementType)
-                                    .Invoke(this, new[] { value });
+                                                                       .Invoke(this, new[] { value });
                             }
                         }
                     }
@@ -197,65 +225,24 @@ namespace Pomona.TestingClient
         }
 
 
-        public object Get(string uri, Type type, RequestOptions requestOptions)
+        protected object MapFormDictionaryToResourceDictionary<TKey, TValue>(IDictionary<TKey, TValue> dict)
         {
-            throw new NotImplementedException();
+            Func<object, object> savePostResourceBase = x => x is PostResourceBase
+                ? SaveResourceFromForm((PostResourceBase)(x))
+                : x;
+
+            return dict.ToDictionary(x => (TKey)savePostResourceBase.Invoke(x.Key),
+                                     x => (TValue)savePostResourceBase.Invoke(x.Value));
         }
 
 
-        public object Get(string uri, Type type)
+        protected object MapFormListToResourceList<TElement>(IEnumerable<TElement> items)
         {
-            throw new NotImplementedException();
-        }
-
-
-        public T Get<T>(string uri)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public IList<TResource> GetResourceCollection<TResource>()
-        {
-            var type = typeof(TResource);
-
-            object collection;
-            if (!this.resourceCollections.TryGetValue(type, out collection))
-            {
-                collection = new List<TResource>();
-                this.resourceCollections[type] = collection;
-            }
-
-            return (IList<TResource>)collection;
-        }
-
-
-        public string GetUriOfType(Type type)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public T Reload<T>(T resource)
-        {
-            return resource;
-        }
-
-
-        public void SetupPostHandler<TResource>(
-            Func<TResource, object> func)
-        {
-            this.postHandlers[typeof(TResource)] = func;
-        }
-
-
-        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
-        {
-            resourceInfo =
-                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false)
-                    .OfType<ResourceInfoAttribute>()
-                    .FirstOrDefault();
-            return resourceInfo != null;
+            return items
+                .Select(x => x is PostResourceBase
+                    ? (TElement)SaveResourceFromForm((PostResourceBase)((object)x))
+                    : x)
+                .ToList();
         }
 
 
@@ -288,7 +275,7 @@ namespace Pomona.TestingClient
                                                                          resourceType,
                                                                          postResponseType,
                                                                          primaryIdType)
-                        .Invoke(this, new object[] { property });
+                                                      .Invoke(this, new object[] { property });
                     this.repositoryCache[property.Name] = repository;
                 }
 
@@ -321,27 +308,6 @@ namespace Pomona.TestingClient
         protected virtual void SetupPostHandler<TResource>(Delegate func)
         {
             this.postHandlers[typeof(TResource)] = func;
-        }
-
-
-        protected object MapFormDictionaryToResourceDictionary<TKey, TValue>(IDictionary<TKey, TValue> dict)
-        {
-            Func<object, object> savePostResourceBase = x => x is PostResourceBase
-                ? SaveResourceFromForm((PostResourceBase)(x))
-                : x;
-
-            return dict.ToDictionary(x => (TKey)savePostResourceBase.Invoke(x.Key),
-                                     x => (TValue)savePostResourceBase.Invoke(x.Value));
-        }
-
-
-        protected object MapFormListToResourceList<TElement>(IEnumerable<TElement> items)
-        {
-            return items
-                .Select(x => x is PostResourceBase
-                    ? (TElement)SaveResourceFromForm((PostResourceBase)((object)x))
-                    : x)
-                .ToList();
         }
 
 
@@ -381,6 +347,47 @@ namespace Pomona.TestingClient
             }
 
             GetResourceCollection<TResource>().Add(resource);
+        }
+
+
+        public object Get(string uri, Type type, RequestOptions requestOptions)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public virtual IQueryable<T> Query<T>()
+        {
+            return this.typeMapper.WrapExtendedQuery<T>(Query);
+        }
+
+
+        public T Reload<T>(T resource)
+        {
+            return resource;
+        }
+
+
+        public ClientSettings Settings
+        {
+            get { return this.settings; }
+        }
+
+
+        public void SetupPostHandler<TResource>(
+            Func<TResource, object> func)
+        {
+            this.postHandlers[typeof(TResource)] = func;
+        }
+
+
+        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        {
+            resourceInfo =
+                type.GetCustomAttributes(typeof(ResourceInfoAttribute), false)
+                    .OfType<ResourceInfoAttribute>()
+                    .FirstOrDefault();
+            return resourceInfo != null;
         }
     }
 }

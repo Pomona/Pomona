@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -42,153 +43,44 @@ namespace Pomona.TestingClient
         where TResource : class, IClientResource
         where TPostReturnType : IClientResource
     {
-        private TestableClientProxyBase client;
-
-        public TestableClientProxyBase Client
-        {
-            get { return client; }
-            set { client = value; }
-        }
-
-        public Type ElementType
-        {
-            get { return typeof (TResource); }
-        }
-
-        public Expression Expression
-        {
-            get { return Expression.Constant(client.Query<TResource>()); }
-        }
-
-        public IQueryProvider Provider
-        {
-            get { return client.Query<TResource>().Provider; }
-        }
-
-        string IClientRepository.Uri
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public TestableClientProxyBase Client { get; set; }
 
 
-        public virtual TPostReturnType Post(IPostForm form)
-        {
-            return (TPostReturnType) client.OnPost(form);
-        }
-
-
-        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
-            where TSubResource : class, TResource
-        {
-            var postForm = client.TypeMapper.CreatePostForm(typeof(TSubResource));
-
-            var resInfo = client.GetResourceInfoForType(typeof (TSubResource));
-            var form = (TSubResource) Activator.CreateInstance(resInfo.PostFormType);
-            postAction(form);
-            return (TPostReturnType) client.OnPost((PostResourceBase) ((object) form));
-        }
-
-
-        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
-        {
-            return Post(postAction);
-        }
-
-
-        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResponseResource>> options)
-            where TSubResource : class, TResource
-            where TSubResponseResource : TPostReturnType
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction) where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public TResource Get(object id)
+        public virtual TResource Get(object id)
         {
             ResourceInfoAttribute resourceInfo;
-            if (!client.TryGetResourceInfoForType(typeof (TResource), out resourceInfo))
+            if (!this.Client.TryGetResourceInfoForType(typeof(TResource), out resourceInfo))
                 throw new InvalidOperationException("Expected TResource to have a ResourceInfoAttribute here.");
 
             var idProp = resourceInfo.IdProperty;
 
-            var param = Expression.Parameter(typeof (TResource), "x");
+            var param = Expression.Parameter(typeof(TResource), "x");
             var compareIdExpr =
                 Expression.Lambda<Func<TResource, bool>>(
                     Expression.Equal(Expression.Convert(Expression.Constant(id), idProp.PropertyType),
-                        Expression.MakeMemberAccess(param, idProp)), param);
+                                     Expression.MakeMemberAccess(param, idProp)), param);
 
             return Query<TResource>().Where(compareIdExpr).First();
         }
 
 
-        public IEnumerator<TResource> GetEnumerator()
-        {
-            return Query().GetEnumerator();
-        }
-
-
-        public TResource GetLazy(object id)
+        public virtual TResource GetLazy(object id)
         {
             return Get(id);
         }
 
 
-        public object OnInvokeMethod(MethodInfo methodInfo, object[] args)
+        public virtual object OnInvokeMethod(MethodInfo methodInfo, object[] args)
         {
             var parameters = methodInfo.GetParameters();
             if (methodInfo.Name == "Post" && parameters.Length == 1
-                && typeof (PostResourceBase).IsAssignableFrom(parameters[0].ParameterType))
-                return Post((PostResourceBase) args[0]);
+                && typeof(PostResourceBase).IsAssignableFrom(parameters[0].ParameterType))
+                return Post((PostResourceBase)args[0]);
             if (methodInfo.Name == "Get" && parameters.Length == 1)
                 return Get(args[0]);
             if (methodInfo.Name == "GetLazy" && parameters.Length == 1)
                 return GetLazy(args[0]);
             throw new NotImplementedException();
-        }
-
-
-        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction,
-            Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
-        {
-            return client.OnPatch(resource, patchAction);
-        }
-
-
-        public TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
-            where TSubResource : class, TResource
-        {
-            return client.OnPatch(resource, patchAction);
-        }
-
-
-        public TPostReturnType Post(Action<TResource> postAction)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public object Post<TPostForm>(TResource resource, TPostForm form)
-            where TPostForm : class, IPostForm, IClientResource
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public IQueryable<TResource> Query()
-        {
-            return client.Query<TResource>();
-        }
-
-
-        public IQueryable<TSubResource> Query<TSubResource>() where TSubResource : TResource
-        {
-            return client.Query<TSubResource>();
         }
 
 
@@ -204,15 +96,133 @@ namespace Pomona.TestingClient
         }
 
 
+        public virtual void Delete(TResource resource)
+        {
+            this.Client.Delete(resource);
+        }
+
+
+        public Type ElementType
+        {
+            get { return typeof(TResource); }
+        }
+
+        public Expression Expression
+        {
+            get { return Expression.Constant(this.Client.Query<TResource>()); }
+        }
+
+
+        public IEnumerator<TResource> GetEnumerator()
+        {
+            return Query().GetEnumerator();
+        }
+
+
+        public virtual TSubResource Patch<TSubResource>(TSubResource resource,
+                                                        Action<TSubResource> patchAction,
+                                                        Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return this.Client.OnPatch(resource, patchAction);
+        }
+
+
+        public virtual TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
+            where TSubResource : class, TResource
+        {
+            return this.Client.OnPatch(resource, patchAction);
+        }
+
+
+        public virtual TPostReturnType Post(IPostForm form)
+        {
+            return (TPostReturnType)this.Client.OnPost(form);
+        }
+
+
+        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource
+        {
+            var postForm = this.Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+
+            var resInfo = this.Client.GetResourceInfoForType(typeof(TSubResource));
+            var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
+            postAction(form);
+            return (TPostReturnType)this.Client.OnPost((PostResourceBase)((object)form));
+        }
+
+
+        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options)
+            where TSubResource : class, TResource
+        {
+            return Post(postAction);
+        }
+
+
+        public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+                                                                                     Action<IRequestOptions<TSubResponseResource>> options)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostReturnType
+        {
+            var postForm = this.Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+
+            var resInfo = this.Client.GetResourceInfoForType(typeof(TSubResource));
+            var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
+            postAction(form);
+            return (TSubResponseResource)this.Client.OnPost((PostResourceBase)((object)form));
+        }
+
+
+        public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
+        {
+            return Post<TSubResource, TSubResponseResource>(postAction, x =>
+            {
+            });
+            ;
+        }
+
+
+        public virtual TPostReturnType Post(Action<TResource> postAction)
+        {
+            return Post<TResource, TPostReturnType>(postAction);
+        }
+
+
+        public virtual object Post<TPostForm>(TResource resource, TPostForm form)
+            where TPostForm : class, IPostForm, IClientResource
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public IQueryProvider Provider
+        {
+            get { return this.Client.Query<TResource>().Provider; }
+        }
+
+
+        public virtual IQueryable<TResource> Query()
+        {
+            return this.Client.Query<TResource>();
+        }
+
+
+        public virtual IQueryable<TSubResource> Query<TSubResource>() where TSubResource : TResource
+        {
+            return this.Client.Query<TSubResource>();
+        }
+
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
 
 
-        public void Delete(TResource resource)
+        string IClientRepository.Uri
         {
-            throw new NotImplementedException();
+            get { throw new NotImplementedException(); }
         }
     }
 }
