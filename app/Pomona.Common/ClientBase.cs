@@ -263,7 +263,7 @@ namespace Pomona.Common
                 throw new ArgumentException("Type should be an interface inherited from a known resource type.");
 
             var resourceType = this.GetMostInheritedResourceInterface(typeof(T));
-            return (T)this.Get(resourceWithUri.Uri, resourceType);
+            return (T)this.Get(resourceWithUri.Uri, resourceType, new RequestOptions(typeof(T)));
         }
 
 

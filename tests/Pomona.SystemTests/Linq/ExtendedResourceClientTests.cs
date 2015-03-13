@@ -512,6 +512,17 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void ReloadExtendedResource_IsSuccessful()
+        {
+            var entity = new HasReferenceToDictionaryContainer();
+            Save(entity);
+
+            var resource = Client.Query<ITestParentClientResource>().First(x => x.Id == entity.Id);
+            resource = Client.Reload(resource);
+        }
+
+
+        [Test]
         public void UnwrapResource_IsSuccessful()
         {
             var resource = PostResourceWithAttributes();
