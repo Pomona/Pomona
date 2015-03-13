@@ -43,23 +43,15 @@ namespace Pomona.SystemTests.Linq
     [TestFixture]
     public class ExtendedResourceClientTests : ClientTestsBase
     {
-        public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(
-            string capturedArgument)
+        [Test]
+        public void Patch_SetOverlayedComplexProperty_ToNull_IsSuccessful()
         {
-            return
-                Client.DictionaryContainers.Query<IExtendedResource>().Where(x => x.CustomString == capturedArgument)
-                    .ToList();
-        }
-
-
-        private IDictionaryContainer PostResourceWithAttributes()
-        {
-            return Client.DictionaryContainers.Post<IDictionaryContainer>(
-                x =>
-                {
-                    x.Map.Add("CustomString", "Lalalala");
-                    x.Map.Add("OtherCustom", "Blob rob");
-                });
+            var entity = Save(new HasReferenceToDictionaryContainer { Container = new StringToObjectDictionaryContainer() });
+            var wrapped =
+                Client.HasReferenceToDictionaryContainers.Get(entity.Id).Wrap<IHasReferenceToDictionaryContainer, ITestParentClientResource>
+                    ();
+            Client.HasReferenceToDictionaryContainers.Patch(wrapped, f => f.Container = null);
+            Assert.IsNull(entity.Container);
         }
 
 
@@ -91,9 +83,9 @@ namespace Pomona.SystemTests.Linq
         public void PatchExtendedResource_SetAttribute_UpdatesAttribute()
         {
             var entity = new StringToObjectDictionaryContainer
-            {
-                Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
-            };
+                         {
+                             Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
+                         };
             Save(entity);
 
             var resource = Client.Query<IExtendedResource3>().First(x => x.Id == entity.Id);
@@ -115,14 +107,30 @@ namespace Pomona.SystemTests.Linq
             var ex = Assert.Throws<ExtendedResourceMappingException>(
                 () =>
                     Client.StringToObjectDictionaryContainers
-                    .Post<IExtendedResourceWithNonNullableInteger, IExtendedResourceWithNonNullableInteger>(
-                        p => p.NonNullableNumber = 34));
+                          .Post<IExtendedResourceWithNonNullableInteger, IExtendedResourceWithNonNullableInteger>(
+                              p => p.NonNullableNumber = 34));
             Assert.That(ex.Message,
                         Is.EqualTo(
                             "Unable to map property NonNullableNumber of type "
                             + "Pomona.SystemTests.Linq.ExtendedResourceClientTests+IExtendedResourceWithNonNullableInteger "
                             + "to underlying dictionary property Map of Critters.Client.IStringToObjectDictionaryContainer. "
                             + "Only nullable value types can be mapped to a dictionary."));
+        }
+
+
+        [Test]
+        public void Post_InheritedExtendedResource_IsSuccessful()
+        {
+            var resource = Client.DictionaryContainers.Post<IInheritedExtendedResource, IInheritedExtendedResource>(f =>
+            {
+                f.CustomString = "custom";
+                f.OtherCustom = "other";
+                f.NewOnInherited = "itsnew";
+            });
+
+            Assert.That(resource.CustomString, Is.EqualTo("custom"));
+            Assert.That(resource.OtherCustom, Is.EqualTo("other"));
+            Assert.That(resource.NewOnInherited, Is.EqualTo("itsnew"));
         }
 
 
@@ -169,20 +177,6 @@ namespace Pomona.SystemTests.Linq
 
         [Test]
         public void
-            PostNormalResource_AndResponseIsExtendedType_ReturnsCorrectResponse()
-        {
-            var response = Client.Orders.Post<IOrder, ICustomOrderResponse>(co =>
-            {
-                co.Description = "Custom order";
-                co.Items.Add(new OrderItemForm());
-            });
-            Assert.That(response, Is.AssignableTo<ICustomOrderResponse>());
-            Assert.That(response.Order, Is.AssignableTo<ICustomOrder>());
-        }
-
-
-        [Test]
-        public void
             PostExtendedResourceWhenDifferentTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsCorrectResponse
             ()
         {
@@ -207,99 +201,116 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        public void QueryExtendedResource2_WhereDictIsOnBaseInterface_ReturnsExtendedResource2()
+        public void
+            PostNormalResource_AndResponseIsExtendedType_ReturnsCorrectResponse()
         {
-            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
-            var subtypedDictionaryContainer = new SubtypedDictionaryContainer
+            var response = Client.Orders.Post<IOrder, ICustomOrderResponse>(co =>
             {
-                Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
-                SomethingExtra = "Hahahohohihi"
-            };
-
-            Repository.Save<DictionaryContainer>(subtypedDictionaryContainer);
-
-            // Post does not yet work on subtypes
-            //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
-            //    x =>
-            //    {
-            //        x.Map.Add("CustomString", "Lalalala");
-            //        x.Map.Add("OtherCustom", "Blob rob");
-            //        x.SomethingExtra = "Hahahohohihi";
-            //    });
-
-            var results = Client.Query<IExtendedResource2>()
-                .Where(
-                    x =>
-                        x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
-                        x.SomethingExtra == "Hahahohohihi")
-                .ToList();
-
-            Assert.That(results.Count, Is.EqualTo(1));
-            var result = results[0];
-
-            Assert.That(result.Id, Is.EqualTo(subtypedDictionaryContainer.Id));
-            Assert.That(result.CustomString, Is.EqualTo(subtypedDictionaryContainer.Map["CustomString"]));
-        }
-
-
-        [Test]
-        public void QueryExtendedResource3_ToQueryResult_ReturnsQueryResultOfExtendedResource()
-        {
-            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
-            var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
-            {
-                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+                co.Description = "Custom order";
+                co.Items.Add(new OrderItemForm());
             });
-
-            var results = Client.Query<IExtendedResource3>()
-                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
-                .IncludeTotalCount()
-                .ToQueryResult();
-
-            Assert.That(results, Has.Count.EqualTo(1));
-            var result = results.First();
-            Assert.That(result.Number, Is.EqualTo(32));
-            Assert.That(result.Text, Is.EqualTo("foobar"));
-            Assert.That(result.Time, Is.EqualTo(timeValue));
-            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+            Assert.That(response, Is.AssignableTo<ICustomOrderResponse>());
+            Assert.That(response.Order, Is.AssignableTo<ICustomOrder>());
         }
 
 
         [Test]
-        public void QueryExtendedResource3_WhereDictIsStringToObject_ReturnsExtendedResource3()
+        public void Query_ClientResourceWithReferenceToAnotherClientResource_First()
         {
-            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
-            var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
-            {
-                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
-            });
+            var child = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "booohoo" } } });
+            var parent = Save(new HasReferenceToDictionaryContainer { Container = child });
 
-            var results = Client.Query<IExtendedResource3>()
-                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
-                .ToList();
-
-            Assert.That(results, Has.Count.EqualTo(1));
-            var result = results.First();
-            Assert.That(result.Number, Is.EqualTo(32));
-            Assert.That(result.Text, Is.EqualTo("foobar"));
-            Assert.That(result.Time, Is.EqualTo(timeValue));
-            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+            var resource =
+                Client.Query<ITestParentClientResource>()
+                      .First(x => x.Id == parent.Id && x.Container.Jalla == "booohoo");
+            Assert.That(resource.Container, Is.Not.Null);
+            Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
         }
 
 
         [Test]
-        public void QueryExtendedResourceWithBoolean_ReturnsExtendedResource()
+        public void Query_ClientResourceWithReferenceToListOfClientResources_First()
         {
-            var dictContainer =
-                Repository.Save(new StringToObjectDictionaryContainer { Map = { { "TheBool", true } } });
+            var child = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "booohoo" } } });
+            var otherChild = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "blabla" } } });
+            var parent =
+                Save(new HasReferenceToDictionaryContainer { Container = child, OtherContainers = { otherChild } });
 
-            var results = Client.Query<IExtendedResourceWithBoolean>()
-                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
-                .ToList();
+            var resource =
+                Client.Query<ITestParentClientResource>()
+                      .First(
+                          x =>
+                              x.Id == parent.Id && x.Container.Jalla == "booohoo" &&
+                              x.OtherContainers.Any(y => y.Jalla == "blabla"));
 
-            Assert.That(results.Count, Is.EqualTo(1));
-            var result = results[0];
-            Assert.That(result.TheBool, Is.True);
+            Assert.That(resource.Container, Is.Not.Null);
+            Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
+            Assert.That(resource.OtherContainers.Count, Is.EqualTo(1));
+            Assert.That(resource.OtherContainers[0].Jalla, Is.EqualTo("blabla"));
+        }
+
+
+        [Test]
+        public void Query_ClientSideResourceReturningNoResults_FirstOrDefaultReturnsNull()
+        {
+            Assert.That(Client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
+                        Is.Null);
+        }
+
+
+        [Test]
+        public void Query_ExtendedResource_UsingValueFromClosure()
+        {
+            var response =
+                Query_ExtendedResource_UsingValueFromClosure_GenericMethod<IExtendedResource>("NO RESULTS WILL BE FOUND");
+            Assert.That(response.Count, Is.EqualTo(0));
+        }
+
+
+        public List<IExtendedResource> Query_ExtendedResource_UsingValueFromClosure_GenericMethod<T>(
+            string capturedArgument)
+        {
+            return
+                Client.DictionaryContainers.Query<IExtendedResource>().Where(x => x.CustomString == capturedArgument)
+                      .ToList();
+        }
+
+
+        [Test(Description = "Regression test for problem with TransformAdditionalPropertiesToAttributesVisitor.")]
+        public void Query_ExtendedResource_UsingValueFromStaticField()
+        {
+            Assert.DoesNotThrow(() => Client.DictionaryContainers.Query<IExtendedResource>().Where(
+                x => DateTime.UtcNow > DateTime.MinValue && x.Id == 33).ToList());
+        }
+
+
+        [Test]
+        public void Query_ExtendedResources_WrapsResourcesCorrectly_WhenUsingToArray()
+        {
+            var critterEntities = CritterEntities.Take(10);
+            var critters = Client.Critters.Query<IDecoratedCritter>().Take(10).ToArray();
+            Assert.That(critterEntities.Select(x => x.Id), Is.EquivalentTo(critters.Select(x => x.Id)));
+        }
+
+
+        [Test]
+        public void
+            Query_ExtendedResourceSubclassedOnServer_ThatGotListOfAnotherTypeOfExtendedResources_WrapsResourcesCorrectly
+            ()
+        {
+            var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
+            var weapons = extendedMusicalCritter.Weapons;
+            Assert.That(weapons.Count, Is.EqualTo(((ICritter)extendedMusicalCritter).Weapons.Count));
+        }
+
+
+        [Test]
+        public void
+            Query_ExtendedResourceSubclassedOnServer_ThatGotReferenceToAnotherTypeOfExtendedResources_WrapsResourceCorrectly
+            ()
+        {
+            var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
+            Assert.That(extendedMusicalCritter.Farm, Is.Not.Null);
         }
 
 
@@ -311,8 +322,8 @@ namespace Pomona.SystemTests.Linq
             var dictionaryContainer = PostResourceWithAttributes();
 
             var results = Client.Query<IExtendedResource>()
-                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
-                .ToList();
+                                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
             var result = results[0];
@@ -347,7 +358,7 @@ namespace Pomona.SystemTests.Linq
 
             var result =
                 Client.Query<IExtendedResource>()
-                    .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
+                      .FirstOrDefault(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob");
 
             Assert.That(result.Id, Is.EqualTo(dictionaryContainer.Id));
             Assert.That(result.CustomString, Is.EqualTo(dictionaryContainer.Map["CustomString"]));
@@ -366,13 +377,94 @@ namespace Pomona.SystemTests.Linq
 
             var result =
                 Client.Query<IExtendedResource>()
-                    .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
-                    .GroupBy(x => x.CustomString)
-                    .Select(x => new { x.Key })
-                    .ToList();
+                      .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                      .GroupBy(x => x.CustomString)
+                      .Select(x => new { x.Key })
+                      .ToList();
 
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Key, Is.EqualTo("Lalalala"));
+        }
+
+
+        [Test]
+        public void QueryExtendedResource2_WhereDictIsOnBaseInterface_ReturnsExtendedResource2()
+        {
+            //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
+            var subtypedDictionaryContainer = new SubtypedDictionaryContainer
+                                              {
+                                                  Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
+                                                  SomethingExtra = "Hahahohohihi"
+                                              };
+
+            Repository.Save<DictionaryContainer>(subtypedDictionaryContainer);
+
+            // Post does not yet work on subtypes
+            //this.client.DictionaryContainers.Post<ISubtypedDictionaryContainer>(
+            //    x =>
+            //    {
+            //        x.Map.Add("CustomString", "Lalalala");
+            //        x.Map.Add("OtherCustom", "Blob rob");
+            //        x.SomethingExtra = "Hahahohohihi";
+            //    });
+
+            var results = Client.Query<IExtendedResource2>()
+                                .Where(
+                                    x =>
+                                        x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob" &&
+                                        x.SomethingExtra == "Hahahohohihi")
+                                .ToList();
+
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+
+            Assert.That(result.Id, Is.EqualTo(subtypedDictionaryContainer.Id));
+            Assert.That(result.CustomString, Is.EqualTo(subtypedDictionaryContainer.Map["CustomString"]));
+        }
+
+
+        [Test]
+        public void QueryExtendedResource3_ToQueryResult_ReturnsQueryResultOfExtendedResource()
+        {
+            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
+            var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
+                                                {
+                                                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+                                                });
+
+            var results = Client.Query<IExtendedResource3>()
+                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                                .IncludeTotalCount()
+                                .ToQueryResult();
+
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Number, Is.EqualTo(32));
+            Assert.That(result.Text, Is.EqualTo("foobar"));
+            Assert.That(result.Time, Is.EqualTo(timeValue));
+            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
+        }
+
+
+        [Test]
+        public void QueryExtendedResource3_WhereDictIsStringToObject_ReturnsExtendedResource3()
+        {
+            var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
+            var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
+                                                {
+                                                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+                                                });
+
+            var results = Client.Query<IExtendedResource3>()
+                                .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
+                                .ToList();
+
+            Assert.That(results, Has.Count.EqualTo(1));
+            var result = results.First();
+            Assert.That(result.Number, Is.EqualTo(32));
+            Assert.That(result.Text, Is.EqualTo("foobar"));
+            Assert.That(result.Time, Is.EqualTo(timeValue));
+            Assert.That(result.Id, Is.EqualTo(dictContainer.Id));
         }
 
 
@@ -386,128 +478,26 @@ namespace Pomona.SystemTests.Linq
             var dictionaryContainer = PostResourceWithAttributes();
 
             var results = Client.StringToObjectDictionaryContainers.OfType<IExtendedResource>()
-                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
-                .ToList();
+                                .Where(x => x.CustomString == "Lalalala" && x.OtherCustom == "Blob rob")
+                                .ToList();
 
             Assert.That(results.Count, Is.EqualTo(1));
         }
 
 
         [Test]
-        public void Query_ClientResourceWithReferenceToAnotherClientResource_First()
+        public void QueryExtendedResourceWithBoolean_ReturnsExtendedResource()
         {
-            var child = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "booohoo" } } });
-            var parent = Save(new HasReferenceToDictionaryContainer { Container = child });
+            var dictContainer =
+                Repository.Save(new StringToObjectDictionaryContainer { Map = { { "TheBool", true } } });
 
-            var resource =
-                Client.Query<ITestParentClientResource>()
-                    .First(x => x.Id == parent.Id && x.Container.Jalla == "booohoo");
-            Assert.That(resource.Container, Is.Not.Null);
-            Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
-        }
+            var results = Client.Query<IExtendedResourceWithBoolean>()
+                                .Where(x => x.TheBool == true && x.TheBool.HasValue && x.TheBool.Value)
+                                .ToList();
 
-
-        [Test]
-        public void Query_ClientResourceWithReferenceToListOfClientResources_First()
-        {
-            var child = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "booohoo" } } });
-            var otherChild = Save(new StringToObjectDictionaryContainer { Map = { { "Jalla", "blabla" } } });
-            var parent =
-                Save(new HasReferenceToDictionaryContainer { Container = child, OtherContainers = { otherChild } });
-
-            var resource =
-                Client.Query<ITestParentClientResource>()
-                    .First(
-                        x =>
-                            x.Id == parent.Id && x.Container.Jalla == "booohoo" &&
-                            x.OtherContainers.Any(y => y.Jalla == "blabla"));
-
-            Assert.That(resource.Container, Is.Not.Null);
-            Assert.That(resource.Container.Jalla, Is.EqualTo("booohoo"));
-            Assert.That(resource.OtherContainers.Count, Is.EqualTo(1));
-            Assert.That(resource.OtherContainers[0].Jalla, Is.EqualTo("blabla"));
-        }
-
-
-        [Test]
-        public void Query_ClientSideResourceReturningNoResults_FirstOrDefaultReturnsNull()
-        {
-            Assert.That(Client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
-                        Is.Null);
-        }
-
-
-        [Test]
-        public void Patch_SetOverlayedComplexProperty_ToNull_IsSuccessful()
-        {
-            var entity = Save(new HasReferenceToDictionaryContainer { Container = new StringToObjectDictionaryContainer() });
-            var wrapped =
-                Client.HasReferenceToDictionaryContainers.Get(entity.Id).Wrap<IHasReferenceToDictionaryContainer, ITestParentClientResource>
-                    ();
-            Client.HasReferenceToDictionaryContainers.Patch(wrapped, f => f.Container = null);
-            Assert.IsNull(entity.Container);
-        }
-
-
-        [Test]
-        public void Post_InheritedExtendedResource_IsSuccessful()
-        {
-            var resource = Client.DictionaryContainers.Post<IInheritedExtendedResource, IInheritedExtendedResource>(f =>
-            {
-                f.CustomString = "custom";
-                f.OtherCustom = "other";
-                f.NewOnInherited = "itsnew";
-            });
-
-            Assert.That(resource.CustomString, Is.EqualTo("custom"));
-            Assert.That(resource.OtherCustom, Is.EqualTo("other"));
-            Assert.That(resource.NewOnInherited, Is.EqualTo("itsnew"));
-        }
-
-
-        [Test]
-        public void
-            Query_ExtendedResourceSubclassedOnServer_ThatGotListOfAnotherTypeOfExtendedResources_WrapsResourcesCorrectly
-            ()
-        {
-            var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
-            var weapons = extendedMusicalCritter.Weapons;
-            Assert.That(weapons.Count, Is.EqualTo(((ICritter)extendedMusicalCritter).Weapons.Count));
-        }
-
-        [Test]
-        public void Query_ExtendedResources_WrapsResourcesCorrectly_WhenUsingToArray()
-        {
-            var critterEntities = CritterEntities.Take(10);
-            var critters = Client.Critters.Query<IDecoratedCritter>().Take(10).ToArray();
-            Assert.That(critterEntities.Select(x => x.Id), Is.EquivalentTo(critters.Select(x => x.Id)));
-        }
-
-
-        [Test]
-        public void
-            Query_ExtendedResourceSubclassedOnServer_ThatGotReferenceToAnotherTypeOfExtendedResources_WrapsResourceCorrectly
-            ()
-        {
-            var extendedMusicalCritter = Client.Critters.Query<IDecoratedMusicalCritter>().First();
-            Assert.That(extendedMusicalCritter.Farm, Is.Not.Null);
-        }
-
-
-        [Test]
-        public void Query_ExtendedResource_UsingValueFromClosure()
-        {
-            var response =
-                Query_ExtendedResource_UsingValueFromClosure_GenericMethod<IExtendedResource>("NO RESULTS WILL BE FOUND");
-            Assert.That(response.Count, Is.EqualTo(0));
-        }
-
-
-        [Test(Description = "Regression test for problem with TransformAdditionalPropertiesToAttributesVisitor.")]
-        public void Query_ExtendedResource_UsingValueFromStaticField()
-        {
-            Assert.DoesNotThrow(() => Client.DictionaryContainers.Query<IExtendedResource>().Where(
-                x => DateTime.UtcNow > DateTime.MinValue && x.Id == 33).ToList());
+            Assert.That(results.Count, Is.EqualTo(1));
+            var result = results[0];
+            Assert.That(result.TheBool, Is.True);
         }
 
 
@@ -533,23 +523,17 @@ namespace Pomona.SystemTests.Linq
             var resource = PostResourceWithAttributes();
             var unwrapped =
                 Client.DictionaryContainers.Query<IExtendedResource>().First(x => x.Id == resource.Id)
-                    .Unwrap<IDictionaryContainer>();
+                      .Unwrap<IDictionaryContainer>();
             Assert.That(unwrapped, Is.Not.AssignableTo<IExtendedResource>());
-        }
-
-
-        [Test]
-        public void WrapResourceWithReferenceLoop_IsSuccessful()
-        {
-            var wrappedResource = Client.Critters.First().Wrap<ICritter, IRecursiveCritter>();
-            Assert.That(((ICritter)wrappedResource).Enemies, Is.Not.Null);
         }
 
 
         [Test]
         public void WrapResource_HavingReferenceTo_ResourceInheritedFromSubClass_WhereUnderlyingPropertyIsOfTypeBaseClass_IsSuccessful()
         {
-            var wrappedResource = Client.Orders.Post(new SubOrderForm() {Items = { new OrderItemForm() { Name = "cola"}}}).Wrap<IOrderResponse, ICustomSubClassedOrderResponse>();
+            var wrappedResource =
+                Client.Orders.Post(new SubOrderForm() { Items = { new OrderItemForm() { Name = "cola" } } })
+                      .Wrap<IOrderResponse, ICustomSubClassedOrderResponse>();
             Assert.That(wrappedResource, Is.Not.Null);
             Assert.That(wrappedResource.Order, Is.Not.Null);
         }
@@ -578,19 +562,63 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        public interface IRecursiveCritter : ICritter
+        [Test]
+        public void WrapResourceWithReferenceLoop_IsSuccessful()
         {
-            new IList<IRecursiveCritter> Enemies { get; set; }
+            var wrappedResource = Client.Critters.First().Wrap<ICritter, IRecursiveCritter>();
+            Assert.That(((ICritter)wrappedResource).Enemies, Is.Not.Null);
         }
 
-        public interface IExtendedResourceWithNonNullableInteger : IStringToObjectDictionaryContainer
+
+        private IDictionaryContainer PostResourceWithAttributes()
         {
-            int NonNullableNumber { get; set; }
+            return Client.DictionaryContainers.Post<IDictionaryContainer>(
+                x =>
+                {
+                    x.Map.Add("CustomString", "Lalalala");
+                    x.Map.Add("OtherCustom", "Blob rob");
+                });
         }
 
-        public interface IInheritedExtendedResource : IExtendedResource
+
+        public interface ICustomOrder : IOrder
         {
-            string NewOnInherited { get; set; }
+        }
+
+        public interface ICustomOrderResponse : IOrderResponse
+        {
+            new ICustomOrder Order { get; set; }
+        }
+
+        public interface ICustomSubClassedOrderResponse : IOrderResponse
+        {
+            new ICustomSubOrder Order { get; set; }
+        }
+
+        public interface ICustomSubOrder : ISubOrder
+        {
+        }
+
+        public interface IDecoratedCritter : ICritter
+        {
+        }
+
+        public interface IDecoratedMusicalCritter : IMusicalCritter
+        {
+            new IDecoratedMusicalFarm Farm { get; set; }
+            new IList<IDecoratedMusicalWeapon> Weapons { get; set; }
+        }
+
+        public interface IDecoratedMusicalFarm : IFarm
+        {
+        }
+
+        public interface IDecoratedMusicalWeapon : IWeapon
+        {
+        }
+
+        public interface IDecoratedWeapon : IWeapon
+        {
         }
 
         public interface IExtendedResource : IDictionaryContainer
@@ -617,47 +645,24 @@ namespace Pomona.SystemTests.Linq
             bool? TheBool { get; set; }
         }
 
+        public interface IExtendedResourceWithNonNullableInteger : IStringToObjectDictionaryContainer
+        {
+            int NonNullableNumber { get; set; }
+        }
+
+        public interface IInheritedExtendedResource : IExtendedResource
+        {
+            string NewOnInherited { get; set; }
+        }
+
+        public interface IRecursiveCritter : ICritter
+        {
+            new IList<IRecursiveCritter> Enemies { get; set; }
+        }
+
         public interface ITestClientResource : IStringToObjectDictionaryContainer
         {
             string Jalla { get; set; }
-        }
-
-        public interface IDecoratedWeapon : IWeapon
-        {
-        }
-
-        public interface IDecoratedCritter : ICritter
-        {
-        }
-
-        public interface IDecoratedMusicalWeapon : IWeapon
-        {
-        }
-
-        public interface IDecoratedMusicalFarm : IFarm
-        {
-        }
-
-        public interface ICustomOrder : IOrder
-        {
-        }
-
-        public interface ICustomSubOrder : ISubOrder
-        {
-        }
-        public interface ICustomOrderResponse : IOrderResponse
-        {
-            new ICustomOrder Order { get; set; }
-        }
-
-        public interface ICustomSubClassedOrderResponse : IOrderResponse
-        {
-            new ICustomSubOrder Order { get; set; }
-        }
-        public interface IDecoratedMusicalCritter : IMusicalCritter
-        {
-            new IDecoratedMusicalFarm Farm { get; set; }
-            new IList<IDecoratedMusicalWeapon> Weapons { get; set; }
         }
 
         public interface ITestParentClientResource : IHasReferenceToDictionaryContainer
