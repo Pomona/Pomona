@@ -103,7 +103,7 @@ namespace Pomona.Common
 
 
         public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
-            Action<IRequestOptions<TSubResource>> options)
+            Action<IRequestOptions<TSubResponseResource>> options)
             where TSubResource : class, TResource
             where TSubResponseResource : TPostResponseResource
         {

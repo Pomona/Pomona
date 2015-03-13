@@ -70,9 +70,7 @@ namespace Pomona.Common
 
 
         public override TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
-                                                                                      Action
-                                                                                          <IRequestOptions<TSubResource>
-                                                                                          > options)
+                                                                                      Action <IRequestOptions<TSubResponseResource>> options)
         {
             return base.Post<TSubResource, TSubResponseResource>(postAction,
                                                                  x =>
