@@ -514,11 +514,16 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void ReloadExtendedResource_IsSuccessful()
         {
-            var entity = new HasReferenceToDictionaryContainer();
+            var entity = new HasReferenceToDictionaryContainer() { Container = new StringToObjectDictionaryContainer() };
             Save(entity);
 
-            var resource = Client.Query<ITestParentClientResource>().First(x => x.Id == entity.Id);
+            var resource = Client.Query<ITestParentClientResource>().Expand(x => x.Container).First(x => x.Id == entity.Id);
+            entity.Container.Map["Jalla"] = "new value";
+            Assert.That(resource.Container.Jalla, Is.Not.EqualTo("new value"));
             resource = Client.Reload(resource);
+            Assert.That(resource, Is.Not.Null);
+            Assert.That(resource.Id, Is.EqualTo(entity.Id));
+            Assert.That(resource.Container.Jalla, Is.EqualTo("new value"));
         }
 
 
