@@ -342,6 +342,8 @@
     <Compile Include="Web\WebClientException.cs" />
     <Compile Include="Web\HttpWebRequestClient.cs" />
     <Compile Include="Web\HttpResponseConverter.cs" />
+    <Compile Include="Web\WebClientRequestMessage.cs" />
+    <Compile Include="Web\WebClientResponseMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
