@@ -116,10 +116,9 @@ namespace Pomona.Common.Web
                 {
                     var responseBytes = responseStream.ReadAllBytes();
 
-                    var responseUri = webResponse.ResponseUri ?? webRequest.RequestUri;
                     var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
 
-                    return new WebClientResponseMessage(responseUri.ToString(), responseBytes,
+                    return new WebClientResponseMessage(responseBytes,
                                                         (HttpStatusCode)webResponse.StatusCode,
                                                         new HttpHeaders(ConvertHeaders(webResponse.Headers)),
                                                         protocolVersion.ToString());

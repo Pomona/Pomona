@@ -44,14 +44,13 @@ namespace Pomona.Common.Web
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             var jobj = JObject.Load(reader);
-            var url = (string)jobj["url"];
             var statusCodeToken = jobj["statusCode"];
             var statusCode = statusCodeToken != null
                 ? serializer.Deserialize<HttpStatusCode>(statusCodeToken.CreateReader())
                 : HttpStatusCode.OK;
             var body = ReadBody(jobj);
             var headers = ReadHeaders(jobj, serializer);
-            return new WebClientResponseMessage(url, body, statusCode, headers);
+            return new WebClientResponseMessage(body, statusCode, headers);
         }
 
 
@@ -59,8 +58,6 @@ namespace Pomona.Common.Web
         {
             var resp = (WebClientResponseMessage)value;
             writer.WriteStartObject();
-            writer.WritePropertyName("url");
-            writer.WriteValue(resp.Uri);
             writer.WritePropertyName("statusCode");
             writer.WriteValue(resp.StatusCode);
             WriteHeaders(writer, serializer, resp.Headers);

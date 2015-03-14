@@ -243,7 +243,7 @@ namespace Pomona.Common.Web
 
         private static string GetUri(WebClientRequestMessage request, WebClientResponseMessage response)
         {
-            return (request != null ? request.Uri : null) ?? (response != null ? response.Uri : null);
+            return (request != null ? request.Uri : null);
         }
     }
 }

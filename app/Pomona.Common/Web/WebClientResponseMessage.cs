@@ -39,23 +39,20 @@ namespace Pomona.Common.Web
         private readonly HttpHeaders headers;
         private readonly string protocolVersion;
         private readonly HttpStatusCode statusCode;
-        private readonly string uri;
 
 
-        public WebClientResponseMessage(string uri, HttpStatusCode statusCode)
-            : this(uri, null, statusCode, null)
+        public WebClientResponseMessage( HttpStatusCode statusCode)
+            : this(null, statusCode, null)
         {
         }
 
 
-        public WebClientResponseMessage(string uri,
-                                        byte[] data,
+        public WebClientResponseMessage(byte[] data,
                                         HttpStatusCode statusCode,
                                         HttpHeaders headers,
                                         string protocolVersion = "1.1")
         {
             this.headers = headers;
-            this.uri = uri;
             this.data = data;
             this.statusCode = statusCode;
             this.protocolVersion = protocolVersion;
@@ -75,11 +72,6 @@ namespace Pomona.Common.Web
         public HttpStatusCode StatusCode
         {
             get { return this.statusCode; }
-        }
-
-        public string Uri
-        {
-            get { return this.uri; }
         }
 
 

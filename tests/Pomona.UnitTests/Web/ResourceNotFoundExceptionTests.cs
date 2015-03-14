@@ -42,7 +42,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoRequestAndEmptyUri_ReturnsExpectedMessage()
         {
-            var response = new WebClientResponseMessage("", HttpStatusCode.NotFound);
+            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(null, response);
             Console.WriteLine(exception);
 
@@ -61,25 +61,14 @@ namespace Pomona.UnitTests.Web
 
 
         [Test]
-        public void Constructor_WithNoRequestAndNoUri_ReturnsExpectedMessage()
-        {
-            var response = new WebClientResponseMessage(null, HttpStatusCode.NotFound);
-            var exception = new RNFException(null, response);
-            Console.WriteLine(exception);
-
-            Assert.That(exception.Message, Is.EqualTo("The request failed with '404 NotFound'."));
-        }
-
-
-        [Test]
         public void Constructor_WithNoRequest_ReturnsExpectedMessage()
         {
-            var response = new WebClientResponseMessage("http://example.com/", HttpStatusCode.NotFound);
+            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(null, response);
             Console.WriteLine(exception);
 
             Assert.That(exception.Message,
-                        Is.EqualTo("The request to <http://example.com/> failed with '404 NotFound'."));
+                        Is.EqualTo("The request failed with '404 NotFound'."));
         }
 
 
@@ -131,7 +120,7 @@ namespace Pomona.UnitTests.Web
         public void Constructor_WithRequestAndResponseAndBodyWithMessage_ReturnsExpectedMessage()
         {
             var request = new WebClientRequestMessage("http://example.com/", method : "GET");
-            var response = new WebClientResponseMessage("http://other.example.com/", HttpStatusCode.NotFound);
+            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(request, response, new
             {
                 Message = "HALP!"
@@ -147,7 +136,7 @@ namespace Pomona.UnitTests.Web
         public void Constructor_WithRequestAndResponse_ReturnsExpectedMessage()
         {
             var request = new WebClientRequestMessage("http://example.com/", method : "GET");
-            var response = new WebClientResponseMessage("http://other.example.com/", HttpStatusCode.NotFound);
+            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(request, response);
             Console.WriteLine(exception);
 

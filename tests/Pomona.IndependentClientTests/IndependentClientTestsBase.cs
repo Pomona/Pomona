@@ -150,11 +150,9 @@ namespace Pomona.IndependentClientTests
                     (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
                     responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
 
-                return new WebClientResponseMessage(request.Uri,
-                                                    browserResponse.Body.ToArray(),
+                return new WebClientResponseMessage(browserResponse.Body.ToArray(),
                                                     (HttpStatusCode)browserResponse.StatusCode,
-                                                    responseHeaders,
-                                                    "1.1");
+                                                    responseHeaders);
             }
         }
 
