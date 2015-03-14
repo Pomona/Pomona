@@ -35,8 +35,9 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 using Pomona.Common.Web;
+using Pomona.UnitTests.TestHelpers.Web;
 
-namespace Pomona.UnitTests.TestHelpers.Web
+namespace Pomona.UnitTests.Web
 {
     [TestFixture]
     public class WebClientResponseMessageJsonConverterTests : JsonConverterTestsBase<WebClientResponseMessage>
