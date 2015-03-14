@@ -43,7 +43,7 @@ namespace Pomona.Common.Web
 
         public HttpResponse(HttpStatusCode statusCode, byte[] body = null, HttpHeaders headers = null, string protocolVersion = "1.1")
         {
-            this.headers = headers;
+            this.headers = headers ?? new HttpHeaders();
             this.body = body;
             this.statusCode = statusCode;
             this.protocolVersion = protocolVersion;
