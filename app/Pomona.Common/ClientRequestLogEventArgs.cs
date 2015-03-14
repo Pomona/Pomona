@@ -34,14 +34,14 @@ namespace Pomona.Common
 {
     public class ClientRequestLogEventArgs : EventArgs
     {
-        private readonly WebClientRequestMessage request;
-        private readonly WebClientResponseMessage response;
+        private readonly HttpRequest request;
+        private readonly HttpResponse response;
 
         private readonly Exception thrownException;
 
 
-        public ClientRequestLogEventArgs(WebClientRequestMessage request,
-            WebClientResponseMessage response,
+        public ClientRequestLogEventArgs(HttpRequest request,
+            HttpResponse response,
             Exception thrownException)
         {
             if (request == null)
@@ -57,12 +57,12 @@ namespace Pomona.Common
             get { return this.request.Method; }
         }
 
-        public WebClientRequestMessage Request
+        public HttpRequest Request
         {
             get { return this.request; }
         }
 
-        public WebClientResponseMessage Response
+        public HttpResponse Response
         {
             get { return this.response; }
         }

@@ -35,12 +35,12 @@ namespace Pomona.Common
 {
     public interface IRequestOptions
     {
-        IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action);
+        IRequestOptions ModifyRequest(Action<HttpRequest> action);
     }
 
     public interface IRequestOptions<T> : IRequestOptions
     {
-        new IRequestOptions<T> ModifyRequest(Action<WebClientRequestMessage> action);
+        new IRequestOptions<T> ModifyRequest(Action<HttpRequest> action);
         IRequestOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
     }
 }

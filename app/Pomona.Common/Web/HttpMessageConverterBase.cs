@@ -38,7 +38,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Web
 {
-    internal abstract class WebClientRequestResponseMessageJsonConverterBase : JsonConverter
+    internal abstract class HttpMessageConverterBase : JsonConverter
     {
         protected static byte[] ReadBody(JObject jobj)
         {

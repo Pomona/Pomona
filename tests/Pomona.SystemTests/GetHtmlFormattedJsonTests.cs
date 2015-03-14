@@ -48,7 +48,7 @@ namespace Pomona.SystemTests
         public void Get_AcceptIsHtmlText_ReturnsJsonAsHtmlDocument()
         {
             var response =
-                WebClient.Send(new WebClientRequestMessage("http://test/critters", null, "GET")
+                WebClient.Send(new HttpRequest("http://test/critters", null, "GET")
                 {
                     Headers = { { "Accept", "text/html" } }
                 });

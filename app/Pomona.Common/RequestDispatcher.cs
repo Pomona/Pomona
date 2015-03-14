@@ -66,7 +66,7 @@ namespace Pomona.Common
         }
 
 
-        private void AddDefaultHeaders(WebClientRequestMessage request)
+        private void AddDefaultHeaders(HttpRequest request)
         {
             if (this.defaultHeaders != null)
                 this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
@@ -125,7 +125,7 @@ namespace Pomona.Common
                                        RequestOptions options)
         {
             byte[] requestBytes = null;
-            WebClientResponseMessage response = null;
+            HttpResponse response = null;
             if (requestBodyEntity != null)
             {
                 requestBytes = this.serializerFactory
@@ -135,7 +135,7 @@ namespace Pomona.Common
                                                                             ExpectedBaseType = requestBodyBaseType
                                                                         });
             }
-            var request = new WebClientRequestMessage(uri, requestBytes, httpMethod);
+            var request = new HttpRequest(uri, requestBytes, httpMethod);
 
             string responseString = null;
             Exception thrownException = null;

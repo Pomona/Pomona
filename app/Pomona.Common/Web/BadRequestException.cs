@@ -34,8 +34,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class BadRequestException<TBody> : BadRequestException, IWebClientException<TBody>
     {
-        public BadRequestException(WebClientRequestMessage request,
-                                   WebClientResponseMessage response,
+        public BadRequestException(HttpRequest request,
+                                   HttpResponse response,
                                    object body,
                                    Exception innerException)
             : base(request, response, body, innerException)
@@ -58,8 +58,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class BadRequestException : WebClientException
     {
-        public BadRequestException(WebClientRequestMessage request,
-                                   WebClientResponseMessage response,
+        public BadRequestException(HttpRequest request,
+                                   HttpResponse response,
                                    object body,
                                    Exception innerException)
             : base(request, response, body, innerException)

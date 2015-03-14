@@ -104,7 +104,7 @@ namespace Pomona.IndependentClientTests
             }
 
 
-            public WebClientResponseMessage Send(WebClientRequestMessage request)
+            public HttpResponse Send(HttpRequest request)
             {
                 Func<string, Action<BrowserContext>, BrowserResponse> browserMethod;
 
@@ -150,7 +150,7 @@ namespace Pomona.IndependentClientTests
                     (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
                     responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
 
-                return new WebClientResponseMessage(browserResponse.Body.ToArray(),
+                return new HttpResponse(browserResponse.Body.ToArray(),
                                                     (HttpStatusCode)browserResponse.StatusCode,
                                                     responseHeaders);
             }

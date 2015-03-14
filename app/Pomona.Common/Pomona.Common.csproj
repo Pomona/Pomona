@@ -335,13 +335,13 @@
     <Compile Include="Web\IWebClientException.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\ResourceNotFoundException.cs" />
-    <Compile Include="Web\WebClientRequestMessage.cs" />
-    <Compile Include="Web\WebClientRequestMessageConverter.cs" />
-    <Compile Include="Web\WebClientRequestResponseMessageJsonConverterBase.cs" />
-    <Compile Include="Web\WebClientResponseMessage.cs" />
+    <Compile Include="Web\HttpRequest.cs" />
+    <Compile Include="Web\HttpRequestConverter.cs" />
+    <Compile Include="Web\HttpMessageConverterBase.cs" />
+    <Compile Include="Web\HttpResponse.cs" />
     <Compile Include="Web\WebClientException.cs" />
     <Compile Include="Web\HttpWebRequestClient.cs" />
-    <Compile Include="Web\WebClientResponseMessageConverter.cs" />
+    <Compile Include="Web\HttpResponseConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

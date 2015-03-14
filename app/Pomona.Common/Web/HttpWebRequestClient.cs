@@ -59,7 +59,7 @@ namespace Pomona.Common.Web
         public NetworkCredential Credentials { get; set; }
 
 
-        public WebClientResponseMessage Send(WebClientRequestMessage request)
+        public HttpResponse Send(HttpRequest request)
         {
             var webRequest = (HttpWebRequest)WebRequest.Create(request.Uri);
 
@@ -118,7 +118,7 @@ namespace Pomona.Common.Web
 
                     var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
 
-                    return new WebClientResponseMessage(responseBytes,
+                    return new HttpResponse(responseBytes,
                                                         (HttpStatusCode)webResponse.StatusCode,
                                                         new HttpHeaders(ConvertHeaders(webResponse.Headers)),
                                                         protocolVersion.ToString());

@@ -34,8 +34,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class PreconditionFailedException<TBody> : PreconditionFailedException, IWebClientException<TBody>
     {
-        public PreconditionFailedException(WebClientRequestMessage request,
-                                           WebClientResponseMessage response,
+        public PreconditionFailedException(HttpRequest request,
+                                           HttpResponse response,
                                            object body,
                                            Exception innerException)
             : base(request, response, body, innerException)
@@ -58,8 +58,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class PreconditionFailedException : WebClientException
     {
-        public PreconditionFailedException(WebClientRequestMessage request,
-                                           WebClientResponseMessage response,
+        public PreconditionFailedException(HttpRequest request,
+                                           HttpResponse response,
                                            object body,
                                            Exception innerException)
             : base(request, response, body, innerException)

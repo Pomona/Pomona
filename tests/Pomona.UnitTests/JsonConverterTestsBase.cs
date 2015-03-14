@@ -81,9 +81,9 @@ namespace Pomona.UnitTests.TestHelpers.Web
         }
 
 
-        protected void WriteJsonAssertEquals(TObject webClientRequestMessage, JObject expected)
+        protected void WriteJsonAssertEquals(TObject obj, JObject expected)
         {
-            var result = WriteJson(webClientRequestMessage);
+            var result = WriteJson(obj);
 
             using (var sw = new StringWriter())
             {

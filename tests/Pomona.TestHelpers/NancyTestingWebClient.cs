@@ -46,7 +46,7 @@ namespace Pomona.TestHelpers
 
         public NetworkCredential Credentials { get; set; }
 
-        public WebClientResponseMessage Send(WebClientRequestMessage request)
+        public HttpResponse Send(HttpRequest request)
         {
             Func<string, Action<BrowserContext>, BrowserResponse> browserMethod;
 
@@ -101,7 +101,7 @@ namespace Pomona.TestHelpers
                 responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
             }
 
-            return new WebClientResponseMessage(browserResponse.Body.ToArray(),
+            return new HttpResponse(browserResponse.Body.ToArray(),
                                                 (HttpStatusCode) browserResponse.StatusCode,
                                                 responseHeaders,
                                                 "1.1");

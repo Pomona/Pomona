@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2014 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,35 +33,35 @@ using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Web
 {
-    internal class WebClientResponseMessageConverter : WebClientRequestResponseMessageJsonConverterBase
+    internal class HttpRequestConverter : HttpMessageConverterBase
     {
         public override bool CanConvert(Type objectType)
         {
-            return typeof(WebClientResponseMessage).IsAssignableFrom(objectType);
+            return typeof(HttpRequest).IsAssignableFrom(objectType);
         }
 
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             var jobj = JObject.Load(reader);
-            var statusCodeToken = jobj["statusCode"];
-            var statusCode = statusCodeToken != null
-                ? serializer.Deserialize<HttpStatusCode>(statusCodeToken.CreateReader())
-                : HttpStatusCode.OK;
+            var url = (string)jobj["url"];
+            var method = (string)jobj["method"];
             var body = ReadBody(jobj);
             var headers = ReadHeaders(jobj, serializer);
-            return new WebClientResponseMessage(body, statusCode, headers);
+            return new HttpRequest(url, body, method, headers);
         }
 
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var resp = (WebClientResponseMessage)value;
+            var req = (HttpRequest)value;
             writer.WriteStartObject();
-            writer.WritePropertyName("statusCode");
-            writer.WriteValue(resp.StatusCode);
-            WriteHeaders(writer, serializer, resp.Headers);
-            WriteBody(writer, resp.Data, resp.Headers.ContentType);
+            writer.WritePropertyName("method");
+            writer.WriteValue(req.Method);
+            writer.WritePropertyName("url");
+            writer.WriteValue(req.Uri);
+            WriteHeaders(writer, serializer, req.Headers);
+            WriteBody(writer, req.Data, req.Headers.ContentType);
             writer.WriteEndObject();
         }
     }

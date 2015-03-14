@@ -40,19 +40,19 @@ using Pomona.UnitTests.TestHelpers.Web;
 namespace Pomona.UnitTests.Web
 {
     [TestFixture]
-    public class WebClientResponseMessageJsonConverterTests : JsonConverterTestsBase<WebClientResponseMessage>
+    public class HttpResponseConverterTests : JsonConverterTestsBase<HttpResponse>
     {
         [Test]
-        public void CanConvert_returns_true_for_WebClientResponseMessage()
+        public void CanConvert_returns_true_for_HttpResponse()
         {
-            Assert.IsTrue(Converter.CanConvert(typeof(WebClientResponseMessage)));
+            Assert.IsTrue(Converter.CanConvert(typeof(HttpResponse)));
         }
 
 
         [Test]
         public void ReadJson_with_headers_deserializes_request()
         {
-            var expected = new WebClientResponseMessage(null, HttpStatusCode.Accepted,
+            var expected = new HttpResponse(null, HttpStatusCode.Accepted,
                                                         new HttpHeaders { { "Accept", "boom" } });
             var input = "{'statusCode':202,'format':'json','headers':{'Accept':['boom']}}";
             ReadJsonAssertEquals(input, expected);
@@ -62,7 +62,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_json_body_deserializes_request()
         {
-            var expected = new WebClientResponseMessage(Encoding.UTF8.GetBytes("{foo:'bar'}"), HttpStatusCode.Accepted,
+            var expected = new HttpResponse(Encoding.UTF8.GetBytes("{foo:'bar'}"), HttpStatusCode.Accepted,
                                                         new HttpHeaders());
             var input = "{'statusCode':202,'format':'json','body':{'foo':'bar'}}";
             var result = ReadJson(JToken.Parse(input));
@@ -74,9 +74,9 @@ namespace Pomona.UnitTests.Web
         public void WriteJson_with_headers_serializes_request()
         {
             var expected = JObject.Parse("{'statusCode':202,'headers':{'Boof':'lala'}}");
-            var webClientResponseMessage = new WebClientResponseMessage(null, HttpStatusCode.Accepted,
+            var response = new HttpResponse(null, HttpStatusCode.Accepted,
                                                                         new HttpHeaders { { "Boof", "lala" } });
-            WriteJsonAssertEquals(webClientResponseMessage, expected);
+            WriteJsonAssertEquals(response, expected);
         }
 
 
@@ -86,9 +86,9 @@ namespace Pomona.UnitTests.Web
             var expected =
                 JObject.Parse(
                     "{'statusCode':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}");
-            var webClientResponseMessage = new WebClientResponseMessage(Encoding.UTF8.GetBytes("{ foo: 'bar' }"),
+            var response = new HttpResponse(Encoding.UTF8.GetBytes("{ foo: 'bar' }"),
                                                                         HttpStatusCode.Accepted, new HttpHeaders() {ContentType = "application/json; charset=utf-8"});
-            WriteJsonAssertEquals(webClientResponseMessage, expected);
+            WriteJsonAssertEquals(response, expected);
         }
 
 
@@ -96,13 +96,13 @@ namespace Pomona.UnitTests.Web
         public void WriteJson_with_no_body_serializes_request()
         {
             var expected = JObject.Parse("{'statusCode':202}");
-            var webClientResponseMessage = new WebClientResponseMessage(null, HttpStatusCode.Accepted,
+            var response = new HttpResponse(null, HttpStatusCode.Accepted,
                                                                         new HttpHeaders());
-            WriteJsonAssertEquals(webClientResponseMessage, expected);
+            WriteJsonAssertEquals(response, expected);
         }
 
 
-        protected override void AssertObjectEquals(WebClientResponseMessage expected, WebClientResponseMessage actual)
+        protected override void AssertObjectEquals(HttpResponse expected, HttpResponse actual)
         {
             Assert.That(expected.StatusCode, Is.EqualTo(actual.StatusCode));
             foreach (var kvp in expected.Headers.Join(actual.Headers, x => x.Key, x => x.Key, (x, y) => new { x, y }))
@@ -122,7 +122,7 @@ namespace Pomona.UnitTests.Web
 
         protected override JsonConverter CreateConverter()
         {
-            return new WebClientResponseMessageConverter();
+            return new HttpResponseConverter();
         }
     }
 }

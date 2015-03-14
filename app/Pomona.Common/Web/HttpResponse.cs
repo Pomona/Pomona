@@ -32,8 +32,8 @@ using Newtonsoft.Json;
 
 namespace Pomona.Common.Web
 {
-    [JsonConverter(typeof(WebClientResponseMessageConverter))]
-    public class WebClientResponseMessage
+    [JsonConverter(typeof(HttpResponseConverter))]
+    public class HttpResponse
     {
         private readonly byte[] data;
         private readonly HttpHeaders headers;
@@ -41,13 +41,13 @@ namespace Pomona.Common.Web
         private readonly HttpStatusCode statusCode;
 
 
-        public WebClientResponseMessage( HttpStatusCode statusCode)
+        public HttpResponse( HttpStatusCode statusCode)
             : this(null, statusCode, null)
         {
         }
 
 
-        public WebClientResponseMessage(byte[] data,
+        public HttpResponse(byte[] data,
                                         HttpStatusCode statusCode,
                                         HttpHeaders headers,
                                         string protocolVersion = "1.1")

@@ -39,10 +39,10 @@ namespace Pomona.UnitTests
     public class RequestOptionsTests
     {
         private void AssertRequestOptionCall(Action<IRequestOptions> options,
-            Action<WebClientRequestMessage> assertions,
+            Action<HttpRequest> assertions,
             string uri = "http://whatever")
         {
-            var requestMessage = new WebClientRequestMessage(uri,
+            var requestMessage = new HttpRequest(uri,
                 null,
                 "GET");
             var requestOptions = new RequestOptions();

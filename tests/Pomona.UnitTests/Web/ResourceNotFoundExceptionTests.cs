@@ -42,7 +42,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoRequestAndEmptyUri_ReturnsExpectedMessage()
         {
-            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
+            var response = new HttpResponse(HttpStatusCode.NotFound);
             var exception = new RNFException(null, response);
             Console.WriteLine(exception);
 
@@ -63,7 +63,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoRequest_ReturnsExpectedMessage()
         {
-            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
+            var response = new HttpResponse(HttpStatusCode.NotFound);
             var exception = new RNFException(null, response);
             Console.WriteLine(exception);
 
@@ -75,7 +75,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoResponseEmptyUriAndNoMethod_ReturnsExpectedMessage()
         {
-            var request = new WebClientRequestMessage("");
+            var request = new HttpRequest("");
             var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
@@ -86,7 +86,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoResponseNoUriAndEmptyMethod_ReturnsExpectedMessage()
         {
-            var request = new WebClientRequestMessage(null, method : "");
+            var request = new HttpRequest(null, method : "");
             var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
@@ -97,7 +97,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoResponseNoUriAndNoMethod_ReturnsExpectedMessage()
         {
-            var request = new WebClientRequestMessage(null);
+            var request = new HttpRequest(null);
             var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
@@ -108,7 +108,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoResponse_ReturnsExpectedMessage()
         {
-            var request = new WebClientRequestMessage("http://example.com/", method : "GET");
+            var request = new HttpRequest("http://example.com/", method : "GET");
             var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
@@ -119,8 +119,8 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithRequestAndResponseAndBodyWithMessage_ReturnsExpectedMessage()
         {
-            var request = new WebClientRequestMessage("http://example.com/", method : "GET");
-            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
+            var request = new HttpRequest("http://example.com/", method : "GET");
+            var response = new HttpResponse(HttpStatusCode.NotFound);
             var exception = new RNFException(request, response, new
             {
                 Message = "HALP!"
@@ -135,8 +135,8 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithRequestAndResponse_ReturnsExpectedMessage()
         {
-            var request = new WebClientRequestMessage("http://example.com/", method : "GET");
-            var response = new WebClientResponseMessage(HttpStatusCode.NotFound);
+            var request = new HttpRequest("http://example.com/", method : "GET");
+            var response = new HttpResponse(HttpStatusCode.NotFound);
             var exception = new RNFException(request, response);
             Console.WriteLine(exception);
 

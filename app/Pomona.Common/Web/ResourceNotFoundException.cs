@@ -34,8 +34,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class ResourceNotFoundException<TBody> : ResourceNotFoundException, IWebClientException<TBody>
     {
-        public ResourceNotFoundException(WebClientRequestMessage request,
-                                         WebClientResponseMessage response,
+        public ResourceNotFoundException(HttpRequest request,
+                                         HttpResponse response,
                                          TBody body = default(TBody),
                                          Exception innerException = null)
             : base(request, response, body, innerException)
@@ -58,8 +58,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class ResourceNotFoundException : WebClientException
     {
-        public ResourceNotFoundException(WebClientRequestMessage request,
-                                         WebClientResponseMessage response,
+        public ResourceNotFoundException(HttpRequest request,
+                                         HttpResponse response,
                                          object body = null,
                                          Exception innerException = null)
             : base(request, response, body, innerException)

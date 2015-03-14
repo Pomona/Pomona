@@ -89,8 +89,8 @@ namespace Pomona.Common
         public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
 
 
-        protected void RaiseRequestCompleted(WebClientRequestMessage request,
-                                             WebClientResponseMessage response,
+        protected void RaiseRequestCompleted(HttpRequest request,
+                                             HttpResponse response,
                                              Exception thrownException = null)
         {
             var eh = RequestCompleted;

@@ -40,13 +40,13 @@ namespace Pomona.Common
     public class RequestOptions : IRequestOptions
     {
         private readonly StringBuilder expandedPaths;
-        private readonly List<Action<WebClientRequestMessage>> requestModifyActions;
+        private readonly List<Action<HttpRequest>> requestModifyActions;
 
 
         public RequestOptions()
         {
             this.expandedPaths = new StringBuilder();
-            this.requestModifyActions = new List<Action<WebClientRequestMessage>>();
+            this.requestModifyActions = new List<Action<HttpRequest>>();
         }
 
 
@@ -56,7 +56,7 @@ namespace Pomona.Common
                 throw new ArgumentNullException("clonedOptions");
             ExpectedResponseType = clonedOptions.ExpectedResponseType;
             this.expandedPaths = new StringBuilder(clonedOptions.expandedPaths.ToString());
-            this.requestModifyActions = new List<Action<WebClientRequestMessage>>(clonedOptions.requestModifyActions);
+            this.requestModifyActions = new List<Action<HttpRequest>>(clonedOptions.requestModifyActions);
             this.ResourceLoader = clonedOptions.ResourceLoader;
         }
 
@@ -77,7 +77,7 @@ namespace Pomona.Common
         internal IResourceLoader ResourceLoader { get; set; }
 
 
-        public void ApplyRequestModifications(WebClientRequestMessage request)
+        public void ApplyRequestModifications(HttpRequest request)
         {
             foreach (var action in this.requestModifyActions)
                 action(request);
@@ -121,7 +121,7 @@ namespace Pomona.Common
         }
 
 
-        public IRequestOptions ModifyRequest(Action<WebClientRequestMessage> action)
+        public IRequestOptions ModifyRequest(Action<HttpRequest> action)
         {
             this.requestModifyActions.Add(action);
             return this;
@@ -143,7 +143,7 @@ namespace Pomona.Common
         }
 
 
-        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<WebClientRequestMessage> action)
+        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<HttpRequest> action)
         {
             ModifyRequest(action);
             return this;

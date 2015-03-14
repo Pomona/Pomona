@@ -61,7 +61,7 @@ namespace Pomona.Scheduler
 
         private void RunJob(IJob job)
         {
-            var response = this.webClient.Send(new WebClientRequestMessage(job.Url, null, job.Method));
+            var response = this.webClient.Send(new HttpRequest(job.Url, null, job.Method));
             var statusCode = (int)response.StatusCode;
             if (statusCode - (statusCode % 100) != 200)
                 throw new NotImplementedException("TODO: Implement error handling and retrying.");

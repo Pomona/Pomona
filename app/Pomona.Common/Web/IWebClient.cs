@@ -36,6 +36,6 @@ namespace Pomona.Common.Web
     public interface IWebClient
     {
         NetworkCredential Credentials { get; set; }
-        WebClientResponseMessage Send(WebClientRequestMessage request);
+        HttpResponse Send(HttpRequest request);
     }
 }

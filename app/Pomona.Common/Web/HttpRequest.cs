@@ -33,15 +33,15 @@ using Newtonsoft.Json;
 
 namespace Pomona.Common.Web
 {
-    [JsonConverter(typeof(WebClientRequestMessageConverter))]
-    public class WebClientRequestMessage
+    [JsonConverter(typeof(HttpRequestConverter))]
+    public class HttpRequest
     {
         private readonly byte[] data;
         private readonly HttpHeaders headers;
         private readonly string method;
 
 
-        public WebClientRequestMessage(string uri, byte[] data = null, string method = null, HttpHeaders headers = null)
+        public HttpRequest(string uri, byte[] data = null, string method = null, HttpHeaders headers = null)
         {
             this.Uri = uri;
             this.data = data;

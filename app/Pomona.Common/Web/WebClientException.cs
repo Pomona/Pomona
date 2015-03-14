@@ -45,8 +45,8 @@ namespace Pomona.Common.Web
         }
 
 
-        internal WebClientException(WebClientRequestMessage request,
-                                    WebClientResponseMessage response,
+        internal WebClientException(HttpRequest request,
+                                    HttpResponse response,
                                     TBody body = default(TBody),
                                     Exception innerException = null)
             : base(request, response, body, innerException)
@@ -76,8 +76,8 @@ namespace Pomona.Common.Web
         }
 
 
-        protected WebClientException(WebClientRequestMessage request,
-                                     WebClientResponseMessage response,
+        protected WebClientException(HttpRequest request,
+                                     HttpResponse response,
                                      object body = null,
                                      Exception innerException = null)
             : base(CreateMessage(request, response, body), innerException)
@@ -118,8 +118,8 @@ namespace Pomona.Common.Web
 
 
         public static WebClientException Create(IClientTypeResolver client,
-                                                WebClientRequestMessage request,
-                                                WebClientResponseMessage response,
+                                                HttpRequest request,
+                                                HttpResponse response,
                                                 object bodyObject,
                                                 Exception innerException)
         {
@@ -154,8 +154,8 @@ namespace Pomona.Common.Web
         }
 
 
-        private static WebClientException CreateGeneric<TBody>(WebClientRequestMessage request,
-                                                               WebClientResponseMessage response,
+        private static WebClientException CreateGeneric<TBody>(HttpRequest request,
+                                                               HttpResponse response,
                                                                TBody bodyObject,
                                                                Exception innerException)
         {
@@ -174,8 +174,8 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string CreateMessage(WebClientRequestMessage request,
-                                            WebClientResponseMessage response,
+        private static string CreateMessage(HttpRequest request,
+                                            HttpResponse response,
                                             object body)
         {
             StringBuilder message = new StringBuilder("The ");
@@ -221,7 +221,7 @@ namespace Pomona.Common.Web
         }
 
 
-        private static object GetBody(object body, WebClientResponseMessage response)
+        private static object GetBody(object body, HttpResponse response)
         {
             if (body != null)
                 return body;
@@ -241,7 +241,7 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string GetUri(WebClientRequestMessage request, WebClientResponseMessage response)
+        private static string GetUri(HttpRequest request, HttpResponse response)
         {
             return (request != null ? request.Uri : null);
         }
