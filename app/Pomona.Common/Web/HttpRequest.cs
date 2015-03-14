@@ -26,7 +26,6 @@
 
 #endregion
 
-using System.Collections.Generic;
 using System.Text;
 
 using Newtonsoft.Json;
@@ -43,7 +42,7 @@ namespace Pomona.Common.Web
 
         public HttpRequest(string uri, byte[] body = null, string method = null, HttpHeaders headers = null)
         {
-            this.Uri = uri;
+            Uri = uri;
             this.body = body;
             this.method = method;
             this.headers = headers ?? new HttpHeaders();
@@ -54,7 +53,6 @@ namespace Pomona.Common.Web
         {
             get { return this.body; }
         }
-
 
         public HttpHeaders Headers
         {
@@ -77,7 +75,7 @@ namespace Pomona.Common.Web
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1} HTTP/{2}\r\n", this.method, this.Uri, ProtocolVersion);
+            sb.AppendFormat("{0} {1} HTTP/{2}\r\n", this.method, Uri, ProtocolVersion);
             foreach (var h in this.headers)
             {
                 foreach (var v in h.Value)
