@@ -35,24 +35,24 @@ namespace Pomona.Common.Web
     [JsonConverter(typeof(HttpResponseConverter))]
     public class HttpResponse
     {
-        private readonly byte[] data;
+        private readonly byte[] body;
         private readonly HttpHeaders headers;
         private readonly string protocolVersion;
         private readonly HttpStatusCode statusCode;
 
 
-        public HttpResponse(HttpStatusCode statusCode, byte[] data = null, HttpHeaders headers = null, string protocolVersion = "1.1")
+        public HttpResponse(HttpStatusCode statusCode, byte[] body = null, HttpHeaders headers = null, string protocolVersion = "1.1")
         {
             this.headers = headers;
-            this.data = data;
+            this.body = body;
             this.statusCode = statusCode;
             this.protocolVersion = protocolVersion;
         }
 
 
-        public byte[] Data
+        public byte[] Body
         {
-            get { return this.data; }
+            get { return this.body; }
         }
 
         public HttpHeaders Headers
@@ -77,8 +77,8 @@ namespace Pomona.Common.Web
             }
             sb.AppendLine();
 
-            if (this.data != null)
-                sb.Append(Encoding.UTF8.GetString(this.data));
+            if (this.body != null)
+                sb.Append(Encoding.UTF8.GetString(this.body));
             sb.AppendLine();
             return sb.ToString();
         }

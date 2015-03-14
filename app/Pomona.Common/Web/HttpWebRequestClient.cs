@@ -100,12 +100,12 @@ namespace Pomona.Common.Web
             webRequest.ProtocolVersion = Version.Parse(request.ProtocolVersion);
             webRequest.Method = request.Method;
 
-            if (request.Data != null)
+            if (request.Body != null)
             {
-                webRequest.ContentLength = request.Data.Length;
+                webRequest.ContentLength = request.Body.Length;
                 using (var requestStream = webRequest.GetRequestStream())
                 {
-                    requestStream.Write(request.Data, 0, request.Data.Length);
+                    requestStream.Write(request.Body, 0, request.Body.Length);
                 }
             }
 

@@ -41,8 +41,8 @@ namespace Pomona.Common.Web
         }
 
 
-        public WebClientResponseMessage(byte[] data, HttpStatusCode statusCode, HttpHeaders headers, string protocolVersion = "1.1")
-            : base(statusCode, data, headers, protocolVersion)
+        public WebClientResponseMessage(byte[] body, HttpStatusCode statusCode, HttpHeaders headers, string protocolVersion = "1.1")
+            : base(statusCode, body, headers, protocolVersion)
         {
         }
     }

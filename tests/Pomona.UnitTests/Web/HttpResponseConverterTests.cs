@@ -106,16 +106,16 @@ namespace Pomona.UnitTests.Web
             Assert.That(expected.StatusCode, Is.EqualTo(actual.StatusCode));
             foreach (var kvp in expected.Headers.Join(actual.Headers, x => x.Key, x => x.Key, (x, y) => new { x, y }))
                 Assert.That(kvp.x.Value, Is.EquivalentTo(kvp.y.Value));
-            if (expected.Data != null && actual.Data != null)
+            if (expected.Body != null && actual.Body != null)
             {
-                var expectedJson = JToken.Parse(Encoding.UTF8.GetString(expected.Data));
-                var actualJson = JToken.Parse(Encoding.UTF8.GetString(actual.Data));
+                var expectedJson = JToken.Parse(Encoding.UTF8.GetString(expected.Body));
+                var actualJson = JToken.Parse(Encoding.UTF8.GetString(actual.Body));
 
                 Assert.That(JToken.DeepEquals(expectedJson, actualJson),
                             string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expectedJson, actualJson));
             }
             else
-                Assert.That(expected.Data, Is.EqualTo(actual.Data));
+                Assert.That(expected.Body, Is.EqualTo(actual.Body));
         }
 
 

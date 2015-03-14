@@ -84,9 +84,9 @@ namespace Pomona.TestHelpers
                         foreach (var v in kvp.Value)
                             bc.Header(kvp.Key, v);
                     }
-                    if (request.Data != null)
+                    if (request.Body != null)
                     {
-                        bc.Body(new MemoryStream(request.Data));
+                        bc.Body(new MemoryStream(request.Body));
                     }
                 });
 

@@ -61,7 +61,7 @@ namespace Pomona.Common.Web
             writer.WritePropertyName("url");
             writer.WriteValue(req.Uri);
             WriteHeaders(writer, serializer, req.Headers);
-            WriteBody(writer, req.Data, req.Headers.ContentType);
+            WriteBody(writer, req.Body, req.Headers.ContentType);
             writer.WriteEndObject();
         }
     }

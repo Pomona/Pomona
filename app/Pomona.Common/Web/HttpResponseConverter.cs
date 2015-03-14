@@ -61,7 +61,7 @@ namespace Pomona.Common.Web
             writer.WritePropertyName("statusCode");
             writer.WriteValue(resp.StatusCode);
             WriteHeaders(writer, serializer, resp.Headers);
-            WriteBody(writer, resp.Data, resp.Headers.ContentType);
+            WriteBody(writer, resp.Body, resp.Headers.ContentType);
             writer.WriteEndObject();
         }
     }

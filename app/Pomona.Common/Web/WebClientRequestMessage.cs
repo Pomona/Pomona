@@ -35,8 +35,8 @@ namespace Pomona.Common.Web
     [Obsolete("Use HttpRequest instead.")]
     public class WebClientRequestMessage : HttpRequest
     {
-        public WebClientRequestMessage(string uri, byte[] data = null, string method = null, HttpHeaders headers = null)
-            : base(uri, data, method, headers)
+        public WebClientRequestMessage(string uri, byte[] body = null, string method = null, HttpHeaders headers = null)
+            : base(uri, body, method, headers)
         {
         }
     }

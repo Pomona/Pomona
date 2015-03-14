@@ -226,12 +226,12 @@ namespace Pomona.Common.Web
             if (body != null)
                 return body;
 
-            if (response == null || response.Data == null || response.Data.Length == 0)
+            if (response == null || response.Body == null || response.Body.Length == 0)
                 return null;
 
             try
             {
-                return Encoding.UTF8.GetString(response.Data);
+                return Encoding.UTF8.GetString(response.Body);
             }
             catch (Exception exception)
             {

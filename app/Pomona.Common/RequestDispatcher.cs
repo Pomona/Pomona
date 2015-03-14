@@ -156,8 +156,8 @@ namespace Pomona.Common
                     response = this.webClient.Send(request);
                 }
 
-                responseString = (response.Data != null && response.Data.Length > 0)
-                    ? Encoding.UTF8.GetString(response.Data)
+                responseString = (response.Body != null && response.Body.Length > 0)
+                    ? Encoding.UTF8.GetString(response.Body)
                     : null;
 
                 if ((int)response.StatusCode >= 400)

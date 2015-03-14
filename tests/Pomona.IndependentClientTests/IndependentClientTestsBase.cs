@@ -137,8 +137,8 @@ namespace Pomona.IndependentClientTests
                                                             foreach (var v in kvp.Value)
                                                                 bc.Header(kvp.Key, v);
                                                         }
-                                                        if (request.Data != null)
-                                                            bc.Body(new MemoryStream(request.Data));
+                                                        if (request.Body != null)
+                                                            bc.Body(new MemoryStream(request.Body));
                                                     });
 
                 var responseHeaders = new HttpHeaders(

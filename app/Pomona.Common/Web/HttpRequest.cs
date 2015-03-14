@@ -36,23 +36,23 @@ namespace Pomona.Common.Web
     [JsonConverter(typeof(HttpRequestConverter))]
     public class HttpRequest
     {
-        private readonly byte[] data;
+        private readonly byte[] body;
         private readonly HttpHeaders headers;
         private readonly string method;
 
 
-        public HttpRequest(string uri, byte[] data = null, string method = null, HttpHeaders headers = null)
+        public HttpRequest(string uri, byte[] body = null, string method = null, HttpHeaders headers = null)
         {
             this.Uri = uri;
-            this.data = data;
+            this.body = body;
             this.method = method;
             this.headers = headers ?? new HttpHeaders();
         }
 
 
-        public byte[] Data
+        public byte[] Body
         {
-            get { return this.data; }
+            get { return this.body; }
         }
 
 
@@ -84,8 +84,8 @@ namespace Pomona.Common.Web
                     sb.AppendFormat("{0}: {1}\r\n", h.Key, v);
             }
             sb.AppendLine();
-            if (this.data != null)
-                sb.Append(Encoding.UTF8.GetString(this.data));
+            if (this.body != null)
+                sb.Append(Encoding.UTF8.GetString(this.body));
             sb.AppendLine();
             return sb.ToString();
         }

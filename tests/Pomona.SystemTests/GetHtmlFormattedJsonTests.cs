@@ -53,7 +53,7 @@ namespace Pomona.SystemTests
                     Headers = { { "Accept", "text/html" } }
                 });
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            CQ dom = Encoding.UTF8.GetString(response.Data);
+            CQ dom = Encoding.UTF8.GetString(response.Body);
             var jsonContent = HttpUtility.HtmlDecode(dom["pre"].RenderSelection(new FormatPlainText()));
             Console.WriteLine(jsonContent);
             Assert.DoesNotThrow(() => JObject.Parse(jsonContent));
