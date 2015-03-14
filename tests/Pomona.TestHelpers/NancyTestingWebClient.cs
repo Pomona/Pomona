@@ -98,7 +98,7 @@ namespace Pomona.TestHelpers
             if (browserResponse.Context.Response != null &&
                 (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
             {
-                responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
+                responseHeaders.ContentType = browserResponse.Context.Response.ContentType;
             }
 
             return new HttpResponse((HttpStatusCode) browserResponse.StatusCode,

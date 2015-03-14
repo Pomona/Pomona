@@ -149,7 +149,7 @@ namespace Pomona.Common
                 const string jsonContentType = "application/json; charset=utf-8";
                 request.Headers.Add("Accept", jsonContentType);
                 if (requestBytes != null)
-                    request.Headers.Add("Content-Type", jsonContentType);
+                    request.Headers.ContentType = jsonContentType;
 
                 using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
@@ -162,9 +162,7 @@ namespace Pomona.Common
 
                 if ((int)response.StatusCode >= 400)
                 {
-                    var gotJsonResponseBody = responseString != null &&
-                                              response.Headers.GetValues("Content-Type")
-                                                      .Any(x => x.StartsWith("application/json"));
+                    var gotJsonResponseBody = responseString != null && response.Headers.MediaType == "application/json";
 
                     var responseObject = gotJsonResponseBody
                         ? Deserialize(responseString, null, serializationContextProvider)
