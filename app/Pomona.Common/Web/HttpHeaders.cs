@@ -37,10 +37,12 @@ using Newtonsoft.Json;
 namespace Pomona.Common.Web
 {
     [JsonConverter(typeof(HttpHeadersConverter))]
-    public class HttpHeaders : IDictionary<string, IList<string>>
+    public class HttpHeaders : IDictionary<string, IList<string>>, ICloneable
     {
+        private static readonly StringComparer keyComparer = StringComparer.OrdinalIgnoreCase;
+
         private readonly IDictionary<string, IList<string>> dict =
-            new Dictionary<string, IList<string>>(StringComparer.OrdinalIgnoreCase);
+            new Dictionary<string, IList<string>>(keyComparer);
 
 
         public HttpHeaders()
@@ -49,10 +51,25 @@ namespace Pomona.Common.Web
         }
 
 
+        public HttpHeaders(HttpHeaders copiedHeaders)
+        {
+            if (copiedHeaders == null)
+                throw new ArgumentNullException("copiedHeaders");
+            this.dict = copiedHeaders.dict.ToDictionary(x => x.Key, x => (IList<string>)new List<string>(x.Value), keyComparer);
+        }
+
+
         public HttpHeaders(IEnumerable<KeyValuePair<string, IEnumerable<string>>> source)
         {
             this.dict = source.GroupBy(x => x.Key)
-                              .ToDictionary(x => x.Key, x => (IList<string>)x.SelectMany(y => y.Value).ToList());
+                              .ToDictionary(x => x.Key, x => (IList<string>)x.SelectMany(y => y.Value).ToList(), keyComparer);
+        }
+
+
+        public string ContentType
+        {
+            get { return GetSingle("Content-Type"); }
+            set { SetSingle("Content-Type", value); }
         }
 
         /// <summary>
@@ -61,12 +78,6 @@ namespace Pomona.Common.Web
         public string MediaType
         {
             get { return ContentType != null ? new ContentType(ContentType).MediaType : null; }
-        }
-
-        public string ContentType
-        {
-            get { return GetSingle("Content-Type"); }
-            set { SetSingle("Content-Type", value); }
         }
 
 
@@ -79,6 +90,12 @@ namespace Pomona.Common.Web
                 this.dict[key] = list;
             }
             list.Add(value);
+        }
+
+
+        public IEnumerable<KeyValuePair<string, string>> GetExpanded()
+        {
+            return this.dict.SelectMany(x => x.Value, (k, v) => new KeyValuePair<string, string>(k.Key, v));
         }
 
 
@@ -127,6 +144,12 @@ namespace Pomona.Common.Web
         public void Clear()
         {
             this.dict.Clear();
+        }
+
+
+        public object Clone()
+        {
+            return new HttpHeaders(this);
         }
 
 
