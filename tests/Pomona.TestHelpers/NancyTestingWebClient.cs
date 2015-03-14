@@ -101,10 +101,9 @@ namespace Pomona.TestHelpers
                 responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
             }
 
-            return new HttpResponse(browserResponse.Body.ToArray(),
-                                                (HttpStatusCode) browserResponse.StatusCode,
-                                                responseHeaders,
-                                                "1.1");
+            return new HttpResponse((HttpStatusCode) browserResponse.StatusCode,
+                                                browserResponse.Body.ToArray(),
+                                                responseHeaders, "1.1");
         }
     }
 }

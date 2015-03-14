@@ -150,9 +150,9 @@ namespace Pomona.IndependentClientTests
                     (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
                     responseHeaders.Add("Content-Type", browserResponse.Context.Response.ContentType);
 
-                return new HttpResponse(browserResponse.Body.ToArray(),
-                                                    (HttpStatusCode)browserResponse.StatusCode,
-                                                    responseHeaders);
+                return new HttpResponse((HttpStatusCode)browserResponse.StatusCode,
+                                        browserResponse.Body.ToArray(),
+                                        responseHeaders);
             }
         }
 

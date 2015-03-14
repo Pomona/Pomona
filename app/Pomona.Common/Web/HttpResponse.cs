@@ -41,16 +41,7 @@ namespace Pomona.Common.Web
         private readonly HttpStatusCode statusCode;
 
 
-        public HttpResponse( HttpStatusCode statusCode)
-            : this(null, statusCode, null)
-        {
-        }
-
-
-        public HttpResponse(byte[] data,
-                                        HttpStatusCode statusCode,
-                                        HttpHeaders headers,
-                                        string protocolVersion = "1.1")
+        public HttpResponse(HttpStatusCode statusCode, byte[] data = null, HttpHeaders headers = null, string protocolVersion = "1.1")
         {
             this.headers = headers;
             this.data = data;

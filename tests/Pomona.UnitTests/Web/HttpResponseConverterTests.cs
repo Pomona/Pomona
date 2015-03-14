@@ -52,8 +52,8 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_headers_deserializes_request()
         {
-            var expected = new HttpResponse(null, HttpStatusCode.Accepted,
-                                                        new HttpHeaders { { "Accept", "boom" } });
+            var expected = new HttpResponse(HttpStatusCode.Accepted,
+                                                        null, new HttpHeaders { { "Accept", "boom" } });
             var input = "{'statusCode':202,'format':'json','headers':{'Accept':['boom']}}";
             ReadJsonAssertEquals(input, expected);
         }
@@ -62,8 +62,8 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_json_body_deserializes_request()
         {
-            var expected = new HttpResponse(Encoding.UTF8.GetBytes("{foo:'bar'}"), HttpStatusCode.Accepted,
-                                                        new HttpHeaders());
+            var expected = new HttpResponse(HttpStatusCode.Accepted,
+                                                        Encoding.UTF8.GetBytes("{foo:'bar'}"), new HttpHeaders());
             var input = "{'statusCode':202,'format':'json','body':{'foo':'bar'}}";
             var result = ReadJson(JToken.Parse(input));
             AssertObjectEquals(expected, result);
@@ -74,8 +74,8 @@ namespace Pomona.UnitTests.Web
         public void WriteJson_with_headers_serializes_request()
         {
             var expected = JObject.Parse("{'statusCode':202,'headers':{'Boof':'lala'}}");
-            var response = new HttpResponse(null, HttpStatusCode.Accepted,
-                                                                        new HttpHeaders { { "Boof", "lala" } });
+            var response = new HttpResponse(HttpStatusCode.Accepted,
+                                                                        null, new HttpHeaders { { "Boof", "lala" } });
             WriteJsonAssertEquals(response, expected);
         }
 
@@ -86,8 +86,7 @@ namespace Pomona.UnitTests.Web
             var expected =
                 JObject.Parse(
                     "{'statusCode':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}");
-            var response = new HttpResponse(Encoding.UTF8.GetBytes("{ foo: 'bar' }"),
-                                                                        HttpStatusCode.Accepted, new HttpHeaders() {ContentType = "application/json; charset=utf-8"});
+            var response = new HttpResponse(HttpStatusCode.Accepted, Encoding.UTF8.GetBytes("{ foo: 'bar' }"), new HttpHeaders() {ContentType = "application/json; charset=utf-8"});
             WriteJsonAssertEquals(response, expected);
         }
 
@@ -96,8 +95,8 @@ namespace Pomona.UnitTests.Web
         public void WriteJson_with_no_body_serializes_request()
         {
             var expected = JObject.Parse("{'statusCode':202}");
-            var response = new HttpResponse(null, HttpStatusCode.Accepted,
-                                                                        new HttpHeaders());
+            var response = new HttpResponse(HttpStatusCode.Accepted,
+                                                                        null, new HttpHeaders());
             WriteJsonAssertEquals(response, expected);
         }
 

@@ -118,10 +118,9 @@ namespace Pomona.Common.Web
 
                     var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
 
-                    return new HttpResponse(responseBytes,
-                                                        (HttpStatusCode)webResponse.StatusCode,
-                                                        new HttpHeaders(ConvertHeaders(webResponse.Headers)),
-                                                        protocolVersion.ToString());
+                    return new HttpResponse((HttpStatusCode)webResponse.StatusCode,
+                                                        responseBytes,
+                                                        new HttpHeaders(ConvertHeaders(webResponse.Headers)), protocolVersion.ToString());
                 }
             }
         }

@@ -50,7 +50,7 @@ namespace Pomona.Common.Web
                 : HttpStatusCode.OK;
             var body = ReadBody(jobj);
             var headers = ReadHeaders(jobj, serializer);
-            return new HttpResponse(body, statusCode, headers);
+            return new HttpResponse(statusCode, body, headers);
         }
 
 
