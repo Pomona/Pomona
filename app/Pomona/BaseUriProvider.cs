@@ -32,13 +32,13 @@ using Nancy;
 
 namespace Pomona
 {
-    public class BaseUriResolver : IBaseUriProvider
+    internal class BaseUriProvider : IBaseUriProvider
     {
         private readonly NancyContext context;
         private readonly string pomonaroot;
 
 
-        public BaseUriResolver(NancyContext context,string pomonaRoot)
+        public BaseUriProvider(NancyContext context, string pomonaRoot)
         {
             if (context == null)
                 throw new ArgumentNullException("context");
@@ -57,8 +57,7 @@ namespace Pomona
                                               request.Url.Scheme,
                                               request.Url.HostName,
                                               request.Url.Port,
-                                              appUrl,
-                                              pomonaroot);
+                                              appUrl, this.pomonaroot);
 
                 return new Uri(uriString);
             }

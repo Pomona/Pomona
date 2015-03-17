@@ -293,7 +293,7 @@ namespace Pomona
         {
             Before += context =>
             {
-                var uriResolver = new UriResolver(typeMapper, new BaseUriResolver(context, ModulePath));
+                var uriResolver = new UriResolver(typeMapper, new BaseUriProvider(context, ModulePath));
 
                 context.Items[typeof(IUriResolver).FullName] = uriResolver;
                 return null;

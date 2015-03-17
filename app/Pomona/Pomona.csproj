@@ -105,7 +105,7 @@
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="BaseUriResolver.cs" />
+    <Compile Include="BaseUriProvider.cs" />
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
