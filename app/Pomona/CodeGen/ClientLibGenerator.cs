@@ -31,12 +31,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
 
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using Mono.Collections.Generic;
 
 using NuGet;
 
@@ -87,7 +85,6 @@ namespace Pomona.CodeGen
 
 
         public bool MakeProxyTypesPublic { get; set; }
-
         public bool PomonaClientEmbeddingEnabled { get; set; }
 
         private TypeReference StringTypeRef
@@ -101,58 +98,13 @@ namespace Pomona.CodeGen
         }
 
 
-        public static void WriteClientLibrary(TypeMapper typeMapper, Stream stream, bool embedPomonaClient = true)
-        {
-            var clientLibGenerator = new ClientLibGenerator(typeMapper)
-            {
-                PomonaClientEmbeddingEnabled = embedPomonaClient
-            };
-            clientLibGenerator.CreateClientDll(stream);
-        }
-
-
-        private AssemblyDefinition LoadAssemblyHavingType<T>()
-        {
-            var readerParameters = new ReaderParameters { AssemblyResolver = GetAssemblyResolver() };
-            return AssemblyDefinition.ReadAssembly(typeof(T).Assembly.Location, readerParameters);
-        }
-
         public void CreateClientDll(Stream stream)
         {
             var structuredTypes = this.typeMapper.SourceTypes.OfType<StructuredType>().ToList();
-
-            // Use Pomona.Client lib as starting point!
-            AssemblyDefinition assembly;
-
             this.@namespace = this.typeMapper.Filter.ClientMetadata.Namespace;
-            var assemblyName = this.typeMapper.Filter.ClientMetadata.AssemblyName;
-
-            var assemblyResolver = GetAssemblyResolver();
-
             var version = new Version(this.typeMapper.Filter.ApiVersion.PadTo(4));
-            if (PomonaClientEmbeddingEnabled)
-            {
-                assembly = LoadPomonaCommonAssembly();
-                assembly.CustomAttributes.Clear();
-            }
-            else
-            {
-                var moduleParameters = new ModuleParameters
-                {
-                    Kind = ModuleKind.Dll,
-                    AssemblyResolver = assemblyResolver
-                };
-                assembly = AssemblyDefinition.CreateAssembly(
-                    new AssemblyNameDefinition(assemblyName, version),
-                    assemblyName,
-                    moduleParameters);
-            }
-
-            assembly.Name = new AssemblyNameDefinition(assemblyName, version);
-
-            //var assembly =
-            //    AssemblyDefinition.CreateAssembly(
-            //        new AssemblyNameDefinition("Critter", new Version(1, 0, 0, 134)), "Critter", ModuleKind.Dll);
+            var assemblyName = this.typeMapper.Filter.ClientMetadata.AssemblyName;
+            var assembly = CreateAssembly(assemblyName, version);
 
             this.module = assembly.MainModule;
             this.module.Name = assemblyName + ".dll";
@@ -166,14 +118,14 @@ namespace Pomona.CodeGen
 
             BuildInterfacesAndPocoTypes(structuredTypes);
 
-            CreateProxies(new WrappedPropertyProxyBuilder(this.module,
+            var builder = new WrappedPropertyProxyBuilder(this.module,
                                                           GetProxyType("LazyProxyBase"),
                                                           Import(typeof(PropertyWrapper<,>)).Resolve(),
-                                                          proxyNamespace : this.@namespace),
-                          (info, def) =>
-                          {
-                              info.LazyProxyType = def;
-                          });
+                                                          proxyNamespace : this.@namespace);
+            CreateProxies(builder, (codeGenInfo, typeDefinition) =>
+            {
+                codeGenInfo.LazyProxyType = typeDefinition;
+            });
 
             CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic), (info, def) =>
             {
@@ -204,9 +156,9 @@ namespace Pomona.CodeGen
             if (PomonaClientEmbeddingEnabled)
             {
                 foreach (var clientHelperType in this.module.Types
-                    .Where(methodDefinition =>
-                               !methodDefinition.Namespace.StartsWith(this.@namespace)
-                               && !String.IsNullOrEmpty(methodDefinition.Namespace)))
+                                                     .Where(methodDefinition =>
+                                                                !methodDefinition.Namespace.StartsWith(this.@namespace)
+                                                                && !String.IsNullOrEmpty(methodDefinition.Namespace)))
                     clientHelperType.Namespace = this.@namespace + "." + clientHelperType.Namespace;
             }
 
@@ -223,16 +175,13 @@ namespace Pomona.CodeGen
         }
 
 
-        private AssemblyDefinition LoadPomonaCommonAssembly()
+        public static void WriteClientLibrary(TypeMapper typeMapper, Stream stream, bool embedPomonaClient = true)
         {
-            return LoadAssemblyHavingType<ResourceBase>();
-        }
-
-
-        private static bool ParametersAreEqual(MethodBase methodBase, MethodDefinition methodDefinition)
-        {
-            return methodDefinition.Parameters.Select(y => y.ParameterType.FullName)
-                .SequenceEqual(methodBase.GetParameters().Select(y => y.ParameterType.FullName));
+            var clientLibGenerator = new ClientLibGenerator(typeMapper)
+            {
+                PomonaClientEmbeddingEnabled = embedPomonaClient
+            };
+            clientLibGenerator.CreateClientDll(stream);
         }
 
 
@@ -245,15 +194,15 @@ namespace Pomona.CodeGen
         }
 
 
-        private CustomAttribute AddAttribute<TAttr>(ICustomAttributeProvider interfacePropDef)
-            where TAttr : Attribute
+        private CustomAttribute AddAttribute<TAttribute>(ICustomAttributeProvider interfacePropDef)
+            where TAttribute : Attribute
         {
-            var attributeType = typeof(TAttr);
-            var attr = Import(attributeType);
-            var ctor = Import(attr.Resolve().Methods.OrderBy(x => x.Parameters.Count).First(x => x.IsConstructor));
-            var custAttr = new CustomAttribute(ctor);
-            interfacePropDef.CustomAttributes.Add(custAttr);
-            return custAttr;
+            var attributeType = typeof(TAttribute);
+            var attribute = Import(attributeType);
+            var constructor = Import(attribute.Resolve().Methods.OrderBy(x => x.Parameters.Count).First(x => x.IsConstructor));
+            var customAttribute = new CustomAttribute(constructor);
+            interfacePropDef.CustomAttributes.Add(customAttribute);
+            return customAttribute;
         }
 
 
@@ -462,10 +411,10 @@ namespace Pomona.CodeGen
                 var basePostMethodRef =
                     Import(
                         Import(typeof(ClientRepository<,,>)).Resolve().GetMethods()
-                            .Single(
-                                x =>
-                                    x.Name == "Post" && x.Parameters.Count == 1 &&
-                                    x.Parameters[0].Name == "form")
+                                                            .Single(
+                                                                x =>
+                                                                    x.Name == "Post" && x.Parameters.Count == 1 &&
+                                                                    x.Parameters[0].Name == "form")
                         ).MakeHostInstanceGeneric(baseTypeGenericArgs);
 
                 var ilproc = method.Body.GetILProcessor();
@@ -558,23 +507,23 @@ namespace Pomona.CodeGen
             {
                 var parentResourceTypeInfo = this.clientTypeInfoDict[resourceType.ParentResourceType];
                 namedArgs.Add(new CustomAttributeNamedArgument("ParentResourceType",
-                                                                         new CustomAttributeArgument(typeTypeReference,
-                                                                                                     parentResourceTypeInfo
-                                                                                                         .InterfaceType)));
+                                                               new CustomAttributeArgument(typeTypeReference,
+                                                                                           parentResourceTypeInfo
+                                                                                               .InterfaceType)));
             }
 
             if (typeInfo.BaseType != null)
             {
                 namedArgs.Add(new CustomAttributeNamedArgument("BaseType",
-                                                                         new CustomAttributeArgument(typeTypeReference,
-                                                                                                     typeInfo.BaseType)));
+                                                               new CustomAttributeArgument(typeTypeReference,
+                                                                                           typeInfo.BaseType)));
             }
 
             namedArgs.Add(new CustomAttributeNamedArgument("IsValueObject",
-                                                                     new CustomAttributeArgument(
-                                                                         this.module.TypeSystem.Boolean,
-                                                                         typeInfo.StructuredType
-                                                                             .MappedAsValueObject)));
+                                                           new CustomAttributeArgument(
+                                                               this.module.TypeSystem.Boolean,
+                                                               typeInfo.StructuredType
+                                                                       .MappedAsValueObject)));
 
             interfaceDef.CustomAttributes.Add(custAttr);
             //var attrConstructor = attr.Resolve().GetConstructors();
@@ -583,7 +532,7 @@ namespace Pomona.CodeGen
 
         private void BuildEnumTypes()
         {
-            foreach (var enumType in this.typeMapper.EnumTypes.Where(x => !typeMapper.Filter.ClientEnumIsGeneratedAsStringEnum(x)))
+            foreach (var enumType in this.typeMapper.EnumTypes.Where(x => !this.typeMapper.Filter.ClientEnumIsGeneratedAsStringEnum(x)))
             {
                 var typeDef = new TypeDefinition(this.@namespace,
                                                  enumType.Name,
@@ -625,50 +574,6 @@ namespace Pomona.CodeGen
             }
         }
 
-        private void BuildStringEnumTypes()
-        {
-            foreach (var enumType in this.typeMapper.EnumTypes.Where(x => typeMapper.Filter.ClientEnumIsGeneratedAsStringEnum(x)))
-            {
-                var tdf = new TypeDefinitionCloner(module);
-                var typeDef = tdf.Clone(LoadAssemblyHavingType<StringEnumTemplate>().MainModule.GetType(typeof(StringEnumTemplate).FullName));
-                typeDef.Namespace = @namespace;
-                typeDef.Name = enumType.Name;
-                typeDef.Attributes = TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.Sealed
-                                     | TypeAttributes.Public | TypeAttributes.BeforeFieldInit;
-                //var ctor = typeDef.GetConstructors().First(x => x.Parameters.Count == 1);
-
-                var memberTemplate = typeDef.Fields.First(x => x.Name == "MemberTemplate");
-                var memberFieldAttr = memberTemplate.Attributes;
-                var memberFieldType = memberTemplate.FieldType;
-                typeDef.Fields.Remove(memberTemplate);
-                var cctor = typeDef.Methods.First(x => x.Name == ".cctor");
-                var ctor = typeDef.Methods.First(x => x.Name == ".ctor" && x.Parameters.Count == 1);
-                var defaultField = typeDef.Fields.First(x => x.Name == "defaultValue");
-                cctor.Body.Instructions.Clear();
-                var ilGen = cctor.Body.GetILProcessor();
-
-                foreach (var kvp in enumType.EnumValues)
-                {
-
-                    var name = kvp.Key;
-                    var value = kvp.Value;
-                    var field = new FieldDefinition(name, memberFieldAttr, memberFieldType);
-                    typeDef.Fields.Add(field);
-
-                    ilGen.Emit(OpCodes.Ldstr, name);
-                    ilGen.Emit(OpCodes.Newobj, ctor);
-                    if (value == 0)
-                    {
-                        ilGen.Emit(OpCodes.Dup);
-                        ilGen.Emit(OpCodes.Stsfld, defaultField);
-                    }
-                    ilGen.Emit(OpCodes.Stsfld, field);
-                }
-                ilGen.Emit(OpCodes.Ret);
-
-                this.enumClientTypeDict[enumType] = typeDef;
-            }
-        }
 
         private void BuildInterfacesAndPocoTypes(IEnumerable<StructuredType> transformedTypes)
         {
@@ -785,6 +690,80 @@ namespace Pomona.CodeGen
                     ilAction(ctorIlProcessor);
                 ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
             }
+        }
+
+
+        private void BuildStringEnumTypes()
+        {
+            foreach (var enumType in this.typeMapper.EnumTypes.Where(x => this.typeMapper.Filter.ClientEnumIsGeneratedAsStringEnum(x)))
+            {
+                var tdf = new TypeDefinitionCloner(this.module);
+                var typeDef = tdf.Clone(LoadAssemblyHavingType<StringEnumTemplate>().MainModule.GetType(typeof(StringEnumTemplate).FullName));
+                typeDef.Namespace = this.@namespace;
+                typeDef.Name = enumType.Name;
+                typeDef.Attributes = TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.Sealed
+                                     | TypeAttributes.Public | TypeAttributes.BeforeFieldInit;
+                //var ctor = typeDef.GetConstructors().First(x => x.Parameters.Count == 1);
+
+                var memberTemplate = typeDef.Fields.First(x => x.Name == "MemberTemplate");
+                var memberFieldAttr = memberTemplate.Attributes;
+                var memberFieldType = memberTemplate.FieldType;
+                typeDef.Fields.Remove(memberTemplate);
+                var cctor = typeDef.Methods.First(x => x.Name == ".cctor");
+                var ctor = typeDef.Methods.First(x => x.Name == ".ctor" && x.Parameters.Count == 1);
+                var defaultField = typeDef.Fields.First(x => x.Name == "defaultValue");
+                cctor.Body.Instructions.Clear();
+                var ilGen = cctor.Body.GetILProcessor();
+
+                foreach (var kvp in enumType.EnumValues)
+                {
+                    var name = kvp.Key;
+                    var value = kvp.Value;
+                    var field = new FieldDefinition(name, memberFieldAttr, memberFieldType);
+                    typeDef.Fields.Add(field);
+
+                    ilGen.Emit(OpCodes.Ldstr, name);
+                    ilGen.Emit(OpCodes.Newobj, ctor);
+                    if (value == 0)
+                    {
+                        ilGen.Emit(OpCodes.Dup);
+                        ilGen.Emit(OpCodes.Stsfld, defaultField);
+                    }
+                    ilGen.Emit(OpCodes.Stsfld, field);
+                }
+                ilGen.Emit(OpCodes.Ret);
+
+                this.enumClientTypeDict[enumType] = typeDef;
+            }
+        }
+
+
+        private AssemblyDefinition CreateAssembly(string name, Version version)
+        {
+            AssemblyDefinition assembly;
+            var assemblyResolver = GetAssemblyResolver();
+            var assemblyName = new AssemblyNameDefinition(name, version);
+
+            if (PomonaClientEmbeddingEnabled)
+            {
+                // Use Pomona.Common lib as starting point!
+                assembly = LoadPomonaCommonAssembly();
+                assembly.CustomAttributes.Clear();
+            }
+            else
+            {
+                var moduleParameters = new ModuleParameters
+                {
+                    Kind = ModuleKind.Dll,
+                    AssemblyResolver = assemblyResolver
+                };
+                assembly = AssemblyDefinition.CreateAssembly(assemblyName,
+                                                             name,
+                                                             moduleParameters);
+            }
+
+            assembly.Name = assemblyName;
+            return assembly;
         }
 
 
@@ -1026,7 +1005,7 @@ namespace Pomona.CodeGen
                                                 VoidTypeRef);
 
                 baseCtor.Parameters.Select(x => new ParameterDefinition(x.Name, x.Attributes, Import(x.ParameterType)))
-                    .AddTo(ctor.Parameters);
+                        .AddTo(ctor.Parameters);
 
                 ctor.Body.MaxStackSize = 8;
                 var ctorIlProcessor = ctor.Body.GetILProcessor();
@@ -1050,7 +1029,7 @@ namespace Pomona.CodeGen
             return this.clientTypeInfoDict.Values.Where(x => x.UriBaseType == x.InterfaceType
                                                              && x.StructuredType.Maybe().OfType<ResourceType>().Select(
                                                                  y => !y.IsChildResource && y.IsExposedAsRepository)
-                                                            .OrDefault());
+                                                                 .OrDefault());
         }
 
 
@@ -1066,15 +1045,15 @@ namespace Pomona.CodeGen
 
 
         private StructuredProperty GetPropertyMapping(PropertyDefinition propertyDefinition,
-                                                   TypeReference reflectedInterface = null)
+                                                      TypeReference reflectedInterface = null)
         {
             reflectedInterface = reflectedInterface ?? propertyDefinition.DeclaringType;
 
             return this.clientTypeInfoDict
-                .Values
-                .First(x => x.InterfaceType == reflectedInterface)
-                .StructuredType.Properties.Cast<StructuredProperty>()
-                .First(x => x.Name == propertyDefinition.Name);
+                       .Values
+                       .First(x => x.InterfaceType == reflectedInterface)
+                       .StructuredType.Properties.Cast<StructuredProperty>()
+                       .First(x => x.Name == propertyDefinition.Name);
         }
 
 
@@ -1226,6 +1205,26 @@ namespace Pomona.CodeGen
 
                 return typeReference;
             });
+        }
+
+
+        private AssemblyDefinition LoadAssemblyHavingType<T>()
+        {
+            var readerParameters = new ReaderParameters { AssemblyResolver = GetAssemblyResolver() };
+            return AssemblyDefinition.ReadAssembly(typeof(T).Assembly.Location, readerParameters);
+        }
+
+
+        private AssemblyDefinition LoadPomonaCommonAssembly()
+        {
+            return LoadAssemblyHavingType<ResourceBase>();
+        }
+
+
+        private static bool ParametersAreEqual(MethodBase methodBase, MethodDefinition methodDefinition)
+        {
+            return methodDefinition.Parameters.Select(y => y.ParameterType.FullName)
+                                   .SequenceEqual(methodBase.GetParameters().Select(y => y.ParameterType.FullName));
         }
 
         #region Nested type: PatchFormProxyBuilder
