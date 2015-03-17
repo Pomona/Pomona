@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -39,7 +40,7 @@ namespace Pomona.Common.TypeSystem
     public abstract class StructuredType : RuntimeTypeSpec
     {
         private readonly Lazy<StructuredTypeDetails> structuredTypeDetails;
-        private readonly Lazy<IEnumerable<StructuredType>> subTypes;
+        private readonly Lazy<ReadOnlyCollection<StructuredType>> subTypes;
         private Func<IDictionary<PropertySpec, object>, object> createFunc;
         private Delegate createUsingPropertySourceFunc;
 
@@ -49,9 +50,7 @@ namespace Pomona.Common.TypeSystem
             Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
-            this.subTypes = CreateLazy(() => (IEnumerable<StructuredType>)typeResolver.GetAllStructuredTypes()
-                .Where(x => x.BaseType == this)
-                .SelectMany(x => x.SubTypes.Append(x)).ToList());
+            this.subTypes = CreateLazy(() => typeResolver.LoadSubTypes(this).ToList().AsReadOnly());
             this.structuredTypeDetails = CreateLazy(() => typeResolver.LoadStructuredTypeDetails(this));
         }
 

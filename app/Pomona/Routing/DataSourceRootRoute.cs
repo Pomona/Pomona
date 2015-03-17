@@ -106,7 +106,8 @@ namespace Pomona.Routing
 
         internal IEnumerable<ResourceType> GetRootResourceBaseTypes()
         {
-            return this.typeMapper.TransformedTypes.OfType<ResourceType>()
+            return this.typeMapper.SourceTypes
+                .OfType<ResourceType>()
                 .Where(x => x.IsUriBaseType && x.ParentResourceType == null);
         }
     }

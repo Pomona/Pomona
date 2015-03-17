@@ -119,7 +119,7 @@ namespace Pomona.CodeGen
 
         public void CreateClientDll(Stream stream)
         {
-            var transformedTypes = this.typeMapper.TransformedTypes.ToList();
+            var structuredTypes = this.typeMapper.SourceTypes.OfType<StructuredType>().ToList();
 
             // Use Pomona.Client lib as starting point!
             AssemblyDefinition assembly;
@@ -164,7 +164,7 @@ namespace Pomona.CodeGen
             BuildEnumTypes();
             BuildStringEnumTypes();
 
-            BuildInterfacesAndPocoTypes(transformedTypes);
+            BuildInterfacesAndPocoTypes(structuredTypes);
 
             CreateProxies(new WrappedPropertyProxyBuilder(this.module,
                                                           GetProxyType("LazyProxyBase"),
@@ -238,21 +238,20 @@ namespace Pomona.CodeGen
 
         private void AddAssemblyAttributes()
         {
-            var ivAttr = AddAttribute(this.module.Assembly, typeof(AssemblyInformationalVersionAttribute));
+            var assemblyInformationalVersionAttribute = AddAttribute<AssemblyInformationalVersionAttribute>(this.module.Assembly);
             var informationalVersion = this.typeMapper.Filter.ClientMetadata.InformationalVersion;
             var customAttributeArgument = new CustomAttributeArgument(StringTypeRef, informationalVersion);
-            ivAttr.ConstructorArguments.Add(customAttributeArgument);
+            assemblyInformationalVersionAttribute.ConstructorArguments.Add(customAttributeArgument);
         }
 
 
-        private CustomAttribute AddAttribute(ICustomAttributeProvider interfacePropDef, Type attributeType)
+        private CustomAttribute AddAttribute<TAttr>(ICustomAttributeProvider interfacePropDef)
+            where TAttr : Attribute
         {
+            var attributeType = typeof(TAttr);
             var attr = Import(attributeType);
-            var ctor =
-                Import(attr.Resolve().Methods.OrderBy(x => x.Parameters.Count).First(x => x.IsConstructor));
-            var custAttr =
-                new CustomAttribute(ctor);
-
+            var ctor = Import(attr.Resolve().Methods.OrderBy(x => x.Parameters.Count).First(x => x.IsConstructor));
+            var custAttr = new CustomAttribute(ctor);
             interfacePropDef.CustomAttributes.Add(custAttr);
             return custAttr;
         }
@@ -531,28 +530,28 @@ namespace Pomona.CodeGen
 
             var typeTypeReference = Import(typeof(Type));
             namedArgs.Add(new CustomAttributeNamedArgument("PocoType",
-                                                                     new CustomAttributeArgument(typeTypeReference,
-                                                                                                 typeInfo.PocoType)));
+                                                           new CustomAttributeArgument(typeTypeReference,
+                                                                                       typeInfo.PocoType)));
             namedArgs.Add(new CustomAttributeNamedArgument("InterfaceType",
-                                                                     new CustomAttributeArgument(typeTypeReference,
-                                                                                                 typeInfo.InterfaceType)));
+                                                           new CustomAttributeArgument(typeTypeReference,
+                                                                                       typeInfo.InterfaceType)));
             namedArgs.Add(new CustomAttributeNamedArgument("LazyProxyType",
-                                                                     new CustomAttributeArgument(typeTypeReference,
-                                                                                                 typeInfo.LazyProxyType)));
+                                                           new CustomAttributeArgument(typeTypeReference,
+                                                                                       typeInfo.LazyProxyType)));
             namedArgs.Add(new CustomAttributeNamedArgument("PostFormType",
-                                                                     new CustomAttributeArgument(typeTypeReference,
-                                                                                                 typeInfo.PostFormType)));
+                                                           new CustomAttributeArgument(typeTypeReference,
+                                                                                       typeInfo.PostFormType)));
             namedArgs.Add(new CustomAttributeNamedArgument("PatchFormType",
-                                                                     new CustomAttributeArgument(typeTypeReference,
-                                                                                                 typeInfo.PatchFormType)));
+                                                           new CustomAttributeArgument(typeTypeReference,
+                                                                                       typeInfo.PatchFormType)));
 
             namedArgs.Add(new CustomAttributeNamedArgument("JsonTypeName",
-                                                                     new CustomAttributeArgument(stringTypeReference,
-                                                                                                 type.Name)));
+                                                           new CustomAttributeArgument(stringTypeReference,
+                                                                                       type.Name)));
 
             namedArgs.Add(new CustomAttributeNamedArgument("UriBaseType",
-                                                                     new CustomAttributeArgument(typeTypeReference,
-                                                                                                 typeInfo.UriBaseType)));
+                                                           new CustomAttributeArgument(typeTypeReference,
+                                                                                       typeInfo.UriBaseType)));
 
             var resourceType = typeInfo.StructuredType as ResourceType;
             if (resourceType != null && resourceType.ParentResourceType != null)
@@ -749,34 +748,32 @@ namespace Pomona.CodeGen
 
                 var ctorIlActions = new List<Action<ILProcessor>>();
 
-                foreach (
-                    var prop in
-                        classMapping.Properties.Where(x => x.DeclaringType == classMapping))
+                foreach (var property in classMapping.Properties.Where(x => x.DeclaringType == classMapping))
                 {
-                    var propTypeRef = GetPropertyTypeReference(prop);
+                    var propTypeRef = GetPropertyTypeReference(property);
 
                     // For interface getters and setters
-                    var interfacePropDef = AddInterfaceProperty(interfaceDef, prop.Name, propTypeRef);
+                    var interfacePropDef = AddInterfaceProperty(interfaceDef, property.Name, propTypeRef);
 
-                    if (prop.IsAttributesProperty)
-                        AddAttribute(interfacePropDef, typeof(ResourceAttributesPropertyAttribute));
-                    if (prop.IsEtagProperty)
-                        AddAttribute(interfacePropDef, typeof(ResourceEtagPropertyAttribute));
-                    if (prop.IsPrimaryKey)
-                        AddAttribute(interfacePropDef, typeof(ResourceIdPropertyAttribute));
-                    AddAttribute(interfacePropDef, typeof(ResourcePropertyAttribute)).Properties.Add(
-                        new CustomAttributeNamedArgument("AccessMode",
-                                                         new CustomAttributeArgument(Import(typeof(HttpMethod)),
-                                                                                     prop.AccessMode)));
+                    if (property.IsAttributesProperty)
+                        AddAttribute<ResourceAttributesPropertyAttribute>(interfacePropDef);
+                    if (property.IsEtagProperty)
+                        AddAttribute<ResourceEtagPropertyAttribute>(interfacePropDef);
+                    if (property.IsPrimaryKey)
+                        AddAttribute<ResourceIdPropertyAttribute>(interfacePropDef);
 
-                    var attributes = this.typeMapper.Filter.GetClientLibraryAttributes(prop.PropertyInfo);
+                    var accessModeValue = new CustomAttributeArgument(Import(typeof(HttpMethod)), property.AccessMode);
+                    var accessModeProperty = new CustomAttributeNamedArgument("AccessMode", accessModeValue);
+                    AddAttribute<ResourcePropertyAttribute>(interfacePropDef).Properties.Add(accessModeProperty);
+
+                    var attributes = this.typeMapper.Filter.GetClientLibraryAttributes(property.PropertyInfo);
                     foreach (var attr in attributes)
                         AddAttribute(interfacePropDef, attr);
 
                     FieldDefinition backingField;
-                    AddAutomaticProperty(pocoDef, prop.Name, propTypeRef, out backingField);
-                    if (!prop.MaybeAs<ResourceProperty>().Select(x => x.ExposedAsRepository).OrDefault())
-                        AddPropertyFieldInitialization(backingField, prop.PropertyType, ctorIlActions);
+                    AddAutomaticProperty(pocoDef, property.Name, propTypeRef, out backingField);
+                    if (!property.MaybeAs<ResourceProperty>().Select(x => x.ExposedAsRepository).OrDefault())
+                        AddPropertyFieldInitialization(backingField, property.PropertyType, ctorIlActions);
                 }
 
                 var ctor = typeInfo.EmptyPocoCtor;

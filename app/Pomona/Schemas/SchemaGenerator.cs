@@ -48,13 +48,12 @@ namespace Pomona.Schemas
 
         public Schema Generate()
         {
-            var typeSchemas =
-                this.typeMapper
+            var typeSchemas = this.typeMapper
                     .SourceTypes
-                    .Select(this.typeMapper.FromType)
                     .OfType<StructuredType>()
                     .OrderBy(x => x.Name)
                     .Select(GenerateForType);
+            
             return new Schema
             {
                 Types = typeSchemas.ToList(),

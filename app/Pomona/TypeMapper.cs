@@ -97,15 +97,11 @@ namespace Pomona
             get { return this.filter; }
         }
 
-        public ICollection<Type> SourceTypes
+        public IEnumerable<TypeSpec> SourceTypes
         {
-            get { return this.sourceTypes; }
+            get { return this.sourceTypes.Select(FromType); }
         }
 
-        public IEnumerable<StructuredType> TransformedTypes
-        {
-            get { return TypeMap.Values.OfType<StructuredType>(); }
-        }
 
 
         public override TypeSpec FromType(string typeName)
@@ -117,9 +113,12 @@ namespace Pomona
         }
 
 
-        public override IEnumerable<StructuredType> GetAllStructuredTypes()
+        public override IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType)
         {
-            return TransformedTypes;
+            return TypeMap.Values.OfType<StructuredType>()
+                          .Where(x => x.BaseType == baseType)
+                          .SelectMany(x => x.SubTypes.Append(x))
+                          .ToList();
         }
 
 
@@ -367,13 +366,13 @@ namespace Pomona
 
         private Type GetKnownDeclaringType(Type reflectedType, PropertyInfo propertyInfo)
         {
-            // Hack, IGrouping
             var propBaseDefinition = propertyInfo.GetBaseDefinition();
             return reflectedType.GetFullTypeHierarchy()
-                .Where(x => propBaseDefinition.DeclaringType.IsAssignableFrom(x))
-                .TakeUntil(x => this.filter.IsIndependentTypeRoot(x))
-                .LastOrDefault(x => SourceTypes.Contains(x)) ??
-                   propBaseDefinition.DeclaringType;
+                                .Where(x => propBaseDefinition.DeclaringType != null
+                                            && propBaseDefinition.DeclaringType.IsAssignableFrom(x))
+                                .TakeUntil(x => this.filter.IsIndependentTypeRoot(x))
+                                .LastOrDefault(x => this.sourceTypes.Contains(x))
+                   ?? propBaseDefinition.DeclaringType;
         }
     }
 }

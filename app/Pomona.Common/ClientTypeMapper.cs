@@ -172,7 +172,7 @@ namespace Pomona.Common
         }
 
 
-        public override IEnumerable<StructuredType> GetAllStructuredTypes()
+        public override IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType)
         {
             return this.typeNameMap.Values.OfType<StructuredType>();
         }

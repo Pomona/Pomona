@@ -30,7 +30,7 @@ namespace Pomona.Common.TypeSystem
 {
     public abstract class ExportedTypeResolverBase : TypeResolver, IResourceTypeResolver
     {
-        public abstract IEnumerable<StructuredType> GetAllStructuredTypes();
+        public abstract IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType);
         public abstract StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property);
         public abstract StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType);
         public abstract ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
