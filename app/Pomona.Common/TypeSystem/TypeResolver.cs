@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,35 +24,35 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using Pomona.Common.Internals;
-using Pomona.Common.Serialization;
 
 namespace Pomona.Common.TypeSystem
 {
     public abstract class TypeResolver : ITypeResolver
     {
         private readonly IEnumerable<ITypeFactory> typeFactories;
+        private readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
 
-        protected ConcurrentDictionary<Type, TypeSpec> TypeMap { get { return typeMap; } }
-
-        readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
 
         public TypeResolver()
         {
             var typeSpecTypes = new[]
-            {
-                typeof(ClientType),
-                typeof(DictionaryTypeSpec),
-                typeof(EnumerableTypeSpec),
-                typeof(EnumTypeSpec),
-                typeof(RuntimeTypeSpec)
-            };
-            typeFactories =
+                                {
+                                    typeof(ClientType),
+                                    typeof(DictionaryTypeSpec),
+                                    typeof(EnumerableTypeSpec),
+                                    typeof(EnumTypeSpec),
+                                    typeof(RuntimeTypeSpec)
+                                };
+            this.typeFactories =
                 /*
                 GetType().WalkTree(x => x.BaseType)
                 .TakeUntil(x => x == typeof(object))
@@ -62,27 +64,97 @@ namespace Pomona.Common.TypeSystem
                     .SelectMany(
                         x =>
                             x.GetMethod("GetFactory", BindingFlags.Static | BindingFlags.Public)
-                                .WrapAsEnumerable()
-                                .Where(y => y != null && y.DeclaringType == x))
+                             .WrapAsEnumerable()
+                             .Where(y => y != null && y.DeclaringType == x))
                     .Select(m => (ITypeFactory)m.Invoke(null, null))
                     .OrderBy(x => x.Priority)
                     .ToList();
         }
 
 
-        public virtual IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
+        protected ConcurrentDictionary<Type, TypeSpec> TypeMap
         {
-            if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
-            return typeSpec.OnLoadProperties();
+            get { return this.typeMap; }
         }
 
 
-        public virtual IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
+        protected virtual TypeSpec CreateType(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            var typeSpec = this.typeFactories.Select(x => x.CreateFromType(this, type)).FirstOrDefault(x => x != null);
+            if (typeSpec == null)
+                throw new InvalidOperationException("Unable to find a TypeSpec factory for mapping type " + type);
+            return typeSpec;
+        }
+
+
+        /// <summary>
+        /// This method is responsible for mapping from a proxy or hidden clr type to an exposed type.
+        /// </summary>
+        /// <param name="type">The potentially hidden type.</param>
+        /// <returns>An exposed type, which will often be the same type as given in argument.</returns>
+        protected virtual Type MapExposedClrType(Type type)
+        {
+            return type;
+        }
+
+
+        public virtual PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo)
+        {
+            return FromType(reflectedType).GetPropertyByName(propertyInfo.Name, false);
+        }
+
+
+        public abstract TypeSpec FromType(string typeName);
+
+
+        public virtual TypeSpec FromType(Type type)
+        {
+            type = MapExposedClrType(type);
+            var typeSpec = this.typeMap.GetOrAdd(type, CreateType);
+            return typeSpec;
+        }
+
+
+        public virtual PropertySpec LoadBaseDefinition(PropertySpec propertySpec)
+        {
+            if (propertySpec == null)
+                throw new ArgumentNullException("propertySpec");
+            return propertySpec.OnLoadBaseDefinition();
+        }
+
+
+        public virtual TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
             if (typeSpec == null)
                 throw new ArgumentNullException("typeSpec");
-            return typeSpec.OnLoadInterfaces();
+            return typeSpec.OnLoadBaseType();
+        }
+
+
+        public virtual ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        {
+            if (typeSpec == null)
+                throw new ArgumentNullException("typeSpec");
+            return typeSpec.OnLoadConstructor();
+        }
+
+
+        public virtual IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        {
+            if (memberSpec == null)
+                throw new ArgumentNullException("memberSpec");
+            return memberSpec.OnLoadDeclaredAttributes();
+        }
+
+
+        public virtual TypeSpec LoadDeclaringType(PropertySpec propertySpec)
+        {
+            if (propertySpec == null)
+                throw new ArgumentNullException("propertySpec");
+
+            return propertySpec.OnLoadDeclaringType();
         }
 
 
@@ -91,6 +163,22 @@ namespace Pomona.Common.TypeSystem
             if (typeSpec == null)
                 throw new ArgumentNullException("typeSpec");
             return typeSpec.OnLoadGenericArguments();
+        }
+
+
+        public virtual Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
+        {
+            if (propertySpec == null)
+                throw new ArgumentNullException("propertySpec");
+            return propertySpec.OnLoadGetter();
+        }
+
+
+        public virtual IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
+        {
+            if (typeSpec == null)
+                throw new ArgumentNullException("typeSpec");
+            return typeSpec.OnLoadInterfaces();
         }
 
 
@@ -111,70 +199,27 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual TypeSpec LoadDeclaringType(PropertySpec propertySpec)
-        {
-            if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
-
-            return propertySpec.OnLoadDeclaringType();
-        }
-
-
-        public virtual TypeSpec LoadBaseType(TypeSpec typeSpec)
-        {
-            if (typeSpec == null) throw new ArgumentNullException("typeSpec");
-            return typeSpec.OnLoadBaseType();
-        }
-
-        public virtual TypeSpec LoadPropertyType(PropertySpec propertySpec)
-        {
-            if (propertySpec == null) throw new ArgumentNullException("propertySpec");
-            return propertySpec.OnLoadPropertyType();
-        }
-
-        public virtual PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
-        {
-            if (propertySpec == null) throw new ArgumentNullException("propertySpec");
-            return propertySpec.OnLoadPropertyFlags();
-        }
-
-        public virtual ResourceType LoadUriBaseType(ResourceType resourceType)
-        {
-            if (resourceType == null) throw new ArgumentNullException("resourceType");
-            return resourceType.OnLoadUriBaseType();
-        }
-
-        public virtual PropertySpec LoadBaseDefinition(PropertySpec propertySpec)
-        {
-            if (propertySpec == null) throw new ArgumentNullException("propertySpec");
-            return propertySpec.OnLoadBaseDefinition();
-        }
-
-        public virtual PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo)
-        {
-            if (typeSpec == null) throw new ArgumentNullException("typeSpec");
-            if (propertyInfo == null) throw new ArgumentNullException("propertyInfo");
-            return typeSpec.OnWrapProperty(propertyInfo);
-        }
-
-        public virtual Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
-        {
-            if (propertySpec == null) throw new ArgumentNullException("propertySpec");
-            return propertySpec.OnLoadGetter();
-        }
-
-        public virtual Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
-        {
-            if (propertySpec == null) throw new ArgumentNullException("propertySpec");
-            return propertySpec.OnLoadSetter();
-        }
-
-
-        public virtual RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec)
+        public virtual IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
         {
             if (typeSpec == null)
                 throw new ArgumentNullException("typeSpec");
-            return typeSpec.OnLoadRuntimeTypeDetails();
+            return typeSpec.OnLoadProperties();
+        }
+
+
+        public virtual PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
+        {
+            if (propertySpec == null)
+                throw new ArgumentNullException("propertySpec");
+            return propertySpec.OnLoadPropertyFlags();
+        }
+
+
+        public virtual TypeSpec LoadPropertyType(PropertySpec propertySpec)
+        {
+            if (propertySpec == null)
+                throw new ArgumentNullException("propertySpec");
+            return propertySpec.OnLoadPropertyType();
         }
 
 
@@ -186,56 +231,37 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual ConstructorSpec LoadConstructor(TypeSpec typeSpec)
+        public virtual RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec)
         {
             if (typeSpec == null)
                 throw new ArgumentNullException("typeSpec");
-            return typeSpec.OnLoadConstructor();
+            return typeSpec.OnLoadRuntimeTypeDetails();
         }
 
 
-        public virtual IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        public virtual Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
         {
-            if (memberSpec == null)
-                throw new ArgumentNullException("memberSpec");
-            return memberSpec.OnLoadDeclaredAttributes();
+            if (propertySpec == null)
+                throw new ArgumentNullException("propertySpec");
+            return propertySpec.OnLoadSetter();
         }
 
 
-        public abstract TypeSpec FromType(string typeName);
-
-
-        public virtual PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo)
+        public virtual ResourceType LoadUriBaseType(ResourceType resourceType)
         {
-            return FromType(reflectedType).GetPropertyByName(propertyInfo.Name, false);
-        }
-
-        public virtual TypeSpec FromType(Type type)
-        {
-            type = MapExposedClrType(type);
-            var typeSpec = typeMap.GetOrAdd(type, CreateType);
-            return typeSpec;
+            if (resourceType == null)
+                throw new ArgumentNullException("resourceType");
+            return resourceType.OnLoadUriBaseType();
         }
 
 
-        /// <summary>
-        /// This method is responsible for mapping from a proxy or hidden clr type to an exposed type.
-        /// </summary>
-        /// <param name="type">The potentially hidden type.</param>
-        /// <returns>An exposed type, which will often be the same type as given in argument.</returns>
-        protected virtual Type MapExposedClrType(Type type)
+        public virtual PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo)
         {
-            return type;
-        }
-
-
-        protected virtual TypeSpec CreateType(Type type)
-        {
-            if (type == null) throw new ArgumentNullException("type");
-            var typeSpec = typeFactories.Select(x => x.CreateFromType(this, type)).FirstOrDefault(x => x != null);
             if (typeSpec == null)
-                throw new InvalidOperationException("Unable to find a TypeSpec factory for mapping type " + type);
-            return typeSpec;
+                throw new ArgumentNullException("typeSpec");
+            if (propertyInfo == null)
+                throw new ArgumentNullException("propertyInfo");
+            return typeSpec.OnWrapProperty(propertyInfo);
         }
     }
 }

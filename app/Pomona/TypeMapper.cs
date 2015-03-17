@@ -50,8 +50,7 @@ namespace Pomona
 
 
         public TypeMapper(PomonaConfigurationBase configuration)
-            :
-                this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete)
+            : this(configuration.CreateMappingFilter(), configuration.SourceTypes, configuration.OnMappingComplete)
         {
             this.configuration = configuration;
         }
@@ -81,12 +80,6 @@ namespace Pomona
         }
 
 
-        internal IPomonaSessionFactory SessionFactory
-        {
-            get { return this.sessionFactory ?? (this.sessionFactory = this.configuration.CreateSessionFactory(this)); }
-            set { this.sessionFactory = value; }
-        }
-
         public IEnumerable<EnumTypeSpec> EnumTypes
         {
             get { return TypeMap.Values.OfType<EnumTypeSpec>(); }
@@ -102,6 +95,11 @@ namespace Pomona
             get { return this.sourceTypes.Select(FromType); }
         }
 
+        internal IPomonaSessionFactory SessionFactory
+        {
+            get { return this.sessionFactory ?? (this.sessionFactory = this.configuration.CreateSessionFactory(this)); }
+            set { this.sessionFactory = value; }
+        }
 
 
         public override TypeSpec FromType(string typeName)
@@ -110,15 +108,6 @@ namespace Pomona
             if (!this.typeNameMap.TryGetValue(typeName.ToLower(), out type))
                 throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
             return type;
-        }
-
-
-        public override IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType)
-        {
-            return TypeMap.Values.OfType<StructuredType>()
-                          .Where(x => x.BaseType == baseType)
-                          .SelectMany(x => x.SubTypes.Append(x))
-                          .ToList();
         }
 
 
@@ -188,47 +177,6 @@ namespace Pomona
         }
 
 
-        public override StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property)
-        {
-            var propInfo = property.PropertyInfo;
-
-            var reflectedType = property.ReflectedType;
-            var expandMode = filter.GetPropertyExpandMode(reflectedType, propInfo);
-            var accessMode = this.filter.GetPropertyAccessMode(propInfo, property.DeclaringType.Constructor);
-
-            var details = new StructuredPropertyDetails(
-                this.filter.PropertyIsAttributes(reflectedType, propInfo),
-                this.filter.PropertyIsEtag(reflectedType, propInfo),
-                this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
-                accessMode.HasFlag(HttpMethod.Get),
-                accessMode,
-                this.filter.GetPropertyItemAccessMode(reflectedType, propInfo),
-                expandMode);
-            return details;
-        }
-
-
-        public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
-        {
-            // TODO: Get allowed methods from filter
-            var allowedMethods = HttpMethod.Get |
-                                 (this.filter.PatchOfTypeIsAllowed(structuredType) ? HttpMethod.Patch : 0) |
-                                 (this.filter.PostOfTypeIsAllowed(structuredType) ? HttpMethod.Post : 0) |
-                                 (this.filter.DeleteOfTypeIsAllowed(structuredType) ? HttpMethod.Delete : 0);
-
-            var type = structuredType.Type;
-            var details = new StructuredTypeDetails(structuredType,
-                                                  allowedMethods,
-                                                  this.filter.GetPluralNameForType(type),
-                                                  this.filter.GetOnDeserializedHook(type),
-                                                  this.filter.TypeIsMappedAsValueObject(type),
-                                                  this.filter.TypeIsMappedAsValueObject(type),
-                                                  this.filter.GetTypeIsAbstract(type));
-
-            return details;
-        }
-
-
         public override Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
         {
             return this.filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
@@ -270,9 +218,9 @@ namespace Pomona
                                                           BindingFlags.Instance | BindingFlags.Static
                                                           | BindingFlags.Public
                                                           | BindingFlags.NonPublic)
-                    .Concat(propertiesFromNonMappedInterfaces)
-                    .Where(x => this.filter.PropertyIsIncluded(typeSpec.Type, x))
-                    .Select(x => WrapProperty(typeSpec, x));
+                           .Concat(propertiesFromNonMappedInterfaces)
+                           .Where(x => this.filter.PropertyIsIncluded(typeSpec.Type, x))
+                           .Select(x => WrapProperty(typeSpec, x));
             }
 
             return base.LoadProperties(typeSpec);
@@ -291,6 +239,15 @@ namespace Pomona
             if (complexProperty != null)
                 return FromType(this.filter.GetPropertyType(complexProperty.ReflectedType, complexProperty.PropertyInfo));
             return base.LoadPropertyType(propertySpec);
+        }
+
+
+        public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
+        {
+            var propInfo = property.PropertyInfo;
+            return new ResourcePropertyDetails(this.filter.ClientPropertyIsExposedAsRepository(propInfo),
+                                               NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(property.ReflectedType,
+                                                                                                                 propInfo)));
         }
 
 
@@ -314,18 +271,60 @@ namespace Pomona
         }
 
 
-        public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
-        {
-            var propInfo = property.PropertyInfo;
-            return new ResourcePropertyDetails(this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(property.ReflectedType, propInfo)));
-        }
-
-
         public override Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
         {
             return this.filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
                    ?? base.LoadSetter(propertySpec);
+        }
+
+
+        public override StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property)
+        {
+            var propInfo = property.PropertyInfo;
+
+            var reflectedType = property.ReflectedType;
+            var expandMode = this.filter.GetPropertyExpandMode(reflectedType, propInfo);
+            var accessMode = this.filter.GetPropertyAccessMode(propInfo, property.DeclaringType.Constructor);
+
+            var details = new StructuredPropertyDetails(
+                this.filter.PropertyIsAttributes(reflectedType, propInfo),
+                this.filter.PropertyIsEtag(reflectedType, propInfo),
+                this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
+                accessMode.HasFlag(HttpMethod.Get),
+                accessMode,
+                this.filter.GetPropertyItemAccessMode(reflectedType, propInfo),
+                expandMode);
+            return details;
+        }
+
+
+        public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
+        {
+            // TODO: Get allowed methods from filter
+            var allowedMethods = HttpMethod.Get |
+                                 (this.filter.PatchOfTypeIsAllowed(structuredType) ? HttpMethod.Patch : 0) |
+                                 (this.filter.PostOfTypeIsAllowed(structuredType) ? HttpMethod.Post : 0) |
+                                 (this.filter.DeleteOfTypeIsAllowed(structuredType) ? HttpMethod.Delete : 0);
+
+            var type = structuredType.Type;
+            var details = new StructuredTypeDetails(structuredType,
+                                                    allowedMethods,
+                                                    this.filter.GetPluralNameForType(type),
+                                                    this.filter.GetOnDeserializedHook(type),
+                                                    this.filter.TypeIsMappedAsValueObject(type),
+                                                    this.filter.TypeIsMappedAsValueObject(type),
+                                                    this.filter.GetTypeIsAbstract(type));
+
+            return details;
+        }
+
+
+        public override IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType)
+        {
+            return TypeMap.Values.OfType<StructuredType>()
+                          .Where(x => x.BaseType == baseType)
+                          .SelectMany(x => x.SubTypes.Append(x))
+                          .ToList();
         }
 
 

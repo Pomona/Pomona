@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,13 +34,6 @@ namespace Pomona.Common.TypeSystem
 {
     public abstract class ExportedTypeResolverBase : TypeResolver, IResourceTypeResolver
     {
-        public abstract IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType);
-        public abstract StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property);
-        public abstract StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType);
-        public abstract ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
-        public abstract ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property);
-
-
         public override IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec)
         {
             if (typeSpec == null)
@@ -58,5 +55,12 @@ namespace Pomona.Common.TypeSystem
 
             return base.LoadRequiredProperties(typeSpec);
         }
+
+
+        public abstract ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property);
+        public abstract ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType);
+        public abstract StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property);
+        public abstract StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType);
+        public abstract IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType);
     }
 }

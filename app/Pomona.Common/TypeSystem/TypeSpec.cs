@@ -64,6 +64,8 @@ namespace Pomona.Common.TypeSystem
             get { return this.baseType.Value; }
         }
 
+        public abstract ConstructorSpec Constructor { get; }
+
         public virtual TypeSpec ElementType
         {
             get
@@ -75,6 +77,9 @@ namespace Pomona.Common.TypeSystem
                 throw new NotSupportedException();
             }
         }
+
+        public abstract IEnumerable<TypeSpec> Interfaces { get; }
+        public abstract bool IsAbstract { get; }
 
         public virtual bool IsAlwaysExpanded
         {
@@ -111,38 +116,41 @@ namespace Pomona.Common.TypeSystem
             get { return Type.IsInterface; }
         }
 
+        public abstract bool IsNullable { get; }
+
         public virtual string Namespace
         {
             get { return this.@namespace.Value; }
         }
+
+        public abstract IEnumerable<PropertySpec> Properties { get; }
+        public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
+        public abstract TypeSerializationMode SerializationMode { get; }
 
         public virtual Type Type
         {
             get { return (Type)Member; }
         }
 
-        public abstract ConstructorSpec Constructor { get; }
-
-        public abstract IEnumerable<TypeSpec> Interfaces { get; }
-        public abstract bool IsAbstract { get; }
-        public abstract bool IsNullable { get; }
-
-        public abstract IEnumerable<PropertySpec> Properties { get; }
-        public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
-        public abstract TypeSerializationMode SerializationMode { get; }
-
-        #region Overloaded operators
-
-        public static implicit operator Type(TypeSpec typeSpec)
-        {
-            return typeSpec == null ? null : typeSpec.Type;
-        }
-
-        #endregion
 
         public virtual object Create(IDictionary<PropertySpec, object> args)
         {
             throw new NotImplementedException();
+        }
+
+
+        public PropertySpec GetPropertyByName(string propertyName, bool ignoreCase)
+        {
+            PropertySpec propertySpec;
+            if (!TryGetPropertyByName(propertyName, ignoreCase, out propertySpec))
+                throw new KeyNotFoundException("Property with name not found");
+            return propertySpec;
+        }
+
+
+        public bool IsAssignableFrom(TypeSpec t)
+        {
+            return Type.IsAssignableFrom(t);
         }
 
 
@@ -163,19 +171,18 @@ namespace Pomona.Common.TypeSystem
             return Type.Namespace;
         }
 
+        #region Overloaded operators
+
+        public static implicit operator Type(TypeSpec typeSpec)
+        {
+            return typeSpec == null ? null : typeSpec.Type;
+        }
+
+        #endregion
 
         public override string ToString()
         {
             return Name;
-        }
-
-
-        public PropertySpec GetPropertyByName(string propertyName, bool ignoreCase)
-        {
-            PropertySpec propertySpec;
-            if (!TryGetPropertyByName(propertyName, ignoreCase, out propertySpec))
-                throw new KeyNotFoundException("Property with name not found");
-            return propertySpec;
         }
 
 
@@ -192,18 +199,11 @@ namespace Pomona.Common.TypeSystem
 
 
         protected internal abstract ConstructorSpec OnLoadConstructor();
-
         protected internal abstract IEnumerable<TypeSpec> OnLoadGenericArguments();
         protected internal abstract IEnumerable<TypeSpec> OnLoadInterfaces();
         protected internal abstract IEnumerable<PropertySpec> OnLoadProperties();
         protected internal abstract IEnumerable<PropertySpec> OnLoadRequiredProperties();
         protected internal abstract RuntimeTypeDetails OnLoadRuntimeTypeDetails();
         protected internal abstract PropertySpec OnWrapProperty(PropertyInfo property);
-
-
-        public bool IsAssignableFrom(TypeSpec t)
-        {
-            return Type.IsAssignableFrom(t);
-        }
     }
 }

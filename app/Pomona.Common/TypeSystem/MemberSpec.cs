@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -38,60 +42,60 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<string> name;
         private readonly ITypeResolver typeResolver;
 
+
         protected MemberSpec(ITypeResolver typeResolver, MemberInfo member)
         {
             if (typeResolver == null)
                 throw new ArgumentNullException("typeResolver");
             this.typeResolver = typeResolver;
             this.member = member;
-            declaredAttributes = CreateLazy(() => typeResolver.LoadDeclaredAttributes(this).ToList().AsReadOnly());
-            name = CreateLazy(() => typeResolver.LoadName(this));
+            this.declaredAttributes = CreateLazy(() => typeResolver.LoadDeclaredAttributes(this).ToList().AsReadOnly());
+            this.name = CreateLazy(() => typeResolver.LoadName(this));
         }
 
-        protected MemberInfo Member
-        {
-            get { return member; }
-        }
-
-        public UniqueMemberToken Token
-        {
-            get { return member.UniqueToken(); }
-        }
-
-        public ReadOnlyCollection<Attribute> DeclaredAttributes
-        {
-            get { return declaredAttributes.Value; }
-        }
-
-
-        public abstract IEnumerable<Attribute> InheritedAttributes { get; }
 
         public IEnumerable<Attribute> Attributes
         {
             get { return DeclaredAttributes.Concat(InheritedAttributes); }
         }
 
+        public ReadOnlyCollection<Attribute> DeclaredAttributes
+        {
+            get { return this.declaredAttributes.Value; }
+        }
+
+        public abstract IEnumerable<Attribute> InheritedAttributes { get; }
+
         public string Name
         {
-            get { return name.Value; }
+            get { return this.name.Value; }
+        }
+
+        public UniqueMemberToken Token
+        {
+            get { return this.member.UniqueToken(); }
         }
 
         public ITypeResolver TypeResolver
         {
-            get { return typeResolver; }
+            get { return this.typeResolver; }
         }
 
-        public bool TryGetAttribute<TAttribute>(out TAttribute attribute, bool inherit = true)
-            where TAttribute : Attribute
+        protected MemberInfo Member
         {
-            attribute = (inherit ? Attributes : DeclaredAttributes).OfType<TAttribute>().FirstOrDefault();
-            return attribute != null;
+            get { return this.member; }
         }
 
 
-        private IEnumerable<Attribute> GetAttributes(bool inherit)
+        public override bool Equals(object obj)
         {
-            return inherit ? Attributes : DeclaredAttributes;
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != GetType())
+                return false;
+            return Equals((MemberSpec)obj);
         }
 
 
@@ -101,28 +105,60 @@ namespace Pomona.Common.TypeSystem
             return GetAttributes(inherit).OfType<TAttribute>().MaybeFirst();
         }
 
-        protected bool Equals(MemberSpec other)
+
+        public override int GetHashCode()
         {
-            return Equals(member, other.member) && Equals(typeResolver, other.typeResolver);
+            unchecked
+            {
+                return ((this.member != null ? this.member.GetHashCode() : 0) * 397) ^
+                       (this.typeResolver != null ? this.typeResolver.GetHashCode() : 0);
+            }
         }
+
 
         public static bool operator ==(MemberSpec left, MemberSpec right)
         {
             return Equals(left, right);
         }
 
+
         public static bool operator !=(MemberSpec left, MemberSpec right)
         {
             return !Equals(left, right);
         }
 
-        public override bool Equals(object obj)
+
+        public bool TryGetAttribute<TAttribute>(out TAttribute attribute, bool inherit = true)
+            where TAttribute : Attribute
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((MemberSpec) obj);
+            attribute = (inherit ? Attributes : DeclaredAttributes).OfType<TAttribute>().FirstOrDefault();
+            return attribute != null;
         }
+
+
+        protected internal virtual IEnumerable<Attribute> OnLoadDeclaredAttributes()
+        {
+            if (this.member == null)
+                return Enumerable.Empty<Attribute>();
+
+            return this.member.GetCustomAttributes(false).Cast<Attribute>();
+        }
+
+
+        protected internal virtual string OnLoadName()
+        {
+            if (this.member == null)
+                throw new InvalidOperationException("Don't know how to load name for member with no wrapped member.");
+
+            return this.member.Name;
+        }
+
+
+        protected bool Equals(MemberSpec other)
+        {
+            return Equals(this.member, other.member) && Equals(this.typeResolver, other.typeResolver);
+        }
+
 
         internal static Lazy<T> CreateLazy<T>(Func<T> valueFactory)
         {
@@ -132,30 +168,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual IEnumerable<Attribute> OnLoadDeclaredAttributes()
+        private IEnumerable<Attribute> GetAttributes(bool inherit)
         {
-            if (member == null)
-                return Enumerable.Empty<Attribute>();
-
-            return member.GetCustomAttributes(false).Cast<Attribute>();
-        }
-
-
-        protected internal virtual string OnLoadName()
-        {
-            if (member == null)
-                throw new InvalidOperationException("Don't know how to load name for member with no wrapped member.");
-
-            return member.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return ((member != null ? member.GetHashCode() : 0)*397) ^
-                       (typeResolver != null ? typeResolver.GetHashCode() : 0);
-            }
+            return inherit ? Attributes : DeclaredAttributes;
         }
     }
 }

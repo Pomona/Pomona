@@ -32,8 +32,8 @@ namespace Pomona.Common.TypeSystem
 {
     public interface IStructuredTypeResolver : ITypeResolver
     {
-        IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType);
         StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property);
         StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType);
+        IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType);
     }
 }

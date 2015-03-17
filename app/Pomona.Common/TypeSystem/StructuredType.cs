@@ -33,8 +33,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Pomona.Common.Internals;
-
 namespace Pomona.Common.TypeSystem
 {
     public abstract class StructuredType : RuntimeTypeSpec
@@ -46,8 +44,8 @@ namespace Pomona.Common.TypeSystem
 
 
         protected StructuredType(IStructuredTypeResolver typeResolver,
-            Type type,
-            Func<IEnumerable<TypeSpec>> genericArguments = null)
+                                 Type type,
+                                 Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
             this.subTypes = CreateLazy(() => typeResolver.LoadSubTypes(this).ToList().AsReadOnly());
@@ -57,12 +55,57 @@ namespace Pomona.Common.TypeSystem
 
         public virtual HttpMethod AllowedMethods
         {
-            get { return this.StructuredTypeDetails.AllowedMethods; }
+            get { return StructuredTypeDetails.AllowedMethods; }
+        }
+
+        public bool DeleteAllowed
+        {
+            get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
+        }
+
+        public StructuredProperty ETagProperty
+        {
+            get { return StructuredTypeDetails.ETagProperty; }
+        }
+
+        public override bool IsAbstract
+        {
+            get { return StructuredTypeDetails.IsAbstract; }
+        }
+
+        public override bool IsAlwaysExpanded
+        {
+            get { return StructuredTypeDetails.AlwaysExpand; }
+        }
+
+        public bool MappedAsValueObject
+        {
+            get { return StructuredTypeDetails.MappedAsValueObject; }
+        }
+
+        public Action<object> OnDeserialized
+        {
+            get { return StructuredTypeDetails.OnDeserialized; }
+        }
+
+        public bool PatchAllowed
+        {
+            get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
+        }
+
+        public string PluralName
+        {
+            get { return StructuredTypeDetails.PluralName; }
+        }
+
+        public bool PostAllowed
+        {
+            get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
         }
 
         public virtual StructuredProperty PrimaryId
         {
-            get { return this.StructuredTypeDetails.PrimaryId; }
+            get { return StructuredTypeDetails.PrimaryId; }
         }
 
         public new virtual IEnumerable<StructuredProperty> Properties
@@ -73,51 +116,6 @@ namespace Pomona.Common.TypeSystem
         public virtual ResourceInfoAttribute ResourceInfo
         {
             get { return DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault(); }
-        }
-
-        public bool DeleteAllowed
-        {
-            get { return this.StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
-        }
-
-        public StructuredProperty ETagProperty
-        {
-            get { return this.StructuredTypeDetails.ETagProperty; }
-        }
-
-        public override bool IsAbstract
-        {
-            get { return this.StructuredTypeDetails.IsAbstract; }
-        }
-
-        public override bool IsAlwaysExpanded
-        {
-            get { return this.StructuredTypeDetails.AlwaysExpand; }
-        }
-
-        public bool MappedAsValueObject
-        {
-            get { return this.StructuredTypeDetails.MappedAsValueObject; }
-        }
-
-        public Action<object> OnDeserialized
-        {
-            get { return this.StructuredTypeDetails.OnDeserialized; }
-        }
-
-        public bool PatchAllowed
-        {
-            get { return this.StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
-        }
-
-        public string PluralName
-        {
-            get { return this.StructuredTypeDetails.PluralName; }
-        }
-
-        public bool PostAllowed
-        {
-            get { return this.StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
         }
 
         public IEnumerable<StructuredType> SubTypes
@@ -175,7 +173,7 @@ namespace Pomona.Common.TypeSystem
                 var makeGenericType = typeof(ConstructorPropertySource<>).MakeGenericType(
                     Constructor.InjectingConstructorExpression.ReturnType);
                 var constructorInfo = makeGenericType.GetConstructor(new[]
-                { typeof(IDictionary<PropertySpec, object>) });
+                                                                     { typeof(IDictionary<PropertySpec, object>) });
 
                 if (constructorInfo == null)
                 {
@@ -187,9 +185,9 @@ namespace Pomona.Common.TypeSystem
                     Expression.Lambda<Func<IDictionary<PropertySpec, object>, object>>(
                         Expression.Convert(
                             Expression.Invoke(Constructor.InjectingConstructorExpression,
-                                Expression.New(
-                                    constructorInfo,
-                                    argsParam)),
+                                              Expression.New(
+                                                  constructorInfo,
+                                                  argsParam)),
                             typeof(object)),
                         argsParam).Compile();
             }
@@ -197,15 +195,15 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected override TypeSerializationMode OnLoadSerializationMode()
-        {
-            return TypeSerializationMode.Structured;
-        }
-
-
         protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
         {
             return new StructuredProperty(TypeResolver, property, this);
+        }
+
+
+        protected override TypeSerializationMode OnLoadSerializationMode()
+        {
+            return TypeSerializationMode.Structured;
         }
 
         #region Nested type: ConstructorPropertySource
@@ -229,14 +227,17 @@ namespace Pomona.Common.TypeSystem
 
             public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
             {
-                defaultFactory = defaultFactory
-                                 ?? (() => { throw new InvalidOperationException("Unable to get required property."); });
+                defaultFactory = defaultFactory ?? (() =>
+                {
+                    throw new InvalidOperationException("Unable to get required property.");
+                });
 
                 // TODO: Optimize a lot!!!
-                return
-                    this.args.Where(x => x.Key.PropertyInfo.Name == propertyInfo.Name).Select(x => (TProperty)x.Value)
-                        .MaybeFirst()
-                        .OrDefault(defaultFactory);
+                return this.args
+                           .Where(x => x.Key.PropertyInfo.Name == propertyInfo.Name)
+                           .Select(x => (TProperty)x.Value)
+                           .MaybeFirst()
+                           .OrDefault(defaultFactory);
             }
 
 
