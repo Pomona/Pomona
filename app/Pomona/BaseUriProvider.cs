@@ -32,7 +32,7 @@ using Nancy;
 
 namespace Pomona
 {
-    internal class BaseUriProvider : IBaseUriProvider
+    public class BaseUriProvider : IBaseUriProvider
     {
         private readonly NancyContext context;
         private readonly string pomonaroot;
