@@ -39,7 +39,7 @@ namespace Pomona.Common
 
 
         TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
-            Action<IRequestOptions<TSubResource>> options)
+            Action<IRequestOptions<TPostResponseResource>> options)
             where TSubResource : class, TResource;
 
 

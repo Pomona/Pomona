@@ -152,7 +152,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResource>> options)
+        public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction, Action<IRequestOptions<TPostReturnType>> options)
             where TSubResource : class, TResource
         {
             return Post(postAction);
@@ -179,7 +179,6 @@ namespace Pomona.TestingClient
             return Post<TSubResource, TSubResponseResource>(postAction, x =>
             {
             });
-            ;
         }
 
 

@@ -190,6 +190,30 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
+        public void
+            PostExtendedResourceWhenSameTypeIsReturnedFromPost_AndResponseTypeIsNotSpecified_ReturnsWrappedResponse()
+        {
+            var response = Client.DictionaryContainers.Post<IExtendedResource>(co =>
+            {
+                co.CustomString = "blabla";
+            });
+            Assert.That(response, Is.AssignableTo<IExtendedResource>());
+        }
+
+
+        [Test]
+        public void
+            PostExtendedResourceWhenSameTypeIsReturnedFromPost_WithOptionsArgument_ResponseTypeIsNotSpecified_ReturnsWrappedResponse()
+        {
+            var response = Client.DictionaryContainers.Post<IExtendedResource>(co =>
+            {
+                co.CustomString = "blabla";
+            }, o => o.Expand(y => y.Map));
+            Assert.That(response, Is.AssignableTo<IExtendedResource>());
+        }
+
+
+        [Test]
         public void PostNonExtendedResourceHavingReferenceToAnotherExtendedResource_IsSuccessful()
         {
             var extendedFarm =
