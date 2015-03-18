@@ -83,9 +83,9 @@ namespace Pomona.SystemTests.Linq
         public void PatchExtendedResource_SetAttribute_UpdatesAttribute()
         {
             var entity = new StringToObjectDictionaryContainer
-                         {
-                             Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
-                         };
+            {
+                Map = { { "Text", "testtest" }, { "NoModify", "Blablabla" } }
+            };
             Save(entity);
 
             var resource = Client.Query<IExtendedResource3>().First(x => x.Id == entity.Id);
@@ -416,10 +416,10 @@ namespace Pomona.SystemTests.Linq
         {
             //var visitor = new TransformAdditionalPropertiesToAttributesVisitor(typeof(IExtendedResource), typeof(IDictionaryContainer), (PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<IDictionaryContainer>(x => x.Map));
             var subtypedDictionaryContainer = new SubtypedDictionaryContainer
-                                              {
-                                                  Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
-                                                  SomethingExtra = "Hahahohohihi"
-                                              };
+            {
+                Map = { { "CustomString", "Lalalala" }, { "OtherCustom", "Blob rob" } },
+                SomethingExtra = "Hahahohohihi"
+            };
 
             Repository.Save<DictionaryContainer>(subtypedDictionaryContainer);
 
@@ -452,9 +452,9 @@ namespace Pomona.SystemTests.Linq
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
             var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
-                                                {
-                                                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
-                                                });
+            {
+                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+            });
 
             var results = Client.Query<IExtendedResource3>()
                                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
@@ -475,9 +475,9 @@ namespace Pomona.SystemTests.Linq
         {
             var timeValue = new DateTime(2042, 2, 4, 6, 3, 2);
             var dictContainer = Repository.Save(new StringToObjectDictionaryContainer
-                                                {
-                                                    Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
-                                                });
+            {
+                Map = { { "Text", "foobar" }, { "Number", 32 }, { "Time", timeValue } }
+            });
 
             var results = Client.Query<IExtendedResource3>()
                                 .Where(x => x.Number > 5 && x.Text == "foobar" && x.Time == timeValue)
