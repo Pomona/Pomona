@@ -441,8 +441,7 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        [Category("TODO")]
-        [Test(Description = "Need to fix deserialization for resource types when part of string to object dictionary.")]
+        [Test]
         public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
         {
             var expected = CritterEntities
