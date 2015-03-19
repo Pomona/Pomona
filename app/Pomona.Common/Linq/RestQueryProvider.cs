@@ -267,10 +267,10 @@ namespace Pomona.Common.Linq
                         return result.Select(clientSideSelectPart).ToList();
                     return result;
                 case RestQueryableTreeParser.QueryProjection.First:
-                    return GetFirst<T>(uri, requestOptions);
+                    return GetFirst(uri, requestOptions, clientSideSelectPart);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Single:
-                    return GetFirst<T>(uri, requestOptions);
+                    return GetFirst(uri, requestOptions, clientSideSelectPart);
                 case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
                     // TODO: SingleOrDefault is obviously not implemented, has been overlooked [KNS]
                 case RestQueryableTreeParser.QueryProjection.Max:
@@ -298,11 +298,14 @@ namespace Pomona.Common.Linq
         }
 
 
-        private T GetFirst<T>(string uri, RequestOptions requestOptions)
+        private object GetFirst<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
         {
             try
             {
-                return this.client.Get<T>(uri, requestOptions);
+                var result = this.client.Get<T>(uri, requestOptions);
+                if (clientSideSelectPart != null)
+                    return clientSideSelectPart(result);
+                return result;
             }
             catch (ResourceNotFoundException ex)
             {

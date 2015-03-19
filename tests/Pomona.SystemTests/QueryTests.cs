@@ -488,6 +488,17 @@ namespace Pomona.SystemTests
             CollectionAssert.AreEquivalent(expected, actual);
         }
 
+        [Test]
+        public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful_UsingFirstProjection()
+        {
+            var expected =
+                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).First();
+            var actual =
+                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).First();
+
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
 
         [Test]
         public void Select_WithClientServerSplit_UsingLocallyExecutedConcatMethod_IsSuccessful()
