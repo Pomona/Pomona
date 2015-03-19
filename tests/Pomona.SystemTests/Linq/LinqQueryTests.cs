@@ -451,10 +451,9 @@ namespace Pomona.SystemTests.Linq
                         new Dictionary<string, object>
                         {
                             { "critterId", x.Id },
-                            { "critterName", x.Name },
-                            { "theCritter", x }
+                            { "critterName", x.Name }
                         })
-                .ToList();
+                .First();
             var actual =
                 Client.Query<ICritter>()
                     .Select(
@@ -462,10 +461,9 @@ namespace Pomona.SystemTests.Linq
                             new Dictionary<string, object>
                             {
                                 { "critterId", x.Id },
-                                { "critterName", x.Name },
-                                { "theCritter", x }
+                                { "critterName", x.Name }
                             })
-                    .ToList();
+                    .First();
 
             Assert.That(actual.SequenceEqual(expected));
         }

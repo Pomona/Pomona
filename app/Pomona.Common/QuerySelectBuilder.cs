@@ -84,29 +84,7 @@ namespace Pomona.Common
 
         private Expression VisitRootListInit(ListInitExpression body)
         {
-            if (body.Type != typeof(Dictionary<string, object>))
-                return Visit(body);
-
-            var pairs = body.Initializers.Select(
-                x =>
-                    new
-                    {
-                        Key =
-                            x.Arguments.ElementAtOrDefault(0).Maybe().Where(y => y.Type == typeof(string))
-                                .OfType<ConstantExpression>().Select(y => (string)y.Value).OrDefault(),
-                        Value = x.Arguments.ElementAtOrDefault(1)
-                    }).ToList();
-
-            if (pairs.Any(x => x.Key == null || x.Value == null))
-                return Visit(body);
-
-            var children =
-                pairs.Select(
-                    kvp =>
-                        new KeyValuePair<string, PomonaExtendedExpression>(kvp.Key,
-                            (PomonaExtendedExpression)Visit(kvp.Value))).ToList();
-
-            return Nodes(body, children);
+            return Visit(body);
         }
 
 
