@@ -382,7 +382,6 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        [Category("TODO")]
         public void QueryCritter_OrderByBeforeGroupBy_ThrowsNotSupportedException()
         {
             TestDelegate throwing = () => Client.Critters
@@ -398,7 +397,6 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        [Category("TODO")]
         public void QueryCritter_OrderByBeforeGroupByWithoutSelect_ThrowsNotSupportedException()
         {
             TestDelegate throwing = () => Client.Critters
