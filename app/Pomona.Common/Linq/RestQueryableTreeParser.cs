@@ -318,10 +318,16 @@ namespace Pomona.Common.Linq
         {
             if (SkipCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Skip() before GroupBy()");
+            
             if (TakeCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before GroupBy()");
+            
             if (this.groupByKeySelector != null)
                 throw new NotSupportedException("Pomona LINQ provider does not support multiple chained GroupBy()");
+
+            if (this.orderKeySelectors.Any())
+                throw new NotSupportedException("Pomona LINQ provider does not support calling OrderBy before GroupBy()");
+
             this.groupByKeySelector = keySelector;
         }
 
