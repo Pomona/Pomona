@@ -499,6 +499,50 @@ namespace Pomona.SystemTests.Linq
             Assert.That(uri.PathAndQuery, Is.EqualTo("/critters?$filter=name+eq+'holahola'&$top=10"));
         }
 
+        [Test]
+        [Category("TODO")]
+        public void QueryCritter_OrderByBeforeGroupBy_ThrowsNotSupportedException()
+        {
+            TestDelegate throwing = () => Client.Critters
+                                                .Query()
+                                                .OrderBy(x => x.Name)
+                                                .GroupBy(x => x.Name)
+                                                .Select(x => x.Key)
+                                                .ToList();
+
+            var exception = Assert.Throws<NotSupportedException>(throwing);
+            Assert.That(exception.Message, Is.StringContaining("Order by"));
+        }
+
+
+        [Test]
+        [Category("TODO")]
+        public void QueryCritter_OrderByBeforeGroupByWithoutSelect_ThrowsNotSupportedException()
+        {
+            TestDelegate throwing = () => Client.Critters
+                                                .Query()
+                                                .OrderBy(x => x.Name)
+                                                .GroupBy(x => x.Name)
+                                                .ToList();
+
+            var exception = Assert.Throws<NotSupportedException>(throwing);
+            Assert.That(exception.Message, Is.StringContaining("Order by"));
+        }
+
+
+        [Test]
+        [Category("TODO")]
+        public void QueryCritter_OrderByWithCustomComparer_ThrowsNotSupportedException()
+        {
+            TestDelegate throwing = () => Client.Critters
+                                                .Query()
+                                                .OrderBy(x => x.Name, new CustomComparer())
+                                                .ToList();
+
+            var exception = Assert.Throws<NotSupportedException>(throwing);
+            Assert.That(exception.Message, Is.StringContaining("Comparer"));
+        }
+
 
         [Test]
         public void QueryCritter_WhereExpressionCapturingPropertyFromClass_EvaluatesToConstantCorrectly()
@@ -826,6 +870,15 @@ namespace Pomona.SystemTests.Linq
             var result = Client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
 
             Assert.That(result, Is.Null);
+        }
+
+
+        private class CustomComparer : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                return x.CompareTo(y);
+            }
         }
     }
 }
