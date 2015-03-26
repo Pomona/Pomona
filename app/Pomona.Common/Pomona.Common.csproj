@@ -92,6 +92,9 @@
     <Compile Include="IDeletableByIdRepository.cs" />
     <Compile Include="IDeletableRepository.cs" />
     <Compile Include="IHasSettableResourceUri.cs" />
+    <Compile Include="Internals\Formatting\FormatterBase.cs" />
+    <Compile Include="Internals\Formatting\MethodFormatter.cs" />
+    <Compile Include="Internals\Formatting\TypeFormatter.cs" />
     <Compile Include="Loading\DefaultResourceLoader.cs" />
     <Compile Include="Loading\IResourceLoader.cs" />
     <Compile Include="IGettableRepository.cs" />

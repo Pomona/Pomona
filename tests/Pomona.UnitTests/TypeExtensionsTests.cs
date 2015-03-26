@@ -193,6 +193,17 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        public void GetFullNameWithSignature_MethodHasComplexArgumentsAndGenericParameters_ReturnsExpectedString()
+        {
+            var result = typeof(Queryable).GetMethods().Last(x => x.Name == "OrderBy").GetFullNameWithSignature();
+            Console.WriteLine(result);
+
+            Assert.That(result, Is.EqualTo(
+                "System.Linq.IOrderedQueryable<TSource> System.Linq.Queryable.OrderBy<TSource, TKey>(System.Linq.IQueryable<TSource>, System.Linq.Expressions.Expression<System.Func<TSource, TKey>>, System.Collections.Generic.IComparer<TKey>)"));
+        }
+
+
+        [Test]
         public void GetFullNameWithSignature_MethodHasGenericArgumentsAndParameters_ReturnsExpectedString()
         {
             var result = typeof(TheInheritedClass)

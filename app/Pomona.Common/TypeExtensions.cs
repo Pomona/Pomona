@@ -34,6 +34,7 @@ using System.Reflection;
 using System.Text;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Internals.Formatting;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
@@ -137,38 +138,10 @@ namespace Pomona.Common
             if (method == null)
                 throw new ArgumentNullException("method");
 
-            string genericParametersString = null;
-            if (method.DeclaringType != null && method.IsGenericMethod)
-            {
-                var genericArguments = method
-                    .GetGenericArguments()
-                    .Zip(method.GetGenericMethodDefinition().GetGenericArguments(), (a, p) => a ?? p)
-                    .ToArray();
-
-                var genericParameterBuilder = new StringBuilder("<");
-                for (int i = 0; i < genericArguments.Length; i++)
-                {
-                    var genericArgument = genericArguments[i];
-                    genericParameterBuilder.Append(genericArgument);
-
-                    if (i < genericArguments.Length - 1)
-                        genericParameterBuilder.Append(", ");
-                }
-
-                genericParameterBuilder.Append(">");
-                genericParametersString = genericParameterBuilder.ToString();
-            }
-
-            var parameters = method.GetParameters().Select(x => x.ParameterType.FullName ?? x.ParameterType.Name);
-            string parameterString = String.Join(", ", parameters);
-
-            return String.Format("{0} {1}.{2}{3}({4})",
-                                 method.ReturnType,
-                                 method.DeclaringType,
-                                 method.Name,
-                                 genericParametersString,
-                                 parameterString);
+            var methodFormatter = new MethodFormatter(method);
+            return methodFormatter.ToString();
         }
+
 
 
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
@@ -353,7 +326,7 @@ namespace Pomona.Common
                                                                    typeof(object))).Compile()();
         }
 
-
+        
         public static bool IsAnonymous(this TypeSpec type)
         {
             return type.Name.StartsWith("<>f__AnonymousType");
