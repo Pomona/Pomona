@@ -213,7 +213,10 @@ namespace Pomona.Common.Linq
 
             var token = node.Method.UniqueToken();
             if (!queryableMethodToVisitMethodDictionary.ContainsKey(token))
-                throw new NotImplementedException(String.Format("{0} is not implemented.", node.Method.Name));
+            {
+                var methodName = node.Method.GetFullNameWithSignature();
+                throw new NotImplementedException(String.Format("{0} is not implemented.", methodName));
+            }
 
             var visitMethod = queryableMethodToVisitMethodDictionary[token];
             var visitMethodInstance = visitMethod.IsGenericMethod
