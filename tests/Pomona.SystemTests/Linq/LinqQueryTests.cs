@@ -411,16 +411,15 @@ namespace Pomona.SystemTests.Linq
 
 
         [Test]
-        [Category("TODO")]
-        public void QueryCritter_OrderByWithCustomComparer_ThrowsNotSupportedException()
+        public void QueryCritter_OrderByWithCustomComparer_ThrowsNotImplementedException()
         {
             TestDelegate throwing = () => Client.Critters
                                                 .Query()
                                                 .OrderBy(x => x.Name, new CustomComparer())
                                                 .ToList();
 
-            var exception = Assert.Throws<NotSupportedException>(throwing);
-            Assert.That(exception.Message, Is.StringContaining("Comparer"));
+            var exception = Assert.Throws<NotImplementedException>(throwing);
+            Assert.That(exception.Message, Is.StringContaining("comparer"));
         }
 
 

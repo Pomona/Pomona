@@ -392,6 +392,12 @@ namespace Pomona.Common.Linq
         }
 
 
+        internal void QOrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
+        {
+            throw new NotImplementedException("OrderBy with a comparer is not implemented.");
+        }
+
+
         internal void QOrderByDescending<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
             OrderBy(keySelector, SortOrder.Descending);
