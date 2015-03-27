@@ -40,13 +40,6 @@ namespace Pomona.Common.TypeSystem
 {
     public class ResourceType : StructuredType
     {
-        private static readonly MethodInfo convertToPathEncodedStringMethod =
-            ReflectionHelper.GetMethodDefinition<ResourceType>(x => ConvertToPathEncodedString(null));
-
-        private static readonly MethodInfo stringBuilderAppendFormatMethod =
-            ReflectionHelper.GetMethodDefinition<StringBuilder>(
-                x => x.AppendFormat((IFormatProvider)null, "", new object[] { }));
-
         private readonly Lazy<ResourceTypeDetails> resourceTypeDetails;
         private readonly Lazy<ResourceType> uriBaseType;
         private readonly Lazy<Action<object, StringBuilder>> uriGenerator;
@@ -66,14 +59,19 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.ChildToParentProperty; }
         }
 
+        public bool IsChildResource
+        {
+            get { return ResourceTypeDetails.ParentResourceType != null; }
+        }
+
         public bool IsExposedAsRepository
         {
             get { return ResourceTypeDetails.IsExposedAsRepository; }
         }
 
-        public bool IsChildResource
+        public bool IsSingleton
         {
-            get { return ResourceTypeDetails.ParentResourceType != null; }
+            get { return ResourceTypeDetails.IsSingleton; }
         }
 
         public bool IsUriBaseType
@@ -121,11 +119,6 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.UrlRelativePath; }
         }
 
-        public bool IsSingleton
-        {
-            get { return ResourceTypeDetails.IsSingleton; }
-        }
-
         protected ResourceTypeDetails ResourceTypeDetails
         {
             get { return this.resourceTypeDetails.Value; }
@@ -138,17 +131,23 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
-        {
-            return new ResourceProperty(TypeResolver, property, this);
-        }
-
-
         public string ToUri(object o)
         {
             var sb = new StringBuilder();
             AppendUri(o, sb);
             return sb.ToString();
+        }
+
+
+        protected internal virtual ResourceType OnLoadUriBaseType()
+        {
+            return this;
+        }
+
+
+        protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
+        {
+            return new ResourceProperty(TypeResolver, property, this);
         }
 
 
@@ -165,19 +164,19 @@ namespace Pomona.Common.TypeSystem
                     GetUrlPathEncodedExpression);
 
             return Expression.Lambda<Action<object, StringBuilder>>(Expression.Call(sbParam,
-                stringBuilderAppendFormatMethod,
-                Expression.Constant(CultureInfo.InvariantCulture),
-                Expression.Constant(formatStringBuilder.ToString()),
-                Expression.NewArrayInit(typeof(object), sbArgsEncoded)),
-                parameterExpression,
-                sbParam);
+                                                                                    stringBuilderAppendFormatMethod,
+                                                                                    Expression.Constant(CultureInfo.InvariantCulture),
+                                                                                    Expression.Constant(formatStringBuilder.ToString()),
+                                                                                    Expression.NewArrayInit(typeof(object), sbArgsEncoded)),
+                                                                    parameterExpression,
+                                                                    sbParam);
         }
 
 
         private static void BuildUriGenerator(ResourceType rt,
-            List<Expression> sbFormatArgs,
-            Expression parentExpression,
-            StringBuilder formatStringBuilder)
+                                              List<Expression> sbFormatArgs,
+                                              Expression parentExpression,
+                                              StringBuilder formatStringBuilder)
         {
             var parentToChildProperty = rt.ParentToChildProperty;
             if (parentToChildProperty != null)
@@ -198,9 +197,7 @@ namespace Pomona.Common.TypeSystem
             else
             {
                 if (rt.IsSingleton)
-                {
                     formatStringBuilder.AppendFormat("{0}", rt.UrlRelativePath);
-                }
                 else
                 {
                     var sbArgsExpr = rt.PrimaryId.CreateGetterExpression(parentExpression);
@@ -223,13 +220,15 @@ namespace Pomona.Common.TypeSystem
                 return Expression.Convert(expr, typeof(object));
 
             return Expression.Call(convertToPathEncodedStringMethod,
-                Expression.Convert(expr, typeof(object)));
+                                   Expression.Convert(expr, typeof(object)));
         }
 
 
-        protected internal virtual ResourceType OnLoadUriBaseType()
-        {
-            return this;
-        }
+        private static readonly MethodInfo convertToPathEncodedStringMethod =
+            ReflectionHelper.GetMethodDefinition<ResourceType>(x => ConvertToPathEncodedString(null));
+
+        private static readonly MethodInfo stringBuilderAppendFormatMethod =
+            ReflectionHelper.GetMethodDefinition<StringBuilder>(
+                x => x.AppendFormat((IFormatProvider)null, "", new object[] { }));
     }
 }
