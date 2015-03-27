@@ -83,6 +83,9 @@ namespace Pomona.Example.Models
             get { return "bah bah"; }
         }
 
+        /// <summary>
+        /// Name of the critter!
+        /// </summary>
         public string Name { get; set; }
 
         [Obsolete("This is old and obsolete!")]

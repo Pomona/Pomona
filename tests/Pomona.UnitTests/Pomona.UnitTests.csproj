@@ -104,6 +104,7 @@
     <Compile Include="CodeGen\IndependentClass.cs" />
     <Compile Include="CodeGen\StringExtensionTests.cs" />
     <Compile Include="CodeGen\TypeDefinitionClonerTests.cs" />
+    <Compile Include="Documentation\XmlDocTests.cs" />
     <Compile Include="EnumerableExtensionsTests.cs" />
     <Compile Include="ExceptionTests.cs" />
     <Compile Include="ExpressionExtensionTests.cs" />

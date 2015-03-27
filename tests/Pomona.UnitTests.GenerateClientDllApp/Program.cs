@@ -48,10 +48,8 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             // Modify property Protected of class Critter to not be protected in client dll.
             // This is to test setting a protected property will throw exception on server.
 
-            using (var file = new FileStream(@"..\..\..\..\lib\Critters.Client.dll", FileMode.OpenOrCreate))
-            {
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient : false);
-            }
+            var embedPomonaClient = false;
+            WriteClientLibrary(@"..\..\..\..\lib\Critters.Client.dll", typeMapper, false);
             using (var file = new FileStream(@"..\..\..\..\lib\Extra.Client.dll", FileMode.OpenOrCreate))
             {
                 ClientLibGenerator.WriteClientLibrary(new TypeMapper(new SimplePomonaConfiguration()), file,
@@ -69,6 +67,19 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             }
 
             Console.WriteLine("Wrote client dll.");
+        }
+
+
+        private static void WriteClientLibrary(string dllName, TypeMapper typeMapper, bool embedPomonaClient)
+        {
+            dllName = Path.GetFullPath(dllName);
+            var xmlDocName = Path.Combine(Path.GetDirectoryName(dllName), Path.GetFileNameWithoutExtension(dllName) + ".xml");
+            using (var file = new FileStream(dllName, FileMode.OpenOrCreate))
+            {
+                if (!dllName.EndsWith(".dll"))
+                    throw new ArgumentException("Filename should end with .dll");
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient, () => File.OpenWrite(xmlDocName));
+            }
         }
 
         #region Nested type: IndependentClientDllConfiguration

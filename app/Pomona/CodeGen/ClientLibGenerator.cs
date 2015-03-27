@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Serialization;
 
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -42,6 +43,7 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
+using Pomona.Documentation;
 
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
@@ -58,8 +60,10 @@ namespace Pomona.CodeGen
     {
         private static readonly Assembly commonAssembly = typeof(IClientResource).Assembly;
         private readonly IEnumerable<Assembly> allowedReferencedAssemblies;
+        private readonly IDocumentationProvider docProvider;
         private readonly TypeMapper typeMapper;
         private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
+        private readonly XmlDoc xmlDoc = new XmlDoc();
         private TypeDefinition clientInterface;
         private Dictionary<TypeSpec, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumTypeSpec, TypeReference> enumClientTypeDict;
@@ -67,11 +71,12 @@ namespace Pomona.CodeGen
         private string @namespace;
 
 
-        public ClientLibGenerator(TypeMapper typeMapper)
+        public ClientLibGenerator(TypeMapper typeMapper, IDocumentationProvider docProvider = null)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
             this.typeMapper = typeMapper;
+            this.docProvider = docProvider ?? new EmptyDocProvider();
             this.allowedReferencedAssemblies = new[]
             {
                 /*mscorlib*/typeof(string).Assembly,
@@ -87,6 +92,11 @@ namespace Pomona.CodeGen
         public bool MakeProxyTypesPublic { get; set; }
         public bool PomonaClientEmbeddingEnabled { get; set; }
 
+        public XmlDoc XmlDoc
+        {
+            get { return this.xmlDoc; }
+        }
+
         private TypeReference StringTypeRef
         {
             get { return Import(typeof(string)); }
@@ -98,13 +108,14 @@ namespace Pomona.CodeGen
         }
 
 
-        public void CreateClientDll(Stream stream)
+        public void CreateClientDll(Stream stream, Action<XmlDoc> onXmlDocCompleted = null)
         {
             var structuredTypes = this.typeMapper.SourceTypes.OfType<StructuredType>().ToList();
             this.@namespace = this.typeMapper.Filter.ClientMetadata.Namespace;
             var version = new Version(this.typeMapper.Filter.ApiVersion.PadTo(4));
             var assemblyName = this.typeMapper.Filter.ClientMetadata.AssemblyName;
             var assembly = CreateAssembly(assemblyName, version);
+            this.xmlDoc.Assembly.Name = assembly.Name.Name;
 
             this.module = assembly.MainModule;
             this.module.Name = assemblyName + ".dll";
@@ -171,17 +182,30 @@ namespace Pomona.CodeGen
 
             stream.Write(array, 0, array.Length);
 
-            //assembly.Write(stream);
+            if (this.xmlDoc.Members.Count > 0 && onXmlDocCompleted != null)
+                onXmlDocCompleted(this.xmlDoc);
         }
 
 
-        public static void WriteClientLibrary(TypeMapper typeMapper, Stream stream, bool embedPomonaClient = true)
+        public static void WriteClientLibrary(TypeMapper typeMapper,
+                                              Stream stream,
+                                              bool embedPomonaClient = true,
+                                              Func<Stream> xmlDocStreamFactory = null)
         {
-            var clientLibGenerator = new ClientLibGenerator(typeMapper)
+            var clientLibGenerator = new ClientLibGenerator(typeMapper, new XmlDocumentationProvider())
             {
                 PomonaClientEmbeddingEnabled = embedPomonaClient
             };
-            clientLibGenerator.CreateClientDll(stream);
+            clientLibGenerator.CreateClientDll(stream, onXmlDocCompleted : doc =>
+            {
+                if (xmlDocStreamFactory == null)
+                    return;
+                using (var xmlStream = xmlDocStreamFactory())
+                {
+                    var serializer = new XmlSerializer(typeof(XmlDoc));
+                    serializer.Serialize(xmlStream, doc);
+                }
+            });
         }
 
 
@@ -266,6 +290,20 @@ namespace Pomona.CodeGen
             setIlProcessor.Append(Instruction.Create(OpCodes.Ret));
 
             return propertyDefinition;
+        }
+
+
+        private void AddDocumentationToXmlDoc(StructuredProperty prop, PropertyDefinition propDef)
+        {
+            var description = this.docProvider.GetSummary(prop);
+            if (description != null)
+            {
+                this.xmlDoc.Members.Add(new XmlDocMember
+                {
+                    Name = "P:" + propDef.DeclaringType.FullName + "." + propDef.Name,
+                    Summary = description
+                });
+            }
         }
 
 
@@ -659,6 +697,8 @@ namespace Pomona.CodeGen
 
                     // For interface getters and setters
                     var interfacePropDef = AddInterfaceProperty(interfaceDef, property.Name, propTypeRef);
+
+                    AddDocumentationToXmlDoc(property, interfacePropDef);
 
                     if (property.IsAttributesProperty)
                         AddAttribute<ResourceAttributesPropertyAttribute>(interfacePropDef);
@@ -1225,6 +1265,15 @@ namespace Pomona.CodeGen
         {
             return methodDefinition.Parameters.Select(y => y.ParameterType.FullName)
                                    .SequenceEqual(methodBase.GetParameters().Select(y => y.ParameterType.FullName));
+        }
+
+
+        private class EmptyDocProvider : IDocumentationProvider
+        {
+            public string GetSummary(MemberSpec member)
+            {
+                return null;
+            }
         }
 
         #region Nested type: PatchFormProxyBuilder

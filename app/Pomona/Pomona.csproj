@@ -119,6 +119,11 @@
     <Compile Include="CodeGen\TypeDefinitionCloner.cs" />
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="DefaultTypeMappingFilter.cs" />
+    <Compile Include="Documentation\IDocumentationProvider.cs" />
+    <Compile Include="Documentation\XmlDoc.cs" />
+    <Compile Include="Documentation\XmlDocAssembly.cs" />
+    <Compile Include="Documentation\XmlDocMember.cs" />
+    <Compile Include="Documentation\XmlDocumentationProvider.cs" />
     <Compile Include="Fetcher\BatchFetcher.cs">
       <SubType>Code</SubType>
     </Compile>

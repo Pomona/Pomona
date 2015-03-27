@@ -107,7 +107,7 @@ namespace Pomona.Common.TypeSystem
         {
             get { return StructuredTypeDetails.PrimaryId; }
         }
-
+        
         public new virtual IEnumerable<StructuredProperty> Properties
         {
             get { return base.Properties.Cast<StructuredProperty>(); }
