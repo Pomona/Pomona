@@ -43,30 +43,14 @@ namespace Pomona.UnitTests.GenerateClientDllApp
     {
         private static void Main(string[] args)
         {
-            var typeMapper = new TypeMapper(new ModifiedCritterPomonaConfiguration());
-
             // Modify property Protected of class Critter to not be protected in client dll.
             // This is to test setting a protected property will throw exception on server.
 
-            var embedPomonaClient = false;
-            WriteClientLibrary(@"..\..\..\..\lib\Critters.Client.dll", typeMapper, false);
-            using (var file = new FileStream(@"..\..\..\..\lib\Extra.Client.dll", FileMode.OpenOrCreate))
-            {
-                ClientLibGenerator.WriteClientLibrary(new TypeMapper(new SimplePomonaConfiguration()), file,
-                                                      embedPomonaClient : false);
-            }
+            WriteClientLibrary(@"..\..\..\..\lib\Critters.Client.dll", new TypeMapper(new ModifiedCritterPomonaConfiguration()), false);
+            WriteClientLibrary(@"..\..\..\..\lib\Extra.Client.dll", new TypeMapper(new SimplePomonaConfiguration()), false);
+            WriteClientLibrary(@"..\..\..\..\lib\IndependentCritters.dll", new TypeMapper(new IndependentClientDllConfiguration()), true);
 
-            using (
-                var file = new FileStream(
-                    @"..\..\..\..\lib\IndependentCritters.dll",
-                    FileMode.OpenOrCreate))
-            {
-                ClientLibGenerator.WriteClientLibrary(new TypeMapper(new IndependentClientDllConfiguration()),
-                                                      file,
-                                                      embedPomonaClient : true);
-            }
-
-            Console.WriteLine("Wrote client dll.");
+            Console.WriteLine("Wrote client dlls.");
         }
 
 
