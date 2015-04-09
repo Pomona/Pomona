@@ -106,6 +106,7 @@ namespace Pomona.UnitTests.Queries
             public object UnknownProperty { get; set; }
             public bool and { get; set; }
             public int? NullableNumber { get; set; }
+            public long? NullableInt64 { get; set; }
         }
 
         #endregion

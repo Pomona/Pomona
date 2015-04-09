@@ -39,6 +39,13 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
+        public void Parse_NullableInt64EqualsConstant_CreatesCorrectExpression()
+        {
+            ParseAndAssert("nullableInt64 == 42L", _this => _this.NullableInt64 == 42);
+        }
+
+
+        [Test]
         public void ParseAverageOfDecimalEnumerable_ReturnsCorrectExpression()
         {
             ParseAndAssert("listOfDecimals.average()", _this => _this.ListOfDecimals.Average());

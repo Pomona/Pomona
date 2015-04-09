@@ -723,6 +723,8 @@ namespace Pomona.Common
                     return EncodeString((string)value);
                 case TypeCode.Int32:
                     return value.ToString();
+                case TypeCode.Int64:
+                    return string.Format("{0}L", value);
                 case TypeCode.DateTime:
                     return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
                 case TypeCode.Double:

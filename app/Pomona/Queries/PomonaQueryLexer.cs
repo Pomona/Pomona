@@ -1787,9 +1787,9 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 		{
 			int _type = INT;
 			int _channel = DefaultTokenChannel;
-			// Queries\\PomonaQuery.g:56:5: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )? )
+			// Queries\\PomonaQuery.g:56:5: ( ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' | 'L' )? )
 			DebugEnterAlt(1);
-			// Queries\\PomonaQuery.g:56:7: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' )?
+			// Queries\\PomonaQuery.g:56:7: ( '-' )? ( '0' .. '9' )+ ( '.' ( '0' .. '9' )+ )? ( 'm' | 'M' | 'f' | 'F' | 'L' )?
 			{
 			DebugLocation(56, 7);
 			// Queries\\PomonaQuery.g:56:7: ( '-' )?
@@ -1936,13 +1936,13 @@ public partial class PomonaQueryLexer : Antlr.Runtime.Lexer
 			} finally { DebugExitSubRule(7); }
 
 			DebugLocation(56, 41);
-			// Queries\\PomonaQuery.g:56:41: ( 'm' | 'M' | 'f' | 'F' )?
+			// Queries\\PomonaQuery.g:56:41: ( 'm' | 'M' | 'f' | 'F' | 'L' )?
 			int alt8=2;
 			try { DebugEnterSubRule(8);
 			try { DebugEnterDecision(8, false);
 			int LA8_1 = input.LA(1);
 
-			if ((LA8_1=='F'||LA8_1=='M'||LA8_1=='f'||LA8_1=='m'))
+			if ((LA8_1=='F'||(LA8_1>='L' && LA8_1<='M')||LA8_1=='f'||LA8_1=='m'))
 			{
 				alt8 = 1;
 			}

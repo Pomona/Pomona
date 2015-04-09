@@ -120,6 +120,12 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildNullableInt64EqualsConstant_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.NullableInt64 == 42, "nullableInt64 eq 42L");
+        }
+
+        [Test]
         public void BuildConcat_ReturnsCorrectString()
         {
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
@@ -663,7 +669,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildValuePropertyOfNullable_ReturnsCorrectString()
         {
-            AssertBuild(x => x.NullableNumber.Value, "nullableNumber.value()");
+            AssertBuild(x => x.NullableInt32.Value, "nullableInt32.value()");
         }
 
 

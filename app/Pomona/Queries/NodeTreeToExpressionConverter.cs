@@ -322,7 +322,7 @@ namespace Pomona.Queries
                     return Expression.Multiply(leftChild, rightChild);
                 case NodeType.Modulo:
                     return Expression.Modulo(leftChild, rightChild);
-                case NodeType.Div:
+                case NodeType.Divide:
                     return Expression.Divide(leftChild, rightChild);
                 case NodeType.Equal:
                     return ParseBinaryOperator(leftChild, rightChild, ExpressionType.Equal);

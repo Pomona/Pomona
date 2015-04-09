@@ -63,6 +63,8 @@ namespace Pomona.Queries
                 return decimal.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
             if (lastCharacter == 'f' || lastCharacter == 'F')
                 return float.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
+            if (lastCharacter == 'L')
+                return Int64.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
 
             var parts = value.Split('.');
             if (parts.Length == 1)

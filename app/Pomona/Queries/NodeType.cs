@@ -32,7 +32,7 @@ namespace Pomona.Queries
         Add,
         Subtract,
         Multiply,
-        Div,
+        Divide,
         NumberLiteral,
         LessThan,
         Equal,
