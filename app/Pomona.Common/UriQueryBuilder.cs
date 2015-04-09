@@ -47,12 +47,12 @@ namespace Pomona.Common
             AppendEncodedQueryValue(value.ToString());
         }
 
-        public void AppendExpressionParameter(string queryKey, LambdaExpression expression)
+        public void AppendExpressionParameter(string queryKey, Expression expression)
         {
             AppendExpressionParameter<QueryPredicateBuilder>(queryKey, expression);
         }
 
-        public void AppendExpressionParameter<TVisitor>(string queryKey, LambdaExpression expression)
+        public void AppendExpressionParameter<TVisitor>(string queryKey, Expression expression)
             where TVisitor : ExpressionVisitor, new()
         {
             var pomonaExpression = (PomonaExtendedExpression)expression.Visit<TVisitor>();

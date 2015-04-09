@@ -96,6 +96,8 @@
     <Compile Include="Internals\Formatting\FormatterBase.cs" />
     <Compile Include="Internals\Formatting\MethodFormatter.cs" />
     <Compile Include="Internals\Formatting\TypeFormatter.cs" />
+    <Compile Include="Linq\QueryOrderByBuilder.cs" />
+    <Compile Include="Linq\QueryOrderExpression.cs" />
     <Compile Include="Linq\QueryPredicateBuilder.cs" />
     <Compile Include="Linq\QuerySelectorBuilder.cs" />
     <Compile Include="Linq\SelectClientServerPartitionerVisitor.cs" />

@@ -169,12 +169,7 @@ namespace Pomona.Common.Linq
                 builder.AppendExpressionParameter("$filter", parser.WherePredicate);
             if (parser.OrderKeySelectors.Count > 0)
             {
-                var orderExpressions =
-                    string.Join(",", parser.OrderKeySelectors.Select(
-                        x =>
-                            x.Item1.Visit<QueryPredicateBuilder>().ToString()
-                            + (x.Item2 == SortOrder.Descending ? " desc" : string.Empty)));
-                builder.AppendParameter("$orderby", orderExpressions);
+                builder.AppendExpressionParameter<QueryOrderByBuilder>("$orderby", Expression.Constant(parser.OrderKeySelectors));
             }
             if (parser.GroupByKeySelector != null)
             {

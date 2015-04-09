@@ -33,16 +33,16 @@ using System.Linq;
 
 namespace Pomona.Common.Linq
 {
-    internal class QuerySelectExpression : QuerySegmentExpression
+    internal class QueryOrderExpression : QuerySegmentExpression
     {
-        private readonly IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList;
+        private readonly IEnumerable<Tuple<PomonaExtendedExpression, SortOrder>> selectors;
         private ReadOnlyCollection<object> children;
 
 
-        public QuerySelectExpression(IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList, Type type)
+        public QueryOrderExpression(IEnumerable<Tuple<PomonaExtendedExpression, SortOrder>> selectors, Type type)
             : base(type)
         {
-            this.selectList = selectList;
+            this.selectors = selectors.ToList();
         }
 
 
@@ -66,13 +66,13 @@ namespace Pomona.Common.Linq
         private IEnumerable<object> GetChildren()
         {
             int i = 0;
-            foreach (var kvp in this.selectList)
+            foreach (var kvp in this.selectors)
             {
                 if (i != 0)
                     yield return ",";
-                yield return kvp.Value;
-                yield return " as ";
-                yield return kvp.Key;
+                yield return kvp.Item1;
+                if (kvp.Item2 == SortOrder.Descending)
+                    yield return " desc";
                 i++;
             }
         }

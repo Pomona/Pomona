@@ -28,53 +28,39 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
+
+using Pomona.Common.Internals;
 
 namespace Pomona.Common.Linq
 {
-    internal class QuerySelectExpression : QuerySegmentExpression
+    internal class QueryOrderByBuilder : ExpressionVisitor
     {
-        private readonly IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList;
-        private ReadOnlyCollection<object> children;
-
-
-        public QuerySelectExpression(IEnumerable<KeyValuePair<string, PomonaExtendedExpression>> selectList, Type type)
-            : base(type)
+        public override Expression Visit(Expression node)
         {
-            this.selectList = selectList;
+            if (node.NodeType != ExpressionType.Constant
+                || !(typeof(IEnumerable<Tuple<LambdaExpression, SortOrder>>).IsAssignableFrom(node.Type)))
+                throw new NotSupportedException("This visitor only supports IEnumerable<Tuple<LambdaExpression, SortOrder>> constant.");
+
+            return base.Visit(node);
         }
 
 
-        public override ReadOnlyCollection<object> Children
+        protected override Expression VisitConstant(ConstantExpression node)
         {
-            get
-            {
-                if (this.children == null)
-                    this.children = new ReadOnlyCollection<object>(GetChildren().ToList());
-                return this.children;
-            }
+            return Visit((IEnumerable<Tuple<LambdaExpression, SortOrder>>)node.Value);
         }
 
 
-        public override IEnumerable<string> ToStringSegments()
+        private PomonaExtendedExpression Visit(IEnumerable<Tuple<LambdaExpression, SortOrder>> orderKeySelectors)
         {
-            return ToStringSegmentsRecursive(GetChildren());
-        }
-
-
-        private IEnumerable<object> GetChildren()
-        {
-            int i = 0;
-            foreach (var kvp in this.selectList)
-            {
-                if (i != 0)
-                    yield return ",";
-                yield return kvp.Value;
-                yield return " as ";
-                yield return kvp.Key;
-                i++;
-            }
+            return
+                new QueryOrderExpression(
+                    orderKeySelectors.Select(
+                        x =>
+                            new Tuple<PomonaExtendedExpression, SortOrder>(
+                            (PomonaExtendedExpression)ExpressionExtensions.Visit<QueryPredicateBuilder>(x.Item1), x.Item2)), typeof(object));
         }
     }
 }
