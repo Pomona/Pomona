@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,11 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
 using Pomona.Common.Linq;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common
 {
@@ -67,7 +65,7 @@ namespace Pomona.Common
         private Expression VisitRootNew(NewExpression node)
         {
             if (!(node.Constructor.DeclaringType.IsAnonymous() || node.Constructor.DeclaringType.IsTuple()))
-                return base.Visit(node);
+                return Visit(node);
 
             var readOnlyCollection = node.Members != null
                 ? node.Members.Select(x => x.Name)
@@ -76,7 +74,7 @@ namespace Pomona.Common
             var selectList = node.Arguments.Zip(
                 readOnlyCollection,
                 (e, p) => new KeyValuePair<string, PomonaExtendedExpression>(p, (PomonaExtendedExpression)Visit(e)))
-                .ToList();
+                                 .ToList();
             return new QuerySelectExpression(selectList, node.Type);
         }
     }

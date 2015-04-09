@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -44,14 +44,15 @@ namespace Pomona.Common
     {
         protected static readonly ReadOnlyDictionary<ExpressionType, string> binaryExpressionNodeDict;
         private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };
-
         private static readonly HashSet<Type> nativeTypes = new HashSet<Type>(TypeUtils.GetNativeTypes());
 
         private static readonly HashSet<char> validSymbolCharacters =
             new HashSet<char>("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 
+        private readonly Dictionary<Expression, Expression> builderVisitedNodesCache =
+            new Dictionary<Expression, Expression>();
+
         private readonly ParameterExpression thisParameter;
-        private LambdaExpression rootLambda;
 
 
         static QueryPredicateBuilder()
@@ -81,35 +82,29 @@ namespace Pomona.Common
         {
         }
 
+
         private QueryPredicateBuilder(ParameterExpression thisParameter)
         {
             this.thisParameter = thisParameter;
         }
 
 
-        protected LambdaExpression RootLambda
-        {
-            get { return this.rootLambda; }
-        }
+        protected LambdaExpression RootLambda { get; private set; }
 
         protected ParameterExpression ThisParameter
         {
             get
             {
                 return this.thisParameter
-                       ?? (this.rootLambda != null ? this.rootLambda.Parameters.FirstOrDefault() : null);
+                       ?? (this.RootLambda != null ? this.RootLambda.Parameters.FirstOrDefault() : null);
             }
         }
-
-        private readonly Dictionary<Expression, Expression> builderVisitedNodesCache =
-            new Dictionary<Expression, Expression>();
 
 
         public override Expression Visit(Expression node)
         {
             if (node == null)
                 return null;
-
 
             if (node is PomonaExtendedExpression)
                 return node;
@@ -124,15 +119,6 @@ namespace Pomona.Common
             }
 
             return visited;
-        }
-
-
-        protected virtual Expression VisitRootLambda<T>(Expression<T> node)
-        {
-            var visitedBody = Visit(node.Body);
-            while (visitedBody is QuerySegmentParenScopeExpression)
-                visitedBody = ((QuerySegmentParenScopeExpression)visitedBody).Value;
-            return visitedBody;
         }
 
 
@@ -157,47 +143,6 @@ namespace Pomona.Common
                 TryDetectAndConvertEqualBetweenResourcesWithIdProperty(ref left, ref right);
 
             return Scope(Nodes(node, Visit(left), " ", opString, " ", Visit(right)));
-        }
-
-
-        private static void TryDetectAndConvertEqualBetweenResourcesWithIdProperty(ref Expression left,
-                                                                                   ref Expression right)
-        {
-            if (left.Type != right.Type)
-                return;
-
-            PropertyInfo resourceIdProperty;
-            if (!GetInterfaceWithResourceIdProperty(left.Type, out resourceIdProperty))
-                return;
-
-            left = MakeResourceIdAccess(left, resourceIdProperty);
-            right = MakeResourceIdAccess(right, resourceIdProperty);
-        }
-
-
-        private static Expression MakeResourceIdAccess(Expression node, PropertyInfo resourceIdProperty)
-        {
-            var constantExpression = node as ConstantExpression;
-            if (constantExpression == null)
-                return Expression.Property(node, resourceIdProperty);
-
-            var value = resourceIdProperty.GetValue(constantExpression.Value, null);
-            var propertyType = resourceIdProperty.PropertyType;
-            if (value == null && propertyType.IsValueType)
-                return NotSupported(node, String.Format("Can't compare {0} with null.", propertyType));
-
-            return Expression.Constant(value, propertyType);
-        }
-
-
-        private static bool GetInterfaceWithResourceIdProperty(Type type, out PropertyInfo resourceIdProperty)
-        {
-            resourceIdProperty = null;
-            ResourceInfoAttribute ria;
-            if (type.TryGetResourceInfoAttribute(out ria))
-                resourceIdProperty = ria.IdProperty;
-
-            return resourceIdProperty != null;
         }
 
 
@@ -229,16 +174,16 @@ namespace Pomona.Common
             if (node.Parameters.Count != 1)
                 return NotSupported(node, "Only supports one parameter in lambda expression for now.");
 
-            if (this.rootLambda == null)
+            if (this.RootLambda == null)
             {
                 try
                 {
-                    this.rootLambda = (LambdaExpression)node.Visit<PreBuildVisitor>();
-                    return VisitRootLambda((Expression<T>)this.rootLambda);
+                    this.RootLambda = (LambdaExpression)node.Visit<PreBuildVisitor>();
+                    return VisitRootLambda((Expression<T>)this.RootLambda);
                 }
                 finally
                 {
-                    this.rootLambda = null;
+                    this.RootLambda = null;
                 }
             }
             else
@@ -325,33 +270,6 @@ namespace Pomona.Common
         }
 
 
-        private Expression VisitStringEqualsTakingComparisonTypeCall(MethodCallExpression node)
-        {
-            var compTypeConstant = node.Arguments[2] as ConstantExpression;
-            if (compTypeConstant == null)
-            {
-                return NotSupported(node,
-                                    "String.Equals taking 3 arguments is only supported when ComparisonType is constant.");
-            }
-
-            string opString;
-
-            switch ((StringComparison)compTypeConstant.Value)
-            {
-                case StringComparison.CurrentCultureIgnoreCase:
-                case StringComparison.InvariantCultureIgnoreCase:
-                case StringComparison.OrdinalIgnoreCase:
-                    opString = "ieq";
-                    break;
-                default:
-                    opString = "eq";
-                    break;
-            }
-
-            return Format(node, "{0} {1} {2}", Visit(node.Arguments[0]), opString, Visit(node.Arguments[1]));
-        }
-
-
         protected override Expression VisitNewArray(NewArrayExpression node)
         {
             IEnumerable<Expression> arrayElements = node.Expressions;
@@ -380,6 +298,15 @@ namespace Pomona.Common
             if (node == ThisParameter)
                 return Terminal(node, "this");
             return Terminal(node, node.Name);
+        }
+
+
+        protected virtual Expression VisitRootLambda<T>(Expression<T> node)
+        {
+            var visitedBody = Visit(node.Body);
+            while (visitedBody is QuerySegmentParenScopeExpression)
+                visitedBody = ((QuerySegmentParenScopeExpression)visitedBody).Value;
+            return visitedBody;
         }
 
 
@@ -527,95 +454,6 @@ namespace Pomona.Common
         }
 
 
-        private static Type GetFuncInExpression(Type t)
-        {
-            Type[] typeArgs;
-            if (t.TryExtractTypeArguments(typeof(IQueryable<>), out typeArgs))
-                return typeof(IEnumerable<>).MakeGenericType(typeArgs[0]);
-            return t.TryExtractTypeArguments(typeof(Expression<>), out typeArgs) ? typeArgs[0] : t;
-        }
-
-
-        private static string GetMemberName(MemberInfo member)
-        {
-            // Do it JSON style camelCase
-            return member.Name.Substring(0, 1).ToLower() + member.Name.Substring(1);
-        }
-
-
-        private static object GetMemberValue(object obj, MemberInfo member)
-        {
-            if (obj == null)
-                throw new ArgumentNullException("obj");
-            if (member == null)
-                throw new ArgumentNullException("member");
-            var propertyInfo = member as PropertyInfo;
-            if (propertyInfo != null)
-                return propertyInfo.GetValue(obj, null);
-
-            var fieldInfo = member as FieldInfo;
-            if (fieldInfo != null)
-                return fieldInfo.GetValue(obj);
-
-            throw new InvalidOperationException("Don't know how to get value from member of type " + member.GetType());
-        }
-
-
-        private static bool IsValidSymbolString(string text)
-        {
-            var containsOnlyValidSymbolCharacters = text.All(x => validSymbolCharacters.Contains(x));
-            return text.Length > 0 && (!char.IsNumber(text[0])) && containsOnlyValidSymbolCharacters;
-        }
-
-
-        private static NotSupportedByProviderExpression NotSupported(Expression node, string message)
-        {
-            return new NotSupportedByProviderExpression(node, new NotSupportedException(message));
-        }
-
-
-        private static void ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref MemberInfo member,
-                                                                                    ref IEnumerable<Expression>
-                                                                                        arguments)
-        {
-            var firstArg = arguments.First();
-            Type[] queryableTypeArgs;
-            var method = member as MethodInfo;
-            if (method != null && method.IsStatic &&
-                firstArg.Type.TryExtractTypeArguments(typeof(IQueryable<>), out queryableTypeArgs))
-            {
-                // Try to find matching method taking IEnumerable instead
-                var wantedArgs =
-                    method.GetGenericMethodDefinition()
-                        .GetParameters()
-                        .Select(x => GetFuncInExpression(x.ParameterType))
-                        .ToArray();
-
-                var enumerableMethod =
-                    typeof(Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
-                        .Where(x => x.Name == method.Name)
-                        .Select(x => new { parameters = x.GetParameters(), mi = x })
-                        .Where(x => x.parameters.Length == wantedArgs.Length &&
-                                    x.parameters
-                                   .Select(y => y.ParameterType)
-                                   .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
-                                   .All(y => y))
-                        .Select(x => x.mi)
-                        .FirstOrDefault();
-
-                if (enumerableMethod != null)
-                {
-                    arguments =
-                        arguments.Select(x => x.NodeType == ExpressionType.Quote ? ((UnaryExpression)x).Operand : x);
-                    if (enumerableMethod.IsGenericMethodDefinition)
-                        member = enumerableMethod.MakeGenericMethod(((MethodInfo)member).GetGenericArguments());
-                    else
-                        member = enumerableMethod;
-                }
-            }
-        }
-
-
         private string EncodeString(string text, string prefix = "")
         {
             // TODO: IMPORTANT! Proper encoding!!
@@ -729,10 +567,125 @@ namespace Pomona.Common
             {
                 var resourceInfoAttribute =
                     typeOperand.GetCustomAttributes(typeof(ResourceInfoAttribute), false).
-                        OfType<ResourceInfoAttribute>().First();
+                                OfType<ResourceInfoAttribute>().First();
                 typeName = resourceInfoAttribute.JsonTypeName;
             }
             return EncodeString(typeName, "t");
+        }
+
+
+        private static Type GetFuncInExpression(Type t)
+        {
+            Type[] typeArgs;
+            if (t.TryExtractTypeArguments(typeof(IQueryable<>), out typeArgs))
+                return typeof(IEnumerable<>).MakeGenericType(typeArgs[0]);
+            return t.TryExtractTypeArguments(typeof(Expression<>), out typeArgs) ? typeArgs[0] : t;
+        }
+
+
+        private static bool GetInterfaceWithResourceIdProperty(Type type, out PropertyInfo resourceIdProperty)
+        {
+            resourceIdProperty = null;
+            ResourceInfoAttribute ria;
+            if (type.TryGetResourceInfoAttribute(out ria))
+                resourceIdProperty = ria.IdProperty;
+
+            return resourceIdProperty != null;
+        }
+
+
+        private static string GetMemberName(MemberInfo member)
+        {
+            // Do it JSON style camelCase
+            return member.Name.Substring(0, 1).ToLower() + member.Name.Substring(1);
+        }
+
+
+        private static object GetMemberValue(object obj, MemberInfo member)
+        {
+            if (obj == null)
+                throw new ArgumentNullException("obj");
+            if (member == null)
+                throw new ArgumentNullException("member");
+            var propertyInfo = member as PropertyInfo;
+            if (propertyInfo != null)
+                return propertyInfo.GetValue(obj, null);
+
+            var fieldInfo = member as FieldInfo;
+            if (fieldInfo != null)
+                return fieldInfo.GetValue(obj);
+
+            throw new InvalidOperationException("Don't know how to get value from member of type " + member.GetType());
+        }
+
+
+        private static bool IsValidSymbolString(string text)
+        {
+            var containsOnlyValidSymbolCharacters = text.All(x => validSymbolCharacters.Contains(x));
+            return text.Length > 0 && (!char.IsNumber(text[0])) && containsOnlyValidSymbolCharacters;
+        }
+
+
+        private static Expression MakeResourceIdAccess(Expression node, PropertyInfo resourceIdProperty)
+        {
+            var constantExpression = node as ConstantExpression;
+            if (constantExpression == null)
+                return Expression.Property(node, resourceIdProperty);
+
+            var value = resourceIdProperty.GetValue(constantExpression.Value, null);
+            var propertyType = resourceIdProperty.PropertyType;
+            if (value == null && propertyType.IsValueType)
+                return NotSupported(node, String.Format("Can't compare {0} with null.", propertyType));
+
+            return Expression.Constant(value, propertyType);
+        }
+
+
+        private static NotSupportedByProviderExpression NotSupported(Expression node, string message)
+        {
+            return new NotSupportedByProviderExpression(node, new NotSupportedException(message));
+        }
+
+
+        private static void ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref MemberInfo member,
+                                                                                    ref IEnumerable<Expression>
+                                                                                        arguments)
+        {
+            var firstArg = arguments.First();
+            Type[] queryableTypeArgs;
+            var method = member as MethodInfo;
+            if (method != null && method.IsStatic &&
+                firstArg.Type.TryExtractTypeArguments(typeof(IQueryable<>), out queryableTypeArgs))
+            {
+                // Try to find matching method taking IEnumerable instead
+                var wantedArgs =
+                    method.GetGenericMethodDefinition()
+                          .GetParameters()
+                          .Select(x => GetFuncInExpression(x.ParameterType))
+                          .ToArray();
+
+                var enumerableMethod =
+                    typeof(Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                                      .Where(x => x.Name == method.Name)
+                                      .Select(x => new { parameters = x.GetParameters(), mi = x })
+                                      .Where(x => x.parameters.Length == wantedArgs.Length &&
+                                                  x.parameters
+                                                   .Select(y => y.ParameterType)
+                                                   .Zip(wantedArgs, (y, z) => y.IsGenericallyEquivalentTo(z))
+                                                   .All(y => y))
+                                      .Select(x => x.mi)
+                                      .FirstOrDefault();
+
+                if (enumerableMethod != null)
+                {
+                    arguments =
+                        arguments.Select(x => x.NodeType == ExpressionType.Quote ? ((UnaryExpression)x).Operand : x);
+                    if (enumerableMethod.IsGenericMethodDefinition)
+                        member = enumerableMethod.MakeGenericMethod(((MethodInfo)member).GetGenericArguments());
+                    else
+                        member = enumerableMethod;
+                }
+            }
         }
 
 
@@ -756,6 +709,21 @@ namespace Pomona.Common
 
             if (tryAgainSwapped)
                 TryDetectAndConvertEnumComparison(ref right, ref left, false);
+        }
+
+
+        private static void TryDetectAndConvertEqualBetweenResourcesWithIdProperty(ref Expression left,
+                                                                                   ref Expression right)
+        {
+            if (left.Type != right.Type)
+                return;
+
+            PropertyInfo resourceIdProperty;
+            if (!GetInterfaceWithResourceIdProperty(left.Type, out resourceIdProperty))
+                return;
+
+            left = MakeResourceIdAccess(left, resourceIdProperty);
+            right = MakeResourceIdAccess(right, resourceIdProperty);
         }
 
 
@@ -806,6 +774,33 @@ namespace Pomona.Common
             return true;
         }
 
+
+        private Expression VisitStringEqualsTakingComparisonTypeCall(MethodCallExpression node)
+        {
+            var compTypeConstant = node.Arguments[2] as ConstantExpression;
+            if (compTypeConstant == null)
+            {
+                return NotSupported(node,
+                                    "String.Equals taking 3 arguments is only supported when ComparisonType is constant.");
+            }
+
+            string opString;
+
+            switch ((StringComparison)compTypeConstant.Value)
+            {
+                case StringComparison.CurrentCultureIgnoreCase:
+                case StringComparison.InvariantCultureIgnoreCase:
+                case StringComparison.OrdinalIgnoreCase:
+                    opString = "ieq";
+                    break;
+                default:
+                    opString = "eq";
+                    break;
+            }
+
+            return Format(node, "{0} {1} {2}", Visit(node.Arguments[0]), opString, Visit(node.Arguments[1]));
+        }
+
         #region Nested type: PreBuildVisitor
 
         private class PreBuildVisitor : EvaluateClosureMemberVisitor
@@ -816,14 +811,6 @@ namespace Pomona.Common
             static PreBuildVisitor()
             {
                 concatMethod = typeof(string).GetMethod("Concat", new[] { typeof(string), typeof(string) });
-            }
-
-
-            protected override Expression VisitExtension(Expression node)
-            {
-                if (node is PomonaExtendedExpression)
-                    return node;
-                return base.VisitExtension(node);
             }
 
 
@@ -849,6 +836,14 @@ namespace Pomona.Common
                     && right.Type == typeof(string))
                     return Expression.Call(concatMethod, left, right);
                 return base.VisitBinary(node);
+            }
+
+
+            protected override Expression VisitExtension(Expression node)
+            {
+                if (node is PomonaExtendedExpression)
+                    return node;
+                return base.VisitExtension(node);
             }
 
 
