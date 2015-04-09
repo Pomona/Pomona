@@ -23,6 +23,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -46,9 +47,27 @@ namespace Pomona.Common
             AppendEncodedQueryValue(value.ToString());
         }
 
-        public void AppendExpressionParameter(string queryKey, LambdaExpression predicate)
+        public void AppendExpressionParameter(string queryKey, LambdaExpression expression)
         {
-            var filterString = predicate.Visit<QueryPredicateBuilder>().ToString();
+            AppendExpressionParameter<QueryPredicateBuilder>(queryKey, expression);
+        }
+
+        public void AppendExpressionParameter<TVisitor>(string queryKey, LambdaExpression expression)
+            where TVisitor : ExpressionVisitor, new()
+        {
+            var pomonaExpression = (PomonaExtendedExpression)expression.Visit<TVisitor>();
+            if (!pomonaExpression.SupportedOnServer)
+            {
+                var unsupportedExpressions =  pomonaExpression.WrapAsEnumerable()
+                                .Flatten(x => x.Children.OfType<PomonaExtendedExpression>())
+                                .OfType<NotSupportedByProviderExpression>().ToList();
+
+                if (unsupportedExpressions.Count == 1)
+                    throw unsupportedExpressions[0].Exception;
+
+                throw new AggregateException(unsupportedExpressions.Select(x => x.Exception));
+            }
+            var filterString = pomonaExpression.ToString();
 
             AppendQueryParameterStart(queryKey);
             AppendEncodedQueryValue(filterString);

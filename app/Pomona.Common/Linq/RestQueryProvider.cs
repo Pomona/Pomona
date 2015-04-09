@@ -178,8 +178,7 @@ namespace Pomona.Common.Linq
             }
             if (parser.GroupByKeySelector != null)
             {
-                var selectBuilder = parser.GroupByKeySelector.Visit<QuerySelectorBuilder>();
-                builder.AppendParameter("$groupby", selectBuilder);
+                builder.AppendExpressionParameter<QuerySelectorBuilder>("$groupby", parser.GroupByKeySelector);
             }
             if (parser.SelectExpression != null)
             {

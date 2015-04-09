@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,8 @@ namespace Pomona.Common.Linq
         private readonly Expression expression;
 
 
-        public NotSupportedByProviderExpression(Expression expression, Exception exception = null) : base(expression.Type)
+        public NotSupportedByProviderExpression(Expression expression, Exception exception = null)
+            : base(expression.Type)
         {
             if (expression == null)
                 throw new ArgumentNullException("expression");
@@ -47,9 +48,14 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override bool LocalExecutionPreferred
+        public override ReadOnlyCollection<object> Children
         {
-            get { return true; }
+            get { return new ReadOnlyCollection<object>(new object[] { }); }
+        }
+
+        public Exception Exception
+        {
+            get { return this.exception; }
         }
 
         public Expression Expression
@@ -57,25 +63,25 @@ namespace Pomona.Common.Linq
             get { return this.expression; }
         }
 
+        public override bool LocalExecutionPreferred
+        {
+            get { return true; }
+        }
+
         public override ExpressionType NodeType
         {
             get { return ExpressionType.Extension; }
         }
-
-        public override string ToString()
-        {
-            return "(☹ node \"" + expression + "\" not supported. ]])";
-        }
-
 
         public override bool SupportedOnServer
         {
             get { return false; }
         }
 
-        public override ReadOnlyCollection<object> Children
+
+        public override string ToString()
         {
-            get { return new ReadOnlyCollection<object>(new object[] { }); }
+            return "(☹ node \"" + this.expression + "\" not supported. ]])";
         }
     }
 }

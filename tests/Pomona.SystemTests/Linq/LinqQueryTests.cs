@@ -33,6 +33,8 @@ using System.Linq.Expressions;
 
 using Critters.Client;
 
+using Nancy;
+
 using Newtonsoft.Json.Linq;
 
 using NUnit.Framework;
@@ -489,6 +491,12 @@ namespace Pomona.SystemTests.Linq
         }
 
 
+        public static bool UnsupportedMethod(int i)
+        {
+            return false;
+        }
+
+
         [Test]
         public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
         {
@@ -858,6 +866,28 @@ namespace Pomona.SystemTests.Linq
                     x => x.Name == critter.Name && x.Guid == critter.Guid && x.BandName == critter.BandName);
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
+
+
+        [Test]
+        public void Query_UsingUnsupportedMethod_ThrowsNotSupportedException()
+        {
+            var ex = Assert.Throws<NotSupportedException>(() => Client.Critters.Query().Where(x => UnsupportedMethod(x.Id)).ToList());
+            Console.WriteLine(ex.Message);
+            Assert.That(ex.Message, Is.EqualTo("Method UnsupportedMethod declared in Pomona.SystemTests.Linq.LinqQueryTests is not supported by the Pomona LINQ provider."));
+        }
+
+
+        [Test]
+        public void Query_UsingMultipleUnsupportedMethods_ThrowsAggregateException_WithNotSupportedExceptionsInside()
+        {
+            var ex = Assert.Throws<AggregateException>(() => Client.Critters.Query().Where(x => UnsupportedMethod(x.Id) && UnsupportedMethod(x.Id)).ToList());
+            Assert.That(ex.InnerExceptions.Count, Is.EqualTo(2));
+            foreach (var innerEx in ex.InnerExceptions)
+            {
+                Assert.That(innerEx, Is.TypeOf<NotSupportedException>());
+            }
+        }
+
 
         #region Setup/Teardown
 

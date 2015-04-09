@@ -261,8 +261,8 @@ namespace Pomona.Common.Linq
                 !TryMapKnownOdataFunction(node, node.Method, args, out odataExpression))
             {
                 return NotSupported(node,
-                                    "Don't know what to do with method " + node.Method.Name + " declared in "
-                                    + node.Method.DeclaringType.FullName);
+                                    "Method " + node.Method.Name + " declared in "
+                                    + node.Method.DeclaringType.FullName + " is not supported by the Pomona LINQ provider.");
             }
 
             return odataExpression;
