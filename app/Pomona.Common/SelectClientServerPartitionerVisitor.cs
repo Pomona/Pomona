@@ -81,6 +81,8 @@ namespace Pomona.Common
         {
             if (node == null)
                 throw new ArgumentNullException("node");
+            if (rootLambda != null)
+                throw new InvalidOperationException();
             this.rootLambda = node;
             try
             {

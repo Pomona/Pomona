@@ -99,7 +99,7 @@
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
     <Compile Include="AnonymousTypeBuilderTests.cs" />
     <Compile Include="Client\QueryPredicateBuilderTestsBase.cs" />
-    <Compile Include="Client\QuerySelectBuilderTests.cs" />
+    <Compile Include="Client\ClientServerSplittingSelectBuilderTests.cs" />
     <Compile Include="ClientMetadataTests.cs" />
     <Compile Include="CodeGen\IndependentClass.cs" />
     <Compile Include="CodeGen\StringExtensionTests.cs" />

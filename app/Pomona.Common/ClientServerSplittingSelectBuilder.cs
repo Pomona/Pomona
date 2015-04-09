@@ -32,7 +32,7 @@ using Pomona.Common.Linq;
 
 namespace Pomona.Common
 {
-    internal class ClientSideSplittingSelectBuilder : QuerySelectorBuilder
+    internal class ClientServerSplittingSelectBuilder : QuerySelectorBuilder
     {
         protected override Expression VisitRootLambda<T>(Expression<T> node)
         {

@@ -55,7 +55,7 @@
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientSettings.cs" />
-    <Compile Include="ClientSideSplittingSelectBuilder.cs" />
+    <Compile Include="ClientServerSplittingSelectBuilder.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="ClientTypeResolver.cs" />
     <Compile Include="DictionaryExtensions.cs" />

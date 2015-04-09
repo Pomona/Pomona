@@ -40,7 +40,7 @@ using Pomona.Common.Linq;
 namespace Pomona.UnitTests.Client
 {
     [TestFixture]
-    public class QuerySelectBuilderTests : QueryPredicateBuilderTestsBase
+    public class ClientServerSplittingSelectBuilderTests : QueryPredicateBuilderTestsBase
     {
         public class SelectedClientSideClass
         {
@@ -70,7 +70,7 @@ namespace Pomona.UnitTests.Client
 
         private static PomonaExtendedExpression Build<T>(Expression<Func<TestResource, T>> expr)
         {
-            return (PomonaExtendedExpression)expr.Visit<ClientSideSplittingSelectBuilder>();
+            return (PomonaExtendedExpression)expr.Visit<ClientServerSplittingSelectBuilder>();
         }
 
 

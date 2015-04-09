@@ -183,7 +183,7 @@ namespace Pomona.Common.Linq
             }
             if (parser.SelectExpression != null)
             {
-                var selectNode = parser.SelectExpression.Visit<ClientSideSplittingSelectBuilder>();
+                var selectNode = parser.SelectExpression.Visit<ClientServerSplittingSelectBuilder>();
                 var splitSelect = selectNode as ClientServerSplitSelectExpression;
                 if (splitSelect != null)
                 {
