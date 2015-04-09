@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -36,21 +40,12 @@ namespace Pomona.Common
     {
         private readonly StringBuilder stringBuilder = new StringBuilder();
 
-        public override string ToString()
-        {
-            return stringBuilder.ToString();
-        }
-
-        public void AppendParameter(string key, object value)
-        {
-            AppendQueryParameterStart(key);
-            AppendEncodedQueryValue(value.ToString());
-        }
 
         public void AppendExpressionParameter(string queryKey, Expression expression)
         {
             AppendExpressionParameter<QueryPredicateBuilder>(queryKey, expression);
         }
+
 
         public void AppendExpressionParameter<TVisitor>(string queryKey, Expression expression)
             where TVisitor : ExpressionVisitor, new()
@@ -58,9 +53,9 @@ namespace Pomona.Common
             var pomonaExpression = (PomonaExtendedExpression)expression.Visit<TVisitor>();
             if (!pomonaExpression.SupportedOnServer)
             {
-                var unsupportedExpressions =  pomonaExpression.WrapAsEnumerable()
-                                .Flatten(x => x.Children.OfType<PomonaExtendedExpression>())
-                                .OfType<NotSupportedByProviderExpression>().ToList();
+                var unsupportedExpressions = pomonaExpression.WrapAsEnumerable()
+                                                             .Flatten(x => x.Children.OfType<PomonaExtendedExpression>())
+                                                             .OfType<NotSupportedByProviderExpression>().ToList();
 
                 if (unsupportedExpressions.Count == 1)
                     throw unsupportedExpressions[0].Exception;
@@ -73,20 +68,24 @@ namespace Pomona.Common
             AppendEncodedQueryValue(filterString);
         }
 
-        private void AppendQueryParameterStart(string queryKey)
-        {
-            if (stringBuilder.Length > 0)
-                stringBuilder.Append('&');
 
-            AppendEncodedQueryValue(queryKey);
-            stringBuilder.Append('=');
+        public void AppendParameter(string key, object value)
+        {
+            AppendQueryParameterStart(key);
+            AppendEncodedQueryValue(value.ToString());
+        }
+
+
+        public override string ToString()
+        {
+            return this.stringBuilder.ToString();
         }
 
 
         private void AppendEncodedQueryValue(string text)
         {
             var bytes = Encoding.UTF8.GetBytes(text);
-            var sb = stringBuilder;
+            var sb = this.stringBuilder;
 
             foreach (var b in bytes)
             {
@@ -94,12 +93,22 @@ namespace Pomona.Common
                     sb.Append('+');
                 else if (b < 128
                          &&
-                         (char.IsLetterOrDigit((char) b) || b == '\'' || b == '.' || b == '~' || b == '-' || b == '_'
+                         (char.IsLetterOrDigit((char)b) || b == '\'' || b == '.' || b == '~' || b == '-' || b == '_'
                           || b == ')' || b == '(' || b == ' ' || b == '$'))
-                    sb.Append((char) b);
+                    sb.Append((char)b);
                 else
                     sb.AppendFormat("%{0:X2}", b);
             }
+        }
+
+
+        private void AppendQueryParameterStart(string queryKey)
+        {
+            if (this.stringBuilder.Length > 0)
+                this.stringBuilder.Append('&');
+
+            AppendEncodedQueryValue(queryKey);
+            this.stringBuilder.Append('=');
         }
     }
 }
