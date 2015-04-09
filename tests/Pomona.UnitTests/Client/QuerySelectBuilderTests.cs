@@ -70,7 +70,7 @@ namespace Pomona.UnitTests.Client
 
         private static PomonaExtendedExpression Build<T>(Expression<Func<TestResource, T>> expr)
         {
-            return (PomonaExtendedExpression)expr.Visit<QuerySelectBuilder>();
+            return (PomonaExtendedExpression)expr.Visit<ClientSideSplittingSelectBuilder>();
         }
 
 

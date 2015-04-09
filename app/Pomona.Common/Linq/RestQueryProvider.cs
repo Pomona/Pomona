@@ -178,12 +178,12 @@ namespace Pomona.Common.Linq
             }
             if (parser.GroupByKeySelector != null)
             {
-                var selectBuilder = parser.GroupByKeySelector.Visit<QuerySelectBuilder>();
+                var selectBuilder = parser.GroupByKeySelector.Visit<QuerySelectorBuilder>();
                 builder.AppendParameter("$groupby", selectBuilder);
             }
             if (parser.SelectExpression != null)
             {
-                var selectNode = parser.SelectExpression.Visit<QuerySelectBuilder>();
+                var selectNode = parser.SelectExpression.Visit<ClientSideSplittingSelectBuilder>();
                 var splitSelect = selectNode as ClientServerSplitSelectExpression;
                 if (splitSelect != null)
                 {

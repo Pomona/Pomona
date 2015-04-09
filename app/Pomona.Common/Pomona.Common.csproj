@@ -55,6 +55,7 @@
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientSettings.cs" />
+    <Compile Include="ClientSideSplittingSelectBuilder.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="ClientTypeResolver.cs" />
     <Compile Include="DictionaryExtensions.cs" />
@@ -220,7 +221,7 @@
     <Compile Include="Proxies\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="QueryPredicateBuilder.cs" />
     <Compile Include="QueryResult.cs" />
-    <Compile Include="QuerySelectBuilder.cs" />
+    <Compile Include="QuerySelectorBuilder.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="RequestOptionsExtensions.cs" />
     <Compile Include="ResourceAttributesPropertyAttribute.cs" />

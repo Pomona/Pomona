@@ -87,7 +87,7 @@ namespace Pomona.Common
                 var visited = (LambdaExpression)Visit(node);
 
                 var serverExpr =
-                    new QuerySelectBuilder().Visit(
+                    new QuerySelectorBuilder().Visit(
                         Expression.Lambda(Expression.NewArrayInit(typeof(object),
                                                                   this.serverSelectParts.Select(
                                                                       x =>
