@@ -40,7 +40,7 @@ using Pomona.Common.Linq;
 
 namespace Pomona.Common
 {
-    public class QueryPredicateBuilder : ExpressionVisitor
+    internal class QueryPredicateBuilder : ExpressionVisitor
     {
         protected static readonly ReadOnlyDictionary<ExpressionType, string> binaryExpressionNodeDict;
         private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };

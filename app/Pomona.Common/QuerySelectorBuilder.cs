@@ -34,7 +34,7 @@ using Pomona.Common.Linq;
 
 namespace Pomona.Common
 {
-    public class QuerySelectorBuilder : QueryPredicateBuilder
+    internal class QuerySelectorBuilder : QueryPredicateBuilder
     {
         protected override Expression VisitRootLambda<T>(Expression<T> node)
         {

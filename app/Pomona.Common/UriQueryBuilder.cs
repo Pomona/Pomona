@@ -45,13 +45,9 @@ namespace Pomona.Common
             AppendEncodedQueryValue(value.ToString());
         }
 
-        public void AppendExpressionParameter(string queryKey, LambdaExpression predicate,
-                                              Func<string, string> transform = null)
+        public void AppendExpressionParameter(string queryKey, LambdaExpression predicate)
         {
             var filterString = predicate.Visit<QueryPredicateBuilder>().ToString();
-
-            if (transform != null)
-                filterString = transform(filterString);
 
             AppendQueryParameterStart(queryKey);
             AppendEncodedQueryValue(filterString);
