@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,6 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Critters.Client;
-
-using Nancy;
 
 using Newtonsoft.Json.Linq;
 
@@ -68,6 +66,29 @@ namespace Pomona.SystemTests.Linq
             var result = Client.Critters.Query().Where(x => x.Name == Guid.NewGuid().ToString()).FirstOrDefault();
 
             Assert.That(result, Is.Null);
+        }
+
+
+        [Test]
+        public void Query_UsingMultipleUnsupportedMethods_ThrowsAggregateException_WithNotSupportedExceptionsInside()
+        {
+            var ex =
+                Assert.Throws<AggregateException>(
+                    () => Client.Critters.Query().Where(x => UnsupportedMethod(x.Id) && UnsupportedMethod(x.Id)).ToList());
+            Assert.That(ex.InnerExceptions.Count, Is.EqualTo(2));
+            foreach (var innerEx in ex.InnerExceptions)
+                Assert.That(innerEx, Is.TypeOf<NotSupportedException>());
+        }
+
+
+        [Test]
+        public void Query_UsingUnsupportedMethod_ThrowsNotSupportedException()
+        {
+            var ex = Assert.Throws<NotSupportedException>(() => Client.Critters.Query().Where(x => UnsupportedMethod(x.Id)).ToList());
+            Console.WriteLine(ex.Message);
+            Assert.That(ex.Message,
+                        Is.EqualTo(
+                            "Method UnsupportedMethod declared in Pomona.SystemTests.Linq.LinqQueryTests is not supported by the Pomona LINQ provider."));
         }
 
 
@@ -491,12 +512,6 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        public static bool UnsupportedMethod(int i)
-        {
-            return false;
-        }
-
-
         [Test]
         public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
         {
@@ -867,28 +882,6 @@ namespace Pomona.SystemTests.Linq
             Assert.That(critterResource.Id, Is.EqualTo(critter.Id));
         }
 
-
-        [Test]
-        public void Query_UsingUnsupportedMethod_ThrowsNotSupportedException()
-        {
-            var ex = Assert.Throws<NotSupportedException>(() => Client.Critters.Query().Where(x => UnsupportedMethod(x.Id)).ToList());
-            Console.WriteLine(ex.Message);
-            Assert.That(ex.Message, Is.EqualTo("Method UnsupportedMethod declared in Pomona.SystemTests.Linq.LinqQueryTests is not supported by the Pomona LINQ provider."));
-        }
-
-
-        [Test]
-        public void Query_UsingMultipleUnsupportedMethods_ThrowsAggregateException_WithNotSupportedExceptionsInside()
-        {
-            var ex = Assert.Throws<AggregateException>(() => Client.Critters.Query().Where(x => UnsupportedMethod(x.Id) && UnsupportedMethod(x.Id)).ToList());
-            Assert.That(ex.InnerExceptions.Count, Is.EqualTo(2));
-            foreach (var innerEx in ex.InnerExceptions)
-            {
-                Assert.That(innerEx, Is.TypeOf<NotSupportedException>());
-            }
-        }
-
-
         #region Setup/Teardown
 
         [TearDown]
@@ -899,6 +892,12 @@ namespace Pomona.SystemTests.Linq
         }
 
         #endregion
+
+        public static bool UnsupportedMethod(int i)
+        {
+            return false;
+        }
+
 
         private class CustomComparer : IComparer<string>
         {
