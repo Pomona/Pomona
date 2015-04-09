@@ -623,7 +623,7 @@ II.2.12 &lt;HandlesEvent /&gt;&#xD;
     <s:String x:Key="/Default/CodeStyle/FileHeader/FileHeaderText/@EntryValue">----------------------------------------------------------------------------&#xD;
 Pomona source code&#xD;
 &#xD;
-Copyright © 2014 Karsten Nikolai Strand&#xD;
+Copyright © $CURRENT_YEAR$ Karsten Nikolai Strand&#xD;
 &#xD;
 Permission is hereby granted, free of charge, to any person obtaining a &#xD;
 copy of this software and associated documentation files (the "Software"),&#xD;
