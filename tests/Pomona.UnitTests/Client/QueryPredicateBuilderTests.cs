@@ -41,23 +41,6 @@ namespace Pomona.UnitTests.Client
     [TestFixture]
     public class QueryPredicateBuilderTests : QueryPredicateBuilderTestsBase
     {
-        private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
-        {
-            var queryString = BuildQueryString(predicate);
-            Console.WriteLine("Transformed \"" + new EvaluateClosureMemberVisitor().Visit(predicate) + "\" TO \""
-                              + queryString + "\"");
-            Assert.That(queryString, Is.EqualTo(expected));
-        }
-
-
-        private static string BuildQueryString<T>(Expression<Func<TestResource, T>> predicate)
-        {
-            var builder = QueryPredicateBuilder.Create(predicate);
-            var queryString = builder.ToString();
-            return queryString;
-        }
-
-
         [Test]
         public void BuildAllLambdaExpression_ReturnsCorrectString()
         {
@@ -179,13 +162,6 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildValuePropertyOfNullable_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.NullableNumber.Value, "nullableNumber.value()");
-        }
-
-
-        [Test]
         public void BuildConvertChangeType_FromStringToInt32_ReturnsCorrectString()
         {
             AssertBuild(x => Convert.ChangeType(x.Bonga, typeof(int)), "convert(bonga,t'Int32')");
@@ -226,6 +202,16 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildDateTime_ReturnsCorrectString()
+        {
+            var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Local);
+            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Birthday == dt);
+            var queryString = builder.ToString();
+            Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45'"));
+        }
+
+
+        [Test]
         public void BuildDateTimeUtc_ReturnsCorrectString()
         {
             var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Utc);
@@ -237,12 +223,9 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildDateTime_ReturnsCorrectString()
+        public void BuildDecimal_ReturnsCorrectString()
         {
-            var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Local);
-            var builder = QueryPredicateBuilder.Create<TestResource>(x => x.Birthday == dt);
-            var queryString = builder.ToString();
-            Assert.That(queryString, Is.EqualTo("birthday eq datetime'2012-10-22T05:32:45'"));
+            AssertBuild(x => 10.25m, "10.25m");
         }
 
 
@@ -283,9 +266,9 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildDecimal_ReturnsCorrectString()
+        public void BuildDouble_ReturnsCorrectString()
         {
-            AssertBuild(x => 10.25m, "10.25m");
+            AssertBuild(x => 10.25, "10.25");
         }
 
 
@@ -314,13 +297,6 @@ namespace Pomona.UnitTests.Client
         public void BuildDoubleEnumerableSumWithSelectorExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeList.Sum(y => y.SomeDouble), "someList.sum(y:y.someDouble)");
-        }
-
-
-        [Test]
-        public void BuildDouble_ReturnsCorrectString()
-        {
-            AssertBuild(x => 10.25, "10.25");
         }
 
 
@@ -395,6 +371,13 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildIndexOfExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.Jalla.IndexOf("banana") == 2, "indexof(jalla,'banana') eq 2");
+        }
+
+
+        [Test]
         public void BuildIndexOfExpressionWithCharArg_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla.IndexOf('z') == 2, "indexof(jalla,'z') eq 2");
@@ -402,9 +385,14 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildIndexOfExpression_ReturnsCorrectString()
+        public void BuildIntegerConstantAddition_ReturnsFoldedConstantString()
         {
-            AssertBuild(x => x.Jalla.IndexOf("banana") == 2, "indexof(jalla,'banana') eq 2");
+            var param = Expression.Parameter(typeof(TestResource), "x");
+            AssertBuild(
+                Expression.Lambda<Func<TestResource, int>>(
+                    Expression.Add(Expression.Constant(5), Expression.Constant(10)),
+                    param),
+                "15");
         }
 
 
@@ -419,18 +407,6 @@ namespace Pomona.UnitTests.Client
         public void BuildIntEnumerableSumWithSelectorExpression_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeList.Sum(y => y.SomeInt), "someList.sum(y:y.someInt)");
-        }
-
-
-        [Test]
-        public void BuildIntegerConstantAddition_ReturnsFoldedConstantString()
-        {
-            var param = Expression.Parameter(typeof(TestResource), "x");
-            AssertBuild(
-                Expression.Lambda<Func<TestResource, int>>(
-                    Expression.Add(Expression.Constant(5), Expression.Constant(10)),
-                    param),
-                "15");
         }
 
 
@@ -528,6 +504,15 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildRecursiveLambdaExpression_ReturnsCorrectString()
+        {
+            AssertBuild(
+                x => x.SomeList.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
+                "someList.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
+        }
+
+
+        [Test]
         public void BuildRecursiveLambdaExpressionOnQueryableRepository_ReturnsCorrectString()
         {
             AssertBuild(
@@ -535,15 +520,6 @@ namespace Pomona.UnitTests.Client
                     x.SomeQueryable.Any(
                         y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
                 "someQueryable.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
-        }
-
-
-        [Test]
-        public void BuildRecursiveLambdaExpression_ReturnsCorrectString()
-        {
-            AssertBuild(
-                x => x.SomeList.Any(y => y.SomeString == "lalala" && y.TestResources.Any(z => z.Bonga == y.SomeString)),
-                "someList.any(y:(y.someString eq 'lalala') and y.testResources.any(z:z.bonga eq y.someString))");
         }
 
 
@@ -569,6 +545,14 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildSafeGetFromObjectDictAsString_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
+                        "stringObjectAttributes.Hei as t'String'");
+        }
+
+
+        [Test]
         public void BuildSafeGetFromObjectDictAsStringComparedWithNull_ReturnsCorrectString()
         {
             AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string == null,
@@ -585,10 +569,16 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildSafeGetFromObjectDictAsString_ReturnsCorrectString()
+        public void BuildSingle_ReturnsCorrectString()
         {
-            AssertBuild(x => x.StringObjectAttributes.SafeGet("Hei") as string,
-                        "stringObjectAttributes.Hei as t'String'");
+            AssertBuild(y => y.SomeList.Single(), "someList.single()");
+        }
+
+
+        [Test]
+        public void BuildSingleOrDefault_ReturnsCorrectString()
+        {
+            AssertBuild(y => y.SomeList.SingleOrDefault(), "someList.singledefault()");
         }
 
 
@@ -601,23 +591,9 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildSingleOrDefault_ReturnsCorrectString()
-        {
-            AssertBuild(y => y.SomeList.SingleOrDefault(), "someList.singledefault()");
-        }
-
-
-        [Test]
         public void BuildSingleWithPredicate_ReturnsCorrectString()
         {
             AssertBuild(y => y.SomeList.Single(x => x.SomeString == "blah"), "someList.single(x:x.someString eq 'blah')");
-        }
-
-
-        [Test]
-        public void BuildSingle_ReturnsCorrectString()
-        {
-            AssertBuild(y => y.SomeList.Single(), "someList.single()");
         }
 
 
@@ -631,18 +607,18 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
-        public void BuildStringEnumConstant_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.SomeStringEnum == StringEnumTemplate.MemberTemplate, "someStringEnum eq 'MemberTemplate'");
-        }
-
-
-        [Test]
         public void BuildString_EncodesSingleQuoteCorrectly()
         {
             AssertBuild(x => "Banana'Boo", "'Banana''Boo'");
             AssertBuild(x => "'", "''''");
             AssertBuild(x => "''", "''''''");
+        }
+
+
+        [Test]
+        public void BuildStringEnumConstant_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.SomeStringEnum == StringEnumTemplate.MemberTemplate, "someStringEnum eq 'MemberTemplate'");
         }
 
 
@@ -685,9 +661,33 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildValuePropertyOfNullable_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.NullableNumber.Value, "nullableNumber.value()");
+        }
+
+
+        [Test]
         public void GetItemOnDictionary_ReturnsCorrectString()
         {
             AssertBuild(x => x.Attributes["hello world"] == "bob", "attributes['hello world'] eq 'bob'");
+        }
+
+
+        private void AssertBuild<T>(Expression<Func<TestResource, T>> predicate, string expected)
+        {
+            var queryString = BuildQueryString(predicate);
+            Console.WriteLine("Transformed \"" + new EvaluateClosureMemberVisitor().Visit(predicate) + "\" TO \""
+                              + queryString + "\"");
+            Assert.That(queryString, Is.EqualTo(expected));
+        }
+
+
+        private static string BuildQueryString<T>(Expression<Func<TestResource, T>> predicate)
+        {
+            var builder = QueryPredicateBuilder.Create(predicate);
+            var queryString = builder.ToString();
+            return queryString;
         }
 
 
