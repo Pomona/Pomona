@@ -26,6 +26,8 @@ using System;
 using System.Linq.Expressions;
 using System.Text;
 
+using Pomona.Common.Internals;
+
 namespace Pomona.Common
 {
     internal class UriQueryBuilder
@@ -46,7 +48,7 @@ namespace Pomona.Common
         public void AppendExpressionParameter(string queryKey, LambdaExpression predicate,
                                               Func<string, string> transform = null)
         {
-            var filterString = QueryPredicateBuilder.Create(predicate);
+            var filterString = predicate.Visit<QueryPredicateBuilder>().ToString();
 
             if (transform != null)
                 filterString = transform(filterString);

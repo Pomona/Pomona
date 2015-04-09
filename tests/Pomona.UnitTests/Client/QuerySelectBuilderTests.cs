@@ -34,6 +34,7 @@ using System.Linq.Expressions;
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 
 namespace Pomona.UnitTests.Client
@@ -69,9 +70,7 @@ namespace Pomona.UnitTests.Client
 
         private static PomonaExtendedExpression Build<T>(Expression<Func<TestResource, T>> expr)
         {
-            var builder = new QuerySelectBuilder();
-            var visited = builder.Build(expr);
-            return visited;
+            return (PomonaExtendedExpression)expr.Visit<QuerySelectBuilder>();
         }
 
 

@@ -77,7 +77,11 @@ namespace Pomona.Common
         }
 
 
-        public QueryPredicateBuilder(ParameterExpression thisParameter = null)
+        public QueryPredicateBuilder()
+        {
+        }
+
+        private QueryPredicateBuilder(ParameterExpression thisParameter)
         {
             this.thisParameter = thisParameter;
         }
@@ -97,47 +101,6 @@ namespace Pomona.Common
             }
         }
 
-
-        public static string Create(LambdaExpression lambda)
-        {
-            return new QueryPredicateBuilder().Build(lambda).ToString();
-        }
-
-
-        public static string Create<T>(Expression<Func<T, bool>> lambda)
-        {
-            return Create((LambdaExpression)lambda);
-        }
-
-
-        public static string Create<T, TResult>(Expression<Func<T, TResult>> lambda)
-        {
-            return Create((LambdaExpression)lambda);
-        }
-
-
-        internal virtual PomonaExtendedExpression Build(LambdaExpression node)
-        {
-#if DEBUG
-            this.visitCalledCounter = 0;
-#endif
-            var result = (PomonaExtendedExpression)Visit(new PreBuildVisitor().Visit(node));
-
-            // Console.WriteLine("VISIT OF BUILD CALLED " + visitCalledCounter + " TIMES FOR " + node.EnumerateDescendants().Count() + " NODES");
-
-            return result;
-        }
-
-
-#if DEBUG
-        private int visitCalledCounter = 0;
-
-        public int VisitCalledCounter
-        {
-            get { return this.visitCalledCounter; }
-        }
-#endif
-
         private readonly Dictionary<Expression, Expression> builderVisitedNodesCache =
             new Dictionary<Expression, Expression>();
 
@@ -146,6 +109,7 @@ namespace Pomona.Common
         {
             if (node == null)
                 return null;
+
 
             if (node is PomonaExtendedExpression)
                 return node;
@@ -158,9 +122,6 @@ namespace Pomona.Common
                     visited = NotSupported(node, node.NodeType + " not supported server side.");
                 this.builderVisitedNodesCache[node] = visited;
             }
-#if DEBUG
-            this.visitCalledCounter++;
-#endif
 
             return visited;
         }
@@ -272,7 +233,7 @@ namespace Pomona.Common
             {
                 try
                 {
-                    this.rootLambda = node;
+                    this.rootLambda = (LambdaExpression)node.Visit<PreBuildVisitor>();
                     return VisitRootLambda((Expression<T>)this.rootLambda);
                 }
                 finally
@@ -858,11 +819,20 @@ namespace Pomona.Common
             }
 
 
+            protected override Expression VisitExtension(Expression node)
+            {
+                if (node is PomonaExtendedExpression)
+                    return node;
+                return base.VisitExtension(node);
+            }
+
+
             protected override Expression VisitBinary(BinaryExpression node)
             {
                 // Constant folding
                 var left = Visit(node.Left);
                 var right = Visit(node.Right);
+
                 if (left.NodeType == ExpressionType.Constant
                     && right.NodeType == ExpressionType.Constant
                     && left.Type == right.Type

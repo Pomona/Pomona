@@ -158,8 +158,6 @@ namespace Pomona.Common.Linq
             clientSideSelectPart = null;
             var builder = new UriQueryBuilder();
 
-            // TODO: Support expand
-
             var resourceInfo = this.client.GetResourceInfoForType(parser.ElementType);
 
             if (!resourceInfo.IsUriBaseType)
@@ -174,18 +172,18 @@ namespace Pomona.Common.Linq
                 var orderExpressions =
                     string.Join(",", parser.OrderKeySelectors.Select(
                         x =>
-                            QueryPredicateBuilder.Create(x.Item1).ToString()
+                            x.Item1.Visit<QueryPredicateBuilder>().ToString()
                             + (x.Item2 == SortOrder.Descending ? " desc" : string.Empty)));
                 builder.AppendParameter("$orderby", orderExpressions);
             }
             if (parser.GroupByKeySelector != null)
             {
-                var selectBuilder = QuerySelectBuilder.Create(parser.GroupByKeySelector);
+                var selectBuilder = parser.GroupByKeySelector.Visit<QuerySelectBuilder>();
                 builder.AppendParameter("$groupby", selectBuilder);
             }
             if (parser.SelectExpression != null)
             {
-                var selectNode = QuerySelectBuilder.Create(parser.SelectExpression);
+                var selectNode = parser.SelectExpression.Visit<QuerySelectBuilder>();
                 var splitSelect = selectNode as ClientServerSplitSelectExpression;
                 if (splitSelect != null)
                 {

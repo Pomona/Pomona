@@ -38,30 +38,6 @@ namespace Pomona.Common
 {
     public class QuerySelectBuilder : QueryPredicateBuilder
     {
-        public QuerySelectBuilder(ParameterExpression thisParameter = null)
-            : base(thisParameter)
-        {
-        }
-
-
-        public new static Expression Create(LambdaExpression lambda)
-        {
-            return new QuerySelectBuilder().Build(lambda);
-        }
-
-
-        public new static Expression Create<T>(Expression<Func<T, bool>> lambda)
-        {
-            return Create((LambdaExpression)lambda);
-        }
-
-
-        public new static Expression Create<T, TResult>(Expression<Func<T, TResult>> lambda)
-        {
-            return Create((LambdaExpression)lambda);
-        }
-
-
         protected override Expression VisitRootLambda<T>(Expression<T> node)
         {
             var visited = VisitRootLambdaInner(node);
