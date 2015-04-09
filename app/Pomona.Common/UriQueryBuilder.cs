@@ -27,6 +27,7 @@ using System.Linq.Expressions;
 using System.Text;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Linq;
 
 namespace Pomona.Common
 {

@@ -30,9 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-using Pomona.Common.Linq;
-
-namespace Pomona.Common
+namespace Pomona.Common.Linq
 {
     internal class QuerySelectorBuilder : QueryPredicateBuilder
     {

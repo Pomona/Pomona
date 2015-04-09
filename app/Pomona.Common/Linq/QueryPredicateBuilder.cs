@@ -36,9 +36,8 @@ using System.Reflection;
 using System.Text;
 
 using Pomona.Common.Internals;
-using Pomona.Common.Linq;
 
-namespace Pomona.Common
+namespace Pomona.Common.Linq
 {
     internal class QueryPredicateBuilder : ExpressionVisitor
     {

@@ -96,6 +96,9 @@
     <Compile Include="Internals\Formatting\FormatterBase.cs" />
     <Compile Include="Internals\Formatting\MethodFormatter.cs" />
     <Compile Include="Internals\Formatting\TypeFormatter.cs" />
+    <Compile Include="Linq\QueryPredicateBuilder.cs" />
+    <Compile Include="Linq\QuerySelectorBuilder.cs" />
+    <Compile Include="Linq\SelectClientServerPartitionerVisitor.cs" />
     <Compile Include="Loading\DefaultResourceLoader.cs" />
     <Compile Include="Loading\IResourceLoader.cs" />
     <Compile Include="IGettableRepository.cs" />
@@ -219,9 +222,7 @@
     <Compile Include="Proxies\PropertyWrapper.cs" />
     <Compile Include="Proxies\ProxyBuilder.cs" />
     <Compile Include="Proxies\WrappedPropertyProxyBuilder.cs" />
-    <Compile Include="QueryPredicateBuilder.cs" />
     <Compile Include="QueryResult.cs" />
-    <Compile Include="QuerySelectorBuilder.cs" />
     <Compile Include="ReadOnlyDictionary.cs" />
     <Compile Include="RequestOptionsExtensions.cs" />
     <Compile Include="ResourceAttributesPropertyAttribute.cs" />
@@ -231,7 +232,6 @@
     <Compile Include="ResourceIdPropertyAttribute.cs" />
     <Compile Include="ResourceInfoAttribute.cs" />
     <Compile Include="ResourcePropertyAttribute.cs" />
-    <Compile Include="SelectClientServerPartitionerVisitor.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
     <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />

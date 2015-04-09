@@ -35,6 +35,7 @@ using NUnit.Framework;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.Internals;
+using Pomona.Common.Linq;
 
 namespace Pomona.UnitTests.Client
 {

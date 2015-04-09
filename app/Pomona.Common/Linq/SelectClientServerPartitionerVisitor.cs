@@ -31,9 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-using Pomona.Common.Linq;
-
-namespace Pomona.Common
+namespace Pomona.Common.Linq
 {
     internal class SelectClientServerPartitionerVisitor : ExpressionVisitor
     {
@@ -81,7 +79,7 @@ namespace Pomona.Common
         {
             if (node == null)
                 throw new ArgumentNullException("node");
-            if (rootLambda != null)
+            if (this.rootLambda != null)
                 throw new InvalidOperationException();
             this.rootLambda = node;
             try
