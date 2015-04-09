@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -42,37 +42,6 @@ namespace Pomona.UnitTests.Queries
         public void ParseAverageOfDecimalEnumerable_ReturnsCorrectExpression()
         {
             ParseAndAssert("listOfDecimals.average()", _this => _this.ListOfDecimals.Average());
-        }
-
-
-        [Test]
-        public void ParseObjectAttributesMemberSafeGet_CreatesCorrectExpression()
-        {
-            ParseAndAssert("objectAttributes.jalla", _this => _this.ObjectAttributes.SafeGet("jalla"));
-        }
-
-
-        [Test]
-        public void ParseValuePropertyOfNullable_ReturnsCorrectString()
-        {
-            ParseAndAssert("nullableNumber.value()", _this => _this.NullableNumber.Value);
-        }
-
-
-        [Test]
-        public void ParseNumberInEmptyCollection_CreatesCorrectExpression()
-        {
-            var numbers = new int[] { };
-            ParseAndAssert("number in []", _this => numbers.Contains(_this.Number));
-        }
-
-
-        [Test]
-        public void ParseObjectAttributesIn_CreatesCorrectExpression()
-        {
-            object[] objects = new object[] { 12, 43, 66 };
-            ParseAndAssert("objectAttributes.jalla in [12,43,66]",
-                           _this => objects.Contains(_this.ObjectAttributes.SafeGet("jalla")));
         }
 
 
@@ -217,6 +186,30 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void ParseNumberInEmptyCollection_CreatesCorrectExpression()
+        {
+            var numbers = new int[] { };
+            ParseAndAssert("number in []", _this => numbers.Contains(_this.Number));
+        }
+
+
+        [Test]
+        public void ParseObjectAttributesIn_CreatesCorrectExpression()
+        {
+            object[] objects = new object[] { 12, 43, 66 };
+            ParseAndAssert("objectAttributes.jalla in [12,43,66]",
+                           _this => objects.Contains(_this.ObjectAttributes.SafeGet("jalla")));
+        }
+
+
+        [Test]
+        public void ParseObjectAttributesMemberSafeGet_CreatesCorrectExpression()
+        {
+            ParseAndAssert("objectAttributes.jalla", _this => _this.ObjectAttributes.SafeGet("jalla"));
+        }
+
+
+        [Test]
         public void ParseObjectIsOfType_ReturnsCorrectExpression()
         {
             ParseAndAssert("isof(unknownProperty,t'Int32')", _this => _this.UnknownProperty is int);
@@ -231,10 +224,9 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
-        public void ParseSingleOrDefaultWithPredicate_ReturnsCorrectExpression()
+        public void ParseSingle_ReturnsCorrectExpression()
         {
-            ParseAndAssert("children.singledefault(x:x.number eq 4)",
-                           _this => _this.Children.SingleOrDefault(x => x.Number == 4));
+            ParseAndAssert("children.single()", _this => _this.Children.Single());
         }
 
 
@@ -246,17 +238,18 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
-        public void ParseSingleWithPredicate_ReturnsCorrectExpression()
+        public void ParseSingleOrDefaultWithPredicate_ReturnsCorrectExpression()
         {
-            ParseAndAssert("children.single(x:x.number eq 4)",
-                           _this => _this.Children.Single(x => x.Number == 4));
+            ParseAndAssert("children.singledefault(x:x.number eq 4)",
+                           _this => _this.Children.SingleOrDefault(x => x.Number == 4));
         }
 
 
         [Test]
-        public void ParseSingle_ReturnsCorrectExpression()
+        public void ParseSingleWithPredicate_ReturnsCorrectExpression()
         {
-            ParseAndAssert("children.single()", _this => _this.Children.Single());
+            ParseAndAssert("children.single(x:x.number eq 4)",
+                           _this => _this.Children.Single(x => x.Number == 4));
         }
 
 
@@ -313,6 +306,13 @@ namespace Pomona.UnitTests.Queries
         public void ParseTypeNameLiteralExpression_WithNullableInt32_ReturnsCorrectExpression()
         {
             ParseAndAssert("t'Int32?'", _this => typeof(int?));
+        }
+
+
+        [Test]
+        public void ParseValuePropertyOfNullable_ReturnsCorrectString()
+        {
+            ParseAndAssert("nullableNumber.value()", _this => _this.NullableNumber.Value);
         }
     }
 }
