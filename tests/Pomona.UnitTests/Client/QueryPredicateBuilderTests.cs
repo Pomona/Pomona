@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -119,12 +119,6 @@ namespace Pomona.UnitTests.Client
                 "birthday eq datetime'2222-11-02T01:01:01Z'");
         }
 
-
-        [Test]
-        public void BuildNullableInt64EqualsConstant_ReturnsCorrectString()
-        {
-            AssertBuild(x => x.NullableInt64 == 42, "nullableInt64 eq 42L");
-        }
 
         [Test]
         public void BuildConcat_ReturnsCorrectString()
@@ -447,6 +441,13 @@ namespace Pomona.UnitTests.Client
         public void BuildNullableEnumHasValue_ReturnsCorrectString()
         {
             AssertBuild(x => x.SomeNullableEnum.HasValue, "someNullableEnum.hasValue()");
+        }
+
+
+        [Test]
+        public void BuildNullableInt64EqualsConstant_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.NullableInt64 == 42, "nullableInt64 eq 42L");
         }
 
 
