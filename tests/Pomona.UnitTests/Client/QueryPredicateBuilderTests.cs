@@ -424,6 +424,13 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildNewGuidTakingConstantStringArgument_ReturnsCorrectString()
+        {
+            AssertBuild(x => new Guid("a3cb93d0-bbf2-465a-ae4d-0eec3a282ec9"), "guid'a3cb93d0-bbf2-465a-ae4d-0eec3a282ec9'");
+        }
+
+
+        [Test]
         public void BuildNotEquals_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla != "blob", "jalla ne 'blob'");

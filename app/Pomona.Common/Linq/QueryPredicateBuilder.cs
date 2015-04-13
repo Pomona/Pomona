@@ -95,7 +95,7 @@ namespace Pomona.Common.Linq
             get
             {
                 return this.thisParameter
-                       ?? (this.RootLambda != null ? this.RootLambda.Parameters.FirstOrDefault() : null);
+                       ?? (RootLambda != null ? RootLambda.Parameters.FirstOrDefault() : null);
             }
         }
 
@@ -173,16 +173,16 @@ namespace Pomona.Common.Linq
             if (node.Parameters.Count != 1)
                 return NotSupported(node, "Only supports one parameter in lambda expression for now.");
 
-            if (this.RootLambda == null)
+            if (RootLambda == null)
             {
                 try
                 {
-                    this.RootLambda = (LambdaExpression)node.Visit<PreBuildVisitor>();
-                    return VisitRootLambda((Expression<T>)this.RootLambda);
+                    RootLambda = (LambdaExpression)node.Visit<PreBuildVisitor>();
+                    return VisitRootLambda((Expression<T>)RootLambda);
                 }
                 finally
                 {
-                    this.RootLambda = null;
+                    RootLambda = null;
                 }
             }
             else
@@ -846,6 +846,15 @@ namespace Pomona.Common.Linq
             }
 
 
+            protected override Expression VisitListInit(ListInitExpression node)
+            {
+                // Avoid visiting NewExpression directly, we don't want constant folding in this particular case.
+                var visitedArguments = Visit(node.NewExpression.Arguments);
+                var visitedInitializers = node.Initializers.Select(x => Expression.ElementInit(x.AddMethod, Visit(x.Arguments)));
+                return Expression.ListInit(Expression.New(node.NewExpression.Constructor, visitedArguments), visitedInitializers);
+            }
+
+
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
                 var baseNode = base.VisitMethodCall(node);
@@ -870,6 +879,22 @@ namespace Pomona.Common.Linq
                     return Expression.Constant(mNode.Method.Invoke(instance, invokeArgs.ToArray()), mNode.Type);
                 }
 
+                return baseNode;
+            }
+
+
+            protected override Expression VisitNew(NewExpression node)
+            {
+                var baseNode = base.VisitNew(node);
+                if (baseNode is NewExpression)
+                {
+                    var nNode = baseNode as NewExpression;
+                    if (nNode.Arguments.Where(x => x != null).Any(x => x.NodeType != ExpressionType.Constant))
+                        return baseNode;
+
+                    var invokeArgs = nNode.Arguments.Cast<ConstantExpression>().Select(x => x.Value);
+                    return Expression.Constant(nNode.Constructor.Invoke(invokeArgs.ToArray()));
+                }
                 return baseNode;
             }
 
