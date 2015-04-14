@@ -12,13 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.SystemTests", "tests
 		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1} = {9D098F08-B3CA-4122-A7F6-3090F8A17CA1}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5EFFC358-961C-47E3-9735-8061DCB3BE75}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Example", "tests\Pomona.Example\Pomona.Example.csproj", "{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Example.ServerApp", "tests\Pomona.Example.ServerApp\Pomona.Example.ServerApp.csproj", "{2A4FB8E3-4537-4B40-9DED-34B892C0BCAB}"
