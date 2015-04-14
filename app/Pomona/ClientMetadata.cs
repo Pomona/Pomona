@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -68,7 +68,7 @@ namespace Pomona
 
             if (String.IsNullOrWhiteSpace(name))
                 name = assemblyName.Split('.').Last();
-            
+
             if (String.IsNullOrWhiteSpace(interfaceName))
                 interfaceName = String.Concat('I', name);
 
@@ -78,14 +78,17 @@ namespace Pomona
             if (String.IsNullOrWhiteSpace(informationalVersion))
                 informationalVersion = "1.0.0.0";
 
-            /* NOTE: This is not working in Mono
-            ValidateIdentifiers(new Dictionary<string, CodeObject>
+            if (!IsRunningOnMono())
             {
-                { "name", new CodeTypeDeclaration(name) },
-                { "interfaceName", new CodeTypeDeclaration(interfaceName) },
-                { "namespace", new CodeNamespace(@namespace) },
-            });
-            */
+                // NOTE: Validation of identifiers not working on Mono, due to System.CodeDom not being fully compatible.
+                ValidateIdentifiers(new Dictionary<string, CodeObject>
+                {
+                    { "name", new CodeTypeDeclaration(name) },
+                    { "interfaceName", new CodeTypeDeclaration(interfaceName) },
+                    { "namespace", new CodeNamespace(@namespace) },
+                });
+            }
+
             this.assemblyName = assemblyName;
             this.name = name;
             this.interfaceName = interfaceName;
@@ -202,6 +205,16 @@ namespace Pomona
                 informationalVersion = this.informationalVersion;
 
             return new ClientMetadata(assemblyName, name, interfaceName, @namespace, informationalVersion);
+        }
+
+
+        /// <summary>
+        /// Check whether we are running on Mono runtime.
+        /// </summary>
+        /// <returns>True if running on Mono runtime.</returns>
+        private static bool IsRunningOnMono()
+        {
+            return Type.GetType("Mono.Runtime") != null;
         }
 
 
