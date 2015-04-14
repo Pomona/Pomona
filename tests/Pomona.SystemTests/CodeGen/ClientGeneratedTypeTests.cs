@@ -224,12 +224,13 @@ namespace Pomona.SystemTests.CodeGen
         }
 
 
+        [Category("WindowsRequired")]
         [Test]
         public void PeVerify_ClientWithEmbeddedPomonaCommon_HasExitCode0()
         {
             var origDllPath = typeof(ICritter).Assembly.Location;
             var dllDir = Path.GetDirectoryName(origDllPath);
-            var clientWithEmbeddedStuffName = Path.Combine(dllDir, "..\\..\\..\\..\\lib\\IndependentCritters.dll");
+            var clientWithEmbeddedStuffName = Path.Combine(dllDir, "../../../../lib/IndependentCritters.dll");
             var newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
             File.Copy(clientWithEmbeddedStuffName, newDllPath, true);
             PeVerify(newDllPath);
@@ -241,6 +242,8 @@ namespace Pomona.SystemTests.CodeGen
             PeVerifyHelper.Verify(dllPath);
         }
 
+
+        [Category("WindowsRequired")]
         [Test]
         public void PeVerify_HasExitCode0()
         {
@@ -248,6 +251,7 @@ namespace Pomona.SystemTests.CodeGen
         }
 
 
+        [Category("WindowsRequired")]
         [Test(Description = "This test has been added since more errors are discovered when dll has been renamed.")]
         public void PeVerify_RenamedToAnotherDllName_StillHasExitCode0()
         {

@@ -38,6 +38,7 @@ using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.Documentation
 {
+    [Category("WindowsRequired")]
     [TestFixture]
     public class XmlDocTests
     {
