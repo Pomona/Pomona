@@ -306,6 +306,14 @@
     <Folder Include="Visitors\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\tools\AntlrDotnet\Antlr3.targets" Condition=" '$(OS)' != 'Unix' " />
+  <PropertyGroup Condition=" '$(OS)' != 'Unix' ">
+    <!-- Folder containing AntlrBuildTask.dll -->
+    <AntlrOutputPath>$(MSBuildProjectDirectory)\Queries</AntlrOutputPath>
+    <AntlrBuildTaskPath>$(SolutionDir)\tools\AntlrDotnet</AntlrBuildTaskPath>
+    <!-- Path to the ANTLR Tool itself. -->
+    <AntlrToolPath>$(SolutionDir)\tools\AntlrDotnet\Antlr3.exe</AntlrToolPath>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
 
