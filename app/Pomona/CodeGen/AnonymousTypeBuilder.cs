@@ -81,7 +81,7 @@ namespace Pomona.CodeGen
 
         public static void ScanAssemblyForExistingAnonymousTypes(Assembly assembly)
         {
-            var anonTypes = assembly.GetTypes().Where(x => x.Name.StartsWith("<>f__AnonymousType")).ToList();
+            var anonTypes = assembly.GetTypes().Where(x => TypeExtensions.IsAnonymousTypeName(x.Name)).ToList();
 
             foreach (var anonType in anonTypes)
             {

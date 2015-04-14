@@ -78,13 +78,14 @@ namespace Pomona
             if (String.IsNullOrWhiteSpace(informationalVersion))
                 informationalVersion = "1.0.0.0";
 
+            /* NOTE: This is not working in Mono
             ValidateIdentifiers(new Dictionary<string, CodeObject>
             {
                 { "name", new CodeTypeDeclaration(name) },
                 { "interfaceName", new CodeTypeDeclaration(interfaceName) },
                 { "namespace", new CodeNamespace(@namespace) },
             });
-
+            */
             this.assemblyName = assemblyName;
             this.name = name;
             this.interfaceName = interfaceName;

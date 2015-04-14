@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
-      <Project>{94e7b042-6595-46f8-9400-897058e76e91}</Project>
+      <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
     </ProjectReference>
   </ItemGroup>

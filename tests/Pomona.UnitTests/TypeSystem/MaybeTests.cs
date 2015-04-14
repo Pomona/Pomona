@@ -170,7 +170,7 @@ namespace Pomona.UnitTests.TypeSystem
         public void SwitchWithCasesAsLambdaArgument_InvokesCasesDelegate()
         {
             Assert.That("what".Maybe()
-                .Switch(c => c
+                .Switch<string>(c => c
                     .Case(x => x == "what").Then(x => "yeah")
                     .Case(x => x == "moo").Then(x => "cow")
                 ).Value,

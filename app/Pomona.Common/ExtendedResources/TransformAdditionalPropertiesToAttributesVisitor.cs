@@ -40,7 +40,6 @@ namespace Pomona.Common.ExtendedResources
     public class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
     {
         private static readonly MethodInfo dictionarySafeGetMethod;
-        private readonly IClientTypeResolver client;
 
         private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
             new Dictionary<ParameterExpression, ParameterExpression>();
@@ -57,7 +56,6 @@ namespace Pomona.Common.ExtendedResources
 
         public TransformAdditionalPropertiesToAttributesVisitor(IClientTypeResolver client)
         {
-            this.client = client;
         }
 
 

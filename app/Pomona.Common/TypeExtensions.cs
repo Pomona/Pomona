@@ -327,15 +327,21 @@ namespace Pomona.Common
         }
 
         
+        public static bool IsAnonymousTypeName(string typeName)
+        {
+            return typeName.StartsWith("<>f__AnonymousType") || typeName.StartsWith("<>__AnonType");
+        }
+
+
         public static bool IsAnonymous(this TypeSpec type)
         {
-            return type.Name.StartsWith("<>f__AnonymousType");
+            return IsAnonymousTypeName(type.Name);
         }
 
 
         public static bool IsAnonymous(this Type type)
         {
-            return type.Name.StartsWith("<>f__AnonymousType");
+            return IsAnonymousTypeName(type.Name);
         }
 
 

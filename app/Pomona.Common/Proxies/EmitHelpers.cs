@@ -48,7 +48,7 @@ namespace Pomona.Common.Proxies
             throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
 #else
             var typeBuilder = CreateRuntimeTypeBuilder(@namespace, name);
-            var fullName = @namespace + "." + name;
+			// var fullName = @namespace + "." + name;
             properties.ForEach(x =>
             {
                 var propertyType = x.Value;

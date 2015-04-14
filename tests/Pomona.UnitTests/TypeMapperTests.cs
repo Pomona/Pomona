@@ -51,6 +51,7 @@ namespace Pomona.UnitTests
         public void AnonymousCompilerGeneratedType_IsMappedAsValueObject()
         {
             var anonObject = new { Foo = "hoohoo" };
+            Console.WriteLine(anonObject.GetType().FullName);
             var type = this.typeMapper.FromType(anonObject.GetType());
             Assert.That(type, Is.TypeOf<ComplexType>());
             Assert.That(((StructuredType)type).MappedAsValueObject, Is.True);
