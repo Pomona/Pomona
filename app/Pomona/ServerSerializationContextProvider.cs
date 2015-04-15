@@ -29,6 +29,7 @@ using System;
 using Nancy;
 
 using Pomona.Common.Serialization;
+using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
@@ -36,34 +37,34 @@ namespace Pomona
     {
         private readonly IUriResolver uriResolver;
         private readonly IResourceResolver resourceResolver;
-        private readonly NancyContext nancyContext;
+        private readonly IContainer container;
 
 
-        public ServerSerializationContextProvider(IUriResolver uriResolver, IResourceResolver resourceResolver, NancyContext nancyContext)
+        public ServerSerializationContextProvider(IUriResolver uriResolver, IResourceResolver resourceResolver, IContainer container)
         {
             if (uriResolver == null)
                 throw new ArgumentNullException("uriResolver");
             if (resourceResolver == null)
                 throw new ArgumentNullException("resourceResolver");
-            if (nancyContext == null)
-                throw new ArgumentNullException("nancyContext");
+            if (container == null)
+                throw new ArgumentNullException("container");
             this.uriResolver = uriResolver;
             this.resourceResolver = resourceResolver;
-            this.nancyContext = nancyContext;
+            this.container = container;
         }
 
 
         public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
         {
             options = options ?? new DeserializeOptions();
-            return new ServerDeserializationContext(uriResolver.TypeMapper, resourceResolver, options.TargetNode, nancyContext);
+            return new ServerDeserializationContext(uriResolver.TypeMapper, resourceResolver, options.TargetNode, container);
         }
 
 
         public ISerializationContext GetSerializationContext(SerializeOptions options)
         {
             options = options ?? new SerializeOptions();
-            return new ServerSerializationContext(options.ExpandedPaths, false, uriResolver, nancyContext);
+            return new ServerSerializationContext(options.ExpandedPaths, false, uriResolver, container);
         }
     }
 }

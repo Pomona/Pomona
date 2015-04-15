@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,36 +28,29 @@
 
 using System;
 
-using Nancy;
-
 using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    internal class ServerDeserializationContext : ServerContainer, IDeserializationContext
+    internal class ServerDeserializationContext : IDeserializationContext
     {
+        private readonly IContainer container;
         private readonly IResourceResolver resourceResolver;
         private readonly IResourceNode targetNode;
         private readonly ITypeResolver typeMapper;
 
 
         public ServerDeserializationContext(ITypeResolver typeMapper,
-            IResourceResolver resourceResolver,
-            IResourceNode targetNode,
-            NancyContext nancyContext)
-            : base(nancyContext)
+                                            IResourceResolver resourceResolver,
+                                            IResourceNode targetNode,
+                                            IContainer container)
         {
             this.typeMapper = typeMapper;
             this.resourceResolver = resourceResolver;
             this.targetNode = targetNode;
-        }
-
-
-        public IResourceNode TargetNode
-        {
-            get { return this.targetNode; }
+            this.container = container;
         }
 
 
@@ -93,9 +86,9 @@ namespace Pomona
                 if (type.TryGetPropertyByName(argumentException.ParamName, true, out propertySpec))
                 {
                     throw new ResourceValidationException(argumentException.Message,
-                        propertySpec.Name,
-                        propertySpec.ReflectedType.Name,
-                        argumentException);
+                                                          propertySpec.Name,
+                                                          propertySpec.ReflectedType.Name,
+                                                          argumentException);
                 }
                 throw;
             }
@@ -118,6 +111,12 @@ namespace Pomona
         }
 
 
+        public T GetInstance<T>()
+        {
+            return this.container.GetInstance<T>();
+        }
+
+
         public TypeSpec GetTypeByName(string typeName)
         {
             return this.typeMapper.FromType(typeName);
@@ -128,8 +127,8 @@ namespace Pomona
         {
             throw new ResourceValidationException(
                 string.Format("Property {0} is required when creating resource {1}",
-                    targetProp.Name,
-                    node.ValueType.Name),
+                              targetProp.Name,
+                              node.ValueType.Name),
                 targetProp.Name,
                 node.ValueType.Name,
                 null);
@@ -152,12 +151,18 @@ namespace Pomona
                     : targetNode.ExpandPath + "." + property.Name;
                 throw new ResourceValidationException(
                     string.Format("Property {0} of resource {1} is not writable.",
-                        property.Name,
-                        targetNode.ValueType.Name),
+                                  property.Name,
+                                  targetNode.ValueType.Name),
                     propPath,
                     targetNode.ValueType.Name,
                     null);
             }
+        }
+
+
+        public IResourceNode TargetNode
+        {
+            get { return this.targetNode; }
         }
     }
 }

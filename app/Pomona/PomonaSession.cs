@@ -113,7 +113,7 @@ namespace Pomona
                 return
                     (T)(object)new ServerSerializationContextProvider(GetInstance<IUriResolver>(),
                                                                       GetInstance<IResourceResolver>(),
-                                                                      GetInstance<NancyContext>());
+                                                                      this);
             }
 
             if (typeof(T) == typeof(ITextDeserializer))

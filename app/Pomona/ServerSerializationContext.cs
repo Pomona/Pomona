@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,19 +29,16 @@
 using System;
 using System.Collections.Generic;
 
-using Nancy;
-
-using Pomona.Common;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    internal class ServerSerializationContext : ServerContainer, ISerializationContext
+    internal class ServerSerializationContext : ISerializationContext
     {
+        private readonly IContainer container;
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;
-
         private readonly ITypeResolver typeMapper;
         private readonly IUriResolver uriResolver;
 
@@ -50,14 +47,12 @@ namespace Pomona
             string expandedPaths,
             bool debugMode,
             IUriResolver uriResolver,
-            NancyContext nancyContext
+            IContainer container
             )
-            : base(nancyContext)
         {
-            if (nancyContext == null)
-                throw new ArgumentNullException("nancyContext");
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;
+            this.container = container;
             this.typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
@@ -79,9 +74,34 @@ namespace Pomona
         }
 
 
+        private ExpandMode GetPropertyExpandMode(ISerializerNode node)
+        {
+            if (node.ExpectedBaseType.IsCollection && node.ExpectedBaseType.ElementType.IsAlwaysExpanded)
+                return ExpandMode.Full;
+
+            if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
+                GetPropertyExpandMode(node.ParentNode) == ExpandMode.Full)
+                return ExpandMode.Full;
+
+            var propNode = node as PropertyValueSerializerNode;
+            if (propNode == null)
+                return ExpandMode.Default;
+            var propMapping = propNode.Property as StructuredProperty;
+            if (propMapping == null)
+                return ExpandMode.Default;
+            return propMapping.ExpandMode;
+        }
+
+
         public TypeSpec GetClassMapping(Type type)
         {
             return this.typeMapper.FromType(type);
+        }
+
+
+        public T GetInstance<T>()
+        {
+            return this.container.GetInstance<T>();
         }
 
 
@@ -108,7 +128,7 @@ namespace Pomona
 
         public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
         {
-            var isExpanded =    node.ExpectedBaseType.IsAlwaysExpanded
+            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded
                              || PathToBeExpanded(node.ExpandPath)
                              || (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
                              || (GetPropertyExpandMode(node) != ExpandMode.Default);
@@ -116,25 +136,6 @@ namespace Pomona
             node.SerializeAsReference = !isExpanded;
 
             nodeSerializerAction(node);
-        }
-
-
-        private ExpandMode GetPropertyExpandMode(ISerializerNode node)
-        {
-            if (node.ExpectedBaseType.IsCollection && node.ExpectedBaseType.ElementType.IsAlwaysExpanded)
-                return ExpandMode.Full;
-
-            if (node.ParentNode != null && node.ParentNode.ValueType.IsCollection &&
-                GetPropertyExpandMode(node.ParentNode) == ExpandMode.Full)
-                return ExpandMode.Full;
-
-            var propNode = node as PropertyValueSerializerNode;
-            if (propNode == null)
-                return ExpandMode.Default;
-            var propMapping = propNode.Property as StructuredProperty;
-            if (propMapping == null)
-                return ExpandMode.Default;
-            return propMapping.ExpandMode;
         }
     }
 }
