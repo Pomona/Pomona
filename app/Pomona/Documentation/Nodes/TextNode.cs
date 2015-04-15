@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,32 @@
 
 #endregion
 
-using System.Xml.Serialization;
+using System;
 
-namespace Pomona.Documentation
+namespace Pomona.Documentation.Nodes
 {
-    public class XmlDocAssembly
+    internal class TextNode : DocNode, ITextNode
     {
-        [XmlElement("name")]
-        public string Name { get; set; }
+        public TextNode(string text)
+        {
+            if (text == null)
+                throw new ArgumentNullException("text");
+            Text = text;
+        }
+
+
+        public string Text { get; private set; }
+
+
+        protected override string OnToString(Func<IDocNode, string> formattingHook)
+        {
+            return Text;
+        }
+
+
+        public string Value
+        {
+            get { return Text; }
+        }
     }
 }

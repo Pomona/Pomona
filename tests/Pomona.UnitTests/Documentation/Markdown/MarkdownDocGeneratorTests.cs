@@ -1,5 +1,4 @@
 ﻿#region License
-
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -23,19 +22,33 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
-
 #endregion
 
-using System.Xml.Serialization;
+using System;
+using System.Linq;
 
-namespace Pomona.Documentation
+using Mono.CSharp;
+
+using NUnit.Framework;
+
+using Pomona.Common.TypeSystem;
+using Pomona.Documentation.Markdown;
+using Pomona.Example;
+using Pomona.Example.Models;
+
+namespace Pomona.UnitTests.Documentation.Markdown
 {
-    public class XmlDocMember
+    [TestFixture]
+    public class MarkdownDocGeneratorTests
     {
-        [XmlAttribute("name")]
-        public string Name { get; set; }
-
-        [XmlElement("summary")]
-        public string Summary { get; set; }
+        [Test]
+        public void Generate()
+        {
+            Console.WriteLine("Jalla\r\nHoopla\r\n");
+            var typeMapper = new CritterPomonaConfiguration().CreateSessionFactory().TypeMapper;
+            var output = new MarkdownDocGenerator().GenerateAll(typeMapper.SourceTypes.OfType<ResourceType>().Where(x => !x.IsChildResource && x.UriBaseType != null).OrderBy(x => x.UriBaseType.Name).ThenBy(x => x.Name));
+            Console.WriteLine(output);
+            Assert.Fail();
+        }
     }
 }

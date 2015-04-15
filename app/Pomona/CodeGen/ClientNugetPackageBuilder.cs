@@ -38,6 +38,7 @@ using NuGet;
 
 using Pomona.Common;
 using Pomona.Documentation;
+using Pomona.Documentation.Xml.Serialization;
 
 namespace Pomona.CodeGen
 {
@@ -136,8 +137,6 @@ namespace Pomona.CodeGen
 
         private void WritePackageContents(string tempPath, bool pomonaClientEmbeddingEnabled)
         {
-            var clientLibGen = new ClientLibGenerator(this.typeMapper, new XmlDocumentationProvider());
-
             Directory.CreateDirectory(tempPath);
             Directory.CreateDirectory(Path.Combine(tempPath, "lib"));
             var dllDir = Path.Combine(tempPath, "lib", "net40");
@@ -146,15 +145,8 @@ namespace Pomona.CodeGen
 
             using (var stream = File.Create(dllPath))
             {
-                clientLibGen.PomonaClientEmbeddingEnabled = pomonaClientEmbeddingEnabled;
-                clientLibGen.CreateClientDll(stream, xmlDoc =>
-                {
-                    var pomonaClientXmlDocPath = Path.Combine(dllDir, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
-                    using (var xmlDocStream = File.OpenWrite(pomonaClientXmlDocPath))
-                    {
-                        (new XmlSerializer(typeof(XmlDoc))).Serialize(xmlDocStream, xmlDoc);
-                    }
-                });
+                var pomonaClientXmlDocPath = Path.Combine(dllDir, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
+                ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, pomonaClientEmbeddingEnabled, () => File.OpenWrite(pomonaClientXmlDocPath));
             }
 
             if (pomonaClientEmbeddingEnabled)

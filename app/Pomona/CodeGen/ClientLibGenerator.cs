@@ -31,6 +31,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 using Mono.Cecil;
@@ -44,6 +47,8 @@ using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.TypeSystem;
 using Pomona.Documentation;
+using Pomona.Documentation.Nodes;
+using Pomona.Documentation.Xml.Serialization;
 
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
@@ -63,7 +68,7 @@ namespace Pomona.CodeGen
         private readonly IDocumentationProvider docProvider;
         private readonly TypeMapper typeMapper;
         private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
-        private readonly XmlDoc xmlDoc = new XmlDoc();
+        private readonly XDoc xDoc = new XDoc();
         private TypeDefinition clientInterface;
         private Dictionary<TypeSpec, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumTypeSpec, TypeReference> enumClientTypeDict;
@@ -92,9 +97,9 @@ namespace Pomona.CodeGen
         public bool MakeProxyTypesPublic { get; set; }
         public bool PomonaClientEmbeddingEnabled { get; set; }
 
-        public XmlDoc XmlDoc
+        public XDoc XDoc
         {
-            get { return this.xmlDoc; }
+            get { return this.xDoc; }
         }
 
         private TypeReference StringTypeRef
@@ -108,14 +113,14 @@ namespace Pomona.CodeGen
         }
 
 
-        public void CreateClientDll(Stream stream, Action<XmlDoc> onXmlDocCompleted = null)
+        public void CreateClientDll(Stream stream, Action<XDoc> onXmlDocCompleted = null)
         {
             var structuredTypes = this.typeMapper.SourceTypes.OfType<StructuredType>().ToList();
             this.@namespace = this.typeMapper.Filter.ClientMetadata.Namespace;
             var version = new Version(this.typeMapper.Filter.ApiVersion.PadTo(4));
             var assemblyName = this.typeMapper.Filter.ClientMetadata.AssemblyName;
             var assembly = CreateAssembly(assemblyName, version);
-            this.xmlDoc.Assembly.Name = assembly.Name.Name;
+            this.xDoc.Assembly.Name = assembly.Name.Name;
 
             this.module = assembly.MainModule;
             this.module.Name = assemblyName + ".dll";
@@ -182,8 +187,8 @@ namespace Pomona.CodeGen
 
             stream.Write(array, 0, array.Length);
 
-            if (this.xmlDoc.Members.Count > 0 && onXmlDocCompleted != null)
-                onXmlDocCompleted(this.xmlDoc);
+            if (this.xDoc.Members.Count > 0 && onXmlDocCompleted != null)
+                onXmlDocCompleted(this.xDoc);
         }
 
 
@@ -192,7 +197,7 @@ namespace Pomona.CodeGen
                                               bool embedPomonaClient = true,
                                               Func<Stream> xmlDocStreamFactory = null)
         {
-            var clientLibGenerator = new ClientLibGenerator(typeMapper, new XmlDocumentationProvider())
+            var clientLibGenerator = new ClientLibGenerator(typeMapper, new XmlDocumentationProvider(typeMapper))
             {
                 PomonaClientEmbeddingEnabled = embedPomonaClient
             };
@@ -201,9 +206,9 @@ namespace Pomona.CodeGen
                 if (xmlDocStreamFactory == null)
                     return;
                 using (var xmlStream = xmlDocStreamFactory())
+                using (var xmlWriter = new XmlTextWriter(xmlStream, Encoding.UTF8))
                 {
-                    var serializer = new XmlSerializer(typeof(XmlDoc));
-                    serializer.Serialize(xmlStream, doc);
+                    doc.Node.WriteTo(xmlWriter);
                 }
             });
         }
@@ -298,10 +303,11 @@ namespace Pomona.CodeGen
             var description = this.docProvider.GetSummary(prop);
             if (description != null)
             {
-                this.xmlDoc.Members.Add(new XmlDocMember
+                this.xDoc.Members.Add(new XDocMember()
                 {
                     Name = "P:" + propDef.DeclaringType.FullName + "." + propDef.Name,
-                    Summary = description
+                    // TODO: Proper conversion of reference nodes etc..
+                    Summary = new XDocContentContainer() { new XDocText(docProvider.GetSummary(prop).ToString().Trim()) }
                 });
             }
         }
@@ -1270,7 +1276,7 @@ namespace Pomona.CodeGen
 
         private class EmptyDocProvider : IDocumentationProvider
         {
-            public string GetSummary(MemberSpec member)
+            public IDocNode GetSummary(MemberSpec member)
             {
                 return null;
             }

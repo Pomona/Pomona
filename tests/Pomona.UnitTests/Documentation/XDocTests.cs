@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,32 +29,21 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using System.Xml.Serialization;
+
 using NUnit.Framework;
 
 using Pomona.Common.Internals;
-using Pomona.Documentation;
+using Pomona.Documentation.Xml.Serialization;
 using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.Documentation
 {
     [Category("WindowsRequired")]
     [TestFixture]
-    public class XmlDocTests
+    public class XDocTests
     {
-        private static XmlDoc LoadXmlDoc()
-        {
-            var fileName = "Pomona.Example.xml";
-            Assert.That(File.Exists(fileName), fileName + " does not exist");
-            var serializer = new XmlSerializer(typeof (XmlDoc));
-            XmlDoc xdoc;
-            using (var stream = File.OpenRead(fileName))
-            {
-                xdoc = (XmlDoc)serializer.Deserialize(stream);
-            }
-            return xdoc;
-        }
-
         [Test]
         public void DeserializesExampleXmlCorrectly()
         {
@@ -70,7 +59,22 @@ namespace Pomona.UnitTests.Documentation
         {
             var summary =
                 LoadXmlDoc().GetSummary((PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<Critter>(x => x.Name));
-            Assert.That(summary, Is.StringContaining("Name of the critter!"));
+            Assert.That(summary, Is.InstanceOf<XDocContentContainer>());
+            Assert.That(summary.Count, Is.EqualTo(1));
+            Assert.That(summary.First().ToString(), Is.StringContaining("Name of the critter!"));
+        }
+
+
+        private static XDoc LoadXmlDoc()
+        {
+            var fileName = "Pomona.Example.xml";
+            Assert.That(File.Exists(fileName), fileName + " does not exist");
+            XDoc xdoc;
+            using (var stream = File.OpenRead(fileName))
+            {
+                xdoc = new XDoc(XDocument.Load(stream).Root);
+            }
+            return xdoc;
         }
     }
 }

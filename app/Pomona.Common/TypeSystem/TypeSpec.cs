@@ -123,6 +123,11 @@ namespace Pomona.Common.TypeSystem
             get { return this.@namespace.Value; }
         }
 
+        public string FullName
+        {
+            get { return string.Format("{0}.{1}", Namespace, Name); }
+        }
+
         public abstract IEnumerable<PropertySpec> Properties { get; }
         public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
         public abstract TypeSerializationMode SerializationMode { get; }

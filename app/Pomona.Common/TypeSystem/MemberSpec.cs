@@ -81,7 +81,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.typeResolver; }
         }
 
-        protected MemberInfo Member
+        public MemberInfo Member
         {
             get { return this.member; }
         }

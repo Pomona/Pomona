@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2014 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,23 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
-using Pomona.Documentation.Nodes;
+using System.Xml.Linq;
 
-namespace Pomona.Documentation
+namespace Pomona.Documentation.Xml.Serialization
 {
-    public interface IDocumentationProvider
+    public class XDocAssembly : XDocElement
     {
-        IDocNode GetSummary(MemberSpec member);
+        public XDocAssembly(XElement node)
+            : base(node)
+        {
+        }
+
+
+        public string Name
+        {
+            get { return GetOrAddElement("name").Value; }
+            set { GetOrAddElement("name").Value = value; }
+        }
     }
+
 }

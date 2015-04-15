@@ -29,44 +29,58 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
+using Pomona.Documentation.Nodes;
+using Pomona.Documentation.Xml;
+using Pomona.Documentation.Xml.Serialization;
 
 namespace Pomona.Documentation
 {
     public class XmlDocumentationProvider : IDocumentationProvider
     {
-        private readonly Dictionary<string, XmlDoc> xmlDocs = new Dictionary<string, XmlDoc>();
+        private readonly Dictionary<string, XDoc> xmlDocs = new Dictionary<string, XDoc>();
+        private readonly XmlDocMapper mapper;
 
 
-        private string GetPropertyDescription(PropertyInfo property)
+        public XmlDocumentationProvider(IResourceTypeResolver typeMapper)
         {
-            var xdoc = this.xmlDocs.GetOrCreate(property.DeclaringType.Assembly.FullName, () =>
-            {
-                var xmlDocFileName = property.ReflectedType.Assembly.GetName().Name + ".xml";
-                if (File.Exists(xmlDocFileName))
-                {
-                    using (var stream = File.OpenRead(xmlDocFileName))
-                    {
-                        return (XmlDoc)(new XmlSerializer(typeof(XmlDoc)).Deserialize(stream));
-                    }
-                }
-                return null;
-            });
-            if (xdoc == null)
-                return null;
-            return xdoc.GetSummary(property);
+            this.mapper = new XmlDocMapper(typeMapper);
         }
 
 
-        public string GetSummary(MemberSpec member)
+        private IDocNode GetMemberSummary(MemberInfo member)
         {
-            var property = member as StructuredProperty;
-            if (property != null)
-                return GetPropertyDescription(property.PropertyInfo);
+            var xdoc = this.xmlDocs.GetOrCreate(member.Module.Assembly.FullName, () => LoadXmlDoc(member));
+            if (xdoc == null)
+                return null;
+            var xDocContentContainer = xdoc.GetSummary(member);
+            if (xDocContentContainer == null)
+                return null;
+            return mapper.Map(xDocContentContainer);
+        }
+
+
+        private static XDoc LoadXmlDoc(MemberInfo member)
+        {
+            var xmlDocFileName = member.Module.Assembly.GetName().Name + ".xml";
+            if (File.Exists(xmlDocFileName))
+            {
+                using (var stream = File.OpenRead(xmlDocFileName))
+                {
+                    return new XDoc(XDocument.Load(stream).Root);
+                }
+            }
             return null;
+        }
+
+
+        public IDocNode GetSummary(MemberSpec member)
+        {
+            return GetMemberSummary(member.Member);
         }
     }
 }

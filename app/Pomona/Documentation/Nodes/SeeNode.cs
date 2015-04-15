@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,43 +26,28 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Xml.Serialization;
+using System;
 
-namespace Pomona.Documentation
+using Pomona.Common.TypeSystem;
+
+namespace Pomona.Documentation.Nodes
 {
-    [XmlRoot("doc")]
-    public class XmlDoc
+    internal class SeeNode : DocNode, ISeeNode
     {
-        public XmlDoc()
+        public SeeNode(MemberSpec reference)
         {
-            Assembly = new XmlDocAssembly();
-            Members = new List<XmlDocMember>();
+            if (reference == null)
+                throw new ArgumentNullException("reference");
+            Reference = reference;
         }
 
 
-        [XmlElement("assembly")]
-        public XmlDocAssembly Assembly { get; set; }
-
-        [XmlArray("members")]
-        [XmlArrayItem("member")]
-        public List<XmlDocMember> Members { get; set; }
+        public MemberSpec Reference { get; private set; }
 
 
-        public string GetSummary(PropertyInfo propertyInfo)
+        protected override string OnToString(Func<IDocNode, string> formattingHook)
         {
-            if (propertyInfo.ReflectedType.Assembly.GetName().Name != Assembly.Name)
-                return null;
-
-            return
-                Members.Where(
-                    x =>
-                        string.Equals(x.Name,
-                                      string.Format("P:{0}.{1}", propertyInfo.ReflectedType.FullName, propertyInfo.Name)))
-                       .Select(x => x.Summary)
-                       .FirstOrDefault();
+            return "(ref: " + Reference.Name + ")";
         }
     }
 }

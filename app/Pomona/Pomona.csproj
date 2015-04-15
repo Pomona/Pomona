@@ -120,10 +120,28 @@
     <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
     <Compile Include="DefaultTypeMappingFilter.cs" />
     <Compile Include="Documentation\IDocumentationProvider.cs" />
-    <Compile Include="Documentation\XmlDoc.cs" />
-    <Compile Include="Documentation\XmlDocAssembly.cs" />
-    <Compile Include="Documentation\XmlDocMember.cs" />
+    <Compile Include="Documentation\Nodes\DocContainerNode.cs" />
+    <Compile Include="Documentation\Nodes\DocNode.cs" />
+    <Compile Include="Documentation\Nodes\IDocContainerNode.cs" />
+    <Compile Include="Documentation\Nodes\IDocNode.cs" />
+    <Compile Include="Documentation\Nodes\ISeeNode.cs" />
+    <Compile Include="Documentation\Nodes\ITextNode.cs" />
+    <Compile Include="Documentation\Nodes\SeeNode.cs" />
+    <Compile Include="Documentation\Nodes\TextNode.cs" />
+    <Compile Include="Documentation\Nodes\UnresolvedSeeNode.cs" />
     <Compile Include="Documentation\XmlDocumentationProvider.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocAssembly.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocContentContainer.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocContentElement.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocContentNode.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocElement.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocMember.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocMemberCollection.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocNode.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocSee.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDocText.cs" />
+    <Compile Include="Documentation\Xml\Serialization\XDoc.cs" />
+    <Compile Include="Documentation\Xml\XmlDocMapper.cs" />
     <Compile Include="Fetcher\BatchFetcher.cs">
       <SubType>Code</SubType>
     </Compile>

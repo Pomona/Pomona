@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,34 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
-using Pomona.Documentation.Nodes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Pomona.Documentation
+namespace Pomona.Documentation.Nodes
 {
-    public interface IDocumentationProvider
+    internal class DocContainerNode : DocNode, IDocContainerNode
     {
-        IDocNode GetSummary(MemberSpec member);
+        private readonly ICollection<IDocNode> children;
+
+
+        public DocContainerNode(IEnumerable<IDocNode> children)
+        {
+            if (children == null)
+                throw new ArgumentNullException("children");
+            this.children = children.ToList().AsReadOnly();
+        }
+
+
+        protected override string OnToString(Func<IDocNode, string> formattingHook)
+        {
+            return string.Concat(this.children.Select(x => x.ToString(formattingHook)));
+        }
+
+
+        public ICollection<IDocNode> Children
+        {
+            get { return this.children; }
+        }
     }
 }

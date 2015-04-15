@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,13 +26,26 @@
 
 #endregion
 
-using Pomona.Common.TypeSystem;
-using Pomona.Documentation.Nodes;
+using System;
 
-namespace Pomona.Documentation
+namespace Pomona.Documentation.Nodes
 {
-    public interface IDocumentationProvider
+    internal class UnresolvedSeeNode : DocNode
     {
-        IDocNode GetSummary(MemberSpec member);
+        private readonly string name;
+
+
+        public UnresolvedSeeNode(string name)
+        {
+            if (name == null)
+                throw new ArgumentNullException("memberSpec");
+            this.name = name;
+        }
+
+
+        protected override string OnToString(Func<IDocNode, string> formattingHook)
+        {
+            return this.name;
+        }
     }
 }

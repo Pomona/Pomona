@@ -31,6 +31,9 @@ using System.Collections.Generic;
 
 namespace Pomona.Example.Models
 {
+    /// <summary>
+    /// A small annoying animal, that come in many shapes and sizes.
+    /// </summary>
     public class Critter : EntityBase, IHiddenInterface
     {
         public Critter()
@@ -60,10 +63,16 @@ namespace Pomona.Example.Models
 
         public string PropertyExcludedByGetAllPropertiesOfType { get; set; }
 
+        /// <summary>
+        /// This is a value object.
+        /// </summary>
         public CrazyValueObject CrazyValue { get; set; }
 
         public DateTime CreatedOn { get; set; }
 
+        /// <summary>
+        /// List of <see cref="Critter"/> enemies.
+        /// </summary>
         public IList<Critter> Enemies { get; set; }
         public Farm Farm { get; set; }
 
@@ -74,10 +83,20 @@ namespace Pomona.Example.Models
             get { return Id % 6; }
         }
 
+        /// <summary>
+        /// Something to put on its head to make it look silly.
+        /// </summary>
         public Hat Hat { get; set; }
+
+        /// <summary>
+        /// An integer exposed as a string
+        /// </summary>
         public int IntExposedAsString { get; set; }
         public bool IsCaptured { get; internal set; }
 
+        /// <summary>
+        /// This is a <see cref="System.String"/>
+        /// </summary>
         public string IsNotAllowedInFilters
         {
             get { return "bah bah"; }
