@@ -36,7 +36,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class ServerDeserializationContext : ServerContainer, IDeserializationContext
+    internal class ServerDeserializationContext : ServerContainer, IDeserializationContext
     {
         private readonly IResourceResolver resourceResolver;
         private readonly IResourceNode targetNode;

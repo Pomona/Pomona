@@ -37,7 +37,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class ServerSerializationContext : ServerContainer, ISerializationContext
+    internal class ServerSerializationContext : ServerContainer, ISerializationContext
     {
         private readonly bool debugMode;
         private readonly HashSet<string> expandedPaths;

@@ -34,7 +34,7 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class ServerContainer : IContainer
+    internal class ServerContainer : IContainer
     {
         private readonly NancyContext nancyContext;
 
