@@ -65,8 +65,8 @@ namespace Pomona
             }
         }
 
-        public abstract IEnumerable<Type> SourceTypes { get; }
-        public abstract ITypeMappingFilter TypeMappingFilter { get; }
+        public virtual IEnumerable<Type> SourceTypes { get { return new Type[] { }; } }
+        public virtual ITypeMappingFilter TypeMappingFilter { get { return new DefaultTypeMappingFilter(SourceTypes); } }
 
         protected virtual IRouteActionResolver DataSourceRouteActionResolver
         {
