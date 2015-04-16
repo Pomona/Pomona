@@ -145,7 +145,7 @@
     <Compile Include="Security\Authentication\DefaultPreAuthenticatedUriResolverTests.cs" />
     <Compile Include="Security\Authentication\PreAuthenticatedUriProviderTests.cs" />
     <Compile Include="Security\Crypto\CryptoSerializerTests.cs" />
-    <Compile Include="Serialization\Json\PomonaJsonSerializerTests.cs" />
+    <Compile Include="Serialization\Json\PomonaJsonDeserializerTests.cs" />
     <Compile Include="SingularToPluralTranslatorTests.cs" />
     <Compile Include="SolutionTests.cs" />
     <Compile Include="JsonConverterTestsBase.cs" />
