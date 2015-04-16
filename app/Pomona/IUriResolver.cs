@@ -32,7 +32,6 @@ namespace Pomona
 {
     public interface IUriResolver
     {
-        ITypeResolver TypeMapper { get; }
         string RelativeToAbsoluteUri(string uri);
         string ToRelativePath(string url);
         string GetUriFor(object entity);

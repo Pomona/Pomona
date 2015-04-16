@@ -111,7 +111,8 @@ namespace Pomona
             if (typeof(T) == typeof(ISerializationContextProvider))
             {
                 return
-                    (T)(object)new ServerSerializationContextProvider(GetInstance<IUriResolver>(),
+                    (T)(object)new ServerSerializationContextProvider(TypeMapper,
+                                                                      GetInstance<IUriResolver>(),
                                                                       GetInstance<IResourceResolver>(),
                                                                       this);
             }

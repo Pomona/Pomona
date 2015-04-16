@@ -35,19 +35,23 @@ namespace Pomona
 {
     public class ServerSerializationContextProvider : ISerializationContextProvider
     {
+        private readonly TypeMapper typeMapper;
         private readonly IUriResolver uriResolver;
         private readonly IResourceResolver resourceResolver;
         private readonly IContainer container;
 
 
-        public ServerSerializationContextProvider(IUriResolver uriResolver, IResourceResolver resourceResolver, IContainer container)
+        public ServerSerializationContextProvider(TypeMapper typeMapper, IUriResolver uriResolver, IResourceResolver resourceResolver, IContainer container)
         {
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             if (uriResolver == null)
                 throw new ArgumentNullException("uriResolver");
             if (resourceResolver == null)
                 throw new ArgumentNullException("resourceResolver");
             if (container == null)
                 throw new ArgumentNullException("container");
+            this.typeMapper = typeMapper;
             this.uriResolver = uriResolver;
             this.resourceResolver = resourceResolver;
             this.container = container;
@@ -57,14 +61,14 @@ namespace Pomona
         public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
         {
             options = options ?? new DeserializeOptions();
-            return new ServerDeserializationContext(uriResolver.TypeMapper, resourceResolver, options.TargetNode, container);
+            return new ServerDeserializationContext(typeMapper, resourceResolver, options.TargetNode, container);
         }
 
 
         public ISerializationContext GetSerializationContext(SerializeOptions options)
         {
             options = options ?? new SerializeOptions();
-            return new ServerSerializationContext(options.ExpandedPaths, false, uriResolver, container);
+            return new ServerSerializationContext(typeMapper, options.ExpandedPaths, false, uriResolver, container);
         }
     }
 }

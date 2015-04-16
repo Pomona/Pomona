@@ -50,12 +50,6 @@ namespace Pomona
         }
 
 
-        public ITypeResolver TypeMapper
-        {
-            get { return this.typeMapper; }
-        }
-
-
         public virtual string RelativeToAbsoluteUri(string path)
         {
             var baseUri = this.baseUriProvider.BaseUri.ToString();

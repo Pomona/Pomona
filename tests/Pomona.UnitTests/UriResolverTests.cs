@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,18 +37,18 @@ using Pomona.Example.Models.Existence;
 namespace Pomona.UnitTests
 {
     [TestFixture]
-    public class UriResolverTests
+    public class UriResolverTests : IBaseUriProvider
     {
-        [TestCase("http://whateva/", "http://whateva/critters/1234")]
-        [TestCase("http://whateva/boo", "http://whateva/boo/critters/1234")]
-        [TestCase("http://whateva/boo/", "http://whateva/boo/critters/1234")]
+        private TypeMapper typeMapper;
+        private UriResolver uriResolver;
+
+
         [Test]
-        public void GetUriFor_resource_of_collection_returns_correct_url(string baseUrl, string expectedResourceUrl)
+        public void GetUriFor_entity_having_reserved_characters_in_path_segment_encodes_url_correctly()
         {
-            var uriResolver = CreateUriResolver(new CritterPomonaConfiguration(), baseUrl);
-            var critter = new Critter() { Id = 1234 };
-            var url = uriResolver.GetUriFor(critter);
-            Assert.That(url, Is.EqualTo(expectedResourceUrl));
+            var galaxy = new Galaxy() { Name = "this is it!?~_--- :;" };
+            var url = this.uriResolver.GetUriFor(galaxy);
+            Assert.That(url, Is.EqualTo("http://whateva/galaxies/this%20is%20it%21%3F%7E_---%20%3A%3B"));
         }
 
 
@@ -57,37 +57,35 @@ namespace Pomona.UnitTests
         [Test]
         public void GetUriFor_property_of_resource_returns_correct_url(string baseUrl, string expectedResourceUrl)
         {
-            var uriResolver = CreateUriResolver(new CritterPomonaConfiguration(), baseUrl);
+            BaseUri = new Uri(baseUrl);
             var farm = new Farm("the farm") { Id = 1234 };
-            var url =
-                uriResolver.GetUriFor(
-                    uriResolver.TypeMapper.FromType(typeof(Farm)).GetPropertyByName("Critters", true), farm);
+            var url = this.uriResolver.GetUriFor(this.typeMapper.FromType(typeof(Farm)).GetPropertyByName("Critters", true), farm);
             Assert.That(url, Is.EqualTo(expectedResourceUrl));
         }
 
 
+        [TestCase("http://whateva/", "http://whateva/critters/1234")]
+        [TestCase("http://whateva/boo", "http://whateva/boo/critters/1234")]
+        [TestCase("http://whateva/boo/", "http://whateva/boo/critters/1234")]
         [Test]
-        public void GetUriFor_entity_having_reserved_characters_in_path_segment_encodes_url_correctly()
+        public void GetUriFor_resource_of_collection_returns_correct_url(string baseUrl, string expectedResourceUrl)
         {
-            var uriResolver = CreateUriResolver(new CritterPomonaConfiguration(), "http://whateva/");
-            var galaxy = new Galaxy() { Name = "this is it!?~_--- :;" };
-            var url = uriResolver.GetUriFor(galaxy);
-            Assert.That(url, Is.EqualTo("http://whateva/galaxies/this%20is%20it%21%3F%7E_---%20%3A%3B"));
+            BaseUri = new Uri(baseUrl);
+            var critter = new Critter() { Id = 1234 };
+            var url = this.uriResolver.GetUriFor(critter);
+            Assert.That(url, Is.EqualTo(expectedResourceUrl));
         }
 
 
-        private static UriResolver CreateUriResolver(PomonaConfigurationBase config, string baseUrl)
+        [SetUp]
+        public void SetUp()
         {
-            var typeMapper = new TypeMapper(config);
-            var uriResolver = new UriResolver(typeMapper,
-                                              new DummyBaseUriProvider() { BaseUri = new Uri(baseUrl) });
-            return uriResolver;
+            BaseUri = new Uri("http://whateva/");
+            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.uriResolver = new UriResolver(this.typeMapper, this);
         }
 
 
-        private class DummyBaseUriProvider : IBaseUriProvider
-        {
-            public Uri BaseUri { get; set; }
-        }
+        public Uri BaseUri { get; set; }
     }
 }

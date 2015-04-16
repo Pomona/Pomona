@@ -44,16 +44,25 @@ namespace Pomona
 
 
         public ServerSerializationContext(
+            TypeMapper typeMapper,
             string expandedPaths,
             bool debugMode,
             IUriResolver uriResolver,
             IContainer container
             )
         {
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
+            if (expandedPaths == null)
+                throw new ArgumentNullException("expandedPaths");
+            if (uriResolver == null)
+                throw new ArgumentNullException("uriResolver");
+            if (container == null)
+                throw new ArgumentNullException("container");
+            this.typeMapper = typeMapper;
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;
             this.container = container;
-            this.typeMapper = uriResolver.TypeMapper;
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
