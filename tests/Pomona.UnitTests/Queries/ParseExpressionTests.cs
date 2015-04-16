@@ -39,9 +39,16 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
+        public void Parse_NullableBoolNotEqualsTrue_CreatesCorrectExpression()
+        {
+            ParseAndAssert("nullableBool ne true", _this => _this.NullableBool != true);
+        }
+
+
+        [Test]
         public void Parse_NullableInt64EqualsConstant_CreatesCorrectExpression()
         {
-            ParseAndAssert("nullableInt64 == 42L", _this => _this.NullableInt64 == 42);
+            ParseAndAssert("nullableInt64 eq 42L", _this => _this.NullableInt64 == 42);
         }
 
 

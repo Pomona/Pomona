@@ -431,6 +431,13 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildNotEqualExpression_WithNullableBoolPropertyNotEqualTrue_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.NullableBool != true, "nullableBool ne true");
+        }
+
+
+        [Test]
         public void BuildNotEquals_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla != "blob", "jalla ne 'blob'");

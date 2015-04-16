@@ -105,6 +105,7 @@ namespace Pomona.UnitTests.Queries
             public DateTime Time { get; set; }
             public object UnknownProperty { get; set; }
             public bool and { get; set; }
+            public bool? NullableBool { get; set; }
             public int? NullableNumber { get; set; }
             public long? NullableInt64 { get; set; }
         }

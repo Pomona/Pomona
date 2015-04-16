@@ -84,6 +84,7 @@ namespace Pomona.UnitTests.Client
             public int Id { get; set; }
             public int? NullableInt32 { get; set; }
             public long? NullableInt64 { get; set; }
+            public bool? NullableBool { get; set; }
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
             public IList<decimal> ListOfDecimals { get; set; }
