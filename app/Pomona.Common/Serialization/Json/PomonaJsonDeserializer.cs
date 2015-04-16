@@ -411,6 +411,10 @@ namespace Pomona.Common.Serialization.Json
         {
             if (reader.Token.Type == JTokenType.Null)
             {
+                if (node.ExpectedBaseType != null && node.ExpectedBaseType.Type.IsValueType && !node.ExpectedBaseType.IsNullable)
+                {
+                    throw new PomonaSerializationException("Deserialized to null, which is not allowed value for casting to type " + node.ValueType.FullName);
+                }
                 node.Value = null;
                 return;
             }
