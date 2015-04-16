@@ -479,12 +479,19 @@ namespace Pomona.Common.Serialization.Json
 
         public object Deserialize(TextReader textReader, DeserializeOptions options = null)
         {
-            options = options ?? new DeserializeOptions();
-            var context = this.contextProvider.GetDeserializationContext(options);
-            return Deserialize(textReader,
-                               options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
-                               context,
-                               options.Target);
+            try
+            {
+                options = options ?? new DeserializeOptions();
+                var context = this.contextProvider.GetDeserializationContext(options);
+                return Deserialize(textReader,
+                                   options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
+                                   context,
+                                   options.Target);
+            }
+            catch (JsonSerializationException jsonEx)
+            {
+                throw new PomonaSerializationException(jsonEx.Message, jsonEx);
+            }
         }
 
         #region Nested type: IJsonPropertyValueSource

@@ -26,6 +26,8 @@
 
 #endregion
 
+using Newtonsoft.Json;
+
 using NSubstitute;
 
 using NUnit.Framework;
@@ -50,6 +52,19 @@ namespace Pomona.UnitTests.Serialization.Json
             var ex = Assert.Throws<PomonaSerializationException>(
                 () => this.deserializer.DeserializeString("null", options : new DeserializeOptions() { ExpectedBaseType = typeof(decimal) }));
             Assert.That(ex.Message, Is.EqualTo("Deserialized to null, which is not allowed value for casting to type System.Decimal"));
+        }
+
+
+        [Test]
+        public void Deserialize_string_to_bool_value_throws_PomonaSerializationException()
+        {
+            var ex = Assert.Throws<PomonaSerializationException>(
+                () =>
+                    this.deserializer.DeserializeString("\"blahrg\"", options : new DeserializeOptions() { ExpectedBaseType = typeof(bool) }));
+
+            // This will wrap a JsonSerializationException for now.
+            Assert.That(ex.Message, Is.StringStarting("Error converting value \"blahrg\" to type 'System.Boolean'."));
+            Assert.That(ex.InnerException, Is.InstanceOf<JsonSerializationException>());
         }
 
 
