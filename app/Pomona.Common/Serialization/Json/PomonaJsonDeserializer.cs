@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,26 +43,7 @@ namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonDeserializer : ITextDeserializer
     {
-        private static readonly Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
-            createPropertyValueSourceMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>()
-                    .CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
-                        x => x.CreatePropertyValueSource<object>(null, null));
-
-        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
-            deserializeArrayNodeGenericMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
-                    x => x.DeserializeArrayNodeGeneric<object>(null, null));
-
-        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader, DictionaryTypeSpec>
-            deserializeDictionaryGenericMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>()
-                    .CreateAction1<IDeserializerNode, Reader, DictionaryTypeSpec>(
-                        x => x.DeserializeDictionaryGeneric<object>(null, null, null));
-
-        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
         private readonly ISerializationContextProvider contextProvider;
-
         private readonly JsonSerializer jsonSerializer;
 
 
@@ -76,93 +57,8 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        public object Deserialize(TextReader textReader, DeserializeOptions options = null)
-        {
-            options = options ?? new DeserializeOptions();
-            var context = this.contextProvider.GetDeserializationContext(options);
-            return Deserialize(textReader,
-                options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
-                context,
-                options.Target);
-        }
-
-
-        private static bool SetNodeValueType(IDeserializerNode node, JToken jtoken)
-        {
-            var jobj = jtoken as JObject;
-            if (jobj != null)
-            {
-                JToken explicitTypeSpec;
-                if (jobj.TryGetValue("_type", out explicitTypeSpec))
-                {
-                    if (explicitTypeSpec.Type != JTokenType.String)
-                    {
-                        throw new PomonaSerializationException(
-                            "Found _type property on JSON object and expected this to be string, but got " +
-                            explicitTypeSpec.Type);
-                    }
-
-                    node.SetValueType(explicitTypeSpec.Value<string>());
-                    return true;
-                }
-            }
-            var jval = jtoken as JValue;
-            if (jval != null)
-            {
-                switch (jval.Type)
-                {
-                    case JTokenType.String:
-                        node.SetValueType(typeof(string));
-                        return true;
-                    case JTokenType.Boolean:
-                        node.SetValueType(typeof(bool));
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-
-            return false;
-        }
-
-
-        private static bool TryDeserializeAsReference(IDeserializerNode node, Reader reader)
-        {
-            var jobj = reader.Token as JObject;
-            if (jobj == null)
-                return false;
-
-            SetNodeValueType(node, jobj);
-
-            JToken refStringToken;
-            if (!jobj.TryGetValue("_ref", out refStringToken) || refStringToken.Type != JTokenType.String)
-                return false;
-
-            var refString = (string)((JValue)refStringToken).Value;
-            node.Uri = refString;
-
-            try
-            {
-                node.Value = node.Context.CreateReference(node);
-            }
-            catch (Exception ex)
-            {
-                throw new PomonaSerializationException("Failed to deserialize: " + ex.Message, ex);
-            }
-            return true;
-        }
-
-
-        private static string UnescapePropertyName(string value)
-        {
-            if (value.StartsWith("^"))
-                return value.Substring(1);
-            return value;
-        }
-
-
         private PropertyValueSource<T> CreatePropertyValueSource<T>(JObject jobj,
-            IDeserializerNode node)
+                                                                    IDeserializerNode node)
         {
             return new PropertyValueSource<T>(jobj, node, this);
         }
@@ -171,14 +67,14 @@ namespace Pomona.Common.Serialization.Json
         private Reader CreateReader(TextReader textReader)
         {
             return
-                new Reader(JToken.ReadFrom(new JsonTextReader(textReader){ DateParseHandling = DateParseHandling.None }));
+                new Reader(JToken.ReadFrom(new JsonTextReader(textReader) { DateParseHandling = DateParseHandling.None }));
         }
 
 
         private object Deserialize(TextReader textReader,
-            TypeSpec expectedBaseType,
-            IDeserializationContext context,
-            object patchedObject)
+                                   TypeSpec expectedBaseType,
+                                   IDeserializationContext context,
+                                   object patchedObject)
         {
             var node = new ItemValueDeserializerNode(expectedBaseType, context);
             node.Operation = patchedObject != null ? DeserializerNodeOperation.Patch : DeserializerNodeOperation.Post;
@@ -257,8 +153,8 @@ namespace Pomona.Common.Serialization.Json
                         }
 
                         var identifierNode = new ItemValueDeserializerNode(identifyProp.PropertyType,
-                            itemNode.Context,
-                            parent : itemNode);
+                                                                           itemNode.Context,
+                                                                           parent : itemNode);
                         DeserializeThroughContext(identifierNode, new Reader(jprop.Value));
                         var identifierValue = identifierNode.Value;
 
@@ -300,13 +196,9 @@ namespace Pomona.Common.Serialization.Json
             if (node.Value == null)
             {
                 if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsArray)
-                {
                     node.Value = collection.ToArray();
-                }
                 else
-                {
                     node.Value = collection;
-                }
             }
         }
 
@@ -354,8 +246,8 @@ namespace Pomona.Common.Serialization.Json
 
 
         private void DeserializeDictionaryGeneric<TValue>(IDeserializerNode node,
-            Reader reader,
-            DictionaryTypeSpec dictType)
+                                                          Reader reader,
+                                                          DictionaryTypeSpec dictType)
         {
             IDictionary<string, TValue> dict;
 
@@ -395,8 +287,8 @@ namespace Pomona.Common.Serialization.Json
                 {
                     var unescapedPropertyName = UnescapePropertyName(jpropName);
                     var itemNode = new ItemValueDeserializerNode(valueType,
-                        node.Context,
-                        node.ExpandPath + "." + unescapedPropertyName);
+                                                                 node.Context,
+                                                                 node.ExpandPath + "." + unescapedPropertyName);
                     DeserializeThroughContext(itemNode, new Reader(jprop.Value));
                     dict[unescapedPropertyName] = (TValue)itemNode.Value;
                 }
@@ -413,7 +305,8 @@ namespace Pomona.Common.Serialization.Json
             {
                 if (node.ExpectedBaseType != null && node.ExpectedBaseType.Type.IsValueType && !node.ExpectedBaseType.IsNullable)
                 {
-                    throw new PomonaSerializationException("Deserialized to null, which is not allowed value for casting to type " + node.ValueType.FullName);
+                    throw new PomonaSerializationException("Deserialized to null, which is not allowed value for casting to type "
+                                                           + node.ValueType.FullName);
                 }
                 node.Value = null;
                 return;
@@ -495,9 +388,9 @@ namespace Pomona.Common.Serialization.Json
                 else
                 {
                     node.Value = converter.ReadJson(new JTokenReader(reader.Token),
-                        node.ValueType.Type,
-                        null,
-                        this.jsonSerializer);
+                                                    node.ValueType.Type,
+                                                    null,
+                                                    this.jsonSerializer);
                 }
             }
         }
@@ -507,6 +400,91 @@ namespace Pomona.Common.Serialization.Json
         {
             var name = jProperty.Name;
             return (name.StartsWith("-@") || name.StartsWith("*@"));
+        }
+
+
+        private static bool SetNodeValueType(IDeserializerNode node, JToken jtoken)
+        {
+            var jobj = jtoken as JObject;
+            if (jobj != null)
+            {
+                JToken explicitTypeSpec;
+                if (jobj.TryGetValue("_type", out explicitTypeSpec))
+                {
+                    if (explicitTypeSpec.Type != JTokenType.String)
+                    {
+                        throw new PomonaSerializationException(
+                            "Found _type property on JSON object and expected this to be string, but got " +
+                            explicitTypeSpec.Type);
+                    }
+
+                    node.SetValueType(explicitTypeSpec.Value<string>());
+                    return true;
+                }
+            }
+            var jval = jtoken as JValue;
+            if (jval != null)
+            {
+                switch (jval.Type)
+                {
+                    case JTokenType.String:
+                        node.SetValueType(typeof(string));
+                        return true;
+                    case JTokenType.Boolean:
+                        node.SetValueType(typeof(bool));
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            return false;
+        }
+
+
+        private static bool TryDeserializeAsReference(IDeserializerNode node, Reader reader)
+        {
+            var jobj = reader.Token as JObject;
+            if (jobj == null)
+                return false;
+
+            SetNodeValueType(node, jobj);
+
+            JToken refStringToken;
+            if (!jobj.TryGetValue("_ref", out refStringToken) || refStringToken.Type != JTokenType.String)
+                return false;
+
+            var refString = (string)((JValue)refStringToken).Value;
+            node.Uri = refString;
+
+            try
+            {
+                node.Value = node.Context.CreateReference(node);
+            }
+            catch (Exception ex)
+            {
+                throw new PomonaSerializationException("Failed to deserialize: " + ex.Message, ex);
+            }
+            return true;
+        }
+
+
+        private static string UnescapePropertyName(string value)
+        {
+            if (value.StartsWith("^"))
+                return value.Substring(1);
+            return value;
+        }
+
+
+        public object Deserialize(TextReader textReader, DeserializeOptions options = null)
+        {
+            options = options ?? new DeserializeOptions();
+            var context = this.contextProvider.GetDeserializationContext(options);
+            return Deserialize(textReader,
+                               options.ExpectedBaseType != null ? context.GetClassMapping(options.ExpectedBaseType) : null,
+                               context,
+                               options.Target);
         }
 
         #region Nested type: IJsonPropertyValueSource
@@ -524,7 +502,6 @@ namespace Pomona.Common.Serialization.Json
         {
             private readonly PomonaJsonDeserializer deserializer;
             private readonly IDeserializerNode node;
-
             private readonly Dictionary<string, PropertyContainer> propertyDict;
 
 
@@ -533,8 +510,42 @@ namespace Pomona.Common.Serialization.Json
                 this.node = node;
                 this.deserializer = deserializer;
                 this.propertyDict = jobj.Properties()
-                    .Select(x => new PropertyContainer(x))
-                    .ToDictionary(x => x.Name, x => x, StringComparer.InvariantCultureIgnoreCase);
+                                        .Select(x => new PropertyContainer(x))
+                                        .ToDictionary(x => x.Name, x => x, StringComparer.InvariantCultureIgnoreCase);
+            }
+
+
+            private void DeserializeRemainingProperties()
+            {
+                foreach (var prop in this.node.ValueType.Properties)
+                {
+                    PropertyContainer propContainer;
+                    if (this.propertyDict.TryGetValue(prop.JsonName, out propContainer) && !propContainer.Fetched)
+                    {
+                        var propNode = new PropertyValueDeserializerNode(this.node, prop)
+                        {
+                            Operation = propContainer.Operation
+                        };
+                        var oldValue = propNode.Value = propNode.Property.GetValue(this.node.Value, propNode.Context);
+                        this.deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
+                        var newValue = propNode.Value;
+                        if (oldValue != newValue)
+                            this.node.SetProperty(prop, newValue);
+                    }
+                }
+            }
+
+
+            private void SetUri()
+            {
+                PropertyContainer propertyContainer;
+                if (this.propertyDict.TryGetValue("_uri", out propertyContainer))
+                {
+                    var jprop = propertyContainer.JProperty;
+                    if (jprop.Value.Type != JTokenType.String)
+                        throw new PomonaSerializationException("_uri property is expected to be of JSON type string");
+                    this.node.Uri = (string)((JValue)jprop.Value).Value;
+                }
             }
 
 
@@ -601,40 +612,6 @@ namespace Pomona.Common.Serialization.Json
             public T Requires()
             {
                 throw new InvalidOperationException("Unexpected error: Should be replaced by a call to GetValue.");
-            }
-
-
-            private void DeserializeRemainingProperties()
-            {
-                foreach (var prop in this.node.ValueType.Properties)
-                {
-                    PropertyContainer propContainer;
-                    if (this.propertyDict.TryGetValue(prop.JsonName, out propContainer) && !propContainer.Fetched)
-                    {
-                        var propNode = new PropertyValueDeserializerNode(this.node, prop)
-                        {
-                            Operation = propContainer.Operation
-                        };
-                        var oldValue = propNode.Value = propNode.Property.GetValue(this.node.Value, propNode.Context);
-                        this.deserializer.DeserializeThroughContext(propNode, new Reader(propContainer.JProperty.Value));
-                        var newValue = propNode.Value;
-                        if (oldValue != newValue)
-                            this.node.SetProperty(prop, newValue);
-                    }
-                }
-            }
-
-
-            private void SetUri()
-            {
-                PropertyContainer propertyContainer;
-                if (this.propertyDict.TryGetValue("_uri", out propertyContainer))
-                {
-                    var jprop = propertyContainer.JProperty;
-                    if (jprop.Value.Type != JTokenType.String)
-                        throw new PomonaSerializationException("_uri property is expected to be of JSON type string");
-                    this.node.Uri = (string)((JValue)jprop.Value).Value;
-                }
             }
 
             #region Nested type: PropertyContainer
@@ -705,5 +682,24 @@ namespace Pomona.Common.Serialization.Json
         }
 
         #endregion
+
+        private static readonly Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
+            createPropertyValueSourceMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>()
+                              .CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
+                                  x => x.CreatePropertyValueSource<object>(null, null));
+
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
+            deserializeArrayNodeGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
+                    x => x.DeserializeArrayNodeGeneric<object>(null, null));
+
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader, DictionaryTypeSpec>
+            deserializeDictionaryGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>()
+                              .CreateAction1<IDeserializerNode, Reader, DictionaryTypeSpec>(
+                                  x => x.DeserializeDictionaryGeneric<object>(null, null, null));
+
+        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
     }
 }
