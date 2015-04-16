@@ -149,6 +149,9 @@
     <Compile Include="SingularToPluralTranslatorTests.cs" />
     <Compile Include="SolutionTests.cs" />
     <Compile Include="JsonConverterTestsBase.cs" />
+    <Compile Include="TestResources\ITestResource.cs" />
+    <Compile Include="TestResources\TestResource.cs" />
+    <Compile Include="TestResources\TestResourcePostForm.cs" />
     <Compile Include="Web\HttpRequestJsonConverterTests.cs" />
     <Compile Include="Web\HttpResponseConverterTests.cs" />
     <Compile Include="TypeExtensionsTests.cs" />

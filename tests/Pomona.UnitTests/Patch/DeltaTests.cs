@@ -39,115 +39,17 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.Serialization.Patch;
 using Pomona.TestHelpers;
+using Pomona.UnitTests.TestResources;
 
 namespace Pomona.UnitTests.Patch
 {
     [TestFixture]
     public class DeltaTests
     {
-        public class TestResourcePostForm : PostResourceBase, ITestResource
-        {
-            private static readonly PropertyWrapper<ITestResource, IList<ITestResource>> childrenPropWrapper =
-                new PropertyWrapper<ITestResource, IList<ITestResource>>("Children");
-
-            private static readonly PropertyWrapper<ITestResource, IDictionary<string, string>> dictionaryPropWrapper =
-                new PropertyWrapper<ITestResource, IDictionary<string, string>>("Dictionary");
-
-            private static readonly PropertyWrapper<ITestResource, ITestResource> friendPropWrapper =
-                new PropertyWrapper<ITestResource, ITestResource>("Friend");
-
-            private static readonly PropertyWrapper<ITestResource, int> idPropWrapper =
-                new PropertyWrapper<ITestResource, int>("Id");
-
-            private static readonly PropertyWrapper<ITestResource, string> infoPropWrapper =
-                new PropertyWrapper<ITestResource, string>("Info");
-
-            private static readonly PropertyWrapper<ITestResource, ITestResource> spousePropWrapper =
-                new PropertyWrapper<ITestResource, ITestResource>("Spouse");
-
-            private IDictionary<string, string> dictionary;
-
-            public IList<ITestResource> Children
-            {
-                get { return base.OnGet(childrenPropWrapper); }
-                set { base.OnSet(childrenPropWrapper, value); }
-            }
-
-            public IDictionary<string, string> Dictionary
-            {
-                get { return this.dictionary; }
-            }
-
-            public ITestResource Friend
-            {
-                get { return base.OnGet(friendPropWrapper); }
-                set { base.OnSet(friendPropWrapper, value); }
-            }
-
-            public int Id
-            {
-                get { return base.OnGet(idPropWrapper); }
-                set { base.OnSet(idPropWrapper, value); }
-            }
-
-            public string Info
-            {
-                get { return base.OnGet(infoPropWrapper); }
-                set { base.OnSet(infoPropWrapper, value); }
-            }
-
-            public ITestResource Spouse
-            {
-                get { return base.OnGet(spousePropWrapper); }
-                set { base.OnSet(spousePropWrapper, value); }
-            }
-        }
-
-        public class TestResource : ITestResource
-        {
-            private readonly List<ITestResource> children = new List<ITestResource>();
-            private readonly IDictionary<string, string> dictionary = new Dictionary<string, string>();
-
-            public IList<ITestResource> Children
-            {
-                get { return this.children; }
-            }
-
-            public IDictionary<string, string> Dictionary
-            {
-                get { return this.dictionary; }
-            }
-
-            public ITestResource Friend { get; set; }
-
-            public int Id { get; set; }
-            public string Info { get; set; }
-
-            public ITestResource Spouse { get; set; }
-        }
-
-        [ResourceInfo(InterfaceType = typeof(ITestResource), JsonTypeName = "TestResource",
-            PocoType = typeof(TestResource), PostFormType = typeof(TestResourcePostForm),
-            UriBaseType = typeof(ITestResource), UrlRelativePath = "test-resources")]
-        public interface ITestResource : IClientResource
-        {
-            IList<ITestResource> Children { get; }
-            IDictionary<string, string> Dictionary { get; }
-            ITestResource Friend { get; set; }
-
-            [ResourceIdProperty]
-            int Id { get; set; }
-
-            string Info { get; set; }
-
-            ITestResource Spouse { get; set; }
-        }
-
         private readonly ClientTypeMapper typeMapper = new ClientTypeMapper(typeof(ITestResource).WrapAsEnumerable());
 
 
