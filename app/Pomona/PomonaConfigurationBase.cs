@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -59,14 +59,26 @@ namespace Pomona
                 return new[]
                 {
                     new RequestHandlerActionResolver(),
-                    this.DataSourceRouteActionResolver,
+                    DataSourceRouteActionResolver,
                     QueryGetActionResolver
                 }.Where(x => x != null);
             }
         }
 
-        public virtual IEnumerable<Type> SourceTypes { get { return new Type[] { }; } }
-        public virtual ITypeMappingFilter TypeMappingFilter { get { return new DefaultTypeMappingFilter(SourceTypes); } }
+        public virtual IEnumerable<Type> SourceTypes
+        {
+            get { return new Type[] { }; }
+        }
+
+        public virtual ITypeMappingFilter TypeMappingFilter
+        {
+            get { return new DefaultTypeMappingFilter(SourceTypes); }
+        }
+
+        protected virtual Type DataSource
+        {
+            get { return typeof(IPomonaDataSource); }
+        }
 
         protected virtual IRouteActionResolver DataSourceRouteActionResolver
         {
@@ -78,14 +90,22 @@ namespace Pomona
             get { return new QueryGetActionResolver(new DefaultQueryProviderCapabilityResolver()); }
         }
 
-        protected virtual Type DataSource
+
+        public IPomonaSessionFactory CreateSessionFactory()
         {
-            get { return typeof(IPomonaDataSource); }
+            var typeMapper = new TypeMapper(this);
+            return CreateSessionFactory(typeMapper);
         }
 
 
         public virtual void OnMappingComplete(TypeMapper typeMapper)
         {
+        }
+
+
+        protected virtual Route OnCreateRootRoute(TypeMapper typeMapper)
+        {
+            return new DataSourceRootRoute(typeMapper, DataSource);
         }
 
 
@@ -101,24 +121,11 @@ namespace Pomona
         }
 
 
-        public IPomonaSessionFactory CreateSessionFactory()
-        {
-            var typeMapper = new TypeMapper(this);
-            return CreateSessionFactory(typeMapper);
-        }
-
-
         internal IPomonaSessionFactory CreateSessionFactory(TypeMapper typeMapper)
         {
             var pomonaSessionFactory = new PomonaSessionFactory(typeMapper, OnCreateRootRoute(typeMapper),
                                                                 new InternalRouteActionResolver(RouteActionResolvers));
             return pomonaSessionFactory;
-        }
-
-
-        protected virtual Route OnCreateRootRoute(TypeMapper typeMapper)
-        {
-            return new DataSourceRootRoute(typeMapper, DataSource);
         }
     }
 }
