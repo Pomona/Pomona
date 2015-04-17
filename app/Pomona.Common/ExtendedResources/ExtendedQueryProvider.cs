@@ -42,13 +42,15 @@ namespace Pomona.Common.ExtendedResources
             ReflectionHelper.GetMethodDefinition<IQueryProvider>(x => x.Execute<object>(null));
 
         private readonly IClientTypeResolver clientTypeResolver;
+        private readonly ExtendedResourceMapper extendedResourceMapper;
 
 
-        public ExtendedQueryProvider(IClientTypeResolver clientTypeResolver)
+        public ExtendedQueryProvider(IClientTypeResolver clientTypeResolver, ExtendedResourceMapper extendedResourceMapper)
         {
             if (clientTypeResolver == null)
                 throw new ArgumentNullException("clientTypeResolver");
             this.clientTypeResolver = clientTypeResolver;
+            this.extendedResourceMapper = extendedResourceMapper;
         }
 
 
@@ -60,7 +62,7 @@ namespace Pomona.Common.ExtendedResources
 
         public override object Execute(Expression expression, Type returnType)
         {
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(this.clientTypeResolver);
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(this.extendedResourceMapper);
             var transformedExpression = visitor.Visit(expression);
             if (visitor.Root == null)
                 throw new Exception("Unable to find queryable source in expression.");
@@ -71,7 +73,7 @@ namespace Pomona.Common.ExtendedResources
                     visitor.Root.WrappedSource.Provider,
                     new object[] { transformedExpression });
 
-            var wrapResource = new ExtendedResourceMapper(this.clientTypeResolver).WrapResource(result,
+            var wrapResource = this.extendedResourceMapper.WrapResource(result,
                 transformedReturnType,
                 returnType);
             return wrapResource;

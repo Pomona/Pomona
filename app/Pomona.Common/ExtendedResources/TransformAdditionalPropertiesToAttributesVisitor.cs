@@ -37,8 +37,9 @@ using Pomona.Common.Linq;
 
 namespace Pomona.Common.ExtendedResources
 {
-    public class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
+    internal class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
     {
+        private readonly ExtendedResourceMapper mapper;
         private static readonly MethodInfo dictionarySafeGetMethod;
 
         private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
@@ -54,8 +55,11 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        public TransformAdditionalPropertiesToAttributesVisitor(IClientTypeResolver client)
+        public TransformAdditionalPropertiesToAttributesVisitor(ExtendedResourceMapper mapper)
         {
+            if (mapper == null)
+                throw new ArgumentNullException("mapper");
+            this.mapper = mapper;
         }
 
 
@@ -225,16 +229,9 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        private bool IsUserType(Type userType)
-        {
-            ExtendedResourceInfo tmpvar;
-            return IsUserType(userType, out tmpvar);
-        }
-
-
         private bool IsUserType(Type userType, out ExtendedResourceInfo userTypeInfo)
         {
-            return ExtendedResourceInfo.TryGetExtendedResourceInfo(userType, out userTypeInfo);
+            return this.mapper.TryGetExtendedResourceInfo(userType, out userTypeInfo);
         }
 
 

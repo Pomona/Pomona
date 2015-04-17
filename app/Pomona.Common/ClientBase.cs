@@ -224,7 +224,7 @@ namespace Pomona.Common
         {
             ExtendedResourceInfo info;
             string uri;
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(T), out info))
+            if (typeMapper.TryGetExtendedTypeInfo(typeof(T), out info))
                 uri = GetUriOfType(info.ServerType);
             else
                 uri = GetUriOfType(typeof(T));

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,28 +28,29 @@
 
 using System.Linq;
 
-using Pomona.Common.Internals;
-
 namespace Pomona.Common.ExtendedResources
 {
     internal class ExtendedQueryableRoot<T> : ExtendedQueryable<T>, IExtendedQueryableRoot
     {
-        private readonly IQueryable wrappedSource;
         private readonly ExtendedResourceInfo extendedResourceInfo;
-
-        public ExtendedResourceInfo ExtendedResourceInfo
-        {
-            get { return this.extendedResourceInfo; }
-        }
+        private readonly IQueryable wrappedSource;
 
 
-        internal ExtendedQueryableRoot(IClientTypeResolver client, IQueryable wrappedSource, ExtendedResourceInfo extendedResourceInfo)
-            : base(new ExtendedQueryProvider(client), null)
+        internal ExtendedQueryableRoot(IClientTypeResolver client,
+                                       IQueryable wrappedSource,
+                                       ExtendedResourceInfo extendedResourceInfo,
+                                       ExtendedResourceMapper extendedResourceMapper)
+            : base(new ExtendedQueryProvider(client, extendedResourceMapper), null)
         {
             this.wrappedSource = wrappedSource;
             this.extendedResourceInfo = extendedResourceInfo;
         }
 
+
+        public ExtendedResourceInfo ExtendedResourceInfo
+        {
+            get { return this.extendedResourceInfo; }
+        }
 
         public IQueryable WrappedSource
         {

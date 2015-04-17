@@ -45,16 +45,17 @@ namespace Pomona.SystemTests.ExtendedResources
                                                                  Func<IQueryable<TServer>, IQueryable> expectedFunc)
             where TExtended : TServer
         {
-            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(Client);
+            var extendedResourceMapper = new ExtendedResourceMapper(Client);
+            var visitor = new TransformAdditionalPropertiesToAttributesVisitor(extendedResourceMapper);
 
             var wrappedSource = Enumerable.Empty<TServer>().AsQueryable();
 
             ExtendedResourceInfo extendedResourceInfo;
-            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(typeof(TExtended), out extendedResourceInfo))
+            if (!extendedResourceMapper.TryGetExtendedResourceInfo(typeof(TExtended), out extendedResourceInfo))
                 Assert.Fail("Unable to get ExtendedResourceInfo for " + typeof(TExtended));
 
             var originalQuery =
-                origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource, extendedResourceInfo));
+                origQuery(new ExtendedQueryableRoot<TExtended>(Client, wrappedSource, extendedResourceInfo, extendedResourceMapper));
 
             var expectedQuery = expectedFunc(wrappedSource);
             var expectedQueryExpr = expectedQuery.Expression;

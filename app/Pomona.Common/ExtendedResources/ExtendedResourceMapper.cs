@@ -28,8 +28,10 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -39,6 +41,9 @@ namespace Pomona.Common.ExtendedResources
     public class ExtendedResourceMapper
     {
         private readonly IClientTypeResolver clientTypeResolver;
+
+        private readonly ConcurrentDictionary<Type, ExtendedResourceInfo> extendedResourceInfoCache =
+            new ConcurrentDictionary<Type, ExtendedResourceInfo>();
 
 
         public ExtendedResourceMapper(IClientTypeResolver clientTypeResolver)
@@ -54,7 +59,7 @@ namespace Pomona.Common.ExtendedResources
 #else
 
             ExtendedResourceInfo info;
-            if (!ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType, out info))
+            if (!TryGetExtendedResourceInfo(extendedType, out info))
                 throw new ArgumentException("extendedType is not inherited from a Pomona resource interface.", "extendedType");
 
             var userPostForm =
@@ -68,13 +73,20 @@ namespace Pomona.Common.ExtendedResources
 
         public IQueryable<T> WrapQueryable<T>(IQueryable wrappedQueryable, ExtendedResourceInfo extendedResourceInfo)
         {
-            return new ExtendedQueryableRoot<T>(this.clientTypeResolver, wrappedQueryable, extendedResourceInfo);
+            return new ExtendedQueryableRoot<T>(this.clientTypeResolver, wrappedQueryable, extendedResourceInfo, this);
         }
 
 
         public object WrapResource(object serverResource, Type serverType, Type extendedType)
         {
             return MapResult(serverResource, serverType, extendedType);
+        }
+
+
+        internal bool TryGetExtendedResourceInfo(Type clientType, out ExtendedResourceInfo info)
+        {
+            info = this.extendedResourceInfoCache.GetOrAdd(clientType, t => GetExtendedResourceInfoOrNull(clientType));
+            return info != null;
         }
 
 
@@ -92,6 +104,34 @@ namespace Pomona.Common.ExtendedResources
             proxy.Initialize(this.clientTypeResolver, userTypeInfo, wrappedResource);
             return proxy;
 #endif
+        }
+
+
+        private static PropertyInfo GetAttributesDictionaryPropertyFromResource(Type serverKnownType)
+        {
+            var attrProp =
+                serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
+                    x => x.GetCustomAttributes(typeof(ResourceAttributesPropertyAttribute), true).Any());
+
+            return attrProp;
+        }
+
+
+        private ExtendedResourceInfo GetExtendedResourceInfoOrNull(Type clientType)
+        {
+            ExtendedResourceInfo info = null;
+            var serverTypeInfo = this.clientTypeResolver.GetMostInheritedResourceInterfaceInfo(clientType);
+            if (!clientType.IsInterface || serverTypeInfo == null)
+                return null;
+
+            var serverType = serverTypeInfo.InterfaceType;
+
+            if (serverType == clientType)
+                return null;
+
+            var dictProperty = GetAttributesDictionaryPropertyFromResource(serverType);
+            info = new ExtendedResourceInfo(clientType, serverType, dictProperty, this);
+            return info;
         }
 
 
@@ -114,8 +154,8 @@ namespace Pomona.Common.ExtendedResources
             ExtendedResourceInfo extendedTypeInfo;
             IEnumerable<object> wrappedResults;
 
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedElementType,
-                                                                out extendedTypeInfo))
+            if (TryGetExtendedResourceInfo(extendedElementType,
+                                           out extendedTypeInfo))
 
             {
                 if (extendedTypeInfo.ServerType != serverElementType)
@@ -152,8 +192,8 @@ namespace Pomona.Common.ExtendedResources
                 return result;
 
             ExtendedResourceInfo extendedTypeInfo;
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType,
-                                                                out extendedTypeInfo))
+            if (TryGetExtendedResourceInfo(extendedType,
+                                           out extendedTypeInfo))
             {
                 if (extendedTypeInfo.ServerType != serverType)
                     throw new InvalidOperationException("Unable to map extended type to correct server type.");

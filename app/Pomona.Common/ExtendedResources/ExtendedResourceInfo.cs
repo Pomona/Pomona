@@ -39,17 +39,19 @@ namespace Pomona.Common.ExtendedResources
     public class ExtendedResourceInfo
     {
         private readonly PropertyInfo dictProperty;
+        private readonly ExtendedResourceMapper mapper;
         private readonly Type dictValueType;
         private readonly Lazy<ReadOnlyCollection<ExtendedProperty>> extendedProperties;
         private readonly Type extendedType;
         private readonly Type serverType;
 
 
-        private ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty)
+        internal ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty, ExtendedResourceMapper mapper)
         {
             this.extendedType = extendedType;
             this.serverType = serverType;
             this.dictProperty = dictProperty;
+            this.mapper = mapper;
             Type[] dictTypeArgs;
             if (dictProperty != null
                 && dictProperty.PropertyType.TryExtractTypeArguments(typeof(IDictionary<,>), out dictTypeArgs))
@@ -85,24 +87,6 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        internal static bool TryGetExtendedResourceInfo(Type clientType, out ExtendedResourceInfo info)
-        {
-            info = null;
-            var serverTypeInfo = ClientTypeResolver.Default.GetMostInheritedResourceInterfaceInfo(clientType);
-            if (!clientType.IsInterface || serverTypeInfo == null)
-                return false;
-
-            var serverType = serverTypeInfo.InterfaceType;
-
-            if (serverType == clientType)
-                return false;
-
-            var dictProperty = GetAttributesDictionaryPropertyFromResource(serverType);
-            info = new ExtendedResourceInfo(clientType, serverType, dictProperty);
-            return true;
-        }
-
-
         private IEnumerable<PropertyInfo> GetAllExtendedPropertiesFromType()
         {
             return this.extendedType
@@ -110,16 +94,6 @@ namespace Pomona.Common.ExtendedResources
                        .Concat(this.extendedType.GetInterfaces().Where(x => !x.IsAssignableFrom(this.serverType)))
                        .SelectMany(x => x.GetProperties())
                        .Distinct();
-        }
-
-
-        private static PropertyInfo GetAttributesDictionaryPropertyFromResource(Type serverKnownType)
-        {
-            var attrProp =
-                serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
-                    x => x.GetCustomAttributes(typeof(ResourceAttributesPropertyAttribute), true).Any());
-
-            return attrProp;
         }
 
 
@@ -137,14 +111,14 @@ namespace Pomona.Common.ExtendedResources
             {
                 var serverPropType = serverProp.PropertyType;
                 ExtendedResourceInfo propExtInfo;
-                if (TryGetExtendedResourceInfo(extPropType, out propExtInfo)
+                if (this.mapper.TryGetExtendedResourceInfo(extPropType, out propExtInfo)
                     && typeof(IClientResource).IsAssignableFrom(serverPropType))
                     return new ExtendedComplexOverlayProperty(extendedProp, serverProp, propExtInfo);
                 Type extPropElementType;
 
                 Type serverPropElementType;
                 if (extPropType.TryGetEnumerableElementType(out extPropElementType)
-                    && TryGetExtendedResourceInfo(extPropElementType, out propExtInfo)
+                    && this.mapper.TryGetExtendedResourceInfo(extPropElementType, out propExtInfo)
                     && serverPropType.TryGetEnumerableElementType(out serverPropElementType)
                     && serverPropElementType == propExtInfo.ServerType)
                     return new ExtendedCollectionOverlayProperty(extendedProp, serverProp, propExtInfo);
