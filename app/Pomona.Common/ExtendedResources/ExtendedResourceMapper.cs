@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -47,11 +47,6 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        public IQueryable<T> WrapQueryable<T>(IQueryable wrappedQueryable, ExtendedResourceInfo extendedResourceInfo)
-        {
-            return new ExtendedQueryableRoot<T>(clientTypeResolver, wrappedQueryable, extendedResourceInfo);
-        }
-
         public object WrapForm(object serverPatchForm, Type extendedType)
         {
 #if DISABLE_PROXY_GENERATION
@@ -71,6 +66,12 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
+        public IQueryable<T> WrapQueryable<T>(IQueryable wrappedQueryable, ExtendedResourceInfo extendedResourceInfo)
+        {
+            return new ExtendedQueryableRoot<T>(this.clientTypeResolver, wrappedQueryable, extendedResourceInfo);
+        }
+
+
         public object WrapResource(object serverResource, Type serverType, Type extendedType)
         {
             return MapResult(serverResource, serverType, extendedType);
@@ -78,7 +79,7 @@ namespace Pomona.Common.ExtendedResources
 
 
         private object CreateClientSideResourceProxy(ExtendedResourceInfo userTypeInfo,
-            object wrappedResource)
+                                                     object wrappedResource)
         {
 #if DISABLE_PROXY_GENERATION
             throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
@@ -86,45 +87,11 @@ namespace Pomona.Common.ExtendedResources
 
             var proxy =
                 (ExtendedResourceBase)
-                    RuntimeProxyFactory.Create(typeof(ExtendedResourceBase<>).MakeGenericType(userTypeInfo.ServerType), userTypeInfo.ExtendedType);
+                    RuntimeProxyFactory.Create(typeof(ExtendedResourceBase<>).MakeGenericType(userTypeInfo.ServerType),
+                                               userTypeInfo.ExtendedType);
             proxy.Initialize(this.clientTypeResolver, userTypeInfo, wrappedResource);
             return proxy;
 #endif
-        }
-
-
-        private object MapResult(
-            object result,
-            Type serverType,
-            Type extendedType)
-        {
-            if (serverType == extendedType)
-                return result;
-
-            ExtendedResourceInfo extendedTypeInfo;
-            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType,
-                out extendedTypeInfo))
-            {
-                if (extendedTypeInfo.ServerType != serverType)
-                    throw new InvalidOperationException("Unable to map extended type to correct server type.");
-                return result != null
-                    ? CreateClientSideResourceProxy(extendedTypeInfo, result)
-                    : null;
-            }
-
-            Type extendedElementType;
-            Type serverElementType;
-            var isEnumerable = extendedType.TryGetEnumerableElementType(out extendedElementType) & serverType.TryGetEnumerableElementType(out serverElementType);
-            if (extendedType.IsAnonymous())
-            {
-                return MapAnonymousResult(result, serverType, extendedType);
-            }
-
-            if (isEnumerable)
-            {
-                return MapCollectionResult(((IEnumerable)result).Cast<object>(), serverElementType, extendedElementType);
-            }
-            return result;
         }
 
 
@@ -134,17 +101,16 @@ namespace Pomona.Common.ExtendedResources
             var extCtor = extendedType.GetConstructors().First(x => x.GetParameters().Length == serverProps.Length);
             var args =
                 (from serverProp in serverProps
-                join extProp in extendedType.GetProperties() on serverProp.Name equals extProp.Name
-                join extCtorParam in extCtor.GetParameters() on extProp.Name equals extCtorParam.Name
-                orderby extCtorParam.Position
-                select MapResult(serverProp.GetValue(result, null), serverProp.PropertyType, extProp.PropertyType)).ToArray();
+                 join extProp in extendedType.GetProperties() on serverProp.Name equals extProp.Name
+                 join extCtorParam in extCtor.GetParameters() on extProp.Name equals extCtorParam.Name
+                 orderby extCtorParam.Position
+                 select MapResult(serverProp.GetValue(result, null), serverProp.PropertyType, extProp.PropertyType)).ToArray();
             return extCtor.Invoke(args);
         }
 
 
         private object MapCollectionResult(IEnumerable<object> result, Type serverElementType, Type extendedElementType)
         {
-
             ExtendedResourceInfo extendedTypeInfo;
             IEnumerable<object> wrappedResults;
 
@@ -158,12 +124,10 @@ namespace Pomona.Common.ExtendedResources
                         "Unable to map list of extended type to correct list of server type.");
                 }
                 wrappedResults = result.Select(
-                        x => CreateClientSideResourceProxy(extendedTypeInfo, x));
+                    x => CreateClientSideResourceProxy(extendedTypeInfo, x));
             }
             else
-            {
                 wrappedResults = result.Select(x => MapResult(x, serverElementType, extendedElementType));
-            }
 
             // Map back to customClientType
             if (result is QueryResult)
@@ -176,6 +140,38 @@ namespace Pomona.Common.ExtendedResources
                                           extendedElementType);
             }
             return wrappedResults.Cast(extendedElementType).ToListDetectType();
+        }
+
+
+        private object MapResult(
+            object result,
+            Type serverType,
+            Type extendedType)
+        {
+            if (serverType == extendedType)
+                return result;
+
+            ExtendedResourceInfo extendedTypeInfo;
+            if (ExtendedResourceInfo.TryGetExtendedResourceInfo(extendedType,
+                                                                out extendedTypeInfo))
+            {
+                if (extendedTypeInfo.ServerType != serverType)
+                    throw new InvalidOperationException("Unable to map extended type to correct server type.");
+                return result != null
+                    ? CreateClientSideResourceProxy(extendedTypeInfo, result)
+                    : null;
+            }
+
+            Type extendedElementType;
+            Type serverElementType;
+            var isEnumerable = extendedType.TryGetEnumerableElementType(out extendedElementType)
+                               & serverType.TryGetEnumerableElementType(out serverElementType);
+            if (extendedType.IsAnonymous())
+                return MapAnonymousResult(result, serverType, extendedType);
+
+            if (isEnumerable)
+                return MapCollectionResult(((IEnumerable)result).Cast<object>(), serverElementType, extendedElementType);
+            return result;
         }
     }
 }

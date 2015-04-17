@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -53,11 +53,16 @@ namespace Pomona.Common.ExtendedResources
             Type[] dictTypeArgs;
             if (dictProperty != null
                 && dictProperty.PropertyType.TryExtractTypeArguments(typeof(IDictionary<,>), out dictTypeArgs))
-                dictValueType = dictTypeArgs[1];
+                this.dictValueType = dictTypeArgs[1];
             this.extendedProperties =
                 new Lazy<ReadOnlyCollection<ExtendedProperty>>(() => InitializeExtendedProperties().ToList().AsReadOnly());
         }
 
+
+        public PropertyInfo DictProperty
+        {
+            get { return this.dictProperty; }
+        }
 
         public Type ExtendedType
         {
@@ -69,29 +74,52 @@ namespace Pomona.Common.ExtendedResources
             get { return this.serverType; }
         }
 
+        internal Type DictValueType
+        {
+            get { return this.dictValueType; }
+        }
+
         internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties
         {
             get { return this.extendedProperties.Value; }
         }
 
-        internal Type DictValueType
-        {
-            get { return dictValueType; }
-        }
 
-        public PropertyInfo DictProperty
+        internal static bool TryGetExtendedResourceInfo(Type clientType, out ExtendedResourceInfo info)
         {
-            get { return this.dictProperty; }
+            info = null;
+            var serverTypeInfo = ClientTypeResolver.Default.GetMostInheritedResourceInterfaceInfo(clientType);
+            if (!clientType.IsInterface || serverTypeInfo == null)
+                return false;
+
+            var serverType = serverTypeInfo.InterfaceType;
+
+            if (serverType == clientType)
+                return false;
+
+            var dictProperty = GetAttributesDictionaryPropertyFromResource(serverType);
+            info = new ExtendedResourceInfo(clientType, serverType, dictProperty);
+            return true;
         }
 
 
         private IEnumerable<PropertyInfo> GetAllExtendedPropertiesFromType()
         {
             return this.extendedType
-                .WrapAsEnumerable()
-                .Concat(this.extendedType.GetInterfaces().Where(x => !x.IsAssignableFrom(this.serverType)))
-                .SelectMany(x => x.GetProperties())
-                .Distinct();
+                       .WrapAsEnumerable()
+                       .Concat(this.extendedType.GetInterfaces().Where(x => !x.IsAssignableFrom(this.serverType)))
+                       .SelectMany(x => x.GetProperties())
+                       .Distinct();
+        }
+
+
+        private static PropertyInfo GetAttributesDictionaryPropertyFromResource(Type serverKnownType)
+        {
+            var attrProp =
+                serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
+                    x => x.GetCustomAttributes(typeof(ResourceAttributesPropertyAttribute), true).Any());
+
+            return attrProp;
         }
 
 
@@ -103,7 +131,7 @@ namespace Pomona.Common.ExtendedResources
 
         private ExtendedProperty InitializeProperty(PropertyInfo extendedProp)
         {
-            var serverProp = serverType.GetPropertySearchInheritedInterfaces(extendedProp.Name);
+            var serverProp = this.serverType.GetPropertySearchInheritedInterfaces(extendedProp.Name);
             var extPropType = extendedProp.PropertyType;
             if (serverProp != null)
             {
@@ -129,41 +157,13 @@ namespace Pomona.Common.ExtendedResources
                 {
                     throw new ExtendedResourceMappingException(string.Format(
                         "Unable to map property {0} of type {1} to underlying dictionary property {2} of {3}. Only nullable value types can be mapped to a dictionary.",
-                        extendedProp.Name, extendedType.FullName, dictProperty.Name, serverType.FullName));
+                        extendedProp.Name, this.extendedType.FullName, this.dictProperty.Name, this.serverType.FullName));
                 }
             }
             throw new ExtendedResourceMappingException(
                 string.Format(
                     "Unable to map property {0} of type {1} to any underlying dictionary property having a [ResourceAttributesProperty] on {2}.",
-                    extendedProp.Name, extendedType.FullName, serverType.FullName));
-        }
-
-
-        internal static bool TryGetExtendedResourceInfo(Type clientType, out ExtendedResourceInfo info)
-        {
-            info = null;
-            var serverTypeInfo = ClientTypeResolver.Default.GetMostInheritedResourceInterfaceInfo(clientType);
-            if (!clientType.IsInterface || serverTypeInfo == null)
-                return false;
-
-            var serverType = serverTypeInfo.InterfaceType;
-
-            if (serverType == clientType)
-                return false;
-
-            var dictProperty = GetAttributesDictionaryPropertyFromResource(serverType);
-            info = new ExtendedResourceInfo(clientType, serverType, dictProperty);
-            return true;
-        }
-
-
-        private static PropertyInfo GetAttributesDictionaryPropertyFromResource(Type serverKnownType)
-        {
-            var attrProp =
-                serverKnownType.GetAllInheritedPropertiesFromInterface().FirstOrDefault(
-                    x => x.GetCustomAttributes(typeof(ResourceAttributesPropertyAttribute), true).Any());
-
-            return attrProp;
+                    extendedProp.Name, this.extendedType.FullName, this.serverType.FullName));
         }
     }
 }
