@@ -37,6 +37,9 @@ namespace Pomona.UnitTests.TestResources
         UriBaseType = typeof(ITestResource), UrlRelativePath = "test-resources")]
     public interface ITestResource : IClientResource
     {
+        [ResourceAttributesProperty]
+        IDictionary<string, object> Attributes { get; set; }
+
         IList<ITestResource> Children { get; }
         IDictionary<string, string> Dictionary { get; }
         ITestResource Friend { get; set; }

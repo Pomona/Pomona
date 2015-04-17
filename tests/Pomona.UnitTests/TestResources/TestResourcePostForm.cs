@@ -40,6 +40,9 @@ namespace Pomona.UnitTests.TestResources
         private static readonly PropertyWrapper<ITestResource, IDictionary<string, string>> dictionaryPropWrapper =
             new PropertyWrapper<ITestResource, IDictionary<string, string>>("Dictionary");
 
+        private static readonly PropertyWrapper<ITestResource, IDictionary<string, object>> attributesPropWrapper =
+            new PropertyWrapper<ITestResource, IDictionary<string, object>>("Attributes");
+
         private static readonly PropertyWrapper<ITestResource, ITestResource> friendPropWrapper =
             new PropertyWrapper<ITestResource, ITestResource>("Friend");
 
@@ -52,13 +55,23 @@ namespace Pomona.UnitTests.TestResources
         private static readonly PropertyWrapper<ITestResource, ITestResource> spousePropWrapper =
             new PropertyWrapper<ITestResource, ITestResource>("Spouse");
 
+        public IDictionary<string, object> Attributes
+        {
+            get { return OnGet(attributesPropWrapper); }
+            set { OnSet(attributesPropWrapper, value); }
+        }
+
         public IList<ITestResource> Children
         {
             get { return OnGet(childrenPropWrapper); }
             set { OnSet(childrenPropWrapper, value); }
         }
 
-        public IDictionary<string, string> Dictionary { get; private set; }
+        public IDictionary<string, string> Dictionary
+        {
+            get { return OnGet(dictionaryPropWrapper); }
+            set { OnSet(dictionaryPropWrapper, value); }
+        }
 
         public ITestResource Friend
         {

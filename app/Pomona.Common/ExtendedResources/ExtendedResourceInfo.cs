@@ -39,10 +39,10 @@ namespace Pomona.Common.ExtendedResources
     public class ExtendedResourceInfo
     {
         private readonly PropertyInfo dictProperty;
-        private readonly ExtendedResourceMapper mapper;
         private readonly Type dictValueType;
         private readonly Lazy<ReadOnlyCollection<ExtendedProperty>> extendedProperties;
         private readonly Type extendedType;
+        private readonly ExtendedResourceMapper mapper;
         private readonly Type serverType;
 
 
@@ -84,6 +84,13 @@ namespace Pomona.Common.ExtendedResources
         internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties
         {
             get { return this.extendedProperties.Value; }
+        }
+
+
+        internal void Validate()
+        {
+            foreach (var prop in ExtendedProperties.OfType<InvalidExtendedProperty>())
+                throw new ExtendedResourceMappingException(prop.ErrorMessage);
         }
 
 
@@ -129,15 +136,15 @@ namespace Pomona.Common.ExtendedResources
                     return ExtendedAttributeProperty.Create(extendedProp, this);
                 else
                 {
-                    throw new ExtendedResourceMappingException(string.Format(
+                    var message = string.Format(
                         "Unable to map property {0} of type {1} to underlying dictionary property {2} of {3}. Only nullable value types can be mapped to a dictionary.",
-                        extendedProp.Name, this.extendedType.FullName, this.dictProperty.Name, this.serverType.FullName));
+                        extendedProp.Name, this.extendedType.FullName, this.dictProperty.Name, this.serverType.FullName);
+                    return new InvalidExtendedProperty(extendedProp, message);
                 }
             }
-            throw new ExtendedResourceMappingException(
-                string.Format(
-                    "Unable to map property {0} of type {1} to any underlying dictionary property having a [ResourceAttributesProperty] on {2}.",
-                    extendedProp.Name, this.extendedType.FullName, this.serverType.FullName));
+            return new InvalidExtendedProperty(extendedProp, string.Format(
+                "Unable to map property {0} of type {1} to any underlying dictionary property having a [ResourceAttributesProperty] on {2}.",
+                extendedProp.Name, this.extendedType.FullName, this.serverType.FullName));
         }
     }
 }

@@ -41,15 +41,13 @@ namespace Pomona.Common.ExtendedResources
         private static readonly MethodInfo queryableExecuteGenericMethod =
             ReflectionHelper.GetMethodDefinition<IQueryProvider>(x => x.Execute<object>(null));
 
-        private readonly IClientTypeResolver clientTypeResolver;
         private readonly ExtendedResourceMapper extendedResourceMapper;
 
 
-        public ExtendedQueryProvider(IClientTypeResolver clientTypeResolver, ExtendedResourceMapper extendedResourceMapper)
+        public ExtendedQueryProvider(ExtendedResourceMapper extendedResourceMapper)
         {
-            if (clientTypeResolver == null)
-                throw new ArgumentNullException("clientTypeResolver");
-            this.clientTypeResolver = clientTypeResolver;
+            if (extendedResourceMapper == null)
+                throw new ArgumentNullException("extendedResourceMapper");
             this.extendedResourceMapper = extendedResourceMapper;
         }
 

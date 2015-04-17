@@ -84,6 +84,7 @@
     <Compile Include="ExtendedResources\ExtendedResourceMapper.cs" />
     <Compile Include="ExtendedResources\ExtendedResourceMappingException.cs" />
     <Compile Include="ExtendedResources\IExtendedQueryableRoot.cs" />
+    <Compile Include="ExtendedResources\InvalidExtendedProperty.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitor.cs" />
     <Compile Include="HttpMethod.cs" />
     <Compile Include="HttpEncoder.cs" />

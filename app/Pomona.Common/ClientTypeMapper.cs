@@ -330,7 +330,7 @@ namespace Pomona.Common
         public IQueryable<T> WrapExtendedQuery<T>(Func<Type, IQueryable> queryableCreator)
         {
             ExtendedResourceInfo extendedResourceInfo;
-            if (this.extendedResourceMapper.TryGetExtendedResourceInfo(typeof(T), out extendedResourceInfo))
+            if (TryGetExtendedTypeInfo(typeof(T), out extendedResourceInfo))
             {
                 var wrappedQueryable = queryableCreator(extendedResourceInfo.ServerType);
 

@@ -120,7 +120,7 @@ namespace Pomona.Common.ExtendedResources
             {
                 if (propInfo == null)
                 {
-                    throw new InvalidOperationException(
+                    throw new ExtendedResourceMappingException(
                         "Only properties can be defined on custom user types, not methods or fields.");
                 }
 
@@ -133,7 +133,7 @@ namespace Pomona.Common.ExtendedResources
                             .FirstOrDefault(x => x.Name == propInfo.Name);
                     if (serverProp == null)
                     {
-                        throw new InvalidOperationException("Unable to find underlying server side property " +
+                        throw new ExtendedResourceMappingException("Unable to find underlying server side property " +
                                                             propInfo.Name);
                     }
 

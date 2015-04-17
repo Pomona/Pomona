@@ -26,35 +26,40 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 
-namespace Pomona.UnitTests.TestResources
+using Pomona.Common.Proxies;
+
+namespace Pomona.Common.ExtendedResources
 {
-    public class TestResource : ITestResource
+    internal class InvalidExtendedProperty : ExtendedProperty
     {
-        private readonly List<ITestResource> children = new List<ITestResource>();
-        private readonly IDictionary<string, string> dictionary = new Dictionary<string, string>();
-        private IDictionary<string, object> attributes = new Dictionary<string, object>();
+        private readonly string errorMessage;
 
-        public IDictionary<string, object> Attributes
+        public string ErrorMessage
         {
-            get { return this.attributes; }
-            set { this.attributes = value; }
+            get { return this.errorMessage; }
         }
 
-        public IList<ITestResource> Children
+
+        public InvalidExtendedProperty(PropertyInfo property, string errorMessage)
+            : base(property)
         {
-            get { return this.children; }
+            this.errorMessage = errorMessage;
         }
 
-        public IDictionary<string, string> Dictionary
+
+        public override object GetValue(object obj, IDictionary<string, IExtendedResourceProxy> cache)
         {
-            get { return this.dictionary; }
+            throw new NotSupportedException(this.errorMessage);
         }
 
-        public ITestResource Friend { get; set; }
-        public int Id { get; set; }
-        public string Info { get; set; }
-        public ITestResource Spouse { get; set; }
+
+        public override void SetValue(object obj, object value, IDictionary<string, IExtendedResourceProxy> cache)
+        {
+            throw new NotSupportedException(this.errorMessage);
+        }
     }
 }

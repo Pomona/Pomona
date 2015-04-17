@@ -48,6 +48,8 @@ namespace Pomona.Common.ExtendedResources
 
         public ExtendedResourceMapper(IClientTypeResolver clientTypeResolver)
         {
+            if (clientTypeResolver == null)
+                throw new ArgumentNullException("clientTypeResolver");
             this.clientTypeResolver = clientTypeResolver;
         }
 
@@ -58,9 +60,7 @@ namespace Pomona.Common.ExtendedResources
             throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
 #else
 
-            ExtendedResourceInfo info;
-            if (!TryGetExtendedResourceInfo(extendedType, out info))
-                throw new ArgumentException("extendedType is not inherited from a Pomona resource interface.", "extendedType");
+            var info = GetExtendedResourceInfo(extendedType);
 
             var userPostForm =
                 (ExtendedFormBase)
@@ -80,6 +80,16 @@ namespace Pomona.Common.ExtendedResources
         public object WrapResource(object serverResource, Type serverType, Type extendedType)
         {
             return MapResult(serverResource, serverType, extendedType);
+        }
+
+
+        internal ExtendedResourceInfo GetExtendedResourceInfo(Type clientType)
+        {
+            ExtendedResourceInfo info;
+            if (!TryGetExtendedResourceInfo(clientType, out info))
+                throw new ArgumentException("extendedType is not inherited from a Pomona resource interface.", "extendedType");
+            info.Validate();
+            return info;
         }
 
 
@@ -160,9 +170,10 @@ namespace Pomona.Common.ExtendedResources
             {
                 if (extendedTypeInfo.ServerType != serverElementType)
                 {
-                    throw new InvalidOperationException(
+                    throw new ExtendedResourceMappingException(
                         "Unable to map list of extended type to correct list of server type.");
                 }
+                extendedTypeInfo.Validate();
                 wrappedResults = result.Select(
                     x => CreateClientSideResourceProxy(extendedTypeInfo, x));
             }
@@ -196,7 +207,8 @@ namespace Pomona.Common.ExtendedResources
                                            out extendedTypeInfo))
             {
                 if (extendedTypeInfo.ServerType != serverType)
-                    throw new InvalidOperationException("Unable to map extended type to correct server type.");
+                    throw new ExtendedResourceMappingException("Unable to map extended type to correct server type.");
+                extendedTypeInfo.Validate();
                 return result != null
                     ? CreateClientSideResourceProxy(extendedTypeInfo, result)
                     : null;

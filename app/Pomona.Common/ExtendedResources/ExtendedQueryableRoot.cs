@@ -40,7 +40,7 @@ namespace Pomona.Common.ExtendedResources
                                        IQueryable wrappedSource,
                                        ExtendedResourceInfo extendedResourceInfo,
                                        ExtendedResourceMapper extendedResourceMapper)
-            : base(new ExtendedQueryProvider(client, extendedResourceMapper), null)
+            : base(new ExtendedQueryProvider(extendedResourceMapper), null)
         {
             this.wrappedSource = wrappedSource;
             this.extendedResourceInfo = extendedResourceInfo;
