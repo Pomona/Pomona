@@ -63,11 +63,6 @@ namespace Pomona.Common.TypeSystem
             get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
         }
 
-        public StructuredProperty ETagProperty
-        {
-            get { return StructuredTypeDetails.ETagProperty; }
-        }
-
         public override bool IsAbstract
         {
             get { return StructuredTypeDetails.IsAbstract; }

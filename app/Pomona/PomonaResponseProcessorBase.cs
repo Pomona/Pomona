@@ -141,11 +141,11 @@ namespace Pomona
                 }
 
                 // Add etag header
-                var transformedResultType = pomonaResponse.ResultType as StructuredType;
-                if (transformedResultType == null)
+                var resourceType = pomonaResponse.ResultType as ResourceType;
+                if (resourceType == null)
                     return response;
 
-                var etagProperty = transformedResultType.ETagProperty;
+                var etagProperty = resourceType.ETagProperty;
                 if (pomonaResponse.Entity == null || etagProperty == null)
                     return response;
 

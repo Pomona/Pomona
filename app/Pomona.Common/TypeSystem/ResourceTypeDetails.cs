@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
@@ -69,6 +70,11 @@ namespace Pomona.Common.TypeSystem
         public ResourceProperty ChildToParentProperty
         {
             get { return (ResourceProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
+        }
+
+        public ResourceProperty ETagProperty
+        {
+            get { return this.type.Properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
 
         public bool IsExposedAsRepository

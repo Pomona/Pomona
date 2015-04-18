@@ -59,6 +59,11 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.ChildToParentProperty; }
         }
 
+        public ResourceProperty ETagProperty
+        {
+            get { return ResourceTypeDetails.ETagProperty; }
+        }
+
         public bool IsChildResource
         {
             get { return ResourceTypeDetails.ParentResourceType != null; }

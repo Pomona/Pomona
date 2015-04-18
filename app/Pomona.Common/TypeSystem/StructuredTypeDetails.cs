@@ -71,11 +71,6 @@ namespace Pomona.Common.TypeSystem
             get { return this.alwaysExpand; }
         }
 
-        public StructuredProperty ETagProperty
-        {
-            get { return this.type.Properties.FirstOrDefault(x => x.IsEtagProperty); }
-        }
-
         public bool IsAbstract
         {
             get { return this.isAbstract; }
