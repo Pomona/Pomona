@@ -229,7 +229,6 @@
     <Compile Include="RequestProcessing\HandlerRequestProcessor.cs" />
     <Compile Include="RequestProcessing\IRequestProcessorPipeline.cs" />
     <Compile Include="RequestProcessing\ValidateEtagProcessor.cs" />
-    <Compile Include="PomonaXmlResponseProcessor.cs" />
     <Compile Include="Queries\ArrayNode.cs" />
     <Compile Include="Queries\IndexerAccessNode.cs" />
     <Compile Include="Queries\LambdaNode.cs" />

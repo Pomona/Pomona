@@ -278,8 +278,6 @@
     <Compile Include="Serialization\SerializerNode.cs" />
     <Compile Include="Serialization\TextSerializerBase.cs" />
     <Compile Include="Serialization\TextSerializerFactoryBase.cs" />
-    <Compile Include="Serialization\Xml\PomonaXmlSerializer.cs" />
-    <Compile Include="Serialization\Xml\PomonaXmlSerializerFactory.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="StringEnumExtensions.cs" />
     <Compile Include="TypeExtensions.cs" />
