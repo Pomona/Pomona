@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly HttpMethod allowedMethods;
         private readonly bool alwaysExpand;
-
+        private readonly bool isAbstract;
         private readonly bool mappedAsValueObject;
         private readonly Action<object> onDeserialized;
         private readonly string pluralName;
@@ -43,11 +43,12 @@ namespace Pomona.Common.TypeSystem
 
 
         public StructuredTypeDetails(StructuredType type,
-            HttpMethod allowedMethods,
-            string pluralName,
-            Action<object> onDeserialized,
-            bool mappedAsValueObject,
-            bool alwaysExpand, bool isAbstract)
+                                     HttpMethod allowedMethods,
+                                     string pluralName,
+                                     Action<object> onDeserialized,
+                                     bool mappedAsValueObject,
+                                     bool alwaysExpand,
+                                     bool isAbstract)
         {
             this.type = type;
             this.allowedMethods = allowedMethods;
@@ -75,6 +76,11 @@ namespace Pomona.Common.TypeSystem
             get { return this.type.Properties.FirstOrDefault(x => x.IsEtagProperty); }
         }
 
+        public bool IsAbstract
+        {
+            get { return this.isAbstract; }
+        }
+
         public bool MappedAsValueObject
         {
             get { return this.mappedAsValueObject; }
@@ -90,16 +96,9 @@ namespace Pomona.Common.TypeSystem
             get { return this.pluralName; }
         }
 
-        private readonly bool isAbstract;
-
         public StructuredProperty PrimaryId
         {
             get { return this.type.AllProperties.OfType<StructuredProperty>().FirstOrDefault(x => x.IsPrimaryKey); }
-        }
-
-        public bool IsAbstract
-        {
-            get { return isAbstract; }
         }
     }
 }

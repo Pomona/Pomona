@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,29 +32,26 @@ using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
 {
-    public class 
-        ResourceTypeDetails
+    public class ResourceTypeDetails
     {
         private readonly PropertyInfo childToParentPropertyInfo;
-        private readonly bool isSingleton;
-
-        private readonly IEnumerable<Type> resourceHandlers;
-
         private readonly bool isExposedAsRepository;
+        private readonly bool isSingleton;
         private readonly PropertyInfo parentToChildPropertyInfo;
         private readonly Type postReturnType;
+        private readonly IEnumerable<Type> resourceHandlers;
         private readonly ResourceType type;
         private readonly string urlRelativePath;
 
 
         public ResourceTypeDetails(ResourceType type,
-            string urlRelativePath,
-            bool isExposedAsRepository,
-            Type postReturnType,
-            PropertyInfo parentToChildPropertyInfo,
-            PropertyInfo childToParentPropertyInfo,
-            bool isSingleton,
-            IEnumerable<Type> resourceHandlers)
+                                   string urlRelativePath,
+                                   bool isExposedAsRepository,
+                                   Type postReturnType,
+                                   PropertyInfo parentToChildPropertyInfo,
+                                   PropertyInfo childToParentPropertyInfo,
+                                   bool isSingleton,
+                                   IEnumerable<Type> resourceHandlers)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -72,11 +69,6 @@ namespace Pomona.Common.TypeSystem
         public ResourceProperty ChildToParentProperty
         {
             get { return (ResourceProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
-        }
-
-        public IEnumerable<Type> ResourceHandlers
-        {
-            get { return this.resourceHandlers; }
         }
 
         public bool IsExposedAsRepository
@@ -110,6 +102,11 @@ namespace Pomona.Common.TypeSystem
         public StructuredType PostReturnType
         {
             get { return (StructuredType)this.type.TypeResolver.FromType(this.postReturnType); }
+        }
+
+        public IEnumerable<Type> ResourceHandlers
+        {
+            get { return this.resourceHandlers; }
         }
 
         public string UrlRelativePath
