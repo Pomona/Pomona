@@ -46,7 +46,6 @@ namespace Pomona.Common.TypeSystem
         {
             var typeSpecTypes = new[]
                                 {
-                                    typeof(ClientType),
                                     typeof(DictionaryTypeSpec),
                                     typeof(EnumerableTypeSpec),
                                     typeof(EnumTypeSpec),

@@ -282,7 +282,6 @@
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="TypeSystem\AnonymousType.cs" />
     <Compile Include="TypeSystem\Calculator.cs" />
-    <Compile Include="TypeSystem\ClientType.cs" />
     <Compile Include="TypeSystem\ComplexType.cs" />
     <Compile Include="TypeSystem\ConstructorSpec.cs" />
     <Compile Include="TypeSystem\ContainerExtensions.cs" />
