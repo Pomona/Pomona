@@ -206,6 +206,14 @@ namespace Pomona.Common.TypeSystem
             return TypeSerializationMode.Structured;
         }
 
+
+        protected internal override IEnumerable<PropertySpec> OnLoadProperties()
+        {
+            return
+                Type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .Select(x => TypeResolver.WrapProperty(this, x));
+        }
+
         #region Nested type: ConstructorPropertySource
 
         private class ConstructorPropertySource<T> : IConstructorPropertySource<T>

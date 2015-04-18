@@ -155,10 +155,9 @@ namespace Pomona.Common.TypeSystem
 
         protected internal override IEnumerable<PropertySpec> OnLoadProperties()
         {
-            return
-                Type.GetProperties(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public
-                                   | BindingFlags.NonPublic).Select(
-                                       x => TypeResolver.WrapProperty(this, x));
+            // If you want properties map stuff to StructuredType instead.
+            // Note that properties that are not externally exposed should _not_ be mapped.
+            return Enumerable.Empty<PropertySpec>();
         }
 
 
