@@ -77,7 +77,7 @@ namespace Pomona.Common.Proxies
 
                     if (resourceInfo != null && resourceInfo.IsValueObject)
                     {
-                        var valueObjectForm = Activator.CreateInstance(resourceInfo.PatchFormType);
+                        var valueObjectForm = Activator.CreateInstance(resourceInfo.PostFormType);
                         propMap[property.Name] = valueObjectForm;
                         dirtyMap[property.Name] = true;
                         return (TPropType)valueObjectForm;
