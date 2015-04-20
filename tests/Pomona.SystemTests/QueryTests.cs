@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 using Critters.Client;
 
@@ -50,99 +49,6 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class QueryTests : ClientTestsBase
     {
-        public class ClientSideClass : IEquatable<ClientSideClass>
-        {
-            private readonly string bar;
-            private readonly int foo;
-
-
-            public ClientSideClass()
-            {
-            }
-
-
-            public ClientSideClass(int foo, string bar)
-            {
-                this.foo = foo;
-                this.bar = bar;
-            }
-
-
-            public string Bar
-            {
-                get { return this.bar; }
-            }
-
-            public int Foo
-            {
-                get { return this.foo; }
-            }
-
-            public string AdditionalMember { get; set; }
-
-
-            public bool Equals(ClientSideClass other)
-            {
-                if (ReferenceEquals(null, other))
-                    return false;
-                if (ReferenceEquals(this, other))
-                    return true;
-                return string.Equals(this.bar, other.bar) && this.foo == other.foo && string.Equals(AdditionalMember, other.AdditionalMember);
-            }
-
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj))
-                    return false;
-                if (ReferenceEquals(this, obj))
-                    return true;
-                if (obj.GetType() != this.GetType())
-                    return false;
-                return Equals((ClientSideClass)obj);
-            }
-
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var hashCode = (this.bar != null ? this.bar.GetHashCode() : 0);
-                    hashCode = (hashCode * 397) ^ this.foo;
-                    hashCode = (hashCode * 397) ^ (AdditionalMember != null ? AdditionalMember.GetHashCode() : 0);
-                    return hashCode;
-                }
-            }
-
-
-            public static bool operator ==(ClientSideClass left, ClientSideClass right)
-            {
-                return Equals(left, right);
-            }
-
-
-            public static bool operator !=(ClientSideClass left, ClientSideClass right)
-            {
-                return !Equals(left, right);
-            }
-        }
-
-
-        private string SomeCrazyMethod(string s)
-        {
-            return new string(s.ToCharArray().Reverse().ToArray());
-        }
-
-
-        [Test]
-        public void Query_Where_StringEnum_Equals_Constant_Is_Successful()
-        {
-            Save(new HasCustomStringEnum() { Value = CustomStringEnum.Cat });
-            var result = Client.HasCustomStringEnums.First(x => x.Value == Critters.Client.CustomStringEnum.Cat);
-            Assert.That(result.Value, Is.EqualTo(Critters.Client.CustomStringEnum.Cat));
-        }
-
-
         [Test]
         public void GetLazyById_ReturnsLazyProxy()
         {
@@ -153,15 +59,6 @@ namespace Pomona.SystemTests
             Assert.That(proxyBase.ProxyTarget, Is.EqualTo(null));
             Assert.That(critter.Name, Is.EqualTo(critterEntity.Name));
             Assert.That(proxyBase.ProxyTarget, Is.TypeOf<CritterResource>());
-        }
-
-
-        [Test]
-        public void GetResourceById_UsingClientRepository_ReturnsResource()
-        {
-            var critterEntity = CritterEntities.First();
-            var critterResource = Client.Critters.Get(critterEntity.Id);
-            Assert.That(critterResource, Is.Not.Null);
         }
 
 
@@ -179,15 +76,51 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetResourceById_UsingClientRepository_ReturnsResource()
+        {
+            var critterEntity = CritterEntities.First();
+            var critterResource = Client.Critters.Get(critterEntity.Id);
+            Assert.That(critterResource, Is.Not.Null);
+        }
+
+
+        [Test]
         public void GetResourceWithReferenceToSubclassedResource_CreatesSubclassedLazyProxy()
         {
             var critterEntity = Repository.CreateRandomCritter(rngSeed : 65236);
             var referencedMusicalCritterEntity = Repository.CreateRandomCritter(rngSeed : 57823,
-                forceMusicalCritter : true);
+                                                                                forceMusicalCritter : true);
             critterEntity.ReferenceToAnotherCritter = referencedMusicalCritterEntity;
 
             var critterResource = Client.Critters.Get(critterEntity.Id);
             Assert.That(critterResource.ReferenceToAnotherCritter, Is.TypeOf<MusicalCritterLazyProxy>());
+        }
+
+
+        [Test]
+        public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
+        {
+            var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
+            Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] { (int?)null }));
+        }
+
+
+        [Test]
+        public void Query_SelectObjectArray_IsSuccessful()
+        {
+            var results = Client.Critters.Query().Select(x => new object[] { x.Id, x.Guid, x.Hat }).ToList();
+            var comparableResults = results.Select(x => new { Id = (int)x[0], Guid = (Guid)x[1], HatId = ((IHat)x[2]).Id }).ToList();
+            var expected = CritterEntities.Select(x => new { x.Id, x.Guid, HatId = x.Hat.Id });
+            CollectionAssert.AreEqual(expected, comparableResults);
+        }
+
+
+        [Test]
+        public void Query_Where_StringEnum_Equals_Constant_Is_Successful()
+        {
+            Save(new HasCustomStringEnum() { Value = CustomStringEnum.Cat });
+            var result = Client.HasCustomStringEnums.First(x => x.Value == Critters.Client.CustomStringEnum.Cat);
+            Assert.That(result.Value, Is.EqualTo(Critters.Client.CustomStringEnum.Cat));
         }
 
 
@@ -228,7 +161,7 @@ namespace Pomona.SystemTests
 
             var critters =
                 Client.Query<IHasCustomAttributes>(x => x.WrappedAttribute != null && x.WrappedAttribute.StartsWith("h"))
-                    .ToList();
+                      .ToList();
 
             Assert.That(critters.Any(x => x.WrappedAttribute == "hooha"), Is.True);
             Assert.That(critters.Any(x => x.WrappedAttribute == "booja"), Is.False);
@@ -370,7 +303,7 @@ namespace Pomona.SystemTests
         public void QueryNonExistingUrl_ThrowsResourceNotFoundException()
         {
             Assert.That(() => Client.Get<Critter>(BaseUri + "critters/9999999"),
-                Throws.TypeOf<Common.Web.ResourceNotFoundException>());
+                        Throws.TypeOf<Common.Web.ResourceNotFoundException>());
         }
 
 
@@ -393,20 +326,7 @@ namespace Pomona.SystemTests
             Assert.That(farms.All(x => x.MusicalCritters.IsLoaded()), Is.True);
             Assert.That(farms.SelectMany(x => x.MusicalCritters).All(x => x.IsLoaded()), Is.True);
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
-                Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
-        }
-
-
-        [Test]
-        public void QueryResourceWithShallowExpandedEnumerable_ReturnsExpandedListOfReferences()
-        {
-            Repository.CreateRandomData(critterCount: 20);
-            var farms = Client.Farms.Query().ExpandShallow(x => x.MusicalCritters).ToList();
-            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
-            Assert.That(farms.All(x => x.MusicalCritters.IsLoaded()), Is.True);
-            Assert.That(farms.SelectMany(x => x.MusicalCritters).All(x => x.IsLoaded()), Is.False);
-            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
-                Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
         }
 
 
@@ -418,7 +338,20 @@ namespace Pomona.SystemTests
             Assert.That(farms.All(x => x.MusicalCritters is LazyListProxy<IMusicalCritter>));
             var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
             Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
-                Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
+        }
+
+
+        [Test]
+        public void QueryResourceWithShallowExpandedEnumerable_ReturnsExpandedListOfReferences()
+        {
+            Repository.CreateRandomData(critterCount : 20);
+            var farms = Client.Farms.Query().ExpandShallow(x => x.MusicalCritters).ToList();
+            var musicalCritters = farms.SelectMany(x => x.MusicalCritters).ToList();
+            Assert.That(farms.All(x => x.MusicalCritters.IsLoaded()), Is.True);
+            Assert.That(farms.SelectMany(x => x.MusicalCritters).All(x => x.IsLoaded()), Is.False);
+            Assert.That(musicalCritters.Select(x => x.Id).OrderBy(x => x),
+                        Is.EquivalentTo(CritterEntities.OfType<MusicalCritter>().Select(x => x.Id)));
         }
 
 
@@ -468,20 +401,28 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void Query_SelectObjectArray_IsSuccessful()
+        public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful()
         {
-            var results = Client.Critters.Query().Select(x => new object[] { x.Id, x.Guid, x.Hat }).ToList();
-            var comparableResults = results.Select(x => new { Id = (int)x[0], Guid = (Guid)x[1], HatId = ((IHat)x[2]).Id }).ToList();
-            var expected = CritterEntities.Select(x => new { x.Id, x.Guid, HatId = x.Hat.Id });
-            CollectionAssert.AreEqual(expected, comparableResults);
+            var expected =
+                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).ToList();
+            var actual =
+                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
         }
 
+
         [Test]
-        public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
+        public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful_UsingFirstProjection()
         {
-            var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
-            Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] { (int?)null }));
+            var expected =
+                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).First();
+            var actual =
+                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).First();
+
+            Assert.That(actual, Is.EqualTo(expected));
         }
+
 
         [Test]
         public void Select_WithClientServerSplit_CallingNewOfTypeOnlyAvailableOnClient_IsSuccessful()
@@ -494,6 +435,7 @@ namespace Pomona.SystemTests
             CollectionAssert.AreEquivalent(expected, actual);
         }
 
+
         [Test]
         public void Select_WithClientServerSplit_CallingNewOfTypeOnlyAvailableOnClientWithMemberInit_IsSuccessful()
         {
@@ -503,28 +445,6 @@ namespace Pomona.SystemTests
                 Client.Critters.Select(x => new ClientSideClass { AdditionalMember = x.Name }).ToList();
 
             CollectionAssert.AreEquivalent(expected, actual);
-        }
-
-        [Test]
-        public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful()
-        {
-            var expected =
-                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).ToList();
-            var actual =
-                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).ToList();
-
-            CollectionAssert.AreEquivalent(expected, actual);
-        }
-
-        [Test]
-        public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful_UsingFirstProjection()
-        {
-            var expected =
-                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).First();
-            var actual =
-                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name + "|" + SomeCrazyMethod(x.Name))).First();
-
-            Assert.That(actual, Is.EqualTo(expected));
         }
 
 
@@ -549,12 +469,12 @@ namespace Pomona.SystemTests
                 CritterEntities.Select(
                     x =>
                         new ClientSideClass(x.Id + x.Subscriptions.Count,
-                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+                                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
             var actual =
                 Client.Critters.Select(
                     x =>
                         new ClientSideClass(x.Id + x.Subscriptions.Count,
-                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+                                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
 
             CollectionAssert.AreEquivalent(expected, actual);
         }
@@ -567,14 +487,99 @@ namespace Pomona.SystemTests
                 CritterEntities.Select(
                     x =>
                         new ClientSideClass(x.Id + x.Subscriptions.Count(y => y.Sku != "xfiles"),
-                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+                                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
             var actual =
                 Client.Critters.Select(
                     x =>
                         new ClientSideClass(x.Id + x.Subscriptions.Count(y => y.Sku != "xfiles"),
-                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
+                                            x.Name.ToUpper() + "|" + SomeCrazyMethod(x.Name.ToLower()))).ToList();
 
             CollectionAssert.AreEquivalent(expected, actual);
+        }
+
+
+        private string SomeCrazyMethod(string s)
+        {
+            return new string(s.ToCharArray().Reverse().ToArray());
+        }
+
+
+        public class ClientSideClass : IEquatable<ClientSideClass>
+        {
+            private readonly string bar;
+            private readonly int foo;
+
+
+            public ClientSideClass()
+            {
+            }
+
+
+            public ClientSideClass(int foo, string bar)
+            {
+                this.foo = foo;
+                this.bar = bar;
+            }
+
+
+            public string AdditionalMember { get; set; }
+
+            public string Bar
+            {
+                get { return this.bar; }
+            }
+
+            public int Foo
+            {
+                get { return this.foo; }
+            }
+
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                    return false;
+                if (ReferenceEquals(this, obj))
+                    return true;
+                if (obj.GetType() != GetType())
+                    return false;
+                return Equals((ClientSideClass)obj);
+            }
+
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var hashCode = (this.bar != null ? this.bar.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ this.foo;
+                    hashCode = (hashCode * 397) ^ (AdditionalMember != null ? AdditionalMember.GetHashCode() : 0);
+                    return hashCode;
+                }
+            }
+
+
+            public static bool operator ==(ClientSideClass left, ClientSideClass right)
+            {
+                return Equals(left, right);
+            }
+
+
+            public static bool operator !=(ClientSideClass left, ClientSideClass right)
+            {
+                return !Equals(left, right);
+            }
+
+
+            public bool Equals(ClientSideClass other)
+            {
+                if (ReferenceEquals(null, other))
+                    return false;
+                if (ReferenceEquals(this, other))
+                    return true;
+                return string.Equals(this.bar, other.bar) && this.foo == other.foo
+                       && string.Equals(AdditionalMember, other.AdditionalMember);
+            }
         }
     }
 }
