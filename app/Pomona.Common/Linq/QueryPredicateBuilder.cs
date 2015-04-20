@@ -849,9 +849,16 @@ namespace Pomona.Common.Linq
             protected override Expression VisitListInit(ListInitExpression node)
             {
                 // Avoid visiting NewExpression directly, we don't want constant folding in this particular case.
-                var visitedArguments = Visit(node.NewExpression.Arguments);
                 var visitedInitializers = node.Initializers.Select(x => Expression.ElementInit(x.AddMethod, Visit(x.Arguments)));
-                return Expression.ListInit(Expression.New(node.NewExpression.Constructor, visitedArguments), visitedInitializers);
+                return Expression.ListInit(VisitNewExpressionNoConstantFolding(node.NewExpression), visitedInitializers);
+            }
+
+
+            protected override Expression VisitMemberInit(MemberInitExpression node)
+            {
+                // Avoid visiting NewExpression directly, we don't want constant folding in this particular case.
+                return Expression.MemberInit(VisitNewExpressionNoConstantFolding(node.NewExpression),
+                                             Visit(node.Bindings, VisitMemberBinding));
             }
 
 
@@ -902,6 +909,14 @@ namespace Pomona.Common.Linq
             private bool IsFoldedType(Type type)
             {
                 return type == typeof(int) || type == typeof(decimal);
+            }
+
+
+            private NewExpression VisitNewExpressionNoConstantFolding(NewExpression newExpression)
+            {
+                var visitedArguments = Visit(newExpression.Arguments);
+                var visitedNewExpression = Expression.New(newExpression.Constructor, visitedArguments);
+                return visitedNewExpression;
             }
         }
 

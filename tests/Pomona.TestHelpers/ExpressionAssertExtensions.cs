@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,9 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+
 using NUnit.Framework;
 
 namespace Pomona.TestHelpers
@@ -33,7 +39,7 @@ namespace Pomona.TestHelpers
     {
         public static void AssertEquals<TDelegate>(this Expression actual, Expression<TDelegate> expected)
         {
-            AssertEquals(actual, (Expression) expected);
+            AssertEquals(actual, (Expression)expected);
         }
 
 
@@ -54,7 +60,7 @@ namespace Pomona.TestHelpers
                 var actualLambdaExpr = actual as LambdaExpression;
                 if (actualLambdaExpr != null)
                 {
-                    var expectedLambdaExpr = (LambdaExpression) expected;
+                    var expectedLambdaExpr = (LambdaExpression)expected;
                     AssertEquals(actualLambdaExpr.Body, expectedLambdaExpr.Body);
                     return;
                 }
@@ -62,7 +68,7 @@ namespace Pomona.TestHelpers
                 var actualBinExpr = actual as BinaryExpression;
                 if (actualBinExpr != null)
                 {
-                    var expectedBinExpr = (BinaryExpression) expected;
+                    var expectedBinExpr = (BinaryExpression)expected;
 
                     AssertEquals(actualBinExpr.Left, expectedBinExpr.Left);
                     AssertEquals(actualBinExpr.Right, expectedBinExpr.Right);
@@ -72,7 +78,7 @@ namespace Pomona.TestHelpers
                 var actualCondExpr = actual as ConditionalExpression;
                 if (actualCondExpr != null)
                 {
-                    var expectedCondExpr = (ConditionalExpression) expected;
+                    var expectedCondExpr = (ConditionalExpression)expected;
                     AssertEquals(actualCondExpr.Test, expectedCondExpr.Test);
                     AssertEquals(actualCondExpr.IfTrue, expectedCondExpr.IfTrue);
                     AssertEquals(actualCondExpr.IfFalse, expectedCondExpr.IfFalse);
@@ -82,12 +88,14 @@ namespace Pomona.TestHelpers
                 var actualTypeBinExpr = actual as TypeBinaryExpression;
                 if (actualTypeBinExpr != null)
                 {
-                    var expectedTypeBinExpr = (TypeBinaryExpression) expected;
+                    var expectedTypeBinExpr = (TypeBinaryExpression)expected;
 
                     AssertEquals(actualTypeBinExpr.Expression, expectedTypeBinExpr.Expression);
                     if (actualTypeBinExpr.TypeOperand != expectedTypeBinExpr.TypeOperand)
+                    {
                         Assert.Fail("Expected TypeOperand " + expectedTypeBinExpr.TypeOperand + " got nodetype " +
                                     actualTypeBinExpr.TypeOperand);
+                    }
 
                     return;
                 }
@@ -95,7 +103,7 @@ namespace Pomona.TestHelpers
                 var actualConstExpr = actual as ConstantExpression;
                 if (actualConstExpr != null)
                 {
-                    var expectedConstExpr = (ConstantExpression) expected;
+                    var expectedConstExpr = (ConstantExpression)expected;
                     if (actualConstExpr.Type != expectedConstExpr.Type)
                     {
                         Assert.Fail(
@@ -114,7 +122,7 @@ namespace Pomona.TestHelpers
                 var actualMemberExpr = actual as MemberExpression;
                 if (actualMemberExpr != null)
                 {
-                    var expectedMemberExpr = (MemberExpression) expected;
+                    var expectedMemberExpr = (MemberExpression)expected;
                     if (actualMemberExpr.Member != expectedMemberExpr.Member)
                         Assert.Fail("Wrong member on memberexpression when comparing expressions..");
                     AssertEquals(actualMemberExpr.Expression, expectedMemberExpr.Expression);
@@ -124,29 +132,21 @@ namespace Pomona.TestHelpers
                 var actualCallExpr = actual as MethodCallExpression;
                 if (actualCallExpr != null)
                 {
-                    var expectedCallExpr = (MethodCallExpression) expected;
+                    var expectedCallExpr = (MethodCallExpression)expected;
                     if (actualCallExpr.Method != expectedCallExpr.Method)
                         Assert.Fail("Wrong method on methodexpression when comparing expressions..");
 
                     AssertEquals(actualCallExpr.Object, expectedCallExpr.Object);
 
                     // Recursively check arguments
-                    expectedCallExpr
-                        .Arguments
-                        .Zip(
-                            actualCallExpr.Arguments,
-                            (ex, ac) =>
-                                {
-                                    AssertEquals(ac, ex);
-                                    return true;
-                                }).ToList();
+                    AssertEquals(actualCallExpr.Arguments, expectedCallExpr.Arguments);
                     return;
                 }
 
                 var actualUnaryExpr = actual as UnaryExpression;
                 if (actualUnaryExpr != null)
                 {
-                    var expectedUnaryExpr = (UnaryExpression) expected;
+                    var expectedUnaryExpr = (UnaryExpression)expected;
                     Assert.That(
                         actualUnaryExpr.Type, Is.EqualTo(expectedUnaryExpr.Type), "Unary expr was not of expected type.");
                     AssertEquals(actualUnaryExpr.Operand, expectedUnaryExpr.Operand);
@@ -156,7 +156,7 @@ namespace Pomona.TestHelpers
                 var actualParamExpr = actual as ParameterExpression;
                 if (actualParamExpr != null)
                 {
-                    var expectedParamExpr = (ParameterExpression) expected;
+                    var expectedParamExpr = (ParameterExpression)expected;
                     Assert.That(
                         actualParamExpr.Type, Is.EqualTo(expectedParamExpr.Type), "Parameter was not of expected type.");
                     Assert.That(
@@ -166,10 +166,21 @@ namespace Pomona.TestHelpers
                     return;
                 }
 
+                var actualMemberInit = actual as MemberInitExpression;
+                if (actualMemberInit != null)
+                {
+                    var expectedMemberInit = (MemberInitExpression)expected;
+                    AssertEquals(actualMemberInit.NewExpression, expectedMemberInit.NewExpression);
+                    Assert.That(actualMemberInit.Bindings.Count, Is.EqualTo(expectedMemberInit.Bindings.Count),
+                                "MemberInitExpression has different number of Bindings");
+                    AssertEquals(actualMemberInit.Bindings, expectedMemberInit.Bindings);
+                    return;
+                }
+
                 var actualNewExpr = actual as NewExpression;
                 if (actualNewExpr != null)
                 {
-                    var expectedNewExpr = (NewExpression) expected;
+                    var expectedNewExpr = (NewExpression)expected;
                     Assert.That(
                         actualNewExpr.Type, Is.EqualTo(expectedNewExpr.Type), "NewExpression was not of expected type.");
                     Assert.That(
@@ -178,15 +189,7 @@ namespace Pomona.TestHelpers
                         "NewExpression didn't have expected constructor.");
 
                     // Recursively check arguments
-                    expectedNewExpr
-                        .Arguments
-                        .Zip(
-                            actualNewExpr.Arguments,
-                            (ex, ac) =>
-                                {
-                                    AssertEquals(ac, ex);
-                                    return true;
-                                }).ToList();
+                    AssertEquals(actualNewExpr.Arguments, expectedNewExpr.Arguments);
 
                     return;
                 }
@@ -194,22 +197,14 @@ namespace Pomona.TestHelpers
                 var actualNewArrayExpr = actual as NewArrayExpression;
                 if (actualNewArrayExpr != null)
                 {
-                    var expectedNewArrayExpr = (NewArrayExpression) expected;
+                    var expectedNewArrayExpr = (NewArrayExpression)expected;
                     Assert.That(
                         actualNewArrayExpr.Type,
                         Is.EqualTo(expectedNewArrayExpr.Type),
                         "NewExpression was not of expected type.");
 
                     // Recursively check arguments
-                    expectedNewArrayExpr
-                        .Expressions
-                        .Zip(
-                            actualNewArrayExpr.Expressions,
-                            (ex, ac) =>
-                                {
-                                    AssertEquals(ac, ex);
-                                    return true;
-                                }).ToList();
+                    AssertEquals(actualNewArrayExpr.Expressions, expectedNewArrayExpr.Expressions);
 
                     return;
                 }
@@ -224,18 +219,84 @@ namespace Pomona.TestHelpers
             }
         }
 
+
+        private static void AssertEquals(MemberBinding actual, MemberBinding expected)
+        {
+            Assert.That(actual.BindingType, Is.EqualTo(expected.BindingType));
+            Assert.That(actual.Member, Is.EqualTo(expected.Member));
+
+            switch (actual.BindingType)
+            {
+                case MemberBindingType.Assignment:
+                    var acAssignment = (MemberAssignment)actual;
+                    var exAssignment = (MemberAssignment)expected;
+                    AssertEquals(acAssignment.Expression, exAssignment.Expression);
+                    break;
+
+                case MemberBindingType.ListBinding:
+                    var acListBinding = (MemberListBinding)actual;
+                    var exListBinding = (MemberListBinding)expected;
+                    AssertEquals(acListBinding.Initializers, exListBinding.Initializers);
+                    break;
+
+                case MemberBindingType.MemberBinding:
+                    var acMemberBinding = (MemberMemberBinding)actual;
+                    var exMemberBinding = (MemberMemberBinding)expected;
+                    AssertEquals(acMemberBinding.Bindings, exMemberBinding.Bindings);
+                    break;
+            }
+        }
+
+
+        private static void AssertEquals(ReadOnlyCollection<MemberBinding> actual, ReadOnlyCollection<MemberBinding> expected)
+        {
+            AssertEquals(actual, expected, AssertEquals);
+        }
+
+
+        private static void AssertEquals<T>(ReadOnlyCollection<T> actual, ReadOnlyCollection<T> expected, Action<T, T> itemAssertion)
+        {
+            if (actual == null)
+                throw new ArgumentNullException("actual");
+            if (expected == null)
+                throw new ArgumentNullException("expected");
+            if (itemAssertion == null)
+                throw new ArgumentNullException("itemAssertion");
+            Assert.That(actual.Count, Is.EqualTo(expected.Count));
+            for (int i = 0; i < actual.Count; i++)
+                itemAssertion(actual[i], expected[i]);
+        }
+
+
+        private static void AssertEquals(ReadOnlyCollection<ElementInit> actual, ReadOnlyCollection<ElementInit> expected)
+        {
+            AssertEquals(actual, expected, AssertEquals);
+        }
+
+
+        private static void AssertEquals(ElementInit actual, ElementInit expected)
+        {
+            Assert.That(actual.AddMethod, Is.EqualTo(expected.AddMethod));
+            AssertEquals(actual.Arguments, expected.Arguments);
+        }
+
+
+        private static void AssertEquals(ReadOnlyCollection<Expression> actual, ReadOnlyCollection<Expression> expected)
+        {
+            AssertEquals(actual, expected, AssertEquals);
+        }
+
+
         private static bool IsEqualOrArrayContentEqual(object actual, object expected, Type type)
         {
             if (expected == null || actual == null)
-            {
                 return actual == null && expected == null;
-            }
 
             if (type.IsArray)
             {
                 var elementType = type.GetElementType();
-                var actualArray = (Array) actual;
-                var expectedArray = (Array) expected;
+                var actualArray = (Array)actual;
+                var expectedArray = (Array)expected;
                 if (actualArray.Length != expectedArray.Length)
                     return false;
 

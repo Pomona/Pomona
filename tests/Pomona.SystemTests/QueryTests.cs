@@ -56,6 +56,11 @@ namespace Pomona.SystemTests
             private readonly int foo;
 
 
+            public ClientSideClass()
+            {
+            }
+
+
             public ClientSideClass(int foo, string bar)
             {
                 this.foo = foo;
@@ -73,6 +78,18 @@ namespace Pomona.SystemTests
                 get { return this.foo; }
             }
 
+            public string AdditionalMember { get; set; }
+
+
+            public bool Equals(ClientSideClass other)
+            {
+                if (ReferenceEquals(null, other))
+                    return false;
+                if (ReferenceEquals(this, other))
+                    return true;
+                return string.Equals(this.bar, other.bar) && this.foo == other.foo && string.Equals(AdditionalMember, other.AdditionalMember);
+            }
+
 
             public override bool Equals(object obj)
             {
@@ -80,7 +97,7 @@ namespace Pomona.SystemTests
                     return false;
                 if (ReferenceEquals(this, obj))
                     return true;
-                if (obj.GetType() != GetType())
+                if (obj.GetType() != this.GetType())
                     return false;
                 return Equals((ClientSideClass)obj);
             }
@@ -90,21 +107,13 @@ namespace Pomona.SystemTests
             {
                 unchecked
                 {
-                    return (this.foo * 397) ^ (this.bar != null ? this.bar.GetHashCode() : 0);
+                    var hashCode = (this.bar != null ? this.bar.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ this.foo;
+                    hashCode = (hashCode * 397) ^ (AdditionalMember != null ? AdditionalMember.GetHashCode() : 0);
+                    return hashCode;
                 }
             }
 
-
-            public bool Equals(ClientSideClass other)
-            {
-                if (ReferenceEquals(null, other))
-                    return false;
-                if (ReferenceEquals(this, other))
-                    return true;
-                return this.foo == other.foo && string.Equals(this.bar, other.bar);
-            }
-
-            #region Operators
 
             public static bool operator ==(ClientSideClass left, ClientSideClass right)
             {
@@ -116,8 +125,6 @@ namespace Pomona.SystemTests
             {
                 return !Equals(left, right);
             }
-
-            #endregion
         }
 
 
@@ -476,6 +483,27 @@ namespace Pomona.SystemTests
             Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] { (int?)null }));
         }
 
+        [Test]
+        public void Select_WithClientServerSplit_CallingNewOfTypeOnlyAvailableOnClient_IsSuccessful()
+        {
+            var expected =
+                CritterEntities.Select(x => new ClientSideClass(x.Id, x.Name)).ToList();
+            var actual =
+                Client.Critters.Select(x => new ClientSideClass(x.Id, x.Name)).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
+
+        [Test]
+        public void Select_WithClientServerSplit_CallingNewOfTypeOnlyAvailableOnClientWithMemberInit_IsSuccessful()
+        {
+            var expected =
+                CritterEntities.Select(x => new ClientSideClass { AdditionalMember = x.Name }).ToList();
+            var actual =
+                Client.Critters.Select(x => new ClientSideClass { AdditionalMember = x.Name }).ToList();
+
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
 
         [Test]
         public void Select_WithClientServerSplit_CallingMethodOnlyAvailableToClient_IsSuccessful()
