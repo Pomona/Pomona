@@ -39,7 +39,6 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<StructuredTypeDetails> structuredTypeDetails;
         private readonly Lazy<ReadOnlyCollection<StructuredType>> subTypes;
-        private Func<IDictionary<PropertySpec, object>, object> createFunc;
         private Delegate createUsingPropertySourceFunc;
 
 
@@ -157,36 +156,6 @@ namespace Pomona.Common.TypeSystem
             }
 
             return ((Func<IConstructorPropertySource<T>, T>)this.createUsingPropertySourceFunc)(propertySource);
-        }
-
-
-        public override object Create(IDictionary<PropertySpec, object> args)
-        {
-            if (this.createFunc == null)
-            {
-                var argsParam = Expression.Parameter(typeof(IDictionary<PropertySpec, object>));
-                var makeGenericType = typeof(ConstructorPropertySource<>).MakeGenericType(
-                    Constructor.InjectingConstructorExpression.ReturnType);
-                var constructorInfo = makeGenericType.GetConstructor(new[]
-                                                                     { typeof(IDictionary<PropertySpec, object>) });
-
-                if (constructorInfo == null)
-                {
-                    throw new InvalidOperationException(
-                        "Unable to find constructor for ConstructorPropertySource (should not get here).");
-                }
-
-                this.createFunc =
-                    Expression.Lambda<Func<IDictionary<PropertySpec, object>, object>>(
-                        Expression.Convert(
-                            Expression.Invoke(Constructor.InjectingConstructorExpression,
-                                              Expression.New(
-                                                  constructorInfo,
-                                                  argsParam)),
-                            typeof(object)),
-                        argsParam).Compile();
-            }
-            return this.createFunc(args);
         }
 
 

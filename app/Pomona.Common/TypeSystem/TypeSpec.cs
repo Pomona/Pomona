@@ -138,12 +138,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual object Create(IDictionary<PropertySpec, object> args)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public PropertySpec GetPropertyByName(string propertyName, bool ignoreCase)
         {
             PropertySpec propertySpec;
