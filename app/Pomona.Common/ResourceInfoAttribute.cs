@@ -84,7 +84,6 @@ namespace Pomona.Common
         public string JsonTypeName { get; set; }
         public Type LazyProxyType { get; set; }
         public Type ParentResourceType { get; set; }
-        public Type PatchFormType { get; set; }
         public Type PocoType { get; set; }
         public Type PostFormType { get; set; }
         public Type UriBaseType { get; set; }

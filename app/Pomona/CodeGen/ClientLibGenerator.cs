@@ -143,11 +143,6 @@ namespace Pomona.CodeGen
                 codeGenInfo.LazyProxyType = typeDefinition;
             });
 
-            CreateProxies(new PatchFormProxyBuilder(this, MakeProxyTypesPublic), (info, def) =>
-            {
-                info.PatchFormType = def;
-            }, typeIsGeneratedPredicate : x => x.StructuredType.PatchAllowed);
-
             CreateProxies(new PostFormProxyBuilder(this), (info, def) =>
             {
                 info.PostFormType = def;
@@ -543,10 +538,6 @@ namespace Pomona.CodeGen
             namedArgs.Add(new CustomAttributeNamedArgument("PostFormType",
                                                            new CustomAttributeArgument(typeTypeReference,
                                                                                        typeInfo.PostFormType)));
-            namedArgs.Add(new CustomAttributeNamedArgument("PatchFormType",
-                                                           new CustomAttributeArgument(typeTypeReference,
-                                                                                       typeInfo.PatchFormType)));
-
             namedArgs.Add(new CustomAttributeNamedArgument("JsonTypeName",
                                                            new CustomAttributeArgument(stringTypeReference,
                                                                                        type.Name)));

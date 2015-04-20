@@ -336,17 +336,6 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
-        public void ResourceWithPatchDeniedDoesNotHavePatchResourceFormGenerated()
-        {
-            var typeInfo = typeof(IUnpatchableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
-            Assert.That(typeInfo.PatchFormType, Is.Null);
-            Assert.That(typeof(IUnpatchableThing).Assembly.GetType("Critters.Client.UnpatchableThingPatchForm"),
-                Is.Null);
-            Assert.That(typeof(IUnpatchableThing).Assembly.GetType("Critters.Client.CritterPatchForm"), Is.Not.Null);
-        }
-
-
-        [Test]
         public void ResourceWithPostDeniedDoesNotHavePostResourceFormGenerated()
         {
             var typeInfo = typeof(IUnpostableThing).GetCustomAttributes(false).OfType<ResourceInfoAttribute>().First();
