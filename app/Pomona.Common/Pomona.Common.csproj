@@ -48,6 +48,7 @@
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AllowedMethodsAttribute.cs" />
     <Compile Include="ChildResourceRepository.cs" />
     <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />

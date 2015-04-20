@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2015 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,29 +26,25 @@
 
 #endregion
 
-using System.Collections.Generic;
+using System;
 
-using Pomona.Common;
-
-namespace Pomona.UnitTests.TestResources
+namespace Pomona.Common
 {
-    [AllowedMethods(HttpMethod.Get)]
-    [ResourceInfo(InterfaceType = typeof(ITestResource), JsonTypeName = "TestResource",
-        PocoType = typeof(TestResource), PostFormType = typeof(TestResourcePostForm),
-        UriBaseType = typeof(ITestResource), UrlRelativePath = "test-resources")]
-    public interface ITestResource : IClientResource
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property)]
+    public class AllowedMethodsAttribute : Attribute
     {
-        [ResourceAttributesProperty]
-        IDictionary<string, object> Attributes { get; set; }
+        private readonly HttpMethod methods;
 
-        IList<ITestResource> Children { get; }
-        IDictionary<string, string> Dictionary { get; }
-        ITestResource Friend { get; set; }
 
-        [ResourceIdProperty]
-        int Id { get; set; }
+        public AllowedMethodsAttribute(HttpMethod methods)
+        {
+            this.methods = methods;
+        }
 
-        string Info { get; set; }
-        ITestResource Spouse { get; set; }
+
+        public HttpMethod Methods
+        {
+            get { return this.methods; }
+        }
     }
 }

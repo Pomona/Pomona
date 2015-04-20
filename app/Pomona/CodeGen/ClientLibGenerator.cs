@@ -223,14 +223,23 @@ namespace Pomona.CodeGen
         }
 
 
-        private CustomAttribute AddAttribute<TAttribute>(ICustomAttributeProvider interfacePropDef)
+        private CustomAttribute AddAttribute<TAttribute>(ICustomAttributeProvider interfacePropDef, Func<MethodDefinition, bool> ctorPredicate = null, Action<CustomAttribute> actions = null)
             where TAttribute : Attribute
         {
+            ctorPredicate = ctorPredicate ?? (x => true);
             var attributeType = typeof(TAttribute);
             var attribute = Import(attributeType);
-            var constructor = Import(attribute.Resolve().Methods.OrderBy(x => x.Parameters.Count).First(x => x.IsConstructor));
+            var constructor = Import(attribute
+                                         .Resolve()
+                                         .Methods
+                                         .Where(x => x.IsConstructor)
+                                         .Where(ctorPredicate)
+                                         .OrderBy(x => x.Parameters.Count)
+                                         .First());
             var customAttribute = new CustomAttribute(constructor);
             interfacePropDef.CustomAttributes.Add(customAttribute);
+            if (actions != null)
+                actions(customAttribute);
             return customAttribute;
         }
 
@@ -570,6 +579,13 @@ namespace Pomona.CodeGen
                                                                        .MappedAsValueObject)));
 
             interfaceDef.CustomAttributes.Add(custAttr);
+
+            AddAttribute<AllowedMethodsAttribute>(interfaceDef, x => x.Parameters.Count == 1,
+                                                      x =>
+                                                          x.ConstructorArguments.Add(
+                                                              new CustomAttributeArgument(Import(typeof(HttpMethod)),
+                                                                                          typeInfo.StructuredType
+                                                                                                  .AllowedMethods)));
             //var attrConstructor = attr.Resolve().GetConstructors();
         }
 

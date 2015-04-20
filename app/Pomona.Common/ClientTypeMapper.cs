@@ -91,7 +91,11 @@ namespace Pomona.Common
             }
 
             var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (resourceInfo.PatchFormType == null)
+            if (!resourceType.GetCustomAttributes(typeof(AllowedMethodsAttribute), false)
+                             .OfType<AllowedMethodsAttribute>()
+                             .Select(x => x.Methods)
+                             .FirstOrDefault()
+                             .HasFlag(HttpMethod.Patch))
                 throw new InvalidOperationException("Method PATCH is not allowed for uri.");
 
             var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
@@ -241,8 +245,14 @@ namespace Pomona.Common
             }
 
             var ria = structuredType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
-            var allowedMethods = (ria.PostFormType != null ? HttpMethod.Post : 0)
-                                 | (ria.PatchFormType != null ? HttpMethod.Patch : 0) | HttpMethod.Get;
+            var allMethods = (HttpMethod.Delete | HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post | HttpMethod.Put);
+            var allowedMethods =
+                structuredType
+                .DeclaredAttributes
+                .OfType<AllowedMethodsAttribute>()
+                .Select(x => (HttpMethod?)x.Methods)
+                .FirstOrDefault() ?? allMethods;
+
             return new StructuredTypeDetails(structuredType,
                                           allowedMethods,
                                           ria.UrlRelativePath != null
