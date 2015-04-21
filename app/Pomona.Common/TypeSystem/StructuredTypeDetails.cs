@@ -38,13 +38,11 @@ namespace Pomona.Common.TypeSystem
         private readonly bool isAbstract;
         private readonly bool mappedAsValueObject;
         private readonly Action<object> onDeserialized;
-        private readonly string pluralName;
         private readonly StructuredType type;
 
 
         public StructuredTypeDetails(StructuredType type,
                                      HttpMethod allowedMethods,
-                                     string pluralName,
                                      Action<object> onDeserialized,
                                      bool mappedAsValueObject,
                                      bool alwaysExpand,
@@ -52,7 +50,6 @@ namespace Pomona.Common.TypeSystem
         {
             this.type = type;
             this.allowedMethods = allowedMethods;
-            this.pluralName = pluralName;
             this.onDeserialized = onDeserialized;
             this.mappedAsValueObject = mappedAsValueObject;
             this.type = type;
@@ -84,11 +81,6 @@ namespace Pomona.Common.TypeSystem
         public Action<object> OnDeserialized
         {
             get { return this.onDeserialized; }
-        }
-
-        public string PluralName
-        {
-            get { return this.pluralName; }
         }
 
         public StructuredProperty PrimaryId

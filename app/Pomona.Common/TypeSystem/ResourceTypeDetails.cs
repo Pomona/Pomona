@@ -39,6 +39,7 @@ namespace Pomona.Common.TypeSystem
         private readonly bool isExposedAsRepository;
         private readonly bool isSingleton;
         private readonly PropertyInfo parentToChildPropertyInfo;
+        private readonly string pluralName;
         private readonly Type postReturnType;
         private readonly IEnumerable<Type> resourceHandlers;
         private readonly ResourceType type;
@@ -52,7 +53,8 @@ namespace Pomona.Common.TypeSystem
                                    PropertyInfo parentToChildPropertyInfo,
                                    PropertyInfo childToParentPropertyInfo,
                                    bool isSingleton,
-                                   IEnumerable<Type> resourceHandlers)
+                                   IEnumerable<Type> resourceHandlers,
+                                   string pluralName)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
@@ -64,6 +66,7 @@ namespace Pomona.Common.TypeSystem
             this.childToParentPropertyInfo = childToParentPropertyInfo;
             this.isSingleton = isSingleton;
             this.resourceHandlers = resourceHandlers;
+            this.pluralName = pluralName;
         }
 
 
@@ -103,6 +106,11 @@ namespace Pomona.Common.TypeSystem
                             false)
                     : null;
             }
+        }
+
+        public string PluralName
+        {
+            get { return this.pluralName; }
         }
 
         public StructuredType PostReturnType

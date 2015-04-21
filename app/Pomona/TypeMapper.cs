@@ -267,7 +267,8 @@ namespace Pomona
                                            parentToChildProperty,
                                            childToParentProperty,
                                            this.filter.TypeIsSingletonResource(type),
-                                           this.filter.GetResourceHandlers(type));
+                                           this.filter.GetResourceHandlers(type),
+                                           this.filter.GetPluralNameForType(type));
         }
 
 
@@ -309,7 +310,6 @@ namespace Pomona
             var type = structuredType.Type;
             var details = new StructuredTypeDetails(structuredType,
                                                     allowedMethods,
-                                                    this.filter.GetPluralNameForType(type),
                                                     this.filter.GetOnDeserializedHook(type),
                                                     this.filter.TypeIsMappedAsValueObject(type),
                                                     this.filter.TypeIsMappedAsValueObject(type),

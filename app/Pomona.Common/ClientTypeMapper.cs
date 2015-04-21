@@ -238,7 +238,6 @@ namespace Pomona.Common
                 return new StructuredTypeDetails(structuredType,
                                               HttpMethod.Get,
                                               null,
-                                              null,
                                               true,
                                               true,
                                               false);
@@ -255,9 +254,6 @@ namespace Pomona.Common
 
             return new StructuredTypeDetails(structuredType,
                                           allowedMethods,
-                                          ria.UrlRelativePath != null
-                                              ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
-                                              : null,
                                           null,
                                           ria.IsValueObject,
                                           true,
@@ -306,6 +302,10 @@ namespace Pomona.Common
         {
             var ria = resourceType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
 
+            var pluralName = ria.UrlRelativePath != null
+                ? NameUtils.ConvetUriSegmentToCamelCase(ria.UrlRelativePath)
+                : null;
+
             return new ResourceTypeDetails(resourceType,
                                            ria.UrlRelativePath,
                                            false,
@@ -313,7 +313,8 @@ namespace Pomona.Common
                                            null,
                                            null,
                                            false,
-                                           Enumerable.Empty<Type>());
+                                           Enumerable.Empty<Type>(),
+                                           pluralName);
         }
 
 

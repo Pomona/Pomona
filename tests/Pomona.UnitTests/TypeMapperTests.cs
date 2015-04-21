@@ -61,7 +61,7 @@ namespace Pomona.UnitTests
         [Test]
         public void ChangePluralNameWorksCorrectly()
         {
-            Assert.That(((StructuredType)this.typeMapper.FromType<RenamedThing>()).PluralName,
+            Assert.That(((ResourceType)this.typeMapper.FromType<RenamedThing>()).PluralName,
                         Is.EqualTo("ThingsWithNewName"));
         }
 

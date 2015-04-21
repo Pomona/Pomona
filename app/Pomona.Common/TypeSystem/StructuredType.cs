@@ -87,11 +87,6 @@ namespace Pomona.Common.TypeSystem
             get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
         }
 
-        public string PluralName
-        {
-            get { return StructuredTypeDetails.PluralName; }
-        }
-
         public bool PostAllowed
         {
             get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }

@@ -129,6 +129,11 @@ namespace Pomona.Common.TypeSystem
             get { return this.resourceTypeDetails.Value; }
         }
 
+        public string PluralName
+        {
+            get { return ResourceTypeDetails.PluralName; }
+        }
+
 
         public void AppendUri(object o, StringBuilder sb)
         {
