@@ -461,7 +461,7 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildNullableInt64EqualsConstant_ReturnsCorrectString()
         {
-            AssertBuild(x => x.NullableInt64 == 42, "nullableInt64 eq 42L");
+            AssertBuild(x => x.NullableInt64 == 42L, "nullableInt64 eq 42L");
         }
 
 

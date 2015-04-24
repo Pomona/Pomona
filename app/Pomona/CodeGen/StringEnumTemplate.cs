@@ -74,7 +74,13 @@ namespace Pomona.CodeGen
             get
             {
                 if (knownValuesMap == null)
-                    knownValuesMap = AllValues.ToDictionary(x => x.Value, x => x, StringComparer.InvariantCultureIgnoreCase);
+                {
+                    knownValuesMap = new Dictionary<string, StringEnumTemplate>(StringComparer.InvariantCultureIgnoreCase);
+                    foreach (var val in AllValues)
+                    {
+                        knownValuesMap.Add(val.Value, val);
+                    }
+                }
                 return knownValuesMap;
             }
         }

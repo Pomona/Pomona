@@ -48,7 +48,7 @@ namespace Pomona.UnitTests.Queries
         [Test]
         public void Parse_NullableInt64EqualsConstant_CreatesCorrectExpression()
         {
-            ParseAndAssert("nullableInt64 eq 42L", _this => _this.NullableInt64 == 42);
+            ParseAndAssert("nullableInt64 eq 42L", _this => _this.NullableInt64 == 42L);
         }
 
 

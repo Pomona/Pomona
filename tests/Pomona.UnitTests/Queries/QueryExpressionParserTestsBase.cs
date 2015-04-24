@@ -71,7 +71,7 @@ namespace Pomona.UnitTests.Queries
             Console.WriteLine("{0} => {1}", expr, actual);
             var evaluateClosureMemberVisitor = new EvaluateClosureMemberVisitor();
             expected = (Expression<Func<Dummy, TRet>>)evaluateClosureMemberVisitor.Visit(expected);
-            actual.AssertEquals(expected);
+            AssertExpressionEquals(actual, expected);
         }
 
         #region Nested type: Dummy

@@ -45,8 +45,8 @@ namespace Pomona.IndependentClientTests
         {
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
-            var musicalCritter = Client.Get<ICritter>(BaseUri + "critters/" + musicalCritterId);
-
+            var musicalCritter = ResourceFetcherExtensions.Get<ICritter>(Client, BaseUri + "critters/" + musicalCritterId);
+            
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
     }

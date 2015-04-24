@@ -410,7 +410,7 @@ namespace Pomona.Common
 
         public static bool IsNullable(this Type type)
         {
-            return type.UniqueToken() == typeof(Nullable<>).UniqueToken();
+            return Nullable.GetUnderlyingType(type) != null;
         }
 
 

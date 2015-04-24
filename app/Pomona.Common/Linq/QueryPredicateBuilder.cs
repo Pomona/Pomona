@@ -735,7 +735,7 @@ namespace Pomona.Common.Linq
             var leftConvert = left.NodeType == ExpressionType.Convert ? (UnaryExpression)left : null;
             var rightConvert = left.NodeType == ExpressionType.Convert ? (UnaryExpression)right : null;
             var rightConstant = rightConvert != null ? rightConvert.Operand as ConstantExpression : null;
-            var enumType = rightConstant != null && rightConstant.Type.IsEnum ? rightConstant.Type : null;
+            var enumType = (rightConstant != null && rightConstant.Type.IsEnum) ? rightConstant.Type : null;
 
             if (leftConvert != null && rightConvert != null && rightConstant != null && enumType != null)
             {
@@ -859,6 +859,35 @@ namespace Pomona.Common.Linq
                 // Avoid visiting NewExpression directly, we don't want constant folding in this particular case.
                 return Expression.MemberInit(VisitNewExpressionNoConstantFolding(node.NewExpression),
                                              Visit(node.Bindings, VisitMemberBinding));
+            }
+
+
+            protected override Expression VisitUnary(UnaryExpression node)
+            {
+                var visitedNode =  base.VisitUnary(node);
+                node = visitedNode as UnaryExpression;
+                if (node != null)
+                {
+                    var operandAsConstant = node.Operand as ConstantExpression;
+                    var nullableUnderlyingType = Nullable.GetUnderlyingType(node.Type);
+
+                    if (enumUnderlyingTypes.Contains(nullableUnderlyingType) && operandAsConstant != null)
+                    {
+                        var enumNonNullableType = Nullable.GetUnderlyingType(operandAsConstant.Type);
+                        if (enumNonNullableType != null && enumNonNullableType.IsEnum && operandAsConstant.Value != null)
+                        {
+                            return Expression.Convert(Expression.Constant(operandAsConstant.Value, enumNonNullableType), node.Type);
+                        }
+                    }
+
+                    if (node.NodeType == ExpressionType.Convert && operandAsConstant != null
+                        && operandAsConstant.Type == nullableUnderlyingType)
+                    {
+                        return Expression.Constant(operandAsConstant.Value, node.Type);
+                    }
+                    return node;
+                }
+                return visitedNode;
             }
 
 

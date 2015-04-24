@@ -38,7 +38,7 @@ namespace Pomona.NHibernate3.Tests.Mapping
     {
         public override bool ShouldMap(Type type)
         {
-            return type.Namespace == "Pomona.NHibernate3.Tests.Models";
+            return type.Namespace == "Pomona.NHibernate3.Tests.Models" && type.IsPublic;
         }
 
 
