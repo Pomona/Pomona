@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -115,15 +115,28 @@ namespace Pomona.CodeGen
 
         private CustomAttribute Clone(CustomAttribute sourceAttribute)
         {
-            if (sourceAttribute.HasConstructorArguments || sourceAttribute.HasFields || sourceAttribute.HasProperties)
-                throw new NotImplementedException();
-            return new CustomAttribute(Import(sourceAttribute.Constructor));
+            return new CustomAttribute(Import(sourceAttribute.Constructor), sourceAttribute.GetBlob());
         }
 
 
         private void CopyAttributes(ICustomAttributeProvider source, ICustomAttributeProvider destination)
         {
             destination.CustomAttributes.AddRange(source.CustomAttributes.Select(Clone));
+        }
+
+
+        private void CopyExceptionHandlers(ExceptionHandler sourceHandler, Dictionary<Instruction, Instruction> instMap, MethodBody destBody)
+        {
+            var destHandler = new ExceptionHandler(sourceHandler.HandlerType)
+            {
+                CatchType = sourceHandler.CatchType != null ? Import(sourceHandler.CatchType) : null,
+                FilterStart = MapInstructionSafe(instMap, sourceHandler.FilterStart),
+                HandlerStart = MapInstructionSafe(instMap, sourceHandler.HandlerStart),
+                HandlerEnd = MapInstructionSafe(instMap, sourceHandler.HandlerEnd),
+                TryStart = MapInstructionSafe(instMap, sourceHandler.TryStart),
+                TryEnd = MapInstructionSafe(instMap, sourceHandler.TryEnd)
+            };
+            destBody.ExceptionHandlers.Add(destHandler);
         }
 
 
@@ -140,6 +153,7 @@ namespace Pomona.CodeGen
             {
                 var destBody = destMethod.Body;
                 var sourceBody = sourceMethod.Body;
+
                 foreach (var sourceVar in sourceBody.Variables)
                 {
                     var destVar = new VariableDefinition(sourceVar.Name,
@@ -201,6 +215,9 @@ namespace Pomona.CodeGen
 
                 foreach (var pa in postActions)
                     pa();
+
+                foreach (var sourceHandler in sourceBody.ExceptionHandlers)
+                    CopyExceptionHandlers(sourceHandler, instMap, destBody);
             }
 
             CopyAttributes(sourceMethod, destMethod);
@@ -295,6 +312,12 @@ namespace Pomona.CodeGen
                                                 }
                                                 return this.destinationModule.Import(typeReference);
                                             });
+        }
+
+
+        private static Instruction MapInstructionSafe(Dictionary<Instruction, Instruction> instMap, Instruction sourceFilterStart)
+        {
+            return sourceFilterStart != null ? instMap[sourceFilterStart] : null;
         }
     }
 }
