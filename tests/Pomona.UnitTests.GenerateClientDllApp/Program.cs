@@ -59,6 +59,10 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             dllName = Path.GetFullPath(dllName);
             Console.WriteLine("Writing dll to {0}", dllName);
             var xmlDocName = Path.Combine(Path.GetDirectoryName(dllName), Path.GetFileNameWithoutExtension(dllName) + ".xml");
+
+            // Avoid modifying existing xml doc file while Visual studio is reading it.
+            if (File.Exists(xmlDocName))
+                File.Delete(xmlDocName);
             using (var file = new FileStream(dllName, FileMode.OpenOrCreate))
             {
                 if (!dllName.EndsWith(".dll"))
