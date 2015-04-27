@@ -286,7 +286,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Antlr3>
     <None Include="Pomona.nuspec" />
-    <None Include="Queries\PomonaQueryJs.g" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
@@ -296,8 +295,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGen\XmlDoc\" />
-    <Folder Include="Linq\" />
-    <Folder Include="Visitors\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(OS)' != 'Unix' ">
