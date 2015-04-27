@@ -1,0 +1,14 @@
+﻿{
+    "dependencies": {
+        "Newtonsoft.Json": "6.0.8",
+        "Iesi.Collections": "4.0.1.4000",
+        "NHibernate": "4.0.3.4000",
+        "Pomona": "",
+        "Pomona.Common": ""
+    },
+    "frameworks": {
+        "dnx451": { },
+        "net40": { }
+    },
+    "compile": [ "../Shared/*.cs" ]
+}

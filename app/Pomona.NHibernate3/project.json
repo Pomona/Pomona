@@ -1,0 +1,13 @@
+﻿{
+  "compile": [ "../Shared/*.cs" ],
+  "dependencies": {
+    "Newtonsoft.Json": "6.0.8",
+    "Iesi.Collections": "3.2.0.4000",
+    "NHibernate": "3.4.0.4000",
+    "Pomona": ""
+  },
+  "frameworks": {
+    "dnx451": { },
+    "net40": { }
+  }
+}

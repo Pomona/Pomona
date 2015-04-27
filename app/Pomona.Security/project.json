@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Pomona.Common": "",
+    "Pomona":  "",
+    "Newtonsoft.Json": "6.0.8"
+  },
+  "frameworks": {
+    "dnx451": { },
+    "net40": { }
+  },
+  "compile": [ "../Shared/*.cs" ]
+}

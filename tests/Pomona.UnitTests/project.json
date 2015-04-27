@@ -1,0 +1,24 @@
+﻿{
+  "dependencies": {
+    "CsQuery": "1.3.4",
+    "ICSharpCode.NRefactory": "5.5.1",
+    "Mono.Cecil": "0.9.6.1",
+    "Nancy": "1.2.0",
+    "Nancy.Testing": "1.2.0",
+    "Newtonsoft.Json": "6.0.8",
+    "NSubstitute": "1.6.1",
+    "NUnit": "2.6.3",
+    "Pomona": "",
+    "Pomona.Common": "",
+    "Pomona.Example": "",
+    "Pomona.NHibernate3": "",
+    "Pomona.Profiling.MiniProfiler": "",
+    "Pomona.Scheduler": "",
+    "Pomona.Security": "",
+    "Pomona.TestHelpers": ""
+  },
+  "frameworks": {
+    "dnx451": { },
+    "net40": { }
+  }
+}

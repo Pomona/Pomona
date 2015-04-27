@@ -1,0 +1,11 @@
+﻿{
+    "dependencies": {
+        "Pomona.Common": "",
+        "MiniProfiler": "3.1.1.140"
+    },
+    "frameworks": {
+        "dnx451": {},
+        "net40": { }
+    },
+    "compile": [ "../Shared/*.cs" ]
+}

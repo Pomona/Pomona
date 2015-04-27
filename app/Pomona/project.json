@@ -1,0 +1,32 @@
+{
+    "dependencies": {
+        "Newtonsoft.Json": "6.0.8",
+        "Nuget.Core": "2.2.0",
+        "Mono.Cecil": "0.9.6.1",
+        "Nancy": "1.2.0",
+        "Pomona.Common": ""
+    },
+    "frameworks": {
+        "dnx451": {
+            "frameworkAssemblies": {
+                "System.Xml": "",
+                "System.Xml.Linq": "",
+                "System.ComponentModel.DataAnnotations": "4.0.0.0"
+            }
+        },
+        "net40": {
+            "frameworkAssemblies": {
+                "System.Xml": "",
+                "System.Xml.Linq": "",
+                "System.ComponentModel.DataAnnotations": "4.0.0.0"
+            }
+        }
+    },
+    "compile": [
+        "../Shared/*.cs",
+        "../Pomona.Antlr3.Runtime/**.cs"
+    ],
+    "exclude": [ 
+        "../Pomona.Antlr3.Runtime/Properties/*"
+    ]
+}

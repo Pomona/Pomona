@@ -1,0 +1,10 @@
+﻿{
+    "dependencies": {
+        "Pomona.Common": ""
+    },
+    "frameworks": {
+        "dnx451": { },
+        "net40": { }
+    },
+    "compile": [ "../Shared/*.cs" ]
+}

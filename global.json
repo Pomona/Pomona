@@ -1,0 +1,16 @@
+{
+    "configurations": {
+        "Debug": {
+            "compilationOptions": {
+                "define": [ "DEBUG", "TRACE" ]
+            }
+        },
+        "Release": {
+            "compilationOptions": {
+                "define": [ "RELEASE", "TRACE" ],
+                "optimize": true
+            }
+        }
+    },
+    "sources": [ "app", "tests" ]
+}

@@ -36,12 +36,18 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
+#if NET40
+using ReadOnlyRouteDictionary = Pomona.Common.ReadOnlyDictionary<System.String, System.Collections.Generic.IEnumerable<Pomona.Routing.Route>>;
+#else
+using ReadOnlyRouteDictionary = System.Collections.ObjectModel.ReadOnlyDictionary<System.String, System.Collections.Generic.IEnumerable<Pomona.Routing.Route>>;
+#endif
+
 namespace Pomona.Routing
 {
     public abstract class Route : ITreeNode<Route>
     {
         private readonly Lazy<ReadOnlyCollection<Route>> childrenSortedByPriority;
-        private readonly Lazy<ReadOnlyDictionary<string, IEnumerable<Route>>> literalRouteMap;
+        private readonly Lazy<ReadOnlyRouteDictionary> literalRouteMap;
         private readonly Route parent;
         private readonly int priority;
 
@@ -50,9 +56,9 @@ namespace Pomona.Routing
         {
             this.priority = priority;
             this.parent = parent;
-            this.literalRouteMap = new Lazy<ReadOnlyDictionary<string, IEnumerable<Route>>>(LoadLiteralRouteMap,
-                                                                                            LazyThreadSafetyMode
-                                                                                                .PublicationOnly);
+            this.literalRouteMap = new Lazy<ReadOnlyRouteDictionary>(LoadLiteralRouteMap,
+                                                                                                   LazyThreadSafetyMode
+                                                                                                       .PublicationOnly);
             this.childrenSortedByPriority =
                 new Lazy<ReadOnlyCollection<Route>>(() => LoadChildren().OrderBy(x => x.priority).ToList().AsReadOnly());
         }
@@ -93,7 +99,7 @@ namespace Pomona.Routing
 
         public abstract TypeSpec ResultType { get; }
 
-        private ReadOnlyDictionary<string, IEnumerable<Route>> LiteralRouteMap
+        private ReadOnlyRouteDictionary LiteralRouteMap
         {
             get { return this.literalRouteMap.Value; }
         }
@@ -122,7 +128,7 @@ namespace Pomona.Routing
         protected abstract string PathSegmentToString();
 
 
-        private ReadOnlyDictionary<string, IEnumerable<Route>> LoadLiteralRouteMap()
+        private ReadOnlyRouteDictionary LoadLiteralRouteMap()
         {
             var comparer = StringComparer.InvariantCultureIgnoreCase;
             var lowestPriority = Children.Min(x => x.Priority);

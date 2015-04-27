@@ -60,6 +60,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Pomona.NHibernate3.nuspec" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">

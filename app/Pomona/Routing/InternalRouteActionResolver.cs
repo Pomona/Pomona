@@ -1,9 +1,9 @@
-#region License
+#region License777
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright ï¿½ 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,13 +36,19 @@ using Nancy;
 using Pomona.Common;
 using Pomona.Common.Internals;
 
+#if NET40
+using ReadOnlyRouteActionDictionary = Pomona.Common.ReadOnlyDictionary<Pomona.Common.HttpMethod, System.Collections.Concurrent.ConcurrentDictionary<Pomona.Routing.Route, System.Collections.Generic.IEnumerable<Pomona.Routing.RouteAction>>>;
+#else
+using ReadOnlyRouteActionDictionary = System.Collections.ObjectModel.ReadOnlyDictionary<Pomona.Common.HttpMethod, System.Collections.Concurrent.ConcurrentDictionary<Pomona.Routing.Route, System.Collections.Generic.IEnumerable<Pomona.Routing.RouteAction>>>;
+#endif
+
 namespace Pomona.Routing
 {
     internal class InternalRouteActionResolver : IRouteActionResolver
     {
         private readonly IEnumerable<IRouteActionResolver> nestedActionResolvers;
 
-        private readonly ReadOnlyDictionary<HttpMethod, ConcurrentDictionary<Route, IEnumerable<RouteAction>>>
+        private readonly ReadOnlyRouteActionDictionary
             routeActionCache;
 
 
@@ -52,7 +58,7 @@ namespace Pomona.Routing
                 throw new ArgumentNullException("nestedActionResolvers");
             this.nestedActionResolvers = nestedActionResolvers.ToList();
             this.routeActionCache =
-                new ReadOnlyDictionary<HttpMethod, ConcurrentDictionary<Route, IEnumerable<RouteAction>>>(
+                new ReadOnlyRouteActionDictionary(
                     Enum.GetValues(typeof(HttpMethod))
                         .Cast<HttpMethod>()
                         .ToDictionary(x => x, x => new ConcurrentDictionary<Route, IEnumerable<RouteAction>>()));

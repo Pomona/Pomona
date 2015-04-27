@@ -26,6 +26,8 @@
 
 #endregion
 
+#if NET40
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -155,3 +157,4 @@ namespace Pomona.Common
         #endregion
     }
 }
+#endif
