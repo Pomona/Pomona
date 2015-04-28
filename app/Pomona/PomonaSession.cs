@@ -238,7 +238,7 @@ namespace Pomona
                     var entity = queryableActionResult.Execute(queryableActionResult.Projection);
                     if (entity == null)
                         throw new ResourceNotFoundException("Resource not found.");
-                    return new PomonaResponse(entity);
+                    return new PomonaResponse(entity, expandedPaths: context.ExpandedPaths);
                 }
                 resultAsQueryable = queryableActionResult.WrappedQueryable;
             }

@@ -85,6 +85,16 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void GetResourceById_WithExpandedProperty_ReturnedResourceHasExpandedProperty()
+        {
+            // TOOD: Get single item with expand is not yet implemented in client
+            var critter = Client.Get<ICritter>(((IHasResourceUri)Client.Critters.GetLazy(CritterEntities.First().Id)).Uri,
+                                               RequestOptions.Create<ICritter>(x => x.Expand(y => y.Weapons)));
+            Assert.That(critter.Weapons.IsLoaded());
+        }
+
+
+        [Test]
         public void GetResourceWithReferenceToSubclassedResource_CreatesSubclassedLazyProxy()
         {
             var critterEntity = Repository.CreateRandomCritter(rngSeed : 65236);
