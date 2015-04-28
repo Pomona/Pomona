@@ -209,6 +209,15 @@ namespace Pomona.TestHelpers
                     return;
                 }
 
+                var actualListInit = actual as ListInitExpression;
+                if (actualListInit != null)
+                {
+                    var expectedListInit = (ListInitExpression)expected;
+                    AssertEquals(actualListInit.NewExpression, expectedListInit.NewExpression);
+                    AssertEquals(actualListInit.Initializers, expectedListInit.Initializers);
+                    return;
+                }
+
                 throw new NotImplementedException(
                     "Don't know how to compare expression node " + actual + " of nodetype " + actual.NodeType);
             }

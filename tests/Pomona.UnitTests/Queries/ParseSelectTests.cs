@@ -23,9 +23,11 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using NUnit.Framework;
 using Pomona.CodeGen;
+using Pomona.Queries;
 using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.Queries
@@ -41,23 +43,44 @@ namespace Pomona.UnitTests.Queries
         }
 
 
-        protected void ParseAndAssertSelect<TRet>(string selectExpr, Expression<Func<Dummy, TRet>> expected)
+        protected void ParseAndAssertSelect<TRet>(string selectExpr, Expression<Func<Dummy, TRet>> expected, bool useAnonymousType = true)
         {
-            var actual = parser.ParseSelectList(typeof (Dummy), selectExpr);
+            var actual = this.parser.ParseSelectList(typeof (Dummy), selectExpr, useAnonymousType);
             actual.AssertEquals(expected);
         }
 
         [Test]
-        public void ParseSelectList_WithExplicitNames_ReturnsCorrectExpression()
+        public void ParseSelectList_WithExplicitNames_UsingGeneratedAnonymousType_ReturnsCorrectExpression()
         {
             ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
-                                 _this => new {Venn = _this.Friend, LongRandomNumber = _this.Guid});
+                                 _this => new { Venn = _this.Friend, LongRandomNumber = _this.Guid });
         }
 
+
         [Test]
-        public void ParseSelectList_WithImplicitName_ReturnsCorrectExpression()
+        public void ParseSelectList_WithImplicitName_UsingGeneratedAnonymousType_ReturnsCorrectExpression()
         {
-            ParseAndAssertSelect("Friend.Parent.Number,Parent", _this => new {_this.Friend.Parent.Number, _this.Parent});
+            ParseAndAssertSelect("Friend.Parent.Number,Parent", _this => new { _this.Friend.Parent.Number, _this.Parent });
+        }
+
+
+        [Test]
+        public void ParseSelectList_WithExplicitNames_UsingStringObjectDictionary_ReturnsCorrectExpression()
+        {
+            ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
+                     _this => new Dictionary<string, object> { { "Venn" , _this.Friend}, { "LongRandomNumber", _this.Guid}}, false);
+            //ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
+            //                     _this => new {Venn = _this.Friend, LongRandomNumber = _this.Guid});
+        }
+
+
+        [Test]
+        public void ParseSelectList_WithImplicitName_UsingStringObjectDictionary_ReturnsCorrectExpression()
+        {
+            parser = new QueryExpressionParser(new QueryTypeResolver(typeMapper));
+            ParseAndAssertSelect("Friend.Parent.Number,Parent",
+                                 _this =>
+                                     new Dictionary<string, object> { { "Number", _this.Friend.Parent.Number }, { "Parent", _this.Parent } }, false);
         }
     }
 }

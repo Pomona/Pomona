@@ -55,12 +55,13 @@ namespace Pomona.UnitTests.Queries
         #endregion
 
         protected QueryExpressionParser parser;
+        protected TypeMapper typeMapper;
 
 
         [SetUp]
         public void SetUp()
         {
-            var typeMapper = new TypeMapper(new PomonaTestConfiguration());
+            this.typeMapper = new TypeMapper(new PomonaTestConfiguration());
             this.parser = new QueryExpressionParser(new QueryTypeResolver(typeMapper));
         }
 

@@ -52,7 +52,7 @@ namespace Pomona.Queries
             return (Expression<Func<T, bool>>) Parse(typeof (T), odataExpression);
         }
 
-        public LambdaExpression ParseSelectList(Type thisType, string selectListExpression)
+        public LambdaExpression ParseSelectList(Type thisType, string selectListExpression, bool useAnonymousType = true)
         {
             // By enclosing the selectListExpression in a method call, we can use the same parser
             // as for filter queries, then we convert each part of the select statement to a
@@ -68,9 +68,23 @@ namespace Pomona.Queries
                 return Expression.Lambda(selectParts[0].Value, thisParam);
             }
 
-            Type anonTypeInstance;
-            var expr = AnonymousTypeBuilder.CreateNewExpression(selectParts, out anonTypeInstance);
-            return Expression.Lambda(expr, thisParam);
+            if (useAnonymousType)
+            {
+                Type anonTypeInstance;
+                var expr = AnonymousTypeBuilder.CreateNewExpression(selectParts, out anonTypeInstance);
+                return Expression.Lambda(expr, thisParam);
+            }
+
+            var addMethod = ReflectionHelper.GetMethodDefinition<Dictionary<string, object>>(x => x.Add("", null));
+            var dictExpr =
+                Expression.ListInit(Expression.New(typeof(Dictionary<string, object>)),
+                                    selectParts.Select(
+                                        x => Expression.ElementInit(
+                                            addMethod,
+                                            Expression.Constant(x.Key),
+                                            x.Value.Type.IsValueType ? Expression.Convert(x.Value, typeof(object)) : x.Value)));
+
+            return Expression.Lambda(dictExpr, thisParam);
         }
 
         private KeyValuePair<string, Expression> ParseSelectPart(Type thisType, NodeBase node,

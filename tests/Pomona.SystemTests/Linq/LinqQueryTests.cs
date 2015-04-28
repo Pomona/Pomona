@@ -515,24 +515,26 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void QueryCritter_SelectToStringObjectDictionary_ReturnsCorrectValues()
         {
+            Func<Critter, Dictionary<string, object>> selector = x =>
+                new Dictionary<string, object>
+                {
+                    { "critterId", x.Id },
+                    { "critterName", x.Name }
+                };
             var expected = CritterEntities
                 .Select(
-                    x =>
-                        new Dictionary<string, object>
-                        {
-                            { "critterId", x.Id },
-                            { "critterName", x.Name }
-                        })
+                    selector)
                 .First();
+            Expression<Func<ICritter, Dictionary<string, object>>> expression = x =>
+                new Dictionary<string, object>
+                {
+                    { "critterId", x.Id },
+                    { "critterName", x.Name }
+                };
             var actual =
                 Client.Query<ICritter>()
                       .Select(
-                          x =>
-                              new Dictionary<string, object>
-                              {
-                                  { "critterId", x.Id },
-                                  { "critterName", x.Name }
-                              })
+                          expression)
                       .First();
 
             Assert.That(actual.SequenceEqual(expected));
