@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,10 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+
 using NUnit.Framework;
+
 using Pomona.CodeGen;
 using Pomona.Queries;
 using Pomona.TestHelpers;
@@ -35,25 +41,22 @@ namespace Pomona.UnitTests.Queries
     [TestFixture]
     public class ParseSelectTests : QueryExpressionParserTestsBase
     {
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
-        {
-            // This is needed to get parser to use same anonymous types as those in expected expressions.
-            AnonymousTypeBuilder.ScanAssemblyForExistingAnonymousTypes(GetType().Assembly);
-        }
-
-
-        protected void ParseAndAssertSelect<TRet>(string selectExpr, Expression<Func<Dummy, TRet>> expected, bool useAnonymousType = true)
-        {
-            var actual = this.parser.ParseSelectList(typeof (Dummy), selectExpr, useAnonymousType);
-            actual.AssertEquals(expected);
-        }
-
         [Test]
         public void ParseSelectList_WithExplicitNames_UsingGeneratedAnonymousType_ReturnsCorrectExpression()
         {
             ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
                                  _this => new { Venn = _this.Friend, LongRandomNumber = _this.Guid });
+        }
+
+
+        [Test]
+        public void ParseSelectList_WithExplicitNames_UsingStringObjectDictionary_ReturnsCorrectExpression()
+        {
+            ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
+                                 _this => new Dictionary<string, object> { { "Venn", _this.Friend }, { "LongRandomNumber", _this.Guid } },
+                                 false);
+            //ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
+            //                     _this => new {Venn = _this.Friend, LongRandomNumber = _this.Guid});
         }
 
 
@@ -65,22 +68,28 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
-        public void ParseSelectList_WithExplicitNames_UsingStringObjectDictionary_ReturnsCorrectExpression()
+        public void ParseSelectList_WithImplicitName_UsingStringObjectDictionary_ReturnsCorrectExpression()
         {
-            ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
-                     _this => new Dictionary<string, object> { { "Venn" , _this.Friend}, { "LongRandomNumber", _this.Guid}}, false);
-            //ParseAndAssertSelect("Friend as Venn,Guid as LongRandomNumber",
-            //                     _this => new {Venn = _this.Friend, LongRandomNumber = _this.Guid});
+            this.parser = new QueryExpressionParser(new QueryTypeResolver(this.typeMapper));
+            ParseAndAssertSelect("Friend.Parent.Number,Parent",
+                                 _this =>
+                                     new Dictionary<string, object> { { "Number", _this.Friend.Parent.Number }, { "Parent", _this.Parent } },
+                                 false);
         }
 
 
-        [Test]
-        public void ParseSelectList_WithImplicitName_UsingStringObjectDictionary_ReturnsCorrectExpression()
+        [TestFixtureSetUp]
+        public void TestFixtureSetUp()
         {
-            parser = new QueryExpressionParser(new QueryTypeResolver(typeMapper));
-            ParseAndAssertSelect("Friend.Parent.Number,Parent",
-                                 _this =>
-                                     new Dictionary<string, object> { { "Number", _this.Friend.Parent.Number }, { "Parent", _this.Parent } }, false);
+            // This is needed to get parser to use same anonymous types as those in expected expressions.
+            AnonymousTypeBuilder.ScanAssemblyForExistingAnonymousTypes(GetType().Assembly);
+        }
+
+
+        protected void ParseAndAssertSelect<TRet>(string selectExpr, Expression<Func<Dummy, TRet>> expected, bool useAnonymousType = true)
+        {
+            var actual = this.parser.ParseSelectList(typeof(Dummy), selectExpr, useAnonymousType);
+            actual.AssertEquals(expected);
         }
     }
 }
