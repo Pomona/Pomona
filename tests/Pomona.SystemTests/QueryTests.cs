@@ -506,10 +506,6 @@ namespace Pomona.SystemTests
 
         public class ClientSideClass : IEquatable<ClientSideClass>
         {
-            private readonly string bar;
-            private readonly int foo;
-
-
             public ClientSideClass()
             {
             }
@@ -517,22 +513,14 @@ namespace Pomona.SystemTests
 
             public ClientSideClass(int foo, string bar)
             {
-                this.foo = foo;
-                this.bar = bar;
+                Foo = foo;
+                Bar = bar;
             }
 
 
             public string AdditionalMember { get; set; }
-
-            public string Bar
-            {
-                get { return this.bar; }
-            }
-
-            public int Foo
-            {
-                get { return this.foo; }
-            }
+            public string Bar { get; }
+            public int Foo { get; }
 
 
             public override bool Equals(object obj)
@@ -551,8 +539,8 @@ namespace Pomona.SystemTests
             {
                 unchecked
                 {
-                    var hashCode = (this.bar != null ? this.bar.GetHashCode() : 0);
-                    hashCode = (hashCode * 397) ^ this.foo;
+                    var hashCode = (Bar != null ? Bar.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ Foo;
                     hashCode = (hashCode * 397) ^ (AdditionalMember != null ? AdditionalMember.GetHashCode() : 0);
                     return hashCode;
                 }
@@ -577,7 +565,7 @@ namespace Pomona.SystemTests
                     return false;
                 if (ReferenceEquals(this, other))
                     return true;
-                return string.Equals(this.bar, other.bar) && this.foo == other.foo
+                return string.Equals(Bar, other.Bar) && Foo == other.Foo
                        && string.Equals(AdditionalMember, other.AdditionalMember);
             }
         }
