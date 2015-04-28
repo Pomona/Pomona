@@ -516,6 +516,10 @@ namespace Pomona.SystemTests
 
         public class ClientSideClass : IEquatable<ClientSideClass>
         {
+            private readonly string bar;
+            private readonly int foo;
+
+
             public ClientSideClass()
             {
             }
@@ -523,14 +527,22 @@ namespace Pomona.SystemTests
 
             public ClientSideClass(int foo, string bar)
             {
-                Foo = foo;
-                Bar = bar;
+                this.foo = foo;
+                this.bar = bar;
             }
 
 
             public string AdditionalMember { get; set; }
-            public string Bar { get; }
-            public int Foo { get; }
+
+            public string Bar
+            {
+                get { return this.bar; }
+            }
+
+            public int Foo
+            {
+                get { return this.foo; }
+            }
 
 
             public override bool Equals(object obj)
