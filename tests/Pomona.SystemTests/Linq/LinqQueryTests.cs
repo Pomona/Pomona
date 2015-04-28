@@ -700,13 +700,6 @@ namespace Pomona.SystemTests.Linq
         }
 
 
-        private static void AssertSequenceEqualsAndCountIsGreaterThanZero<T>(ICollection<T> actual, IEnumerable<T> expected)
-        {
-            Assert.That(actual.Count(), Is.GreaterThan(0));
-            Assert.That(actual.SequenceEqual(expected));
-        }
-
-
         [Test]
         public void QueryCritter_WhereThenSelectSingleProperty_ReturnsCorrectValues()
         {
@@ -904,6 +897,13 @@ namespace Pomona.SystemTests.Linq
         public static bool UnsupportedMethod(int i)
         {
             return false;
+        }
+
+
+        private static void AssertSequenceEqualsAndCountIsGreaterThanZero<T>(ICollection<T> actual, IEnumerable<T> expected)
+        {
+            Assert.That(actual.Count(), Is.GreaterThan(0));
+            Assert.That(actual.SequenceEqual(expected));
         }
 
 
