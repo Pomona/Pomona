@@ -230,7 +230,7 @@ namespace Pomona.SystemTests.Linq
             // Search by its name
             var expected =
                 CritterEntities
-                    .Where(x => x.Id % 2 == 0)
+                    .Where(x => x.Id % 3 > 0)
                     .GroupBy(x => new { x.Farm.Id, x.Weapons.Count })
                     .Select(
                         x => new
@@ -244,7 +244,7 @@ namespace Pomona.SystemTests.Linq
 
             var actual =
                 Client.Query<ICritter>()
-                      .Where(x => x.Id % 2 == 0)
+                      .Where(x => x.Id % 3 > 0)
                       .GroupBy(x => new { x.Farm.Id, x.Weapons.Count })
                       .Select(
                           x => new
@@ -256,7 +256,7 @@ namespace Pomona.SystemTests.Linq
                       .Take(1)
                       .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -274,18 +274,19 @@ namespace Pomona.SystemTests.Linq
                       .GroupBy(x => x.Farm)
                       .Select(x => new { FarmId = x.Key.Id, CritterCount = x.Count() })
                       .ToList();
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
         [Test]
         public void QueryCritter_GroupByThenSelectAnonymousClass_ReturnsCorrectValues()
         {
+            Repository.CreateRandomData();
             // Just take some random critter
             // Search by its name
             var expected =
                 CritterEntities
-                    .Where(x => x.Id % 2 == 0)
+                    .Where(x => x.Id % 3 > 0)
                     .GroupBy(x => x.Farm.Id)
                     .Select(
                         x => new
@@ -299,7 +300,7 @@ namespace Pomona.SystemTests.Linq
 
             var actual =
                 Client.Query<ICritter>()
-                      .Where(x => x.Id % 2 == 0)
+                      .Where(x => x.Id % 3 > 0)
                       .GroupBy(x => x.Farm.Id)
                       .Select(
                           x => new
@@ -311,7 +312,7 @@ namespace Pomona.SystemTests.Linq
                       .Take(1)
                       .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -322,7 +323,6 @@ namespace Pomona.SystemTests.Linq
             // Search by its name
             var expected =
                 CritterEntities
-                    .Where(x => x.Id % 2 == 0)
                     .GroupBy(x => x.Name.Substring(0, 1))
                     .Select(
                         x => new
@@ -337,7 +337,6 @@ namespace Pomona.SystemTests.Linq
 
             var actual =
                 Client.Query<ICritter>()
-                      .Where(x => x.Id % 2 == 0)
                       .GroupBy(x => x.Name.Substring(0, 1))
                       .Select(
                           x => new
@@ -350,7 +349,7 @@ namespace Pomona.SystemTests.Linq
                       .Take(10)
                       .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -400,7 +399,7 @@ namespace Pomona.SystemTests.Linq
                       .Take(10)
                       .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -508,7 +507,7 @@ namespace Pomona.SystemTests.Linq
                                .Take(5)
                                .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -537,7 +536,7 @@ namespace Pomona.SystemTests.Linq
                           expression)
                       .First();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -552,7 +551,7 @@ namespace Pomona.SystemTests.Linq
                       .Select(x => new Tuple<int, string>(x.Id, x.Name))
                       .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -657,7 +656,7 @@ namespace Pomona.SystemTests.Linq
                       .Select(x => x.Id)
                       .ToList();
 
-            Assert.That(actual.SequenceEqual(expected));
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
         }
 
 
@@ -684,19 +683,26 @@ namespace Pomona.SystemTests.Linq
         public void QueryCritter_WhereThenSelectAnonymousClass_ReturnsCorrectValues()
         {
             var expected = CritterEntities
-                .Where(x => x.Id % 2 == 0)
+                .Where(x => x.Id % 3 > 0)
                 .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
                 .OrderBy(x => x.Name)
                 .Take(10)
                 .ToList();
             var actual =
                 Client.Query<ICritter>()
-                      .Where(x => x.Id % 2 == 0)
+                      .Where(x => x.Id % 3 > 0)
                       .Select(x => new { x.Name, Crazy = x.CrazyValue.Sickness })
                       .OrderBy(x => x.Name)
                       .Take(10)
                       .ToList();
 
+            AssertSequenceEqualsAndCountIsGreaterThanZero(actual, expected);
+        }
+
+
+        private static void AssertSequenceEqualsAndCountIsGreaterThanZero<T>(ICollection<T> actual, IEnumerable<T> expected)
+        {
+            Assert.That(actual.Count(), Is.GreaterThan(0));
             Assert.That(actual.SequenceEqual(expected));
         }
 
