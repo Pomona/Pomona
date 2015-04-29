@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections;
@@ -44,17 +48,6 @@ namespace Pomona.Common.Serialization.Json
 
     public class PomonaJsonSerializer : TextSerializerBase<PomonaJsonSerializer.Writer>
     {
-        private readonly ISerializationContextProvider contextProvider;
-
-
-        public PomonaJsonSerializer(ISerializationContextProvider contextProvider)
-        {
-            if (contextProvider == null)
-                throw new ArgumentNullException("contextProvider");
-            this.contextProvider = contextProvider;
-        }
-
-
         // TODO enable type cache for faster serialization, disabled for now need to think a bit more about this. [KNS]
         public static bool TypeCacheEnabled = false;
 
@@ -65,61 +58,56 @@ namespace Pomona.Common.Serialization.Json
             ReflectionHelper.GetMethodDefinition<PomonaJsonSerializer>(
                 x => x.SerializeDictionaryGeneric<object>(null, null, null));
 
+        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
+        private readonly ISerializationContextProvider contextProvider;
+        private readonly ThreadLocal<int> loopDetector = new ThreadLocal<int>();
+
+
+        public PomonaJsonSerializer(ISerializationContextProvider contextProvider)
+        {
+            if (contextProvider == null)
+                throw new ArgumentNullException("contextProvider");
+            this.contextProvider = contextProvider;
+        }
+
+
+        public override void Serialize(TextWriter textWriter, object o, SerializeOptions options)
+        {
+            if (textWriter == null)
+                throw new ArgumentNullException("textWriter");
+            options = options ?? new SerializeOptions();
+            var serializationContext = this.contextProvider.GetSerializationContext(options);
+            Serialize(serializationContext, o, textWriter,
+                      options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
+        }
+
+
         protected override Writer CreateWriter(TextWriter textWriter)
         {
             return new Writer(textWriter);
         }
 
 
-        private ThreadLocal<int> loopDetector = new ThreadLocal<int>();
-
         protected override void SerializeNode(ISerializerNode node, Writer writer)
         {
             try
             {
-                if (loopDetector.Value++ > 300)
+                if (this.loopDetector.Value++ > 300)
                     throw new InvalidOperationException("Deep recursion detected, trying to avoid stack overflow.");
                 SerializeNodeInner(node, writer);
             }
             finally
             {
-                loopDetector.Value--;
-            }
-        }
-
-
-        private void SerializeNodeInner(ISerializerNode node, Writer writer)
-        {
-            if (node.Value == null)
-            {
-                writer.JsonWriter.WriteNull();
-                return;
-            }
-
-            var mappedType = node.ExpectedBaseType ?? node.ValueType;
-            if (mappedType == typeof(object))
-                mappedType = node.ValueType;
-
-            switch (mappedType.SerializationMode)
-            {
-                case TypeSerializationMode.Dictionary:
-                    SerializeDictionary(node, writer);
-                    break;
-                case TypeSerializationMode.Structured:
-                    SerializeComplex(node, writer);
-                    break;
-                case TypeSerializationMode.Array:
-                    SerializeCollection(node, writer);
-                    break;
-                case TypeSerializationMode.Value:
-                    SerializeValue(node, writer);
-                    break;
+                this.loopDetector.Value--;
             }
         }
 
 
         protected override void SerializeQueryResult(
-            QueryResult queryResult, ISerializationContext fetchContext, Writer writer, TypeSpec elementType)
+            QueryResult queryResult,
+            ISerializationContext fetchContext,
+            Writer writer,
+            TypeSpec elementType)
         {
             var jsonWriter = writer.JsonWriter;
             jsonWriter.WriteStartObject();
@@ -169,57 +157,11 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private static bool ValueBoxingRequired(Type type)
+        private string EscapePropertyName(string propName)
         {
-            // string and bool does not require boxing of value;
-            return !(type == typeof(string) || type == typeof(bool));
-        }
-
-        private static void SerializeValue(ISerializerNode node, Writer writer)
-        {
-            var value = node.Value;
-
-            var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
-                                       node.ExpectedBaseType.Type == typeof (object) &&
-                                       ValueBoxingRequired(node.Value.GetType());
-
-            if (boxValueWithTypeSpec)
-            {
-                writer.JsonWriter.WriteStartObject();
-                writer.JsonWriter.WritePropertyName("_type");
-                writer.JsonWriter.WriteValue(node.ValueType.Name);
-                writer.JsonWriter.WritePropertyName("value");
-            }
-
-            var jsonConverter = node.ValueType.GetCustomJsonConverter();
-            if (jsonConverter == null && node.ValueType is EnumTypeSpec)
-                jsonConverter = new StringEnumConverter();
-
-
-            if (jsonConverter != null)
-                jsonConverter.WriteJson(writer.JsonWriter, value, null);
-            else
-                writer.JsonWriter.WriteValue(value);
-
-            if (boxValueWithTypeSpec)
-                writer.JsonWriter.WriteEndObject();
-        }
-
-
-        private static void SerializeReference(ISerializerNode node, Writer writer)
-        {
-            var jsonWriter = writer.JsonWriter;
-
-            jsonWriter.WriteStartObject();
-            jsonWriter.WritePropertyName("_ref");
-            jsonWriter.WriteValue(node.Uri);
-            if (node.ExpectedBaseType != node.ValueType)
-            {
-                jsonWriter.WritePropertyName("_type");
-                jsonWriter.WriteValue(node.ValueType.Name);
-            }
-
-            jsonWriter.WriteEndObject();
+            if (propName.Length > 0 && reservedFirstCharacters.Contains(propName[0]))
+                return "^" + propName;
+            return propName;
         }
 
 
@@ -280,13 +222,20 @@ namespace Pomona.Common.Serialization.Json
         {
             var dictType = node.ExpectedBaseType as DictionaryTypeSpec;
             if (dictType == null)
-                throw new PomonaSerializationException("Unable to serialize dictionary of typespec " + (node.ExpectedBaseType != null ? node.ExpectedBaseType.GetType().ToString() : " (unknown)"));
+            {
+                throw new PomonaSerializationException("Unable to serialize dictionary of typespec "
+                                                       + (node.ExpectedBaseType != null
+                                                           ? node.ExpectedBaseType.GetType().ToString()
+                                                           : " (unknown)"));
+            }
 
             var keyMappedType = dictType.KeyType.Type;
 
             if (keyMappedType != typeof(string))
+            {
                 throw new NotImplementedException(
                     "Does not support serialization of dictionaries where key is not string.");
+            }
 
             var valueMappedType = dictType.ValueType.Type;
             serializeDictionaryGenericMethod
@@ -296,7 +245,9 @@ namespace Pomona.Common.Serialization.Json
 
 
         private void SerializeDictionaryGeneric<TValue>(
-            ISerializerNode node, Writer writer, DictionaryTypeSpec dictType)
+            ISerializerNode node,
+            Writer writer,
+            DictionaryTypeSpec dictType)
         {
             var jsonWriter = writer.JsonWriter;
             var dict = (IDictionary<string, TValue>)node.Value;
@@ -325,15 +276,6 @@ namespace Pomona.Common.Serialization.Json
             }
 
             jsonWriter.WriteEndObject();
-        }
-
-        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
-
-        private string EscapePropertyName(string propName)
-        {
-            if (propName.Length > 0 && reservedFirstCharacters.Contains(propName[0]))
-                return "^" + propName;
-            return propName;
         }
 
 
@@ -384,30 +326,99 @@ namespace Pomona.Common.Serialization.Json
             propertiesToSerialize = propertiesToSerialize.Where(x => x.IsSerialized);
 
             if (pomonaSerializable != null)
-            {
                 propertiesToSerialize = propertiesToSerialize.Where(x => pomonaSerializable.PropertyIsSerialized(x.Name));
-            }
 
             foreach (var prop in propertiesToSerialize)
             {
                 var propNode = new PropertyValueSerializerNode(node, prop);
                 if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Structured &&
                     !(propNode.Value is IDelta))
-                {
-                    jsonWriter.WritePropertyName("!" + prop.JsonName);                    
-                }
+                    jsonWriter.WritePropertyName("!" + prop.JsonName);
                 else if (propNode.ValueType.SerializationMode == TypeSerializationMode.Array
                          && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault())
-                {
                     jsonWriter.WritePropertyName("!" + prop.JsonName);
-                }
                 else
-                {
                     jsonWriter.WritePropertyName(prop.JsonName);
-                }
                 SerializeThroughContext(propNode, writer);
             }
             jsonWriter.WriteEndObject();
+        }
+
+
+        private void SerializeNodeInner(ISerializerNode node, Writer writer)
+        {
+            if (node.Value == null)
+            {
+                writer.JsonWriter.WriteNull();
+                return;
+            }
+
+            var mappedType = node.ExpectedBaseType ?? node.ValueType;
+            if (mappedType == typeof(object))
+                mappedType = node.ValueType;
+
+            switch (mappedType.SerializationMode)
+            {
+                case TypeSerializationMode.Dictionary:
+                    SerializeDictionary(node, writer);
+                    break;
+                case TypeSerializationMode.Structured:
+                    SerializeComplex(node, writer);
+                    break;
+                case TypeSerializationMode.Array:
+                    SerializeCollection(node, writer);
+                    break;
+                case TypeSerializationMode.Value:
+                    SerializeValue(node, writer);
+                    break;
+            }
+        }
+
+
+        private static void SerializeReference(ISerializerNode node, Writer writer)
+        {
+            var jsonWriter = writer.JsonWriter;
+
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("_ref");
+            jsonWriter.WriteValue(node.Uri);
+            if (node.ExpectedBaseType != node.ValueType)
+            {
+                jsonWriter.WritePropertyName("_type");
+                jsonWriter.WriteValue(node.ValueType.Name);
+            }
+
+            jsonWriter.WriteEndObject();
+        }
+
+
+        private static void SerializeValue(ISerializerNode node, Writer writer)
+        {
+            var value = node.Value;
+
+            var boxValueWithTypeSpec = node.ExpectedBaseType != null &&
+                                       node.ExpectedBaseType.Type == typeof(object) &&
+                                       ValueBoxingRequired(node.Value.GetType());
+
+            if (boxValueWithTypeSpec)
+            {
+                writer.JsonWriter.WriteStartObject();
+                writer.JsonWriter.WritePropertyName("_type");
+                writer.JsonWriter.WriteValue(node.ValueType.Name);
+                writer.JsonWriter.WritePropertyName("value");
+            }
+
+            var jsonConverter = node.ValueType.GetCustomJsonConverter();
+            if (jsonConverter == null && node.ValueType is EnumTypeSpec)
+                jsonConverter = new StringEnumConverter();
+
+            if (jsonConverter != null)
+                jsonConverter.WriteJson(writer.JsonWriter, value, null);
+            else
+                writer.JsonWriter.WriteValue(value);
+
+            if (boxValueWithTypeSpec)
+                writer.JsonWriter.WriteEndObject();
         }
 
 
@@ -422,6 +433,14 @@ namespace Pomona.Common.Serialization.Json
             return false;
         }
 
+
+        private static bool ValueBoxingRequired(Type type)
+        {
+            // string and bool does not require boxing of value;
+            return !(type == typeof(string) || type == typeof(bool));
+        }
+
+
         public class Writer : ISerializerWriter, IDisposable
         {
             private readonly JsonTextWriter jsonWriter;
@@ -431,13 +450,13 @@ namespace Pomona.Common.Serialization.Json
             {
                 if (textWriter == null)
                     throw new ArgumentNullException("textWriter");
-                jsonWriter = new JsonTextWriter(textWriter) {Formatting = Formatting.Indented};
+                this.jsonWriter = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
             }
 
 
             public JsonWriter JsonWriter
             {
-                get { return jsonWriter; }
+                get { return this.jsonWriter; }
             }
 
             #region Implementation of IDisposable
@@ -445,19 +464,10 @@ namespace Pomona.Common.Serialization.Json
             public void Dispose()
             {
                 // NOTE: Not sure if this is correct
-                jsonWriter.Flush();
+                this.jsonWriter.Flush();
             }
 
             #endregion
-        }
-
-        public override void Serialize(TextWriter textWriter, object o, SerializeOptions options)
-        {
-            if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
-            options = options ?? new SerializeOptions();
-            var serializationContext = contextProvider.GetSerializationContext(options);
-            this.Serialize(serializationContext, o, textWriter, options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
         }
     }
 }

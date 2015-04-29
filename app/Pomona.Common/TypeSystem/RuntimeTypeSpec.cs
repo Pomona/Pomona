@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,21 +32,20 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
-using Pomona.Common.Internals;
-
 namespace Pomona.Common.TypeSystem
 {
     public class RuntimeTypeSpec : TypeSpec
     {
+        private readonly Lazy<ConstructorSpec> constructor;
         private readonly Lazy<IEnumerable<TypeSpec>> genericArguments;
         private readonly Lazy<ReadOnlyCollection<TypeSpec>> interfaces;
         private readonly Lazy<ReadOnlyCollection<PropertySpec>> properties;
         private readonly Lazy<RuntimeTypeDetails> runtimeTypeDetails;
-        private readonly Lazy<ConstructorSpec> constructor;
+
 
         public RuntimeTypeSpec(ITypeResolver typeResolver,
-            Type type,
-            Func<IEnumerable<TypeSpec>> genericArguments = null)
+                               Type type,
+                               Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type)
         {
             if (type == null)
@@ -55,21 +54,20 @@ namespace Pomona.Common.TypeSystem
             this.interfaces = CreateLazy(() => typeResolver.LoadInterfaces(this).ToList().AsReadOnly());
             this.genericArguments =
                 CreateLazy(genericArguments ?? (() => typeResolver.LoadGenericArguments(this).ToList().AsReadOnly()));
-            runtimeTypeDetails = CreateLazy(() => typeResolver.LoadRuntimeTypeDetails(this));
+            this.runtimeTypeDetails = CreateLazy(() => typeResolver.LoadRuntimeTypeDetails(this));
             this.constructor = CreateLazy(() => typeResolver.LoadConstructor(this));
         }
 
 
-        protected RuntimeTypeDetails RuntimeTypeDetails
+        public override ConstructorSpec Constructor
         {
-            get { return runtimeTypeDetails.Value; }
+            get { return this.constructor.Value; }
         }
 
         public virtual IEnumerable<TypeSpec> GenericArguments
         {
             get { return this.genericArguments.Value; }
         }
-
 
         public override IEnumerable<Attribute> InheritedAttributes
         {
@@ -86,6 +84,16 @@ namespace Pomona.Common.TypeSystem
             get { return this.interfaces.Value; }
         }
 
+        public override bool IsAbstract
+        {
+            get { return Type.IsAbstract; }
+        }
+
+        public override bool IsNullable
+        {
+            get { return Type.IsNullable(); }
+        }
+
         public override IEnumerable<PropertySpec> Properties
         {
             get { return this.properties.Value; }
@@ -93,12 +101,17 @@ namespace Pomona.Common.TypeSystem
 
         public override IEnumerable<PropertySpec> RequiredProperties
         {
-            get { return this.TypeResolver.LoadRequiredProperties(this); }
+            get { return TypeResolver.LoadRequiredProperties(this); }
         }
 
-        public override ConstructorSpec Constructor
+        public override TypeSerializationMode SerializationMode
         {
-            get { return constructor.Value; }
+            get { return RuntimeTypeDetails.SerializationMode; }
+        }
+
+        protected RuntimeTypeDetails RuntimeTypeDetails
+        {
+            get { return this.runtimeTypeDetails.Value; }
         }
 
 
@@ -114,28 +127,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected virtual TypeSerializationMode OnLoadSerializationMode()
+        protected internal override ConstructorSpec OnLoadConstructor()
         {
-            if (Type.IsAnonymous())
-                return TypeSerializationMode.Structured;
-            return TypeSerializationMode.Value;
-            //return TypeSerializationMode.Complex;
-        }
-
-
-        protected internal override IEnumerable<PropertySpec> OnLoadRequiredProperties()
-        {
-            return Enumerable.Empty<PropertySpec>();
-        }
-
-        public override bool IsAbstract
-        {
-            get { return Type.IsAbstract; }
-        }
-
-        protected internal override RuntimeTypeDetails OnLoadRuntimeTypeDetails()
-        {
-            return new RuntimeTypeDetails(OnLoadSerializationMode());
+            return null;
         }
 
 
@@ -161,38 +155,36 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        protected internal override IEnumerable<PropertySpec> OnLoadRequiredProperties()
+        {
+            return Enumerable.Empty<PropertySpec>();
+        }
+
+
+        protected internal override RuntimeTypeDetails OnLoadRuntimeTypeDetails()
+        {
+            return new RuntimeTypeDetails(OnLoadSerializationMode());
+        }
+
+
         protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
         {
             return new RuntimePropertySpec(TypeResolver, property, this);
         }
 
 
-        protected internal override ConstructorSpec OnLoadConstructor()
+        protected virtual TypeSerializationMode OnLoadSerializationMode()
         {
-            return null;
-        }
-
-
-        public override TypeSerializationMode SerializationMode
-        {
-            get { return RuntimeTypeDetails.SerializationMode; }
-        }
-
-        public override bool IsNullable
-        {
-            get { return Type.IsNullable(); }
+            if (Type.IsAnonymous())
+                return TypeSerializationMode.Structured;
+            return TypeSerializationMode.Value;
+            //return TypeSerializationMode.Complex;
         }
 
         #region Nested type: RuntimeTypeSpecFactory
 
         public class RuntimeTypeSpecFactory : ITypeFactory
         {
-            public int Priority
-            {
-                get { return 200; }
-            }
-
-
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 if (typeResolver == null)
@@ -201,6 +193,12 @@ namespace Pomona.Common.TypeSystem
                     throw new ArgumentNullException("type");
 
                 return new RuntimeTypeSpec(typeResolver, type);
+            }
+
+
+            public int Priority
+            {
+                get { return 200; }
             }
         }
 

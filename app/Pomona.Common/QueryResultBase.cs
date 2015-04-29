@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,6 @@ namespace Pomona.Common
     {
         protected readonly TCollection items;
         private readonly int skip;
-
         private readonly int totalCount;
         private readonly string url;
 
@@ -76,6 +75,33 @@ namespace Pomona.Common
         public override string Url
         {
             get { return this.url; }
+        }
+
+
+        public override bool TryGetPage(int offset, out Uri pageUri)
+        {
+            var newSkip = Math.Max(Skip + (Count * offset), 0);
+            var uriBuilder = new UriBuilder(Url);
+
+            if (Skip == newSkip || (TotalCount != -1 && newSkip >= TotalCount))
+            {
+                pageUri = null;
+                return false;
+            }
+
+            NameValueCollection parameters;
+            if (!string.IsNullOrEmpty(uriBuilder.Query))
+            {
+                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
+                parameters["$skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
+                uriBuilder.Query = parameters.ToString();
+            }
+            else
+                uriBuilder.Query = "$skip=" + newSkip;
+
+            pageUri = uriBuilder.Uri;
+
+            return true;
         }
 
         #region IList<T> Members
@@ -133,31 +159,5 @@ namespace Pomona.Common
         }
 
         #endregion
-
-        public override bool TryGetPage(int offset, out Uri pageUri)
-        {
-            var newSkip = Math.Max(Skip + (Count * offset), 0);
-            var uriBuilder = new UriBuilder(Url);
-
-            if (Skip == newSkip || (TotalCount != -1 && newSkip >= TotalCount))
-            {
-                pageUri = null;
-                return false;
-            }
-
-            NameValueCollection parameters;
-            if (!string.IsNullOrEmpty(uriBuilder.Query))
-            {
-                parameters = HttpUtility.ParseQueryString(uriBuilder.Query);
-                parameters["$skip"] = newSkip.ToString(CultureInfo.InvariantCulture);
-                uriBuilder.Query = parameters.ToString();
-            }
-            else
-                uriBuilder.Query = "$skip=" + newSkip;
-
-            pageUri = uriBuilder.Uri;
-
-            return true;
-        }
     }
 }

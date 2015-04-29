@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -53,37 +53,37 @@ namespace Pomona.Common
 
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
-            return items.IsProperSubsetOf(other);
+            return this.items.IsProperSubsetOf(other);
         }
 
 
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
-            return items.IsProperSupersetOf(other);
+            return this.items.IsProperSupersetOf(other);
         }
 
 
         public bool IsSubsetOf(IEnumerable<T> other)
         {
-            return items.IsSubsetOf(other);
+            return this.items.IsSubsetOf(other);
         }
 
 
         public bool IsSupersetOf(IEnumerable<T> other)
         {
-            return items.IsSupersetOf(other);
+            return this.items.IsSupersetOf(other);
         }
 
 
         public bool Overlaps(IEnumerable<T> other)
         {
-            return items.Overlaps(other);
+            return this.items.Overlaps(other);
         }
 
 
         public bool SetEquals(IEnumerable<T> other)
         {
-            return items.SetEquals(other);
+            return this.items.SetEquals(other);
         }
 
 

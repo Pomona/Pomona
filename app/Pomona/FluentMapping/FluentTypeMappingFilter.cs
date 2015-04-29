@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -67,17 +67,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public string ApiVersion
-        {
-            get { return this.wrappedFilter.ApiVersion; }
-        }
-
-        public ClientMetadata ClientMetadata
-        {
-            get { return this.wrappedFilter.ClientMetadata; }
-        }
-
-
         public static string BuildPropertyMappingTemplate(IEnumerable<Type> types)
         {
             var typesSet = new HashSet<Type>(types);
@@ -109,17 +98,168 @@ namespace TestNs
         }
 
 
-        public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
+        internal TypeMappingOptions GetTypeMapping(Type type)
         {
-            return FromMappingOrDefault(propertyInfo.ReflectedType, propertyInfo,
-                                        x => x.ExposedAsRepository,
-                                        () => this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo));
+            return this.typeMappingDict.GetOrAdd(type.FullName, k =>
+            {
+                TypeMappingOptions typeMapping = new TypeMappingOptions(type);
+                typeMapping.DefaultPropertyInclusionMode =
+                    GetDefaultPropertyInclusionMode();
+                return typeMapping;
+            });
+        }
+
+
+        private void ApplyRules(IEnumerable<FluentRuleMethod> ruleMethods)
+        {
+            var allTransformedTypes = this.sourceTypes.Where(TypeIsMappedAsTransformedType).ToList();
+
+            // NOTE: We need to order the properties in ascending order by how
+            //       specific their declaring types are so we get the most
+            //       specific ones last.
+            ruleMethods = ruleMethods.OrderBy(x => x.AppliesToType, new SubclassComparer());
+
+            foreach (var ruleMethod in ruleMethods)
+            {
+                var appliesToType = ruleMethod.AppliesToType;
+                foreach (var subType in allTransformedTypes.Where(appliesToType.IsAssignableFrom))
+                {
+                    var typeMapping = GetTypeMapping(subType);
+                    var configurator = typeMapping.GetConfigurator(ruleMethod.AppliesToType);
+                    ruleMethod.Method.Invoke(ruleMethod.Instance, new[] { configurator });
+                }
+            }
+        }
+
+
+        private T FromMappingOrDefault<T>(Type type,
+                                          Func<TypeMappingOptions, T?> ifMappingExist,
+                                          Func<T> ifMappingMissing)
+            where T : struct
+        {
+            var result = FromMappingOrDefault(type, ifMappingExist, () => (T?)ifMappingMissing());
+            if (!result.HasValue)
+                throw new InvalidOperationException("Expected a non-null value here.");
+            return result.Value;
+        }
+
+
+        private T FromMappingOrDefault<T>(Type type,
+                                          Func<TypeMappingOptions, T> ifMappingExist,
+                                          Func<T> ifMappingMissing)
+        {
+            TypeMappingOptions typeMappingOptions;
+            object result = null;
+            if (this.typeMappingDict.TryGetValue(type.FullName, out typeMappingOptions))
+                result = ifMappingExist(typeMappingOptions);
+            if (result == null)
+                return ifMappingMissing();
+            return (T)result;
+        }
+
+
+        private T FromMappingOrDefault<T>(Type type,
+                                          PropertyInfo propertyInfo,
+                                          Func<PropertyMappingOptions, T> ifMappingExist,
+                                          Func<T> ifMappingMissing)
+        {
+            TypeMappingOptions typeMappingOptions;
+            PropertyMappingOptions propertyOptions;
+            object result = null;
+
+            if (TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMappingOptions, out propertyOptions))
+                result = ifMappingExist(propertyOptions);
+
+            if (result == null)
+                return ifMappingMissing();
+
+            return (T)result;
+        }
+
+
+        private T FromMappingOrDefault<T>(Type type,
+                                          PropertyInfo propertyInfo,
+                                          Func<PropertyMappingOptions, T?> ifMappingExist,
+                                          Func<T> ifMappingMissing)
+            where T : struct
+        {
+            TypeMappingOptions typeMappingOptions;
+            PropertyMappingOptions propertyOptions;
+            object result = null;
+
+            if (TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMappingOptions, out propertyOptions))
+                result = ifMappingExist(propertyOptions);
+
+            if (result == null)
+                return ifMappingMissing();
+
+            return (T)result;
+        }
+
+
+        private HttpMethod GetCombinedPropertyAccessMode(PropertyInfo propertyInfo,
+                                                         ConstructorSpec constructorSpec,
+                                                         PropertyMappingOptions opts)
+        {
+            var accessModeFromWrappedFilter = this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec);
+            accessModeFromWrappedFilter |= PatchOfTypeIsAllowed(propertyInfo.PropertyType) ? HttpMethod.Patch : 0;
+
+            Type elementType;
+            if (propertyInfo.PropertyType.TryGetEnumerableElementType(out elementType))
+            {
+                accessModeFromWrappedFilter |=
+                    (TypeIsMappedAsTransformedType(elementType) && PostOfTypeIsAllowed(elementType))
+                        ? HttpMethod.Post
+                        : 0;
+            }
+            return (opts.Method & opts.MethodMask) | (accessModeFromWrappedFilter & ~(opts.MethodMask));
+        }
+
+
+        private HttpMethod GetCombinedPropertyItemAccessMode(Type type, PropertyInfo propertyInfo, PropertyMappingOptions opts)
+        {
+            var accessModeFromWrappedFilter = this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo);
+            accessModeFromWrappedFilter |= this.wrappedFilter.PatchOfTypeIsAllowed(type) ? HttpMethod.Patch : 0;
+            return (opts.ItemMethod & opts.ItemMethodMask)
+                   | (accessModeFromWrappedFilter
+                      & ~(opts.ItemMethodMask));
+        }
+
+
+        private bool TryGetTypeMappingAndPropertyOptions(Type reflectedType,
+                                                         PropertyInfo propertyInfo,
+                                                         out TypeMappingOptions typeMapping,
+                                                         out PropertyMappingOptions propertyOptions)
+        {
+            typeMapping = GetTypeMapping(reflectedType);
+            propertyOptions = typeMapping.GetPropertyOptions(propertyInfo);
+            return true;
+        }
+
+
+        public string ApiVersion
+        {
+            get { return this.wrappedFilter.ApiVersion; }
         }
 
 
         public bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
         {
-            return wrappedFilter.ClientEnumIsGeneratedAsStringEnum(enumType);
+            return this.wrappedFilter.ClientEnumIsGeneratedAsStringEnum(enumType);
+        }
+
+
+        public ClientMetadata ClientMetadata
+        {
+            get { return this.wrappedFilter.ClientMetadata; }
+        }
+
+
+        public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(propertyInfo.ReflectedType, propertyInfo,
+                                        x => x.ExposedAsRepository,
+                                        () => this.wrappedFilter.ClientPropertyIsExposedAsRepository(propertyInfo));
         }
 
 
@@ -140,9 +280,7 @@ namespace TestNs
             TypeMappingOptions typeMappingOptions;
             var properties = this.wrappedFilter.GetAllPropertiesOfType(type, bindingFlags);
             if (this.typeMappingDict.TryGetValue(type.FullName, out typeMappingOptions))
-            {
                 return properties.Concat(typeMappingOptions.VirtualProperties);
-            }
 
             return properties;
         }
@@ -202,12 +340,6 @@ namespace TestNs
         }
 
 
-        public string GetUrlRelativePath(Type type)
-        {
-            return FromMappingOrDefault(type, x => x.UrlRelativePath, () => this.wrappedFilter.GetUrlRelativePath(type));
-        }
-
-
         public Type GetPostReturnType(Type type)
         {
             return FromMappingOrDefault(
@@ -228,45 +360,14 @@ namespace TestNs
         }
 
 
-        private HttpMethod GetCombinedPropertyAccessMode(PropertyInfo propertyInfo, ConstructorSpec constructorSpec, PropertyMappingOptions opts)
-        {
-            var accessModeFromWrappedFilter = this.wrappedFilter.GetPropertyAccessMode(propertyInfo, constructorSpec);
-            accessModeFromWrappedFilter |= PatchOfTypeIsAllowed(propertyInfo.PropertyType) ? HttpMethod.Patch : 0;
-
-            Type elementType;
-            if (propertyInfo.PropertyType.TryGetEnumerableElementType(out elementType))
-            {
-                accessModeFromWrappedFilter |= 
-                    (TypeIsMappedAsTransformedType(elementType) && PostOfTypeIsAllowed(elementType))
-                    ? HttpMethod.Post : 0;
-            }
-            return (opts.Method & opts.MethodMask) | (accessModeFromWrappedFilter & ~(opts.MethodMask));
-        }
-
-
-        public bool TypeIsSingletonResource(Type type)
-        {
-            return FromMappingOrDefault(type, x => x.IsSingleton, () => wrappedFilter.TypeIsSingletonResource(type));
-        }
-
-
         public IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
                                         propertyInfo,
                                         o =>
                                             this.wrappedFilter.GetPropertyAttributes(type, propertyInfo).EmptyIfNull()
-                                            .Concat(o.AddedAttributes),
+                                                .Concat(o.AddedAttributes),
                                         () => this.wrappedFilter.GetPropertyAttributes(type, propertyInfo));
-        }
-
-
-        public ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
-        {
-            return FromMappingOrDefault(type,
-                                        propertyInfo,
-                                        o => o.PropertyExpandMode,
-                                        () => wrappedFilter.GetPropertyExpandMode(type, propertyInfo));
         }
 
 
@@ -279,6 +380,15 @@ namespace TestNs
                                         () =>
                                             this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo,
                                                                                      ctorParameterInfo));
+        }
+
+
+        public ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
+        {
+            return FromMappingOrDefault(type,
+                                        propertyInfo,
+                                        o => o.PropertyExpandMode,
+                                        () => this.wrappedFilter.GetPropertyExpandMode(type, propertyInfo));
         }
 
 
@@ -315,16 +425,6 @@ namespace TestNs
         }
 
 
-        private HttpMethod GetCombinedPropertyItemAccessMode(Type type, PropertyInfo propertyInfo, PropertyMappingOptions opts)
-        {
-            var accessModeFromWrappedFilter = this.wrappedFilter.GetPropertyItemAccessMode(type, propertyInfo);
-            accessModeFromWrappedFilter |= this.wrappedFilter.PatchOfTypeIsAllowed(type) ? HttpMethod.Patch : 0;
-            return (opts.ItemMethod & opts.ItemMethodMask)
-                   | (accessModeFromWrappedFilter
-                      & ~(opts.ItemMethodMask));
-        }
-
-
         public string GetPropertyMappedName(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
@@ -350,6 +450,7 @@ namespace TestNs
                                         o => o.PropertyType,
                                         () => this.wrappedFilter.GetPropertyType(type, propertyInfo));
         }
+
 
         public IEnumerable<Type> GetResourceHandlers(Type type)
         {
@@ -379,6 +480,12 @@ namespace TestNs
         {
             // TODO: Support this convention, not completely sure how it will work :/ [KNS]
             return this.wrappedFilter.GetUriBaseType(type);
+        }
+
+
+        public string GetUrlRelativePath(Type type)
+        {
+            return FromMappingOrDefault(type, x => x.UrlRelativePath, () => this.wrappedFilter.GetUrlRelativePath(type));
         }
 
 
@@ -509,113 +616,9 @@ namespace TestNs
         }
 
 
-        internal TypeMappingOptions GetTypeMapping(Type type)
+        public bool TypeIsSingletonResource(Type type)
         {
-            return this.typeMappingDict.GetOrAdd(type.FullName, k =>
-            {
-                TypeMappingOptions typeMapping = new TypeMappingOptions(type);
-                typeMapping.DefaultPropertyInclusionMode =
-                    GetDefaultPropertyInclusionMode();
-                return typeMapping;
-            });
-        }
-
-
-        private void ApplyRules(IEnumerable<FluentRuleMethod> ruleMethods)
-        {
-            var allTransformedTypes = this.sourceTypes.Where(TypeIsMappedAsTransformedType).ToList();
-
-            // NOTE: We need to order the properties in ascending order by how
-            //       specific their declaring types are so we get the most
-            //       specific ones last.
-            ruleMethods = ruleMethods.OrderBy(x => x.AppliesToType, new SubclassComparer());
-
-            foreach (var ruleMethod in ruleMethods)
-            {
-                var appliesToType = ruleMethod.AppliesToType;
-                foreach (var subType in allTransformedTypes.Where(appliesToType.IsAssignableFrom))
-                {
-                    var typeMapping = GetTypeMapping(subType);
-                    var configurator = typeMapping.GetConfigurator(ruleMethod.AppliesToType);
-                    ruleMethod.Method.Invoke(ruleMethod.Instance, new[] { configurator });
-                }
-            }
-        }
-
-
-        private T FromMappingOrDefault<T>(Type type,
-                                          Func<TypeMappingOptions, T?> ifMappingExist,
-                                          Func<T> ifMappingMissing)
-            where T : struct
-        {
-            var result = FromMappingOrDefault(type, ifMappingExist, () => (T?)ifMappingMissing());
-            if (!result.HasValue)
-                throw new InvalidOperationException("Expected a non-null value here.");
-            return result.Value;
-        }
-
-
-        private T FromMappingOrDefault<T>(Type type,
-                                          Func<TypeMappingOptions, T> ifMappingExist,
-                                          Func<T> ifMappingMissing)
-        {
-            TypeMappingOptions typeMappingOptions;
-            object result = null;
-            if (this.typeMappingDict.TryGetValue(type.FullName, out typeMappingOptions))
-                result = ifMappingExist(typeMappingOptions);
-            if (result == null)
-                return ifMappingMissing();
-            return (T)result;
-        }
-
-
-        private T FromMappingOrDefault<T>(Type type,
-                                          PropertyInfo propertyInfo,
-                                          Func<PropertyMappingOptions, T> ifMappingExist,
-                                          Func<T> ifMappingMissing)
-        {
-            TypeMappingOptions typeMappingOptions;
-            PropertyMappingOptions propertyOptions;
-            object result = null;
-
-            if (TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMappingOptions, out propertyOptions))
-                result = ifMappingExist(propertyOptions);
-
-            if (result == null)
-                return ifMappingMissing();
-
-            return (T)result;
-        }
-
-
-        private T FromMappingOrDefault<T>(Type type,
-                                          PropertyInfo propertyInfo,
-                                          Func<PropertyMappingOptions, T?> ifMappingExist,
-                                          Func<T> ifMappingMissing)
-            where T : struct
-        {
-            TypeMappingOptions typeMappingOptions;
-            PropertyMappingOptions propertyOptions;
-            object result = null;
-
-            if (TryGetTypeMappingAndPropertyOptions(type, propertyInfo, out typeMappingOptions, out propertyOptions))
-                result = ifMappingExist(propertyOptions);
-
-            if (result == null)
-                return ifMappingMissing();
-
-            return (T)result;
-        }
-
-
-        private bool TryGetTypeMappingAndPropertyOptions(Type reflectedType,
-                                                         PropertyInfo propertyInfo,
-                                                         out TypeMappingOptions typeMapping,
-                                                         out PropertyMappingOptions propertyOptions)
-        {
-            typeMapping = GetTypeMapping(reflectedType);
-            propertyOptions = typeMapping.GetPropertyOptions(propertyInfo);
-            return true;
+            return FromMappingOrDefault(type, x => x.IsSingleton, () => this.wrappedFilter.TypeIsSingletonResource(type));
         }
 
         #region Nested type: NestedTypeMappingConfigurator

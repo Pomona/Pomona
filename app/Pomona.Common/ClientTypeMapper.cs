@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -77,108 +77,9 @@ namespace Pomona.Common
         }
 
 
-        public object CreatePatchForm(Type resourceType, object original)
-        {
-            var extendedResourceProxy = original as ExtendedResourceBase;
-
-            if (extendedResourceProxy != null)
-            {
-                var info = extendedResourceProxy.UserTypeInfo;
-                return
-                    this.extendedResourceMapper.WrapForm(
-                        CreatePatchForm(info.ServerType, extendedResourceProxy.WrappedResource),
-                        info.ExtendedType);
-            }
-
-            var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (!resourceType.GetCustomAttributes(typeof(AllowedMethodsAttribute), false)
-                             .OfType<AllowedMethodsAttribute>()
-                             .Select(x => x.Methods)
-                             .FirstOrDefault()
-                             .HasFlag(HttpMethod.Patch))
-                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
-
-            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                                                                        this.FromType(
-                                                                            resourceInfo.InterfaceType),
-                                                                        this,
-                                                                        null,
-                                                                        resourceInfo.InterfaceType);
-
-            return serverPatchForm;
-        }
-
-
-        public object CreatePostForm(Type resourceType)
-        {
-            ExtendedResourceInfo extendedResourceInfo;
-
-            if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
-            {
-                return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
-                                                            extendedResourceInfo.ExtendedType);
-            }
-
-            var resourceInfo = this.GetResourceInfoForType(resourceType);
-            if (resourceInfo.PostFormType == null)
-                throw new InvalidOperationException("Method POST is not allowed for uri.");
-            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
-            return serverPostForm;
-        }
-
-
-        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
-        {
-            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
-        }
-
-
         public override TypeSpec FromType(string typeName)
         {
             return this.typeNameMap[typeName];
-        }
-
-
-        protected override sealed Type MapExposedClrType(Type type)
-        {
-            Type[] proxyTypeArgs;
-            if (typeof(IExtendedResourceProxy).IsAssignableFrom(type)
-                && type.TryExtractTypeArguments(typeof(IExtendedResourceProxy<>), out proxyTypeArgs))
-                type = proxyTypeArgs[0];
-
-            if (!type.IsInterface)
-            {
-                if (typeof(IClientResource).IsAssignableFrom(type))
-                    return GetMainInterfaceFromConcreteType(typeof(IClientResource), type);
-                if (typeof(IClientRepository).IsAssignableFrom(type))
-                    return GetMainInterfaceFromConcreteType(typeof(IClientRepository), type);
-            }
-
-            return type;
-        }
-
-
-        private static Type GetMainInterfaceFromConcreteType(Type interfaceType, Type type)
-        {
-            var interfaces =
-                type.GetInterfaces().Where(interfaceType.IsAssignableFrom).ToArray();
-            IEnumerable<Type> exceptTheseInterfaces =
-                interfaces.SelectMany(
-                    x => x.GetInterfaces().Where(interfaceType.IsAssignableFrom)).
-                    Distinct().ToArray();
-
-            var mostSubtypedInterface =
-                interfaces
-                    .Except(exceptTheseInterfaces).Single(x => !x.IsGenericType);
-
-            type = mostSubtypedInterface;
-            return type;
-        }
-
-
-        public override IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType)
-        {
-            return this.typeNameMap.Values.OfType<StructuredType>();
         }
 
 
@@ -204,60 +105,16 @@ namespace Pomona.Common
         }
 
 
-        public override StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property)
+        public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
         {
-            var propInfo = property.PropertyInfo;
-
-            var isAttributes = propInfo.HasAttribute<ResourceAttributesPropertyAttribute>(true);
-            var isPrimaryId = propInfo.HasAttribute<ResourceIdPropertyAttribute>(true);
-            var isEtagProperty = propInfo.HasAttribute<ResourceEtagPropertyAttribute>(true);
-            var info =
-                propInfo.GetCustomAttributes(typeof(ResourcePropertyAttribute), true).OfType<ResourcePropertyAttribute>()
-                    .FirstOrDefault()
-                ?? new ResourcePropertyAttribute()
-                {
-                    AccessMode = HttpMethod.Get,
-                    ItemAccessMode = HttpMethod.Get,
-                    Required = false
-                };
-
-            return new StructuredPropertyDetails(isAttributes,
-                                              isEtagProperty,
-                                              isPrimaryId,
-                                              true,
-                                              info.AccessMode,
-                                              info.ItemAccessMode,
-                                              ExpandMode.Full);
-        }
-
-
-        public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
-        {
-            if (IsAnonType(structuredType))
+            var typeSpec = memberSpec as RuntimeTypeSpec;
+            if (typeSpec != null && typeof(IStringEnum).IsAssignableFrom(typeSpec))
             {
-                return new StructuredTypeDetails(structuredType,
-                                              HttpMethod.Get,
-                                              null,
-                                              true,
-                                              true,
-                                              false);
+                return
+                    base.LoadDeclaredAttributes(memberSpec).Append(
+                        new CustomJsonConverterAttribute(new StringEnumJsonConverter()));
             }
-
-            var ria = structuredType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
-            var allMethods = (HttpMethod.Delete | HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post | HttpMethod.Put);
-            var allowedMethods =
-                structuredType
-                .DeclaredAttributes
-                .OfType<AllowedMethodsAttribute>()
-                .Select(x => (HttpMethod?)x.Methods)
-                .FirstOrDefault() ?? allMethods;
-
-            return new StructuredTypeDetails(structuredType,
-                                          allowedMethods,
-                                          null,
-                                          ria.IsValueObject,
-                                          true,
-                                          false);
+            return base.LoadDeclaredAttributes(memberSpec);
         }
 
 
@@ -275,26 +132,19 @@ namespace Pomona.Common
         {
             var ria =
                 typeSpec.Type.GetCustomAttributes(typeof(ResourceInfoAttribute), false).OfType<ResourceInfoAttribute>()
-                    .FirstOrDefault();
+                        .FirstOrDefault();
             if (ria == null)
                 return base.LoadProperties(typeSpec);
             return
                 typeSpec.Type.GetProperties()
-                    .Concat(typeSpec.Type.GetInterfaces().SelectMany(x => x.GetProperties()))
-                    .Select(x => WrapProperty(typeSpec, x));
+                        .Concat(typeSpec.Type.GetInterfaces().SelectMany(x => x.GetProperties()))
+                        .Select(x => WrapProperty(typeSpec, x));
         }
 
 
-        public override IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
+        public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
         {
-            var typeSpec = memberSpec as RuntimeTypeSpec;
-            if (typeSpec != null && typeof(IStringEnum).IsAssignableFrom(typeSpec))
-            {
-                return
-                    base.LoadDeclaredAttributes(memberSpec).Append(
-                        new CustomJsonConverterAttribute(new StringEnumJsonConverter()));
-            }
-            return base.LoadDeclaredAttributes(memberSpec);
+            return new ResourcePropertyDetails(false, NameUtils.ConvertCamelCaseToUri(property.Name));
         }
 
 
@@ -318,17 +168,74 @@ namespace Pomona.Common
         }
 
 
-        public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
-        {
-            return new ResourcePropertyDetails(false, NameUtils.ConvertCamelCaseToUri(property.Name));
-        }
-
-
         public override RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec)
         {
             if (IsAnonType(typeSpec))
                 return new RuntimeTypeDetails(TypeSerializationMode.Structured);
             return base.LoadRuntimeTypeDetails(typeSpec);
+        }
+
+
+        public override StructuredPropertyDetails LoadStructuredPropertyDetails(StructuredProperty property)
+        {
+            var propInfo = property.PropertyInfo;
+
+            var isAttributes = propInfo.HasAttribute<ResourceAttributesPropertyAttribute>(true);
+            var isPrimaryId = propInfo.HasAttribute<ResourceIdPropertyAttribute>(true);
+            var isEtagProperty = propInfo.HasAttribute<ResourceEtagPropertyAttribute>(true);
+            var info =
+                propInfo.GetCustomAttributes(typeof(ResourcePropertyAttribute), true).OfType<ResourcePropertyAttribute>()
+                        .FirstOrDefault()
+                ?? new ResourcePropertyAttribute()
+                {
+                    AccessMode = HttpMethod.Get,
+                    ItemAccessMode = HttpMethod.Get,
+                    Required = false
+                };
+
+            return new StructuredPropertyDetails(isAttributes,
+                                                 isEtagProperty,
+                                                 isPrimaryId,
+                                                 true,
+                                                 info.AccessMode,
+                                                 info.ItemAccessMode,
+                                                 ExpandMode.Full);
+        }
+
+
+        public override StructuredTypeDetails LoadStructuredTypeDetails(StructuredType structuredType)
+        {
+            if (IsAnonType(structuredType))
+            {
+                return new StructuredTypeDetails(structuredType,
+                                                 HttpMethod.Get,
+                                                 null,
+                                                 true,
+                                                 true,
+                                                 false);
+            }
+
+            var ria = structuredType.DeclaredAttributes.OfType<ResourceInfoAttribute>().First();
+            var allMethods = (HttpMethod.Delete | HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post | HttpMethod.Put);
+            var allowedMethods =
+                structuredType
+                    .DeclaredAttributes
+                    .OfType<AllowedMethodsAttribute>()
+                    .Select(x => (HttpMethod?)x.Methods)
+                    .FirstOrDefault() ?? allMethods;
+
+            return new StructuredTypeDetails(structuredType,
+                                             allowedMethods,
+                                             null,
+                                             ria.IsValueObject,
+                                             true,
+                                             false);
+        }
+
+
+        public override IEnumerable<StructuredType> LoadSubTypes(StructuredType baseType)
+        {
+            return this.typeNameMap.Values.OfType<StructuredType>();
         }
 
 
@@ -374,6 +281,25 @@ namespace Pomona.Common
         }
 
 
+        protected override sealed Type MapExposedClrType(Type type)
+        {
+            Type[] proxyTypeArgs;
+            if (typeof(IExtendedResourceProxy).IsAssignableFrom(type)
+                && type.TryExtractTypeArguments(typeof(IExtendedResourceProxy<>), out proxyTypeArgs))
+                type = proxyTypeArgs[0];
+
+            if (!type.IsInterface)
+            {
+                if (typeof(IClientResource).IsAssignableFrom(type))
+                    return GetMainInterfaceFromConcreteType(typeof(IClientResource), type);
+                if (typeof(IClientRepository).IsAssignableFrom(type))
+                    return GetMainInterfaceFromConcreteType(typeof(IClientRepository), type);
+            }
+
+            return type;
+        }
+
+
         private static string GetJsonTypeName(TypeSpec type)
         {
             var clientType = type as StructuredType;
@@ -385,9 +311,83 @@ namespace Pomona.Common
         }
 
 
+        private static Type GetMainInterfaceFromConcreteType(Type interfaceType, Type type)
+        {
+            var interfaces =
+                type.GetInterfaces().Where(interfaceType.IsAssignableFrom).ToArray();
+            IEnumerable<Type> exceptTheseInterfaces =
+                interfaces.SelectMany(
+                    x => x.GetInterfaces().Where(interfaceType.IsAssignableFrom)).
+                           Distinct().ToArray();
+
+            var mostSubtypedInterface =
+                interfaces
+                    .Except(exceptTheseInterfaces).Single(x => !x.IsGenericType);
+
+            type = mostSubtypedInterface;
+            return type;
+        }
+
+
         private static bool IsAnonType(Type type)
         {
             return type.IsAnonymous() || type.IsTuple();
+        }
+
+
+        public object CreatePatchForm(Type resourceType, object original)
+        {
+            var extendedResourceProxy = original as ExtendedResourceBase;
+
+            if (extendedResourceProxy != null)
+            {
+                var info = extendedResourceProxy.UserTypeInfo;
+                return
+                    this.extendedResourceMapper.WrapForm(
+                        CreatePatchForm(info.ServerType, extendedResourceProxy.WrappedResource),
+                        info.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
+            if (!resourceType.GetCustomAttributes(typeof(AllowedMethodsAttribute), false)
+                             .OfType<AllowedMethodsAttribute>()
+                             .Select(x => x.Methods)
+                             .FirstOrDefault()
+                             .HasFlag(HttpMethod.Patch))
+                throw new InvalidOperationException("Method PATCH is not allowed for uri.");
+
+            var serverPatchForm = ObjectDeltaProxyBase.CreateDeltaProxy(original,
+                                                                        FromType(
+                                                                            resourceInfo.InterfaceType),
+                                                                        this,
+                                                                        null,
+                                                                        resourceInfo.InterfaceType);
+
+            return serverPatchForm;
+        }
+
+
+        public object CreatePostForm(Type resourceType)
+        {
+            ExtendedResourceInfo extendedResourceInfo;
+
+            if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
+            {
+                return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
+                                                            extendedResourceInfo.ExtendedType);
+            }
+
+            var resourceInfo = this.GetResourceInfoForType(resourceType);
+            if (resourceInfo.PostFormType == null)
+                throw new InvalidOperationException("Method POST is not allowed for uri.");
+            var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
+            return serverPostForm;
+        }
+
+
+        public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
+        {
+            return ResourceInfoAttribute.TryGet(type, out resourceInfo);
         }
     }
 }

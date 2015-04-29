@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,6 @@ namespace Pomona.Common
     public abstract class QueryResult
     {
         private static readonly MethodInfo createMethod;
-
         private readonly Dictionary<string, string> debugInfo = new Dictionary<string, string>();
 
 
@@ -62,14 +61,13 @@ namespace Pomona.Common
         public abstract int Skip { get; }
         public abstract int TotalCount { get; }
         public abstract string Url { get; }
-        public abstract bool TryGetPage(int offset, out Uri pageUri);
 
 
         public static QueryResult Create(IEnumerable source,
-            int skip,
-            int totalCount,
-            string url,
-            Type elementType = null)
+                                         int skip,
+                                         int totalCount,
+                                         string url,
+                                         Type elementType = null)
         {
             Type[] genargs;
             if (elementType == null)
@@ -90,6 +88,9 @@ namespace Pomona.Common
                         null,
                         new object[] { source, skip, totalCount, url });
         }
+
+
+        public abstract bool TryGetPage(int offset, out Uri pageUri);
 
 
         private static QueryResult Create<TSource>(IEnumerable source, int skip, int totalCount, string url)
@@ -113,22 +114,22 @@ namespace Pomona.Common
         }
 
 
-        public T this[int index]
-        {
-            get { return items[index]; }
-            set { throw new NotSupportedException(); }
-        }
-
-
         public int IndexOf(T item)
         {
-            return items.IndexOf(item);
+            return this.items.IndexOf(item);
         }
 
 
         public void Insert(int index, T item)
         {
             throw new NotSupportedException();
+        }
+
+
+        public T this[int index]
+        {
+            get { return this.items[index]; }
+            set { throw new NotSupportedException(); }
         }
 
 

@@ -43,6 +43,24 @@ namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonDeserializer : ITextDeserializer
     {
+        private static readonly Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
+            createPropertyValueSourceMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>()
+                              .CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
+                                  x => x.CreatePropertyValueSource<object>(null, null));
+
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
+            deserializeArrayNodeGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
+                    x => x.DeserializeArrayNodeGeneric<object>(null, null));
+
+        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader, DictionaryTypeSpec>
+            deserializeDictionaryGenericMethod =
+                GenericInvoker.Instance<PomonaJsonDeserializer>()
+                              .CreateAction1<IDeserializerNode, Reader, DictionaryTypeSpec>(
+                                  x => x.DeserializeDictionaryGeneric<object>(null, null, null));
+
+        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
         private readonly ISerializationContextProvider contextProvider;
         private readonly JsonSerializer jsonSerializer;
 
@@ -689,24 +707,5 @@ namespace Pomona.Common.Serialization.Json
         }
 
         #endregion
-
-        private static readonly Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
-            createPropertyValueSourceMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>()
-                              .CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
-                                  x => x.CreatePropertyValueSource<object>(null, null));
-
-        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
-            deserializeArrayNodeGenericMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
-                    x => x.DeserializeArrayNodeGeneric<object>(null, null));
-
-        private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader, DictionaryTypeSpec>
-            deserializeDictionaryGenericMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>()
-                              .CreateAction1<IDeserializerNode, Reader, DictionaryTypeSpec>(
-                                  x => x.DeserializeDictionaryGeneric<object>(null, null, null));
-
-        private static readonly char[] reservedFirstCharacters = "^-*!".ToCharArray();
     }
 }
