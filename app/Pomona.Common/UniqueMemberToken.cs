@@ -66,7 +66,8 @@ namespace Pomona.Common
 
         public static UniqueMemberToken FromMemberInfo(MemberInfo member)
         {
-            return new UniqueMemberToken(member.MetadataToken, member.Module.ModuleHandle);
+            var module = member.DeclaringType != null ? member.DeclaringType.Module : member.Module;
+            return new UniqueMemberToken(member.MetadataToken, module.ModuleHandle);
         }
 
 
