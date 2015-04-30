@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Reflection;
 
@@ -32,48 +36,55 @@ namespace Pomona.Common
         private readonly int metadataToken;
         private readonly ModuleHandle moduleHandle;
 
+
         public UniqueMemberToken(int metadataToken, ModuleHandle moduleHandle)
         {
             this.metadataToken = metadataToken;
             this.moduleHandle = moduleHandle;
         }
 
+
         public int MetadataToken
         {
-            get { return metadataToken; }
+            get { return this.metadataToken; }
         }
 
         public ModuleHandle ModuleHandle
         {
-            get { return moduleHandle; }
+            get { return this.moduleHandle; }
         }
+
 
         public override bool Equals(object obj)
         {
             if (obj is UniqueMemberToken)
-                return ((UniqueMemberToken) obj) == this;
+                return ((UniqueMemberToken)obj) == this;
 
             return false;
         }
 
+
+        public static UniqueMemberToken FromMemberInfo(MemberInfo member)
+        {
+            return new UniqueMemberToken(member.MetadataToken, member.Module.ModuleHandle);
+        }
+
+
         public override int GetHashCode()
         {
-            return metadataToken.GetHashCode() ^ moduleHandle.GetHashCode();
+            return this.metadataToken.GetHashCode() ^ this.moduleHandle.GetHashCode();
         }
+
 
         public static bool operator ==(UniqueMemberToken a, UniqueMemberToken b)
         {
             return a.metadataToken == b.metadataToken && a.moduleHandle == b.moduleHandle;
         }
 
+
         public static bool operator !=(UniqueMemberToken a, UniqueMemberToken b)
         {
             return !(a == b);
-        }
-
-        public static UniqueMemberToken FromMemberInfo(MemberInfo member)
-        {
-            return new UniqueMemberToken(member.MetadataToken, member.Module.ModuleHandle);
         }
     }
 }
