@@ -81,3 +81,5 @@ app/Pomona/QueriesPomona.csproj.AntlrGeneratedCodeFileListAbsolute.txt
 
 *.TMP
 *.sln.GhostDoc.xml
+project.lock.json
+
