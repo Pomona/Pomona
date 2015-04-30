@@ -38,7 +38,9 @@ namespace Pomona.Common.TypeSystem
     {
         TypeSpec FromType(Type type);
         TypeSpec FromType(string typeName);
+        bool TryGetTypeByName(string typeName, out TypeSpec typeSpec);
         PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo);
+
         IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec);
         TypeSpec LoadDeclaringType(PropertySpec propertySpec);
         IEnumerable<TypeSpec> LoadGenericArguments(TypeSpec typeSpec);

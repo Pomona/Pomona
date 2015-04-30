@@ -61,11 +61,10 @@ namespace Pomona.Common
         public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
         {
             this.resourceTypes = clientResourceTypes.ToList().AsReadOnly();
-            var mappedTypes = this.resourceTypes.Union(TypeUtils.GetNativeTypes());
             this.typeNameMap =
-                mappedTypes
+                this.resourceTypes
                     .Select(FromType)
-                    .ToDictionary(GetJsonTypeName, x => x);
+                    .ToDictionary(GetJsonTypeName, x => x, StringComparer.OrdinalIgnoreCase);
 
             this.extendedResourceMapper = new ExtendedResourceMapper(this);
         }
@@ -74,12 +73,6 @@ namespace Pomona.Common
         public IEnumerable<Type> ResourceTypes
         {
             get { return this.resourceTypes; }
-        }
-
-
-        public override TypeSpec FromType(string typeName)
-        {
-            return this.typeNameMap[typeName];
         }
 
 
@@ -298,6 +291,12 @@ namespace Pomona.Common
             }
 
             return type;
+        }
+
+
+        public override bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
+        {
+            return base.TryGetTypeByName(typeName, out typeSpec) || this.typeNameMap.TryGetValue(typeName, out typeSpec);
         }
 
 

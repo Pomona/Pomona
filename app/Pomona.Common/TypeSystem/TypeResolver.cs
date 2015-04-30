@@ -40,6 +40,7 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly IEnumerable<ITypeFactory> typeFactories;
         private readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
+        private readonly Lazy<Dictionary<string, TypeSpec>> primitiveNameTypeMap;
 
 
         public TypeResolver()
@@ -62,6 +63,11 @@ namespace Pomona.Common.TypeSystem
                     .Select(m => (ITypeFactory)m.Invoke(null, null))
                     .OrderBy(x => x.Priority)
                     .ToList();
+
+            this.primitiveNameTypeMap = new Lazy<Dictionary<string, TypeSpec>>(() =>
+                TypeUtils.GetNativeTypes()
+                         .Select(FromType)
+                         .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase));
         }
 
 
@@ -93,13 +99,25 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public virtual bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
+        {
+            return this.primitiveNameTypeMap.Value.TryGetValue(typeName, out typeSpec);
+        }
+
+
         public virtual PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo)
         {
             return FromType(reflectedType).GetPropertyByName(propertyInfo.Name, false);
         }
 
 
-        public abstract TypeSpec FromType(string typeName);
+        public virtual TypeSpec FromType(string typeName)
+        {
+            TypeSpec typeSpec;
+            if (!TryGetTypeByName(typeName, out typeSpec))
+                throw new PomonaException("Type with name " + typeName + " not recognized.");
+            return typeSpec;
+        }
 
 
         public virtual TypeSpec FromType(Type type)

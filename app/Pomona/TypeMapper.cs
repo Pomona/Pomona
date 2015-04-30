@@ -67,13 +67,7 @@ namespace Pomona
 
             this.sourceTypes = new HashSet<Type>(sourceTypes.Where(this.filter.TypeIsMapped));
 
-            this.typeNameMap = new Dictionary<string, TypeSpec>();
-
-            foreach (var sourceType in this.sourceTypes.Concat(TypeUtils.GetNativeTypes()))
-            {
-                var type = FromType(sourceType);
-                this.typeNameMap[type.Name.ToLower()] = type;
-            }
+            this.typeNameMap = this.sourceTypes.Select(FromType).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
 
             if (onMappingComplete != null)
                 onMappingComplete(this);
@@ -104,10 +98,16 @@ namespace Pomona
 
         public override TypeSpec FromType(string typeName)
         {
-            TypeSpec type;
-            if (!this.typeNameMap.TryGetValue(typeName.ToLower(), out type))
+            TypeSpec typeSpec;
+            if (!TryGetTypeByName(typeName, out typeSpec))
                 throw new UnknownTypeException("Type with name " + typeName + " not recognized.");
-            return type;
+            return typeSpec;
+        }
+
+
+        public override bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
+        {
+            return base.TryGetTypeByName(typeName, out typeSpec) || this.typeNameMap.TryGetValue(typeName, out typeSpec);
         }
 
 
