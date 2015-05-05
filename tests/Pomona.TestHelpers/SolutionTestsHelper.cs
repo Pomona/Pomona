@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,6 +48,12 @@ namespace Pomona.TestHelpers
     /// </summary>
     public static class SolutionTestsHelper
     {
+        public static IEnumerable<string> FindCSharpSourceFiles(string path)
+        {
+            return FindSourceFiles("*.cs", path);
+        }
+
+
         /// <summary>
         /// Finds the physical path of the Visual Studio Project File the assembly is compiled from.
         /// </summary>
@@ -186,6 +193,16 @@ namespace Pomona.TestHelpers
         }
 
 
+        public static IEnumerable<string> FindSourceFiles(string searchPattern, string path)
+        {
+            var sourceCodeFiles = Directory.EnumerateFiles(path,
+                                                           searchPattern,
+                                                           SearchOption.AllDirectories)
+                                           .Where(x => !IsIgnoredPath(Path.GetDirectoryName(x)));
+            return sourceCodeFiles;
+        }
+
+
         /// <summary>
         /// Check all projects in solution at path for consistent nuget package references.
         /// </summary>
@@ -205,14 +222,14 @@ namespace Pomona.TestHelpers
                 {
                     sb.AppendFormat("Found multiple versions of package {0}:\r\n{1}",
                                     package.Key,
-                                    string.Join("",
+                                    String.Join("",
                                                 versions.Select(
                                                     x =>
-                                                        string.Format("    {0}\r\n{1}",
+                                                        String.Format("    {0}\r\n{1}",
                                                                       x.Key,
-                                                                      string.Join("",
+                                                                      String.Join("",
                                                                                   x.Select(
-                                                                                      y => string.Format("        {0}\r\n", y.ProjectName)))))));
+                                                                                      y => String.Format("        {0}\r\n", y.ProjectName)))))));
 
                     errorCount++;
 
@@ -222,10 +239,10 @@ namespace Pomona.TestHelpers
                         versions.Where(x => x.Key != suggestedVersion).SelectMany(x => x);
                     sb.AppendFormat("    Suggested version is {0}, install using:\r\n{1}",
                                     suggestedVersion,
-                                    string.Join("",
+                                    String.Join("",
                                                 suggestedUpgrades.Select(
                                                     x =>
-                                                        string.Format("        Update-Package -Id {0} -ProjectName {1} -Version {2}\r\n",
+                                                        String.Format("        Update-Package -Id {0} -ProjectName {1} -Version {2}\r\n",
                                                                       x.Id,
                                                                       x.ProjectName,
                                                                       suggestedVersion))));
@@ -234,6 +251,50 @@ namespace Pomona.TestHelpers
             foreach (var item in packages.SelectMany(x => x))
                 errorCount += item.ValidateHintPathReference(sb);
             Assert.That(errorCount, Is.EqualTo(0), "Found package reference inconsitencies:\r\n" + sb);
+        }
+
+
+        public static void VerifyProjectNoOrphanSourceCodeFiles(string projectPath)
+        {
+            XDocument project;
+            using (var f = File.OpenRead(projectPath))
+            {
+                project = XDocument.Load(f);
+            }
+            var projectDir = Path.GetDirectoryName(projectPath);
+            var xmlNamespaceManager = new XmlNamespaceManager(new NameTable());
+            xmlNamespaceManager.AddNamespace("pj", project.Root.Name.NamespaceName);
+            var filesInProject =
+                ((IEnumerable)project.XPathEvaluate("/pj:Project/pj:ItemGroup/pj:Compile/@Include", xmlNamespaceManager))
+                    .Cast<XAttribute>()
+                    .Select(x => x.Value)
+                    .Where(x => Path.GetExtension(x) == ".cs")
+                    .Select(x => MakeRelative(Path.GetFullPath(Path.Combine(projectDir, x)), projectDir)).ToList();
+            var filesInDirectory =
+                FindCSharpSourceFiles(projectDir)
+                    .Select(x => MakeRelative(x, projectDir)).ToList();
+
+            var errorLog = new StringBuilder();
+            var filesNotIncludedInProject = filesInDirectory.Except(filesInProject, StringComparer.OrdinalIgnoreCase);
+            foreach (var orphanFile in filesNotIncludedInProject)
+                errorLog.AppendFormat("File \"{0}\" in project folder of {1} is not included.", orphanFile, projectPath);
+
+            if (errorLog.Length > 0)
+                Assert.Fail(errorLog.ToString());
+        }
+
+
+        private static bool IsIgnoredPath(string directoryName)
+        {
+            return directoryName.Contains("\\obj\\") || directoryName.Contains("\\bin\\");
+        }
+
+
+        private static string MakeRelative(string filePath, string referencePath)
+        {
+            var fileUri = new Uri(filePath);
+            var referenceUri = new Uri(referencePath);
+            return referenceUri.MakeRelativeUri(fileUri).ToString().Replace("/", Path.DirectorySeparatorChar.ToString());
         }
 
         #region Nested type: NugetPackageElement
@@ -345,7 +406,7 @@ namespace Pomona.TestHelpers
                 nsManager.AddNamespace("x", ns.NamespaceName);
                 var assumedPackagePathStart = AssumedPackagePathStart;
                 var xpathPredicate =
-                    string.Format(
+                    String.Format(
                         "//x:Project/x:ItemGroup/x:Reference[starts-with(x:HintPath,'{0}') and string-length(x:HintPath) > ({1} + 1) and string(number(substring(x:HintPath,{1},1))) != 'NaN']",
                         assumedPackagePathStart,
                         assumedPackagePathStart.Length + 1);
@@ -370,7 +431,7 @@ namespace Pomona.TestHelpers
                     errorLog.AppendFormat("There are dll-references from {0} to multiple versions of {1} ({2})\r\n",
                                           ProjectName,
                                           Id,
-                                          string.Join(", ", referencesGroupedByVersion.Select(x => x.Key)));
+                                          String.Join(", ", referencesGroupedByVersion.Select(x => x.Key)));
                     errorCount++;
                 }
 
@@ -429,7 +490,7 @@ namespace Pomona.TestHelpers
                     preReleasePart = mainAndPreleaseParts[1];
                 else
                     preReleasePart = null;
-                return mainAndPreleaseParts[0].Split('.').Select(int.Parse).Pad(3, 0).ToArray();
+                return mainAndPreleaseParts[0].Split('.').Select(Int32.Parse).Pad(3, 0).ToArray();
             }
 
             #region Nested type: LibReference

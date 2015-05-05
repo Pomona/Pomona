@@ -55,7 +55,8 @@ namespace Pomona.UnitTests
             var p = new CSharpParser();
             var errorCount = 0;
 
-            foreach (var csFile in FindCSharpSourceFiles().Select(x => p.Parse(File.ReadAllText(x), x)))
+            var csFiles = SolutionTestsHelper.FindCSharpSourceFiles(SolutionDirectory).Select(x => p.Parse(File.ReadAllText(x), x));
+            foreach (var csFile in csFiles)
             {
                 var topLevelTypes =
                     csFile.Children.Flatten(x => x is TypeDeclaration ? Enumerable.Empty<AstNode>() : x.Children)
@@ -71,6 +72,14 @@ namespace Pomona.UnitTests
             }
 
             Assert.That(errorCount, Is.EqualTo(0));
+        }
+
+
+        [Test]
+        public void AllCsFilesAreIncludedInProjects()
+        {
+            foreach (var csProjFile in SolutionTestsHelper.FindSourceFiles("*.csproj", SolutionDirectory))
+                SolutionTestsHelper.VerifyProjectNoOrphanSourceCodeFiles(csProjFile);
         }
 
 
@@ -91,24 +100,11 @@ namespace Pomona.UnitTests
         }
 
 
-        private static IEnumerable<string> FindCSharpSourceFiles(string path = null)
-        {
-            path = path ?? SolutionDirectory;
-            Console.WriteLine("Searching path " + path);
-
-            var sourceCodeFiles = Directory.EnumerateFiles(path,
-                                                           "*.cs",
-                                                           SearchOption.AllDirectories)
-                                           .Where(x => !Path.GetDirectoryName(x).Contains("\\obj\\"));
-            return sourceCodeFiles;
-        }
-
-
         private static void NoSourceCodeContains(string shouldNotCountainString)
         {
             var path = SolutionDirectory;
 
-            var sourceCodeFiles = FindCSharpSourceFiles(path);
+            var sourceCodeFiles = SolutionTestsHelper.FindCSharpSourceFiles(path);
 
             var foundFilesWithNoCommitMessage = false;
 
