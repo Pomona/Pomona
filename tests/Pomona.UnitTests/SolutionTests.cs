@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,67 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class SolutionTests
     {
+        private static string SolutionDirectory
+        {
+            get { return Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>()); }
+        }
+
+
+        [Test]
+        public void AllClassesAreContainedInFilesWithCorrectName()
+        {
+            var p = new CSharpParser();
+            var errorCount = 0;
+
+            foreach (var csFile in FindCSharpSourceFiles().Select(x => p.Parse(File.ReadAllText(x), x)))
+            {
+                var topLevelTypes =
+                    csFile.Children.Flatten(x => x is TypeDeclaration ? Enumerable.Empty<AstNode>() : x.Children)
+                          .OfType<TypeDeclaration>()
+                          .Where(x => x.Name != Path.GetFileNameWithoutExtension(csFile.FileName))
+                          .Select(x => new { x.Name, csFile.FileName })
+                          .ToList();
+
+                foreach (var td in topLevelTypes)
+                    Console.WriteLine("Type " + td.Name + " does not match filename " + td.FileName);
+
+                errorCount += topLevelTypes.Count;
+            }
+
+            Assert.That(errorCount, Is.EqualTo(0));
+        }
+
+
+        [Test]
+        public void AllPackagesInSolutionHaveSameVersion()
+        {
+            var excludedPackages = new string[] { "NHibernate", "Iesi.Collections" };
+            SolutionTestsHelper.VerifyNugetPackageReferences(SolutionTestsHelper.FindSolutionPathOf(this),
+                                                             x => !excludedPackages.Contains(x.Id));
+        }
+
+
+        [Test]
+        public void NoSourceCodeContainsNoCommit()
+        {
+            const string commitBlockString = "NO" + "COMMIT";
+            NoSourceCodeContains(commitBlockString);
+        }
+
+
+        private static IEnumerable<string> FindCSharpSourceFiles(string path = null)
+        {
+            path = path ?? SolutionDirectory;
+            Console.WriteLine("Searching path " + path);
+
+            var sourceCodeFiles = Directory.EnumerateFiles(path,
+                                                           "*.cs",
+                                                           SearchOption.AllDirectories)
+                                           .Where(x => !Path.GetDirectoryName(x).Contains("\\obj\\"));
+            return sourceCodeFiles;
+        }
+
+
         private static void NoSourceCodeContains(string shouldNotCountainString)
         {
             var path = SolutionDirectory;
@@ -88,66 +149,6 @@ namespace Pomona.UnitTests
             }
 
             Assert.That(foundFilesWithNoCommitMessage, Is.False, "Found files with '{0}'.", shouldNotCountainString);
-        }
-
-
-        private static string SolutionDirectory
-        {
-            get { return Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>()); }
-        }
-
-
-        private static IEnumerable<string> FindCSharpSourceFiles(string path = null)
-        {
-            path = path ?? SolutionDirectory;
-            Console.WriteLine("Searching path " + path);
-
-            var sourceCodeFiles = Directory.EnumerateFiles(path,
-                                                           "*.cs",
-                                                           SearchOption.AllDirectories)
-                .Where(x => !Path.GetDirectoryName(x).Contains("\\obj\\"));
-            return sourceCodeFiles;
-        }
-
-
-        [Test]
-        public void AllClassesAreContainedInFilesWithCorrectName()
-        {
-            var p = new CSharpParser();
-            var errorCount = 0;
-
-            foreach (var csFile in FindCSharpSourceFiles().Select(x => p.Parse(File.ReadAllText(x), x)))
-            {
-                var topLevelTypes =
-                    csFile.Children.Flatten(x => x is TypeDeclaration ? Enumerable.Empty<AstNode>() : x.Children)
-                        .OfType<TypeDeclaration>()
-                        .Where(x => x.Name != Path.GetFileNameWithoutExtension(csFile.FileName))
-                        .Select(x => new { x.Name, csFile.FileName })
-                        .ToList();
-
-                foreach (var td in topLevelTypes)
-                    Console.WriteLine("Type " + td.Name + " does not match filename " + td.FileName);
-
-                errorCount += topLevelTypes.Count;
-            }
-
-            Assert.That(errorCount, Is.EqualTo(0));
-        }
-
-
-        [Test]
-        public void AllPackagesInSolutionHaveSameVersion()
-        {
-            var excludedPackages = new string[] { "NHibernate", "Iesi.Collections" };
-            SolutionTestsHelper.VerifyNugetPackageReferences(SolutionTestsHelper.FindSolutionPathOf(this), x => !excludedPackages.Contains(x.Id));
-        }
-
-
-        [Test]
-        public void NoSourceCodeContainsNoCommit()
-        {
-            const string commitBlockString = "NO" + "COMMIT";
-            NoSourceCodeContains(commitBlockString);
         }
     }
 }

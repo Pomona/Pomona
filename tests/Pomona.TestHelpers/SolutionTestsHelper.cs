@@ -1,8 +1,9 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
 using System;
@@ -45,56 +47,6 @@ namespace Pomona.TestHelpers
     /// </summary>
     public static class SolutionTestsHelper
     {
-
-        /// <summary>
-        /// Check all projects in solution at path for consistent nuget package references.
-        /// </summary>
-        /// <param name="solutionPath">Path to .sln file.</param>
-        public static void VerifyNugetPackageReferences(string solutionPath, Func<NugetPackageElement, bool> filter)
-        {
-            filter = filter ?? (x => true);
-            var solutionDir = Path.GetDirectoryName(solutionPath);
-            //var solution = new ICSharpCode.NRefactory.ConsistencyCheck.Solution(solutionPath);
-            var packages = NugetPackageElement.Load(solutionDir).Where(filter).GroupBy(x => x.Id).ToList();
-            StringBuilder sb = new StringBuilder();
-            int errorCount = 0;
-            foreach (var package in packages)
-            {
-                var versions = package.GroupBy(x => x.Version).ToList();
-                if (versions.Count > 1)
-                {
-                    sb.AppendFormat("Found multiple versions of package {0}:\r\n{1}",
-                        package.Key,
-                        string.Join("",
-                            versions.Select(
-                                x =>
-                                    string.Format("    {0}\r\n{1}",
-                                        x.Key,
-                                        string.Join("", x.Select(y => string.Format("        {0}\r\n", y.ProjectName)))))));
-
-                    errorCount++;
-
-                    var suggestedVersion =
-                        versions.Select(x => x.Key).OrderBy(x => x, new NugetPackageElement.VersionComparer()).Last();
-                    var suggestedUpgrades =
-                        versions.Where(x => x.Key != suggestedVersion).SelectMany(x => x);
-                    sb.AppendFormat("    Suggested version is {0}, install using:\r\n{1}",
-                        suggestedVersion,
-                        string.Join("",
-                            suggestedUpgrades.Select(
-                                x =>
-                                    string.Format("        Update-Package -Id {0} -ProjectName {1} -Version {2}\r\n",
-                                        x.Id,
-                                        x.ProjectName,
-                                        suggestedVersion))));
-                }
-            }
-            foreach (var item in packages.SelectMany(x => x))
-                errorCount += item.ValidateHintPathReference(sb);
-            Assert.That(errorCount, Is.EqualTo(0), "Found package reference inconsitencies:\r\n" + sb);
-        }
-
-
         /// <summary>
         /// Finds the physical path of the Visual Studio Project File the assembly is compiled from.
         /// </summary>
@@ -234,6 +186,56 @@ namespace Pomona.TestHelpers
         }
 
 
+        /// <summary>
+        /// Check all projects in solution at path for consistent nuget package references.
+        /// </summary>
+        /// <param name="solutionPath">Path to .sln file.</param>
+        public static void VerifyNugetPackageReferences(string solutionPath, Func<NugetPackageElement, bool> filter)
+        {
+            filter = filter ?? (x => true);
+            var solutionDir = Path.GetDirectoryName(solutionPath);
+            //var solution = new ICSharpCode.NRefactory.ConsistencyCheck.Solution(solutionPath);
+            var packages = NugetPackageElement.Load(solutionDir).Where(filter).GroupBy(x => x.Id).ToList();
+            StringBuilder sb = new StringBuilder();
+            int errorCount = 0;
+            foreach (var package in packages)
+            {
+                var versions = package.GroupBy(x => x.Version).ToList();
+                if (versions.Count > 1)
+                {
+                    sb.AppendFormat("Found multiple versions of package {0}:\r\n{1}",
+                                    package.Key,
+                                    string.Join("",
+                                                versions.Select(
+                                                    x =>
+                                                        string.Format("    {0}\r\n{1}",
+                                                                      x.Key,
+                                                                      string.Join("",
+                                                                                  x.Select(
+                                                                                      y => string.Format("        {0}\r\n", y.ProjectName)))))));
+
+                    errorCount++;
+
+                    var suggestedVersion =
+                        versions.Select(x => x.Key).OrderBy(x => x, new NugetPackageElement.VersionComparer()).Last();
+                    var suggestedUpgrades =
+                        versions.Where(x => x.Key != suggestedVersion).SelectMany(x => x);
+                    sb.AppendFormat("    Suggested version is {0}, install using:\r\n{1}",
+                                    suggestedVersion,
+                                    string.Join("",
+                                                suggestedUpgrades.Select(
+                                                    x =>
+                                                        string.Format("        Update-Package -Id {0} -ProjectName {1} -Version {2}\r\n",
+                                                                      x.Id,
+                                                                      x.ProjectName,
+                                                                      suggestedVersion))));
+                }
+            }
+            foreach (var item in packages.SelectMany(x => x))
+                errorCount += item.ValidateHintPathReference(sb);
+            Assert.That(errorCount, Is.EqualTo(0), "Found package reference inconsitencies:\r\n" + sb);
+        }
+
         #region Nested type: NugetPackageElement
 
         public class NugetPackageElement
@@ -246,9 +248,9 @@ namespace Pomona.TestHelpers
 
 
             public NugetPackageElement(string project,
-                XElement packagesConfigElement,
-                string solutionDirectoy,
-                XDocument projectXmlDocument = null)
+                                       XElement packagesConfigElement,
+                                       string solutionDirectoy,
+                                       XDocument projectXmlDocument = null)
             {
                 this.projectFile = project;
                 this.solutionDirectoy = solutionDirectoy;
@@ -293,7 +295,7 @@ namespace Pomona.TestHelpers
                 get
                 {
                     return GetRelativePath(Path.Combine(this.solutionDirectoy, "packages"),
-                        Path.GetDirectoryName(this.projectFile));
+                                           Path.GetDirectoryName(this.projectFile));
                 }
             }
 
@@ -306,7 +308,7 @@ namespace Pomona.TestHelpers
             public static IEnumerable<NugetPackageElement> Load(string solutionDirectory)
             {
                 return Load(Directory.EnumerateFiles(solutionDirectory, "*.csproj", SearchOption.AllDirectories),
-                    solutionDirectory);
+                            solutionDirectory);
             }
 
 
@@ -366,9 +368,9 @@ namespace Pomona.TestHelpers
                 if (referencesGroupedByVersion.Count > 1)
                 {
                     errorLog.AppendFormat("There are dll-references from {0} to multiple versions of {1} ({2})\r\n",
-                        ProjectName,
-                        Id,
-                        string.Join(", ", referencesGroupedByVersion.Select(x => x.Key)));
+                                          ProjectName,
+                                          Id,
+                                          string.Join(", ", referencesGroupedByVersion.Select(x => x.Key)));
                     errorCount++;
                 }
 
@@ -400,6 +402,19 @@ namespace Pomona.TestHelpers
             }
 
 
+            private string GetRelativePath(string filespec, string folder)
+            {
+                Uri pathUri = new Uri(filespec);
+                // Folders must end in a slash
+                if (!folder.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                    folder += Path.DirectorySeparatorChar;
+                Uri folderUri = new Uri(folder);
+                return
+                    Uri.UnescapeDataString(folderUri.MakeRelativeUri(pathUri).ToString().Replace('/',
+                                                                                                 Path.DirectorySeparatorChar));
+            }
+
+
             private static int[] ParseVersionParts(string version)
             {
                 string _;
@@ -417,19 +432,6 @@ namespace Pomona.TestHelpers
                 return mainAndPreleaseParts[0].Split('.').Select(int.Parse).Pad(3, 0).ToArray();
             }
 
-
-            private string GetRelativePath(string filespec, string folder)
-            {
-                Uri pathUri = new Uri(filespec);
-                // Folders must end in a slash
-                if (!folder.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                    folder += Path.DirectorySeparatorChar;
-                Uri folderUri = new Uri(folder);
-                return
-                    Uri.UnescapeDataString(folderUri.MakeRelativeUri(pathUri).ToString().Replace('/',
-                        Path.DirectorySeparatorChar));
-            }
-
             #region Nested type: LibReference
 
             private class LibReference
@@ -440,16 +442,17 @@ namespace Pomona.TestHelpers
 
 
                 public LibReference(NugetPackageElement parent,
-                    string hintPathBeforePrefix,
-                    XElement element,
-                    XNamespace ns)
+                                    string hintPathBeforePrefix,
+                                    XElement element,
+                                    XNamespace ns)
                 {
                     this.parent = parent;
                     var hintPathElement = element.Descendants(ns + "HintPath").First();
                     this.hintPath = hintPathElement.Value;
                     this.pathVersionPart = this.hintPath.Substring(hintPathBeforePrefix.Length,
-                        this.hintPath.IndexOfAny(new char[] { '\\', '/' }, hintPathBeforePrefix.Length)
-                        - hintPathBeforePrefix.Length);
+                                                                   this.hintPath.IndexOfAny(new char[] { '\\', '/' },
+                                                                                            hintPathBeforePrefix.Length)
+                                                                   - hintPathBeforePrefix.Length);
                 }
 
 
