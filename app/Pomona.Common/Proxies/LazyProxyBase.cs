@@ -40,6 +40,12 @@ namespace Pomona.Common.Proxies
         public Type ProxyTargetType { get; private set; }
 
 
+        public override string ToString()
+        {
+            return string.Format("{0}({1}) - {2}", GetType().Name, Uri, IsLoaded ? "loaded" : "not loaded");
+        }
+
+
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             if (Client == null)
