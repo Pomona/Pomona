@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,42 +35,14 @@ namespace Pomona.Common.Proxies
     public class LazyProxyBase : IHasResourceUri, ILazyProxy
     {
         private string expandPath;
-        private object proxyTarget;
-        private Type proxyTargetType;
-        private IResourceLoader resourceLoader;
-        private string uri;
-
-        public IResourceLoader Client
-        {
-            get { return this.resourceLoader; }
-            internal set { this.resourceLoader = value; }
-        }
-
-        public bool IsLoaded
-        {
-            get { return this.proxyTarget != null; }
-        }
-
-        public object ProxyTarget
-        {
-            get { return this.proxyTarget; }
-            internal set { this.proxyTarget = value; }
-        }
-
-        public Type ProxyTargetType
-        {
-            get { return this.proxyTargetType; }
-        }
-
-        public string Uri
-        {
-            get { return this.uri; }
-        }
+        public IResourceLoader Client { get; internal set; }
+        public object ProxyTarget { get; internal set; }
+        public Type ProxyTargetType { get; private set; }
 
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
-            if (this.resourceLoader == null)
+            if (Client == null)
             {
                 throw new InvalidOperationException(
                     String.Format("{0}.Initialize(IResourceFetchContext) must be invoked before OnGet.", this));
@@ -86,7 +58,7 @@ namespace Pomona.Common.Proxies
                 throw new LazyLoadingDisabledException(resourcePath, exception);
             }
 
-            return property.Getter((TOwner)this.proxyTarget);
+            return property.Getter((TOwner)ProxyTarget);
         }
 
 
@@ -106,14 +78,14 @@ namespace Pomona.Common.Proxies
                 throw new ArgumentNullException("uri");
 
             if (resourceLoader == null)
-                throw new ArgumentNullException("resourceFetcher");
+                throw new ArgumentNullException("resourceLoader");
 
             if (proxyTargetType == null)
                 throw new ArgumentNullException("proxyTargetType");
 
-            this.uri = uri;
-            this.resourceLoader = resourceLoader;
-            this.proxyTargetType = proxyTargetType;
+            Uri = uri;
+            Client = resourceLoader;
+            ProxyTargetType = proxyTargetType;
             this.expandPath = expandPath;
         }
 
@@ -123,10 +95,18 @@ namespace Pomona.Common.Proxies
             if (IsLoaded)
                 return;
 
-            this.proxyTarget = this.resourceLoader.Get(this.uri, this.proxyTargetType);
-            var hasResourceUri = this.proxyTarget as IHasResourceUri;
+            ProxyTarget = Client.Get(Uri, ProxyTargetType);
+            var hasResourceUri = ProxyTarget as IHasResourceUri;
             if (hasResourceUri != null)
-                this.uri = hasResourceUri.Uri;
+                Uri = hasResourceUri.Uri;
         }
+
+
+        public bool IsLoaded
+        {
+            get { return ProxyTarget != null; }
+        }
+
+        public string Uri { get; private set; }
     }
 }
